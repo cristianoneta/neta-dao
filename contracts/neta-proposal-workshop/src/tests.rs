@@ -46,7 +46,9 @@ fn comment_gate_is_strictly_more_than_ten_neta() {
     assert_eq!(msg("ten").unwrap_err(), ContractError::CommentStakeNotMet);
     msg("staker").unwrap();
     let access:AccessResponse=from_json(query(deps.as_ref(),mock_env(),QueryMsg::Access{address:"staker".into()}).unwrap()).unwrap();
-    assert!(access.can_comment);
+    assert_eq!(access.active_neta_stake, Uint128::new(10_000_001));
+    assert_eq!(access.cooldown_remaining_seconds, 30);
+    assert!(!access.can_comment);
     assert!(!access.can_publish);
 }
 
