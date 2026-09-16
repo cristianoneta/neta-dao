@@ -7,7 +7,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://juno-api.polkachu.com https://juno-api.lavenderfive.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>NETA DAO · Proposal Workshop</title>
   <meta name="description" content="Collaboratively draft, review and prepare NETA DAO proposals before they move on-chain.">
-  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
   <header class="shell-header">
@@ -64,7 +64,7 @@
 
         <form id="draftForm">
           <label>PROPOSAL TITLE<input id="title" maxlength="100" required placeholder="A clear decision the DAO can evaluate"></label>
-          <label>SUMMARY<textarea id="summary" maxlength="500" required placeholder="What should change and why?"></textarea></label>
+          <label>SUMMARY · MAX 300 CHARACTERS<textarea id="summary" maxlength="300" required placeholder="What should change and why?"></textarea></label>
           <label>FULL PROPOSAL<textarea id="body" maxlength="10000" required placeholder="Context, rationale, expected impact, risks and implementation plan"></textarea></label>
 
           <section class="actions-panel">
@@ -86,15 +86,9 @@
             <div class="review-meta"><span id="reviewVersion">VERSION 1</span><span id="reviewUpdated">—</span></div>
             <h2 id="reviewTitle"></h2>
             <p id="reviewSummary" class="review-summary"></p>
-            <div id="reviewBody" class="review-body"></div>
-            <section class="review-actions"><small>PROPOSED EXECUTION</small><div id="reviewActions"></div></section>
-            <section class="history-panel">
-              <div class="section-head"><div><small>AUDIT TRAIL</small><h3>VERSIONS</h3></div><button id="compareVersions" type="button">COMPARE LATEST</button></div>
-              <div id="versionList" class="version-list"></div>
-              <pre id="diffOutput" class="diff" hidden></pre>
-            </section>
+            <details id="proposalDetails" class="proposal-details"><summary>READ FULL PROPOSAL + ACTIONS</summary><div id="reviewBody" class="review-body"></div><section class="review-actions"><small>PROPOSED EXECUTION</small><div id="reviewActions"></div></section></details>
           </div>
-          <aside class="discussion-panel">
+          <section class="discussion-panel">
             <div class="discussion-head"><div><small>MEMBER REVIEW</small><h3>DISCUSSION <span id="openThreadCount">0 OPEN</span></h3></div><select id="commentFilter" aria-label="Filter discussions"><option value="open">OPEN</option><option value="incorporated">INCORPORATED</option><option value="not_incorporated">NOT INCORPORATED</option><option value="all">ALL</option></select></div>
             <form id="commentForm" class="comment-form">
               <select id="commentSection" aria-label="Proposal section"><option value="general">GENERAL PROPOSAL</option><option value="summary">SUMMARY</option><option value="body">FULL PROPOSAL</option></select>
@@ -102,7 +96,12 @@
               <button type="submit">START THREAD</button>
             </form>
             <div id="commentList" class="comment-list"></div>
-          </aside>
+          </section>
+          <section class="history-panel">
+            <div class="section-head"><div><small>PROPOSAL EVOLUTION</small><h3>VERSION HISTORY</h3></div><button id="compareVersions" type="button">COMPARE LATEST</button></div>
+            <div id="versionList" class="version-list"></div>
+            <pre id="diffOutput" class="diff" hidden></pre>
+          </section>
         </section>
       </article>
     </section>
@@ -113,6 +112,6 @@
       <div data-fields></div>
     </fieldset>
   </template>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

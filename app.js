@@ -86,6 +86,7 @@
   function toggleEmpty(){$("#emptyActions").hidden=$("#actionList").children.length>0}
   function saveRevision(){
     const values=readForm();if(!values.title||!values.summary||!values.body){$("#draftForm").reportValidity();return}
+    if(values.summary.length>300){feedback("Keep the proposal summary within 300 characters.","error");return}
     const error=validateActions(values.actions);if(error){alert(error);return}
     let d=active();if(!d){d=blank();state.drafts.unshift(d);state.active=d.id}
     const changeLog=$("#changeLog").value.trim();if(d.versions.length&&!changeLog){alert("Explain what changed and why before saving a new version.");return}
@@ -103,7 +104,7 @@
   function editRevision(){const d=active();if(!canAuthor(d)){alert("Only the proposal author can create a revision.");return}state.editing=true;fillForm(d);$("#changeLog").focus()}
   function renderPublished(d){
     const latest=d.versions.at(-1);$("#reviewVersion").textContent=`VERSION ${latest?.number||d.versions.length}`;$("#reviewUpdated").textContent=`UPDATED ${new Date(latest?.createdAt||d.publishedAt).toLocaleString()}`;
-    $("#reviewTitle").textContent=d.title;$("#reviewSummary").textContent=d.summary;$("#reviewBody").textContent=d.body;
+    $("#reviewTitle").textContent=d.title;$("#reviewSummary").textContent=d.summary;$("#reviewBody").textContent=d.body;$("#proposalDetails").open=false;
     const actions=$("#reviewActions");actions.replaceChildren();
     if(!d.actions.length)actions.innerHTML='<p class="empty">Text-only proposal. No executable actions.</p>';
     d.actions.forEach((action,index)=>{const card=document.createElement("div");card.className="review-action";card.innerHTML=`<b>ACTION ${index+1} · ${esc(action.type.replaceAll("_"," ").toUpperCase())}</b><pre>${esc(JSON.stringify(messageFor(action),null,2))}</pre>`;actions.append(card)});
@@ -133,7 +134,11 @@
     const artifact={format:"neta-dao-proposal-draft-v1",exportedAt:new Date().toISOString(),draft:d,transactionPayload:{messages:d.actions.map(messageFor)}};
     const blob=new Blob([JSON.stringify(artifact,null,2)],{type:"application/json"}),link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=`neta-dao-proposal-${d.id}.json`;link.click();URL.revokeObjectURL(link.href);
   }
-  function renderVersions(){const d=active(),list=$("#versionList");list.replaceChildren();(d?.versions||[]).slice().reverse().forEach(v=>{const x=document.createElement("div");x.className="version-item";x.innerHTML=`<b>VERSION ${v.number}</b><p>${esc(v.changeLog)}</p><small>${new Date(v.createdAt).toLocaleString()}</small>`;list.append(x)});if(!d?.versions.length)list.innerHTML='<p class="empty">Save the first version to begin an audit trail.</p>'}
+  function renderVersions(){
+    const d=active(),list=$("#versionList");list.replaceChildren();
+    (d?.versions||[]).forEach(v=>{const x=document.createElement("details"),snapshot=v.snapshot||{};x.className="version-item";x.innerHTML=`<summary><span><b>VERSION ${v.number}</b><small>${new Date(v.createdAt).toLocaleString()}</small></span><span>${esc(v.changeLog)}</span></summary><div class="version-expanded"><h4>${esc(snapshot.title||d.title||"Untitled proposal")}</h4><p class="version-summary">${esc(snapshot.summary||"")}</p><div class="version-body">${esc(snapshot.body||"")}</div><small>${(snapshot.actions||[]).length} EXECUTION ACTIONS</small></div>`;list.append(x)});
+    if(!d?.versions.length)list.innerHTML='<p class="empty">Save the first version to begin an audit trail.</p>';
+  }
   function compare(){
     const d=active();if(!d||d.versions.length<2){alert("At least two versions are required.");return}
     const a=JSON.stringify(d.versions.at(-2).snapshot,null,2).split("\n"),b=JSON.stringify(d.versions.at(-1).snapshot,null,2).split("\n"),out=[];const max=Math.max(a.length,b.length);
