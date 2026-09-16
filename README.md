@@ -2,6 +2,8 @@
 
 This branch contains the first reviewable frontend slice for `dao.netareborn.com`.
 
+For the current handoff state, agreed product decisions, and the next implementation step, read [`PROJECT_CHECKPOINT.md`](PROJECT_CHECKPOINT.md).
+
 ## Included
 
 - Searchable, explicitly whitelisted DAO workspaces (initially NETA Operations only).
