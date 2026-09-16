@@ -17,7 +17,8 @@
   const toBase64=value=>{const bytes=new TextEncoder().encode(value);let binary="";bytes.forEach(byte=>binary+=String.fromCharCode(byte));return btoa(binary)};
   const validJuno=value=>/^juno1[02-9ac-hj-np-z]{38}$/.test(value);
   function persist(){localStorage.setItem(STORE,JSON.stringify({daoId:state.daoId,drafts:state.drafts,active:state.active}))}
-  function restore(){try{const x=JSON.parse(localStorage.getItem(STORE)||"{}");state.daoId=DAOS.some(dao=>dao.id===x.daoId)?x.daoId:DAOS[0].id;state.drafts=Array.isArray(x.drafts)?x.drafts:[];state.active=state.drafts.some(d=>d.id===x.active&&d.daoId===state.daoId)?x.active:state.drafts.find(d=>d.daoId===state.daoId)?.id||null}catch{localStorage.removeItem(STORE)}}
+  function restore(){try{const x=JSON.parse(localStorage.getItem(STORE)||"{}");state.daoId=DAOS.some(dao=>dao.id===x.daoId)?x.daoId:DAOS[0].id;state.drafts=Array.isArray(x.drafts)?x.drafts.map(d=>({...d,daoId:d.daoId||DAOS[0].id,status:d.status||"draft",actions:Array.isArray(d.actions)?d.actions:[],versions:Array.isArray(d.versions)?d.versions:[],comments:Array.isArray(d.comments)?d.comments:[]})):[];state.active=state.drafts.some(d=>d.id===x.active&&d.daoId===state.daoId)?x.active:state.drafts.find(d=>d.daoId===state.daoId)?.id||null}catch{localStorage.removeItem(STORE)}}
+  function feedback(message,type="info"){$("#editorFeedback").textContent=message;$("#editorFeedback").dataset.type=type}
   function active(){return state.drafts.find(d=>d.id===state.active)||null}
   function selectedDao(){return DAOS.find(dao=>dao.id===state.daoId)||DAOS[0]}
   async function smart(contract,msg){
@@ -89,13 +90,15 @@
     let d=active();if(!d){d=blank();state.drafts.unshift(d);state.active=d.id}
     const changeLog=$("#changeLog").value.trim();if(d.versions.length&&!changeLog){alert("Explain what changed and why before saving a new version.");return}
     Object.assign(d,values);d.author=d.author||state.address;d.versions.push({number:d.versions.length+1,createdAt:new Date().toISOString(),changeLog:changeLog||"Initial proposal draft",snapshot:structuredClone(values)});
-    state.editing=false;persist();renderDrafts();fillForm(d);
+    state.editing=false;persist();feedback(`Version ${d.versions.length} saved locally.`);renderDrafts();fillForm(d);
   }
   function canAuthor(d){return Boolean(state.address&&(state.ownerAccess||d?.author===state.address))}
   function publishDraft(){
-    const d=active();if(!d?.versions.length)return;if(!state.member||!state.address){alert("Connect a verified DAO member wallet before publishing a draft.");return}
-    if(d.author&&d.author!==state.address&&!state.ownerAccess){alert("Only the draft author can publish it.");return}
-    d.author=d.author||state.address;d.status="published";d.publishedAt=new Date().toISOString();state.editing=false;persist();renderDrafts();fillForm(d);
+    try{
+      const d=active();if(!d?.versions.length){feedback("Save the first version before opening review.","error");return}if(!state.member||!state.address){feedback("Connect a verified DAO member wallet before opening review.","error");return}
+      if(d.author&&d.author!==state.address&&!state.ownerAccess){feedback("Only the draft author can open its review.","error");return}
+      d.author=d.author||state.address;d.status="published";d.publishedAt=new Date().toISOString();state.editing=false;persist();renderDrafts();fillForm(d);feedback("Review opened locally. DAO members can now start discussion threads.","success");$("#reviewSurface").scrollIntoView({behavior:"smooth",block:"start"});
+    }catch(error){console.error(error);feedback(`Could not open review: ${error.message}`,"error")}
   }
   function editRevision(){const d=active();if(!canAuthor(d)){alert("Only the proposal author can create a revision.");return}state.editing=true;fillForm(d);$("#changeLog").focus()}
   function renderPublished(d){

@@ -7,7 +7,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://juno-api.polkachu.com https://juno-api.lavenderfive.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>NETA DAO · Proposal Workshop</title>
   <meta name="description" content="Collaboratively draft, review and prepare NETA DAO proposals before they move on-chain.">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
   <header class="shell-header">
@@ -58,8 +58,9 @@
       <article class="editor">
         <div class="editor-head">
           <div><small id="draftState">UNSAVED DRAFT</small><h2 id="editorTitle">NEW PROPOSAL</h2></div>
-          <div class="editor-actions"><button id="saveRevision" type="button">SAVE REVISION</button><button id="publishDraft" type="button">PUBLISH DRAFT</button><button id="editRevision" class="secondary" type="button" hidden>CREATE REVISION</button><button id="freezeDraft" class="secondary" type="button">FREEZE</button><button id="exportDraft" class="secondary" type="button">EXPORT JSON</button></div>
+          <div class="editor-actions"><button id="saveRevision" type="button">SAVE REVISION</button><button id="publishDraft" type="button">PUBLISH FOR REVIEW</button><button id="editRevision" class="secondary" type="button" hidden>CREATE REVISION</button><button id="freezeDraft" class="secondary" type="button">FREEZE</button><button id="exportDraft" class="secondary" type="button">EXPORT JSON</button></div>
         </div>
+        <div id="editorFeedback" class="editor-feedback" role="status" aria-live="polite">Publishing opens member comments. Nothing is submitted on-chain.</div>
 
         <form id="draftForm">
           <label>PROPOSAL TITLE<input id="title" maxlength="100" required placeholder="A clear decision the DAO can evaluate"></label>
@@ -112,6 +113,6 @@
       <div data-fields></div>
     </fieldset>
   </template>
-  <script src="app.js"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
