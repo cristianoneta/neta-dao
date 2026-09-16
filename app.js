@@ -8,8 +8,9 @@
     description:"Operational expenses and services for NETA DAO."
   }];
   const RESTS=["https://juno-api.polkachu.com","https://juno-api.lavenderfive.com"];
+  const OWNER_TESTERS=["juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57"];
   const STORE="neta-dao-workshop-mvp-v2";
-  const state={address:null,member:false,votingPower:"0",daoId:DAOS[0].id,drafts:[],active:null};
+  const state={address:null,member:false,ownerAccess:false,votingPower:"0",daoId:DAOS[0].id,drafts:[],active:null};
   const $=s=>document.querySelector(s);
   const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
   const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);
@@ -31,9 +32,9 @@
     const signer=window.keplr.getOfflineSigner("juno-1");
     const address=(await signer.getAccounts())[0]?.address;
     if(!address)throw Error("No Juno account returned");
-    const dao=selectedDao();
-    const result=await smart(dao.core,{voting_power_at_height:{address,height:null}});
-    state.address=address;state.votingPower=String(result.power||"0");state.member=BigInt(state.votingPower)>0n;
+    state.address=address;state.ownerAccess=OWNER_TESTERS.includes(address);
+    try{const result=await smart(selectedDao().core,{voting_power_at_height:{address,height:null}});state.votingPower=String(result.power||"0");state.member=state.ownerAccess||BigInt(state.votingPower)>0n}
+    catch(error){if(!state.ownerAccess)throw error;state.votingPower="0";state.member=true}
     renderMembership();
   }
   function renderMembership(error){
@@ -41,9 +42,10 @@
     card.dataset.member=button.dataset.member=String(state.member);
     if(error){status.textContent="CHECK FAILED";detail.textContent=error;return}
     if(!state.address){status.textContent="NOT CONNECTED";detail.textContent=`Connect a Juno wallet to verify current membership in ${selectedDao().name}.`;button.textContent="CONNECT KEPLR";return}
-    status.textContent=state.member?"VERIFIED DAO MEMBER":"NOT CURRENTLY A MEMBER";
-    detail.textContent=`${state.address.slice(0,10)}…${state.address.slice(-6)} · voting power ${state.votingPower} in ${selectedDao().name}`;
+    status.textContent=state.ownerAccess?"OWNER TEST ACCESS":state.member?"VERIFIED DAO MEMBER":"NOT CURRENTLY A MEMBER";
+    detail.textContent=state.ownerAccess?`${state.address.slice(0,10)}…${state.address.slice(-6)} · local MVP override`: `${state.address.slice(0,10)}…${state.address.slice(-6)} · voting power ${state.votingPower} in ${selectedDao().name}`;
     button.textContent=`${state.address.slice(0,8)}…${state.address.slice(-5)}`;
+    $("#walletMenuAddress").textContent=state.address;$("#walletMenuAccess").textContent=status.textContent;
   }
   function blank(){return{id:uid(),daoId:state.daoId,title:"",summary:"",body:"",actions:[],versions:[],comments:[],frozen:false,author:state.address,createdAt:new Date().toISOString()}}
   function readForm(){return{title:$("#title").value.trim(),summary:$("#summary").value.trim(),body:$("#body").value.trim(),actions:[...$("#actionList").children].map(readAction)}}
@@ -117,23 +119,24 @@
     const el=$("#diffOutput");el.textContent=out.join("\n");el.hidden=false;
   }
   function renderComments(){const d=active(),list=$("#commentList");list.replaceChildren();(d?.comments||[]).forEach(c=>{const x=document.createElement("div");x.className="comment";x.innerHTML=`<p>${esc(c.body)}</p><small>${esc(c.author.slice(0,10)+"…"+c.author.slice(-6))} · VERSION ${c.version} · ${new Date(c.createdAt).toLocaleString()}</small>`;list.append(x)});if(!d?.comments.length)list.innerHTML='<p class="empty">No local review comments yet.</p>';$("#commentBody").disabled=$("#commentForm button").disabled=!state.member||!d}
-  function renderDaoPicker(query=""){
-    const term=query.trim().toLowerCase(),matches=DAOS.filter(dao=>!term||dao.name.toLowerCase().includes(term)||dao.core.includes(term));
-    $("#daoOptions").innerHTML=DAOS.map(dao=>`<option value="${esc(dao.name)}">${esc(dao.core)}</option>`).join("");
-    const result=$("#daoResult");result.replaceChildren();
-    matches.forEach(dao=>{const button=document.createElement("button");button.type="button";button.className=dao.id===state.daoId?"selected":"";button.innerHTML=`<strong>${esc(dao.name)}</strong><span>${esc(dao.description)}</span><small>${esc(dao.core.slice(0,13)+"…"+dao.core.slice(-8))} · REVIEWED</small>`;button.onclick=()=>selectDao(dao.id);result.append(button)});
-    if(!matches.length)result.innerHTML='<p class="empty">No whitelisted DAO matches this search.</p>';
+  function renderDaoPicker(){
+    const select=$("#daoSelect");select.innerHTML=DAOS.map(dao=>`<option value="${esc(dao.id)}">${esc(dao.name)} · REVIEWED</option>`).join("");select.value=state.daoId;
   }
   async function selectDao(id){
-    if(!DAOS.some(dao=>dao.id===id))return;state.daoId=id;state.active=state.drafts.find(d=>d.daoId===id)?.id||null;state.member=false;state.votingPower="0";persist();renderDaoPicker($("#daoSearch").value);renderDrafts();fillForm(active());renderMembership();
-    if(state.address)try{const result=await smart(selectedDao().core,{voting_power_at_height:{address:state.address,height:null}});state.votingPower=String(result.power||"0");state.member=BigInt(state.votingPower)>0n;renderMembership();renderComments()}catch(e){renderMembership(e.message)}
+    if(!DAOS.some(dao=>dao.id===id))return;state.daoId=id;state.active=state.drafts.find(d=>d.daoId===id)?.id||null;state.ownerAccess=OWNER_TESTERS.includes(state.address);state.member=state.ownerAccess;state.votingPower="0";persist();renderDaoPicker();renderDrafts();fillForm(active());renderMembership();
+    if(state.address)try{const result=await smart(selectedDao().core,{voting_power_at_height:{address:state.address,height:null}});state.votingPower=String(result.power||"0");state.member=state.ownerAccess||BigInt(state.votingPower)>0n;renderMembership();renderComments()}catch(e){if(state.ownerAccess){renderMembership();renderComments()}else renderMembership(e.message)}
   }
-  $("#walletButton").onclick=()=>connect().then(renderComments).catch(e=>renderMembership(e.message));
+  function closeWalletMenu(){$("#walletMenu").hidden=true;$("#walletButton").setAttribute("aria-expanded","false")}
+  function disconnect(){state.address=null;state.member=false;state.ownerAccess=false;state.votingPower="0";closeWalletMenu();renderMembership();renderComments()}
+  $("#walletButton").onclick=()=>{if(!state.address){connect().then(renderComments).catch(e=>renderMembership(e.message));return}const menu=$("#walletMenu"),open=menu.hidden;menu.hidden=!open;$("#walletButton").setAttribute("aria-expanded",String(open))};
+  $("#copyAddress").onclick=()=>state.address&&navigator.clipboard.writeText(state.address);
+  $("#disconnectWallet").onclick=disconnect;
   $("#newDraft").onclick=()=>{state.active=null;renderDrafts();fillForm(null)};
   $("#addAction").onclick=()=>addAction();
   $("#saveRevision").onclick=saveRevision;$("#freezeDraft").onclick=freeze;$("#exportDraft").onclick=exportDraft;$("#compareVersions").onclick=compare;
   $("#toggleCode").onclick=()=>{$("#codeOutput").hidden=!$("#codeOutput").hidden;renderCode()};
   $("#commentForm").onsubmit=e=>{e.preventDefault();const d=active(),body=$("#commentBody").value.trim();if(!state.member||!d||!body)return;d.comments.push({id:uid(),body,author:state.address,version:d.versions.length,createdAt:new Date().toISOString()});$("#commentBody").value="";persist();renderComments()};
-  $("#daoSearch").oninput=e=>renderDaoPicker(e.target.value);
+  $("#daoSelect").onchange=e=>selectDao(e.target.value);
+  document.addEventListener("click",e=>{if(!e.target.closest(".wallet-area"))closeWalletMenu()});document.addEventListener("keydown",e=>{if(e.key==="Escape")closeWalletMenu()});
   restore();renderDaoPicker();renderMembership();renderDrafts();fillForm(active());
 })();

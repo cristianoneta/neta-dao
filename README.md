@@ -6,6 +6,8 @@ This branch contains the first reviewable frontend slice for `dao.netareborn.com
 
 - Searchable, explicitly whitelisted DAO workspaces (initially NETA Operations only).
 - Live membership verification through the selected DAO core contract's voting-power query; no stale member allowlist.
+- Compact workbench UX with a reviewed-DAO selector and wallet menu.
+- A clearly labelled local owner-testing override for the project owner address. This is not an authorization mechanism.
 - Local proposal drafts with immutable revision snapshots and mandatory change logs.
 - Native bank sends, CW20 transfers, and Juno CosmWasm execute actions.
 - Collapsed human-triggered transaction-code view.
@@ -22,3 +24,5 @@ This branch contains the first reviewable frontend slice for `dao.netareborn.com
 - AI generation, review roles, temperature checks, or other unapproved features.
 
 Local browser storage is explicit in the UI. It must not be represented as public publication. The next approved step is a dedicated, versioned workshop contract and adapter after the exact live DAO module interfaces have been verified.
+
+The owner-testing override exists only to exercise this browser-local MVP. Any shared or on-chain implementation must enforce permissions in its contract/backend and must never trust this frontend flag.
