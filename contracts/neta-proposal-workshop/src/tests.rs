@@ -42,7 +42,7 @@ fn only_members_publish_and_revise() {
 fn comment_gate_is_strictly_more_than_ten_neta() {
     let mut deps = deps();
     execute(deps.as_mut(), mock_env(), mock_info("member", &[]), ExecuteMsg::PublishProposal { content:content("Proposal") }).unwrap();
-    let msg = |who:&str| execute(deps.as_mut(), mock_env(), mock_info(who, &[]), ExecuteMsg::AddComment { proposal_id:1, version:1, parent_id:None, title:Some("Thread".into()), body:"Comment".into() });
+    let mut msg = |who:&str| execute(deps.as_mut(), mock_env(), mock_info(who, &[]), ExecuteMsg::AddComment { proposal_id:1, version:1, parent_id:None, title:Some("Thread".into()), body:"Comment".into() });
     assert_eq!(msg("ten").unwrap_err(), ContractError::CommentStakeNotMet);
     msg("staker").unwrap();
     let access:AccessResponse=from_json(query(deps.as_ref(),mock_env(),QueryMsg::Access{address:"staker".into()}).unwrap()).unwrap();
@@ -62,4 +62,3 @@ fn only_latest_revision_can_be_finalized() {
     let err=execute(deps.as_mut(),mock_env(),mock_info("member",&[]),ExecuteMsg::AddRevision{proposal_id:1,content:content("V3"),change_log:"Too late".into()}).unwrap_err();
     assert_eq!(err,ContractError::Finalized);
 }
-
