@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://juno-api.polkachu.com https://juno-api.lavenderfive.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>NETA DAO · Proposal Workshop</title>
+  <meta name="description" content="Collaboratively draft, review and prepare NETA DAO proposals before they move on-chain.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="shell-header">
+    <a class="brand" href="./"><span class="mark">◉</span><span>[ NETA DAO ]</span></a>
+    <nav aria-label="Primary">
+      <a class="active" href="#workshop">WORKSHOP</a>
+      <span>PROPOSALS</span><span>STAKE</span><span>TREASURY</span><span>SOCIALS</span><span>SYSTEM</span>
+    </nav>
+    <button id="walletButton" class="wallet" type="button">CONNECT KEPLR</button>
+  </header>
+
+  <main>
+    <section class="dao-switcher" aria-labelledby="daoSwitcherTitle">
+      <div>
+        <p class="eyebrow">WHITELISTED GOVERNANCE</p>
+        <h2 id="daoSwitcherTitle">SELECT A DAO WORKSPACE</h2>
+        <p>Only reviewed DAO configurations appear here. Support for another DAO is added only after its contracts and rules have been tested.</p>
+      </div>
+      <div class="dao-search">
+        <label for="daoSearch">SEARCH WHITELISTED DAOS</label>
+        <input id="daoSearch" type="search" list="daoOptions" autocomplete="off" placeholder="Search by DAO name or Juno address">
+        <datalist id="daoOptions"></datalist>
+        <div id="daoResult" class="dao-result" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">COLLABORATIVE GOVERNANCE · JUNO</p>
+        <h1>PROPOSALS SHOULD<br><em>IMPROVE BEFORE THEY VOTE.</em></h1>
+        <p class="lede">Draft actions, invite member feedback, preserve every revision and prepare an auditable payload before submitting anything on-chain.</p>
+      </div>
+      <div class="membership-card">
+        <span>MEMBERSHIP</span>
+        <strong id="membershipStatus">NOT CONNECTED</strong>
+        <small id="membershipDetail">Connect a Juno wallet to verify current membership in the selected DAO.</small>
+      </div>
+    </section>
+
+    <div class="notice"><strong>LOCAL MVP PREVIEW</strong><span>Drafts and comments remain in this browser until the reviewed workshop contract is connected.</span></div>
+
+    <section id="workshop" class="workspace">
+      <aside class="drafts">
+        <div class="section-head"><div><small>WORKSPACE</small><h2>DRAFTS</h2></div><button id="newDraft" type="button">+ NEW</button></div>
+        <div id="draftList" class="draft-list"></div>
+      </aside>
+
+      <article class="editor">
+        <div class="editor-head">
+          <div><small id="draftState">UNSAVED DRAFT</small><h2 id="editorTitle">NEW PROPOSAL</h2></div>
+          <div class="editor-actions"><button id="saveRevision" type="button">SAVE REVISION</button><button id="freezeDraft" class="secondary" type="button">FREEZE</button><button id="exportDraft" class="secondary" type="button">EXPORT JSON</button></div>
+        </div>
+
+        <form id="draftForm">
+          <label>PROPOSAL TITLE<input id="title" maxlength="100" required placeholder="A clear decision the DAO can evaluate"></label>
+          <label>SUMMARY<textarea id="summary" maxlength="500" required placeholder="What should change and why?"></textarea></label>
+          <label>FULL PROPOSAL<textarea id="body" maxlength="10000" required placeholder="Context, rationale, expected impact, risks and implementation plan"></textarea></label>
+
+          <section class="actions-panel">
+            <div class="section-head"><div><small>EXECUTION</small><h3>ACTIONS</h3></div><button id="addAction" type="button">+ ADD ACTION</button></div>
+            <div id="actionList"></div>
+            <p id="emptyActions" class="empty">No executable actions. This will be a text-only proposal.</p>
+          </section>
+
+          <label>WHAT CHANGED AND WHY?<textarea id="changeLog" maxlength="1000" placeholder="Required after the first saved version"></textarea></label>
+        </form>
+
+        <section class="technical">
+          <button id="toggleCode" class="code-toggle" type="button">SHOW TRANSACTION CODE <span>⌄</span></button>
+          <pre id="codeOutput" hidden></pre>
+        </section>
+
+        <section class="review-grid">
+          <div>
+            <div class="section-head"><div><small>HISTORY</small><h3>VERSIONS</h3></div><button id="compareVersions" type="button">COMPARE</button></div>
+            <div id="versionList" class="version-list"></div>
+            <pre id="diffOutput" class="diff" hidden></pre>
+          </div>
+          <div>
+            <div class="section-head"><div><small>MEMBER REVIEW</small><h3>COMMENTS</h3></div></div>
+            <div id="commentList" class="comment-list"></div>
+            <form id="commentForm" class="comment-form">
+              <textarea id="commentBody" maxlength="1500" placeholder="Verified DAO members can comment"></textarea>
+              <button type="submit">ADD COMMENT</button>
+            </form>
+          </div>
+        </section>
+      </article>
+    </section>
+  </main>
+  <template id="actionTemplate">
+    <fieldset class="action-card">
+      <div class="action-top"><select data-field="type"><option value="bank_send">SEND NATIVE TOKEN</option><option value="cw20_transfer">SEND CW20 TOKEN</option><option value="wasm_execute">EXECUTE JUNO CONTRACT</option></select><button data-remove type="button">REMOVE</button></div>
+      <div data-fields></div>
+    </fieldset>
+  </template>
+  <script src="app.js"></script>
+</body>
+</html>
