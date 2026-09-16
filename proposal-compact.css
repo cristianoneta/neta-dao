@@ -1,0 +1,48 @@
+.proposal-document {
+  border-color: #49305b;
+  border-left: 4px solid var(--violet);
+  background: #0e0714;
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+}
+
+.proposal-document .review-meta {
+  color: #c9aed8;
+}
+
+.proposal-document > h2 {
+  margin: .7rem 0;
+  font-size: clamp(1.4rem, 2.3vw, 2.15rem);
+}
+
+.review-summary {
+  max-width: none;
+  margin: .75rem 0;
+  border-left-color: var(--violet);
+  background: #170c1d;
+  color: #dbc9e5;
+  padding: .75rem 1rem;
+  font-size: .92rem;
+  line-height: 1.5;
+}
+
+.proposal-details {
+  max-width: none;
+  margin: .9rem 0 0;
+  border-color: #49305b;
+}
+
+.proposal-details > summary {
+  padding: .8rem 1rem;
+  color: var(--violet);
+}
+
+.proposal-details[open] > summary {
+  border-bottom-color: #49305b;
+}
+
+@media (max-width: 700px) {
+  .proposal-document {
+    padding: 1rem;
+  }
+}
