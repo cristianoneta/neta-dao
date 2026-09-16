@@ -7,7 +7,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://juno-api.polkachu.com https://juno-api.lavenderfive.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>NETA DAO · Proposal Workshop</title>
   <meta name="description" content="Collaboratively draft, review and prepare NETA DAO proposals before they move on-chain.">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
   <header class="shell-header">
@@ -91,14 +91,14 @@
           <section class="discussion-panel">
             <div class="discussion-head"><div><small>MEMBER REVIEW</small><h3>DISCUSSION <span id="openThreadCount">0 OPEN</span></h3></div><select id="commentFilter" aria-label="Filter discussions"><option value="open">OPEN</option><option value="incorporated">INCORPORATED</option><option value="not_incorporated">NOT INCORPORATED</option><option value="all">ALL</option></select></div>
             <form id="commentForm" class="comment-form">
-              <select id="commentSection" aria-label="Proposal section"><option value="general">GENERAL PROPOSAL</option><option value="summary">SUMMARY</option><option value="body">FULL PROPOSAL</option></select>
-              <textarea id="commentBody" maxlength="1500" placeholder="Start a review thread"></textarea>
+              <input id="threadTitle" maxlength="100" placeholder="Thread title" aria-label="Thread title">
+              <textarea id="commentBody" maxlength="1500" placeholder="Explain your question, concern or suggestion"></textarea>
               <button type="submit">START THREAD</button>
             </form>
             <div id="commentList" class="comment-list"></div>
           </section>
-          <section class="history-panel">
-            <div class="section-head"><div><small>PROPOSAL EVOLUTION</small><h3>VERSION HISTORY</h3></div><button id="compareVersions" type="button">COMPARE LATEST</button></div>
+          <section id="versionHistory" class="history-panel" hidden>
+            <div class="section-head"><div><small>PROPOSAL EVOLUTION</small><h3>REVISIONS</h3></div><button id="compareVersions" type="button">COMPARE LATEST</button></div>
             <div id="versionList" class="version-list"></div>
             <pre id="diffOutput" class="diff" hidden></pre>
           </section>
@@ -112,6 +112,6 @@
       <div data-fields></div>
     </fieldset>
   </template>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
