@@ -52,7 +52,7 @@
   function readForm(){return{title:$("#title").value.trim(),summary:$("#summary").value.trim(),body:$("#body").value.trim(),actions:[...$("#actionList").children].map(readAction)}}
   function fillForm(d){
     $("#title").value=d?.title||"";$("#summary").value=d?.summary||"";$("#body").value=d?.body||"";$("#changeLog").value="";
-    $("#actionList").replaceChildren();(d?.actions||[]).forEach(addAction);toggleEmpty();renderCode();renderVersions();renderComments();
+    $("#actionList").replaceChildren();(d?.actions||[]).forEach(addAction);toggleEmpty();renderCode();renderComments();
     const published=d?.status==="published",showEditor=!published||state.editing;
     $("#draftForm").hidden=!showEditor;$(".technical").hidden=!showEditor;$("#reviewSurface").hidden=!published||state.editing;
     $("#editorTitle").textContent=d?.title||"NEW PROPOSAL";$("#draftState").textContent=d?.frozen?"FROZEN":published?`PUBLISHED DRAFT · VERSION ${d.versions.length}`:d?.versions.length?`VERSION ${d.versions.length} · LOCAL`:"UNSAVED DRAFT";
@@ -103,12 +103,15 @@
   }
   function editRevision(){const d=active();if(!canAuthor(d)){alert("Only the proposal author can create a revision.");return}state.editing=true;fillForm(d);$("#changeLog").focus()}
   function renderPublished(d){
-    const latest=d.versions.at(-1);$("#reviewVersion").textContent=`VERSION ${latest?.number||d.versions.length}`;$("#reviewUpdated").textContent=`UPDATED ${new Date(latest?.createdAt||d.publishedAt).toLocaleString()}`;
-    $("#reviewTitle").textContent=d.title;$("#reviewSummary").textContent=d.summary;$("#reviewBody").textContent=d.body;$("#proposalDetails").open=false;
+    const baseline=d.versions[0],snapshot=baseline?.snapshot||d,latest=d.versions.at(-1),hasRevisions=d.versions.length>1;
+    $("#reviewVersion").textContent="VERSION 1 · ORIGINAL DRAFT";$("#reviewUpdated").textContent=`PUBLISHED ${new Date(baseline?.createdAt||d.publishedAt).toLocaleString()}`;
+    $("#reviewTitle").textContent=snapshot.title||d.title;$("#reviewSummary").textContent=snapshot.summary||d.summary;$("#reviewBody").textContent=snapshot.body||d.body;$("#proposalDetails").open=false;
+    $("#newerVersionNotice").hidden=!hasRevisions;$("#newerVersionText").textContent=hasRevisions?`A NEWER VERSION ${latest.number} IS AVAILABLE. FOLLOW THE REVIEW TIMELINE OR JUMP TO IT.`:"";
     const actions=$("#reviewActions");actions.replaceChildren();
-    if(!d.actions.length)actions.innerHTML='<p class="empty">Text-only proposal. No executable actions.</p>';
-    d.actions.forEach((action,index)=>{const card=document.createElement("div");card.className="review-action";card.innerHTML=`<b>ACTION ${index+1} · ${esc(action.type.replaceAll("_"," ").toUpperCase())}</b><pre>${esc(JSON.stringify(messageFor(action),null,2))}</pre>`;actions.append(card)});
-    renderVersions();renderComments();
+    const baselineActions=snapshot.actions||[];
+    if(!baselineActions.length)actions.innerHTML='<p class="empty">Text-only proposal. No executable actions.</p>';
+    baselineActions.forEach((action,index)=>{const card=document.createElement("div");card.className="review-action";card.innerHTML=`<b>ACTION ${index+1} · ${esc(action.type.replaceAll("_"," ").toUpperCase())}</b><pre>${esc(JSON.stringify(messageFor(action),null,2))}</pre>`;actions.append(card)});
+    renderComments();
   }
   function validateActions(actions){
     for(const [index,a] of actions.entries()){
@@ -133,23 +136,28 @@
     const artifact={format:"neta-dao-proposal-draft-v1",exportedAt:new Date().toISOString(),draft:d,transactionPayload:{messages:d.actions.map(messageFor)}};
     const blob=new Blob([JSON.stringify(artifact,null,2)],{type:"application/json"}),link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=`neta-dao-proposal-${d.id}.json`;link.click();URL.revokeObjectURL(link.href);
   }
-  function renderVersions(){
-    const d=active(),list=$("#versionList"),revisions=(d?.versions||[]).filter(v=>v.number>1);list.replaceChildren();$("#versionHistory").hidden=revisions.length===0;$("#compareVersions").hidden=(d?.versions||[]).length<2;
-    revisions.forEach(v=>{const x=document.createElement("details"),snapshot=v.snapshot||{};x.className="version-item";x.innerHTML=`<summary><span><b>VERSION ${v.number}</b><small>${new Date(v.createdAt).toLocaleString()}</small></span><span><b>${esc(snapshot.title||d.title||"Untitled proposal")}</b><em>${esc(snapshot.summary||"")}</em></span></summary><div class="version-expanded"><h4>WHAT CHANGED</h4><p class="change-note">${esc(v.changeLog)}</p><h4>FULL VERSION ${v.number}</h4><div class="version-body">${esc(snapshot.body||"")}</div><small>${(snapshot.actions||[]).length} EXECUTION ACTIONS</small></div>`;list.append(x)});
-  }
-  function compare(){
-    const d=active();if(!d||d.versions.length<2){alert("At least two versions are required.");return}
-    const a=JSON.stringify(d.versions.at(-2).snapshot,null,2).split("\n"),b=JSON.stringify(d.versions.at(-1).snapshot,null,2).split("\n"),out=[];const max=Math.max(a.length,b.length);
+  function diffSnapshots(previous,current){
+    const a=JSON.stringify(previous||{},null,2).split("\n"),b=JSON.stringify(current||{},null,2).split("\n"),out=[];const max=Math.max(a.length,b.length);
     for(let i=0;i<max;i++){if(a[i]===b[i])out.push("  "+(a[i]||""));else{if(a[i]!==undefined)out.push("- "+a[i]);if(b[i]!==undefined)out.push("+ "+b[i])}}
-    const el=$("#diffOutput");el.textContent=out.join("\n");el.hidden=false;
+    return out.join("\n");
   }
   const shortAddress=address=>address?`${address.slice(0,10)}…${address.slice(-6)}`:"UNCONNECTED AUTHOR";
   const statusLabel=status=>({open:"OPEN",incorporated:"INCORPORATED",not_incorporated:"NOT INCORPORATED"}[status]||"OPEN");
   function renderComments(){
     const d=active(),list=$("#commentList"),filter=$("#commentFilter").value;list.replaceChildren();
     const comments=(d?.comments||[]).map(comment=>({...comment,parentId:comment.parentId||null,status:comment.status||"open",section:comment.section||"general"})),roots=comments.filter(comment=>!comment.parentId),open=roots.filter(comment=>comment.status==="open").length;
-    $("#openThreadCount").textContent=`${open} OPEN`;const visible=roots.filter(comment=>filter==="all"||comment.status===filter);
-    visible.forEach(root=>{
+    $("#openThreadCount").textContent=`${open} OPEN`;
+    const threadEvents=roots.filter(comment=>filter==="all"||comment.status===filter).map(root=>({kind:"thread",createdAt:root.createdAt,root}));
+    const versionEvents=(d?.versions||[]).filter(version=>version.number>1).map(version=>({kind:"version",createdAt:version.createdAt,version}));
+    const events=[...threadEvents,...versionEvents].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+    events.forEach(event=>{
+      if(event.kind==="version"){
+        const v=event.version,snapshot=v.snapshot||{},previous=d.versions[v.number-2]?.snapshot||{},entry=document.createElement("details");
+        entry.id=`version-${v.number}`;entry.className="version-event";
+        entry.innerHTML=`<summary><span><b>VERSION ${v.number}</b><small>${new Date(v.createdAt).toLocaleString()}</small></span><span><b>${esc(snapshot.title||d.title||"Untitled proposal")}</b><em>${esc(snapshot.summary||"")}</em></span></summary><div class="version-expanded"><h4>WHAT CHANGED AND WHY</h4><p class="change-note">${esc(v.changeLog)}</p><h4>FULL VERSION ${v.number}</h4><div class="version-body">${esc(snapshot.body||"")}</div><small>${(snapshot.actions||[]).length} EXECUTION ACTIONS</small><button class="show-changes secondary" type="button">SHOW CHANGES FROM VERSION ${v.number-1}</button><pre class="inline-diff" hidden>${esc(diffSnapshots(previous,snapshot))}</pre></div>`;
+        const button=entry.querySelector(".show-changes"),diff=entry.querySelector(".inline-diff");button.onclick=()=>{diff.hidden=!diff.hidden;button.textContent=diff.hidden?`SHOW CHANGES FROM VERSION ${v.number-1}`:"HIDE CHANGES"};list.append(entry);return;
+      }
+      const root=event.root;
       const thread=document.createElement("article");thread.className=`thread thread-${root.status}`;
       thread.innerHTML=`<div class="thread-top"><span class="thread-status">${statusLabel(root.status)}</span><small>VERSION ${root.version}</small></div><h4 class="thread-title">${esc(root.title||"Discussion")}</h4><p>${esc(root.body)}</p><small>${esc(shortAddress(root.author))} · ${new Date(root.createdAt).toLocaleString()}</small>`;
       const replies=document.createElement("div");replies.className="thread-replies";comments.filter(comment=>comment.parentId===root.id).forEach(reply=>{const node=document.createElement("div");node.className="reply";node.innerHTML=`<p>${esc(reply.body)}</p><small>${esc(shortAddress(reply.author))} · ${new Date(reply.createdAt).toLocaleString()}</small>`;replies.append(node)});thread.append(replies);
@@ -158,7 +166,7 @@
       if(canAuthor(d)){const controls=document.createElement("div");controls.className="decision-controls";controls.innerHTML=`<select aria-label="Thread decision"><option value="open">OPEN</option><option value="incorporated">INCORPORATED</option><option value="not_incorporated">NOT INCORPORATED</option></select><input maxlength="500" placeholder="Explain the author's decision" value="${esc(root.decisionReason||"")}"><button type="button">SAVE DECISION</button>`;controls.querySelector("select").value=root.status;controls.querySelector("button").onclick=()=>{const status=controls.querySelector("select").value,reason=controls.querySelector("input").value.trim();if(status!=="open"&&!reason){alert("Explain why this feedback was or was not incorporated.");return}const original=d.comments.find(comment=>comment.id===root.id);Object.assign(original,{status,decisionReason:status==="open"?"":reason,decisionVersion:status==="open"?null:d.versions.length,decidedAt:new Date().toISOString()});persist();renderComments()};thread.append(controls)}
       list.append(thread);
     });
-    if(!visible.length)list.innerHTML='<p class="empty">No discussions match this filter.</p>';
+    if(!events.length)list.innerHTML='<p class="empty">No review activity yet.</p>';
     const enabled=Boolean(state.member&&d?.status==="published");$("#threadTitle").disabled=$("#commentBody").disabled=$("#commentForm button").disabled=!enabled;
   }
   function renderDaoPicker(){
@@ -175,7 +183,8 @@
   $("#disconnectWallet").onclick=disconnect;
   $("#newDraft").onclick=()=>{state.active=null;state.editing=false;renderDrafts();fillForm(null)};
   $("#addAction").onclick=()=>addAction();
-  $("#saveRevision").onclick=saveRevision;$("#publishDraft").onclick=publishDraft;$("#editRevision").onclick=editRevision;$("#freezeDraft").onclick=freeze;$("#exportDraft").onclick=exportDraft;$("#compareVersions").onclick=compare;
+  $("#saveRevision").onclick=saveRevision;$("#publishDraft").onclick=publishDraft;$("#editRevision").onclick=editRevision;$("#freezeDraft").onclick=freeze;$("#exportDraft").onclick=exportDraft;
+  $("#jumpLatestVersion").onclick=()=>{const d=active(),target=d&&document.getElementById(`version-${d.versions.length}`);target?.scrollIntoView({behavior:"smooth",block:"center"});if(target)target.open=true};
   $("#toggleCode").onclick=()=>{$("#codeOutput").hidden=!$("#codeOutput").hidden;renderCode()};
   $("#commentForm").onsubmit=e=>{e.preventDefault();const d=active(),title=$("#threadTitle").value.trim(),body=$("#commentBody").value.trim();if(!state.member||d?.status!=="published"||!title||!body){if(!title||!body)feedback("Give the thread a title and an opening message.","error");return}d.comments.push({id:uid(),parentId:null,title,body,author:state.address,version:d.versions.length,status:"open",decisionReason:"",createdAt:new Date().toISOString()});$("#threadTitle").value="";$("#commentBody").value="";persist();renderComments()};
   $("#commentFilter").onchange=renderComments;

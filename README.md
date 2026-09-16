@@ -9,7 +9,8 @@ This branch contains the first reviewable frontend slice for `dao.netareborn.com
 - Compact workbench UX with a reviewed-DAO selector and wallet menu.
 - A clearly labelled local owner-testing override for the project owner address. This is not an authorization mechanism.
 - Local proposal drafts with immutable revision snapshots and mandatory change logs.
-- Discussion-first published-draft review mode: compact proposal context, expandable full text/actions, central titled threads, and a revision timeline that appears only from V2.
+- Discussion-first review mode: version 1 remains the visible baseline while titled threads and later revisions form one chronological activity stream.
+- Each revision can be expanded in place and compared directly with its preceding version; a prominent notice links from version 1 to the latest revision.
 - Flat, titled member discussion threads with replies, status filters, and open-thread counts.
 - Author decisions (`open`, `incorporated`, `not incorporated`) with mandatory reasoning and version linkage.
 - Native bank sends, CW20 transfers, and Juno CosmWasm execute actions.
