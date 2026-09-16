@@ -1,0 +1,25 @@
+name: Proposal contract CI
+
+on:
+  pull_request:
+    paths:
+      - "contracts/neta-proposal-workshop/**"
+      - ".github/workflows/contract-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "contracts/neta-proposal-workshop/**"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts/neta-proposal-workshop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test
