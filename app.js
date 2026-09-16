@@ -108,7 +108,6 @@
     const actions=$("#reviewActions");actions.replaceChildren();
     if(!d.actions.length)actions.innerHTML='<p class="empty">Text-only proposal. No executable actions.</p>';
     d.actions.forEach((action,index)=>{const card=document.createElement("div");card.className="review-action";card.innerHTML=`<b>ACTION ${index+1} · ${esc(action.type.replaceAll("_"," ").toUpperCase())}</b><pre>${esc(JSON.stringify(messageFor(action),null,2))}</pre>`;actions.append(card)});
-    const section=$("#commentSection"),current=section.value;section.innerHTML='<option value="general">GENERAL PROPOSAL</option><option value="summary">SUMMARY</option><option value="body">FULL PROPOSAL</option>'+d.actions.map((_,index)=>`<option value="action:${index}">ACTION ${index+1}</option>`).join("");if([...section.options].some(option=>option.value===current))section.value=current;
     renderVersions();renderComments();
   }
   function validateActions(actions){
@@ -135,9 +134,8 @@
     const blob=new Blob([JSON.stringify(artifact,null,2)],{type:"application/json"}),link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=`neta-dao-proposal-${d.id}.json`;link.click();URL.revokeObjectURL(link.href);
   }
   function renderVersions(){
-    const d=active(),list=$("#versionList");list.replaceChildren();
-    (d?.versions||[]).forEach(v=>{const x=document.createElement("details"),snapshot=v.snapshot||{};x.className="version-item";x.innerHTML=`<summary><span><b>VERSION ${v.number}</b><small>${new Date(v.createdAt).toLocaleString()}</small></span><span>${esc(v.changeLog)}</span></summary><div class="version-expanded"><h4>${esc(snapshot.title||d.title||"Untitled proposal")}</h4><p class="version-summary">${esc(snapshot.summary||"")}</p><div class="version-body">${esc(snapshot.body||"")}</div><small>${(snapshot.actions||[]).length} EXECUTION ACTIONS</small></div>`;list.append(x)});
-    if(!d?.versions.length)list.innerHTML='<p class="empty">Save the first version to begin an audit trail.</p>';
+    const d=active(),list=$("#versionList"),revisions=(d?.versions||[]).filter(v=>v.number>1);list.replaceChildren();$("#versionHistory").hidden=revisions.length===0;$("#compareVersions").hidden=(d?.versions||[]).length<2;
+    revisions.forEach(v=>{const x=document.createElement("details"),snapshot=v.snapshot||{};x.className="version-item";x.innerHTML=`<summary><span><b>VERSION ${v.number}</b><small>${new Date(v.createdAt).toLocaleString()}</small></span><span><b>${esc(snapshot.title||d.title||"Untitled proposal")}</b><em>${esc(snapshot.summary||"")}</em></span></summary><div class="version-expanded"><h4>WHAT CHANGED</h4><p class="change-note">${esc(v.changeLog)}</p><h4>FULL VERSION ${v.number}</h4><div class="version-body">${esc(snapshot.body||"")}</div><small>${(snapshot.actions||[]).length} EXECUTION ACTIONS</small></div>`;list.append(x)});
   }
   function compare(){
     const d=active();if(!d||d.versions.length<2){alert("At least two versions are required.");return}
@@ -153,7 +151,7 @@
     $("#openThreadCount").textContent=`${open} OPEN`;const visible=roots.filter(comment=>filter==="all"||comment.status===filter);
     visible.forEach(root=>{
       const thread=document.createElement("article");thread.className=`thread thread-${root.status}`;
-      thread.innerHTML=`<div class="thread-top"><span class="thread-status">${statusLabel(root.status)}</span><small>${esc(root.section.toUpperCase().replace(":"," "))} · VERSION ${root.version}</small></div><p>${esc(root.body)}</p><small>${esc(shortAddress(root.author))} · ${new Date(root.createdAt).toLocaleString()}</small>`;
+      thread.innerHTML=`<div class="thread-top"><span class="thread-status">${statusLabel(root.status)}</span><small>VERSION ${root.version}</small></div><h4 class="thread-title">${esc(root.title||"Discussion")}</h4><p>${esc(root.body)}</p><small>${esc(shortAddress(root.author))} · ${new Date(root.createdAt).toLocaleString()}</small>`;
       const replies=document.createElement("div");replies.className="thread-replies";comments.filter(comment=>comment.parentId===root.id).forEach(reply=>{const node=document.createElement("div");node.className="reply";node.innerHTML=`<p>${esc(reply.body)}</p><small>${esc(shortAddress(reply.author))} · ${new Date(reply.createdAt).toLocaleString()}</small>`;replies.append(node)});thread.append(replies);
       if(root.status!=="open"&&root.decisionReason){const decision=document.createElement("div");decision.className="decision-note";decision.innerHTML=`<b>AUTHOR DECISION</b><p>${esc(root.decisionReason)}</p><small>${root.decisionVersion?`VERSION ${root.decisionVersion}`:"CURRENT VERSION"}</small>`;thread.append(decision)}
       if(state.member){const replyForm=document.createElement("form");replyForm.className="reply-form";replyForm.innerHTML='<textarea maxlength="1500" placeholder="Reply to this thread"></textarea><button type="submit">REPLY</button>';replyForm.onsubmit=event=>{event.preventDefault();const body=replyForm.querySelector("textarea").value.trim();if(!body)return;d.comments.push({id:uid(),parentId:root.id,body,author:state.address,version:d.versions.length,createdAt:new Date().toISOString()});persist();renderComments()};thread.append(replyForm)}
@@ -161,7 +159,7 @@
       list.append(thread);
     });
     if(!visible.length)list.innerHTML='<p class="empty">No discussions match this filter.</p>';
-    const enabled=Boolean(state.member&&d?.status==="published");$("#commentBody").disabled=$("#commentSection").disabled=$("#commentForm button").disabled=!enabled;
+    const enabled=Boolean(state.member&&d?.status==="published");$("#threadTitle").disabled=$("#commentBody").disabled=$("#commentForm button").disabled=!enabled;
   }
   function renderDaoPicker(){
     const select=$("#daoSelect");select.innerHTML=DAOS.map(dao=>`<option value="${esc(dao.id)}">${esc(dao.name)} · REVIEWED</option>`).join("");select.value=state.daoId;
@@ -179,7 +177,7 @@
   $("#addAction").onclick=()=>addAction();
   $("#saveRevision").onclick=saveRevision;$("#publishDraft").onclick=publishDraft;$("#editRevision").onclick=editRevision;$("#freezeDraft").onclick=freeze;$("#exportDraft").onclick=exportDraft;$("#compareVersions").onclick=compare;
   $("#toggleCode").onclick=()=>{$("#codeOutput").hidden=!$("#codeOutput").hidden;renderCode()};
-  $("#commentForm").onsubmit=e=>{e.preventDefault();const d=active(),body=$("#commentBody").value.trim();if(!state.member||d?.status!=="published"||!body)return;d.comments.push({id:uid(),parentId:null,body,author:state.address,version:d.versions.length,section:$("#commentSection").value,status:"open",decisionReason:"",createdAt:new Date().toISOString()});$("#commentBody").value="";persist();renderComments()};
+  $("#commentForm").onsubmit=e=>{e.preventDefault();const d=active(),title=$("#threadTitle").value.trim(),body=$("#commentBody").value.trim();if(!state.member||d?.status!=="published"||!title||!body){if(!title||!body)feedback("Give the thread a title and an opening message.","error");return}d.comments.push({id:uid(),parentId:null,title,body,author:state.address,version:d.versions.length,status:"open",decisionReason:"",createdAt:new Date().toISOString()});$("#threadTitle").value="";$("#commentBody").value="";persist();renderComments()};
   $("#commentFilter").onchange=renderComments;
   $("#daoSelect").onchange=e=>selectDao(e.target.value);
   document.addEventListener("click",e=>{if(!e.target.closest(".wallet-area"))closeWalletMenu()});document.addEventListener("keydown",e=>{if(e.key==="Escape")closeWalletMenu()});
