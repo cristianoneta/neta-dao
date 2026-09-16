@@ -4,7 +4,8 @@ This branch contains the first reviewable frontend slice for `dao.netareborn.com
 
 ## Included
 
-- NETA DAO active-stake membership query through the production staking contract.
+- Searchable, explicitly whitelisted DAO workspaces (initially NETA Operations only).
+- Live membership verification through the selected DAO core contract's voting-power query; no stale member allowlist.
 - Local proposal drafts with immutable revision snapshots and mandatory change logs.
 - Native bank sends, CW20 transfers, and Juno CosmWasm execute actions.
 - Collapsed human-triggered transaction-code view.
@@ -14,6 +15,7 @@ This branch contains the first reviewable frontend slice for `dao.netareborn.com
 ## Deliberately not included yet
 
 - Shared/public persistence and on-chain publication.
+- Treasury views and management. This is the separately reviewed next phase.
 - Submission to the legacy NETA DAO proposal module.
 - IBC transfers.
 - Osmosis cross-chain accounts or swaps.

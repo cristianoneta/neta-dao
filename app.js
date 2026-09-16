@@ -1,17 +1,24 @@
 (()=>{
   "use strict";
-  const STAKE_CONTRACT="juno1a7x8aj7k38vnj9edrlymkerhrl5d4ud3makmqhx6vt3dhu0d824qh038zh";
+  const DAOS=[{
+    id:"neta-operations",
+    name:"NETA Operations",
+    core:"juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
+    membership:"cw4-voting",
+    description:"Operational expenses and services for NETA DAO."
+  }];
   const RESTS=["https://juno-api.polkachu.com","https://juno-api.lavenderfive.com"];
-  const STORE="neta-dao-workshop-mvp-v1";
-  const state={address:null,member:false,stake:"0",drafts:[],active:null};
+  const STORE="neta-dao-workshop-mvp-v2";
+  const state={address:null,member:false,votingPower:"0",daoId:DAOS[0].id,drafts:[],active:null};
   const $=s=>document.querySelector(s);
   const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
   const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);
   const toBase64=value=>{const bytes=new TextEncoder().encode(value);let binary="";bytes.forEach(byte=>binary+=String.fromCharCode(byte));return btoa(binary)};
   const validJuno=value=>/^juno1[02-9ac-hj-np-z]{38}$/.test(value);
-  function persist(){localStorage.setItem(STORE,JSON.stringify({drafts:state.drafts,active:state.active}))}
-  function restore(){try{const x=JSON.parse(localStorage.getItem(STORE)||"{}");state.drafts=Array.isArray(x.drafts)?x.drafts:[];state.active=x.active||state.drafts[0]?.id||null}catch{localStorage.removeItem(STORE)}}
+  function persist(){localStorage.setItem(STORE,JSON.stringify({daoId:state.daoId,drafts:state.drafts,active:state.active}))}
+  function restore(){try{const x=JSON.parse(localStorage.getItem(STORE)||"{}");state.daoId=DAOS.some(dao=>dao.id===x.daoId)?x.daoId:DAOS[0].id;state.drafts=Array.isArray(x.drafts)?x.drafts:[];state.active=state.drafts.some(d=>d.id===x.active&&d.daoId===state.daoId)?x.active:state.drafts.find(d=>d.daoId===state.daoId)?.id||null}catch{localStorage.removeItem(STORE)}}
   function active(){return state.drafts.find(d=>d.id===state.active)||null}
+  function selectedDao(){return DAOS.find(dao=>dao.id===state.daoId)||DAOS[0]}
   async function smart(contract,msg){
     const query=btoa(unescape(encodeURIComponent(JSON.stringify(msg))));
     const failures=[];
@@ -24,20 +31,21 @@
     const signer=window.keplr.getOfflineSigner("juno-1");
     const address=(await signer.getAccounts())[0]?.address;
     if(!address)throw Error("No Juno account returned");
-    const result=await smart(STAKE_CONTRACT,{staked_balance_at_height:{address,height:null}});
-    state.address=address;state.stake=String(result.balance||"0");state.member=BigInt(state.stake)>0n;
+    const dao=selectedDao();
+    const result=await smart(dao.core,{voting_power_at_height:{address,height:null}});
+    state.address=address;state.votingPower=String(result.power||"0");state.member=BigInt(state.votingPower)>0n;
     renderMembership();
   }
   function renderMembership(error){
     const card=$(".membership-card"),status=$("#membershipStatus"),detail=$("#membershipDetail"),button=$("#walletButton");
     card.dataset.member=button.dataset.member=String(state.member);
     if(error){status.textContent="CHECK FAILED";detail.textContent=error;return}
-    if(!state.address){status.textContent="NOT CONNECTED";detail.textContent="Connect a Juno wallet to verify active NETA DAO stake.";button.textContent="CONNECT KEPLR";return}
+    if(!state.address){status.textContent="NOT CONNECTED";detail.textContent=`Connect a Juno wallet to verify current membership in ${selectedDao().name}.`;button.textContent="CONNECT KEPLR";return}
     status.textContent=state.member?"VERIFIED DAO MEMBER":"NOT CURRENTLY A MEMBER";
-    detail.textContent=`${state.address.slice(0,10)}…${state.address.slice(-6)} · ${(Number(state.stake)/1e6).toLocaleString()} NETA actively staked`;
+    detail.textContent=`${state.address.slice(0,10)}…${state.address.slice(-6)} · voting power ${state.votingPower} in ${selectedDao().name}`;
     button.textContent=`${state.address.slice(0,8)}…${state.address.slice(-5)}`;
   }
-  function blank(){return{id:uid(),title:"",summary:"",body:"",actions:[],versions:[],comments:[],frozen:false,author:state.address,createdAt:new Date().toISOString()}}
+  function blank(){return{id:uid(),daoId:state.daoId,title:"",summary:"",body:"",actions:[],versions:[],comments:[],frozen:false,author:state.address,createdAt:new Date().toISOString()}}
   function readForm(){return{title:$("#title").value.trim(),summary:$("#summary").value.trim(),body:$("#body").value.trim(),actions:[...$("#actionList").children].map(readAction)}}
   function fillForm(d){
     $("#title").value=d?.title||"";$("#summary").value=d?.summary||"";$("#body").value=d?.body||"";$("#changeLog").value="";
@@ -47,8 +55,9 @@
   }
   function renderDrafts(){
     const list=$("#draftList");list.replaceChildren();
-    if(!state.drafts.length){list.innerHTML='<p class="empty">No local drafts yet.</p>';return}
-    state.drafts.forEach(d=>{const b=document.createElement("button");b.type="button";b.className=d.id===state.active?"active":"";b.innerHTML=`<b>${esc(d.title||"Untitled proposal")}</b><span>${d.frozen?"FROZEN":d.versions.length+" VERSIONS"} · LOCAL</span>`;b.onclick=()=>{state.active=d.id;persist();renderDrafts();fillForm(d)};list.append(b)})
+    const drafts=state.drafts.filter(d=>d.daoId===state.daoId);
+    if(!drafts.length){list.innerHTML='<p class="empty">No local drafts for this DAO yet.</p>';return}
+    drafts.forEach(d=>{const b=document.createElement("button");b.type="button";b.className=d.id===state.active?"active":"";b.innerHTML=`<b>${esc(d.title||"Untitled proposal")}</b><span>${d.frozen?"FROZEN":d.versions.length+" VERSIONS"} · LOCAL</span>`;b.onclick=()=>{state.active=d.id;persist();renderDrafts();fillForm(d)};list.append(b)})
   }
   const field=(label,name,value="",area=false)=>`<label>${label}${area?`<textarea data-field="${name}">${esc(value)}</textarea>`:`<input data-field="${name}" value="${esc(value)}">`}</label>`;
   function fieldsFor(type,a={}){
@@ -108,11 +117,23 @@
     const el=$("#diffOutput");el.textContent=out.join("\n");el.hidden=false;
   }
   function renderComments(){const d=active(),list=$("#commentList");list.replaceChildren();(d?.comments||[]).forEach(c=>{const x=document.createElement("div");x.className="comment";x.innerHTML=`<p>${esc(c.body)}</p><small>${esc(c.author.slice(0,10)+"…"+c.author.slice(-6))} · VERSION ${c.version} · ${new Date(c.createdAt).toLocaleString()}</small>`;list.append(x)});if(!d?.comments.length)list.innerHTML='<p class="empty">No local review comments yet.</p>';$("#commentBody").disabled=$("#commentForm button").disabled=!state.member||!d}
+  function renderDaoPicker(query=""){
+    const term=query.trim().toLowerCase(),matches=DAOS.filter(dao=>!term||dao.name.toLowerCase().includes(term)||dao.core.includes(term));
+    $("#daoOptions").innerHTML=DAOS.map(dao=>`<option value="${esc(dao.name)}">${esc(dao.core)}</option>`).join("");
+    const result=$("#daoResult");result.replaceChildren();
+    matches.forEach(dao=>{const button=document.createElement("button");button.type="button";button.className=dao.id===state.daoId?"selected":"";button.innerHTML=`<strong>${esc(dao.name)}</strong><span>${esc(dao.description)}</span><small>${esc(dao.core.slice(0,13)+"…"+dao.core.slice(-8))} · REVIEWED</small>`;button.onclick=()=>selectDao(dao.id);result.append(button)});
+    if(!matches.length)result.innerHTML='<p class="empty">No whitelisted DAO matches this search.</p>';
+  }
+  async function selectDao(id){
+    if(!DAOS.some(dao=>dao.id===id))return;state.daoId=id;state.active=state.drafts.find(d=>d.daoId===id)?.id||null;state.member=false;state.votingPower="0";persist();renderDaoPicker($("#daoSearch").value);renderDrafts();fillForm(active());renderMembership();
+    if(state.address)try{const result=await smart(selectedDao().core,{voting_power_at_height:{address:state.address,height:null}});state.votingPower=String(result.power||"0");state.member=BigInt(state.votingPower)>0n;renderMembership();renderComments()}catch(e){renderMembership(e.message)}
+  }
   $("#walletButton").onclick=()=>connect().then(renderComments).catch(e=>renderMembership(e.message));
   $("#newDraft").onclick=()=>{state.active=null;renderDrafts();fillForm(null)};
   $("#addAction").onclick=()=>addAction();
   $("#saveRevision").onclick=saveRevision;$("#freezeDraft").onclick=freeze;$("#exportDraft").onclick=exportDraft;$("#compareVersions").onclick=compare;
   $("#toggleCode").onclick=()=>{$("#codeOutput").hidden=!$("#codeOutput").hidden;renderCode()};
   $("#commentForm").onsubmit=e=>{e.preventDefault();const d=active(),body=$("#commentBody").value.trim();if(!state.member||!d||!body)return;d.comments.push({id:uid(),body,author:state.address,version:d.versions.length,createdAt:new Date().toISOString()});$("#commentBody").value="";persist();renderComments()};
-  restore();renderMembership();renderDrafts();fillForm(active());
+  $("#daoSearch").oninput=e=>renderDaoPicker(e.target.value);
+  restore();renderDaoPicker();renderMembership();renderDrafts();fillForm(active());
 })();

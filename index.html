@@ -20,6 +20,20 @@
   </header>
 
   <main>
+    <section class="dao-switcher" aria-labelledby="daoSwitcherTitle">
+      <div>
+        <p class="eyebrow">WHITELISTED GOVERNANCE</p>
+        <h2 id="daoSwitcherTitle">SELECT A DAO WORKSPACE</h2>
+        <p>Only reviewed DAO configurations appear here. Support for another DAO is added only after its contracts and rules have been tested.</p>
+      </div>
+      <div class="dao-search">
+        <label for="daoSearch">SEARCH WHITELISTED DAOS</label>
+        <input id="daoSearch" type="search" list="daoOptions" autocomplete="off" placeholder="Search by DAO name or Juno address">
+        <datalist id="daoOptions"></datalist>
+        <div id="daoResult" class="dao-result" aria-live="polite"></div>
+      </div>
+    </section>
+
     <section class="hero">
       <div>
         <p class="eyebrow">COLLABORATIVE GOVERNANCE · JUNO</p>
@@ -29,7 +43,7 @@
       <div class="membership-card">
         <span>MEMBERSHIP</span>
         <strong id="membershipStatus">NOT CONNECTED</strong>
-        <small id="membershipDetail">Connect a Juno wallet to verify active NETA DAO stake.</small>
+        <small id="membershipDetail">Connect a Juno wallet to verify current membership in the selected DAO.</small>
       </div>
     </section>
 
