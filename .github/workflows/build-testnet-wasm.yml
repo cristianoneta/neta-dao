@@ -1,0 +1,36 @@
+name: Build testnet WASM
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "contracts/**"
+      - ".github/workflows/build-testnet-wasm.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        contract: [neta-proposal-workshop, workshop-access-mock]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Build release WASM
+        working-directory: contracts/${{ matrix.contract }}
+        run: cargo build --release --target wasm32-unknown-unknown
+      - name: Stage artifact
+        run: |
+          mkdir -p artifacts
+          cp contracts/${{ matrix.contract }}/target/wasm32-unknown-unknown/release/*.wasm artifacts/
+          sha256sum artifacts/*.wasm > artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.contract }}-wasm
+          path: artifacts/
+          if-no-files-found: error
