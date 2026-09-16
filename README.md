@@ -9,6 +9,7 @@ This branch contains the first reviewable frontend slice for `dao.netareborn.com
 - Compact workbench UX with a reviewed-DAO selector and wallet menu.
 - A clearly labelled local owner-testing override for the project owner address. This is not an authorization mechanism.
 - Local proposal drafts with immutable revision snapshots and mandatory change logs.
+- An explicit six-step proposal workflow: private draft, local save, review publication, discussion/revision, finalization, and eventual on-chain submission.
 - Discussion-first review mode: version 1 remains the visible baseline while titled threads and later revisions form one chronological activity stream.
 - Each revision can be expanded in place and compared directly with its preceding version using inline additions and struck-through deletions; a prominent notice links from version 1 to the latest revision.
 - Flat, titled member discussion threads with replies, status filters, and open-thread counts.
@@ -21,6 +22,7 @@ This branch contains the first reviewable frontend slice for `dao.netareborn.com
 ## Deliberately not included yet
 
 - Shared/public persistence and on-chain publication.
+- The final on-chain submission control is deliberately disabled until the reviewed DAO proposal adapter is connected.
 - Treasury views and management. This is the separately reviewed next phase.
 - Submission to the legacy NETA DAO proposal module.
 - IBC transfers.

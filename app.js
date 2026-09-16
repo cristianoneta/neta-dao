@@ -50,20 +50,26 @@
   }
   function blank(){return{id:uid(),daoId:state.daoId,title:"",summary:"",body:"",actions:[],versions:[],comments:[],status:"draft",frozen:false,author:state.address,createdAt:new Date().toISOString()}}
   function readForm(){return{title:$("#title").value.trim(),summary:$("#summary").value.trim(),body:$("#body").value.trim(),actions:[...$("#actionList").children].map(readAction)}}
+  function workflowStage(d){if(d?.frozen)return 4;if(d?.status==="published"&&((d.comments||[]).length||d.versions.length>1))return 3;if(d?.status==="published")return 2;if(d?.versions?.length)return 1;return 0}
+  function renderWorkflow(d){
+    const stage=workflowStage(d),hints=["Start a private draft. Nothing is shared or submitted on-chain yet.","Your draft is saved locally. Publish it when it is ready for member review.","The review is open. Members can read the draft and start discussion threads.","Discussion and revisions are building the proposal's auditable history.","The final version is locked and ready for the future on-chain submission."];
+    $("#workflowHint").textContent=hints[stage];document.querySelectorAll(".workflow-steps li").forEach((step,index)=>{step.dataset.state=index<stage?"complete":index===stage?"current":"upcoming"});
+  }
   function fillForm(d){
     $("#title").value=d?.title||"";$("#summary").value=d?.summary||"";$("#body").value=d?.body||"";$("#changeLog").value="";
     $("#actionList").replaceChildren();(d?.actions||[]).forEach(addAction);toggleEmpty();renderCode();renderComments();
-    const published=d?.status==="published",showEditor=!published||state.editing;
+    const published=d?.status==="published"||Boolean(d?.frozen),showEditor=!published||state.editing;
     $("#draftForm").hidden=!showEditor;$(".technical").hidden=!showEditor;$("#reviewSurface").hidden=!published||state.editing;
-    $("#editorTitle").textContent=d?.title||"NEW PROPOSAL";$("#draftState").textContent=d?.frozen?"FROZEN":published?`PUBLISHED DRAFT · VERSION ${d.versions.length}`:d?.versions.length?`VERSION ${d.versions.length} · LOCAL`:"UNSAVED DRAFT";
-    [...$("#draftForm").elements].forEach(el=>el.disabled=Boolean(d?.frozen));$("#addAction").disabled=Boolean(d?.frozen);$("#saveRevision").disabled=Boolean(d?.frozen);$("#saveRevision").hidden=!showEditor;$("#publishDraft").hidden=published||!d?.versions.length;$("#editRevision").hidden=!published||state.editing||Boolean(d?.frozen);$("#freezeDraft").disabled=Boolean(d?.frozen||!d?.versions.length);$("#exportDraft").disabled=!d?.versions.length;
+    $("#editorTitle").textContent=d?.title||"NEW PROPOSAL";$("#draftState").textContent=d?.frozen?`FINALIZED · VERSION ${d.versions.length}`:published?`IN REVIEW · VERSION ${d.versions.length}`:d?.versions.length?`PRIVATE DRAFT · VERSION ${d.versions.length}`:"UNSAVED PRIVATE DRAFT";
+    const revising=Boolean(d?.versions.length);$("#saveRevision").textContent=revising?"SAVE REVISION LOCALLY":"SAVE DRAFT LOCALLY";$("#saveHint").textContent=revising?"Describe what changed, then save this revision in the browser.":"Finish the private draft from top to bottom, then save it in this browser.";
+    [...$("#draftForm").elements].forEach(el=>el.disabled=Boolean(d?.frozen));$("#addAction").disabled=Boolean(d?.frozen);$("#saveRevision").disabled=Boolean(d?.frozen);$("#saveRevision").hidden=!showEditor;$("#publishDraft").hidden=published||!d?.versions.length;$("#editRevision").hidden=!published||state.editing||Boolean(d?.frozen);$("#freezeDraft").hidden=!published||state.editing;$("#freezeDraft").disabled=Boolean(d?.frozen);$("#submitOnchain").hidden=!d?.frozen;$("#exportDraft").disabled=!d?.versions.length;renderWorkflow(d);
     if(published&&!state.editing)renderPublished(d);
   }
   function renderDrafts(){
     const list=$("#draftList");list.replaceChildren();
     const drafts=state.drafts.filter(d=>d.daoId===state.daoId);
     if(!drafts.length){list.innerHTML='<p class="empty">No local drafts for this DAO yet.</p>';return}
-    drafts.forEach(d=>{const b=document.createElement("button");b.type="button";b.className=d.id===state.active?"active":"";b.innerHTML=`<b>${esc(d.title||"Untitled proposal")}</b><span>${d.frozen?"FROZEN":d.status==="published"?"PUBLISHED · V"+d.versions.length:d.versions.length+" VERSIONS"} · LOCAL</span>`;b.onclick=()=>{state.active=d.id;state.editing=false;persist();renderDrafts();fillForm(d)};list.append(b)})
+    drafts.forEach(d=>{const b=document.createElement("button");b.type="button";b.className=d.id===state.active?"active":"";b.innerHTML=`<b>${esc(d.title||"Untitled proposal")}</b><span>${d.frozen?"FINALIZED":d.status==="published"?"IN REVIEW · V"+d.versions.length:"PRIVATE · "+d.versions.length+" VERSIONS"} · LOCAL MVP</span>`;b.onclick=()=>{state.active=d.id;state.editing=false;persist();renderDrafts();fillForm(d)};list.append(b)})
   }
   const field=(label,name,value="",area=false)=>`<label>${label}${area?`<textarea data-field="${name}">${esc(value)}</textarea>`:`<input data-field="${name}" value="${esc(value)}">`}</label>`;
   function fieldsFor(type,a={}){
@@ -98,7 +104,7 @@
     try{
       const d=active();if(!d?.versions.length){feedback("Save the first version before opening review.","error");return}if(!state.member||!state.address){feedback("Connect a verified DAO member wallet before opening review.","error");return}
       if(d.author&&d.author!==state.address&&!state.ownerAccess){feedback("Only the draft author can open its review.","error");return}
-      d.author=d.author||state.address;d.status="published";d.publishedAt=new Date().toISOString();state.editing=false;persist();renderDrafts();fillForm(d);feedback("Review opened locally. DAO members can now start discussion threads.","success");$("#reviewSurface").scrollIntoView({behavior:"smooth",block:"start"});
+      d.author=d.author||state.address;d.status="published";d.publishedAt=new Date().toISOString();state.editing=false;persist();renderDrafts();fillForm(d);feedback("Local review preview opened. Shared publication requires the workshop backend.","success");$("#reviewSurface").scrollIntoView({behavior:"smooth",block:"start"});
     }catch(error){console.error(error);feedback(`Could not open review: ${error.message}`,"error")}
   }
   function editRevision(){const d=active();if(!canAuthor(d)){alert("Only the proposal author can create a revision.");return}state.editing=true;fillForm(d);$("#changeLog").focus()}
@@ -127,9 +133,9 @@
     return "";
   }
   async function freeze(){
-    const d=active();if(!d?.versions.length||!confirm("Freeze this exact version? It can no longer be edited in this MVP."))return;
+    const d=active();if(d?.status!=="published"||!canAuthor(d)||!d?.versions.length||!confirm("Finalize this exact version for submission? It can no longer be edited in this MVP."))return;
     const canonical=JSON.stringify(d.versions.at(-1).snapshot);const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical));
-    d.frozen=true;d.frozenHash=[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,"0")).join("");persist();renderDrafts();fillForm(d);
+    d.frozen=true;d.frozenHash=[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,"0")).join("");persist();feedback("Final version locked locally. On-chain submission is the next integration step.","success");renderDrafts();fillForm(d);
   }
   function exportDraft(){
     const d=active();if(!d?.versions.length)return;
@@ -176,7 +182,7 @@
       list.append(thread);
     });
     if(!events.length)list.innerHTML='<p class="empty">No review activity yet.</p>';
-    const enabled=Boolean(state.member&&d?.status==="published");$("#threadTitle").disabled=$("#commentBody").disabled=$("#commentForm button").disabled=!enabled;
+    const enabled=Boolean(state.member&&d?.status==="published"&&!d?.frozen);$("#threadTitle").disabled=$("#commentBody").disabled=$("#commentForm button").disabled=!enabled;renderWorkflow(d);
   }
   function renderDaoPicker(){
     const select=$("#daoSelect");select.innerHTML=DAOS.map(dao=>`<option value="${esc(dao.id)}">${esc(dao.name)} · REVIEWED</option>`).join("");select.value=state.daoId;

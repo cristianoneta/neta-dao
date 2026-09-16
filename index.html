@@ -7,7 +7,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://juno-api.polkachu.com https://juno-api.lavenderfive.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>NETA DAO · Proposal Workshop</title>
   <meta name="description" content="Collaboratively draft, review and prepare NETA DAO proposals before they move on-chain.">
-  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
   <header class="shell-header">
@@ -47,18 +47,29 @@
       </div>
     </section>
 
-    <div class="notice"><strong>LOCAL MVP</strong><span>Drafts and comments stay in this browser. Nothing is broadcast.</span></div>
+    <section class="workflow-guide" aria-labelledby="workflowTitle">
+      <div class="workflow-intro"><div><strong id="workflowTitle">PROPOSAL FLOW</strong><span id="workflowHint">Start a private draft. Nothing is shared or submitted on-chain yet.</span></div><span class="mvp-badge">LOCAL MVP</span></div>
+      <ol class="workflow-steps">
+        <li data-stage="0"><b>1</b><span><strong>NEW DRAFT</strong><small>Write privately</small></span></li>
+        <li data-stage="1"><b>2</b><span><strong>SAVE LOCALLY</strong><small>Create a revision</small></span></li>
+        <li data-stage="2"><b>3</b><span><strong>PUBLISH FOR REVIEW</strong><small>Share with members</small></span></li>
+        <li data-stage="3"><b>4</b><span><strong>DISCUSS + REVISE</strong><small>Improve the proposal</small></span></li>
+        <li data-stage="4"><b>5</b><span><strong>FINALIZE</strong><small>Lock the final version</small></span></li>
+        <li data-stage="5"><b>6</b><span><strong>SUBMIT ON-CHAIN</strong><small>Start the DAO vote</small></span></li>
+      </ol>
+      <p class="workflow-disclaimer">This MVP stores drafts, revisions and discussions only in this browser. “Publish for Review” currently previews the shared workflow; it does not broadcast data. Only the future on-chain submission will create a DAO vote.</p>
+    </section>
 
     <section id="workshop" class="workspace">
       <aside class="drafts">
-        <div class="section-head"><div><small>WORKSPACE</small><h2>DRAFTS</h2></div><button id="newDraft" type="button">+ NEW</button></div>
+        <div class="section-head"><div><small>WORKSPACE</small><h2>DRAFTS</h2></div><button id="newDraft" type="button">+ NEW DRAFT</button></div>
         <div id="draftList" class="draft-list"></div>
       </aside>
 
       <article class="editor">
         <div class="editor-head">
           <div><small id="draftState">UNSAVED DRAFT</small><h2 id="editorTitle">NEW PROPOSAL</h2></div>
-          <div class="editor-actions"><button id="publishDraft" type="button">PUBLISH FOR REVIEW</button><button id="editRevision" class="secondary" type="button" hidden>CREATE REVISION</button><button id="freezeDraft" class="secondary" type="button">FREEZE</button><button id="exportDraft" class="secondary" type="button">EXPORT JSON</button></div>
+          <div class="editor-actions"><button id="publishDraft" type="button">PUBLISH FOR REVIEW</button><button id="editRevision" class="secondary" type="button" hidden>CREATE REVISION</button><button id="freezeDraft" class="secondary" type="button" hidden>FINALIZE VERSION</button><button id="submitOnchain" class="secondary" type="button" title="On-chain submission is not connected in the local MVP" hidden disabled>SUBMIT ON-CHAIN · NEXT</button><button id="exportDraft" class="secondary" type="button">EXPORT JSON</button></div>
         </div>
         <div id="editorFeedback" class="editor-feedback" role="status" aria-live="polite">Publishing opens member comments. Nothing is submitted on-chain.</div>
 
@@ -74,7 +85,7 @@
           </section>
 
           <label>WHAT CHANGED AND WHY?<textarea id="changeLog" maxlength="1000" placeholder="Required after the first saved version"></textarea></label>
-          <div class="form-submit"><span>Finish the draft from top to bottom, then save this version.</span><button id="saveRevision" type="button">SAVE REVISION</button></div>
+          <div class="form-submit"><span id="saveHint">Finish the private draft from top to bottom, then save it in this browser.</span><button id="saveRevision" type="button">SAVE DRAFT LOCALLY</button></div>
         </form>
 
         <section class="technical">
@@ -109,6 +120,6 @@
       <div data-fields></div>
     </fieldset>
   </template>
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
