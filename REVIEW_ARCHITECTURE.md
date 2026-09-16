@@ -64,4 +64,5 @@ The production review system will use a hybrid model:
 - Replies are append-only; corrections become a later reply.
 - Decisions are auditable state transitions and retain their reason, author, time, and proposal version.
 - Threads remain linked to the version and section that existed when feedback was submitted.
+- The client presents root threads and proposal revisions as a single chronological event stream. Version 1 remains the baseline document; revisions from version 2 onward carry an inline comparison against their immediate predecessor.
 - Rate limits and maximum body sizes are enforced by the API, not only by the browser.
