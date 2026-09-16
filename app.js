@@ -62,7 +62,7 @@
     $("#draftForm").hidden=!showEditor;$(".technical").hidden=!showEditor;$("#reviewSurface").hidden=!published||state.editing;
     $("#editorTitle").textContent=d?.title||"NEW PROPOSAL";$("#draftState").textContent=d?.frozen?`FINALIZED · VERSION ${d.versions.length}`:published?`IN REVIEW · VERSION ${d.versions.length}`:d?.versions.length?`PRIVATE DRAFT · VERSION ${d.versions.length}`:"UNSAVED PRIVATE DRAFT";
     const revising=Boolean(d?.versions.length);$("#saveRevision").textContent=revising?"SAVE REVISION LOCALLY":"SAVE DRAFT LOCALLY";$("#saveHint").textContent=revising?"Describe what changed, then save this revision in the browser.":"Finish the private draft from top to bottom, then save it in this browser.";
-    [...$("#draftForm").elements].forEach(el=>el.disabled=Boolean(d?.frozen));$("#addAction").disabled=Boolean(d?.frozen);$("#saveRevision").disabled=Boolean(d?.frozen);$("#saveRevision").hidden=!showEditor;$("#publishDraft").hidden=published||!d?.versions.length;$("#editRevision").hidden=!published||state.editing||Boolean(d?.frozen);$("#freezeDraft").hidden=!published||state.editing;$("#freezeDraft").disabled=Boolean(d?.frozen);$("#submitOnchain").hidden=!d?.frozen;$("#exportDraft").disabled=!d?.versions.length;renderWorkflow(d);
+    [...$("#draftForm").elements].forEach(el=>el.disabled=Boolean(d?.frozen));$("#addAction").disabled=Boolean(d?.frozen);$("#saveRevision").disabled=Boolean(d?.frozen);$("#saveRevision").hidden=!showEditor;$("#publishDraft").hidden=published||!d?.versions.length;renderWorkflow(d);
     if(published&&!state.editing)renderPublished(d);
   }
   function renderDrafts(){
@@ -137,11 +137,6 @@
     const canonical=JSON.stringify(d.versions.at(-1).snapshot);const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical));
     d.frozen=true;d.frozenHash=[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,"0")).join("");persist();feedback("Final version locked locally. On-chain submission is the next integration step.","success");renderDrafts();fillForm(d);
   }
-  function exportDraft(){
-    const d=active();if(!d?.versions.length)return;
-    const artifact={format:"neta-dao-proposal-draft-v1",exportedAt:new Date().toISOString(),draft:d,transactionPayload:{messages:d.actions.map(messageFor)}};
-    const blob=new Blob([JSON.stringify(artifact,null,2)],{type:"application/json"}),link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=`neta-dao-proposal-${d.id}.json`;link.click();URL.revokeObjectURL(link.href);
-  }
   function diffTokens(previous,current){
     const a=String(previous||"").match(/\s+|[^\s]+/g)||[],b=String(current||"").match(/\s+|[^\s]+/g)||[];
     if(a.join("")===b.join(""))return[{type:"same",text:b.join("")}];
@@ -182,7 +177,17 @@
       list.append(thread);
     });
     if(!events.length)list.innerHTML='<p class="empty">No review activity yet.</p>';
-    const enabled=Boolean(state.member&&d?.status==="published"&&!d?.frozen);$("#threadTitle").disabled=$("#commentBody").disabled=$("#commentForm button").disabled=!enabled;renderWorkflow(d);
+    const enabled=Boolean(state.member&&d?.status==="published"&&!d?.frozen);$("#threadTitle").disabled=$("#commentBody").disabled=$("#commentForm button").disabled=!enabled;
+    const threadActions=$("#threadActions"),showThreadActions=Boolean(d?.status==="published"&&!state.editing&&canAuthor(d));
+    threadActions.hidden=!showThreadActions;
+    if(showThreadActions){
+      $("#threadActionVersion").textContent=`VERSION ${d.versions.length} · LATEST REVISION`;
+      $("#threadActionHint").textContent=d.frozen?"This version is finalized and ready for on-chain submission.":"Create another revision or finalize this latest version.";
+      $("#editRevision").hidden=Boolean(d.frozen);
+      $("#freezeDraft").hidden=Boolean(d.frozen);
+      $("#submitOnchain").hidden=!d.frozen;
+    }
+    renderWorkflow(d);
   }
   function renderDaoPicker(){
     const select=$("#daoSelect");select.innerHTML=DAOS.map(dao=>`<option value="${esc(dao.id)}">${esc(dao.name)} · REVIEWED</option>`).join("");select.value=state.daoId;
@@ -198,7 +203,7 @@
   $("#disconnectWallet").onclick=disconnect;
   $("#newDraft").onclick=()=>{state.active=null;state.editing=false;renderDrafts();fillForm(null)};
   $("#addAction").onclick=()=>addAction();
-  $("#saveRevision").onclick=saveRevision;$("#publishDraft").onclick=publishDraft;$("#editRevision").onclick=editRevision;$("#freezeDraft").onclick=freeze;$("#exportDraft").onclick=exportDraft;
+  $("#saveRevision").onclick=saveRevision;$("#publishDraft").onclick=publishDraft;$("#editRevision").onclick=editRevision;$("#freezeDraft").onclick=freeze;
   $("#jumpLatestVersion").onclick=()=>{const d=active(),target=d&&document.getElementById(`version-${d.versions.length}`);target?.scrollIntoView({behavior:"smooth",block:"center"});if(target)target.open=true};
   $("#toggleCode").onclick=()=>{$("#codeOutput").hidden=!$("#codeOutput").hidden;renderCode()};
   $("#commentForm").onsubmit=e=>{e.preventDefault();const d=active(),title=$("#threadTitle").value.trim(),body=$("#commentBody").value.trim();if(!state.member||d?.status!=="published"||!title||!body){if(!title||!body)feedback("Give the thread a title and an opening message.","error");return}d.comments.push({id:uid(),parentId:null,title,body,author:state.address,version:d.versions.length,status:"open",decisionReason:"",createdAt:new Date().toISOString()});$("#threadTitle").value="";$("#commentBody").value="";persist();renderComments()};
