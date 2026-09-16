@@ -16,29 +16,29 @@
       <a class="active" href="#workshop">WORKSHOP</a>
       <span>PROPOSALS</span><span>STAKE</span><span>TREASURY</span><span>SOCIALS</span><span>SYSTEM</span>
     </nav>
-    <button id="walletButton" class="wallet" type="button">CONNECT KEPLR</button>
+    <div class="wallet-area">
+      <button id="walletButton" class="wallet" type="button" aria-haspopup="menu" aria-expanded="false">CONNECT KEPLR</button>
+      <div id="walletMenu" class="wallet-menu" role="menu" hidden>
+        <div><small>CONNECTED WALLET</small><strong id="walletMenuAddress">—</strong></div>
+        <div><small>WORKSPACE ACCESS</small><strong id="walletMenuAccess">—</strong></div>
+        <button id="copyAddress" type="button" role="menuitem">COPY ADDRESS</button>
+        <button id="disconnectWallet" class="danger-action" type="button" role="menuitem">DISCONNECT THIS SITE</button>
+        <small>Disconnect clears this site session. Keplr permissions are managed separately in Keplr.</small>
+      </div>
+    </div>
   </header>
 
   <main>
-    <section class="dao-switcher" aria-labelledby="daoSwitcherTitle">
-      <div>
-        <p class="eyebrow">WHITELISTED GOVERNANCE</p>
-        <h2 id="daoSwitcherTitle">SELECT A DAO WORKSPACE</h2>
-        <p>Only reviewed DAO configurations appear here. Support for another DAO is added only after its contracts and rules have been tested.</p>
+    <section class="workbench-head" aria-labelledby="workbenchTitle">
+      <div class="workbench-title">
+        <p class="eyebrow">GOVERNANCE WORKBENCH · JUNO</p>
+        <h1 id="workbenchTitle">Proposal Workshop</h1>
+        <p>Draft, review and prepare auditable proposal actions before an on-chain vote.</p>
       </div>
-      <div class="dao-search">
-        <label for="daoSearch">SEARCH WHITELISTED DAOS</label>
-        <input id="daoSearch" type="search" list="daoOptions" autocomplete="off" placeholder="Search by DAO name or Juno address">
-        <datalist id="daoOptions"></datalist>
-        <div id="daoResult" class="dao-result" aria-live="polite"></div>
-      </div>
-    </section>
-
-    <section class="hero">
-      <div>
-        <p class="eyebrow">COLLABORATIVE GOVERNANCE · JUNO</p>
-        <h1>PROPOSALS SHOULD<br><em>IMPROVE BEFORE THEY VOTE.</em></h1>
-        <p class="lede">Draft actions, invite member feedback, preserve every revision and prepare an auditable payload before submitting anything on-chain.</p>
+      <div class="dao-picker">
+        <label for="daoSelect">DAO WORKSPACE</label>
+        <select id="daoSelect" aria-describedby="daoPolicy"></select>
+        <small id="daoPolicy">Only reviewed and tested DAO configurations are available.</small>
       </div>
       <div class="membership-card">
         <span>MEMBERSHIP</span>
@@ -47,7 +47,7 @@
       </div>
     </section>
 
-    <div class="notice"><strong>LOCAL MVP PREVIEW</strong><span>Drafts and comments remain in this browser until the reviewed workshop contract is connected.</span></div>
+    <div class="notice"><strong>LOCAL MVP</strong><span>Drafts and comments stay in this browser. Nothing is broadcast.</span></div>
 
     <section id="workshop" class="workspace">
       <aside class="drafts">
