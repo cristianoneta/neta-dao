@@ -136,10 +136,18 @@
     const artifact={format:"neta-dao-proposal-draft-v1",exportedAt:new Date().toISOString(),draft:d,transactionPayload:{messages:d.actions.map(messageFor)}};
     const blob=new Blob([JSON.stringify(artifact,null,2)],{type:"application/json"}),link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=`neta-dao-proposal-${d.id}.json`;link.click();URL.revokeObjectURL(link.href);
   }
-  function diffSnapshots(previous,current){
-    const a=JSON.stringify(previous||{},null,2).split("\n"),b=JSON.stringify(current||{},null,2).split("\n"),out=[];const max=Math.max(a.length,b.length);
-    for(let i=0;i<max;i++){if(a[i]===b[i])out.push("  "+(a[i]||""));else{if(a[i]!==undefined)out.push("- "+a[i]);if(b[i]!==undefined)out.push("+ "+b[i])}}
-    return out.join("\n");
+  function diffTokens(previous,current){
+    const a=String(previous||"").match(/\s+|[^\s]+/g)||[],b=String(current||"").match(/\s+|[^\s]+/g)||[];
+    if(a.join("")===b.join(""))return[{type:"same",text:b.join("")}];
+    if(a.length*b.length>250000)return[{type:"removed",text:a.join("")},{type:"added",text:b.join("")}];
+    const table=Array.from({length:a.length+1},()=>new Uint16Array(b.length+1));
+    for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)table[i][j]=a[i-1]===b[j-1]?table[i-1][j-1]+1:Math.max(table[i-1][j],table[i][j-1]);
+    const reversed=[];let i=a.length,j=b.length;
+    while(i||j){if(i&&j&&a[i-1]===b[j-1]){reversed.push({type:"same",text:a[--i]});j--}else if(j&&(!i||table[i][j-1]>=table[i-1][j]))reversed.push({type:"added",text:b[--j]});else reversed.push({type:"removed",text:a[--i]})}
+    return reversed.reverse().reduce((ops,part)=>{const last=ops.at(-1);if(last?.type===part.type)last.text+=part.text;else ops.push(part);return ops},[]);
+  }
+  function renderInlineDiff(element,previous,current){
+    element.replaceChildren();diffTokens(previous,current).forEach(part=>{const node=document.createElement(part.type==="removed"?"del":part.type==="added"?"ins":"span");node.textContent=part.text;element.append(node)});
   }
   const shortAddress=address=>address?`${address.slice(0,10)}…${address.slice(-6)}`:"UNCONNECTED AUTHOR";
   const statusLabel=status=>({open:"OPEN",incorporated:"INCORPORATED",not_incorporated:"NOT INCORPORATED"}[status]||"OPEN");
@@ -154,8 +162,9 @@
       if(event.kind==="version"){
         const v=event.version,snapshot=v.snapshot||{},previous=d.versions[v.number-2]?.snapshot||{},entry=document.createElement("details");
         entry.id=`version-${v.number}`;entry.className="version-event";
-        entry.innerHTML=`<summary><span><b>VERSION ${v.number}</b><small>${new Date(v.createdAt).toLocaleString()}</small></span><span><b>${esc(snapshot.title||d.title||"Untitled proposal")}</b><em>${esc(snapshot.summary||"")}</em></span></summary><div class="version-expanded"><h4>WHAT CHANGED AND WHY</h4><p class="change-note">${esc(v.changeLog)}</p><h4>FULL VERSION ${v.number}</h4><div class="version-body">${esc(snapshot.body||"")}</div><small>${(snapshot.actions||[]).length} EXECUTION ACTIONS</small><button class="show-changes secondary" type="button">SHOW CHANGES FROM VERSION ${v.number-1}</button><pre class="inline-diff" hidden>${esc(diffSnapshots(previous,snapshot))}</pre></div>`;
-        const button=entry.querySelector(".show-changes"),diff=entry.querySelector(".inline-diff");button.onclick=()=>{diff.hidden=!diff.hidden;button.textContent=diff.hidden?`SHOW CHANGES FROM VERSION ${v.number-1}`:"HIDE CHANGES"};list.append(entry);return;
+        entry.innerHTML=`<summary><span><b>VERSION ${v.number}</b><small>${new Date(v.createdAt).toLocaleString()}</small></span><span><b class="version-title">${esc(snapshot.title||d.title||"Untitled proposal")}</b><em class="version-summary">${esc(snapshot.summary||"")}</em></span></summary><div class="version-expanded"><h4>WHAT CHANGED AND WHY</h4><p class="change-note">${esc(v.changeLog)}</p><h4>FULL VERSION ${v.number}</h4><div class="version-body">${esc(snapshot.body||"")}</div><small>${(snapshot.actions||[]).length} EXECUTION ACTIONS</small><p class="action-change" hidden></p><button class="show-changes secondary" type="button">SHOW INLINE CHANGES FROM VERSION ${v.number-1}</button></div>`;
+        const button=entry.querySelector(".show-changes"),title=entry.querySelector(".version-title"),summary=entry.querySelector(".version-summary"),body=entry.querySelector(".version-body"),actionChange=entry.querySelector(".action-change"),current={title:snapshot.title||d.title||"Untitled proposal",summary:snapshot.summary||"",body:snapshot.body||""};let comparing=false;
+        button.onclick=()=>{comparing=!comparing;if(comparing){renderInlineDiff(title,previous.title,current.title);renderInlineDiff(summary,previous.summary,current.summary);renderInlineDiff(body,previous.body,current.body);const actionsChanged=JSON.stringify(previous.actions||[])!==JSON.stringify(snapshot.actions||[]);actionChange.hidden=!actionsChanged;actionChange.textContent=actionsChanged?`EXECUTION ACTIONS CHANGED: ${(previous.actions||[]).length} → ${(snapshot.actions||[]).length}`:""}else{title.textContent=current.title;summary.textContent=current.summary;body.textContent=current.body;actionChange.hidden=true}button.textContent=comparing?"HIDE INLINE CHANGES":`SHOW INLINE CHANGES FROM VERSION ${v.number-1}`};list.append(entry);return;
       }
       const root=event.root;
       const thread=document.createElement("article");thread.className=`thread thread-${root.status}`;
