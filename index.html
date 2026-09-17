@@ -19,14 +19,17 @@
       <label>PROPOSAL TITLE<input id="proposal-title" maxlength="120" placeholder="A concise proposal title"></label>
       <label>SUMMARY<textarea id="proposal-summary" maxlength="500" rows="4" placeholder="What should the DAO decide?"></textarea></label>
       <section id="onchain-panel" class="onchain-panel" hidden><div id="voting-deadline" class="voting-deadline"></div><div class="vote-totals"><div><small>YES</small><strong id="vote-yes">0</strong></div><div><small>NO</small><strong id="vote-no">0</strong></div><div><small>ABSTAIN</small><strong id="vote-abstain">0</strong></div></div><div id="vote-actions" class="vote-actions" hidden><span id="vote-hint">Connect Keplr to vote.</span><div><button type="button" data-vote="yes">YES</button><button type="button" data-vote="no">NO</button><button type="button" data-vote="abstain">ABSTAIN</button></div></div></section>
+      <button id="proposal-details-toggle" class="details-toggle" type="button" aria-expanded="true" aria-controls="proposal-details">− HIDE PROPOSAL DETAILS</button>
+      <div id="proposal-details">
       <label>PROPOSAL BODY<textarea id="proposal-body" maxlength="20000" rows="12" placeholder="Context, rationale and expected outcome"></textarea></label>
       <section class="actions-panel"><header><div><span>EXECUTION</span><h3>ACTIONS</h3></div><button id="add-action" type="button">+ ADD ACTION</button></header><textarea id="proposal-actions" rows="5" spellcheck="false">[]</textarea></section>
       <label id="change-note-wrap" hidden>WHAT CHANGED?<input id="change-note" maxlength="500" placeholder="Summarize this revision"></label>
       <section id="revision-panel" class="revision-panel" hidden><header><h3>REVISION HISTORY</h3></header><div id="revision-list"></div></section>
-      <section id="discussion-panel" class="discussion-panel" hidden><header><h3>DISCUSSION</h3><span>STRICTLY &gt; 10 NETA STAKED</span></header><div id="comment-list"></div><form id="comment-form"><textarea id="comment-body" maxlength="2000" rows="3" placeholder="Add an on-chain comment"></textarea><button type="submit">PUBLISH COMMENT</button></form></section>
+      <section id="discussion-panel" class="discussion-panel" hidden><header><div><span>TOPIC THREADS</span><h3>DISCUSSION</h3></div><span>STRICTLY &gt; 10 NETA STAKED</span></header><div id="comment-list"></div><form id="comment-form"><div class="comment-form-heading"><strong id="comment-form-title">START A NEW TOPIC</strong><button id="cancel-reply" type="button" hidden>CANCEL REPLY</button></div><input id="comment-title" maxlength="100" placeholder="Name the topic you want to discuss"><textarea id="comment-body" maxlength="1500" rows="3" placeholder="Introduce the topic"></textarea><button id="publish-comment" type="submit">START THREAD</button></form></section>
+      </div>
       <footer class="next-actions"><p id="action-hint">Save this private draft in your browser or publish it for public review.</p><div><button id="discard-action" class="danger" type="button">DISCARD</button><button id="save-local" type="button">SAVE REVISION LOCALLY</button><button id="publish-revision" type="button" hidden>PUBLISH NEW REVISION</button><button id="primary-action" type="button">PUBLISH FOR REVIEW</button></div></footer>
     </section>
   </div>
 </main>
-<script src="assets/socials-testnet-client.js?v=4"></script><script src="neta-governance.js?v=3"></script>
+<script src="assets/socials-testnet-client.js?v=4"></script><script src="neta-governance.js?v=4"></script>
 </body></html>

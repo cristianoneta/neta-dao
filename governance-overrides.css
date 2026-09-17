@@ -7,6 +7,10 @@
 .proposal-filters { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px; border-bottom:1px solid var(--line); }
 .proposal-filters button { padding:9px 6px; font-size:10px; }
 .proposal-filters button.active { background:rgba(24,242,172,.16); }
+.details-toggle { width:100%; display:flex; justify-content:space-between; margin-top:20px; border-color:var(--line)!important; color:var(--muted)!important; }
+.details-toggle::after { content:"BODY · EXECUTION · REVISIONS · DISCUSSION"; font-size:10px; letter-spacing:.12em; }
+#proposal-details[hidden] { display:none; }
+#proposal-details>label { display:block; color:var(--muted); font-size:12px; letter-spacing:.12em; margin:20px 0; }
 .proposal-list .status { width:fit-content; margin-top:8px; padding:4px 7px; border-left:3px solid currentColor; font-weight:900; }
 .status-draft,.status-discussion,.status-ready,.status-voting { color:var(--warn)!important; background:#302606; }
 .status-approved,.status-executed { color:var(--gov)!important; background:#003324; }
@@ -17,6 +21,21 @@
 .next-actions[data-status="discussion"],.next-actions[data-status="ready"] { border-color:var(--purple); background:rgba(27,8,37,.98); }
 .next-actions[data-status="voting"] { border-color:var(--warn); background:rgba(48,38,6,.98); }
 .next-actions .danger { border-color:var(--danger); color:var(--danger); }
+.discussion-panel>header>div>span { color:var(--gov); font-size:10px; letter-spacing:.16em; }
+.thread { border-bottom:1px solid #084b37; }
+.thread:last-child { border-bottom:0; }
+.thread-head { padding:18px; background:rgba(24,242,172,.05); }
+.thread-head h4 { margin:0 0 10px; color:var(--gov); font-size:18px; }
+.thread-head p,.reply-item p { margin:10px 0; }
+.thread-meta { color:var(--muted); font-size:11px; }
+.thread-controls { display:flex; align-items:center; gap:10px; margin-top:12px; }
+.thread-controls button { padding:7px 11px; font-size:10px; }
+.reply-list { margin-left:36px; border-left:2px solid var(--line); }
+.reply-item { padding:14px 18px; border-top:1px solid #084b37; }
+.discussion-panel form { border-top:1px solid var(--line); }
+.comment-form-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; color:var(--gov); }
+.comment-form-heading button { padding:6px 10px; margin:0!important; font-size:10px; }
+#comment-title { margin-top:14px; }
 .onchain-panel { border:1px solid var(--line); margin:20px 0; padding:18px; }
 .voting-deadline { color:var(--warn); font-weight:900; }
 .vote-totals { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; }
@@ -24,4 +43,4 @@
 .vote-totals strong { display:block; margin-top:5px; font-size:22px; }
 .vote-actions { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:14px; }
 .vote-actions>div { display:flex; gap:8px; }
-@media(max-width:900px){.proposal-sidebar{position:static;max-height:70vh}.vote-actions{align-items:stretch;flex-direction:column}.vote-actions>div{display:grid}.proposal-filters{grid-template-columns:1fr}}
+@media(max-width:900px){.proposal-sidebar{position:static;max-height:70vh}.details-toggle::after{display:none}.reply-list{margin-left:14px}.vote-actions{align-items:stretch;flex-direction:column}.vote-actions>div{display:grid}.proposal-filters{grid-template-columns:1fr}}
