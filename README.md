@@ -11,7 +11,9 @@ For the current handoff state, agreed product decisions, and the next implementa
 - Compact workbench UX with a reviewed-DAO selector and wallet menu.
 - A clearly labelled local owner-testing override for the project owner address. This is not an authorization mechanism.
 - Local proposal drafts with immutable revision snapshots and mandatory change logs.
-- An explicit six-step proposal workflow: private draft, local save, review publication, discussion/revision, finalization, and eventual on-chain submission.
+- An explicit five-step proposal workflow: private draft, local save, review publication, discussion/revision, and combined finalization/on-chain submission.
+- A unified proposal index that merges local workshop drafts with the complete live NETA Operations on-chain proposal history, ordered by latest activity.
+- Proposal filters for `All`, `In Progress`, and `Approved`, with declined proposals retained in the complete view.
 - Discussion-first review mode: version 1 remains the visible baseline while titled threads and later revisions form one chronological activity stream.
 - Each revision can be expanded in place and compared directly with its preceding version using inline additions and struck-through deletions; a prominent notice links from version 1 to the latest revision.
 - Flat, titled member discussion threads with replies, status filters, and open-thread counts.
@@ -24,7 +26,7 @@ For the current handoff state, agreed product decisions, and the next implementa
 ## Deliberately not included yet
 
 - Shared/public persistence and on-chain publication.
-- The final on-chain submission control is deliberately disabled until the reviewed DAO proposal adapter is connected.
+- The combined finalization/on-chain submission flow is deliberately incomplete until the reviewed DAO proposal adapter is connected. Local finalization remains available for testing within the same final workflow stage.
 - Treasury views and management. This is the separately reviewed next phase.
 - Submission to the legacy NETA DAO proposal module.
 - IBC transfers.

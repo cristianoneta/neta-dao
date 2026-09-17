@@ -8,7 +8,7 @@
   <title>NETA DAO · Proposal Workshop</title>
   <meta name="description" content="Collaboratively draft, review and prepare NETA DAO proposals before they move on-chain.">
   <link rel="stylesheet" href="styles.css?v=10">
-  <link rel="stylesheet" href="proposal-compact.css?v=1">
+  <link rel="stylesheet" href="proposal-compact.css?v=2">
 </head>
 <body>
   <header class="shell-header">
@@ -55,15 +55,20 @@
         <li data-stage="1"><b>2</b><span><strong>SAVE LOCALLY</strong><small>Create a revision</small></span></li>
         <li data-stage="2"><b>3</b><span><strong>PUBLISH FOR REVIEW</strong><small>Share with members</small></span></li>
         <li data-stage="3"><b>4</b><span><strong>DISCUSS + REVISE</strong><small>Improve the proposal</small></span></li>
-        <li data-stage="4"><b>5</b><span><strong>FINALIZE</strong><small>Lock the final version</small></span></li>
-        <li data-stage="5"><b>6</b><span><strong>SUBMIT ON-CHAIN</strong><small>Start the DAO vote</small></span></li>
+        <li data-stage="4"><b>5</b><span><strong>FINALIZE + SUBMIT</strong><small>Lock the version and start the DAO vote</small></span></li>
       </ol>
       <p class="workflow-disclaimer">This MVP stores drafts, revisions and discussions only in this browser. “Publish for Review” currently previews the shared workflow; it does not broadcast data. Only the future on-chain submission will create a DAO vote.</p>
     </section>
 
     <section id="workshop" class="workspace">
       <aside class="drafts">
-        <div class="section-head"><div><small>WORKSPACE</small><h2>DRAFTS</h2></div><button id="newDraft" type="button">+ NEW DRAFT</button></div>
+        <div class="section-head"><div><small>WORKSPACE</small><h2>PROPOSALS</h2></div><button id="newDraft" type="button">+ NEW DRAFT</button></div>
+        <div class="proposal-filters" role="group" aria-label="Filter proposals">
+          <button type="button" data-proposal-filter="all" class="active">ALL</button>
+          <button type="button" data-proposal-filter="in_progress">IN PROGRESS</button>
+          <button type="button" data-proposal-filter="approved">APPROVED</button>
+        </div>
+        <div id="proposalLoadState" class="proposal-load-state">LOADING ON-CHAIN PROPOSALS…</div>
         <div id="draftList" class="draft-list"></div>
       </aside>
 
@@ -124,6 +129,6 @@
       <div data-fields></div>
     </fieldset>
   </template>
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>

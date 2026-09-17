@@ -46,3 +46,86 @@
     padding: 1rem;
   }
 }
+
+/* Unified proposal index: workshop drafts and live DAO proposals. */
+.workspace {
+  grid-template-columns: 340px 1fr;
+}
+
+.proposal-filters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .35rem;
+  padding: .7rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.proposal-filters button {
+  min-width: 0;
+  padding: .55rem .3rem;
+  background: transparent;
+  border-color: #07563e;
+  color: var(--muted);
+  font-size: .58rem;
+}
+
+.proposal-filters button.active {
+  background: #003d2c;
+  border-color: var(--neon);
+  color: var(--neon);
+}
+
+.proposal-load-state {
+  padding: .55rem 1rem;
+  border-bottom: 1px solid #064631;
+  color: var(--muted);
+  font-size: .58rem;
+  letter-spacing: .11em;
+}
+
+.draft-list {
+  max-height: calc(100vh - 285px);
+  overflow: auto;
+}
+
+.draft-list button,
+.draft-list a {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  border: 0;
+  border-bottom: 1px solid #064631;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  text-decoration: none;
+}
+
+.draft-list b,
+.draft-list span,
+.draft-list small {
+  display: block;
+}
+
+.draft-list .proposal-status {
+  margin-top: .55rem;
+  font-size: .65rem;
+  font-weight: 700;
+}
+
+.draft-list small {
+  margin-top: .35rem;
+  font-size: .55rem;
+}
+
+.proposal-status.status-approved { color: var(--neon); }
+.proposal-status.status-declined { color: var(--danger); }
+.proposal-status.status-in-progress { color: var(--warn); }
+.draft-list a:hover,
+.draft-list button:hover { background: #002219; }
+.workflow-steps { grid-template-columns: repeat(5, 1fr); }
+
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: 1fr; }
+  .draft-list { max-height: 360px; }
+}
