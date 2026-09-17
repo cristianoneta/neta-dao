@@ -39,10 +39,19 @@ The owner override is frontend-only test scaffolding. It must never be accepted 
 2. **Save Locally** — create an immutable local revision snapshot.
 3. **Publish for Review** — expose the proposal to DAO members for review.
 4. **Discuss + Revise** — members create titled threads and replies; the author creates V2, V3, and later revisions.
-5. **Finalize** — lock the exact final version intended for submission.
-6. **Submit On-Chain** — create the real DAO proposal and begin the vote.
+5. **Finalize + Submit** — lock the exact final version and submit it to create the real DAO proposal and begin the vote.
 
-The frontend now visualizes these six stages and updates the current/completed states. In the local MVP, “Publish for Review” only opens a local preview. It does not yet share anything with another browser or wallet. The on-chain submission button is deliberately disabled.
+The frontend visualizes these five user-facing stages. Finalization and submission remain separately auditable technical operations, but they are one coherent user step. In the local MVP, “Publish for Review” only opens a local preview. It does not yet share anything with another browser or wallet. Local finalization remains testable; the proposal stays in the final stage until the on-chain adapter submits it.
+
+## Unified proposal index
+
+- The left workspace column is a proposal index rather than a local-drafts-only list.
+- It combines local workshop entries with the full live history from the enabled NETA Operations proposal module.
+- The default `All` view is ordered by latest activity. Local entries use their latest revision, discussion, decision, publication or finalization timestamp; historical on-chain proposals use their chain lifecycle order/time.
+- `In Progress` contains workshop drafts, discussion-phase proposals, ready-to-submit proposals and active on-chain votes.
+- `Approved` contains passed or executed on-chain proposals.
+- Declined/rejected/closed proposals remain visible in `All`, matching the deliberately limited three-filter design.
+- Status labels are normalized to the product vocabulary: `Draft`, `Discussion Phase`, `Ready to Submit`, `Voting Phase`, `Approved`, and `Declined`.
 
 ## Implemented UX and behavior
 
@@ -112,4 +121,3 @@ Proceed in this order:
 - General support for arbitrary, unreviewed DAOs
 
 These are not part of the current MVP unless the user explicitly approves them.
-

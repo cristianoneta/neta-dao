@@ -5,12 +5,14 @@
     name:"NETA Operations",
     core:"juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
     membership:"cw4-voting",
+    proposalModule:"juno1m9skms04ymmhsyc2q9cguja47d07mljsfnvm8f584dc645urxvjsjc9ep0",
+    proposalPrefix:"A",
     description:"Operational expenses and services for NETA DAO."
   }];
   const RESTS=["https://juno-api.polkachu.com","https://juno-api.lavenderfive.com"];
   const OWNER_TESTERS=["juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57"];
   const STORE="neta-dao-workshop-mvp-v2";
-  const state={address:null,member:false,ownerAccess:false,votingPower:"0",daoId:DAOS[0].id,drafts:[],active:null,editing:false};
+  const state={address:null,member:false,ownerAccess:false,votingPower:"0",daoId:DAOS[0].id,drafts:[],onchainProposals:[],proposalFilter:"all",active:null,editing:false};
   const $=s=>document.querySelector(s);
   const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
   const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);
@@ -48,11 +50,11 @@
     button.textContent=`${state.address.slice(0,8)}…${state.address.slice(-5)}`;
     $("#walletMenuAddress").textContent=state.address;$("#walletMenuAccess").textContent=status.textContent;
   }
-  function blank(){return{id:uid(),daoId:state.daoId,title:"",summary:"",body:"",actions:[],versions:[],comments:[],status:"draft",frozen:false,author:state.address,createdAt:new Date().toISOString()}}
+  function blank(){const now=new Date().toISOString();return{id:uid(),daoId:state.daoId,title:"",summary:"",body:"",actions:[],versions:[],comments:[],status:"draft",frozen:false,author:state.address,createdAt:now,updatedAt:now}}
   function readForm(){return{title:$("#title").value.trim(),summary:$("#summary").value.trim(),body:$("#body").value.trim(),actions:[...$("#actionList").children].map(readAction)}}
   function workflowStage(d){if(d?.frozen)return 4;if(d?.status==="published"&&((d.comments||[]).length||d.versions.length>1))return 3;if(d?.status==="published")return 2;if(d?.versions?.length)return 1;return 0}
   function renderWorkflow(d){
-    const stage=workflowStage(d),hints=["Start a private draft. Nothing is shared or submitted on-chain yet.","Your draft is saved locally. Publish it when it is ready for member review.","The review is open. Members can read the draft and start discussion threads.","Discussion and revisions are building the proposal's auditable history.","The final version is locked and ready for the future on-chain submission."];
+    const stage=workflowStage(d),hints=["Start a private draft. Nothing is shared or submitted on-chain yet.","Your draft is saved locally. Publish it when it is ready for member review.","The review is open. Members can read the draft and start discussion threads.","Discussion and revisions are building the proposal's auditable history.","Finalize the exact version and submit it to start the DAO vote."];
     $("#workflowHint").textContent=hints[stage];document.querySelectorAll(".workflow-steps li").forEach((step,index)=>{step.dataset.state=index<stage?"complete":index===stage?"current":"upcoming"});
   }
   function fillForm(d){
@@ -67,9 +69,31 @@
   }
   function renderDrafts(){
     const list=$("#draftList");list.replaceChildren();
-    const drafts=state.drafts.filter(d=>d.daoId===state.daoId);
-    if(!drafts.length){list.innerHTML='<p class="empty">No local drafts for this DAO yet.</p>';return}
-    drafts.forEach(d=>{const b=document.createElement("button");b.type="button";b.className=d.id===state.active?"active":"";b.innerHTML=`<b>${esc(d.title||"Untitled proposal")}</b><span>${d.frozen?"FINALIZED":d.status==="published"?"IN REVIEW · V"+d.versions.length:"PRIVATE · "+d.versions.length+" VERSIONS"} · LOCAL MVP</span>`;b.onclick=()=>{state.active=d.id;state.editing=false;persist();renderDrafts();fillForm(d)};list.append(b)})
+    const local=state.drafts.filter(d=>d.daoId===state.daoId).map(d=>({kind:"local",record:d,group:"in_progress",sortAt:localUpdatedAt(d)}));
+    const chain=state.onchainProposals.map(item=>({kind:"chain",record:item,group:onchainGroup(item.proposal.status),sortAt:onchainUpdatedAt(item)}));
+    const proposals=[...local,...chain].filter(item=>state.proposalFilter==="all"||item.group===state.proposalFilter).sort((a,b)=>b.sortAt-a.sortAt);
+    if(!proposals.length){list.innerHTML='<p class="empty">No proposals match this filter.</p>';return}
+    proposals.forEach(item=>{
+      if(item.kind==="local"){
+        const d=item.record,b=document.createElement("button");b.type="button";b.className=d.id===state.active?"active":"";b.innerHTML=`<b>${esc(d.title||"Untitled proposal")}</b><span class="proposal-status status-in-progress">${localStatus(d)}</span><small>${formatChanged(item.sortAt)} · WORKSHOP</small>`;b.onclick=()=>{state.active=d.id;state.editing=false;persist();renderDrafts();fillForm(d)};list.append(b);return;
+      }
+      const {id,proposal}=item.record,a=document.createElement("a");a.className="onchain-proposal";a.href=`https://daodao.zone/dao/${selectedDao().core}/proposals/${selectedDao().proposalPrefix}/${id}`;a.target="_blank";a.rel="noopener noreferrer";a.innerHTML=`<b>${esc(proposal.title||`Proposal ${id}`)}</b><span class="proposal-status status-${item.group==='approved'?'approved':item.group==='in_progress'?'in-progress':'declined'}">${onchainStatus(proposal.status)}</span><small>#${id} · ON-CHAIN</small>`;list.append(a);
+    })
+  }
+  function localUpdatedAt(d){const times=[d.updatedAt,d.createdAt,d.publishedAt,d.frozenAt,...(d.versions||[]).map(v=>v.createdAt),...(d.comments||[]).map(c=>c.decidedAt||c.createdAt)].filter(Boolean).map(Date.parse).filter(Number.isFinite);return times.length?Math.max(...times):0}
+  function onchainUpdatedAt(item){const nanos=item.proposal?.expiration?.at_time;return nanos?Number(BigInt(nanos)/1000000n):Number(item.id)}
+  function onchainGroup(status){return ["executed","passed"].includes(status)?"approved":status==="open"?"in_progress":"declined"}
+  function onchainStatus(status){return({executed:"APPROVED",passed:"APPROVED",open:"VOTING PHASE",rejected:"DECLINED",closed:"DECLINED",execution_failed:"DECLINED"}[status]||String(status||"UNKNOWN").replaceAll("_"," ").toUpperCase())}
+  function localStatus(d){return d.frozen?"READY TO SUBMIT":d.status==="published"?"DISCUSSION PHASE":d.versions?.length?"DRAFT":"NEW DRAFT"}
+  function formatChanged(value){return value?`UPDATED ${new Date(value).toLocaleDateString()}`:"UPDATED —"}
+  async function loadOnchainProposals(){
+    const load=$("#proposalLoadState");load.hidden=false;load.textContent="LOADING ON-CHAIN PROPOSALS…";const proposals=[];let startBefore=null;
+    try{
+      for(let page=0;page<20;page++){
+        const result=await smart(selectedDao().proposalModule,{reverse_proposals:{start_before:startBefore,limit:30}}),batch=result.proposals||[];proposals.push(...batch);if(batch.length<30)break;startBefore=batch.at(-1).id;
+      }
+      state.onchainProposals=proposals;load.textContent=`${proposals.length} ON-CHAIN PROPOSALS`;renderDrafts();
+    }catch(error){state.onchainProposals=[];load.textContent="ON-CHAIN PROPOSALS UNAVAILABLE";renderDrafts()}
   }
   const field=(label,name,value="",area=false)=>`<label>${label}${area?`<textarea data-field="${name}">${esc(value)}</textarea>`:`<input data-field="${name}" value="${esc(value)}">`}</label>`;
   function fieldsFor(type,a={}){
@@ -96,7 +120,7 @@
     const error=validateActions(values.actions);if(error){alert(error);return}
     let d=active();if(!d){d=blank();state.drafts.unshift(d);state.active=d.id}
     const changeLog=$("#changeLog").value.trim();if(d.versions.length&&!changeLog){alert("Explain what changed and why before saving a new version.");return}
-    Object.assign(d,values);d.author=d.author||state.address;d.versions.push({number:d.versions.length+1,createdAt:new Date().toISOString(),changeLog:changeLog||"Initial proposal draft",snapshot:structuredClone(values)});
+    Object.assign(d,values);d.author=d.author||state.address;d.updatedAt=new Date().toISOString();d.versions.push({number:d.versions.length+1,createdAt:d.updatedAt,changeLog:changeLog||"Initial proposal draft",snapshot:structuredClone(values)});
     state.editing=false;persist();feedback(`Version ${d.versions.length} saved locally.`);renderDrafts();fillForm(d);
   }
   function canAuthor(d){return Boolean(state.address&&(state.ownerAccess||d?.author===state.address))}
@@ -104,7 +128,7 @@
     try{
       const d=active();if(!d?.versions.length){feedback("Save the first version before opening review.","error");return}if(!state.member||!state.address){feedback("Connect a verified DAO member wallet before opening review.","error");return}
       if(d.author&&d.author!==state.address&&!state.ownerAccess){feedback("Only the draft author can open its review.","error");return}
-      d.author=d.author||state.address;d.status="published";d.publishedAt=new Date().toISOString();state.editing=false;persist();renderDrafts();fillForm(d);feedback("Local review preview opened. Shared publication requires the workshop backend.","success");$("#reviewSurface").scrollIntoView({behavior:"smooth",block:"start"});
+      d.author=d.author||state.address;d.status="published";d.publishedAt=d.updatedAt=new Date().toISOString();state.editing=false;persist();renderDrafts();fillForm(d);feedback("Local review preview opened. Shared publication requires the workshop backend.","success");$("#reviewSurface").scrollIntoView({behavior:"smooth",block:"start"});
     }catch(error){console.error(error);feedback(`Could not open review: ${error.message}`,"error")}
   }
   function editRevision(){const d=active();if(!canAuthor(d)){alert("Only the proposal author can create a revision.");return}state.editing=true;fillForm(d);$("#changeLog").focus()}
@@ -135,7 +159,7 @@
   async function freeze(){
     const d=active();if(d?.status!=="published"||!canAuthor(d)||!d?.versions.length||!confirm("Finalize this exact version for submission? It can no longer be edited in this MVP."))return;
     const canonical=JSON.stringify(d.versions.at(-1).snapshot);const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical));
-    d.frozen=true;d.frozenHash=[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,"0")).join("");persist();feedback("Final version locked locally. On-chain submission is the next integration step.","success");renderDrafts();fillForm(d);
+    d.frozen=true;d.frozenAt=d.updatedAt=new Date().toISOString();d.frozenHash=[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,"0")).join("");persist();feedback("Final version locked locally. It remains in the combined Finalize + Submit step until the on-chain adapter is connected.","success");renderDrafts();fillForm(d);
   }
   function diffTokens(previous,current){
     const a=String(previous||"").match(/\s+|[^\s]+/g)||[],b=String(current||"").match(/\s+|[^\s]+/g)||[];
@@ -172,8 +196,8 @@
       thread.innerHTML=`<div class="thread-top"><span class="thread-status">${statusLabel(root.status)}</span><small>VERSION ${root.version}</small></div><h4 class="thread-title">${esc(root.title||"Discussion")}</h4><p>${esc(root.body)}</p><small>${esc(shortAddress(root.author))} · ${new Date(root.createdAt).toLocaleString()}</small>`;
       const replies=document.createElement("div");replies.className="thread-replies";comments.filter(comment=>comment.parentId===root.id).forEach(reply=>{const node=document.createElement("div");node.className="reply";node.innerHTML=`<p>${esc(reply.body)}</p><small>${esc(shortAddress(reply.author))} · ${new Date(reply.createdAt).toLocaleString()}</small>`;replies.append(node)});thread.append(replies);
       if(root.status!=="open"&&root.decisionReason){const decision=document.createElement("div");decision.className="decision-note";decision.innerHTML=`<b>AUTHOR DECISION</b><p>${esc(root.decisionReason)}</p><small>${root.decisionVersion?`VERSION ${root.decisionVersion}`:"CURRENT VERSION"}</small>`;thread.append(decision)}
-      if(state.member){const replyForm=document.createElement("form");replyForm.className="reply-form";replyForm.innerHTML='<textarea maxlength="1500" placeholder="Reply to this thread"></textarea><button type="submit">REPLY</button>';replyForm.onsubmit=event=>{event.preventDefault();const body=replyForm.querySelector("textarea").value.trim();if(!body)return;d.comments.push({id:uid(),parentId:root.id,body,author:state.address,version:d.versions.length,createdAt:new Date().toISOString()});persist();renderComments()};thread.append(replyForm)}
-      if(canAuthor(d)){const controls=document.createElement("div");controls.className="decision-controls";controls.innerHTML=`<select aria-label="Thread decision"><option value="open">OPEN</option><option value="incorporated">INCORPORATED</option><option value="not_incorporated">NOT INCORPORATED</option></select><input maxlength="500" placeholder="Explain the author's decision" value="${esc(root.decisionReason||"")}"><button type="button">SAVE DECISION</button>`;controls.querySelector("select").value=root.status;controls.querySelector("button").onclick=()=>{const status=controls.querySelector("select").value,reason=controls.querySelector("input").value.trim();if(status!=="open"&&!reason){alert("Explain why this feedback was or was not incorporated.");return}const original=d.comments.find(comment=>comment.id===root.id);Object.assign(original,{status,decisionReason:status==="open"?"":reason,decisionVersion:status==="open"?null:d.versions.length,decidedAt:new Date().toISOString()});persist();renderComments()};thread.append(controls)}
+      if(state.member){const replyForm=document.createElement("form");replyForm.className="reply-form";replyForm.innerHTML='<textarea maxlength="1500" placeholder="Reply to this thread"></textarea><button type="submit">REPLY</button>';replyForm.onsubmit=event=>{event.preventDefault();const body=replyForm.querySelector("textarea").value.trim();if(!body)return;d.updatedAt=new Date().toISOString();d.comments.push({id:uid(),parentId:root.id,body,author:state.address,version:d.versions.length,createdAt:d.updatedAt});persist();renderDrafts();renderComments()};thread.append(replyForm)}
+      if(canAuthor(d)){const controls=document.createElement("div");controls.className="decision-controls";controls.innerHTML=`<select aria-label="Thread decision"><option value="open">OPEN</option><option value="incorporated">INCORPORATED</option><option value="not_incorporated">NOT INCORPORATED</option></select><input maxlength="500" placeholder="Explain the author's decision" value="${esc(root.decisionReason||"")}"><button type="button">SAVE DECISION</button>`;controls.querySelector("select").value=root.status;controls.querySelector("button").onclick=()=>{const status=controls.querySelector("select").value,reason=controls.querySelector("input").value.trim();if(status!=="open"&&!reason){alert("Explain why this feedback was or was not incorporated.");return}const original=d.comments.find(comment=>comment.id===root.id);d.updatedAt=new Date().toISOString();Object.assign(original,{status,decisionReason:status==="open"?"":reason,decisionVersion:status==="open"?null:d.versions.length,decidedAt:d.updatedAt});persist();renderDrafts();renderComments()};thread.append(controls)}
       list.append(thread);
     });
     if(!events.length)list.innerHTML='<p class="empty">No review activity yet.</p>';
@@ -193,7 +217,7 @@
     const select=$("#daoSelect");select.innerHTML=DAOS.map(dao=>`<option value="${esc(dao.id)}">${esc(dao.name)} · REVIEWED</option>`).join("");select.value=state.daoId;
   }
   async function selectDao(id){
-    if(!DAOS.some(dao=>dao.id===id))return;state.daoId=id;state.active=state.drafts.find(d=>d.daoId===id)?.id||null;state.ownerAccess=OWNER_TESTERS.includes(state.address);state.member=state.ownerAccess;state.votingPower="0";persist();renderDaoPicker();renderDrafts();fillForm(active());renderMembership();
+    if(!DAOS.some(dao=>dao.id===id))return;state.daoId=id;state.active=state.drafts.find(d=>d.daoId===id)?.id||null;state.onchainProposals=[];state.ownerAccess=OWNER_TESTERS.includes(state.address);state.member=state.ownerAccess;state.votingPower="0";persist();renderDaoPicker();renderDrafts();fillForm(active());renderMembership();loadOnchainProposals();
     if(state.address)try{const result=await smart(selectedDao().core,{voting_power_at_height:{address:state.address,height:null}});state.votingPower=String(result.power||"0");state.member=state.ownerAccess||BigInt(state.votingPower)>0n;renderMembership();renderComments()}catch(e){if(state.ownerAccess){renderMembership();renderComments()}else renderMembership(e.message)}
   }
   function closeWalletMenu(){$("#walletMenu").hidden=true;$("#walletButton").setAttribute("aria-expanded","false")}
@@ -206,9 +230,10 @@
   $("#saveRevision").onclick=saveRevision;$("#publishDraft").onclick=publishDraft;$("#editRevision").onclick=editRevision;$("#freezeDraft").onclick=freeze;
   $("#jumpLatestVersion").onclick=()=>{const d=active(),target=d&&document.getElementById(`version-${d.versions.length}`);target?.scrollIntoView({behavior:"smooth",block:"center"});if(target)target.open=true};
   $("#toggleCode").onclick=()=>{$("#codeOutput").hidden=!$("#codeOutput").hidden;renderCode()};
-  $("#commentForm").onsubmit=e=>{e.preventDefault();const d=active(),title=$("#threadTitle").value.trim(),body=$("#commentBody").value.trim();if(!state.member||d?.status!=="published"||!title||!body){if(!title||!body)feedback("Give the thread a title and an opening message.","error");return}d.comments.push({id:uid(),parentId:null,title,body,author:state.address,version:d.versions.length,status:"open",decisionReason:"",createdAt:new Date().toISOString()});$("#threadTitle").value="";$("#commentBody").value="";persist();renderComments()};
+  $("#commentForm").onsubmit=e=>{e.preventDefault();const d=active(),title=$("#threadTitle").value.trim(),body=$("#commentBody").value.trim();if(!state.member||d?.status!=="published"||!title||!body){if(!title||!body)feedback("Give the thread a title and an opening message.","error");return}d.updatedAt=new Date().toISOString();d.comments.push({id:uid(),parentId:null,title,body,author:state.address,version:d.versions.length,status:"open",decisionReason:"",createdAt:d.updatedAt});$("#threadTitle").value="";$("#commentBody").value="";persist();renderDrafts();renderComments()};
   $("#commentFilter").onchange=renderComments;
+  document.querySelectorAll("[data-proposal-filter]").forEach(button=>button.onclick=()=>{state.proposalFilter=button.dataset.proposalFilter;document.querySelectorAll("[data-proposal-filter]").forEach(item=>item.classList.toggle("active",item===button));renderDrafts()});
   $("#daoSelect").onchange=e=>selectDao(e.target.value);
   document.addEventListener("click",e=>{if(!e.target.closest(".wallet-area"))closeWalletMenu()});document.addEventListener("keydown",e=>{if(e.key==="Escape")closeWalletMenu()});
-  restore();renderDaoPicker();renderMembership();renderDrafts();fillForm(active());
+  restore();renderDaoPicker();renderMembership();renderDrafts();fillForm(active());loadOnchainProposals();
 })();
