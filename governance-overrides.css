@@ -1,4 +1,14 @@
 :root { --warn:#ffc857; --danger:#ff667d; }
+.gov-header { display:grid; grid-template-columns:1fr minmax(280px,420px) 1fr; gap:20px; }
+.gov-header .gov-controls { display:flex; justify-content:flex-end; gap:12px; align-items:center; }
+.gov-header .dao-picker { position:relative; display:block; min-width:0; }
+.dao-picker>label { display:block; margin-bottom:5px; color:var(--muted); font-size:9px; letter-spacing:.16em; }
+.dao-combobox { position:relative; }
+.dao-combobox input { box-sizing:border-box; width:100%; border:1px solid var(--line); background:#00120c; color:var(--gov); padding:10px 34px 10px 12px; font:inherit; font-weight:800; }
+.dao-combobox span { position:absolute; right:12px; top:50%; translate:0 -50%; color:var(--gov); pointer-events:none; }
+.dao-options { position:absolute; z-index:30; top:100%; left:0; right:0; border:1px solid var(--line); background:#00120c; box-shadow:0 16px 30px rgba(0,0,0,.55); }
+.dao-options button { width:100%; display:block; padding:12px; border:0; border-bottom:1px solid #084b37; text-align:left; }
+.dao-options button strong { display:block; }
 .proposal-sidebar { align-self:start; position:sticky; top:80px; display:flex; flex-direction:column; max-height:calc(100vh - 96px); overflow:hidden; }
 .proposal-list { min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-color:var(--gov) #00120c; scrollbar-width:thin; }
 .proposal-list::-webkit-scrollbar { width:10px; }
@@ -14,7 +24,7 @@
 .proposal-list .status { width:fit-content; margin-top:8px; padding:4px 7px; border-left:3px solid currentColor; font-weight:900; }
 .status-draft,.status-discussion,.status-ready,.status-voting { color:var(--warn)!important; background:#302606; }
 .status-approved,.status-executed { color:var(--gov)!important; background:#003324; }
-.status-rejected,.status-withdrawn,.status-failed { color:#ff9bad!important; background:#310b14; }
+.status-rejected,.status-declined,.status-withdrawn,.status-failed { color:#ff9bad!important; background:#310b14; }
 .next-actions { position:static; bottom:auto; z-index:auto; margin:30px -28px -28px; border:1px solid var(--line); border-left-width:5px; box-shadow:none; }
 .next-actions[data-status="error"] { border-color:var(--danger); background:rgba(49,11,20,.98); }
 #save-local[data-saved="true"] { background:rgba(24,242,172,.18); }
@@ -43,4 +53,4 @@
 .vote-totals strong { display:block; margin-top:5px; font-size:22px; }
 .vote-actions { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:14px; }
 .vote-actions>div { display:flex; gap:8px; }
-@media(max-width:900px){.proposal-sidebar{position:static;max-height:70vh}.details-toggle::after{display:none}.reply-list{margin-left:14px}.vote-actions{align-items:stretch;flex-direction:column}.vote-actions>div{display:grid}.proposal-filters{grid-template-columns:1fr}}
+@media(max-width:900px){.gov-header{grid-template-columns:1fr auto}.dao-picker{grid-column:1/-1;grid-row:2}.proposal-sidebar{position:static;max-height:70vh}.details-toggle::after{display:none}.reply-list{margin-left:14px}.vote-actions{align-items:stretch;flex-direction:column}.vote-actions>div{display:grid}.proposal-filters{grid-template-columns:1fr}}
