@@ -1,155 +1,32 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://juno-api.polkachu.com https://juno-api.lavenderfive.com https://juno-rpc.polkachu.com https://rpc-juno.whispernode.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
-  <title>NETA DAO · Proposal Workshop</title>
-  <meta name="description" content="Collaboratively draft, review and prepare NETA DAO proposals before they move on-chain.">
-  <link rel="stylesheet" href="styles.css?v=10">
-  <link rel="stylesheet" href="proposal-compact.css?v=3">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://juno.test.rpc.nodeshub.online https://juno.test.api.nodeshub.online https://juno.rpc.t.stavr.tech https://juno.api.t.stavr.tech https://juno-api.polkachu.com https://juno-api.lavenderfive.com https://juno-rpc.polkachu.com https://rpc-juno.whispernode.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>NETA Governance</title>
+  <link rel="stylesheet" href="styles.css?v=20260914-7"><link rel="stylesheet" href="neta-governance.css?v=1"><link rel="stylesheet" href="governance-overrides.css?v=1">
 </head>
 <body>
-  <header class="shell-header">
-    <a class="brand" href="./"><span class="mark">◉</span><span>[ NETA DAO ]</span></a>
-    <nav aria-label="Primary">
-      <a class="active" href="#workshop">WORKSHOP</a>
-      <span>PROPOSALS</span><span>STAKE</span><span>TREASURY</span><span>SOCIALS</span><span>SYSTEM</span>
-    </nav>
-    <div class="wallet-area">
-      <button id="walletButton" class="wallet" type="button" aria-haspopup="menu" aria-expanded="false">CONNECT KEPLR</button>
-      <div id="walletMenu" class="wallet-menu" role="menu" hidden>
-        <div><small>CONNECTED WALLET</small><strong id="walletMenuAddress">—</strong></div>
-        <div><small>WORKSPACE ACCESS</small><strong id="walletMenuAccess">—</strong></div>
-        <button id="copyAddress" type="button" role="menuitem">COPY ADDRESS</button>
-        <button id="disconnectWallet" class="danger-action" type="button" role="menuitem">DISCONNECT THIS SITE</button>
-        <small>Disconnect clears this site session. Keplr permissions are managed separately in Keplr.</small>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <section class="workbench-head" aria-labelledby="workbenchTitle">
-      <div class="workbench-title">
-        <p class="eyebrow">GOVERNANCE WORKBENCH · JUNO</p>
-        <h1 id="workbenchTitle">Proposal Workshop</h1>
-        <p>Draft, review and prepare auditable proposal actions before an on-chain vote.</p>
-      </div>
-      <div class="dao-picker">
-        <label for="daoSelect">DAO WORKSPACE</label>
-        <select id="daoSelect" aria-describedby="daoPolicy"></select>
-        <small id="daoPolicy">Only reviewed and tested DAO configurations are available.</small>
-      </div>
-      <div class="membership-card">
-        <span>MEMBERSHIP</span>
-        <strong id="membershipStatus">NOT CONNECTED</strong>
-        <small id="membershipDetail">Connect a Juno wallet to verify current membership in the selected DAO.</small>
-      </div>
+<header class="gov-header"><a href="index.html" class="gov-brand">NETA REBORN</a><div><span class="testnet-pill">UNI-7 TESTNET</span><button id="gov-connect" type="button">CONNECT KEPLR</button></div></header>
+<main class="gov-shell">
+  <section class="gov-intro"><div><span class="eyebrow">NETA DAO · PROPOSAL STUDIO</span><h1>Governance without the interface maze.</h1><p>Draft locally, publish for public review, discuss and revise, then submit the final version on-chain.</p></div><button id="new-draft" type="button">+ NEW DRAFT</button></section>
+  <nav class="workflow" aria-label="Proposal workflow"><span>01 NEW DRAFT</span><span>02 SAVE LOCALLY</span><span>03 PUBLISH FOR REVIEW</span><span>04 DISCUSS + REVISE</span><span>05 FINALIZE</span><span>06 VOTING</span></nav>
+  <p id="gov-status" class="gov-status" role="status">READING PUBLIC PROPOSALS…</p>
+  <div class="gov-layout">
+    <aside class="proposal-sidebar"><header><span>PROPOSALS</span><strong id="proposal-count">0</strong></header><div class="proposal-filters" role="group" aria-label="Filter proposals"><button type="button" data-filter="all" class="active">ALL</button><button type="button" data-filter="in_progress">IN PROGRESS</button><button type="button" data-filter="approved">APPROVED</button><button type="button" data-filter="rejected">REJECTED / WITHDRAWN</button></div><div id="proposal-list" class="proposal-list"></div></aside>
+    <section class="proposal-workspace">
+      <div class="proposal-heading"><div><span id="proposal-stage">PRIVATE LOCAL DRAFT</span><h2 id="proposal-heading">NEW PROPOSAL</h2></div><span id="proposal-badge" class="proposal-badge">DRAFT</span></div>
+      <label>PROPOSAL TITLE<input id="proposal-title" maxlength="120" placeholder="A concise proposal title"></label>
+      <label>SUMMARY<textarea id="proposal-summary" maxlength="500" rows="4" placeholder="What should the DAO decide?"></textarea></label>
+      <section id="onchain-panel" class="onchain-panel" hidden><div id="voting-deadline" class="voting-deadline"></div><div class="vote-totals"><div><small>YES</small><strong id="vote-yes">0</strong></div><div><small>NO</small><strong id="vote-no">0</strong></div><div><small>ABSTAIN</small><strong id="vote-abstain">0</strong></div></div><div id="vote-actions" class="vote-actions" hidden><span id="vote-hint">Connect Keplr to vote.</span><div><button type="button" data-vote="yes">YES</button><button type="button" data-vote="no">NO</button><button type="button" data-vote="abstain">ABSTAIN</button></div></div></section>
+      <footer class="next-actions"><p id="action-hint">Save this private draft in your browser or publish it for public review.</p><div><button id="discard-action" class="danger" type="button">DISCARD</button><button id="save-local" type="button">SAVE REVISION LOCALLY</button><button id="publish-revision" type="button" hidden>PUBLISH NEW REVISION</button><button id="primary-action" type="button">PUBLISH FOR REVIEW</button></div></footer>
+      <label>PROPOSAL BODY<textarea id="proposal-body" maxlength="20000" rows="12" placeholder="Context, rationale and expected outcome"></textarea></label>
+      <section class="actions-panel"><header><div><span>EXECUTION</span><h3>ACTIONS</h3></div><button id="add-action" type="button">+ ADD ACTION</button></header><textarea id="proposal-actions" rows="5" spellcheck="false">[]</textarea></section>
+      <label id="change-note-wrap" hidden>WHAT CHANGED?<input id="change-note" maxlength="500" placeholder="Summarize this revision"></label>
+      <section id="revision-panel" class="revision-panel" hidden><header><h3>REVISION HISTORY</h3></header><div id="revision-list"></div></section>
+      <section id="discussion-panel" class="discussion-panel" hidden><header><h3>DISCUSSION</h3><span>STRICTLY &gt; 10 NETA STAKED</span></header><div id="comment-list"></div><form id="comment-form"><textarea id="comment-body" maxlength="2000" rows="3" placeholder="Add an on-chain comment"></textarea><button type="submit">PUBLISH COMMENT</button></form></section>
     </section>
-
-    <section class="workflow-guide" aria-labelledby="workflowTitle">
-      <div class="workflow-intro"><div><strong id="workflowTitle">PROPOSAL FLOW</strong><span id="workflowHint">Start a private draft. Nothing is shared or submitted on-chain yet.</span></div><span class="mvp-badge">LOCAL MVP</span></div>
-      <ol class="workflow-steps">
-        <li data-stage="0"><b>1</b><span><strong>NEW DRAFT</strong><small>Write privately</small></span></li>
-        <li data-stage="1"><b>2</b><span><strong>SAVE LOCALLY</strong><small>Create a revision</small></span></li>
-        <li data-stage="2"><b>3</b><span><strong>PUBLISH FOR REVIEW</strong><small>Share with members</small></span></li>
-        <li data-stage="3"><b>4</b><span><strong>DISCUSS + REVISE</strong><small>Improve the proposal</small></span></li>
-        <li data-stage="4"><b>5</b><span><strong>FINALIZE + SUBMIT</strong><small>Lock the version and start the DAO vote</small></span></li>
-      </ol>
-      <p class="workflow-disclaimer">This MVP stores drafts, revisions and discussions only in this browser. “Publish for Review” currently previews the shared workflow; it does not broadcast data. Only the future on-chain submission will create a DAO vote.</p>
-    </section>
-
-    <section id="workshop" class="workspace">
-      <aside class="drafts">
-        <div class="section-head"><div><small>WORKSPACE</small><h2>PROPOSALS</h2></div><button id="newDraft" type="button">+ NEW DRAFT</button></div>
-        <div class="proposal-filters" role="group" aria-label="Filter proposals">
-          <button type="button" data-proposal-filter="all" class="active">ALL</button>
-          <button type="button" data-proposal-filter="in_progress">IN PROGRESS</button>
-          <button type="button" data-proposal-filter="approved">APPROVED</button>
-          <button type="button" data-proposal-filter="rejected">REJECTED / WITHDRAWN</button>
-        </div>
-        <div id="proposalLoadState" class="proposal-load-state">LOADING ON-CHAIN PROPOSALS…</div>
-        <div id="draftList" class="draft-list"></div>
-      </aside>
-
-      <article class="editor">
-        <div class="editor-head">
-          <div><small id="draftState">UNSAVED DRAFT</small><h2 id="editorTitle">NEW PROPOSAL</h2></div>
-        </div>
-        <div id="editorFeedback" class="editor-feedback" role="status" aria-live="polite">Publishing opens member comments. Nothing is submitted on-chain.</div>
-
-        <section id="onchainSurface" class="onchain-surface" hidden>
-          <div class="onchain-meta"><span id="onchainProposalId">ON-CHAIN PROPOSAL</span><strong id="onchainProposalStatus"></strong></div>
-          <div id="onchainCountdown" class="voting-countdown" aria-live="polite"></div>
-          <h2 id="onchainProposalTitle"></h2>
-          <div id="onchainProposalDescription" class="onchain-description"></div>
-          <div class="onchain-votes" aria-label="Proposal votes">
-            <div><small>YES</small><strong id="onchainYes">0</strong></div>
-            <div><small>NO</small><strong id="onchainNo">0</strong></div>
-            <div><small>ABSTAIN</small><strong id="onchainAbstain">0</strong></div>
-          </div>
-          <div id="votePanel" class="vote-panel" hidden>
-            <div><small>CAST YOUR ON-CHAIN VOTE</small><strong id="voteEligibility">Connect Keplr to vote.</strong></div>
-            <div class="vote-buttons">
-              <button type="button" data-vote="yes">YES</button><button type="button" data-vote="no" class="danger-action">NO</button><button type="button" data-vote="abstain" class="secondary">ABSTAIN</button>
-            </div>
-          </div>
-          <details class="onchain-actions"><summary>VIEW PROPOSED EXECUTION</summary><pre id="onchainMessages"></pre></details>
-        </section>
-
-        <form id="draftForm">
-          <label>PROPOSAL TITLE<input id="title" maxlength="100" required placeholder="A clear decision the DAO can evaluate"></label>
-          <label>SUMMARY · MAX 300 CHARACTERS<textarea id="summary" maxlength="300" required placeholder="What should change and why?"></textarea></label>
-          <div class="form-submit action-bar"><span id="saveHint">Finish the private draft from top to bottom, then save it in this browser.</span><div class="form-submit-actions"><button id="discardDraft" class="danger-action" type="button">DISCARD</button><button id="saveRevision" type="button">SAVE DRAFT LOCALLY</button><button id="publishDraft" class="secondary" type="button" hidden>PUBLISH FOR REVIEW</button></div></div>
-          <label>FULL PROPOSAL<textarea id="body" maxlength="10000" required placeholder="Context, rationale, expected impact, risks and implementation plan"></textarea></label>
-
-          <section class="actions-panel">
-            <div class="section-head"><div><small>EXECUTION</small><h3>ACTIONS</h3></div><button id="addAction" type="button">+ ADD ACTION</button></div>
-            <div id="actionList"></div>
-            <p id="emptyActions" class="empty">No executable actions. This will be a text-only proposal.</p>
-          </section>
-
-          <label>WHAT CHANGED AND WHY?<textarea id="changeLog" maxlength="1000" placeholder="Required after the first saved version"></textarea></label>
-        </form>
-
-        <section class="technical">
-          <button id="toggleCode" class="code-toggle" type="button">SHOW TRANSACTION CODE <span>⌄</span></button>
-          <pre id="codeOutput" hidden></pre>
-        </section>
-
-        <section id="reviewSurface" class="review-surface" hidden>
-          <div class="proposal-document">
-            <div class="review-meta"><span id="reviewVersion">VERSION 1</span><span id="reviewUpdated">—</span></div>
-            <div id="newerVersionNotice" class="newer-version" hidden><span id="newerVersionText"></span><button id="jumpLatestVersion" type="button">JUMP TO LATEST</button></div>
-            <h2 id="reviewTitle"></h2>
-            <p id="reviewSummary" class="review-summary"></p>
-            <details id="proposalDetails" class="proposal-details"><summary>READ FULL PROPOSAL + ACTIONS</summary><div id="reviewBody" class="review-body"></div><section class="review-actions"><small>PROPOSED EXECUTION</small><div id="reviewActions"></div></section></details>
-          </div>
-          <section class="discussion-panel">
-            <div class="discussion-head"><div><small>CHRONOLOGICAL REVIEW</small><h3>DISCUSSION + EVOLUTION <span id="openThreadCount">0 OPEN</span></h3></div><select id="commentFilter" aria-label="Filter discussions"><option value="all">ALL ACTIVITY</option><option value="open">OPEN THREADS</option><option value="incorporated">INCORPORATED</option><option value="not_incorporated">NOT INCORPORATED</option></select></div>
-            <form id="commentForm" class="comment-form">
-              <input id="threadTitle" maxlength="100" placeholder="Thread title" aria-label="Thread title">
-              <textarea id="commentBody" maxlength="1500" placeholder="Explain your question, concern or suggestion"></textarea>
-              <button type="submit">START THREAD</button>
-            </form>
-            <div id="commentList" class="comment-list"></div>
-            <div id="threadActions" class="thread-actions" hidden>
-              <div><small id="threadActionVersion">LATEST REVISION</small><strong id="threadActionHint">Continue improving this proposal or lock its latest version.</strong></div>
-              <div class="thread-action-buttons"><button id="withdrawProposal" class="danger-action" type="button">WITHDRAW PROPOSAL</button><button id="editRevision" type="button">CREATE REVISION</button><button id="freezeDraft" class="secondary" type="button">FINALIZE VERSION</button><button id="submitOnchain" class="secondary" type="button" title="On-chain submission is not connected in the local MVP" hidden disabled>SUBMIT ON CHAIN</button></div>
-            </div>
-          </section>
-        </section>
-      </article>
-    </section>
-  </main>
-  <template id="actionTemplate">
-    <fieldset class="action-card">
-      <div class="action-top"><select data-field="type"><option value="bank_send">SEND NATIVE TOKEN</option><option value="cw20_transfer">SEND CW20 TOKEN</option><option value="wasm_execute">EXECUTE JUNO CONTRACT</option></select><button data-remove type="button">REMOVE</button></div>
-      <div data-fields></div>
-    </fieldset>
-  </template>
-  <script src="assets/cosmos-signing-client.js?v=4"></script>
-  <script src="app.js?v=13"></script>
-</body>
-</html>
+  </div>
+</main>
+<script src="assets/socials-testnet-client.js?v=4"></script><script src="neta-governance.js?v=2"></script>
+</body></html>
