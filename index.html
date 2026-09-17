@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://juno-api.polkachu.com https://juno-api.lavenderfive.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://juno-api.polkachu.com https://juno-api.lavenderfive.com https://juno-rpc.polkachu.com https://rpc-juno.whispernode.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>NETA DAO · Proposal Workshop</title>
   <meta name="description" content="Collaboratively draft, review and prepare NETA DAO proposals before they move on-chain.">
   <link rel="stylesheet" href="styles.css?v=10">
@@ -67,6 +67,7 @@
           <button type="button" data-proposal-filter="all" class="active">ALL</button>
           <button type="button" data-proposal-filter="in_progress">IN PROGRESS</button>
           <button type="button" data-proposal-filter="approved">APPROVED</button>
+          <button type="button" data-proposal-filter="rejected">REJECTED / WITHDRAWN</button>
         </div>
         <div id="proposalLoadState" class="proposal-load-state">LOADING ON-CHAIN PROPOSALS…</div>
         <div id="draftList" class="draft-list"></div>
@@ -80,6 +81,7 @@
 
         <section id="onchainSurface" class="onchain-surface" hidden>
           <div class="onchain-meta"><span id="onchainProposalId">ON-CHAIN PROPOSAL</span><strong id="onchainProposalStatus"></strong></div>
+          <div id="onchainCountdown" class="voting-countdown" aria-live="polite"></div>
           <h2 id="onchainProposalTitle"></h2>
           <div id="onchainProposalDescription" class="onchain-description"></div>
           <div class="onchain-votes" aria-label="Proposal votes">
@@ -87,12 +89,19 @@
             <div><small>NO</small><strong id="onchainNo">0</strong></div>
             <div><small>ABSTAIN</small><strong id="onchainAbstain">0</strong></div>
           </div>
+          <div id="votePanel" class="vote-panel" hidden>
+            <div><small>CAST YOUR ON-CHAIN VOTE</small><strong id="voteEligibility">Connect Keplr to vote.</strong></div>
+            <div class="vote-buttons">
+              <button type="button" data-vote="yes">YES</button><button type="button" data-vote="no" class="danger-action">NO</button><button type="button" data-vote="abstain" class="secondary">ABSTAIN</button>
+            </div>
+          </div>
           <details class="onchain-actions"><summary>VIEW PROPOSED EXECUTION</summary><pre id="onchainMessages"></pre></details>
         </section>
 
         <form id="draftForm">
           <label>PROPOSAL TITLE<input id="title" maxlength="100" required placeholder="A clear decision the DAO can evaluate"></label>
           <label>SUMMARY · MAX 300 CHARACTERS<textarea id="summary" maxlength="300" required placeholder="What should change and why?"></textarea></label>
+          <div class="form-submit action-bar"><span id="saveHint">Finish the private draft from top to bottom, then save it in this browser.</span><div class="form-submit-actions"><button id="discardDraft" class="danger-action" type="button">DISCARD</button><button id="saveRevision" type="button">SAVE DRAFT LOCALLY</button><button id="publishDraft" class="secondary" type="button" hidden>PUBLISH FOR REVIEW</button></div></div>
           <label>FULL PROPOSAL<textarea id="body" maxlength="10000" required placeholder="Context, rationale, expected impact, risks and implementation plan"></textarea></label>
 
           <section class="actions-panel">
@@ -102,7 +111,6 @@
           </section>
 
           <label>WHAT CHANGED AND WHY?<textarea id="changeLog" maxlength="1000" placeholder="Required after the first saved version"></textarea></label>
-          <div class="form-submit"><span id="saveHint">Finish the private draft from top to bottom, then save it in this browser.</span><div class="form-submit-actions"><button id="saveRevision" type="button">SAVE DRAFT LOCALLY</button><button id="publishDraft" class="secondary" type="button" hidden>PUBLISH FOR REVIEW</button></div></div>
         </form>
 
         <section class="technical">
@@ -128,7 +136,7 @@
             <div id="commentList" class="comment-list"></div>
             <div id="threadActions" class="thread-actions" hidden>
               <div><small id="threadActionVersion">LATEST REVISION</small><strong id="threadActionHint">Continue improving this proposal or lock its latest version.</strong></div>
-              <div class="thread-action-buttons"><button id="editRevision" type="button">CREATE REVISION</button><button id="freezeDraft" class="secondary" type="button">FINALIZE VERSION</button><button id="submitOnchain" class="secondary" type="button" title="On-chain submission is not connected in the local MVP" hidden disabled>SUBMIT ON CHAIN</button></div>
+              <div class="thread-action-buttons"><button id="withdrawProposal" class="danger-action" type="button">WITHDRAW PROPOSAL</button><button id="editRevision" type="button">CREATE REVISION</button><button id="freezeDraft" class="secondary" type="button">FINALIZE VERSION</button><button id="submitOnchain" class="secondary" type="button" title="On-chain submission is not connected in the local MVP" hidden disabled>SUBMIT ON CHAIN</button></div>
             </div>
           </section>
         </section>
@@ -141,6 +149,7 @@
       <div data-fields></div>
     </fieldset>
   </template>
-  <script src="app.js?v=12"></script>
+  <script src="assets/cosmos-signing-client.js?v=1"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>

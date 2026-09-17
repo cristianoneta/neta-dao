@@ -10,9 +10,10 @@
     description:"Operational expenses and services for NETA DAO."
   }];
   const RESTS=["https://juno-api.polkachu.com","https://juno-api.lavenderfive.com"];
+  const RPCS=["https://juno-rpc.polkachu.com","https://rpc-juno.whispernode.com"];
   const OWNER_TESTERS=["juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57"];
   const STORE="neta-dao-workshop-mvp-v2";
-  const state={address:null,member:false,ownerAccess:false,votingPower:"0",daoId:DAOS[0].id,drafts:[],onchainProposals:[],proposalFilter:"all",active:null,editing:false};
+  const state={address:null,member:false,ownerAccess:false,votingPower:"0",daoId:DAOS[0].id,drafts:[],onchainProposals:[],proposalFilter:"all",active:null,editing:false,selectedChain:null,signingClient:null,latestBlock:null,countdownTimer:null};
   const $=s=>document.querySelector(s);
   const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
   const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);
@@ -39,7 +40,17 @@
     try{const result=await smart(selectedDao().core,{voting_power_at_height:{address,height:null}});state.votingPower=String(result.power||"0");state.member=state.ownerAccess||BigInt(state.votingPower)>0n}
     catch(error){if(!state.ownerAccess)throw error;state.votingPower="0";state.member=true}
     renderMembership();
+    if(state.selectedChain)showOnchainProposal(state.selectedChain);
   }
+  async function signingClient(){
+    if(state.signingClient)return state.signingClient;
+    if(!state.address)await connect();
+    const base=window.keplr.getOfflineSigner("juno-1");
+    const signer={getAccounts:()=>base.getAccounts(),signDirect:(address,doc)=>window.keplr.signDirect("juno-1",address,doc,{preferNoSetFee:true}),signAmino:(address,doc)=>window.keplr.signAmino("juno-1",address,doc,{preferNoSetFee:true})};
+    for(const rpc of RPCS)try{return state.signingClient=await NetaSocialsTestnet.connect(rpc,signer)}catch(error){console.warn("RPC unavailable",rpc,error)}
+    throw Error("No Juno RPC endpoint is available for signing.");
+  }
+  async function execute(contract,msg,memo){return NetaSocialsTestnet.execute(await signingClient(),state.address,contract,msg,memo)}
   function renderMembership(error){
     const card=$(".membership-card"),status=$("#membershipStatus"),detail=$("#membershipDetail"),button=$("#walletButton");
     card.dataset.member=button.dataset.member=String(state.member);
@@ -61,7 +72,7 @@
     $("#onchainSurface").hidden=true;
     $("#title").value=d?.title||"";$("#summary").value=d?.summary||"";$("#body").value=d?.body||"";$("#changeLog").value="";
     $("#actionList").replaceChildren();(d?.actions||[]).forEach(addAction);toggleEmpty();renderCode();renderComments();
-    const published=d?.status==="published"||Boolean(d?.frozen),showEditor=!published||state.editing;
+    const published=d?.status==="published"||d?.status==="withdrawn"||Boolean(d?.frozen),showEditor=!published||state.editing;
     $("#draftForm").hidden=!showEditor;$(".technical").hidden=!showEditor;$("#reviewSurface").hidden=!published||state.editing;
     $("#editorTitle").textContent=d?.title||"NEW PROPOSAL";$("#draftState").textContent=d?.frozen?`FINALIZED · VERSION ${d.versions.length}`:published?`IN REVIEW · VERSION ${d.versions.length}`:d?.versions.length?`PRIVATE DRAFT · VERSION ${d.versions.length}`:"UNSAVED PRIVATE DRAFT";
     const revising=Boolean(d?.versions.length);$("#saveRevision").textContent=revising?"SAVE REVISION LOCALLY":"SAVE DRAFT LOCALLY";$("#saveHint").textContent=revising?"Describe what changed, then save this revision in the browser.":"Finish the private draft from top to bottom, then save it in this browser.";
@@ -70,22 +81,22 @@
   }
   function renderDrafts(){
     const list=$("#draftList");list.replaceChildren();
-    const local=state.drafts.filter(d=>d.daoId===state.daoId).map(d=>({kind:"local",record:d,group:"in_progress",sortAt:localUpdatedAt(d)}));
+    const local=state.drafts.filter(d=>d.daoId===state.daoId).map(d=>({kind:"local",record:d,group:d.status==="withdrawn"?"rejected":"in_progress",sortAt:localUpdatedAt(d)}));
     const chain=state.onchainProposals.map(item=>({kind:"chain",record:item,group:onchainGroup(item.proposal.status),sortAt:onchainUpdatedAt(item)}));
     const proposals=[...local,...chain].filter(item=>state.proposalFilter==="all"||item.group===state.proposalFilter).sort((a,b)=>b.sortAt-a.sortAt);
     if(!proposals.length){list.innerHTML='<p class="empty">No proposals match this filter.</p>';return}
     proposals.forEach(item=>{
       if(item.kind==="local"){
-        const d=item.record,b=document.createElement("button");b.type="button";b.className=d.id===state.active?"active":"";b.innerHTML=`<b>${esc(d.title||"Untitled proposal")}</b><span class="proposal-status status-in-progress">${localStatus(d)}</span><small>${formatChanged(item.sortAt)} · WORKSHOP</small>`;b.onclick=()=>{state.active=d.id;state.editing=false;persist();renderDrafts();fillForm(d)};list.append(b);return;
+        const d=item.record,b=document.createElement("button");b.type="button";b.className=d.id===state.active?"active":"";b.innerHTML=`<b>${esc(d.title||"Untitled proposal")}</b><span class="proposal-status status-${item.group==='rejected'?'declined':'in-progress'}">${localStatus(d)}</span><small>${formatChanged(item.sortAt)} · WORKSHOP</small>`;b.onclick=()=>{state.selectedChain=null;state.active=d.id;state.editing=false;persist();renderDrafts();fillForm(d)};list.append(b);return;
       }
-      const {id,proposal}=item.record,b=document.createElement("button");b.type="button";b.className="onchain-proposal";b.innerHTML=`<b>${esc(proposal.title||`Proposal ${id}`)}</b><span class="proposal-status status-${item.group==='approved'?'approved':item.group==='in_progress'?'in-progress':'declined'}">${onchainStatus(proposal.status)}</span><small>#${id} · ON-CHAIN</small>`;b.onclick=()=>showOnchainProposal(item.record);list.append(b);
+      const {id,proposal}=item.record,b=document.createElement("button");b.type="button";b.className=`onchain-proposal ${state.selectedChain?.id===id?'active':''}`;b.innerHTML=`<b>${esc(proposal.title||`Proposal ${id}`)}</b><span class="proposal-status status-${item.group==='approved'?'approved':item.group==='in_progress'?'in-progress':'declined'}">${onchainStatus(proposal.status)}</span><small>#${id} · ON-CHAIN</small>`;b.onclick=()=>showOnchainProposal(item.record);list.append(b);
     })
   }
   function localUpdatedAt(d){const times=[d.updatedAt,d.createdAt,d.publishedAt,d.frozenAt,...(d.versions||[]).map(v=>v.createdAt),...(d.comments||[]).map(c=>c.decidedAt||c.createdAt)].filter(Boolean).map(Date.parse).filter(Number.isFinite);return times.length?Math.max(...times):0}
   function onchainUpdatedAt(item){const nanos=item.proposal?.expiration?.at_time;return nanos?Number(BigInt(nanos)/1000000n):Number(item.id)}
-  function onchainGroup(status){return ["executed","passed"].includes(status)?"approved":status==="open"?"in_progress":"declined"}
-  function onchainStatus(status){return({executed:"APPROVED",passed:"APPROVED",open:"VOTING PHASE",rejected:"DECLINED",closed:"DECLINED",execution_failed:"DECLINED"}[status]||String(status||"UNKNOWN").replaceAll("_"," ").toUpperCase())}
-  function localStatus(d){return d.frozen?"READY TO SUBMIT":d.status==="published"?"DISCUSSION PHASE":d.versions?.length?"DRAFT":"NEW DRAFT"}
+  function onchainGroup(status){return ["executed","passed"].includes(status)?"approved":status==="open"?"in_progress":"rejected"}
+  function onchainStatus(status){return({executed:"EXECUTED",passed:"PASSED",open:"VOTING PHASE",rejected:"REJECTED",closed:"CLOSED",execution_failed:"EXECUTION FAILED"}[status]||String(status||"UNKNOWN").replaceAll("_"," ").toUpperCase())}
+  function localStatus(d){return d.status==="withdrawn"?"WITHDRAWN":d.frozen?"READY TO SUBMIT":d.status==="published"?"DISCUSSION PHASE":d.versions?.length?"DRAFT":"NEW DRAFT"}
   function formatChanged(value){return value?`UPDATED ${new Date(value).toLocaleDateString()}`:"UPDATED —"}
   async function loadOnchainProposals(){
     const load=$("#proposalLoadState");load.hidden=false;load.textContent="LOADING ON-CHAIN PROPOSALS…";const proposals=[];let startBefore=null;
@@ -96,15 +107,29 @@
       state.onchainProposals=proposals;load.textContent=`${proposals.length} ON-CHAIN PROPOSALS`;renderDrafts();
     }catch(error){state.onchainProposals=[];load.textContent="ON-CHAIN PROPOSALS UNAVAILABLE";renderDrafts()}
   }
-  function showOnchainProposal(item){
-    const {id,proposal}=item,votes=proposal.votes||{};state.active=null;state.editing=false;renderDrafts();
+  function expirationMs(expiration){
+    if(expiration?.at_time)return Number(BigInt(expiration.at_time)/1000000n);
+    if(expiration?.at_height&&state.latestBlock){return state.latestBlock.time+(Number(expiration.at_height)-state.latestBlock.height)*6000}
+    return null;
+  }
+  function formatRemaining(ms){if(ms<=0)return"VOTING ENDED";const seconds=Math.floor(ms/1000),days=Math.floor(seconds/86400),hours=Math.floor(seconds%86400/3600),minutes=Math.floor(seconds%3600/60);return `${days?`${days}D `:""}${hours}H ${minutes}M REMAINING`}
+  function updateCountdown(){const proposal=state.selectedChain?.proposal,target=expirationMs(proposal?.expiration),node=$("#onchainCountdown");if(!proposal||proposal.status!=="open"){node.textContent="";return}node.textContent=target?`${formatRemaining(target-Date.now())} · ENDS ${new Date(target).toLocaleString()}`:"VOTING DEADLINE UNAVAILABLE"}
+  async function latestBlock(){for(const base of RESTS)try{const r=await fetch(`${base}/cosmos/base/tendermint/v1beta1/blocks/latest`,{cache:"no-store"});if(!r.ok)continue;const h=(await r.json()).block?.header;if(h){state.latestBlock={height:Number(h.height),time:Date.parse(h.time)};return}}catch{}}
+  async function showOnchainProposal(item){
+    const {id,proposal}=item,votes=proposal.votes||{};state.selectedChain=item;state.active=null;state.editing=false;renderDrafts();
     $("#draftForm").hidden=true;$(".technical").hidden=true;$("#reviewSurface").hidden=true;$("#onchainSurface").hidden=false;
     $("#draftState").textContent=`ON-CHAIN · PROPOSAL ${selectedDao().proposalPrefix}${id}`;$("#editorTitle").textContent=proposal.title||`Proposal ${id}`;
     $("#editorFeedback").textContent="This proposal is shown directly from the NETA Operations governance contract.";$("#editorFeedback").dataset.type="info";
     $("#onchainProposalId").textContent=`${selectedDao().proposalPrefix}${id} · ON-CHAIN PROPOSAL`;const status=$("#onchainProposalStatus");status.textContent=onchainStatus(proposal.status);status.className=`status-${onchainGroup(proposal.status)==='approved'?'approved':onchainGroup(proposal.status)==='in_progress'?'in-progress':'declined'}`;
     $("#onchainProposalTitle").textContent=proposal.title||`Proposal ${id}`;$("#onchainProposalDescription").textContent=proposal.description||"No proposal description was provided.";
     $("#onchainYes").textContent=votes.yes||"0";$("#onchainNo").textContent=votes.no||"0";$("#onchainAbstain").textContent=votes.abstain||"0";$("#onchainMessages").textContent=JSON.stringify(proposal.msgs||[],null,2);
+    await latestBlock();updateCountdown();clearInterval(state.countdownTimer);state.countdownTimer=setInterval(updateCountdown,30000);
+    const votePanel=$("#votePanel"),isOpen=proposal.status==="open"&&(!expirationMs(proposal.expiration)||expirationMs(proposal.expiration)>Date.now());votePanel.hidden=!isOpen;
+    const canVote=Boolean(state.address&&BigInt(state.votingPower||"0")>0n);$("#voteEligibility").textContent=state.address?(canVote?"Your vote will be signed and broadcast on Juno.":"This wallet has no current voting power."):"Connect Keplr to vote.";
+    votePanel.querySelectorAll("button").forEach(button=>button.disabled=!canVote);
+    if(state.address&&isOpen)try{const existing=await smart(selectedDao().proposalModule,{get_vote:{proposal_id:id,voter:state.address}});if(existing?.vote?.vote)$("#voteEligibility").textContent=`Current vote: ${String(existing.vote.vote).toUpperCase()}. Voting again updates it if the module allows revoting.`}catch{}
   }
+  async function castVote(vote,button){const item=state.selectedChain;if(!item||item.proposal.status!=="open"||BigInt(state.votingPower||"0")===0n)return;button.disabled=true;const old=button.textContent;button.textContent="CHECK KEPLR";try{await execute(selectedDao().proposalModule,{vote:{proposal_id:item.id,vote}},`NETA DAO proposal ${item.id}: ${vote}`);feedback(`Vote ${vote.toUpperCase()} confirmed on-chain.`,"success");await loadOnchainProposals();const updated=state.onchainProposals.find(row=>row.id===item.id);if(updated)await showOnchainProposal(updated)}catch(error){feedback(`Vote failed: ${error.message||error}`,"error")}finally{button.textContent=old;button.disabled=BigInt(state.votingPower||"0")===0n}}
   const field=(label,name,value="",area=false)=>`<label>${label}${area?`<textarea data-field="${name}">${esc(value)}</textarea>`:`<input data-field="${name}" value="${esc(value)}">`}</label>`;
   function fieldsFor(type,a={}){
     if(type==="bank_send")return field("RECIPIENT","recipient",a.recipient)+field("DENOM","denom",a.denom||"ujuno")+field("AMOUNT (BASE UNITS)","amount",a.amount);
@@ -171,6 +196,8 @@
     const canonical=JSON.stringify(d.versions.at(-1).snapshot);const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical));
     d.frozen=true;d.frozenAt=d.updatedAt=new Date().toISOString();d.frozenHash=[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,"0")).join("");persist();feedback("Final version locked locally. It remains in the combined Finalize + Submit step until the on-chain adapter is connected.","success");renderDrafts();fillForm(d);
   }
+  function discardDraft(){const d=active();if(!d)return;if(d.status==="published"){feedback("Published reviews must be withdrawn so their audit trail remains visible.","error");return}if(!confirm("Permanently delete this local draft from this browser?"))return;state.drafts=state.drafts.filter(item=>item.id!==d.id);state.active=null;persist();renderDrafts();fillForm(null);feedback("Local draft deleted.","success")}
+  function withdrawProposal(){const d=active();if(!d||d.status!=="published"||d.frozen||!canAuthor(d))return;if(!confirm("Withdraw this proposal? It will remain visible in the history and cannot be edited again."))return;d.status="withdrawn";d.withdrawnAt=d.updatedAt=new Date().toISOString();persist();renderDrafts();fillForm(d);feedback("Proposal withdrawn. Its history remains visible.","success")}
   function diffTokens(previous,current){
     const a=String(previous||"").match(/\s+|[^\s]+/g)||[],b=String(current||"").match(/\s+|[^\s]+/g)||[];
     if(a.join("")===b.join(""))return[{type:"same",text:b.join("")}];
@@ -220,6 +247,7 @@
       $("#editRevision").hidden=Boolean(d.frozen);
       $("#freezeDraft").hidden=Boolean(d.frozen);
       $("#submitOnchain").hidden=!d.frozen;
+      $("#withdrawProposal").hidden=Boolean(d.frozen);
     }
     renderWorkflow(d);
   }
@@ -231,13 +259,15 @@
     if(state.address)try{const result=await smart(selectedDao().core,{voting_power_at_height:{address:state.address,height:null}});state.votingPower=String(result.power||"0");state.member=state.ownerAccess||BigInt(state.votingPower)>0n;renderMembership();renderComments()}catch(e){if(state.ownerAccess){renderMembership();renderComments()}else renderMembership(e.message)}
   }
   function closeWalletMenu(){$("#walletMenu").hidden=true;$("#walletButton").setAttribute("aria-expanded","false")}
-  function disconnect(){state.address=null;state.member=false;state.ownerAccess=false;state.votingPower="0";closeWalletMenu();renderMembership();renderComments()}
+  function disconnect(){state.address=null;state.member=false;state.ownerAccess=false;state.votingPower="0";state.signingClient=null;closeWalletMenu();renderMembership();renderComments();if(state.selectedChain)showOnchainProposal(state.selectedChain)}
   $("#walletButton").onclick=()=>{if(!state.address){connect().then(renderComments).catch(e=>renderMembership(e.message));return}const menu=$("#walletMenu"),open=menu.hidden;menu.hidden=!open;$("#walletButton").setAttribute("aria-expanded",String(open))};
   $("#copyAddress").onclick=()=>state.address&&navigator.clipboard.writeText(state.address);
   $("#disconnectWallet").onclick=disconnect;
-  $("#newDraft").onclick=()=>{state.active=null;state.editing=false;renderDrafts();fillForm(null)};
+  $("#newDraft").onclick=()=>{state.selectedChain=null;state.active=null;state.editing=false;renderDrafts();fillForm(null)};
   $("#addAction").onclick=()=>addAction();
   $("#saveRevision").onclick=saveRevision;$("#publishDraft").onclick=publishDraft;$("#editRevision").onclick=editRevision;$("#freezeDraft").onclick=freeze;
+  $("#discardDraft").onclick=discardDraft;$("#withdrawProposal").onclick=withdrawProposal;
+  document.querySelectorAll("[data-vote]").forEach(button=>button.onclick=()=>castVote(button.dataset.vote,button));
   $("#jumpLatestVersion").onclick=()=>{const d=active(),target=d&&document.getElementById(`version-${d.versions.length}`);target?.scrollIntoView({behavior:"smooth",block:"center"});if(target)target.open=true};
   $("#toggleCode").onclick=()=>{$("#codeOutput").hidden=!$("#codeOutput").hidden;renderCode()};
   $("#commentForm").onsubmit=e=>{e.preventDefault();const d=active(),title=$("#threadTitle").value.trim(),body=$("#commentBody").value.trim();if(!state.member||d?.status!=="published"||!title||!body){if(!title||!body)feedback("Give the thread a title and an opening message.","error");return}d.updatedAt=new Date().toISOString();d.comments.push({id:uid(),parentId:null,title,body,author:state.address,version:d.versions.length,status:"open",decisionReason:"",createdAt:d.updatedAt});$("#threadTitle").value="";$("#commentBody").value="";persist();renderDrafts();renderComments()};

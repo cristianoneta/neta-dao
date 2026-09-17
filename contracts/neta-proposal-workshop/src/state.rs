@@ -22,6 +22,12 @@ pub struct Proposal {
     pub finalized_version: Option<u32>,
     pub finalized_hash: Option<String>,
     pub dao_proposal_id: Option<u64>,
+    #[serde(default)]
+    pub withdrawn: bool,
+    #[serde(default)]
+    pub withdrawn_height: Option<u64>,
+    #[serde(default)]
+    pub withdrawn_time: Option<u64>,
     pub created_height: u64,
     pub created_time: u64,
 }
@@ -78,4 +84,3 @@ pub const COMMENTS: Map<(u64, u64), Comment> = Map::new("comments");
 pub const LAST_COMMENT_TIME: Map<&Addr, u64> = Map::new("last_comment_time");
 pub const MODERATORS: Map<&Addr, bool> = Map::new("moderators");
 pub const BLOCKS: Map<&Addr, BlockRecord> = Map::new("blocks");
-

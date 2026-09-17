@@ -64,3 +64,13 @@ fn only_latest_revision_can_be_finalized() {
     let err=execute(deps.as_mut(),mock_env(),mock_info("member",&[]),ExecuteMsg::AddRevision{proposal_id:1,content:content("V3"),change_log:"Too late".into()}).unwrap_err();
     assert_eq!(err,ContractError::Finalized);
 }
+
+#[test]
+fn author_can_withdraw_before_submission_and_state_is_terminal() {
+    let mut deps = deps();
+    execute(deps.as_mut(), mock_env(), mock_info("member", &[]), ExecuteMsg::PublishProposal { content:content("Withdraw me") }).unwrap();
+    assert_eq!(execute(deps.as_mut(),mock_env(),mock_info("owner",&[]),ExecuteMsg::Withdraw{proposal_id:1}).unwrap_err(),ContractError::Unauthorized);
+    execute(deps.as_mut(),mock_env(),mock_info("member",&[]),ExecuteMsg::Withdraw{proposal_id:1}).unwrap();
+    assert_eq!(execute(deps.as_mut(),mock_env(),mock_info("member",&[]),ExecuteMsg::AddRevision{proposal_id:1,content:content("Too late"),change_log:"No".into()}).unwrap_err(),ContractError::Withdrawn);
+    assert_eq!(execute(deps.as_mut(),mock_env(),mock_info("member",&[]),ExecuteMsg::Finalize{proposal_id:1,version:1,content_hash:"a".repeat(64)}).unwrap_err(),ContractError::Withdrawn);
+}

@@ -120,9 +120,10 @@
   font-size: .55rem;
 }
 
-.proposal-status.status-approved { color: var(--neon); }
-.proposal-status.status-declined { color: var(--danger); }
-.proposal-status.status-in-progress { color: var(--warn); }
+.proposal-status { width: fit-content; padding: .28rem .5rem; border-left: 3px solid currentColor; }
+.proposal-status.status-approved { color: var(--neon); background: #003324; }
+.proposal-status.status-declined { color: #ff9bad; background: #310b14; }
+.proposal-status.status-in-progress { color: var(--warn); background: #302606; }
 .draft-list button:hover { background: #002219; }
 .workflow-steps { grid-template-columns: repeat(5, 1fr); }
 
@@ -161,6 +162,12 @@
 .onchain-actions { border: 1px solid #49305b; }
 .onchain-actions summary { padding: 1rem; color: var(--violet); cursor: pointer; font-weight: 700; }
 .onchain-actions pre { margin: 0; padding: 1rem; border-top: 1px solid #49305b; overflow: auto; white-space: pre-wrap; color: #c9aed8; }
+.voting-countdown { margin: 1rem 0; padding: .8rem 1rem; border: 1px solid var(--warn); background: #302606; color: #ffe06b; font-weight: 700; letter-spacing: .08em; }
+.vote-panel { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:1rem 0 2rem; padding:1rem; border:1px solid var(--warn); background:#1d1805; }
+.vote-panel>div:first-child { display:grid; gap:.4rem; }
+.vote-buttons { display:flex; flex-wrap:wrap; gap:.55rem; }
+.form-submit { box-shadow: 0 -12px 30px rgba(0,0,0,.35); }
+.action-bar:has(#publishDraft:not([hidden])) { border-color: var(--violet); background: rgba(27,8,37,.97); }
 
 @media (max-width: 900px) {
   .workspace { grid-template-columns: 1fr; }
