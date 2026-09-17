@@ -109,7 +109,9 @@
 
 .draft-list .proposal-status {
   margin-top: .55rem;
-  font-size: .65rem;
+  font-size: .82rem;
+  line-height: 1.25;
+  letter-spacing: .09em;
   font-weight: 700;
 }
 
@@ -121,11 +123,51 @@
 .proposal-status.status-approved { color: var(--neon); }
 .proposal-status.status-declined { color: var(--danger); }
 .proposal-status.status-in-progress { color: var(--warn); }
-.draft-list a:hover,
 .draft-list button:hover { background: #002219; }
 .workflow-steps { grid-template-columns: repeat(5, 1fr); }
+
+.onchain-surface {
+  margin: 1.5rem;
+  padding: clamp(1.3rem, 4vw, 3rem);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--violet);
+  background: #0b0310;
+}
+
+.onchain-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #c9aed8;
+  font-size: .72rem;
+  letter-spacing: .13em;
+}
+
+.onchain-meta strong {
+  padding: .45rem .65rem;
+  border: 1px solid currentColor;
+  font-size: .85rem;
+}
+
+.onchain-meta .status-approved { color: var(--neon); }
+.onchain-meta .status-declined { color: var(--danger); }
+.onchain-meta .status-in-progress { color: var(--warn); }
+.onchain-surface > h2 { margin: 1.3rem 0; font: 700 clamp(1.8rem, 3vw, 3rem)/1.15 Arial,sans-serif; }
+.onchain-description { white-space: pre-wrap; color: #d6e8e1; font: 1rem/1.75 Arial,sans-serif; }
+.onchain-votes { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin: 2rem 0; }
+.onchain-votes > div { padding: 1rem; border: 1px solid #49305b; background: #170c1d; }
+.onchain-votes strong { display: block; margin-top: .45rem; color: var(--violet); font-size: 1.35rem; }
+.onchain-actions { border: 1px solid #49305b; }
+.onchain-actions summary { padding: 1rem; color: var(--violet); cursor: pointer; font-weight: 700; }
+.onchain-actions pre { margin: 0; padding: 1rem; border-top: 1px solid #49305b; overflow: auto; white-space: pre-wrap; color: #c9aed8; }
 
 @media (max-width: 900px) {
   .workspace { grid-template-columns: 1fr; }
   .draft-list { max-height: 360px; }
+}
+
+@media (max-width: 700px) {
+  .onchain-meta { align-items: flex-start; flex-direction: column; }
+  .onchain-votes { grid-template-columns: 1fr; }
 }
