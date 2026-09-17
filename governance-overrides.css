@@ -2,10 +2,11 @@
 .gov-header { display:grid; grid-template-columns:1fr minmax(280px,420px) 1fr; gap:20px; }
 .gov-header .gov-controls { display:flex; justify-content:flex-end; gap:12px; align-items:center; }
 .gov-header .dao-picker { position:relative; display:block; min-width:0; }
-.dao-picker>label { display:block; margin-bottom:5px; color:var(--muted); font-size:9px; letter-spacing:.16em; }
+.dao-picker>label { display:block; margin-bottom:6px; color:var(--gov); font-size:9px; font-weight:900; letter-spacing:.2em; }
 .dao-combobox { position:relative; }
-.dao-combobox input { box-sizing:border-box; width:100%; border:1px solid var(--line); background:#00120c; color:var(--gov); padding:10px 34px 10px 12px; font:inherit; font-weight:800; }
-.dao-combobox span { position:absolute; right:12px; top:50%; translate:0 -50%; color:var(--gov); pointer-events:none; }
+.dao-combobox input { appearance:none; box-sizing:border-box; width:100%; height:42px; margin:0; border:1px solid var(--line); border-left:4px solid var(--gov); border-radius:0; outline:0; background:#00120c; color:#d7fff1; padding:10px 44px 10px 13px; font:800 13px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; letter-spacing:.04em; }
+.dao-combobox input:focus { border-color:var(--gov); box-shadow:0 0 0 2px rgba(24,242,172,.12); }
+.dao-combobox span { position:absolute; right:0; top:0; display:grid; place-items:center; width:42px; height:42px; border-left:1px solid var(--line); color:var(--gov); font-weight:900; pointer-events:none; }
 .dao-options { position:absolute; z-index:30; top:100%; left:0; right:0; border:1px solid var(--line); background:#00120c; box-shadow:0 16px 30px rgba(0,0,0,.55); }
 .dao-options button { width:100%; display:block; padding:12px; border:0; border-bottom:1px solid #084b37; text-align:left; }
 .dao-options button strong { display:block; }
