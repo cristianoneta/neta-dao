@@ -13,7 +13,9 @@ For the current handoff state, agreed product decisions, and the next implementa
 - Local proposal drafts with immutable revision snapshots and mandatory change logs.
 - An explicit five-step proposal workflow: private draft, local save, review publication, discussion/revision, and combined finalization/on-chain submission.
 - A unified proposal index that merges local workshop drafts with the complete live NETA Operations on-chain proposal history, ordered by latest activity. Selecting an on-chain proposal renders its status, text, votes, and execution messages inside the workspace without sending the user to DAO DAO.
-- Proposal filters for `All`, `In Progress`, and `Approved`, with declined proposals retained in the complete view.
+- Proposal filters for `All`, `In Progress`, `Approved`, and `Rejected / Withdrawn`.
+- Status-backed proposal cards distinguish discussion, voting, passed, executed, rejected, failed, and withdrawn records.
+- Open on-chain votes show their remaining voting time and can be voted on with `Yes`, `No`, or `Abstain` through Keplr. The enabled NETA Operations module does not support veto votes.
 - Discussion-first review mode: version 1 remains the visible baseline while titled threads and later revisions form one chronological activity stream.
 - Each revision can be expanded in place and compared directly with its preceding version using inline additions and struck-through deletions; a prominent notice links from version 1 to the latest revision.
 - Flat, titled member discussion threads with replies, status filters, and open-thread counts.
@@ -22,6 +24,7 @@ For the current handoff state, agreed product decisions, and the next implementa
 - Collapsed human-triggered transaction-code view.
 - Local member-gated comments.
 - Version comparison and draft freezing.
+- Local drafts can be deleted; published workshop proposals are withdrawn instead so their audit history is retained. The workshop contract enforces author-only withdrawal before DAO submission.
 
 ## Deliberately not included yet
 

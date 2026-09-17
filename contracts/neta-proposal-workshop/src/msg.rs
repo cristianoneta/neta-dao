@@ -25,6 +25,7 @@ pub enum ExecuteMsg {
     AddComment { proposal_id: u64, version: u32, parent_id: Option<u64>, title: Option<String>, body: String },
     SetThreadDecision { proposal_id: u64, comment_id: u64, status: String, reason: String },
     Finalize { proposal_id: u64, version: u32, content_hash: String },
+    Withdraw { proposal_id: u64 },
     MarkSubmitted { proposal_id: u64, dao_proposal_id: u64 },
     SetCommentHidden { proposal_id: u64, comment_id: u64, hidden: bool, reason: Option<String> },
     SetModerator { address: String, enabled: bool },
@@ -74,4 +75,3 @@ pub struct AccessResponse {
     pub paused: bool,
     pub cooldown_remaining_seconds: u64,
 }
-

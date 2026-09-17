@@ -23,6 +23,10 @@ pub enum ContractError {
     Finalized,
     #[error("proposal is not finalized")]
     NotFinalized,
+    #[error("proposal is withdrawn")]
+    Withdrawn,
+    #[error("proposal was already submitted")]
+    AlreadySubmitted,
     #[error("version is not the latest revision")]
     NotLatestVersion,
     #[error("comment parent does not belong to this proposal")]
@@ -34,4 +38,3 @@ pub enum ContractError {
     #[error("funds are not accepted")]
     FundsNotAccepted,
 }
-
