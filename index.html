@@ -8,7 +8,7 @@
   <title>NETA DAO · Proposal Workshop</title>
   <meta name="description" content="Collaboratively draft, review and prepare NETA DAO proposals before they move on-chain.">
   <link rel="stylesheet" href="styles.css?v=10">
-  <link rel="stylesheet" href="proposal-compact.css?v=2">
+  <link rel="stylesheet" href="proposal-compact.css?v=3">
 </head>
 <body>
   <header class="shell-header">
@@ -78,6 +78,18 @@
         </div>
         <div id="editorFeedback" class="editor-feedback" role="status" aria-live="polite">Publishing opens member comments. Nothing is submitted on-chain.</div>
 
+        <section id="onchainSurface" class="onchain-surface" hidden>
+          <div class="onchain-meta"><span id="onchainProposalId">ON-CHAIN PROPOSAL</span><strong id="onchainProposalStatus"></strong></div>
+          <h2 id="onchainProposalTitle"></h2>
+          <div id="onchainProposalDescription" class="onchain-description"></div>
+          <div class="onchain-votes" aria-label="Proposal votes">
+            <div><small>YES</small><strong id="onchainYes">0</strong></div>
+            <div><small>NO</small><strong id="onchainNo">0</strong></div>
+            <div><small>ABSTAIN</small><strong id="onchainAbstain">0</strong></div>
+          </div>
+          <details class="onchain-actions"><summary>VIEW PROPOSED EXECUTION</summary><pre id="onchainMessages"></pre></details>
+        </section>
+
         <form id="draftForm">
           <label>PROPOSAL TITLE<input id="title" maxlength="100" required placeholder="A clear decision the DAO can evaluate"></label>
           <label>SUMMARY · MAX 300 CHARACTERS<textarea id="summary" maxlength="300" required placeholder="What should change and why?"></textarea></label>
@@ -129,6 +141,6 @@
       <div data-fields></div>
     </fieldset>
   </template>
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>

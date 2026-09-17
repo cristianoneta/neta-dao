@@ -58,6 +58,7 @@
     $("#workflowHint").textContent=hints[stage];document.querySelectorAll(".workflow-steps li").forEach((step,index)=>{step.dataset.state=index<stage?"complete":index===stage?"current":"upcoming"});
   }
   function fillForm(d){
+    $("#onchainSurface").hidden=true;
     $("#title").value=d?.title||"";$("#summary").value=d?.summary||"";$("#body").value=d?.body||"";$("#changeLog").value="";
     $("#actionList").replaceChildren();(d?.actions||[]).forEach(addAction);toggleEmpty();renderCode();renderComments();
     const published=d?.status==="published"||Boolean(d?.frozen),showEditor=!published||state.editing;
@@ -77,7 +78,7 @@
       if(item.kind==="local"){
         const d=item.record,b=document.createElement("button");b.type="button";b.className=d.id===state.active?"active":"";b.innerHTML=`<b>${esc(d.title||"Untitled proposal")}</b><span class="proposal-status status-in-progress">${localStatus(d)}</span><small>${formatChanged(item.sortAt)} · WORKSHOP</small>`;b.onclick=()=>{state.active=d.id;state.editing=false;persist();renderDrafts();fillForm(d)};list.append(b);return;
       }
-      const {id,proposal}=item.record,a=document.createElement("a");a.className="onchain-proposal";a.href=`https://daodao.zone/dao/${selectedDao().core}/proposals/${selectedDao().proposalPrefix}/${id}`;a.target="_blank";a.rel="noopener noreferrer";a.innerHTML=`<b>${esc(proposal.title||`Proposal ${id}`)}</b><span class="proposal-status status-${item.group==='approved'?'approved':item.group==='in_progress'?'in-progress':'declined'}">${onchainStatus(proposal.status)}</span><small>#${id} · ON-CHAIN</small>`;list.append(a);
+      const {id,proposal}=item.record,b=document.createElement("button");b.type="button";b.className="onchain-proposal";b.innerHTML=`<b>${esc(proposal.title||`Proposal ${id}`)}</b><span class="proposal-status status-${item.group==='approved'?'approved':item.group==='in_progress'?'in-progress':'declined'}">${onchainStatus(proposal.status)}</span><small>#${id} · ON-CHAIN</small>`;b.onclick=()=>showOnchainProposal(item.record);list.append(b);
     })
   }
   function localUpdatedAt(d){const times=[d.updatedAt,d.createdAt,d.publishedAt,d.frozenAt,...(d.versions||[]).map(v=>v.createdAt),...(d.comments||[]).map(c=>c.decidedAt||c.createdAt)].filter(Boolean).map(Date.parse).filter(Number.isFinite);return times.length?Math.max(...times):0}
@@ -94,6 +95,15 @@
       }
       state.onchainProposals=proposals;load.textContent=`${proposals.length} ON-CHAIN PROPOSALS`;renderDrafts();
     }catch(error){state.onchainProposals=[];load.textContent="ON-CHAIN PROPOSALS UNAVAILABLE";renderDrafts()}
+  }
+  function showOnchainProposal(item){
+    const {id,proposal}=item,votes=proposal.votes||{};state.active=null;state.editing=false;renderDrafts();
+    $("#draftForm").hidden=true;$(".technical").hidden=true;$("#reviewSurface").hidden=true;$("#onchainSurface").hidden=false;
+    $("#draftState").textContent=`ON-CHAIN · PROPOSAL ${selectedDao().proposalPrefix}${id}`;$("#editorTitle").textContent=proposal.title||`Proposal ${id}`;
+    $("#editorFeedback").textContent="This proposal is shown directly from the NETA Operations governance contract.";$("#editorFeedback").dataset.type="info";
+    $("#onchainProposalId").textContent=`${selectedDao().proposalPrefix}${id} · ON-CHAIN PROPOSAL`;const status=$("#onchainProposalStatus");status.textContent=onchainStatus(proposal.status);status.className=`status-${onchainGroup(proposal.status)==='approved'?'approved':onchainGroup(proposal.status)==='in_progress'?'in-progress':'declined'}`;
+    $("#onchainProposalTitle").textContent=proposal.title||`Proposal ${id}`;$("#onchainProposalDescription").textContent=proposal.description||"No proposal description was provided.";
+    $("#onchainYes").textContent=votes.yes||"0";$("#onchainNo").textContent=votes.no||"0";$("#onchainAbstain").textContent=votes.abstain||"0";$("#onchainMessages").textContent=JSON.stringify(proposal.msgs||[],null,2);
   }
   const field=(label,name,value="",area=false)=>`<label>${label}${area?`<textarea data-field="${name}">${esc(value)}</textarea>`:`<input data-field="${name}" value="${esc(value)}">`}</label>`;
   function fieldsFor(type,a={}){

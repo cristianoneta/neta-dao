@@ -52,6 +52,7 @@ The frontend visualizes these five user-facing stages. Finalization and submissi
 - `Approved` contains passed or executed on-chain proposals.
 - Declined/rejected/closed proposals remain visible in `All`, matching the deliberately limited three-filter design.
 - Status labels are normalized to the product vocabulary: `Draft`, `Discussion Phase`, `Ready to Submit`, `Voting Phase`, `Approved`, and `Declined`.
+- Selecting an on-chain proposal renders the complete proposal, result, vote totals and proposed execution directly in the existing workspace. The proposal list does not link out to DAO DAO; reducing interfaces is an explicit product decision.
 
 ## Implemented UX and behavior
 
