@@ -1,6 +1,6 @@
 # NETA DAO Workshop Checkpoint
 
-Updated: 2026-09-16
+Updated: 2026-09-18
 
 ## Resume instruction
 
@@ -21,7 +21,16 @@ In a new chat, start with:
 
 The product is a focused DAO proposal workshop, not a complete DAO DAO UI fork. Its primary job is to improve proposals collaboratively before they enter the existing on-chain governance system.
 
-Only explicitly reviewed DAO configurations are supported. The initial workspace is **NETA Operations**.
+Only explicitly reviewed DAO configurations are supported. The initial workspace is **NETA Operations**. **Juno Network Governance** is also available as a deliberately separate native `x/gov` workspace.
+
+## Juno native governance workspace
+
+- Reads proposals directly from the Juno `cosmos.gov.v1` REST API.
+- Reads the deposit and voting parameters from chain state instead of hard-coding them.
+- Current parameters at implementation time: 5,000 JUNO total minimum deposit, 20% minimum initial deposit (1,000 JUNO), 10-day deposit period, and 5-day voting period.
+- Juno drafts use DAO-scoped local storage and do not leak into NETA Operations drafts.
+- Native proposal submission and voting are intentionally read-only until the exact `MsgSubmitProposal` / `MsgVote` construction, fee/deposit handling, simulation, and transaction review are verified.
+- The funding step is presented in the proposal workspace before submission, because a native Juno proposal begins in deposit period rather than immediately entering voting.
 
 ## Reviewed DAO configuration
 
@@ -80,6 +89,12 @@ The frontend visualizes these five user-facing stages. Finalization and submissi
 - PR #7 — chronological proposal review feed
 - PR #8 — inline proposal text changes
 - PR #9 — state-aware proposal lifecycle
+
+## Current UI follow-up
+
+- Discussion threads sit outside the collapsible technical proposal details and remain visible below a selected workshop proposal.
+- The sticky header uses a balanced DAO selector / network / wallet layout across desktop and mobile.
+- The workflow bar marks completed stages and prominently identifies the current proposal stage.
 
 ## Security and integrity decisions
 
