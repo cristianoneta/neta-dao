@@ -44,7 +44,10 @@
 .thread-controls { display:flex; align-items:center; gap:10px; margin-top:12px; }
 .thread-controls button { padding:7px 11px; font-size:10px; }
 .reply-list { margin-left:36px; border-left:2px solid var(--line); }
-.reply-item { padding:14px 18px; border-top:1px solid #084b37; }
+.reply-item { margin-left:calc((var(--reply-depth,1) - 1) * 18px); padding:14px 18px; border-top:1px solid #084b37; border-left:1px solid rgba(24,242,172,.25); }
+.reply-item .reply-item { margin-top:14px; padding-right:0; }
+.reply-controls { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.reply-controls button { padding:6px 10px; font-size:10px; }
 .discussion-panel form { border-top:1px solid var(--line); }
 .discussion-panel { margin-top:24px; }
 .comment-form-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; color:var(--gov); }
