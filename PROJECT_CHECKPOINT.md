@@ -93,7 +93,9 @@ The frontend visualizes these five user-facing stages. Finalization and submissi
 ## Current UI follow-up
 
 - Discussion threads sit outside the collapsible technical proposal details and remain visible below a selected workshop proposal.
+- Every reply can itself be replied to; nested replies remain visible in their conversation context.
 - The sticky header uses a balanced DAO selector / network / wallet layout across desktop and mobile.
+- Opening the DAO selector always shows every whitelisted DAO before an optional search term is entered.
 - The workflow bar marks completed stages and prominently identifies the current proposal stage.
 
 ## Security and integrity decisions
