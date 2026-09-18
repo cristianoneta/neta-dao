@@ -1,6 +1,8 @@
 :root { --warn:#ffc857; --danger:#ff667d; }
-.gov-header { display:grid; grid-template-columns:1fr minmax(280px,420px) 1fr; gap:20px; }
-.gov-header .gov-controls { display:flex; justify-content:flex-end; gap:12px; align-items:center; }
+.gov-header { display:grid; grid-template-columns:minmax(170px,1fr) minmax(320px,520px) minmax(280px,1fr); gap:28px; align-items:center; min-height:74px; padding:10px 24px; }
+.gov-header .gov-brand { align-self:center; white-space:nowrap; }
+.gov-header .gov-controls { display:grid; grid-template-columns:auto minmax(150px,238px); justify-content:end; gap:12px; align-items:center; min-width:0; }
+.gov-header .gov-controls button { box-sizing:border-box; width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .gov-header .dao-picker { position:relative; display:block; min-width:0; }
 .dao-picker>label { display:block; margin-bottom:6px; color:var(--gov); font-size:9px; font-weight:900; letter-spacing:.2em; }
 .dao-combobox { position:relative; }
@@ -19,7 +21,7 @@
 .proposal-filters button { padding:9px 6px; font-size:10px; }
 .proposal-filters button.active { background:rgba(24,242,172,.16); }
 .details-toggle { width:100%; display:flex; justify-content:space-between; margin-top:20px; border-color:var(--line)!important; color:var(--muted)!important; }
-.details-toggle::after { content:"BODY · EXECUTION · REVISIONS · DISCUSSION"; font-size:10px; letter-spacing:.12em; }
+.details-toggle::after { content:"BODY · EXECUTION · REVISIONS"; font-size:10px; letter-spacing:.12em; }
 #proposal-details[hidden] { display:none; }
 #proposal-details>label { display:block; color:var(--muted); font-size:12px; letter-spacing:.12em; margin:20px 0; }
 .proposal-list .status { width:fit-content; margin-top:8px; padding:4px 7px; border-left:3px solid currentColor; font-weight:900; }
@@ -44,6 +46,7 @@
 .reply-list { margin-left:36px; border-left:2px solid var(--line); }
 .reply-item { padding:14px 18px; border-top:1px solid #084b37; }
 .discussion-panel form { border-top:1px solid var(--line); }
+.discussion-panel { margin-top:24px; }
 .comment-form-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; color:var(--gov); }
 .comment-form-heading button { padding:6px 10px; margin:0!important; font-size:10px; }
 #comment-title { margin-top:14px; }
@@ -54,4 +57,17 @@
 .vote-totals strong { display:block; margin-top:5px; font-size:22px; }
 .vote-actions { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:14px; }
 .vote-actions>div { display:flex; gap:8px; }
-@media(max-width:900px){.gov-header{grid-template-columns:1fr auto}.dao-picker{grid-column:1/-1;grid-row:2}.proposal-sidebar{position:static;max-height:70vh}.details-toggle::after{display:none}.reply-list{margin-left:14px}.vote-actions{align-items:stretch;flex-direction:column}.vote-actions>div{display:grid}.proposal-filters{grid-template-columns:1fr}}
+.workflow span { position:relative; transition:background .16s ease,color .16s ease,border-color .16s ease; }
+.workflow span.complete { background:rgba(24,242,172,.07); color:#90cdb9; }
+.workflow span.active { z-index:1; border-color:var(--gov); background:rgba(24,242,172,.2); color:#fff; box-shadow:inset 0 -4px 0 var(--gov),0 0 20px rgba(24,242,172,.12); font-weight:900; }
+.workflow span.active::before { content:"CURRENT"; display:block; margin-bottom:4px; color:var(--gov); font-size:8px; letter-spacing:.18em; }
+.native-funding-panel { margin:20px 0; border:1px solid var(--warn); background:rgba(48,38,6,.3); }
+.native-funding-panel>header { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:16px 18px; border-bottom:1px solid rgba(255,200,87,.35); }
+.native-funding-panel h3 { margin:4px 0 0; color:var(--warn); }
+.native-funding-panel header span,.native-funding-panel small { color:#d9b75e; font-size:10px; letter-spacing:.14em; }
+.funding-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:rgba(255,200,87,.25); }
+.funding-stats>div { padding:16px; background:#07130d; }
+.funding-stats strong { display:block; margin-top:7px; color:#fff; font-size:16px; }
+.native-funding-panel>p { margin:0; padding:15px 18px; color:var(--muted); line-height:1.55; }
+@media(max-width:900px){.gov-header{grid-template-columns:1fr auto;gap:10px 16px;padding:10px 14px}.gov-header .dao-picker{grid-column:1/-1;grid-row:2}.gov-header .gov-controls{grid-template-columns:auto minmax(130px,210px)}.proposal-sidebar{position:static;max-height:70vh}.details-toggle::after{display:none}.reply-list{margin-left:14px}.vote-actions{align-items:stretch;flex-direction:column}.vote-actions>div{display:grid}.proposal-filters{grid-template-columns:1fr}.funding-stats{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.gov-header{grid-template-columns:1fr}.gov-header .gov-controls{grid-column:1;grid-row:2;grid-template-columns:auto 1fr;justify-content:stretch}.gov-header .dao-picker{grid-row:3}.workflow span.active::before{display:none}.funding-stats{grid-template-columns:1fr}.native-funding-panel>header{align-items:flex-start;flex-direction:column}}
