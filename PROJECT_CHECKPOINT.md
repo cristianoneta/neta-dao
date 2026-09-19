@@ -33,6 +33,8 @@ Only explicitly reviewed DAO configurations are supported. The initial workspace
 - The funding step is presented in the proposal workspace before submission, because a native Juno proposal begins in deposit period rather than immediately entering voting.
 - The community-review workflow is intended to match Operations DAO through draft, publish, discussion, revisions, and finalization.
 - Juno community workshop writes require both at least 1 delegated JUNO and at least 1 actively staked NETA. This is separate from the later native proposal deposit.
+- Before mainnet submission is enabled, the complete Juno community-review workflow is tested on UNI-7 using 1 delegated JUNOX plus 1 test NETA. Mainnet proposal history and funding parameters remain public read-only data in the same workspace.
+- The Juno review contract can be uploaded, instantiated and unpaused once by the configured test administrator from the workspace. Its address is retained locally for the immediate end-to-end test; after verification the reviewed address must be committed to the shared configuration.
 
 ## Reviewed DAO configuration
 
