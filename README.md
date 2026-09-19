@@ -6,11 +6,12 @@ For the current handoff state, agreed product decisions, and the next implementa
 
 ## Included
 
-- Searchable, explicitly whitelisted DAO workspaces (initially NETA Operations only).
+- Searchable, explicitly whitelisted DAO workspaces with the last selected workspace restored after a reload.
+- A separate governance-chain selector filters the available DAO workspaces, allowing the Juno-based tooling to expand to reviewed DAOs across Cosmos.
 - Live membership verification through the selected DAO core contract's voting-power query; no stale member allowlist.
 - Compact workbench UX with a reviewed-DAO selector and wallet menu.
 - A clearly labelled local owner-testing override for the project owner address. This is not an authorization mechanism.
-- Local proposal drafts with immutable revision snapshots and mandatory change logs.
+- DAO-scoped local proposal drafts with immutable revision snapshots and mandatory change logs. A saved private draft appears in the proposal index only in the browser that created it.
 - An explicit five-step proposal workflow: private draft, local save, review publication, discussion/revision, and combined finalization/on-chain submission.
 - A unified proposal index that merges local workshop drafts with the complete live NETA Operations on-chain proposal history, ordered by latest activity. Selecting an on-chain proposal renders its status, text, votes, and execution messages inside the workspace without sending the user to DAO DAO.
 - Proposal filters for `All`, `In Progress`, `Approved`, and `Rejected / Withdrawn`.
