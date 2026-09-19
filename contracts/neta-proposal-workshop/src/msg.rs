@@ -8,6 +8,17 @@ pub struct InstantiateMsg {
     pub dao_voting_contract: String,
     pub stake_contract: String,
     pub minimum_comment_stake: Uint128,
+    /// When set, publishing, revising, commenting, and finalizing require both
+    /// the configured NETA stake and native delegated stake. When omitted the
+    /// original Operations DAO membership rules remain unchanged.
+    pub community_gate: Option<CommunityGate>,
+}
+
+#[cw_serde]
+pub struct CommunityGate {
+    pub native_denom: String,
+    pub minimum_native_stake: Uint128,
+    pub minimum_neta_stake: Uint128,
 }
 
 #[cw_serde]
@@ -69,6 +80,7 @@ pub struct AccessResponse {
     pub address: String,
     pub voting_power: Uint128,
     pub active_neta_stake: Uint128,
+    pub active_native_stake: Uint128,
     pub can_publish: bool,
     pub can_comment: bool,
     pub blocked: bool,

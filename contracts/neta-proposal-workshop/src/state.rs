@@ -1,4 +1,5 @@
 use cosmwasm_schema::cw_serde;
+use crate::msg::CommunityGate;
 use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, Map};
 
@@ -10,6 +11,8 @@ pub struct Config {
     pub dao_voting_contract: Addr,
     pub stake_contract: Addr,
     pub minimum_comment_stake: Uint128,
+    #[serde(default)]
+    pub community_gate: Option<CommunityGate>,
     pub paused: bool,
     pub comment_cooldown_seconds: u64,
 }

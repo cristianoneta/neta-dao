@@ -1,8 +1,8 @@
 use crate::contract::{execute, instantiate, query};
 use crate::error::ContractError;
-use crate::msg::{AccessResponse, ExecuteMsg, InstantiateMsg, ProposalContent, QueryMsg, StakedBalanceQuery, StakedBalanceResponse, VotingPowerQuery, VotingPowerResponse};
+use crate::msg::{AccessResponse, CommunityGate, ExecuteMsg, InstantiateMsg, ProposalContent, QueryMsg, StakedBalanceQuery, StakedBalanceResponse, VotingPowerQuery, VotingPowerResponse};
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage};
-use cosmwasm_std::{from_json, to_json_binary, ContractResult, Empty, OwnedDeps, QuerierResult, SystemResult, Uint128, WasmQuery};
+use cosmwasm_std::{coin, coins, from_json, to_json_binary, Addr, ContractResult, Empty, FullDelegation, OwnedDeps, QuerierResult, SystemResult, Uint128, WasmQuery};
 
 fn content(title: &str) -> ProposalContent {
     ProposalContent { title: title.into(), summary: "Summary".into(), body: "Body".into(), actions_json: "[]".into() }
@@ -18,11 +18,22 @@ fn deps() -> OwnedDeps<MockStorage, MockApi, MockQuerier, Empty> {
             SystemResult::Ok(ContractResult::Ok(to_json_binary(&VotingPowerResponse { power: Uint128::new(power), height: 123 }).unwrap()))
         } else if contract_addr == "staking" {
             let q: StakedBalanceQuery = from_json(msg).unwrap();
-            let balance = match q.staked_balance_at_height.address.as_str() { "ten" => 10_000_000, "staker" => 10_000_001, _ => 0 };
+            let balance = match q.staked_balance_at_height.address.as_str() { "ten" => 10_000_000, "staker" => 10_000_001, "both" | "neta_only" => 1_000_000, _ => 0 };
             SystemResult::Ok(ContractResult::Ok(to_json_binary(&StakedBalanceResponse { balance: Uint128::new(balance), height: 123 }).unwrap()))
         } else { panic!("unexpected contract {contract_addr}") }
     });
-    instantiate(deps.as_mut(), mock_env(), mock_info("owner", &[]), InstantiateMsg { owner:"owner".into(), dao_voting_contract:"voting".into(), stake_contract:"staking".into(), minimum_comment_stake:Uint128::new(10_000_000) }).unwrap();
+    instantiate(deps.as_mut(), mock_env(), mock_info("owner", &[]), InstantiateMsg { owner:"owner".into(), dao_voting_contract:"voting".into(), stake_contract:"staking".into(), minimum_comment_stake:Uint128::new(10_000_000), community_gate:None }).unwrap();
+    execute(deps.as_mut(), mock_env(), mock_info("owner", &[]), ExecuteMsg::SetPaused { paused:false }).unwrap();
+    deps
+}
+
+fn community_deps() -> OwnedDeps<MockStorage, MockApi, MockQuerier, Empty> {
+    let mut deps = deps();
+    deps.querier.update_staking("ujuno", &[], &[
+        FullDelegation { delegator:Addr::unchecked("both"), validator:"junovaloper1both".into(), amount:coin(1_000_000,"ujuno"), can_redelegate:coin(1_000_000,"ujuno"), accumulated_rewards:coins(0,"ujuno") },
+        FullDelegation { delegator:Addr::unchecked("juno_only"), validator:"junovaloper1juno".into(), amount:coin(1_000_000,"ujuno"), can_redelegate:coin(1_000_000,"ujuno"), accumulated_rewards:coins(0,"ujuno") },
+    ]);
+    instantiate(deps.as_mut(), mock_env(), mock_info("owner", &[]), InstantiateMsg { owner:"owner".into(), dao_voting_contract:"voting".into(), stake_contract:"staking".into(), minimum_comment_stake:Uint128::zero(), community_gate:Some(CommunityGate { native_denom:"ujuno".into(), minimum_native_stake:Uint128::new(1_000_000), minimum_neta_stake:Uint128::new(1_000_000) }) }).unwrap();
     execute(deps.as_mut(), mock_env(), mock_info("owner", &[]), ExecuteMsg::SetPaused { paused:false }).unwrap();
     deps
 }
@@ -50,6 +61,20 @@ fn comment_gate_is_strictly_more_than_ten_neta() {
     assert_eq!(access.cooldown_remaining_seconds, 30);
     assert!(!access.can_comment);
     assert!(!access.can_publish);
+}
+
+#[test]
+fn juno_community_requires_one_juno_and_one_neta_staked() {
+    let mut deps = community_deps();
+    let publish = |who:&str| ExecuteMsg::PublishProposal { content:content(who) };
+    assert_eq!(execute(deps.as_mut(),mock_env(),mock_info("neta_only",&[]),publish("neta_only")).unwrap_err(),ContractError::CommunityStakeNotMet);
+    assert_eq!(execute(deps.as_mut(),mock_env(),mock_info("juno_only",&[]),publish("juno_only")).unwrap_err(),ContractError::CommunityStakeNotMet);
+    execute(deps.as_mut(),mock_env(),mock_info("both",&[]),publish("both")).unwrap();
+    let access:AccessResponse=from_json(query(deps.as_ref(),mock_env(),QueryMsg::Access{address:"both".into()}).unwrap()).unwrap();
+    assert_eq!(access.active_neta_stake,Uint128::new(1_000_000));
+    assert_eq!(access.active_native_stake,Uint128::new(1_000_000));
+    assert!(access.can_publish);
+    assert!(access.can_comment);
 }
 
 #[test]
