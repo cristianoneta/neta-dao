@@ -31,6 +31,8 @@ Only explicitly reviewed DAO configurations are supported. The initial workspace
 - Juno drafts use DAO-scoped local storage and do not leak into NETA Operations drafts.
 - Native proposal submission and voting are intentionally read-only until the exact `MsgSubmitProposal` / `MsgVote` construction, fee/deposit handling, simulation, and transaction review are verified.
 - The funding step is presented in the proposal workspace before submission, because a native Juno proposal begins in deposit period rather than immediately entering voting.
+- The community-review workflow is intended to match Operations DAO through draft, publish, discussion, revisions, and finalization.
+- Juno community workshop writes require both at least 1 delegated JUNO and at least 1 actively staked NETA. This is separate from the later native proposal deposit.
 
 ## Reviewed DAO configuration
 
