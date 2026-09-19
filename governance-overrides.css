@@ -77,5 +77,21 @@
 .funding-stats>div { padding:16px; background:#07130d; }
 .funding-stats strong { display:block; margin-top:7px; color:#fff; font-size:16px; }
 .native-funding-panel>p { margin:0; padding:15px 18px; color:var(--muted); line-height:1.55; }
+.revision-dialog[hidden] { display:none; }
+.revision-dialog { position:fixed; z-index:100; inset:0; display:grid; place-items:center; padding:24px; }
+.revision-dialog-backdrop { position:absolute; inset:0; width:100%; height:100%; padding:0; border:0; background:rgba(0,7,5,.86); cursor:default; }
+.revision-dialog-card { position:relative; width:min(620px,100%); border:1px solid var(--line); border-left:5px solid var(--gov); background:#00120c; box-shadow:0 24px 80px rgba(0,0,0,.75); }
+.revision-dialog-card>header { padding:20px 22px 16px; border-bottom:1px solid var(--line); }
+.revision-dialog-card>header span,.revision-dialog-card form>label { display:block; color:var(--gov); font-size:10px; font-weight:900; letter-spacing:.18em; }
+.revision-dialog-card h2 { margin:7px 0 0; color:#fff; font-size:24px; }
+.revision-dialog-card>p { margin:0; padding:18px 22px 0; color:var(--muted); line-height:1.55; }
+.revision-dialog-card form { padding:18px 22px 22px; }
+.revision-dialog-card textarea { box-sizing:border-box; width:100%; margin-top:9px; resize:vertical; border:1px solid var(--line); border-left:4px solid var(--gov); border-radius:0; outline:0; background:#000b07; color:#d7fff1; padding:13px; font:600 14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+.revision-dialog-card textarea:focus { border-color:var(--gov); box-shadow:0 0 0 2px rgba(24,242,172,.12); }
+.revision-dialog-error { margin:10px 0 0; color:var(--danger); font-size:11px; font-weight:900; letter-spacing:.08em; }
+.revision-dialog-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+.revision-dialog-actions button { min-width:150px; }
+.revision-dialog-actions #confirm-revision { background:var(--gov); color:#00120c; }
+body.revision-dialog-open { overflow:hidden; }
 @media(max-width:900px){.gov-header{grid-template-columns:1fr auto;gap:10px 16px;padding:10px 14px}.gov-header .governance-selectors{grid-column:1/-1;grid-row:2}.gov-header .gov-controls{grid-template-columns:auto minmax(130px,210px)}.proposal-sidebar{position:static;max-height:70vh}.details-toggle::after{display:none}.reply-list{margin-left:14px}.vote-actions{align-items:stretch;flex-direction:column}.vote-actions>div{display:grid}.proposal-filters{grid-template-columns:1fr}.funding-stats{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.gov-header{grid-template-columns:1fr}.gov-header .gov-controls{grid-column:1;grid-row:2;grid-template-columns:auto 1fr;justify-content:stretch}.gov-header .governance-selectors{grid-row:3;grid-template-columns:1fr}.workflow span.active::before{display:none}.funding-stats{grid-template-columns:1fr}.native-funding-panel>header{align-items:flex-start;flex-direction:column}}
+@media(max-width:560px){.gov-header{grid-template-columns:1fr}.gov-header .gov-controls{grid-column:1;grid-row:2;grid-template-columns:auto 1fr;justify-content:stretch}.gov-header .governance-selectors{grid-row:3;grid-template-columns:1fr}.workflow span.active::before{display:none}.funding-stats{grid-template-columns:1fr}.native-funding-panel>header{align-items:flex-start;flex-direction:column}.revision-dialog{padding:12px}.revision-dialog-actions{display:grid}.revision-dialog-actions button{width:100%}}
