@@ -4,7 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://juno.test.rpc.nodeshub.online https://juno.test.api.nodeshub.online https://juno.rpc.t.stavr.tech https://juno.api.t.stavr.tech https://juno-api.polkachu.com https://juno-api.lavenderfive.com https://juno-rpc.polkachu.com https://rpc-juno.whispernode.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>NETA Governance</title>
-  <link rel="stylesheet" href="styles.css?v=20260914-7"><link rel="stylesheet" href="neta-governance.css?v=1"><link rel="stylesheet" href="governance-overrides.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=20260914-7"><link rel="stylesheet" href="neta-governance.css?v=1"><link rel="stylesheet" href="governance-overrides.css?v=5">
 </head>
 <body>
 <header class="gov-header"><a href="index.html" class="gov-brand">NETA REBORN</a><div class="governance-selectors"><div class="chain-picker"><label for="chain-select">SELECT CHAIN</label><div class="chain-select-wrap"><select id="chain-select" aria-label="Select governance chain"><option value="juno">Juno</option></select><span aria-hidden="true">⌄</span></div></div><div class="dao-picker"><label for="dao-search">SELECT DAO</label><div class="dao-combobox"><input id="dao-search" role="combobox" aria-expanded="false" aria-controls="dao-options" aria-autocomplete="list" autocomplete="off" value="NETA Operations DAO"><span aria-hidden="true">⌄</span></div><div id="dao-options" class="dao-options" role="listbox" hidden></div></div></div><div class="gov-controls"><span class="testnet-pill">UNI-7 TESTNET</span><button id="gov-connect" type="button">CONNECT KEPLR</button></div></header>
@@ -32,5 +32,18 @@
     </section>
   </div>
 </main>
-<script src="assets/socials-testnet-client.js?v=4"></script><script src="neta-governance.js?v=11"></script>
+<div id="revision-dialog" class="revision-dialog" hidden>
+  <button class="revision-dialog-backdrop" type="button" aria-label="Cancel publishing revision" data-close-revision-dialog></button>
+  <section class="revision-dialog-card" role="dialog" aria-modal="true" aria-labelledby="revision-dialog-title" aria-describedby="revision-dialog-copy">
+    <header><span>DISCUSSION PHASE</span><h2 id="revision-dialog-title">PUBLISH NEW REVISION</h2></header>
+    <p id="revision-dialog-copy">Before publishing, explain what changed and why. This note becomes part of the public revision history.</p>
+    <form id="revision-dialog-form">
+      <label for="revision-change-note">WHAT CHANGED AND WHY?</label>
+      <textarea id="revision-change-note" maxlength="500" rows="5" required placeholder="Describe the changes and the reason behind them"></textarea>
+      <p id="revision-dialog-error" class="revision-dialog-error" role="alert" hidden></p>
+      <div class="revision-dialog-actions"><button id="cancel-revision" type="button">CANCEL</button><button id="confirm-revision" type="submit">CONFIRM + PUBLISH</button></div>
+    </form>
+  </section>
+</div>
+<script src="assets/socials-testnet-client.js?v=4"></script><script src="neta-governance.js?v=12"></script>
 </body></html>
