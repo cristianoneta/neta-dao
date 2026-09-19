@@ -99,6 +99,7 @@ The frontend visualizes these five user-facing stages. Finalization and submissi
 - A DAO selection is applied and displayed immediately, independently of whether its first network request succeeds.
 - The last selected DAO workspace is stored in the browser and restored before the first request after a reload.
 - DAO-scoped local drafts appear as private entries in the proposal overview and remain visible only in the browser that saved them.
+- The header separates the target Cosmos chain from the DAO workspace. DAO tooling remains Juno-based while the chain selector can later expose reviewed governance workspaces for other Cosmos chains.
 - The workflow bar marks completed stages and prominently identifies the current proposal stage.
 
 ## Security and integrity decisions
