@@ -19,6 +19,8 @@ pub enum ContractError {
     MembershipQueryFailed,
     #[error("NETA stake query failed")]
     StakeQueryFailed,
+    #[error("at least the configured native and NETA stake are required")]
+    CommunityStakeNotMet,
     #[error("proposal is finalized")]
     Finalized,
     #[error("proposal is not finalized")]
