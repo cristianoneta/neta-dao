@@ -97,6 +97,8 @@ The frontend visualizes these five user-facing stages. Finalization and submissi
 - The sticky header uses a balanced DAO selector / network / wallet layout across desktop and mobile.
 - Opening the DAO selector always shows every whitelisted DAO before an optional search term is entered.
 - A DAO selection is applied and displayed immediately, independently of whether its first network request succeeds.
+- The last selected DAO workspace is stored in the browser and restored before the first request after a reload.
+- DAO-scoped local drafts appear as private entries in the proposal overview and remain visible only in the browser that saved them.
 - The workflow bar marks completed stages and prominently identifies the current proposal stage.
 
 ## Security and integrity decisions
