@@ -43,3 +43,8 @@ test("mainnet Juno submission remains explicitly locked", () => {
   assert.match(governance, /Mainnet deposit and submission remain locked/);
   assert.match(governance, /Native Juno voting is shown read-only/);
 });
+
+test("UNI-7 indexing errors are detected in RPC data payloads", () => {
+  assert.match(governance, /e\?\.data/);
+  assert.match(governance, /transaction indexing is disabled/i);
+});
