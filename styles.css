@@ -455,3 +455,4 @@ footer{border-top:1px solid var(--line);padding:20px 3.3vw;margin-top:0;display:
 
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 header nav .nav-disabled{color:var(--muted);opacity:.42;cursor:not-allowed;padding:9px 10px;white-space:nowrap}
+.dao-scope-empty{margin-top:18px;border:1px solid var(--warn);padding:28px;color:var(--warn);font-size:11px;letter-spacing:.08em;background:rgba(255,139,92,.035)}

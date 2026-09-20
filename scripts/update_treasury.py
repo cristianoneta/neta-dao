@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a fail-visible, read-only snapshot of the NETA Operations treasury."""
+"""Build fail-visible, read-only snapshots of Operations and Juno treasuries."""
 from __future__ import annotations
 
 import base64
@@ -16,16 +16,28 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "treasury"
-TREASURY = "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+TREASURY = "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl"
 RESTS = ("https://juno-api.polkachu.com", "https://juno-api.lavenderfive.com")
 NETA = "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr"
 WYND = "juno1mkw83sv6c7sjdvsaplrzc8yaes9l42p4mhy0ssuxjnyzl87c9eps7ce3m9"
 
 ASSETS = {
-    "ujuno": {"symbol": "JUNO", "decimals": 6, "coingecko": "juno-network"},
+    "ujuno": {"symbol": "JUNO", "decimals": 6, "coingecko": "juno-network", "origin": "Juno"},
     "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9": {"symbol": "ATOM", "decimals": 6, "coingecko": "cosmos"},
     "ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034": {"symbol": "USDC", "decimals": 6, "coingecko": "usd-coin"},
     "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518": {"symbol": "OSMO", "decimals": 6, "coingecko": "osmosis"},
+}
+
+BASE_ASSETS = {
+    "ujuno": {"symbol": "JUNO", "decimals": 6, "coingecko": "juno-network"},
+    "uatom": {"symbol": "ATOM", "decimals": 6, "coingecko": "cosmos"},
+    "uosmo": {"symbol": "OSMO", "decimals": 6, "coingecko": "osmosis"},
+    "uakt": {"symbol": "AKT", "decimals": 6, "coingecko": "akash-network"},
+    "uatone": {"symbol": "ATONE", "decimals": 6, "coingecko": "atomone"},
+    "ujkl": {"symbol": "JKL", "decimals": 6, "coingecko": "jackal-protocol"},
+    "uusdc": {"symbol": "USDC.n", "decimals": 6, "coingecko": "usd-coin"},
+    "uaxlusdc": {"symbol": "USDC", "decimals": 6, "coingecko": "usd-coin"},
+    "uaxldai": {"symbol": "DAI.axl", "decimals": 6, "coingecko": "dai"},
 }
 
 CW20 = {
@@ -76,19 +88,23 @@ def decimal(raw, places):
     return Decimal(str(raw)) / (Decimal(10) ** places)
 
 
-def prices():
-    ids = sorted({item["coingecko"] for item in ASSETS.values()})
+def prices(ids):
+    ids = sorted(set(ids))
     query = urllib.parse.urlencode({"ids": ",".join(ids), "vs_currencies": "usd", "include_24hr_change": "true"})
     errors = []
     try:
         data = request_json("https://api.coingecko.com/api/v3/simple/price?" + query)
-        return {key: {"usd": Decimal(str(value["usd"])), "change_24h": value.get("usd_24h_change")} for key, value in data.items()}, "CoinGecko"
+        found = {key: {"usd": Decimal(str(value["usd"])), "change_24h": value.get("usd_24h_change")} for key, value in data.items() if "usd" in value}
+        if found:
+            return found, "CoinGecko"
     except Exception as error:
         errors.append(f"CoinGecko: {error}")
     try:
         keys = ",".join("coingecko:" + item for item in ids)
         data = request_json("https://coins.llama.fi/prices/current/" + keys).get("coins", {})
-        return {item: {"usd": Decimal(str(data["coingecko:" + item]["price"])), "change_24h": None} for item in ids}, "DefiLlama"
+        found = {item: {"usd": Decimal(str(data["coingecko:" + item]["price"])), "change_24h": None} for item in ids if "coingecko:" + item in data}
+        if found:
+            return found, "DefiLlama"
     except Exception as error:
         errors.append(f"DefiLlama: {error}")
     raise RuntimeError("price lookup failed: " + " | ".join(errors))
@@ -107,19 +123,51 @@ def metadata(key):
     return CW20.get(address, {"symbol": address[:12] + "…", "decimals": 6})
 
 
-def build():
-    stamp = now()
-    bank, endpoint = rest(f"/cosmos/bank/v1beta1/balances/{TREASURY}?pagination.limit=1000")
-    height_data, _ = rest("/cosmos/base/tendermint/v1beta1/blocks/latest")
-    height = int(height_data["block"]["header"]["height"])
-    market, price_source = prices()
-    free = []
-    warnings = []
-    for coin in bank.get("balances", []):
-        meta = metadata("native:" + coin["denom"])
+def native_metadata(denom):
+    if denom in ASSETS:
+        return dict(ASSETS[denom])
+    if not denom.startswith("ibc/"):
+        return dict(BASE_ASSETS.get(denom, {"symbol": denom, "decimals": 6}))
+    trace, _ = rest(f"/ibc/apps/transfer/v1/denom_traces/{denom[4:]}")
+    trace = trace.get("denom_trace", trace)
+    base = trace.get("base_denom", "")
+    fallback = {"symbol": base or denom[:18] + "…", "decimals": 6}
+    normalized = base.lower()
+    if "usdc" in normalized:
+        fallback = {"symbol": "USDC", "decimals": 6, "coingecko": "usd-coin"}
+    elif "dai" in normalized:
+        fallback = {"symbol": "DAI.axl", "decimals": 6, "coingecko": "dai"}
+    result = dict(BASE_ASSETS.get(base, fallback))
+    result.update({"origin": "IBC", "ibc_path": trace.get("path"), "base_denom": base})
+    return result
+
+
+def native_assets(coins, market, warnings):
+    result = []
+    for coin in coins:
+        try:
+            meta = native_metadata(coin["denom"])
+        except Exception as error:
+            meta = {"symbol": coin["denom"][:18] + "…", "decimals": 6}
+            warnings.append(f"Denom trace unavailable for {coin['denom']}: {error}")
         amount = decimal(coin["amount"], meta["decimals"])
         price = market.get(meta.get("coingecko"), {}).get("usd")
-        free.append({"type": "token", "key": "native:" + coin["denom"], "symbol": meta["symbol"], "amount": str(amount), "usd_price": str(price) if price is not None else None, "usd_value": str(amount * price) if price is not None else None, "change_24h": market.get(meta.get("coingecko"), {}).get("change_24h")})
+        result.append({"type": "token", "key": "native:" + coin["denom"], "symbol": meta["symbol"], "amount": str(amount), "origin": meta.get("origin", "Juno"), "ibc_path": meta.get("ibc_path"), "base_denom": meta.get("base_denom", coin["denom"]), "usd_price": str(price) if price is not None else None, "usd_value": str(amount * price) if price is not None else None, "change_24h": market.get(meta.get("coingecko"), {}).get("change_24h")})
+    return result
+
+
+def snapshot_result(stamp, height, endpoint, price_source, assets, warnings, treasury_type, treasury_address=None):
+    unresolved = [item["symbol"] for item in assets if item.get("usd_value") is None]
+    if unresolved:
+        warnings.append("Unpriced assets excluded from USD total: " + ", ".join(unresolved))
+    total = sum((Decimal(item["usd_value"]) for item in assets if item.get("usd_value") is not None), Decimal(0))
+    return {"schema_version": 1, "status": "LIVE" if not unresolved else "PARTIAL", "generated_at": stamp, "chain_id": "juno-1", "height": height, "treasury_type": treasury_type, "treasury_address": treasury_address, "balance_source": endpoint, "price_source": price_source, "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.", "total_usd": str(total), "assets": assets, "warnings": warnings}
+
+
+def build_operations(market, price_source, stamp, height):
+    bank, endpoint = rest(f"/cosmos/bank/v1beta1/balances/{TREASURY}?pagination.limit=1000")
+    warnings = []
+    free = native_assets(bank.get("balances", []), market, warnings)
     for contract, meta in CW20.items():
         response, _ = smart(contract, {"balance": {"address": TREASURY}})
         amount = decimal(response.get("balance", "0"), meta["decimals"])
@@ -179,18 +227,30 @@ def build():
         else:
             warnings.append(f"{CW20[contract]['symbol']} price unavailable: {pool_name} pool or USD anchor missing")
 
-    unresolved = [item["symbol"] for item in free if item.get("usd_value") is None]
-    if unresolved:
-        warnings.append("Unpriced assets excluded from USD total: " + ", ".join(unresolved))
-    total = sum((Decimal(item["usd_value"]) for item in free if item.get("usd_value") is not None), Decimal(0))
-    return {"schema_version": 1, "status": "LIVE" if not unresolved else "PARTIAL", "generated_at": stamp, "chain_id": "juno-1", "height": height, "treasury_address": TREASURY, "balance_source": endpoint, "price_source": price_source, "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.", "total_usd": str(total), "assets": free, "warnings": warnings}
+    return snapshot_result(stamp, height, endpoint, price_source, free, warnings, "dao-core", TREASURY)
 
 
-def write_snapshot(snapshot):
+def build_community_pool(market, price_source, stamp, height):
+    response, endpoint = rest("/cosmos/distribution/v1beta1/community_pool")
+    warnings = []
+    assets = native_assets(response.get("pool", []), market, warnings)
+    return snapshot_result(stamp, height, endpoint, price_source, assets, warnings, "community-pool")
+
+
+def build():
+    stamp = now()
+    height_data, _ = rest("/cosmos/base/tendermint/v1beta1/blocks/latest")
+    height = int(height_data["block"]["header"]["height"])
+    price_ids = [item["coingecko"] for item in BASE_ASSETS.values() if item.get("coingecko")]
+    market, price_source = prices(price_ids)
+    return build_operations(market, price_source, stamp, height), build_community_pool(market, price_source, stamp, height)
+
+
+def write_snapshot(snapshot, name="current", history_name="history"):
     OUT.mkdir(parents=True, exist_ok=True)
-    current = OUT / "current.json"
+    current = OUT / f"{name}.json"
     current.write_text(json.dumps(snapshot, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    history_path = OUT / "history.json"
+    history_path = OUT / f"{history_name}.json"
     try:
         history = json.loads(history_path.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError):
@@ -209,9 +269,10 @@ def write_snapshot(snapshot):
 
 if __name__ == "__main__":
     try:
-        result = build()
-        write_snapshot(result)
-        print(json.dumps({"status": result["status"], "height": result["height"], "assets": len(result["assets"]), "total_usd": result["total_usd"]}))
+        operations, community = build()
+        write_snapshot(operations)
+        write_snapshot(community, "juno-community-pool", "juno-community-history")
+        print(json.dumps({"operations": {"status": operations["status"], "assets": len(operations["assets"]), "total_usd": operations["total_usd"]}, "juno_community_pool": {"status": community["status"], "assets": len(community["assets"]), "total_usd": community["total_usd"]}, "height": operations["height"]}))
     except Exception as error:
         print(f"treasury snapshot failed: {error}", file=sys.stderr)
         raise

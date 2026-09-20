@@ -22,7 +22,7 @@ Static governance workspace for DAO collaboration on Juno. The frontend combines
 
 ### UX concepts
 
-Delivery and Contributors remain visual drafts. Treasury asset balances are collected read-only from the NETA Operations DAO core address on Juno mainnet. USD prices are refreshed centrally, while planning, commitments and runway remain explicitly marked sample values until their accounting model is connected.
+Delivery and Contributors remain visual drafts. Treasury asset balances are collected read-only from the NETA Operations DAO core address `juno1excm…mancl` and from Juno's native distribution-module Community Pool. IBC denoms are resolved from their on-chain denom traces so bridged representations remain separate positions with their origin visible. USD prices are refreshed centrally, while planning, commitments and runway remain explicitly marked sample values until their accounting model is connected.
 
 LP positions remain visible as LP-token holdings. Each position expands into its proportional underlying reserves, and its USD value is calculated from those reserves exactly once; underlying amounts are not added again as free treasury tokens. The collector fails visibly on unavailable providers and retains source, timestamp and block height.
 

@@ -7,6 +7,7 @@ import test from "node:test";
 const governance = readFileSync("neta-governance.js", "utf8");
 const html = readFileSync("index.html", "utf8");
 const treasury = readFileSync("treasury.js", "utf8");
+const ux = readFileSync("ux-draft.js", "utf8");
 
 test("browser scripts parse", () => {
   execFileSync(process.execPath, ["--check", "neta-governance.js"]);
@@ -21,6 +22,14 @@ test("treasury renders LP ownership and underlying assets without HTML injection
   for (const id of ["treasury-assets", "treasury-total", "treasury-updated", "treasury-refresh"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
+});
+
+test("DAO selection propagates to non-proposal workspace views", () => {
+  assert.match(governance, /neta:dao-change/);
+  assert.match(treasury, /juno-community-pool\.json/);
+  assert.match(treasury, /community_pool/);
+  assert.match(ux, /JUNO NETWORK GOVERNANCE · TREASURY/);
+  assert.match(ux, /NO LIVE/);
 });
 
 test("user content is not rendered through HTML injection sinks", () => {
