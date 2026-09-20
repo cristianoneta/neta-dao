@@ -53,3 +53,8 @@ test("UNI-7 code discovery uses legacy-compatible pagination", () => {
   assert.doesNotMatch(governance, /cosmwasm\/wasm\/v1\/code\?pagination\.reverse/);
   assert.match(governance, /pagination\?\.next_key/);
 });
+
+test("UNI-7 code discovery accepts hexadecimal data hashes", () => {
+  assert.match(governance, /\^\[0-9a-f\]\{64\}\$/i);
+  assert.match(governance, /hashHex\(info\.data_hash\)/);
+});
