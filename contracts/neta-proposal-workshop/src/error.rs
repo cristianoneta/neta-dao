@@ -34,9 +34,19 @@ pub enum ContractError {
     #[error("comment parent does not belong to this proposal")]
     InvalidParent,
     #[error("invalid {field} length; expected {min}..={max} characters")]
-    InvalidLength { field: String, min: usize, max: usize },
+    InvalidLength {
+        field: String,
+        min: usize,
+        max: usize,
+    },
     #[error("counter overflow")]
     CounterOverflow,
     #[error("funds are not accepted")]
     FundsNotAccepted,
+    #[error("submission verification is not implemented; mainnet submission remains disabled")]
+    SubmissionVerificationUnavailable,
+    #[error("proposal actions must be a JSON array")]
+    InvalidActions,
+    #[error("no pending owner transfer for this address")]
+    NoPendingOwner,
 }

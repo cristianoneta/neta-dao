@@ -1,63 +1,843 @@
 use crate::error::ContractError;
-use crate::msg::{AccessResponse, ExecuteMsg, InstantiateMsg, ProposalContent, QueryMsg, StakedBalanceAtHeight, StakedBalanceQuery, StakedBalanceResponse, VotingPowerAtHeight, VotingPowerQuery, VotingPowerResponse};
-use crate::state::{BlockRecord, Comment, Config, Moderation, Proposal, Revision, BLOCKS, COMMENTS, COMMENT_COOLDOWN_SECONDS, CONFIG, LAST_COMMENT_TIME, MODERATORS, NEXT_COMMENT_ID, NEXT_PROPOSAL_ID, PROPOSALS, REVISIONS};
-use cosmwasm_std::{entry_point, to_json_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdError, StdResult, Uint128};
-use cw2::set_contract_version;
+use crate::msg::{
+    AccessResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, ProposalContent, ProposalSummary,
+    QueryMsg, StakedBalanceAtHeight, StakedBalanceQuery, StakedBalanceResponse,
+    VotingPowerAtHeight, VotingPowerQuery, VotingPowerResponse,
+};
+use crate::state::{
+    BlockRecord, Comment, Config, Moderation, Proposal, Revision, BLOCKS, COMMENTS,
+    COMMENT_COOLDOWN_SECONDS, CONFIG, LAST_COMMENT_TIME, MODERATORS, NEXT_COMMENT_ID,
+    NEXT_PROPOSAL_ID, PROPOSALS, REVISIONS,
+};
+use cosmwasm_std::{
+    entry_point, to_json_binary, to_json_vec, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Order,
+    Response, StdError, StdResult, Uint128,
+};
+use cw2::{get_contract_version, set_contract_version};
 use cw_storage_plus::Bound;
+use sha2::{Digest, Sha256};
 
 const NAME: &str = "crates.io:neta-proposal-workshop";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const MAX_LIMIT: u32 = 100;
 
-fn no_funds(info: &MessageInfo) -> Result<(), ContractError> { if info.funds.is_empty(){Ok(())}else{Err(ContractError::FundsNotAccepted)} }
-fn text(field:&str,value:&str,min:usize,max:usize)->Result<String,ContractError>{let clean=value.trim();let len=clean.chars().count();if len<min||len>max{return Err(ContractError::InvalidLength{field:field.into(),min,max})}Ok(clean.into())}
-fn is_blocked(deps:Deps,address:&Addr)->StdResult<bool>{Ok(BLOCKS.may_load(deps.storage,address)?.is_some_and(|x|x.blocked))}
-fn is_moderator(deps:Deps,cfg:&Config,address:&Addr)->StdResult<bool>{Ok(address==cfg.owner||MODERATORS.may_load(deps.storage,address)?.unwrap_or(false))}
-fn voting_power(deps:Deps,cfg:&Config,address:&Addr,height:u64)->Result<Uint128,ContractError>{let r:VotingPowerResponse=deps.querier.query_wasm_smart(cfg.dao_voting_contract.clone(),&VotingPowerQuery{voting_power_at_height:VotingPowerAtHeight{address:address.into(),height:Some(height)}}).map_err(|_|ContractError::MembershipQueryFailed)?;Ok(r.power)}
-fn active_stake(deps:Deps,cfg:&Config,address:&Addr,height:u64)->Result<Uint128,ContractError>{let r:StakedBalanceResponse=deps.querier.query_wasm_smart(cfg.stake_contract.clone(),&StakedBalanceQuery{staked_balance_at_height:StakedBalanceAtHeight{address:address.into(),height:Some(height)}}).map_err(|_|ContractError::StakeQueryFailed)?;Ok(r.balance)}
-fn native_stake(deps:Deps,cfg:&Config,address:&Addr)->StdResult<Uint128>{let Some(gate)=&cfg.community_gate else{return Ok(Uint128::zero())};Ok(deps.querier.query_all_delegations(address)?.into_iter().filter(|d|d.amount.denom==gate.native_denom).fold(Uint128::zero(),|total,d|total.saturating_add(d.amount.amount)))}
-fn community_eligible(deps:Deps,env:&Env,cfg:&Config,address:&Addr)->Result<(Uint128,Uint128),ContractError>{let neta=active_stake(deps,cfg,address,env.block.height)?;let native=native_stake(deps,cfg,address)?;let gate=cfg.community_gate.as_ref().ok_or(ContractError::Unauthorized)?;if neta<gate.minimum_neta_stake||native<gate.minimum_native_stake{return Err(ContractError::CommunityStakeNotMet)}Ok((neta,native))}
-fn require_member(deps:Deps,env:&Env,cfg:&Config,address:&Addr)->Result<Uint128,ContractError>{if cfg.paused{return Err(ContractError::Paused)}if is_blocked(deps,address)?{return Err(ContractError::Blocked)}if cfg.community_gate.is_some(){let (_,native)=community_eligible(deps,env,cfg,address)?;return Ok(native)}let power=voting_power(deps,cfg,address,env.block.height)?;if power.is_zero(){Err(ContractError::Unauthorized)}else{Ok(power)}}
-fn cooldown(deps:Deps,cfg:&Config,address:&Addr,now:u64)->StdResult<u64>{Ok(LAST_COMMENT_TIME.may_load(deps.storage,address)?.map(|last|last.saturating_add(cfg.comment_cooldown_seconds).saturating_sub(now)).unwrap_or(0))}
-fn require_commenter(deps:Deps,env:&Env,cfg:&Config,address:&Addr)->Result<Uint128,ContractError>{if cfg.paused{return Err(ContractError::Paused)}if is_blocked(deps,address)?{return Err(ContractError::Blocked)}let remaining=cooldown(deps,cfg,address,env.block.time.seconds())?;if remaining>0{return Err(ContractError::Cooldown{remaining_seconds:remaining})}if cfg.community_gate.is_some(){let (neta,_)=community_eligible(deps,env,cfg,address)?;return Ok(neta)}let stake=active_stake(deps,cfg,address,env.block.height)?;if stake<=cfg.minimum_comment_stake{return Err(ContractError::CommentStakeNotMet)}Ok(stake)}
-fn save_revision(deps:DepsMut,env:&Env,proposal_id:u64,version:u32,author:Addr,content:ProposalContent,change_log:String)->Result<(),ContractError>{let revision=Revision{proposal_id,version,author,title:text("title",&content.title,1,100)?,summary:text("summary",&content.summary,1,300)?,body:text("body",&content.body,1,10_000)?,actions_json:text("actions_json",&content.actions_json,2,20_000)?,change_log:text("change_log",&change_log,1,1_000)?,created_height:env.block.height,created_time:env.block.time.seconds()};REVISIONS.save(deps.storage,(proposal_id,version),&revision)?;Ok(())}
+struct NewComment {
+    proposal_id: u64,
+    version: u32,
+    parent_id: Option<u64>,
+    title: Option<String>,
+    body: String,
+}
+
+fn no_funds(info: &MessageInfo) -> Result<(), ContractError> {
+    if info.funds.is_empty() {
+        Ok(())
+    } else {
+        Err(ContractError::FundsNotAccepted)
+    }
+}
+fn text(field: &str, value: &str, min: usize, max: usize) -> Result<String, ContractError> {
+    let clean = value.trim();
+    let len = clean.chars().count();
+    if len < min || len > max {
+        return Err(ContractError::InvalidLength {
+            field: field.into(),
+            min,
+            max,
+        });
+    }
+    Ok(clean.into())
+}
+fn is_blocked(deps: Deps, address: &Addr) -> StdResult<bool> {
+    Ok(BLOCKS
+        .may_load(deps.storage, address)?
+        .is_some_and(|x| x.blocked))
+}
+fn is_moderator(deps: Deps, cfg: &Config, address: &Addr) -> StdResult<bool> {
+    Ok(address == cfg.owner || MODERATORS.may_load(deps.storage, address)?.unwrap_or(false))
+}
+fn voting_power(
+    deps: Deps,
+    cfg: &Config,
+    address: &Addr,
+    height: u64,
+) -> Result<Uint128, ContractError> {
+    let r: VotingPowerResponse = deps
+        .querier
+        .query_wasm_smart(
+            cfg.dao_voting_contract.clone(),
+            &VotingPowerQuery {
+                voting_power_at_height: VotingPowerAtHeight {
+                    address: address.into(),
+                    height: Some(height),
+                },
+            },
+        )
+        .map_err(|_| ContractError::MembershipQueryFailed)?;
+    Ok(r.power)
+}
+fn active_stake(
+    deps: Deps,
+    cfg: &Config,
+    address: &Addr,
+    height: u64,
+) -> Result<Uint128, ContractError> {
+    let r: StakedBalanceResponse = deps
+        .querier
+        .query_wasm_smart(
+            cfg.stake_contract.clone(),
+            &StakedBalanceQuery {
+                staked_balance_at_height: StakedBalanceAtHeight {
+                    address: address.into(),
+                    height: Some(height),
+                },
+            },
+        )
+        .map_err(|_| ContractError::StakeQueryFailed)?;
+    Ok(r.balance)
+}
+fn native_stake(deps: Deps, cfg: &Config, address: &Addr) -> StdResult<Uint128> {
+    let Some(gate) = &cfg.community_gate else {
+        return Ok(Uint128::zero());
+    };
+    Ok(deps
+        .querier
+        .query_all_delegations(address)?
+        .into_iter()
+        .filter(|d| d.amount.denom == gate.native_denom)
+        .fold(Uint128::zero(), |total, d| {
+            total.saturating_add(d.amount.amount)
+        }))
+}
+fn community_eligible(
+    deps: Deps,
+    env: &Env,
+    cfg: &Config,
+    address: &Addr,
+) -> Result<(Uint128, Uint128), ContractError> {
+    let neta = active_stake(deps, cfg, address, env.block.height)?;
+    let native = native_stake(deps, cfg, address)?;
+    let gate = cfg
+        .community_gate
+        .as_ref()
+        .ok_or(ContractError::Unauthorized)?;
+    if neta < gate.minimum_neta_stake || native < gate.minimum_native_stake {
+        return Err(ContractError::CommunityStakeNotMet);
+    }
+    Ok((neta, native))
+}
+fn require_member(
+    deps: Deps,
+    env: &Env,
+    cfg: &Config,
+    address: &Addr,
+) -> Result<Uint128, ContractError> {
+    if cfg.paused {
+        return Err(ContractError::Paused);
+    }
+    if is_blocked(deps, address)? {
+        return Err(ContractError::Blocked);
+    }
+    if cfg.community_gate.is_some() {
+        let (_, native) = community_eligible(deps, env, cfg, address)?;
+        return Ok(native);
+    }
+    let power = voting_power(deps, cfg, address, env.block.height)?;
+    if power.is_zero() {
+        Err(ContractError::Unauthorized)
+    } else {
+        Ok(power)
+    }
+}
+fn cooldown(deps: Deps, cfg: &Config, address: &Addr, now: u64) -> StdResult<u64> {
+    Ok(LAST_COMMENT_TIME
+        .may_load(deps.storage, address)?
+        .map(|last| {
+            last.saturating_add(cfg.comment_cooldown_seconds)
+                .saturating_sub(now)
+        })
+        .unwrap_or(0))
+}
+fn require_commenter(
+    deps: Deps,
+    env: &Env,
+    cfg: &Config,
+    address: &Addr,
+) -> Result<Uint128, ContractError> {
+    if cfg.paused {
+        return Err(ContractError::Paused);
+    }
+    if is_blocked(deps, address)? {
+        return Err(ContractError::Blocked);
+    }
+    let remaining = cooldown(deps, cfg, address, env.block.time.seconds())?;
+    if remaining > 0 {
+        return Err(ContractError::Cooldown {
+            remaining_seconds: remaining,
+        });
+    }
+    if cfg.community_gate.is_some() {
+        let (neta, _) = community_eligible(deps, env, cfg, address)?;
+        return Ok(neta);
+    }
+    let stake = active_stake(deps, cfg, address, env.block.height)?;
+    if stake <= cfg.minimum_comment_stake {
+        return Err(ContractError::CommentStakeNotMet);
+    }
+    Ok(stake)
+}
+fn validate_actions(value: &str) -> Result<String, ContractError> {
+    let clean = text("actions_json", value, 2, 20_000)?;
+    let parsed: serde_json::Value =
+        serde_json::from_str(&clean).map_err(|_| ContractError::InvalidActions)?;
+    if !parsed.is_array() {
+        return Err(ContractError::InvalidActions);
+    }
+    Ok(clean)
+}
+fn save_revision(
+    deps: DepsMut,
+    env: &Env,
+    proposal_id: u64,
+    version: u32,
+    author: Addr,
+    content: ProposalContent,
+    change_log: String,
+) -> Result<(), ContractError> {
+    let revision = Revision {
+        proposal_id,
+        version,
+        author,
+        title: text("title", &content.title, 1, 100)?,
+        summary: text("summary", &content.summary, 1, 300)?,
+        body: text("body", &content.body, 1, 10_000)?,
+        actions_json: validate_actions(&content.actions_json)?,
+        change_log: text("change_log", &change_log, 1, 1_000)?,
+        created_height: env.block.height,
+        created_time: env.block.time.seconds(),
+    };
+    REVISIONS.save(deps.storage, (proposal_id, version), &revision)?;
+    Ok(())
+}
+fn revision_hash(revision: &Revision) -> StdResult<String> {
+    let canonical = ProposalContent {
+        title: revision.title.clone(),
+        summary: revision.summary.clone(),
+        body: revision.body.clone(),
+        actions_json: revision.actions_json.clone(),
+    };
+    Ok(format!("{:x}", Sha256::digest(to_json_vec(&canonical)?)))
+}
 
 #[entry_point]
-pub fn instantiate(deps:DepsMut,env:Env,info:MessageInfo,msg:InstantiateMsg)->Result<Response,ContractError>{no_funds(&info)?;let cfg=Config{owner:deps.api.addr_validate(&msg.owner)?,dao_voting_contract:deps.api.addr_validate(&msg.dao_voting_contract)?,stake_contract:deps.api.addr_validate(&msg.stake_contract)?,minimum_comment_stake:msg.minimum_comment_stake,community_gate:msg.community_gate,paused:true,comment_cooldown_seconds:COMMENT_COOLDOWN_SECONDS};if cfg.community_gate.is_none(){voting_power(deps.as_ref(),&cfg,&cfg.owner,env.block.height)?;}active_stake(deps.as_ref(),&cfg,&cfg.owner,env.block.height)?;set_contract_version(deps.storage,NAME,VERSION)?;CONFIG.save(deps.storage,&cfg)?;NEXT_PROPOSAL_ID.save(deps.storage,&1)?;Ok(Response::new().add_attribute("action","instantiate").add_attribute("paused","true").add_attribute("access_mode",if cfg.community_gate.is_some(){"community_stake"}else{"dao_members"}))}
+pub fn instantiate(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: InstantiateMsg,
+) -> Result<Response, ContractError> {
+    no_funds(&info)?;
+    let cfg = Config {
+        owner: deps.api.addr_validate(&msg.owner)?,
+        pending_owner: None,
+        dao_voting_contract: deps.api.addr_validate(&msg.dao_voting_contract)?,
+        stake_contract: deps.api.addr_validate(&msg.stake_contract)?,
+        minimum_comment_stake: msg.minimum_comment_stake,
+        community_gate: msg.community_gate,
+        paused: true,
+        comment_cooldown_seconds: COMMENT_COOLDOWN_SECONDS,
+    };
+    if cfg.community_gate.is_none() {
+        voting_power(deps.as_ref(), &cfg, &cfg.owner, env.block.height)?;
+    }
+    active_stake(deps.as_ref(), &cfg, &cfg.owner, env.block.height)?;
+    set_contract_version(deps.storage, NAME, VERSION)?;
+    CONFIG.save(deps.storage, &cfg)?;
+    NEXT_PROPOSAL_ID.save(deps.storage, &1)?;
+    Ok(Response::new()
+        .add_attribute("action", "instantiate")
+        .add_attribute("paused", "true")
+        .add_attribute(
+            "access_mode",
+            if cfg.community_gate.is_some() {
+                "community_stake"
+            } else {
+                "dao_members"
+            },
+        ))
+}
 
 #[entry_point]
-pub fn execute(deps:DepsMut,env:Env,info:MessageInfo,msg:ExecuteMsg)->Result<Response,ContractError>{no_funds(&info)?;match msg{
-ExecuteMsg::PublishProposal{content}=>publish(deps,env,info,content),
-ExecuteMsg::AddRevision{proposal_id,content,change_log}=>revise(deps,env,info,proposal_id,content,change_log),
-ExecuteMsg::AddComment{proposal_id,version,parent_id,title,body}=>comment(deps,env,info,proposal_id,version,parent_id,title,body),
-ExecuteMsg::SetThreadDecision{proposal_id,comment_id,status,reason}=>decision(deps,info,proposal_id,comment_id,status,reason),
-ExecuteMsg::Finalize{proposal_id,version,content_hash}=>finalize(deps,env,info,proposal_id,version,content_hash),
-ExecuteMsg::Withdraw{proposal_id}=>withdraw(deps,env,info,proposal_id),
-ExecuteMsg::MarkSubmitted{proposal_id,dao_proposal_id}=>submitted(deps,env,info,proposal_id,dao_proposal_id),
-ExecuteMsg::SetCommentHidden{proposal_id,comment_id,hidden,reason}=>moderate(deps,env,info,proposal_id,comment_id,hidden,reason),
-ExecuteMsg::SetModerator{address,enabled}=>admin_moderator(deps,info,address,enabled),
-ExecuteMsg::SetBlocked{address,blocked,reason}=>admin_block(deps,info,address,blocked,reason),
-ExecuteMsg::SetPaused{paused}=>admin_pause(deps,info,paused),}}
-
-fn publish(mut deps:DepsMut,env:Env,info:MessageInfo,content:ProposalContent)->Result<Response,ContractError>{let cfg=CONFIG.load(deps.storage)?;let power=require_member(deps.as_ref(),&env,&cfg,&info.sender)?;let id=NEXT_PROPOSAL_ID.load(deps.storage)?;NEXT_PROPOSAL_ID.save(deps.storage,&id.checked_add(1).ok_or(ContractError::CounterOverflow)?)?;PROPOSALS.save(deps.storage,id,&Proposal{id,author:info.sender.clone(),latest_version:1,finalized_version:None,finalized_hash:None,dao_proposal_id:None,withdrawn:false,withdrawn_height:None,withdrawn_time:None,created_height:env.block.height,created_time:env.block.time.seconds()})?;NEXT_COMMENT_ID.save(deps.storage,id,&1)?;save_revision(deps.branch(),&env,id,1,info.sender.clone(),content,"Initial published draft".into())?;Ok(Response::new().add_attribute("action","publish_proposal").add_attribute("proposal_id",id.to_string()).add_attribute("author",info.sender).add_attribute("voting_power",power))}
-fn revise(mut deps:DepsMut,env:Env,info:MessageInfo,id:u64,content:ProposalContent,change_log:String)->Result<Response,ContractError>{let cfg=CONFIG.load(deps.storage)?;require_member(deps.as_ref(),&env,&cfg,&info.sender)?;let mut p=PROPOSALS.load(deps.storage,id)?;if p.author!=info.sender{return Err(ContractError::Unauthorized)}if p.withdrawn{return Err(ContractError::Withdrawn)}if p.finalized_version.is_some(){return Err(ContractError::Finalized)}let version=p.latest_version.checked_add(1).ok_or(ContractError::CounterOverflow)?;save_revision(deps.branch(),&env,id,version,info.sender.clone(),content,change_log)?;p.latest_version=version;PROPOSALS.save(deps.storage,id,&p)?;Ok(Response::new().add_attribute("action","add_revision").add_attribute("proposal_id",id.to_string()).add_attribute("version",version.to_string()))}
-fn comment(deps:DepsMut,env:Env,info:MessageInfo,id:u64,version:u32,parent:Option<u64>,title:Option<String>,body:String)->Result<Response,ContractError>{let cfg=CONFIG.load(deps.storage)?;let stake=require_commenter(deps.as_ref(),&env,&cfg,&info.sender)?;let p=PROPOSALS.load(deps.storage,id)?;if p.withdrawn{return Err(ContractError::Withdrawn)}if version==0||version>p.latest_version{return Err(ContractError::NotLatestVersion)}if let Some(parent_id)=parent{COMMENTS.may_load(deps.storage,(id,parent_id))?.ok_or(ContractError::InvalidParent)?;}let comment_id=NEXT_COMMENT_ID.load(deps.storage,id)?;NEXT_COMMENT_ID.save(deps.storage,id,&comment_id.checked_add(1).ok_or(ContractError::CounterOverflow)?)?;let title=match title{Some(x)=>Some(text("title",&x,1,100)?),None=>None};COMMENTS.save(deps.storage,(id,comment_id),&Comment{id:comment_id,proposal_id:id,version,parent_id:parent,title,body:text("comment",&body,1,1_500)?,author:info.sender.clone(),verified_stake:stake,status:"open".into(),decision_reason:None,moderation:None,created_height:env.block.height,created_time:env.block.time.seconds()})?;LAST_COMMENT_TIME.save(deps.storage,&info.sender,&env.block.time.seconds())?;Ok(Response::new().add_attribute("action","add_comment").add_attribute("proposal_id",id.to_string()).add_attribute("comment_id",comment_id.to_string()).add_attribute("verified_stake",stake))}
-fn decision(deps:DepsMut,info:MessageInfo,id:u64,comment_id:u64,status:String,reason:String)->Result<Response,ContractError>{let p=PROPOSALS.load(deps.storage,id)?;if p.author!=info.sender{return Err(ContractError::Unauthorized)}if !matches!(status.as_str(),"open"|"incorporated"|"not_incorporated"){return Err(ContractError::Unauthorized)}COMMENTS.update(deps.storage,(id,comment_id),|item|->Result<_,ContractError>{let mut c=item.ok_or_else(||StdError::not_found("comment"))?;if c.parent_id.is_some(){return Err(ContractError::InvalidParent)}c.status=status.clone();c.decision_reason=if status=="open"{None}else{Some(text("reason",&reason,1,500)?)};Ok(c)})?;Ok(Response::new().add_attribute("action","set_thread_decision"))}
-fn finalize(deps:DepsMut,env:Env,info:MessageInfo,id:u64,version:u32,hash:String)->Result<Response,ContractError>{let cfg=CONFIG.load(deps.storage)?;require_member(deps.as_ref(),&env,&cfg,&info.sender)?;PROPOSALS.update(deps.storage,id,|item|->Result<_,ContractError>{let mut p=item.ok_or_else(||StdError::not_found("proposal"))?;if p.author!=info.sender{return Err(ContractError::Unauthorized)}if p.withdrawn{return Err(ContractError::Withdrawn)}if p.finalized_version.is_some(){return Err(ContractError::Finalized)}if version!=p.latest_version{return Err(ContractError::NotLatestVersion)}p.finalized_version=Some(version);p.finalized_hash=Some(text("content_hash",&hash,64,64)?);Ok(p)})?;Ok(Response::new().add_attribute("action","finalize").add_attribute("proposal_id",id.to_string()).add_attribute("version",version.to_string()))}
-fn withdraw(deps:DepsMut,env:Env,info:MessageInfo,id:u64)->Result<Response,ContractError>{let cfg=CONFIG.load(deps.storage)?;require_member(deps.as_ref(),&env,&cfg,&info.sender)?;PROPOSALS.update(deps.storage,id,|item|->Result<_,ContractError>{let mut p=item.ok_or_else(||StdError::not_found("proposal"))?;if p.author!=info.sender{return Err(ContractError::Unauthorized)}if p.dao_proposal_id.is_some(){return Err(ContractError::AlreadySubmitted)}if p.withdrawn{return Err(ContractError::Withdrawn)}p.withdrawn=true;p.withdrawn_height=Some(env.block.height);p.withdrawn_time=Some(env.block.time.seconds());Ok(p)})?;Ok(Response::new().add_attribute("action","withdraw").add_attribute("proposal_id",id.to_string()))}
-fn submitted(deps:DepsMut,env:Env,info:MessageInfo,id:u64,dao_id:u64)->Result<Response,ContractError>{let cfg=CONFIG.load(deps.storage)?;require_member(deps.as_ref(),&env,&cfg,&info.sender)?;PROPOSALS.update(deps.storage,id,|item|->Result<_,ContractError>{let mut p=item.ok_or_else(||StdError::not_found("proposal"))?;if p.author!=info.sender{return Err(ContractError::Unauthorized)}if p.withdrawn{return Err(ContractError::Withdrawn)}if p.finalized_version.is_none(){return Err(ContractError::NotFinalized)}if p.dao_proposal_id.is_some(){return Err(ContractError::AlreadySubmitted)}p.dao_proposal_id=Some(dao_id);Ok(p)})?;Ok(Response::new().add_attribute("action","mark_submitted").add_attribute("dao_proposal_id",dao_id.to_string()))}
-fn moderate(deps:DepsMut,env:Env,info:MessageInfo,id:u64,comment_id:u64,hidden:bool,reason:Option<String>)->Result<Response,ContractError>{let cfg=CONFIG.load(deps.storage)?;if !is_moderator(deps.as_ref(),&cfg,&info.sender)?{return Err(ContractError::Unauthorized)}let reason=if hidden{Some(text("reason",reason.as_deref().unwrap_or(""),1,240)?)}else{None};COMMENTS.update(deps.storage,(id,comment_id),|item|->Result<_,ContractError>{let mut c=item.ok_or_else(||StdError::not_found("comment"))?;c.moderation=Some(Moderation{hidden,reason:reason.clone(),updated_by:info.sender.clone(),updated_height:env.block.height,updated_time:env.block.time.seconds()});Ok(c)})?;Ok(Response::new().add_attribute("action","set_comment_hidden"))}
-fn owner(cfg:&Config,sender:&Addr)->Result<(),ContractError>{if sender==cfg.owner{Ok(())}else{Err(ContractError::Unauthorized)}}
-fn admin_moderator(deps:DepsMut,info:MessageInfo,address:String,enabled:bool)->Result<Response,ContractError>{let cfg=CONFIG.load(deps.storage)?;owner(&cfg,&info.sender)?;let addr=deps.api.addr_validate(&address)?;MODERATORS.save(deps.storage,&addr,&enabled)?;Ok(Response::new().add_attribute("action","set_moderator"))}
-fn admin_block(deps:DepsMut,info:MessageInfo,address:String,blocked:bool,reason:Option<String>)->Result<Response,ContractError>{let cfg=CONFIG.load(deps.storage)?;owner(&cfg,&info.sender)?;let addr=deps.api.addr_validate(&address)?;BLOCKS.save(deps.storage,&addr,&BlockRecord{blocked,reason})?;Ok(Response::new().add_attribute("action","set_blocked"))}
-fn admin_pause(deps:DepsMut,info:MessageInfo,paused:bool)->Result<Response,ContractError>{let mut cfg=CONFIG.load(deps.storage)?;owner(&cfg,&info.sender)?;cfg.paused=paused;CONFIG.save(deps.storage,&cfg)?;Ok(Response::new().add_attribute("action","set_paused").add_attribute("paused",paused.to_string()))}
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
+    let previous = get_contract_version(deps.storage)?;
+    if previous.contract != NAME {
+        return Err(StdError::generic_err("invalid contract migration source").into());
+    }
+    CONFIG.update(deps.storage, |mut cfg| -> StdResult<_> {
+        cfg.pending_owner = None;
+        Ok(cfg)
+    })?;
+    set_contract_version(deps.storage, NAME, VERSION)?;
+    Ok(Response::new()
+        .add_attribute("action", "migrate")
+        .add_attribute("from_version", previous.version)
+        .add_attribute("to_version", VERSION))
+}
 
 #[entry_point]
-pub fn query(deps:Deps,env:Env,msg:QueryMsg)->StdResult<Binary>{match msg{
-QueryMsg::Config{}=>to_json_binary(&CONFIG.load(deps.storage)?),
-QueryMsg::Proposal{proposal_id}=>to_json_binary(&PROPOSALS.load(deps.storage,proposal_id)?),
-QueryMsg::Proposals{start_after,limit}=>{let start=start_after.map(Bound::exclusive);let out=PROPOSALS.range(deps.storage,start,None,Order::Ascending).take(limit.unwrap_or(20).min(MAX_LIMIT) as usize).map(|x|x.map(|(_,v)|v)).collect::<StdResult<Vec<_>>>()?;to_json_binary(&out)},
-QueryMsg::Revisions{proposal_id,start_after,limit}=>{let start=start_after.map(Bound::exclusive);let out=REVISIONS.prefix(proposal_id).range(deps.storage,start,None,Order::Ascending).take(limit.unwrap_or(50).min(MAX_LIMIT) as usize).map(|x|x.map(|(_,v)|v)).collect::<StdResult<Vec<_>>>()?;to_json_binary(&out)},
-QueryMsg::Comments{proposal_id,start_after,limit}=>{let start=start_after.map(Bound::exclusive);let out=COMMENTS.prefix(proposal_id).range(deps.storage,start,None,Order::Ascending).take(limit.unwrap_or(100).min(MAX_LIMIT) as usize).map(|x|x.map(|(_,v)|v)).collect::<StdResult<Vec<_>>>()?;to_json_binary(&out)},
-QueryMsg::Access{address}=>{let cfg=CONFIG.load(deps.storage)?;let address=deps.api.addr_validate(&address)?;let blocked=is_blocked(deps,&address)?;let power=voting_power(deps,&cfg,&address,env.block.height).unwrap_or_default();let stake=active_stake(deps,&cfg,&address,env.block.height).unwrap_or_default();let native=native_stake(deps,&cfg,&address).unwrap_or_default();let remaining=cooldown(deps,&cfg,&address,env.block.time.seconds())?;let (can_publish,can_comment)=if let Some(gate)=&cfg.community_gate{let eligible=stake>=gate.minimum_neta_stake&&native>=gate.minimum_native_stake;(!cfg.paused&&!blocked&&eligible,!cfg.paused&&!blocked&&eligible&&remaining==0)}else{(!cfg.paused&&!blocked&&!power.is_zero(),!cfg.paused&&!blocked&&stake>cfg.minimum_comment_stake&&remaining==0)};to_json_binary(&AccessResponse{address:address.into(),voting_power:power,active_neta_stake:stake,active_native_stake:native,can_publish,can_comment,blocked,paused:cfg.paused,cooldown_remaining_seconds:remaining})}}
+pub fn execute(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> Result<Response, ContractError> {
+    no_funds(&info)?;
+    match msg {
+        ExecuteMsg::PublishProposal { content } => publish(deps, env, info, content),
+        ExecuteMsg::AddRevision {
+            proposal_id,
+            content,
+            change_log,
+        } => revise(deps, env, info, proposal_id, content, change_log),
+        ExecuteMsg::AddComment {
+            proposal_id,
+            version,
+            parent_id,
+            title,
+            body,
+        } => comment(
+            deps,
+            env,
+            info,
+            NewComment {
+                proposal_id,
+                version,
+                parent_id,
+                title,
+                body,
+            },
+        ),
+        ExecuteMsg::SetThreadDecision {
+            proposal_id,
+            comment_id,
+            status,
+            reason,
+        } => decision(deps, info, proposal_id, comment_id, status, reason),
+        ExecuteMsg::Finalize {
+            proposal_id,
+            version,
+        } => finalize(deps, env, info, proposal_id, version),
+        ExecuteMsg::Withdraw { proposal_id } => withdraw(deps, env, info, proposal_id),
+        ExecuteMsg::MarkSubmitted {
+            proposal_id,
+            dao_proposal_id,
+        } => submitted(deps, env, info, proposal_id, dao_proposal_id),
+        ExecuteMsg::SetCommentHidden {
+            proposal_id,
+            comment_id,
+            hidden,
+            reason,
+        } => moderate(deps, env, info, proposal_id, comment_id, hidden, reason),
+        ExecuteMsg::SetModerator { address, enabled } => {
+            admin_moderator(deps, info, address, enabled)
+        }
+        ExecuteMsg::SetBlocked {
+            address,
+            blocked,
+            reason,
+        } => admin_block(deps, info, address, blocked, reason),
+        ExecuteMsg::SetPaused { paused } => admin_pause(deps, info, paused),
+        ExecuteMsg::ProposeOwner { address } => admin_propose_owner(deps, info, address),
+        ExecuteMsg::AcceptOwner {} => admin_accept_owner(deps, info),
+    }
+}
+
+fn publish(
+    mut deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    content: ProposalContent,
+) -> Result<Response, ContractError> {
+    let cfg = CONFIG.load(deps.storage)?;
+    let power = require_member(deps.as_ref(), &env, &cfg, &info.sender)?;
+    let id = NEXT_PROPOSAL_ID.load(deps.storage)?;
+    NEXT_PROPOSAL_ID.save(
+        deps.storage,
+        &id.checked_add(1).ok_or(ContractError::CounterOverflow)?,
+    )?;
+    PROPOSALS.save(
+        deps.storage,
+        id,
+        &Proposal {
+            id,
+            author: info.sender.clone(),
+            latest_version: 1,
+            finalized_version: None,
+            finalized_hash: None,
+            dao_proposal_id: None,
+            withdrawn: false,
+            withdrawn_height: None,
+            withdrawn_time: None,
+            created_height: env.block.height,
+            created_time: env.block.time.seconds(),
+        },
+    )?;
+    NEXT_COMMENT_ID.save(deps.storage, id, &1)?;
+    save_revision(
+        deps.branch(),
+        &env,
+        id,
+        1,
+        info.sender.clone(),
+        content,
+        "Initial published draft".into(),
+    )?;
+    Ok(Response::new()
+        .add_attribute("action", "publish_proposal")
+        .add_attribute("proposal_id", id.to_string())
+        .add_attribute("author", info.sender)
+        .add_attribute("voting_power", power))
+}
+fn revise(
+    mut deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    id: u64,
+    content: ProposalContent,
+    change_log: String,
+) -> Result<Response, ContractError> {
+    let cfg = CONFIG.load(deps.storage)?;
+    require_member(deps.as_ref(), &env, &cfg, &info.sender)?;
+    let mut p = PROPOSALS.load(deps.storage, id)?;
+    if p.author != info.sender {
+        return Err(ContractError::Unauthorized);
+    }
+    if p.withdrawn {
+        return Err(ContractError::Withdrawn);
+    }
+    if p.finalized_version.is_some() {
+        return Err(ContractError::Finalized);
+    }
+    let version = p
+        .latest_version
+        .checked_add(1)
+        .ok_or(ContractError::CounterOverflow)?;
+    save_revision(
+        deps.branch(),
+        &env,
+        id,
+        version,
+        info.sender.clone(),
+        content,
+        change_log,
+    )?;
+    p.latest_version = version;
+    PROPOSALS.save(deps.storage, id, &p)?;
+    Ok(Response::new()
+        .add_attribute("action", "add_revision")
+        .add_attribute("proposal_id", id.to_string())
+        .add_attribute("version", version.to_string()))
+}
+fn comment(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    input: NewComment,
+) -> Result<Response, ContractError> {
+    let NewComment {
+        proposal_id: id,
+        version,
+        parent_id: parent,
+        title,
+        body,
+    } = input;
+    let cfg = CONFIG.load(deps.storage)?;
+    let stake = require_commenter(deps.as_ref(), &env, &cfg, &info.sender)?;
+    let p = PROPOSALS.load(deps.storage, id)?;
+    if p.withdrawn {
+        return Err(ContractError::Withdrawn);
+    }
+    if p.finalized_version.is_some() {
+        return Err(ContractError::Finalized);
+    }
+    if version == 0 || version > p.latest_version {
+        return Err(ContractError::NotLatestVersion);
+    }
+    if let Some(parent_id) = parent {
+        COMMENTS
+            .may_load(deps.storage, (id, parent_id))?
+            .ok_or(ContractError::InvalidParent)?;
+    }
+    let comment_id = NEXT_COMMENT_ID.load(deps.storage, id)?;
+    NEXT_COMMENT_ID.save(
+        deps.storage,
+        id,
+        &comment_id
+            .checked_add(1)
+            .ok_or(ContractError::CounterOverflow)?,
+    )?;
+    let title = match title {
+        Some(x) => Some(text("title", &x, 1, 100)?),
+        None => None,
+    };
+    COMMENTS.save(
+        deps.storage,
+        (id, comment_id),
+        &Comment {
+            id: comment_id,
+            proposal_id: id,
+            version,
+            parent_id: parent,
+            title,
+            body: text("comment", &body, 1, 1_500)?,
+            author: info.sender.clone(),
+            verified_stake: stake,
+            status: "open".into(),
+            decision_reason: None,
+            moderation: None,
+            created_height: env.block.height,
+            created_time: env.block.time.seconds(),
+        },
+    )?;
+    LAST_COMMENT_TIME.save(deps.storage, &info.sender, &env.block.time.seconds())?;
+    Ok(Response::new()
+        .add_attribute("action", "add_comment")
+        .add_attribute("proposal_id", id.to_string())
+        .add_attribute("comment_id", comment_id.to_string())
+        .add_attribute("verified_stake", stake))
+}
+fn decision(
+    deps: DepsMut,
+    info: MessageInfo,
+    id: u64,
+    comment_id: u64,
+    status: String,
+    reason: String,
+) -> Result<Response, ContractError> {
+    let p = PROPOSALS.load(deps.storage, id)?;
+    if p.author != info.sender {
+        return Err(ContractError::Unauthorized);
+    }
+    if p.withdrawn {
+        return Err(ContractError::Withdrawn);
+    }
+    if p.finalized_version.is_some() {
+        return Err(ContractError::Finalized);
+    }
+    if !matches!(
+        status.as_str(),
+        "open" | "incorporated" | "not_incorporated"
+    ) {
+        return Err(ContractError::Unauthorized);
+    }
+    COMMENTS.update(
+        deps.storage,
+        (id, comment_id),
+        |item| -> Result<_, ContractError> {
+            let mut c = item.ok_or_else(|| StdError::not_found("comment"))?;
+            if c.parent_id.is_some() {
+                return Err(ContractError::InvalidParent);
+            }
+            c.status = status.clone();
+            c.decision_reason = if status == "open" {
+                None
+            } else {
+                Some(text("reason", &reason, 1, 500)?)
+            };
+            Ok(c)
+        },
+    )?;
+    Ok(Response::new().add_attribute("action", "set_thread_decision"))
+}
+fn finalize(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    id: u64,
+    version: u32,
+) -> Result<Response, ContractError> {
+    let cfg = CONFIG.load(deps.storage)?;
+    require_member(deps.as_ref(), &env, &cfg, &info.sender)?;
+    let revision = REVISIONS.load(deps.storage, (id, version))?;
+    let hash = revision_hash(&revision)?;
+    PROPOSALS.update(deps.storage, id, |item| -> Result<_, ContractError> {
+        let mut p = item.ok_or_else(|| StdError::not_found("proposal"))?;
+        if p.author != info.sender {
+            return Err(ContractError::Unauthorized);
+        }
+        if p.withdrawn {
+            return Err(ContractError::Withdrawn);
+        }
+        if p.finalized_version.is_some() {
+            return Err(ContractError::Finalized);
+        }
+        if version != p.latest_version {
+            return Err(ContractError::NotLatestVersion);
+        }
+        p.finalized_version = Some(version);
+        p.finalized_hash = Some(hash.clone());
+        Ok(p)
+    })?;
+    Ok(Response::new()
+        .add_attribute("action", "finalize")
+        .add_attribute("proposal_id", id.to_string())
+        .add_attribute("version", version.to_string())
+        .add_attribute("content_hash", hash))
+}
+fn withdraw(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    id: u64,
+) -> Result<Response, ContractError> {
+    PROPOSALS.update(deps.storage, id, |item| -> Result<_, ContractError> {
+        let mut p = item.ok_or_else(|| StdError::not_found("proposal"))?;
+        if p.author != info.sender {
+            return Err(ContractError::Unauthorized);
+        }
+        if p.dao_proposal_id.is_some() {
+            return Err(ContractError::AlreadySubmitted);
+        }
+        if p.withdrawn {
+            return Err(ContractError::Withdrawn);
+        }
+        p.withdrawn = true;
+        p.withdrawn_height = Some(env.block.height);
+        p.withdrawn_time = Some(env.block.time.seconds());
+        Ok(p)
+    })?;
+    Ok(Response::new()
+        .add_attribute("action", "withdraw")
+        .add_attribute("proposal_id", id.to_string()))
+}
+fn submitted(
+    _deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    _id: u64,
+    _dao_id: u64,
+) -> Result<Response, ContractError> {
+    Err(ContractError::SubmissionVerificationUnavailable)
+}
+fn moderate(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    id: u64,
+    comment_id: u64,
+    hidden: bool,
+    reason: Option<String>,
+) -> Result<Response, ContractError> {
+    let cfg = CONFIG.load(deps.storage)?;
+    if !is_moderator(deps.as_ref(), &cfg, &info.sender)? {
+        return Err(ContractError::Unauthorized);
+    }
+    let reason = if hidden {
+        Some(text("reason", reason.as_deref().unwrap_or(""), 1, 240)?)
+    } else {
+        None
+    };
+    COMMENTS.update(
+        deps.storage,
+        (id, comment_id),
+        |item| -> Result<_, ContractError> {
+            let mut c = item.ok_or_else(|| StdError::not_found("comment"))?;
+            c.moderation = Some(Moderation {
+                hidden,
+                reason: reason.clone(),
+                updated_by: info.sender.clone(),
+                updated_height: env.block.height,
+                updated_time: env.block.time.seconds(),
+            });
+            Ok(c)
+        },
+    )?;
+    Ok(Response::new().add_attribute("action", "set_comment_hidden"))
+}
+fn owner(cfg: &Config, sender: &Addr) -> Result<(), ContractError> {
+    if sender == cfg.owner {
+        Ok(())
+    } else {
+        Err(ContractError::Unauthorized)
+    }
+}
+fn admin_moderator(
+    deps: DepsMut,
+    info: MessageInfo,
+    address: String,
+    enabled: bool,
+) -> Result<Response, ContractError> {
+    let cfg = CONFIG.load(deps.storage)?;
+    owner(&cfg, &info.sender)?;
+    let addr = deps.api.addr_validate(&address)?;
+    if enabled {
+        MODERATORS.save(deps.storage, &addr, &true)?
+    } else {
+        MODERATORS.remove(deps.storage, &addr)
+    }
+    Ok(Response::new().add_attribute("action", "set_moderator"))
+}
+fn admin_block(
+    deps: DepsMut,
+    info: MessageInfo,
+    address: String,
+    blocked: bool,
+    reason: Option<String>,
+) -> Result<Response, ContractError> {
+    let cfg = CONFIG.load(deps.storage)?;
+    owner(&cfg, &info.sender)?;
+    let addr = deps.api.addr_validate(&address)?;
+    if blocked {
+        let reason = reason.map(|x| text("reason", &x, 1, 240)).transpose()?;
+        BLOCKS.save(
+            deps.storage,
+            &addr,
+            &BlockRecord {
+                blocked: true,
+                reason,
+            },
+        )?
+    } else {
+        BLOCKS.remove(deps.storage, &addr)
+    }
+    Ok(Response::new().add_attribute("action", "set_blocked"))
+}
+fn admin_pause(deps: DepsMut, info: MessageInfo, paused: bool) -> Result<Response, ContractError> {
+    let mut cfg = CONFIG.load(deps.storage)?;
+    owner(&cfg, &info.sender)?;
+    cfg.paused = paused;
+    CONFIG.save(deps.storage, &cfg)?;
+    Ok(Response::new()
+        .add_attribute("action", "set_paused")
+        .add_attribute("paused", paused.to_string()))
+}
+fn admin_propose_owner(
+    deps: DepsMut,
+    info: MessageInfo,
+    address: String,
+) -> Result<Response, ContractError> {
+    let mut cfg = CONFIG.load(deps.storage)?;
+    owner(&cfg, &info.sender)?;
+    let next = deps.api.addr_validate(&address)?;
+    cfg.pending_owner = Some(next.clone());
+    CONFIG.save(deps.storage, &cfg)?;
+    Ok(Response::new()
+        .add_attribute("action", "propose_owner")
+        .add_attribute("pending_owner", next))
+}
+fn admin_accept_owner(deps: DepsMut, info: MessageInfo) -> Result<Response, ContractError> {
+    let mut cfg = CONFIG.load(deps.storage)?;
+    if cfg.pending_owner.as_ref() != Some(&info.sender) {
+        return Err(ContractError::NoPendingOwner);
+    }
+    cfg.owner = info.sender.clone();
+    cfg.pending_owner = None;
+    CONFIG.save(deps.storage, &cfg)?;
+    Ok(Response::new()
+        .add_attribute("action", "accept_owner")
+        .add_attribute("owner", info.sender))
+}
+
+#[entry_point]
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+    match msg {
+        QueryMsg::Config {} => to_json_binary(&CONFIG.load(deps.storage)?),
+        QueryMsg::Proposal { proposal_id } => {
+            to_json_binary(&PROPOSALS.load(deps.storage, proposal_id)?)
+        }
+        QueryMsg::Proposals { start_after, limit } => {
+            let start = start_after.map(Bound::exclusive);
+            let out = PROPOSALS
+                .range(deps.storage, start, None, Order::Ascending)
+                .take(limit.unwrap_or(20).min(MAX_LIMIT) as usize)
+                .map(|x| x.map(|(_, v)| v))
+                .collect::<StdResult<Vec<_>>>()?;
+            to_json_binary(&out)
+        }
+        QueryMsg::ProposalSummaries { start_after, limit } => {
+            let start = start_after.map(Bound::exclusive);
+            let out = PROPOSALS
+                .range(deps.storage, start, None, Order::Ascending)
+                .take(limit.unwrap_or(20).min(MAX_LIMIT) as usize)
+                .map(|item| {
+                    let (_, proposal) = item?;
+                    let latest_revision =
+                        REVISIONS.load(deps.storage, (proposal.id, proposal.latest_version))?;
+                    Ok(ProposalSummary {
+                        proposal,
+                        latest_revision,
+                    })
+                })
+                .collect::<StdResult<Vec<_>>>()?;
+            to_json_binary(&out)
+        }
+        QueryMsg::Revisions {
+            proposal_id,
+            start_after,
+            limit,
+        } => {
+            let start = start_after.map(Bound::exclusive);
+            let out = REVISIONS
+                .prefix(proposal_id)
+                .range(deps.storage, start, None, Order::Ascending)
+                .take(limit.unwrap_or(50).min(MAX_LIMIT) as usize)
+                .map(|x| x.map(|(_, v)| v))
+                .collect::<StdResult<Vec<_>>>()?;
+            to_json_binary(&out)
+        }
+        QueryMsg::Comments {
+            proposal_id,
+            start_after,
+            limit,
+        } => {
+            let start = start_after.map(Bound::exclusive);
+            let out = COMMENTS
+                .prefix(proposal_id)
+                .range(deps.storage, start, None, Order::Ascending)
+                .take(limit.unwrap_or(100).min(MAX_LIMIT) as usize)
+                .map(|x| x.map(|(_, v)| v))
+                .collect::<StdResult<Vec<_>>>()?;
+            to_json_binary(&out)
+        }
+        QueryMsg::Access { address } => {
+            let cfg = CONFIG.load(deps.storage)?;
+            let address = deps.api.addr_validate(&address)?;
+            let blocked = is_blocked(deps, &address)?;
+            let stake = active_stake(deps, &cfg, &address, env.block.height)
+                .map_err(|e| StdError::generic_err(e.to_string()))?;
+            let remaining = cooldown(deps, &cfg, &address, env.block.time.seconds())?;
+            let (power, native, eligible) = if let Some(gate) = &cfg.community_gate {
+                let native = native_stake(deps, &cfg, &address)?;
+                (
+                    Uint128::zero(),
+                    native,
+                    stake >= gate.minimum_neta_stake && native >= gate.minimum_native_stake,
+                )
+            } else {
+                let power = voting_power(deps, &cfg, &address, env.block.height)
+                    .map_err(|e| StdError::generic_err(e.to_string()))?;
+                (power, Uint128::zero(), !power.is_zero())
+            };
+            let can_publish = !cfg.paused && !blocked && eligible;
+            let can_comment = !cfg.paused
+                && !blocked
+                && remaining == 0
+                && if cfg.community_gate.is_some() {
+                    eligible
+                } else {
+                    stake > cfg.minimum_comment_stake
+                };
+            to_json_binary(&AccessResponse {
+                address: address.into(),
+                voting_power: power,
+                active_neta_stake: stake,
+                active_native_stake: native,
+                can_publish,
+                can_comment,
+                blocked,
+                paused: cfg.paused,
+                cooldown_remaining_seconds: remaining,
+            })
+        }
+    }
 }
