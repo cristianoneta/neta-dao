@@ -33,6 +33,7 @@ Updated: 20 September 2026
 - Two-step owner transfer and migration entrypoint.
 - Fail-visible access queries instead of silently converting provider failures to zero balances.
 - Treasury phase 1 reads the verified NETA Operations DAO core `juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl` and Juno's native distribution-module Community Pool on mainnet. Separate snapshots are selected globally with the DAO picker. Native/CW20 holdings and the validated WYND LP set are snapshotted every 15 minutes; IBC denoms are resolved through on-chain traces, and LP positions include direct, staked and claim-state ownership, remain visible as LP tokens, and are valued exactly once from proportional underlying reserves. Daily Europe/Berlin 21:00 snapshots are retained for history. Planning, commitments and runway remain draft values.
+- Durable denom metadata is stored in `data/treasury/token-registry.json`; snapshots retain full denoms, base denoms and IBC paths. Unknown assets remain visibly unresolved rather than receiving guessed labels or prices.
 - Proposal-summary query removes frontend N+1 revision loading.
 - Nine passing unit tests plus warning-free Clippy.
 - RustSec audit passes with one documented Juno/CosmWasm 1.5 compatibility exception: `RUSTSEC-2024-0344` is in host-side `cosmwasm-crypto` and is not compiled into the deployed Wasm. The exception must be removed when Juno supports the newer CosmWasm dependency line.

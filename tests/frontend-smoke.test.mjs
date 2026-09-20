@@ -8,6 +8,7 @@ const governance = readFileSync("neta-governance.js", "utf8");
 const html = readFileSync("index.html", "utf8");
 const treasury = readFileSync("treasury.js", "utf8");
 const ux = readFileSync("ux-draft.js", "utf8");
+const tokenRegistry = JSON.parse(readFileSync("data/treasury/token-registry.json", "utf8"));
 
 test("browser scripts parse", () => {
   execFileSync(process.execPath, ["--check", "neta-governance.js"]);
@@ -30,6 +31,12 @@ test("DAO selection propagates to non-proposal workspace views", () => {
   assert.match(treasury, /community_pool/);
   assert.match(ux, /JUNO NETWORK GOVERNANCE · TREASURY/);
   assert.match(ux, /NO LIVE/);
+});
+
+test("treasury denom identities are persisted outside generated snapshots", () => {
+  assert.equal(tokenRegistry["ibc/4A482FA914A4B9B05801ED81C33713899F322B24F76A06F4B8FE872485EA22FF"].symbol, "USDC.n");
+  assert.equal(tokenRegistry["ibc/171E8F6687D290D378678310F9F15D367DCD245BF06184532B703A92054A8A4F"].decimals, 18);
+  assert.equal(tokenRegistry["ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9"].symbol, "ATOM");
 });
 
 test("user content is not rendered through HTML injection sinks", () => {

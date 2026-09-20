@@ -26,6 +26,8 @@ Delivery and Contributors remain visual drafts. Treasury asset balances are coll
 
 LP positions remain visible as LP-token holdings. Each position expands into its proportional underlying reserves, and its USD value is calculated from those reserves exactly once; underlying amounts are not added again as free treasury tokens. The collector fails visibly on unavailable providers and retains source, timestamp and block height.
 
+Known native and IBC-denom mappings are versioned in `data/treasury/token-registry.json`. Each generated snapshot also retains the full on-chain denom, resolved base denom and IBC path. Unknown hashes are queried from Juno at collection time and remain visibly unpriced instead of being assigned a guessed identity.
+
 ### Proposal deliverables
 
 Drafts and public revisions can contain structured deliverables with a milestone title, deadline, responsible party, required confirmer and expected evidence. They are embedded in the existing `actions_json` array as entries with `type: "dao_deliverable_v1"`. This keeps the format backward-compatible with the deployed workshop contract while allowing the Delivery view to consume approved milestones later. Submission adapters must separate these planning records from executable chain messages.

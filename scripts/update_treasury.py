@@ -16,17 +16,29 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "treasury"
+TOKEN_REGISTRY_PATH = OUT / "token-registry.json"
 TREASURY = "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl"
 RESTS = ("https://juno-api.polkachu.com", "https://juno-api.lavenderfive.com")
 NETA = "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr"
 WYND = "juno1mkw83sv6c7sjdvsaplrzc8yaes9l42p4mhy0ssuxjnyzl87c9eps7ce3m9"
 
-ASSETS = {
+BUILTIN_ASSETS = {
     "ujuno": {"symbol": "JUNO", "decimals": 6, "coingecko": "juno-network", "origin": "Juno"},
     "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9": {"symbol": "ATOM", "decimals": 6, "coingecko": "cosmos"},
     "ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034": {"symbol": "USDC", "decimals": 6, "coingecko": "usd-coin"},
     "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518": {"symbol": "OSMO", "decimals": 6, "coingecko": "osmosis"},
 }
+
+
+def token_registry():
+    try:
+        persisted = json.loads(TOKEN_REGISTRY_PATH.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError) as error:
+        raise RuntimeError(f"invalid treasury token registry: {error}") from error
+    return {**BUILTIN_ASSETS, **persisted}
+
+
+ASSETS = token_registry()
 
 BASE_ASSETS = {
     "ujuno": {"symbol": "JUNO", "decimals": 6, "coingecko": "juno-network"},
