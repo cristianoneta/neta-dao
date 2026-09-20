@@ -39,7 +39,7 @@ Updated: 20 September 2026
 - `assets/neta_proposal_workshop.wasm` is built from v0.3.0 source.
 - SHA-256: `6eb604c255d01414880bdcb9cc1d1df69dc2507f25ffc6e6d51388945ff63f22`.
 - Operations UNI-7 workshop: `juno1d2xdlvy23am07twe046zzxxndjtccgpwwl3pyu5g98u07qu3nyqqkaz65h` (legacy contract API).
-- Juno v0.3.0 review workshop: deployed and unpaused at `juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw` using code ID `114`; canonical frontend registry commit remains outstanding.
+- Juno v0.3.0 review workshop: deployed, unpaused and configured as the canonical frontend contract at `juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw` using code ID `114`.
 - Test administrator: `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.
 - UNI-7 access mock: `juno10739807rjqkf4kmtvpu5ll5e67dkch82xzgph83cmn5h8n0fxmnszasg86`.
 
@@ -53,4 +53,4 @@ Updated: 20 September 2026
 
 ## Next operational step
 
-Commit the verified Juno review address as the canonical Juno `workshopContract`, then test publish/revise/comment/finalize with the dual stake gate. Until that registry commit, the deployed address stored in a browser is not shared configuration. See `UNI7_DEPLOYMENT_RUNBOOK.md` for the confirmed deployment and UNI-7 recovery rules.
+Test publish/revise/comment/finalize against the canonical Juno review contract with the dual stake gate. See `UNI7_DEPLOYMENT_RUNBOOK.md` for the confirmed deployment and UNI-7 recovery rules.
