@@ -48,3 +48,8 @@ test("UNI-7 indexing errors are detected in RPC data payloads", () => {
   assert.match(governance, /e\?\.data/);
   assert.match(governance, /transaction indexing is disabled/i);
 });
+
+test("UNI-7 code discovery uses legacy-compatible pagination", () => {
+  assert.doesNotMatch(governance, /cosmwasm\/wasm\/v1\/code\?pagination\.reverse/);
+  assert.match(governance, /pagination\?\.next_key/);
+});
