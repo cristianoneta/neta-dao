@@ -34,6 +34,8 @@
 .status-approved,.status-executed { color:var(--gov)!important; background:#003324; }
 .status-rejected,.status-declined,.status-withdrawn,.status-failed { color:#ff9bad!important; background:#310b14; }
 .next-actions { position:static; bottom:auto; z-index:auto; margin:30px -28px -28px; border:1px solid var(--line); border-left-width:5px; box-shadow:none; }
+.next-actions>div { display:flex; flex-wrap:wrap; justify-content:flex-end; }
+#delegate-test-junox { border-color:var(--warn); color:var(--warn); background:rgba(48,38,6,.72); }
 .next-actions[data-status="error"] { border-color:var(--danger); background:rgba(49,11,20,.98); }
 #save-local[data-saved="true"] { background:rgba(24,242,172,.18); }
 .next-actions[data-status="discussion"],.next-actions[data-status="ready"] { border-color:var(--purple); background:rgba(27,8,37,.98); }
