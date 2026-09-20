@@ -1,6 +1,6 @@
 (()=>{
   const buttons=[...document.querySelectorAll("[data-workspace-view]")];
-  const views={home:document.querySelector("#home-view"),governance:document.querySelector("#governance-view"),delivery:document.querySelector("#delivery-view"),treasury:document.querySelector("#treasury-view")};
+  const views={home:document.querySelector("#home-view"),governance:document.querySelector("#governance-view"),delivery:document.querySelector("#delivery-view"),contributors:document.querySelector("#contributors-view"),treasury:document.querySelector("#treasury-view")};
   buttons.forEach(button=>button.addEventListener("click",()=>{
     const selected=button.dataset.workspaceView;
     buttons.forEach(item=>item.classList.toggle("active",item===button));
