@@ -37,7 +37,7 @@ Updated: 20 September 2026
 ## Deployment state
 
 - `assets/neta_proposal_workshop.wasm` is built from v0.3.0 source.
-- SHA-256: `5cd983bef2be826c0d13bbf426f3d2c34553df2fdf99f3743c551d65d4da3fc6`.
+- SHA-256: `6eb604c255d01414880bdcb9cc1d1df69dc2507f25ffc6e6d51388945ff63f22`.
 - Operations UNI-7 workshop: `juno1d2xdlvy23am07twe046zzxxndjtccgpwwl3pyu5g98u07qu3nyqqkaz65h` (legacy contract API).
 - Juno v0.3.0 review workshop: not yet deployed/canonically committed.
 - Test administrator: `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.

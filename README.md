@@ -45,11 +45,10 @@ cargo test --locked --manifest-path contracts/workshop-access-mock/Cargo.toml
 node --test tests/frontend-smoke.test.mjs
 ```
 
-Build the review contract:
+Build the review contract reproducibly:
 
 ```bash
-cargo build --locked --release --target wasm32-unknown-unknown \
-  --manifest-path contracts/neta-proposal-workshop/Cargo.toml
+bash scripts/build-wasm.sh neta-proposal-workshop
 ```
 
 The CI workflow validates CosmWasm compatibility and verifies that the built Wasm is byte-identical to the shipped browser artifact.
