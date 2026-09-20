@@ -39,6 +39,18 @@ test("treasury denom identities are persisted outside generated snapshots", () =
   assert.equal(tokenRegistry["ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9"].symbol, "ATOM");
 });
 
+test("operations treasury includes the DAO-controlled Osmosis Polytone proxy", () => {
+  const collector = readFileSync("scripts/update_treasury.py", "utf8");
+  assert.match(collector, /osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80/);
+  assert.match(collector, /polytone-proxy/);
+  assert.match(treasury, /source_chain/);
+});
+
+test("small and unpriced treasury assets are collapsed without changing totals", () => {
+  assert.match(treasury, /Number\(item\.usd_value\)>=50/);
+  assert.match(treasury, /SMALL \/ UNPRICED ASSETS/);
+});
+
 test("user content is not rendered through HTML injection sinks", () => {
   assert.doesNotMatch(governance, /\.innerHTML\s*=|insertAdjacentHTML|\.outerHTML\s*=/);
 });

@@ -18,7 +18,9 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "treasury"
 TOKEN_REGISTRY_PATH = OUT / "token-registry.json"
 TREASURY = "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl"
+OSMOSIS_TREASURY = "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80"
 RESTS = ("https://juno-api.polkachu.com", "https://juno-api.lavenderfive.com")
+OSMOSIS_RESTS = ("https://osmosis-api.polkachu.com", "https://lcd.osmosis.zone")
 NETA = "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr"
 WYND = "juno1mkw83sv6c7sjdvsaplrzc8yaes9l42p4mhy0ssuxjnyzl87c9eps7ce3m9"
 
@@ -79,9 +81,9 @@ def request_json(url, timeout=25):
         return json.load(response)
 
 
-def rest(path):
+def rest(path, providers=RESTS):
     errors = []
-    for base in RESTS:
+    for base in providers:
         try:
             return request_json(base + path), base
         except Exception as error:  # provider failover is reported in the snapshot
@@ -135,12 +137,12 @@ def metadata(key):
     return CW20.get(address, {"symbol": address[:12] + "…", "decimals": 6})
 
 
-def native_metadata(denom):
+def native_metadata(denom, providers=RESTS):
     if denom in ASSETS:
         return dict(ASSETS[denom])
     if not denom.startswith("ibc/"):
         return dict(BASE_ASSETS.get(denom, {"symbol": denom, "decimals": 6}))
-    trace, _ = rest(f"/ibc/apps/transfer/v1/denom_traces/{denom[4:]}")
+    trace, _ = rest(f"/ibc/apps/transfer/v1/denom_traces/{denom[4:]}", providers)
     trace = trace.get("denom_trace", trace)
     base = trace.get("base_denom", "")
     fallback = {"symbol": base or denom[:18] + "…", "decimals": 6}
@@ -154,17 +156,17 @@ def native_metadata(denom):
     return result
 
 
-def native_assets(coins, market, warnings):
+def native_assets(coins, market, warnings, source_chain="juno", custody_address=TREASURY, providers=RESTS):
     result = []
     for coin in coins:
         try:
-            meta = native_metadata(coin["denom"])
+            meta = native_metadata(coin["denom"], providers)
         except Exception as error:
             meta = {"symbol": coin["denom"][:18] + "…", "decimals": 6}
             warnings.append(f"Denom trace unavailable for {coin['denom']}: {error}")
         amount = decimal(coin["amount"], meta["decimals"])
         price = market.get(meta.get("coingecko"), {}).get("usd")
-        result.append({"type": "token", "key": "native:" + coin["denom"], "symbol": meta["symbol"], "amount": str(amount), "origin": meta.get("origin", "Juno"), "ibc_path": meta.get("ibc_path"), "base_denom": meta.get("base_denom", coin["denom"]), "usd_price": str(price) if price is not None else None, "usd_value": str(amount * price) if price is not None else None, "change_24h": market.get(meta.get("coingecko"), {}).get("change_24h")})
+        result.append({"type": "token", "key": f"{source_chain}:native:" + coin["denom"], "symbol": meta["symbol"], "amount": str(amount), "origin": meta.get("origin", source_chain.title()), "source_chain": source_chain, "custody_address": custody_address, "ibc_path": meta.get("ibc_path"), "base_denom": meta.get("base_denom", coin["denom"]), "usd_price": str(price) if price is not None else None, "usd_value": str(amount * price) if price is not None else None, "change_24h": market.get(meta.get("coingecko"), {}).get("change_24h")})
     return result
 
 
@@ -178,8 +180,10 @@ def snapshot_result(stamp, height, endpoint, price_source, assets, warnings, tre
 
 def build_operations(market, price_source, stamp, height):
     bank, endpoint = rest(f"/cosmos/bank/v1beta1/balances/{TREASURY}?pagination.limit=1000")
+    osmosis_bank, osmosis_endpoint = rest(f"/cosmos/bank/v1beta1/balances/{OSMOSIS_TREASURY}?pagination.limit=1000", OSMOSIS_RESTS)
     warnings = []
     free = native_assets(bank.get("balances", []), market, warnings)
+    free.extend(native_assets(osmosis_bank.get("balances", []), market, warnings, "osmosis", OSMOSIS_TREASURY, OSMOSIS_RESTS))
     for contract, meta in CW20.items():
         response, _ = smart(contract, {"balance": {"address": TREASURY}})
         amount = decimal(response.get("balance", "0"), meta["decimals"])
@@ -239,13 +243,15 @@ def build_operations(market, price_source, stamp, height):
         else:
             warnings.append(f"{CW20[contract]['symbol']} price unavailable: {pool_name} pool or USD anchor missing")
 
-    return snapshot_result(stamp, height, endpoint, price_source, free, warnings, "dao-core", TREASURY)
+    result = snapshot_result(stamp, height, endpoint, price_source, free, warnings, "dao-and-cross-chain", TREASURY)
+    result["treasury_accounts"] = [{"chain_id": "juno-1", "address": TREASURY, "control": "dao-core", "balance_source": endpoint}, {"chain_id": "osmosis-1", "address": OSMOSIS_TREASURY, "control": "polytone-proxy", "balance_source": osmosis_endpoint}]
+    return result
 
 
 def build_community_pool(market, price_source, stamp, height):
     response, endpoint = rest("/cosmos/distribution/v1beta1/community_pool")
     warnings = []
-    assets = native_assets(response.get("pool", []), market, warnings)
+    assets = native_assets(response.get("pool", []), market, warnings, "juno", None)
     return snapshot_result(stamp, height, endpoint, price_source, assets, warnings, "community-pool")
 
 
