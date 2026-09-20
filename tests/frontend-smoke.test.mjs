@@ -24,7 +24,9 @@ test("governance controls referenced by JavaScript exist", () => {
     "dao-options",
     "proposal-list",
     "primary-action",
-    "delegate-test-junox",
+    "eligibility-action",
+    "add-deliverable",
+    "deliverable-list",
     "revision-dialog",
     "comment-form",
   ]) {
@@ -70,10 +72,17 @@ test("Juno review explains each missing stake requirement", () => {
   assert.match(governance, /CURRENT:/);
 });
 
-test("temporary UNI-7 delegation is fixed and admin-scoped", () => {
-  assert.match(governance, /TEST_DELEGATION_AMOUNT="100000000"/);
-  assert.match(governance, /MsgDelegate/);
-  assert.match(governance, /state\.address!==TEST_ADMIN/);
-  assert.match(governance, /amount:"60000"/);
-  assert.match(governance, /gas:"300000"/);
+test("comment staking actions are configured per DAO and contextual", () => {
+  assert.match(governance, /commentStakeUrl/);
+  assert.match(governance, /commentBlocked=discussion/);
+  assert.match(governance, /!state\.access\?\.can_comment/);
+  assert.doesNotMatch(governance, /delegateTestJunox|TEST_DELEGATION_AMOUNT/);
+});
+
+test("deliverables are embedded in the revision payload", () => {
+  assert.match(governance, /DELIVERABLE_TYPE="dao_deliverable_v1"/);
+  assert.match(governance, /MILESTONE \/ DELIVERABLE/);
+  assert.match(governance, /DEADLINE/);
+  assert.match(governance, /CONFIRMED BY/);
+  assert.match(governance, /EXPECTED RESULT \/ EVIDENCE/);
 });

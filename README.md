@@ -24,6 +24,12 @@ Static governance workspace for DAO collaboration on Juno. The frontend combines
 
 Delivery, Contributors and Treasury are visual drafts using sample data. They do not execute payments or read DAO treasury wallets yet.
 
+### Proposal deliverables
+
+Drafts and public revisions can contain structured deliverables with a milestone title, deadline, responsible party, required confirmer and expected evidence. They are embedded in the existing `actions_json` array as entries with `type: "dao_deliverable_v1"`. This keeps the format backward-compatible with the deployed workshop contract while allowing the Delivery view to consume approved milestones later. Submission adapters must separate these planning records from executable chain messages.
+
+When a connected user opens a discussion but lacks the configured comment stake, the workspace exposes that DAO's configured staking destination. The action is contextual; it is not shown when comment access is already satisfied, and staking does not imply DAO membership or publishing rights.
+
 ## Security properties
 
 - User-provided content is rendered through DOM text nodes, not HTML injection sinks.
