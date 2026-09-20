@@ -20,12 +20,12 @@
     },
     {
       "amount": "1402.010133",
-      "change_24h": 5.0436238700796725,
+      "change_24h": 5.117588535249422,
       "key": "native:ujuno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00984812",
-      "usd_value": "13.80716403099996"
+      "usd_price": "0.00986322",
+      "usd_value": "13.82833438400826"
     },
     {
       "amount": "2.571312",
@@ -33,18 +33,18 @@
       "key": "cw20:juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
       "symbol": "NETA",
       "type": "token",
-      "usd_price": "1.214864449398169298352984109",
-      "usd_value": "3.123795537110905494886608275"
+      "usd_price": "1.216727185959656400094751072",
+      "usd_value": "3.128585213984296017440434568"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-09-20T18:40:45.076127Z",
-  "height": 41945001,
+  "generated_at": "2026-09-20T18:52:42.775558Z",
+  "height": 41945256,
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "16.93095956811086549488660828",
+  "total_usd": "16.95691959799255601744043457",
   "treasury_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
   "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.",
   "warnings": [
