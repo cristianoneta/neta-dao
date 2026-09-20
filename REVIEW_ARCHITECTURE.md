@@ -1,68 +1,43 @@
-# Proposal Review Architecture
+# Review Architecture
 
-## Product boundary
+## Sources of truth
 
-The current GitHub Pages MVP exercises the complete review interaction locally. It must not claim that a locally published draft is shared with other DAO members.
+| Data | Source of truth | Mutability |
+| --- | --- | --- |
+| Private draft | Browser `localStorage` | User can replace/delete |
+| Public proposal review | UNI-7 workshop contract | Revisions/comments append-only |
+| Finalized review | UNI-7 workshop contract | Terminal; hash computed on-chain |
+| Operations governance result | Juno mainnet DAO proposal module | Read from chain |
+| Native Juno governance | Juno mainnet `x/gov` | Read-only in this frontend |
+| Delivery/Treasury/Contributors | UX sample data | No execution authority |
 
-The production review system will use a hybrid model:
+## Trust boundaries
 
-- proposal bodies, version snapshots, threads, replies, and author decisions live behind a versioned API;
-- every write requires a wallet challenge and a verified Juno signature;
-- the API resolves current voting power against the whitelisted DAO core before accepting member writes;
-- immutable version hashes can later be anchored on Juno without putting every comment body on-chain;
-- transaction execution remains exclusively in the DAO's existing on-chain proposal flow.
+- Wallet identity and eligibility are re-queried from the selected workshop contract.
+- Operations and Juno use separate access policies.
+- The frontend never grants membership or stake eligibility.
+- Public reads work without a wallet.
+- Mainnet Juno submission stays disabled.
+- A DAO proposal ID cannot be self-asserted as submitted; `MarkSubmitted` fails until verifiable forwarding or chain-query validation is implemented.
 
-## Core records
+## Review lifecycle
 
-### Proposal
+1. Create and optionally save a private local draft.
+2. Publish the first immutable public revision on UNI-7.
+3. Add titled discussion threads, replies and further immutable revisions.
+4. Finalize only the latest revision.
+5. The contract computes and stores the revision hash and closes discussion.
+6. A separately reviewed adapter may later create and verify the mainnet proposal.
 
-- `id`
-- `dao_id`
-- `author_address`
-- `status` (`draft`, `published`, `frozen`)
-- `current_version`
-- timestamps
+## Contract operations
 
-### Proposal version
+- Instantiation starts paused.
+- Attached funds are rejected.
+- Owner changes require proposal and acceptance by the new owner.
+- Migration records and checks the prior contract identity.
+- Moderator and block-list removal deletes obsolete storage records.
+- Queries are cursor-paginated; the frontend follows all pages.
 
-- `proposal_id`
-- monotonically increasing `version`
-- immutable title, summary, body, and action snapshot
-- required change note after version 1
-- content hash
-- author address and timestamp
+## Remaining deployment gate
 
-### Review thread
-
-- `id`
-- `proposal_id`
-- root author address
-- version and section anchor
-- status (`open`, `incorporated`, `not_incorporated`)
-- optional author decision reason and decision version
-- timestamps
-
-### Reply
-
-- `id`
-- `thread_id`
-- member address
-- body and timestamp
-
-## Authorization
-
-- Reading published drafts and discussions is public.
-- Creating threads and replies requires current positive voting power in the selected whitelisted DAO.
-- Publishing and revising requires the proposal author to remain a DAO member.
-- Only the proposal author may change a thread decision status.
-- A decision never deletes, hides, locks, or moderates a thread.
-- The frontend owner-testing override is forbidden in the production API.
-
-## Integrity rules
-
-- Versions are append-only.
-- Replies are append-only; corrections become a later reply.
-- Decisions are auditable state transitions and retain their reason, author, time, and proposal version.
-- Threads remain linked to the version and section that existed when feedback was submitted.
-- The client presents root threads and proposal revisions as a single chronological event stream. Version 1 remains the baseline document; revisions from version 2 onward can render word-level additions and struck-through deletions directly inside the title, summary, and body.
-- Rate limits and maximum body sizes are enforced by the API, not only by the browser.
+The Juno review address must be deployed from the reviewed Wasm and committed as the canonical `workshopContract`. A browser-local address is test scaffolding, not a shared production registry.

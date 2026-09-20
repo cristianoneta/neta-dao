@@ -1,5 +1,5 @@
-use cosmwasm_schema::cw_serde;
 use crate::msg::CommunityGate;
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, Map};
 
@@ -8,6 +8,8 @@ pub const COMMENT_COOLDOWN_SECONDS: u64 = 30;
 #[cw_serde]
 pub struct Config {
     pub owner: Addr,
+    #[serde(default)]
+    pub pending_owner: Option<Addr>,
     pub dao_voting_contract: Addr,
     pub stake_contract: Addr,
     pub minimum_comment_stake: Uint128,
@@ -76,7 +78,10 @@ pub struct Comment {
 }
 
 #[cw_serde]
-pub struct BlockRecord { pub blocked: bool, pub reason: Option<String> }
+pub struct BlockRecord {
+    pub blocked: bool,
+    pub reason: Option<String>,
+}
 
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const NEXT_PROPOSAL_ID: Item<u64> = Item::new("next_proposal_id");

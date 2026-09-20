@@ -6,12 +6,15 @@ On-chain storage and access control for the public NETA DAO proposal workshop.
 
 - The contract supports two explicit access modes selected at instantiation.
 - Queries are public and require no wallet.
-- **Operations DAO mode:** publishing, revising, finalizing and marking a proposal submitted require positive voting power from `dao_voting_contract`.
+- **Operations DAO mode:** publishing, revising and finalizing require positive voting power from `dao_voting_contract`.
 - **Operations DAO mode:** comments and replies require an active NETA stake **strictly greater than** `minimum_comment_stake`.
 - The production threshold is `10000000` raw units (10 NETA with six decimals), so exactly 10 NETA is not sufficient.
 - **Juno community mode:** all writes require at least the configured native delegated stake **and** the configured active NETA stake. The intended thresholds are exactly 1 JUNO and 1 NETA.
 - A global 30-second comment cooldown, owner block list and moderator tombstones are enforced on-chain.
 - Revisions are immutable. Only the latest revision can be finalized.
+- Finalization computes the SHA-256 content hash inside the contract and closes discussion.
+- `MarkSubmitted` is deliberately disabled until a submission adapter can verify the target DAO proposal on-chain.
+- Ownership changes use a two-step propose/accept flow; v0.3.0 also provides a migration entry point.
 
 ## Operations DAO configuration
 

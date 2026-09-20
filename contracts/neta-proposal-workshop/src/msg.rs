@@ -1,4 +1,4 @@
-use crate::state::{Comment, Config, Proposal, Revision};
+use crate::state::{Proposal, Revision};
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::Uint128;
 
@@ -13,6 +13,9 @@ pub struct InstantiateMsg {
     /// original Operations DAO membership rules remain unchanged.
     pub community_gate: Option<CommunityGate>,
 }
+
+#[cw_serde]
+pub struct MigrateMsg {}
 
 #[cw_serde]
 pub struct CommunityGate {
@@ -30,50 +33,131 @@ pub struct ProposalContent {
 }
 
 #[cw_serde]
+pub struct ProposalSummary {
+    pub proposal: Proposal,
+    pub latest_revision: Revision,
+}
+
+#[cw_serde]
 pub enum ExecuteMsg {
-    PublishProposal { content: ProposalContent },
-    AddRevision { proposal_id: u64, content: ProposalContent, change_log: String },
-    AddComment { proposal_id: u64, version: u32, parent_id: Option<u64>, title: Option<String>, body: String },
-    SetThreadDecision { proposal_id: u64, comment_id: u64, status: String, reason: String },
-    Finalize { proposal_id: u64, version: u32, content_hash: String },
-    Withdraw { proposal_id: u64 },
-    MarkSubmitted { proposal_id: u64, dao_proposal_id: u64 },
-    SetCommentHidden { proposal_id: u64, comment_id: u64, hidden: bool, reason: Option<String> },
-    SetModerator { address: String, enabled: bool },
-    SetBlocked { address: String, blocked: bool, reason: Option<String> },
-    SetPaused { paused: bool },
+    PublishProposal {
+        content: ProposalContent,
+    },
+    AddRevision {
+        proposal_id: u64,
+        content: ProposalContent,
+        change_log: String,
+    },
+    AddComment {
+        proposal_id: u64,
+        version: u32,
+        parent_id: Option<u64>,
+        title: Option<String>,
+        body: String,
+    },
+    SetThreadDecision {
+        proposal_id: u64,
+        comment_id: u64,
+        status: String,
+        reason: String,
+    },
+    Finalize {
+        proposal_id: u64,
+        version: u32,
+    },
+    Withdraw {
+        proposal_id: u64,
+    },
+    MarkSubmitted {
+        proposal_id: u64,
+        dao_proposal_id: u64,
+    },
+    SetCommentHidden {
+        proposal_id: u64,
+        comment_id: u64,
+        hidden: bool,
+        reason: Option<String>,
+    },
+    SetModerator {
+        address: String,
+        enabled: bool,
+    },
+    SetBlocked {
+        address: String,
+        blocked: bool,
+        reason: Option<String>,
+    },
+    SetPaused {
+        paused: bool,
+    },
+    ProposeOwner {
+        address: String,
+    },
+    AcceptOwner {},
 }
 
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(Config)]
+    #[returns(crate::state::Config)]
     Config {},
     #[returns(Proposal)]
     Proposal { proposal_id: u64 },
     #[returns(Vec<Proposal>)]
-    Proposals { start_after: Option<u64>, limit: Option<u32> },
+    Proposals {
+        start_after: Option<u64>,
+        limit: Option<u32>,
+    },
+    #[returns(Vec<ProposalSummary>)]
+    ProposalSummaries {
+        start_after: Option<u64>,
+        limit: Option<u32>,
+    },
     #[returns(Vec<Revision>)]
-    Revisions { proposal_id: u64, start_after: Option<u32>, limit: Option<u32> },
-    #[returns(Vec<Comment>)]
-    Comments { proposal_id: u64, start_after: Option<u64>, limit: Option<u32> },
+    Revisions {
+        proposal_id: u64,
+        start_after: Option<u32>,
+        limit: Option<u32>,
+    },
+    #[returns(Vec<crate::state::Comment>)]
+    Comments {
+        proposal_id: u64,
+        start_after: Option<u64>,
+        limit: Option<u32>,
+    },
     #[returns(AccessResponse)]
     Access { address: String },
 }
 
 #[cw_serde]
-pub struct VotingPowerQuery { pub voting_power_at_height: VotingPowerAtHeight }
+pub struct VotingPowerQuery {
+    pub voting_power_at_height: VotingPowerAtHeight,
+}
 #[cw_serde]
-pub struct VotingPowerAtHeight { pub address: String, pub height: Option<u64> }
+pub struct VotingPowerAtHeight {
+    pub address: String,
+    pub height: Option<u64>,
+}
 #[cw_serde]
-pub struct VotingPowerResponse { pub power: Uint128, pub height: u64 }
+pub struct VotingPowerResponse {
+    pub power: Uint128,
+    pub height: u64,
+}
 
 #[cw_serde]
-pub struct StakedBalanceQuery { pub staked_balance_at_height: StakedBalanceAtHeight }
+pub struct StakedBalanceQuery {
+    pub staked_balance_at_height: StakedBalanceAtHeight,
+}
 #[cw_serde]
-pub struct StakedBalanceAtHeight { pub address: String, pub height: Option<u64> }
+pub struct StakedBalanceAtHeight {
+    pub address: String,
+    pub height: Option<u64>,
+}
 #[cw_serde]
-pub struct StakedBalanceResponse { pub balance: Uint128, pub height: u64 }
+pub struct StakedBalanceResponse {
+    pub balance: Uint128,
+    pub height: u64,
+}
 
 #[cw_serde]
 pub struct AccessResponse {
