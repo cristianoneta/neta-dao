@@ -29,6 +29,6 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add data/treasury/current.json data/treasury/history.json
+          git add data/treasury/current.json data/treasury/history.json data/treasury/juno-community-pool.json data/treasury/juno-community-history.json
           git diff --cached --quiet || git commit -m "Update treasury snapshot"
           git push
