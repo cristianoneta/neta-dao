@@ -104,7 +104,8 @@ body.revision-dialog-open { overflow:hidden; }
 .workspace-tabs button.active { background:var(--gov); color:#00120c; }
 .workspace-tabs>span { margin-left:auto; padding:0 16px; color:#557c6e; font-size:9px; letter-spacing:.18em; }
 .concept-page { --card:#00170f; }
-.concept-hero { display:flex; justify-content:space-between; align-items:flex-end; gap:32px; margin-bottom:34px; }
+.concept-page header { position:static; top:auto; z-index:auto; height:auto; min-height:0; background:transparent; backdrop-filter:none; }
+.concept-hero { display:flex; justify-content:space-between; align-items:flex-end; gap:32px; margin-bottom:34px; padding:0!important; border:0!important; }
 .concept-hero h1 { max-width:930px; margin:12px 0; font-size:clamp(36px,5.5vw,70px); line-height:.96; }
 .concept-hero p { max-width:800px; margin:0; color:var(--muted); line-height:1.55; }
 .concept-badge { min-width:150px; padding:15px; border:1px solid var(--warn); color:var(--warn); text-align:center; font-weight:900; letter-spacing:.12em; }
