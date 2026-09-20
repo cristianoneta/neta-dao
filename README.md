@@ -53,6 +53,8 @@ bash scripts/build-wasm.sh neta-proposal-workshop
 
 The CI workflow validates CosmWasm compatibility and verifies that the built Wasm is byte-identical to the shipped browser artifact.
 
+UNI-7 deployment behavior, known API compatibility constraints and the state-based transaction recovery procedure are documented in [`UNI7_DEPLOYMENT_RUNBOOK.md`](UNI7_DEPLOYMENT_RUNBOOK.md).
+
 ## Deployment rule
 
 Changes go through a pull request and must pass contract/frontend CI. Do not enable native Juno submission or treasury execution from frontend-only validation.
