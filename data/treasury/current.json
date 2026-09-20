@@ -1,9 +1,53 @@
 {
-  "assets": [],
-  "generated_at": null,
+  "assets": [
+    {
+      "amount": "500",
+      "change_24h": null,
+      "key": "native:ibc/1D9E14A1F00613ED39E4B8A8763A20C9BE5B5EA0198F2FE47EAE43CD91A0137B",
+      "symbol": "ibc/1D9E14A1F00613\u2026",
+      "type": "token",
+      "usd_price": null,
+      "usd_value": null
+    },
+    {
+      "amount": "69",
+      "change_24h": null,
+      "key": "native:ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241",
+      "symbol": "ibc/D836B191CDAE8E\u2026",
+      "type": "token",
+      "usd_price": null,
+      "usd_value": null
+    },
+    {
+      "amount": "1402.010133",
+      "change_24h": 5.1995394847389065,
+      "key": "native:ujuno",
+      "symbol": "JUNO",
+      "type": "token",
+      "usd_price": "0.0098414",
+      "usd_value": "13.7977425229062"
+    },
+    {
+      "amount": "2.571312",
+      "change_24h": null,
+      "key": "cw20:juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
+      "symbol": "NETA",
+      "type": "token",
+      "usd_price": "1.214035469948288945789760666",
+      "usd_value": "3.121663972303674745776561078"
+    }
+  ],
+  "balance_source": "https://juno-api.polkachu.com",
+  "chain_id": "juno-1",
+  "generated_at": "2026-09-20T18:17:48.625678Z",
+  "height": 41944508,
+  "price_source": "CoinGecko",
   "schema_version": 1,
-  "status": "AWAITING_FIRST_SNAPSHOT",
-  "total_usd": null,
+  "status": "PARTIAL",
+  "total_usd": "16.91940649520987474577656108",
   "treasury_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
-  "warnings": ["The first verified mainnet snapshot has not been collected yet."]
+  "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.",
+  "warnings": [
+    "Unpriced assets excluded from USD total: ibc/1D9E14A1F00613\u2026, ibc/D836B191CDAE8E\u2026"
+  ]
 }
