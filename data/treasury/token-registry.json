@@ -1,0 +1,46 @@
+{
+  "ibc/171E8F6687D290D378678310F9F15D367DCD245BF06184532B703A92054A8A4F": {
+    "base_denom": "axlDAI",
+    "coingecko": "dai",
+    "decimals": 18,
+    "origin": "IBC",
+    "symbol": "DAI.axl"
+  },
+  "ibc/4A482FA914A4B9B05801ED81C33713899F322B24F76A06F4B8FE872485EA22FF": {
+    "base_denom": "uusdc",
+    "coingecko": "usd-coin",
+    "decimals": 6,
+    "ibc_path": "transfer/channel-224/uusdc",
+    "origin": "IBC",
+    "symbol": "USDC.n"
+  },
+  "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9": {
+    "base_denom": "uatom",
+    "coingecko": "cosmos",
+    "decimals": 6,
+    "ibc_path": "transfer/channel-1/uatom",
+    "origin": "IBC",
+    "symbol": "ATOM"
+  },
+  "ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034": {
+    "base_denom": "uusdc",
+    "coingecko": "usd-coin",
+    "decimals": 6,
+    "origin": "IBC",
+    "symbol": "USDC"
+  },
+  "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518": {
+    "base_denom": "uosmo",
+    "coingecko": "osmosis",
+    "decimals": 6,
+    "origin": "IBC",
+    "symbol": "OSMO"
+  },
+  "ujuno": {
+    "base_denom": "ujuno",
+    "coingecko": "juno-network",
+    "decimals": 6,
+    "origin": "Juno",
+    "symbol": "JUNO"
+  }
+}
