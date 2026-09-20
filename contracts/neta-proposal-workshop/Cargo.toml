@@ -19,3 +19,14 @@ serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
 sha2 = "0.10"
 serde_json = "1.0"
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = "abort"
+incremental = false
+overflow-checks = true

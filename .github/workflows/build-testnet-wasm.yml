@@ -22,7 +22,7 @@ jobs:
         run: rustup show
       - name: Build release WASM
         working-directory: contracts/${{ matrix.contract }}
-        run: cargo build --locked --release --target wasm32-unknown-unknown
+        run: cargo build -j 1 --locked --release --target wasm32-unknown-unknown
       - name: Validate CosmWasm artifact
         run: |
           cargo install cosmwasm-check --version 1.5.11 --locked
