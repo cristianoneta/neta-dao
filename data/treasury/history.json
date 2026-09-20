@@ -1,4 +1,33 @@
 {
   "schema_version": 1,
-  "snapshots": []
+  "snapshots": [
+    {
+      "assets": [
+        {
+          "amount": "500",
+          "key": "native:ibc/1D9E14A1F00613ED39E4B8A8763A20C9BE5B5EA0198F2FE47EAE43CD91A0137B",
+          "usd_value": null
+        },
+        {
+          "amount": "69",
+          "key": "native:ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241",
+          "usd_value": null
+        },
+        {
+          "amount": "1402.010133",
+          "key": "native:ujuno",
+          "usd_value": "13.77359990841594"
+        },
+        {
+          "amount": "2.571312",
+          "key": "cw20:juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
+          "usd_value": "3.116201837485145951182065135"
+        }
+      ],
+      "generated_at": "2026-09-20T19:10:17.720457Z",
+      "height": 41945633,
+      "status": "PARTIAL",
+      "total_usd": "16.88980174590108595118206514"
+    }
+  ]
 }
