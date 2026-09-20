@@ -1,0 +1,9 @@
+{
+  "assets": [],
+  "generated_at": null,
+  "schema_version": 1,
+  "status": "AWAITING_FIRST_SNAPSHOT",
+  "total_usd": null,
+  "treasury_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
+  "warnings": ["The first verified mainnet snapshot has not been collected yet."]
+}
