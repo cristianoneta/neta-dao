@@ -6,10 +6,21 @@ import test from "node:test";
 
 const governance = readFileSync("neta-governance.js", "utf8");
 const html = readFileSync("index.html", "utf8");
+const treasury = readFileSync("treasury.js", "utf8");
 
 test("browser scripts parse", () => {
   execFileSync(process.execPath, ["--check", "neta-governance.js"]);
   execFileSync(process.execPath, ["--check", "ux-draft.js"]);
+  execFileSync(process.execPath, ["--check", "treasury.js"]);
+});
+
+test("treasury renders LP ownership and underlying assets without HTML injection", () => {
+  assert.match(treasury, /item\.type==="lp"/);
+  assert.match(treasury, /item\.underlyings/);
+  assert.doesNotMatch(treasury, /\.innerHTML\s*=|insertAdjacentHTML|\.outerHTML\s*=/);
+  for (const id of ["treasury-assets", "treasury-total", "treasury-updated", "treasury-refresh"]) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
 });
 
 test("user content is not rendered through HTML injection sinks", () => {
