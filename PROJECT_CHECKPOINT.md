@@ -13,6 +13,8 @@ Updated: 20 September 2026
 - Mainnet Juno governance history and live funding/voting parameters.
 - Home, Delivery, Contributors and Treasury pages; the last three remain clearly marked UX drafts.
 - Request race protection and Keplr account-change invalidation.
+- Structured proposal deliverables with deadline, responsible party, confirmer and evidence requirements, stored revision-by-revision in the existing payload.
+- Per-DAO contextual staking destinations shown only when a connected discussion participant lacks comment eligibility.
 
 ## Access rules
 

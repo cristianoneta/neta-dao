@@ -34,11 +34,12 @@
       <div id="proposal-details">
       <label>PROPOSAL BODY<textarea id="proposal-body" maxlength="20000" rows="12" placeholder="Context, rationale and expected outcome"></textarea></label>
       <section class="actions-panel"><header><div><span>EXECUTION</span><h3>ACTIONS</h3></div><button id="add-action" type="button">+ ADD ACTION</button></header><textarea id="proposal-actions" rows="5" spellcheck="false">[]</textarea></section>
+      <section class="deliverables-panel"><header><div><span>ACCOUNTABLE DELIVERY</span><h3>DELIVERABLES</h3></div><button id="add-deliverable" type="button">+ ADD DELIVERABLE</button></header><p>Define what must be delivered, by whom, by when and who must confirm completion.</p><div id="deliverable-list"></div></section>
       <label id="change-note-wrap" hidden>WHAT CHANGED?<input id="change-note" maxlength="500" placeholder="Summarize this revision"></label>
       <section id="revision-panel" class="revision-panel" hidden><header><h3>REVISION HISTORY</h3></header><div id="revision-list"></div></section>
       </div>
-      <section id="discussion-panel" class="discussion-panel" hidden><header><div><span>TOPIC THREADS</span><h3>DISCUSSION</h3></div><span>STRICTLY &gt; 10 NETA STAKED</span></header><div id="comment-list"></div><form id="comment-form"><div class="comment-form-heading"><strong id="comment-form-title">START A NEW TOPIC</strong><button id="cancel-reply" type="button" hidden>CANCEL REPLY</button></div><input id="comment-title" maxlength="100" placeholder="Name the topic you want to discuss"><textarea id="comment-body" maxlength="1500" rows="3" placeholder="Introduce the topic"></textarea><button id="publish-comment" type="submit">START THREAD</button></form></section>
-      <footer class="next-actions"><p id="action-hint">Save this private draft in your browser or publish it for public review.</p><div><button id="discard-action" class="danger" type="button">DISCARD</button><button id="save-local" type="button">SAVE REVISION LOCALLY</button><button id="publish-revision" type="button" hidden>PUBLISH NEW REVISION</button><button id="delegate-test-junox" type="button" hidden>DELEGATE 100 JUNOX · TEMPORARY</button><button id="primary-action" type="button">PUBLISH FOR REVIEW</button></div></footer>
+      <section id="discussion-panel" class="discussion-panel" hidden><header><div><span>TOPIC THREADS</span><h3>DISCUSSION</h3></div><span id="comment-requirement">STRICTLY &gt; 10 NETA STAKED</span></header><div id="comment-list"></div><form id="comment-form"><div class="comment-form-heading"><strong id="comment-form-title">START A NEW TOPIC</strong><button id="cancel-reply" type="button" hidden>CANCEL REPLY</button></div><input id="comment-title" maxlength="100" placeholder="Name the topic you want to discuss"><textarea id="comment-body" maxlength="1500" rows="3" placeholder="Introduce the topic"></textarea><button id="publish-comment" type="submit">START THREAD</button></form></section>
+      <footer class="next-actions"><p id="action-hint">Save this private draft in your browser or publish it for public review.</p><div><button id="discard-action" class="danger" type="button">DISCARD</button><button id="save-local" type="button">SAVE REVISION LOCALLY</button><button id="publish-revision" type="button" hidden>PUBLISH NEW REVISION</button><button id="eligibility-action" type="button" hidden>OPEN STAKING</button><button id="primary-action" type="button">PUBLISH FOR REVIEW</button></div></footer>
     </section>
   </div>
   </section>
@@ -101,5 +102,5 @@
     </form>
   </section>
 </div>
-<script src="assets/socials-testnet-client.js?v=4"></script><script src="neta-governance.js?v=22"></script><script src="ux-draft.js?v=3"></script>
+<script src="assets/socials-testnet-client.js?v=4"></script><script src="neta-governance.js?v=23"></script><script src="ux-draft.js?v=3"></script>
 </body></html>
