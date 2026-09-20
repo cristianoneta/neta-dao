@@ -24,6 +24,7 @@ test("governance controls referenced by JavaScript exist", () => {
     "dao-options",
     "proposal-list",
     "primary-action",
+    "delegate-test-junox",
     "revision-dialog",
     "comment-form",
   ]) {
@@ -67,4 +68,12 @@ test("Juno review explains each missing stake requirement", () => {
   assert.match(governance, /MORE JUNOX DELEGATED/);
   assert.match(governance, /MORE TEST NETA STAKED/);
   assert.match(governance, /CURRENT:/);
+});
+
+test("temporary UNI-7 delegation is fixed and admin-scoped", () => {
+  assert.match(governance, /TEST_DELEGATION_AMOUNT="100000000"/);
+  assert.match(governance, /MsgDelegate/);
+  assert.match(governance, /state\.address!==TEST_ADMIN/);
+  assert.match(governance, /amount:"60000"/);
+  assert.match(governance, /gas:"300000"/);
 });
