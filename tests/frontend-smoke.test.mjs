@@ -58,3 +58,7 @@ test("UNI-7 code discovery accepts hexadecimal data hashes", () => {
   assert.match(governance, /\^\[0-9a-f\]\{64\}\$/i);
   assert.match(governance, /hashHex\(info\.data_hash\)/);
 });
+
+test("Juno review uses the canonical UNI-7 contract", () => {
+  assert.match(governance, /id:"juno"[^}]+mode:"native-gov"[^}]+workshopContract:"juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw"/);
+});
