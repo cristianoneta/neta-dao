@@ -10,6 +10,9 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
 
 - The header selects a chain and then a DAO. Both current DAOs live on Juno; the
   split is deliberate preparation for DAO tooling that can control other chains.
+- The active workspace section is encoded in the URL hash and retained locally,
+  so refreshing or directly opening `#treasury`, `#contributors`, `#delivery`
+  or `#governance` preserves the selected view.
 - Proposals supports private browser drafts, public UNI-7 review, revisions,
   threaded discussion, withdrawal and structured deliverables.
 - NETA Operations uses its DAO voting/staking contracts. Publishing requires DAO
