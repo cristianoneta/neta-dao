@@ -29,12 +29,14 @@ Delivery and Contributors remain visual drafts. Treasury asset balances are coll
 LP positions remain visible as LP-token holdings. Each position expands into its proportional underlying reserves, and its USD value is calculated from those reserves exactly once; underlying amounts are not added again as free treasury tokens. The collector fails visibly on unavailable providers and retains source, timestamp and block height.
 
 The Treasury history view uses the retained daily snapshots and the current
-verified state for 7/30/90-day and all-time views. It displays total USD value,
-custody by chain and asset composition. For consecutive observations, opening
+verified state for 7/30/90-day and all-time views. It focuses on total USD value
+and change attribution without repeating the live asset list. For consecutive observations, opening
 quantities are revalued at closing prices to isolate market movement; the
 remaining value change is reported as net token flow. Transfers between
 DAO-controlled Juno and Osmosis custody consolidate under the same asset identity
-and do not create an external inflow or outflow.
+and do not create an external inflow or outflow. Chain and custody address remain
+available on each asset row by hover or keyboard focus and are shown inline on
+mobile.
 
 Known native and IBC-denom mappings are versioned in `data/treasury/token-registry.json`. Each generated snapshot also retains the full on-chain denom, resolved base denom and IBC path. Unknown hashes are queried from Juno at collection time and remain visibly unpriced instead of being assigned a guessed identity.
 
