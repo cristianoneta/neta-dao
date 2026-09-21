@@ -55,6 +55,11 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   idempotently. RPCs with an empty historical index are rejected during provider
   selection. The Osmosis proxy is deliberately out of scope until this first ledger
   has been reviewed.
+- The Treasury Events frontend now reads that ledger. The default list is the three
+  latest non-technical value movements; `VIEW ALL` filters all confirmed inflows and
+  payments. Proposal badges open the matching Operations proposal in the local
+  Governance view, while TX and counterparty links open Atomscan. Pruned timestamps
+  are represented by exact block heights rather than estimates.
 
 ## Operational rules
 
