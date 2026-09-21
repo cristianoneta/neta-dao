@@ -19,8 +19,9 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   for community review. Review writes require 1 delegated JUNOX plus 1 staked test
   NETA. Native mainnet deposit, submission and voting are intentionally disabled.
 - Delivery, Treasury and Contributors communicate the intended product model.
-  Delivery and Contributors are still UX concepts. Treasury balances are live;
-  forecasting, commitments, recurring cash flow and runway are sample UX only.
+  Delivery and Contributors are still UX concepts. Treasury balances and daily
+  value history are live and read-only; forecasting, commitments, recurring cash
+  flow and runway are sample UX only.
 - Deliverables are stored inside `actions_json` as `dao_deliverable_v1`. They are
   planning records, not executable Cosmos messages.
 
@@ -75,8 +76,12 @@ collection is intended; syntax and frontend tests are non-mutating.
   every provider is unavailable.
 - A Pages deployment timed out in GitHub's `updating_pages` phase after a successful
   build. Later deployments succeeded; this was not an application build defect.
-- Next Treasury work: historical and forecast cash flow, recurring income/expenses,
-  proposal-linked obligations, open milestone payments, price history and runway.
+- Treasury history uses the daily snapshots plus the current verified state. It
+  shows total value, chain and asset composition, and attributes changes between
+  comparable holdings to price effect versus net token flow. Fewer than two daily
+  observations remain explicitly unavailable rather than using sample values.
+- Next Treasury work: transaction-backed cash flow, recurring income/expenses,
+  proposal-linked obligations, open milestone payments and derived runway.
 - AtomOne is research only. Its reserved treasury address is not an active DAO;
   AtomOne lacks CosmWasm for native Polytone deployment. ICA would create a separate
   host-chain account and needs host support plus an adapter/controller design.
