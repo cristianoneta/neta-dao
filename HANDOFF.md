@@ -77,8 +77,10 @@ collection is intended; syntax and frontend tests are non-mutating.
 - A Pages deployment timed out in GitHub's `updating_pages` phase after a successful
   build. Later deployments succeeded; this was not an application build defect.
 - Treasury history uses the daily snapshots plus the current verified state. It
-  shows total value, chain and asset composition, and attributes changes between
-  comparable holdings to price effect versus net token flow. Fewer than two daily
+  shows total value and attributes changes between comparable holdings to price
+  effect versus net token flow. It deliberately does not duplicate the live asset
+  list or add a separate custody-by-chain panel. Asset rows expose their chain and
+  custody address on hover/focus and inline on mobile. Fewer than two daily
   observations remain explicitly unavailable rather than using sample values.
 - Next Treasury work: transaction-backed cash flow, recurring income/expenses,
   proposal-linked obligations, open milestone payments and derived runway.
