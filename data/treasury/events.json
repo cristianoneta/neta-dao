@@ -1,0 +1,1360 @@
+{
+  "cursor": {
+    "contract_creation_height": 4322988,
+    "last_scanned_height": 41976101,
+    "strategy": "full-address-index-replay"
+  },
+  "events": [
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/2578EF47277EF5531595BAB710AFF6431EFA9612E9C89B73DEB81B66C83FF1DD",
+      "height": 31746799,
+      "ibc_packets": 2,
+      "id": "juno-1:2578EF47277EF5531595BAB710AFF6431EFA9612E9C89B73DEB81B66C83FF1DD",
+      "movements": [],
+      "proposal_id": "98",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "2578EF47277EF5531595BAB710AFF6431EFA9612E9C89B73DEB81B66C83FF1DD",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/889291AD841C138BE8395DE20EDC0F5E43CF515251362DA6BDBA653A3996844E",
+      "height": 31745744,
+      "ibc_packets": 2,
+      "id": "juno-1:889291AD841C138BE8395DE20EDC0F5E43CF515251362DA6BDBA653A3996844E",
+      "movements": [],
+      "proposal_id": "97",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "889291AD841C138BE8395DE20EDC0F5E43CF515251362DA6BDBA653A3996844E",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/C96E3E811A017FA8715C3FD1A8B1FC0F105A2034D50E62E478D6A3C703872368",
+      "height": 31745407,
+      "ibc_packets": 1,
+      "id": "juno-1:C96E3E811A017FA8715C3FD1A8B1FC0F105A2034D50E62E478D6A3C703872368",
+      "movements": [],
+      "proposal_id": "96",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "C96E3E811A017FA8715C3FD1A8B1FC0F105A2034D50E62E478D6A3C703872368",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/DC5CE670C7EADA3AA7CD0712A85CD6A11626E524B4B20CDED6E9BF7C7604F317",
+      "height": 31743945,
+      "ibc_packets": 1,
+      "id": "juno-1:DC5CE670C7EADA3AA7CD0712A85CD6A11626E524B4B20CDED6E9BF7C7604F317",
+      "movements": [],
+      "proposal_id": "94",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "DC5CE670C7EADA3AA7CD0712A85CD6A11626E524B4B20CDED6E9BF7C7604F317",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/A36C3DDDF49F17BE69AB393C7415C24E922C6B515C1523BAB50B9D321B17D80F",
+      "height": 31708128,
+      "ibc_packets": 1,
+      "id": "juno-1:A36C3DDDF49F17BE69AB393C7415C24E922C6B515C1523BAB50B9D321B17D80F",
+      "movements": [],
+      "proposal_id": "93",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "A36C3DDDF49F17BE69AB393C7415C24E922C6B515C1523BAB50B9D321B17D80F",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/58DA2E6477021A3C8550CE324FE8A67315BB4DB74DD10D9D5EA8061E2D8956D0",
+      "height": 31708107,
+      "ibc_packets": 1,
+      "id": "juno-1:58DA2E6477021A3C8550CE324FE8A67315BB4DB74DD10D9D5EA8061E2D8956D0",
+      "movements": [],
+      "proposal_id": "92",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "58DA2E6477021A3C8550CE324FE8A67315BB4DB74DD10D9D5EA8061E2D8956D0",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/86349EAEEA5FB37BC7C9F240B80832AA1F6F7982035D5D0A27ECC68518B7A384",
+      "height": 31708097,
+      "ibc_packets": 1,
+      "id": "juno-1:86349EAEEA5FB37BC7C9F240B80832AA1F6F7982035D5D0A27ECC68518B7A384",
+      "movements": [],
+      "proposal_id": "91",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "86349EAEEA5FB37BC7C9F240B80832AA1F6F7982035D5D0A27ECC68518B7A384",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/E77FE5F510A10B6419975DABD201EA47B0DDB1293988E2AE9781A65A5ADB789A",
+      "height": 31701401,
+      "ibc_packets": 1,
+      "id": "juno-1:E77FE5F510A10B6419975DABD201EA47B0DDB1293988E2AE9781A65A5ADB789A",
+      "movements": [],
+      "proposal_id": "88",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "E77FE5F510A10B6419975DABD201EA47B0DDB1293988E2AE9781A65A5ADB789A",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/003BBDB5E47210DDD71E518E3A91A60BA6F7ADEB7C5F6EC7806BA1A9D13AD159",
+      "height": 31701389,
+      "ibc_packets": 1,
+      "id": "juno-1:003BBDB5E47210DDD71E518E3A91A60BA6F7ADEB7C5F6EC7806BA1A9D13AD159",
+      "movements": [],
+      "proposal_id": "89",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "003BBDB5E47210DDD71E518E3A91A60BA6F7ADEB7C5F6EC7806BA1A9D13AD159",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/703CB8B22CC6FC881662C2F581B5631674D4D56D2DB0C79472EA9371ECEC57F9",
+      "height": 31701370,
+      "ibc_packets": 1,
+      "id": "juno-1:703CB8B22CC6FC881662C2F581B5631674D4D56D2DB0C79472EA9371ECEC57F9",
+      "movements": [],
+      "proposal_id": "90",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "703CB8B22CC6FC881662C2F581B5631674D4D56D2DB0C79472EA9371ECEC57F9",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/D1832B18F626D274D98C07E542595DAC19160093994C0DD74C85FCE9DA6A2E0B",
+      "height": 31572826,
+      "ibc_packets": 1,
+      "id": "juno-1:D1832B18F626D274D98C07E542595DAC19160093994C0DD74C85FCE9DA6A2E0B",
+      "movements": [],
+      "proposal_id": "87",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "D1832B18F626D274D98C07E542595DAC19160093994C0DD74C85FCE9DA6A2E0B",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook",
+        "update_members"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/1E98EFBBD1AB47F5C557AC515EA42A6BE6ADA325104F40D9D5E986BA0CE794A7",
+      "height": 31004711,
+      "ibc_packets": 0,
+      "id": "juno-1:1E98EFBBD1AB47F5C557AC515EA42A6BE6ADA325104F40D9D5E986BA0CE794A7",
+      "movements": [],
+      "proposal_id": "85",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "DAO proposal 85 executed",
+      "tx_hash": "1E98EFBBD1AB47F5C557AC515EA42A6BE6ADA325104F40D9D5E986BA0CE794A7",
+      "type": "proposal_execution"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/2B1AF4BFEF393B401DB225EBBAF862075D7ABAD55CCAA4D7BDABAB62328A203B",
+      "height": 30974153,
+      "ibc_packets": 8,
+      "id": "juno-1:2B1AF4BFEF393B401DB225EBBAF862075D7ABAD55CCAA4D7BDABAB62328A203B",
+      "movements": [],
+      "proposal_id": "84",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "2B1AF4BFEF393B401DB225EBBAF862075D7ABAD55CCAA4D7BDABAB62328A203B",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook",
+        "update_members"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/31F2AD9EDED4B2EAB856C1205891CDB24DED66C925732E72AA721FDE492F22B1",
+      "height": 30974015,
+      "ibc_packets": 0,
+      "id": "juno-1:31F2AD9EDED4B2EAB856C1205891CDB24DED66C925732E72AA721FDE492F22B1",
+      "movements": [],
+      "proposal_id": "83",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "DAO proposal 83 executed",
+      "tx_hash": "31F2AD9EDED4B2EAB856C1205891CDB24DED66C925732E72AA721FDE492F22B1",
+      "type": "proposal_execution"
+    },
+    {
+      "actions": [
+        "execute",
+        "instantiate",
+        "instantiate2_contract_with_self_admin",
+        "mint",
+        "set_denom_metadata",
+        "set_minter"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/B03D511E6E45DD0094E35FA1B5066A2FBC5AC228643A3B8090456DEA8C4F69F8",
+      "height": 30927359,
+      "ibc_packets": 0,
+      "id": "juno-1:B03D511E6E45DD0094E35FA1B5066A2FBC5AC228643A3B8090456DEA8C4F69F8",
+      "movements": [
+        {
+          "amount": "90000",
+          "asset": "factory/juno1upn6s8v7ykrkef8f9gvqsdy4vqm4qpd8lf6yt5rn0r6cm3amg77q3sjt0n/testingaten",
+          "counterparty": "juno1upn6s8v7ykrkef8f9gvqsdy4vqm4qpd8lf6yt5rn0r6cm3amg77q3sjt0n",
+          "denom": "factory/juno1upn6s8v7ykrkef8f9gvqsdy4vqm4qpd8lf6yt5rn0r6cm3amg77q3sjt0n/testingaten",
+          "direction": "in",
+          "raw_amount": "90000000000"
+        }
+      ],
+      "proposal_id": null,
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "90000 factory/juno1upn6s8v7ykrkef8f9gvqsdy4vqm4qpd8lf6yt5rn0r6cm3amg77q3sjt0n/testingaten received",
+      "tx_hash": "B03D511E6E45DD0094E35FA1B5066A2FBC5AC228643A3B8090456DEA8C4F69F8",
+      "type": "inflow"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/8DFD1A9DECBD48FD5AC93C75A856277F7863301A56E08A1D1D4C681B22AE0BB7",
+      "height": 30812998,
+      "ibc_packets": 1,
+      "id": "juno-1:8DFD1A9DECBD48FD5AC93C75A856277F7863301A56E08A1D1D4C681B22AE0BB7",
+      "movements": [],
+      "proposal_id": "82",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "8DFD1A9DECBD48FD5AC93C75A856277F7863301A56E08A1D1D4C681B22AE0BB7",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/5023AF4CC39B15E04B70863CAC587C91EAEAC2885EA53E65B172D2D322474217",
+      "height": 30422414,
+      "ibc_packets": 3,
+      "id": "juno-1:5023AF4CC39B15E04B70863CAC587C91EAEAC2885EA53E65B172D2D322474217",
+      "movements": [],
+      "proposal_id": "81",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "5023AF4CC39B15E04B70863CAC587C91EAEAC2885EA53E65B172D2D322474217",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/21B321D06C0418DE570F8D790254CE274EEB3EDB251DFFAF6A427D9F8A2E07D4",
+      "height": 30351106,
+      "ibc_packets": 1,
+      "id": "juno-1:21B321D06C0418DE570F8D790254CE274EEB3EDB251DFFAF6A427D9F8A2E07D4",
+      "movements": [],
+      "proposal_id": "79",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "21B321D06C0418DE570F8D790254CE274EEB3EDB251DFFAF6A427D9F8A2E07D4",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/EC9A612912EBEDE6FE1E8582E8BCC1EF431472EFBFE77543FF76B7E06220ACB0",
+      "height": 29563160,
+      "ibc_packets": 1,
+      "id": "juno-1:EC9A612912EBEDE6FE1E8582E8BCC1EF431472EFBFE77543FF76B7E06220ACB0",
+      "movements": [],
+      "proposal_id": "78",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "EC9A612912EBEDE6FE1E8582E8BCC1EF431472EFBFE77543FF76B7E06220ACB0",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/EB1B38474B38F4891180BDA3C6AF78EE7A4C0DBE680BB800B987EA1784EE2CF9",
+      "height": 29562509,
+      "ibc_packets": 2,
+      "id": "juno-1:EB1B38474B38F4891180BDA3C6AF78EE7A4C0DBE680BB800B987EA1784EE2CF9",
+      "movements": [
+        {
+          "amount": "798",
+          "asset": "JUNO",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "798000000"
+        }
+      ],
+      "proposal_id": "77",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "798 JUNO sent",
+      "tx_hash": "EB1B38474B38F4891180BDA3C6AF78EE7A4C0DBE680BB800B987EA1784EE2CF9",
+      "type": "payment"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/D4E991EA7960935914111BCFE2C3E4FFDC05AC62ED0AF8A38355B6F1CB25A3D9",
+      "height": 29562494,
+      "ibc_packets": 1,
+      "id": "juno-1:D4E991EA7960935914111BCFE2C3E4FFDC05AC62ED0AF8A38355B6F1CB25A3D9",
+      "movements": [],
+      "proposal_id": "76",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "D4E991EA7960935914111BCFE2C3E4FFDC05AC62ED0AF8A38355B6F1CB25A3D9",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/1E58904DC3A1A3314F8B4F20A6E51ED2DC2ABCF6FA4E14FBAB667CB096288DE3",
+      "height": 29129021,
+      "ibc_packets": 2,
+      "id": "juno-1:1E58904DC3A1A3314F8B4F20A6E51ED2DC2ABCF6FA4E14FBAB667CB096288DE3",
+      "movements": [
+        {
+          "amount": "798",
+          "asset": "JUNO",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "798000000"
+        }
+      ],
+      "proposal_id": "75",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "798 JUNO sent",
+      "tx_hash": "1E58904DC3A1A3314F8B4F20A6E51ED2DC2ABCF6FA4E14FBAB667CB096288DE3",
+      "type": "payment"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/C164D259020B605CDE715227A275FF2BC18C2D66FDA18F4DA229EBEE533911A1",
+      "height": 29121746,
+      "ibc_packets": 1,
+      "id": "juno-1:C164D259020B605CDE715227A275FF2BC18C2D66FDA18F4DA229EBEE533911A1",
+      "movements": [],
+      "proposal_id": "74",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "C164D259020B605CDE715227A275FF2BC18C2D66FDA18F4DA229EBEE533911A1",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/0D1DABD865869DB95C9CC04C28150528E5B874766FCEF0983E4D336A848BF0EE",
+      "height": 29120925,
+      "ibc_packets": 0,
+      "id": "juno-1:0D1DABD865869DB95C9CC04C28150528E5B874766FCEF0983E4D336A848BF0EE",
+      "movements": [
+        {
+          "amount": "198.832484",
+          "asset": "AKT",
+          "counterparty": "juno1kkerfymlqzjd45xlvvle6yyjh849m7xvpf9jaq",
+          "denom": "ibc/DFC6F33796D5D0075C5FB54A4D7B8E76915ACF434CB1EE2A1BA0BB8334E17C3A",
+          "direction": "out",
+          "raw_amount": "198832484"
+        }
+      ],
+      "proposal_id": "73",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "198.832484 AKT sent",
+      "tx_hash": "0D1DABD865869DB95C9CC04C28150528E5B874766FCEF0983E4D336A848BF0EE",
+      "type": "payment"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook",
+        "update_members"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/550DC8AB371A6356524E56FCF853D2C1B5F310BBB47D7B22D384CF4D601819EB",
+      "height": 28324103,
+      "ibc_packets": 0,
+      "id": "juno-1:550DC8AB371A6356524E56FCF853D2C1B5F310BBB47D7B22D384CF4D601819EB",
+      "movements": [],
+      "proposal_id": "72",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "DAO proposal 72 executed",
+      "tx_hash": "550DC8AB371A6356524E56FCF853D2C1B5F310BBB47D7B22D384CF4D601819EB",
+      "type": "proposal_execution"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/E95FDF67344B9D54C41F49916B6C6BB6456533AE33F0A871E1C4D2A14AAD2F8A",
+      "height": 28322302,
+      "ibc_packets": 2,
+      "id": "juno-1:E95FDF67344B9D54C41F49916B6C6BB6456533AE33F0A871E1C4D2A14AAD2F8A",
+      "movements": [
+        {
+          "amount": "1290",
+          "asset": "JUNO",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "1290000000"
+        }
+      ],
+      "proposal_id": "71",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "1290 JUNO sent",
+      "tx_hash": "E95FDF67344B9D54C41F49916B6C6BB6456533AE33F0A871E1C4D2A14AAD2F8A",
+      "type": "payment"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/1E0DDB4FACD5AEA9CF4134939E4DD84124B910239816F99105D43D6C21966BB3",
+      "height": 27477944,
+      "ibc_packets": 1,
+      "id": "juno-1:1E0DDB4FACD5AEA9CF4134939E4DD84124B910239816F99105D43D6C21966BB3",
+      "movements": [],
+      "proposal_id": "69",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "1E0DDB4FACD5AEA9CF4134939E4DD84124B910239816F99105D43D6C21966BB3",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook",
+        "update_members"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/3444A5871B6C510B73BB6D6AE1F80662809D41CA3DEB7B689EA8F74991970826",
+      "height": 27468813,
+      "ibc_packets": 0,
+      "id": "juno-1:3444A5871B6C510B73BB6D6AE1F80662809D41CA3DEB7B689EA8F74991970826",
+      "movements": [],
+      "proposal_id": "70",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "DAO proposal 70 executed",
+      "tx_hash": "3444A5871B6C510B73BB6D6AE1F80662809D41CA3DEB7B689EA8F74991970826",
+      "type": "proposal_execution"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/F0F33C70F95BEDB610B4E6CFA0DE6477B0A86AE5A82CB9D800B1FE951BDF59C0",
+      "height": 27462251,
+      "ibc_packets": 2,
+      "id": "juno-1:F0F33C70F95BEDB610B4E6CFA0DE6477B0A86AE5A82CB9D800B1FE951BDF59C0",
+      "movements": [
+        {
+          "amount": "489.5",
+          "asset": "JUNO",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "489500000"
+        }
+      ],
+      "proposal_id": "68",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "489.5 JUNO sent",
+      "tx_hash": "F0F33C70F95BEDB610B4E6CFA0DE6477B0A86AE5A82CB9D800B1FE951BDF59C0",
+      "type": "payment"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/15630B509FD2C7246C759E9A39B26560935E7E5C18603F1C3302BD2A1E68BD27",
+      "height": 27225334,
+      "ibc_packets": 2,
+      "id": "juno-1:15630B509FD2C7246C759E9A39B26560935E7E5C18603F1C3302BD2A1E68BD27",
+      "movements": [],
+      "proposal_id": "67",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "15630B509FD2C7246C759E9A39B26560935E7E5C18603F1C3302BD2A1E68BD27",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook",
+        "update_members"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/8F73A0A90EA91D535487366F3BD2C5CB8178082409800DC515FEB7ADA8EA609A",
+      "height": 26619429,
+      "ibc_packets": 0,
+      "id": "juno-1:8F73A0A90EA91D535487366F3BD2C5CB8178082409800DC515FEB7ADA8EA609A",
+      "movements": [],
+      "proposal_id": "66",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "DAO proposal 66 executed",
+      "tx_hash": "8F73A0A90EA91D535487366F3BD2C5CB8178082409800DC515FEB7ADA8EA609A",
+      "type": "proposal_execution"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/F16011678D87CF496E3090F8A4B3463E075B40C5A3078D5AA66C6805555E2101",
+      "height": 26523518,
+      "ibc_packets": 2,
+      "id": "juno-1:F16011678D87CF496E3090F8A4B3463E075B40C5A3078D5AA66C6805555E2101",
+      "movements": [
+        {
+          "amount": "355",
+          "asset": "JUNO",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "355000000"
+        }
+      ],
+      "proposal_id": "65",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "355 JUNO sent",
+      "tx_hash": "F16011678D87CF496E3090F8A4B3463E075B40C5A3078D5AA66C6805555E2101",
+      "type": "payment"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/7A364DB2D6DBF7B7AC20644C2D0540086EDE3B743112F99AF5FED749CFB423D3",
+      "height": 25512543,
+      "ibc_packets": 1,
+      "id": "juno-1:7A364DB2D6DBF7B7AC20644C2D0540086EDE3B743112F99AF5FED749CFB423D3",
+      "movements": [],
+      "proposal_id": "64",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "7A364DB2D6DBF7B7AC20644C2D0540086EDE3B743112F99AF5FED749CFB423D3",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/A8BC6961E41C48026EEA8E785FD493FB2EE7AEFDB5C272D54B3FE04A30A4509B",
+      "height": 25278671,
+      "ibc_packets": 0,
+      "id": "juno-1:A8BC6961E41C48026EEA8E785FD493FB2EE7AEFDB5C272D54B3FE04A30A4509B",
+      "movements": [
+        {
+          "amount": "799",
+          "asset": "JUNO",
+          "counterparty": "juno1f2jpv5sc6ur6yurq5w0t2chphrznpy8lk3y2hf",
+          "denom": "ujuno",
+          "direction": "in",
+          "raw_amount": "799000000"
+        }
+      ],
+      "proposal_id": null,
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "799 JUNO received",
+      "tx_hash": "A8BC6961E41C48026EEA8E785FD493FB2EE7AEFDB5C272D54B3FE04A30A4509B",
+      "type": "inflow"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/3B1B897D2CA6198E709E663F3B8D9B3AC8E4C0C3104A502EB6E13132D1214B58",
+      "height": 24077230,
+      "ibc_packets": 2,
+      "id": "juno-1:3B1B897D2CA6198E709E663F3B8D9B3AC8E4C0C3104A502EB6E13132D1214B58",
+      "movements": [
+        {
+          "amount": "496",
+          "asset": "JUNO",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "496000000"
+        }
+      ],
+      "proposal_id": "62",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "496 JUNO sent",
+      "tx_hash": "3B1B897D2CA6198E709E663F3B8D9B3AC8E4C0C3104A502EB6E13132D1214B58",
+      "type": "payment"
+    },
+    {
+      "actions": [],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/616173BC1E4F89BD35A4014CC3F5FF76F9EA5D0F9A83734BB88DFA3DD5C37E5C",
+      "height": 23700424,
+      "ibc_packets": 0,
+      "id": "juno-1:616173BC1E4F89BD35A4014CC3F5FF76F9EA5D0F9A83734BB88DFA3DD5C37E5C",
+      "movements": [
+        {
+          "amount": "496",
+          "asset": "JUNO",
+          "counterparty": "juno1f2jpv5sc6ur6yurq5w0t2chphrznpy8lk3y2hf",
+          "denom": "ujuno",
+          "direction": "in",
+          "raw_amount": "496000000"
+        }
+      ],
+      "proposal_id": null,
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "496 JUNO received",
+      "tx_hash": "616173BC1E4F89BD35A4014CC3F5FF76F9EA5D0F9A83734BB88DFA3DD5C37E5C",
+      "type": "inflow"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/608CB5723CF11B3E01588E4BD6712C2D7465B9EB0DC701AB72E4579EADC846E8",
+      "height": 23632710,
+      "ibc_packets": 1,
+      "id": "juno-1:608CB5723CF11B3E01588E4BD6712C2D7465B9EB0DC701AB72E4579EADC846E8",
+      "movements": [],
+      "proposal_id": "61",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "608CB5723CF11B3E01588E4BD6712C2D7465B9EB0DC701AB72E4579EADC846E8",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/1BBEDE662E647823603DD0B781E57054426A208DEC4CB0BE7AFAF4C2589432B1",
+      "height": 23600736,
+      "ibc_packets": 1,
+      "id": "juno-1:1BBEDE662E647823603DD0B781E57054426A208DEC4CB0BE7AFAF4C2589432B1",
+      "movements": [
+        {
+          "amount": "2000",
+          "asset": "JUNO",
+          "counterparty": "juno1a53udazy8ayufvy0s434pfwjcedzqv34q7p7vj",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "2000000000"
+        }
+      ],
+      "proposal_id": "60",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "2000 JUNO sent",
+      "tx_hash": "1BBEDE662E647823603DD0B781E57054426A208DEC4CB0BE7AFAF4C2589432B1",
+      "type": "payment"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/A2D3D9D840EC6EEE21D9DB9FE2EDA28B4860BAA475DF8DBBB23E2A4EFC789EC6",
+      "height": 23199639,
+      "ibc_packets": 1,
+      "id": "juno-1:A2D3D9D840EC6EEE21D9DB9FE2EDA28B4860BAA475DF8DBBB23E2A4EFC789EC6",
+      "movements": [
+        {
+          "amount": "554",
+          "asset": "JUNO",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "554000000"
+        },
+        {
+          "amount": "122.1",
+          "asset": "AKT",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ibc/DFC6F33796D5D0075C5FB54A4D7B8E76915ACF434CB1EE2A1BA0BB8334E17C3A",
+          "direction": "out",
+          "raw_amount": "122100000"
+        }
+      ],
+      "proposal_id": "59",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "554 JUNO, 122.1 AKT sent",
+      "tx_hash": "A2D3D9D840EC6EEE21D9DB9FE2EDA28B4860BAA475DF8DBBB23E2A4EFC789EC6",
+      "type": "payment"
+    },
+    {
+      "actions": [],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/6DDE6A1D7CE2230E417F6A3AD65B2E92E9733E4687838E534449CB075FC39BB3",
+      "height": 22742286,
+      "ibc_packets": 0,
+      "id": "juno-1:6DDE6A1D7CE2230E417F6A3AD65B2E92E9733E4687838E534449CB075FC39BB3",
+      "movements": [
+        {
+          "amount": "554",
+          "asset": "JUNO",
+          "counterparty": "juno1f2jpv5sc6ur6yurq5w0t2chphrznpy8lk3y2hf",
+          "denom": "ujuno",
+          "direction": "in",
+          "raw_amount": "554000000"
+        }
+      ],
+      "proposal_id": null,
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "554 JUNO received",
+      "tx_hash": "6DDE6A1D7CE2230E417F6A3AD65B2E92E9733E4687838E534449CB075FC39BB3",
+      "type": "inflow"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/2592F2E904F1418777DE0BFCC31CB69D9AD8CAF81857B82055E85DB9EFBE6549",
+      "height": 22203657,
+      "ibc_packets": 2,
+      "id": "juno-1:2592F2E904F1418777DE0BFCC31CB69D9AD8CAF81857B82055E85DB9EFBE6549",
+      "movements": [],
+      "proposal_id": "57",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "2592F2E904F1418777DE0BFCC31CB69D9AD8CAF81857B82055E85DB9EFBE6549",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/059DBD910BCE7DCBA5420FD1BFBE7391B8593113FB530C2553B10A95B66B2ED0",
+      "height": 22203473,
+      "ibc_packets": 1,
+      "id": "juno-1:059DBD910BCE7DCBA5420FD1BFBE7391B8593113FB530C2553B10A95B66B2ED0",
+      "movements": [],
+      "proposal_id": "58",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "059DBD910BCE7DCBA5420FD1BFBE7391B8593113FB530C2553B10A95B66B2ED0",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/9095876E58EED6CA91A1DEE68DC323B011867FE42E43CE1E8ED92528991596F6",
+      "height": 21963639,
+      "ibc_packets": 0,
+      "id": "juno-1:9095876E58EED6CA91A1DEE68DC323B011867FE42E43CE1E8ED92528991596F6",
+      "movements": [
+        {
+          "amount": "4631.61",
+          "asset": "JUNO",
+          "counterparty": "juno10l39ctnue4muf3fh4cmdcyr53c5h23vg6n4dyu0syx3lvkgwhlkqwkm6xz",
+          "denom": "ujuno",
+          "direction": "in",
+          "raw_amount": "4631610000"
+        }
+      ],
+      "proposal_id": "9",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "4631.61 JUNO received",
+      "tx_hash": "9095876E58EED6CA91A1DEE68DC323B011867FE42E43CE1E8ED92528991596F6",
+      "type": "inflow"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/F89398C3B826C6FDDB0B9CBAEBB18A975806473B0E2EA022A8879DC286EB16E7",
+      "height": 21838915,
+      "ibc_packets": 0,
+      "id": "juno-1:F89398C3B826C6FDDB0B9CBAEBB18A975806473B0E2EA022A8879DC286EB16E7",
+      "movements": [
+        {
+          "amount": "462",
+          "asset": "JUNO",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "462000000"
+        },
+        {
+          "amount": "88.2",
+          "asset": "AKT",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ibc/DFC6F33796D5D0075C5FB54A4D7B8E76915ACF434CB1EE2A1BA0BB8334E17C3A",
+          "direction": "out",
+          "raw_amount": "88200000"
+        }
+      ],
+      "proposal_id": "54",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "462 JUNO, 88.2 AKT sent",
+      "tx_hash": "F89398C3B826C6FDDB0B9CBAEBB18A975806473B0E2EA022A8879DC286EB16E7",
+      "type": "payment"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/97A77B336F94C31373A157B674DEADECBCDF9A76CCDA4EA0CEB10F31CA02AEBC",
+      "height": 21682282,
+      "ibc_packets": 1,
+      "id": "juno-1:97A77B336F94C31373A157B674DEADECBCDF9A76CCDA4EA0CEB10F31CA02AEBC",
+      "movements": [],
+      "proposal_id": "53",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "97A77B336F94C31373A157B674DEADECBCDF9A76CCDA4EA0CEB10F31CA02AEBC",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/A92B98BB0D25E9856AA40CA8B0AA1D6D95DE1553B91E024B0BF97B9B3DFD69FE",
+      "height": 21681889,
+      "ibc_packets": 1,
+      "id": "juno-1:A92B98BB0D25E9856AA40CA8B0AA1D6D95DE1553B91E024B0BF97B9B3DFD69FE",
+      "movements": [
+        {
+          "amount": "1000",
+          "asset": "JUNO",
+          "counterparty": "juno1a53udazy8ayufvy0s434pfwjcedzqv34q7p7vj",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "1000000000"
+        }
+      ],
+      "proposal_id": "52",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "1000 JUNO sent",
+      "tx_hash": "A92B98BB0D25E9856AA40CA8B0AA1D6D95DE1553B91E024B0BF97B9B3DFD69FE",
+      "type": "payment"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/662FC1695AEFB0111ADC1453E3F457FBAB439D1A145B9E7EC441A363FEC41C23",
+      "height": 21681735,
+      "ibc_packets": 1,
+      "id": "juno-1:662FC1695AEFB0111ADC1453E3F457FBAB439D1A145B9E7EC441A363FEC41C23",
+      "movements": [],
+      "proposal_id": "50",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "662FC1695AEFB0111ADC1453E3F457FBAB439D1A145B9E7EC441A363FEC41C23",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/8E6190FCE2FAE73E41E0F5D5CAB0770EC0E4EB28D9D192DF4D35161929B5F052",
+      "height": 21681713,
+      "ibc_packets": 1,
+      "id": "juno-1:8E6190FCE2FAE73E41E0F5D5CAB0770EC0E4EB28D9D192DF4D35161929B5F052",
+      "movements": [
+        {
+          "amount": "1",
+          "asset": "JUNO",
+          "counterparty": "juno1a53udazy8ayufvy0s434pfwjcedzqv34q7p7vj",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "1000000"
+        }
+      ],
+      "proposal_id": "51",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "1 JUNO sent",
+      "tx_hash": "8E6190FCE2FAE73E41E0F5D5CAB0770EC0E4EB28D9D192DF4D35161929B5F052",
+      "type": "payment"
+    },
+    {
+      "actions": [],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/D3FF1046ED96D523D82BFF629E6AAA34E5815E1D3E17F0B8E45D29C3C167D387",
+      "height": 21680960,
+      "ibc_packets": 0,
+      "id": "juno-1:D3FF1046ED96D523D82BFF629E6AAA34E5815E1D3E17F0B8E45D29C3C167D387",
+      "movements": [
+        {
+          "amount": "508",
+          "asset": "JUNO",
+          "counterparty": "juno1f2jpv5sc6ur6yurq5w0t2chphrznpy8lk3y2hf",
+          "denom": "ujuno",
+          "direction": "in",
+          "raw_amount": "508000000"
+        }
+      ],
+      "proposal_id": null,
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "508 JUNO received",
+      "tx_hash": "D3FF1046ED96D523D82BFF629E6AAA34E5815E1D3E17F0B8E45D29C3C167D387",
+      "type": "inflow"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/F6CBF93C1ADD525E5FA7E1A50595D745EC67382DDFCFB88EB200AC57FD3FA6EC",
+      "height": 21346749,
+      "ibc_packets": 2,
+      "id": "juno-1:F6CBF93C1ADD525E5FA7E1A50595D745EC67382DDFCFB88EB200AC57FD3FA6EC",
+      "movements": [],
+      "proposal_id": "47",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "F6CBF93C1ADD525E5FA7E1A50595D745EC67382DDFCFB88EB200AC57FD3FA6EC",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/47A1F835991158C7AC32C79DE381EE00DCF47FBABCD3FC6FF7273C3B2B6C6FCB",
+      "height": 21269278,
+      "ibc_packets": 1,
+      "id": "juno-1:47A1F835991158C7AC32C79DE381EE00DCF47FBABCD3FC6FF7273C3B2B6C6FCB",
+      "movements": [],
+      "proposal_id": "48",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "Cross-chain command sent from the DAO",
+      "tx_hash": "47A1F835991158C7AC32C79DE381EE00DCF47FBABCD3FC6FF7273C3B2B6C6FCB",
+      "type": "cross_chain_command"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/9F548CE59383C31025E6878E32BE1CDF068E76D6B49E4AC234D69C9B336362D1",
+      "height": 20848077,
+      "ibc_packets": 0,
+      "id": "juno-1:9F548CE59383C31025E6878E32BE1CDF068E76D6B49E4AC234D69C9B336362D1",
+      "movements": [
+        {
+          "amount": "290",
+          "asset": "JUNO",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "290000000"
+        },
+        {
+          "amount": "166.5",
+          "asset": "AKT",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ibc/DFC6F33796D5D0075C5FB54A4D7B8E76915ACF434CB1EE2A1BA0BB8334E17C3A",
+          "direction": "out",
+          "raw_amount": "166500000"
+        }
+      ],
+      "proposal_id": "46",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "290 JUNO, 166.5 AKT sent",
+      "tx_hash": "9F548CE59383C31025E6878E32BE1CDF068E76D6B49E4AC234D69C9B336362D1",
+      "type": "payment"
+    },
+    {
+      "actions": [],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/638B2099EA5924D95BCD3613700F56ACCB8D5F5057DE83B119D2B430AA7E7DE2",
+      "height": 20640839,
+      "ibc_packets": 0,
+      "id": "juno-1:638B2099EA5924D95BCD3613700F56ACCB8D5F5057DE83B119D2B430AA7E7DE2",
+      "movements": [
+        {
+          "amount": "290",
+          "asset": "JUNO",
+          "counterparty": "juno1f2jpv5sc6ur6yurq5w0t2chphrznpy8lk3y2hf",
+          "denom": "ujuno",
+          "direction": "in",
+          "raw_amount": "290000000"
+        }
+      ],
+      "proposal_id": null,
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "290 JUNO received",
+      "tx_hash": "638B2099EA5924D95BCD3613700F56ACCB8D5F5057DE83B119D2B430AA7E7DE2",
+      "type": "inflow"
+    },
+    {
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook"
+      ],
+      "chain_id": "juno-1",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://atomscan.com/juno/transactions/6B27A3F2849A78EAE1C9BA07BD0B5F207CEA2D2174A5747A23D4391FB25A687C",
+      "height": 20293572,
+      "ibc_packets": 0,
+      "id": "juno-1:6B27A3F2849A78EAE1C9BA07BD0B5F207CEA2D2174A5747A23D4391FB25A687C",
+      "movements": [
+        {
+          "amount": "350",
+          "asset": "JUNO",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ujuno",
+          "direction": "out",
+          "raw_amount": "350000000"
+        },
+        {
+          "amount": "155.58",
+          "asset": "AKT",
+          "counterparty": "juno17fzx4rvw04586s8f2c2vv53pe3yypu0ccu566q",
+          "denom": "ibc/DFC6F33796D5D0075C5FB54A4D7B8E76915ACF434CB1EE2A1BA0BB8334E17C3A",
+          "direction": "out",
+          "raw_amount": "155580000"
+        }
+      ],
+      "proposal_id": "44",
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "350 JUNO, 155.58 AKT sent",
+      "tx_hash": "6B27A3F2849A78EAE1C9BA07BD0B5F207CEA2D2174A5747A23D4391FB25A687C",
+      "type": "payment"
+    }
+  ],
+  "generated_at": "2026-09-21T19:59:08.995465Z",
+  "schema_version": 1,
+  "scope": "neta-operations-juno-core",
+  "source": "https://juno-rpc.publicnode.com",
+  "source_indexed_contract_transactions": 47,
+  "treasury": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
+  "warnings": [
+    "Exact block timestamp unavailable from public RPC archives for 54 historical events."
+  ]
+}

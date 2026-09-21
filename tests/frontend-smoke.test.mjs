@@ -54,6 +54,13 @@ test("operations treasury includes the DAO-controlled Osmosis Polytone proxy", (
   assert.match(treasury, /source_chain/);
 });
 
+test("operations events replay the address index and keep a durable watermark", () => {
+  const collector = readFileSync("scripts/update_treasury_events.py", "utf8");
+  assert.match(collector, /last_scanned_height/);
+  assert.match(collector, /full-address-index-replay/);
+  assert.match(collector, /historical address index is empty/);
+});
+
 test("small and unpriced treasury assets are collapsed without changing totals", () => {
   assert.match(treasury, /Number\(item\.usd_value\)>=50/);
   assert.match(treasury, /SMALL \/ UNPRICED ASSETS/);

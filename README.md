@@ -40,6 +40,16 @@ mobile.
 
 Known native and IBC-denom mappings are versioned in `data/treasury/token-registry.json`. Each generated snapshot also retains the full on-chain denom, resolved base denom and IBC path. Unknown hashes are queried from Juno at collection time and remain visibly unpriced instead of being assigned a guessed identity.
 
+Transaction-backed NETA Operations activity is retained in
+`data/treasury/events.json`. The first trial covers only the Juno DAO core. The
+collector combines indexed contract activity with confirmed native transfers,
+deduplicates by chain and transaction hash, and stores a block-height watermark.
+Because the historical Juno index only permits strict height equality for filtered
+queries, every scheduled run replays the complete, still-small DAO address index.
+Delayed runs and short RPC outages therefore cannot create gaps. Historic block
+timestamps remain explicitly unavailable when public RPC archives have pruned the
+corresponding block body.
+
 ### Proposal deliverables
 
 Drafts and public revisions can contain structured deliverables with a milestone title, deadline, responsible party, required confirmer and expected evidence. They are embedded in the existing `actions_json` array as entries with `type: "dao_deliverable_v1"`. This keeps the format backward-compatible with the deployed workshop contract while allowing the Delivery view to consume approved milestones later. Submission adapters must separate these planning records from executable chain messages.

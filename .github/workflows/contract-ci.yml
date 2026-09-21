@@ -8,6 +8,8 @@ on:
       - "ux-draft.js"
       - "treasury.js"
       - "scripts/update_treasury.py"
+      - "scripts/update_treasury_events.py"
+      - "tests/test_treasury_events.py"
       - "data/treasury/**"
       - "index.html"
       - "assets/neta_proposal_workshop.sha256"
@@ -21,6 +23,8 @@ on:
       - "ux-draft.js"
       - "treasury.js"
       - "scripts/update_treasury.py"
+      - "scripts/update_treasury_events.py"
+      - "tests/test_treasury_events.py"
       - "data/treasury/**"
       - "index.html"
       - "assets/neta_proposal_workshop.sha256"
@@ -49,7 +53,9 @@ jobs:
           cargo clippy --locked --all-targets --manifest-path contracts/neta-proposal-workshop/Cargo.toml -- -D warnings
           cargo clippy --locked --all-targets --manifest-path contracts/workshop-access-mock/Cargo.toml -- -D warnings
       - name: Frontend syntax and invariants
-        run: node --test tests/frontend-smoke.test.mjs
+        run: |
+          node --test tests/frontend-smoke.test.mjs
+          python -m unittest tests/test_treasury_events.py
       - name: Dependency audit
         run: |
           rustup toolchain install 1.85.1 --profile minimal
