@@ -192,7 +192,7 @@ def build_operations(market, price_source, stamp, height):
         response, _ = smart(contract, {"balance": {"address": TREASURY}})
         amount = decimal(response.get("balance", "0"), meta["decimals"])
         if amount:
-            free.append({"type": "token", "key": "cw20:" + contract, "symbol": meta["symbol"], "amount": str(amount), "usd_price": None, "usd_value": None, "change_24h": None})
+            free.append({"type": "token", "key": "cw20:" + contract, "symbol": meta["symbol"], "amount": str(amount), "source_chain": "juno", "custody_address": TREASURY, "usd_price": None, "usd_value": None, "change_24h": None})
 
     pool_states = {}
     for name, lp, pair, stake in POOLS:
@@ -218,7 +218,7 @@ def build_operations(market, price_source, stamp, height):
             underlyings.append({"key": key, "symbol": meta["symbol"], "amount": str(amount), "usd_price": str(price) if price is not None else None, "usd_value": str(amount * price) if price is not None else None})
         pool_states[pair] = (pool, underlyings)
         value = sum((Decimal(item["usd_value"]) for item in underlyings if item["usd_value"] is not None), Decimal(0))
-        free.append({"type": "lp", "key": "cw20:" + lp, "symbol": name + " LP", "amount": str(decimal(lp_raw, int(token_info.get("decimals", 6)))), "usd_price": None, "usd_value": str(value), "change_24h": None, "pair": pair, "custody": {"direct_raw": str(direct_raw), "staked_raw": str(active_raw), "claims_raw": str(claims_raw)}, "underlyings": underlyings})
+        free.append({"type": "lp", "key": "cw20:" + lp, "symbol": name + " LP", "amount": str(decimal(lp_raw, int(token_info.get("decimals", 6)))), "source_chain": "juno", "custody_address": TREASURY, "usd_price": None, "usd_value": str(value), "change_24h": None, "pair": pair, "custody": {"direct_raw": str(direct_raw), "staked_raw": str(active_raw), "claims_raw": str(claims_raw)}, "underlyings": underlyings})
 
     derived_pairs = ((NETA, "JUNO / NETA", "native:ujuno"), (WYND, "WYND / USDC", "native:ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034"))
     for contract, pool_name, anchor_key in derived_pairs:
