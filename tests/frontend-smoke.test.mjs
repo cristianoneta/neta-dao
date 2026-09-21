@@ -63,9 +63,12 @@ test("treasury history uses daily snapshots and keeps attribution inputs", () =>
   assert.match(treasury, /priceEffect/);
   assert.match(treasury, /netFlow/);
   assert.match(treasury, /treasury-history-chart/);
-  for (const id of ["treasury-period-change", "treasury-net-flow", "treasury-market-effect", "treasury-chain-breakdown", "treasury-asset-breakdown"]) {
+  for (const id of ["treasury-period-change", "treasury-net-flow", "treasury-market-effect"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
+  assert.doesNotMatch(html, /CUSTODY BY CHAIN|LARGEST ASSETS/);
+  assert.match(treasury, /asset-custody/);
+  assert.match(treasury, /custody_address/);
 });
 
 test("user content is not rendered through HTML injection sinks", () => {
