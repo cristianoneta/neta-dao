@@ -18,10 +18,9 @@ Static governance workspace for DAO collaboration on Juno. The frontend combines
 ### Juno Network Governance
 
 - Mainnet proposals and current deposit/voting parameters are read-only.
-- Community review is tested on UNI-7.
+- Community review uses the canonical UNI-7 workshop contract `juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw`, deployed from reviewed v0.3.0 Wasm, unpaused and committed to the DAO registry in `neta-governance.js`.
 - Review writes require at least 1 delegated JUNOX and 1 actively staked test NETA.
 - Mainnet deposit, `MsgSubmitProposal` and native Juno voting remain disabled until the exact transactions have been simulated and reviewed.
-- A newly deployed Juno review contract is browser-local until its verified address is committed to the DAO registry in `neta-governance.js`.
 
 ### UX concepts
 
@@ -63,8 +62,6 @@ Build the review contract reproducibly:
 ```bash
 bash scripts/build-wasm.sh neta-proposal-workshop
 ```
-
-The CI workflow validates CosmWasm compatibility and verifies that the built Wasm is byte-identical to the shipped browser artifact.
 
 UNI-7 deployment behavior, known API compatibility constraints and the state-based transaction recovery procedure are documented in [`UNI7_DEPLOYMENT_RUNBOOK.md`](UNI7_DEPLOYMENT_RUNBOOK.md).
 
