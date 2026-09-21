@@ -58,6 +58,7 @@ Neither workshop contract authorizes native Juno mainnet submission or voting.
   review-contract behavior changes.
 - Keep native Juno submission and voting disabled until exact messages, simulation,
   verification and recovery behavior have been separately reviewed.
-- Keep Treasury execution disabled; the next Treasury phase is read-only historical
-  cash flow, recurring income/expenses, proposal-linked obligations, milestone
-  payments, price history and runway.
+- Keep Treasury execution disabled. Daily value and price/flow attribution are
+  read-only; the remaining Treasury phase covers transaction-backed cash flow,
+  recurring income/expenses, proposal-linked obligations, milestone payments and
+  runway.

@@ -35,6 +35,12 @@ Updated: 21 September 2026
 - Treasury phase 1 reads the verified NETA Operations DAO core `juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl` and Juno's native distribution-module Community Pool on mainnet. Separate snapshots are selected globally with the DAO picker. Native/CW20 holdings and the validated WYND LP set are snapshotted every 15 minutes; IBC denoms are resolved through on-chain traces, and LP positions include direct, staked and claim-state ownership, remain visible as LP tokens, and are valued exactly once from proportional underlying reserves. Daily Europe/Berlin 21:00 snapshots are retained for history. Planning, commitments and runway remain draft values.
 - Durable denom metadata is stored in `data/treasury/token-registry.json`; snapshots retain full denoms, base denoms and IBC paths. Unknown assets remain visibly unresolved rather than receiving guessed labels or prices.
 - NETA Operations is consolidated across its Juno DAO core and the DAO-controlled Osmosis Polytone proxy `osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80`. Every asset retains its source chain and custody address.
+- Treasury history consumes the daily Operations or Juno Community Pool snapshots,
+  appends the current verified state in-browser, and supports 7/30/90-day and
+  all-time views. Snapshot assets retain symbol, source chain, quantity, price and
+  USD value. Opening quantities revalued at closing prices produce the market
+  effect; the remaining total-value change is shown as net flow. Internal
+  cross-chain custody movements consolidate by asset symbol.
 - Proposal-summary query removes frontend N+1 revision loading.
 - Nine passing unit tests plus warning-free Clippy.
 - RustSec audit passes with one documented Juno/CosmWasm 1.5 compatibility exception: `RUSTSEC-2024-0344` is in host-side `cosmwasm-crypto` and is not compiled into the deployed Wasm. The exception must be removed when Juno supports the newer CosmWasm dependency line.
@@ -59,13 +65,12 @@ Updated: 21 September 2026
 
 ## Next product step
 
-Continue with read-only Treasury phase 2:
+Continue with the remaining read-only Treasury phase 2 work:
 
-1. historical and forecast cash flow;
+1. transaction-backed historical and forecast cash flow;
 2. recurring income and expenses;
 3. proposal-linked obligations;
 4. open milestone payments;
-5. price and treasury-value history;
-6. derived runway.
+5. derived runway.
 
 Proposal-workshop smoke tests remain a regression gate whenever review-contract behavior changes; they are no longer the primary continuation task. Native mainnet submission, voting, Treasury execution and payment release remain separately gated.

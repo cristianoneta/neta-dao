@@ -54,6 +54,20 @@ test("small and unpriced treasury assets are collapsed without changing totals",
   assert.match(treasury, /details\.append\(policy\)/);
 });
 
+test("treasury history uses daily snapshots and keeps attribution inputs", () => {
+  const collector = readFileSync("scripts/update_treasury.py", "utf8");
+  for (const field of ["symbol", "source_chain", "amount", "usd_price", "usd_value"]) {
+    assert.match(collector, new RegExp(`item\\.get\\(\\"${field}\\"|item\\[\\"${field}\\"\\]`));
+  }
+  assert.match(treasury, /historyFile/);
+  assert.match(treasury, /priceEffect/);
+  assert.match(treasury, /netFlow/);
+  assert.match(treasury, /treasury-history-chart/);
+  for (const id of ["treasury-period-change", "treasury-net-flow", "treasury-market-effect", "treasury-chain-breakdown", "treasury-asset-breakdown"]) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+});
+
 test("user content is not rendered through HTML injection sinks", () => {
   assert.doesNotMatch(governance, /\.innerHTML\s*=|insertAdjacentHTML|\.outerHTML\s*=/);
 });

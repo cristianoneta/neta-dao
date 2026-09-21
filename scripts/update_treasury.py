@@ -279,7 +279,17 @@ def write_snapshot(snapshot, name="current", history_name="history"):
         history = {"schema_version": 1, "snapshots": []}
     day = snapshot["generated_at"][:10]
     compact = {key: snapshot[key] for key in ("generated_at", "height", "status", "total_usd")}
-    compact["assets"] = [{"key": item["key"], "amount": item["amount"], "usd_value": item.get("usd_value")} for item in snapshot["assets"]]
+    compact["assets"] = [
+        {
+            "key": item["key"],
+            "symbol": item.get("symbol"),
+            "source_chain": item.get("source_chain", "juno"),
+            "amount": item["amount"],
+            "usd_price": item.get("usd_price"),
+            "usd_value": item.get("usd_value"),
+        }
+        for item in snapshot["assets"]
+    ]
     rows = [row for row in history.get("snapshots", []) if row.get("generated_at", "")[:10] != day]
     daily_mode = os.environ.get("TREASURY_DAILY_SNAPSHOT")
     berlin = datetime.now(ZoneInfo("Europe/Berlin"))
