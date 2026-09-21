@@ -31,7 +31,8 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
 ## Treasury architecture
 
 - `.github/workflows/treasury-snapshot.yml` runs every 15 minutes and commits only
-  changed snapshots. `scripts/update_treasury.py` is the collector.
+  changed snapshots. `scripts/update_treasury.py` collects balances and
+  `scripts/update_treasury_events.py` collects transaction-backed Operations events.
 - NETA Operations combines the Juno DAO core
   `juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl` and its
   DAO-controlled Osmosis Polytone proxy
@@ -46,6 +47,14 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   technical warnings. They remain inspectable and are not silently discarded.
 - The collector is fail-closed and records source, block height and timestamp.
   Current Juno REST fallbacks come from the Cosmos Chain Registry.
+- `data/treasury/events.json` is the Juno-only Operations event trial. It merges
+  DAO-core contract activity and confirmed native transfers, deduplicates on
+  `chain_id:tx_hash`, and advances a durable block-height watermark only after a
+  successful run. PublicNode rejects ranged `tx.height` searches, so the scheduled
+  collector safely replays the complete DAO address index and merges it
+  idempotently. RPCs with an empty historical index are rejected during provider
+  selection. The Osmosis proxy is deliberately out of scope until this first ledger
+  has been reviewed.
 
 ## Operational rules
 
@@ -85,8 +94,10 @@ collection is intended; syntax and frontend tests are non-mutating.
   list or add a separate custody-by-chain panel. Asset rows expose their chain and
   custody address on hover/focus and inline on mobile. Fewer than two daily
   observations remain explicitly unavailable rather than using sample values.
-- Next Treasury work: transaction-backed cash flow, recurring income/expenses,
-  proposal-linked obligations, open milestone payments and derived runway.
+- Next Treasury work: review the generated Juno Operations ledger, connect approved
+  events to the UI, then add the Osmosis proxy and IBC correlation before deriving
+  cash flow. Recurring income/expenses, proposal-linked obligations, open milestone
+  payments and runway remain later phases.
 - AtomOne is research only. Its reserved treasury address is not an active DAO;
   AtomOne lacks CosmWasm for native Polytone deployment. ICA would create a separate
   host-chain account and needs host support plus an adapter/controller design.
