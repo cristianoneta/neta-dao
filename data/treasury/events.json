@@ -1,7 +1,7 @@
 {
   "cursor": {
     "contract_creation_height": 4322988,
-    "last_scanned_height": 41976101,
+    "last_scanned_height": 41976408,
     "strategy": "full-address-index-replay"
   },
   "events": [
@@ -1348,7 +1348,7 @@
       "type": "payment"
     }
   ],
-  "generated_at": "2026-09-21T19:59:08.995465Z",
+  "generated_at": "2026-09-21T20:12:23.619538Z",
   "schema_version": 1,
   "scope": "neta-operations-juno-core",
   "source": "https://juno-rpc.publicnode.com",
