@@ -22,6 +22,13 @@
     "origin": "IBC",
     "symbol": "ATOM"
   },
+  "ibc/DFC6F33796D5D0075C5FB54A4D7B8E76915ACF434CB1EE2A1BA0BB8334E17C3A": {
+    "base_denom": "uakt",
+    "coingecko": "akash-network",
+    "decimals": 6,
+    "origin": "IBC",
+    "symbol": "AKT"
+  },
   "ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034": {
     "base_denom": "uusdc",
     "coingecko": "usd-coin",
