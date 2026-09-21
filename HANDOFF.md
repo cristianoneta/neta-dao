@@ -47,19 +47,18 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   technical warnings. They remain inspectable and are not silently discarded.
 - The collector is fail-closed and records source, block height and timestamp.
   Current Juno REST fallbacks come from the Cosmos Chain Registry.
-- `data/treasury/events.json` is the Juno-only Operations event trial. It merges
-  DAO-core contract activity and confirmed native transfers, deduplicates on
-  `chain_id:tx_hash`, and advances a durable block-height watermark only after a
-  successful run. PublicNode rejects ranged `tx.height` searches, so the scheduled
-  collector safely replays the complete DAO address index and merges it
-  idempotently. RPCs with an empty historical index are rejected during provider
-  selection. The Osmosis proxy is deliberately out of scope until this first ledger
-  has been reviewed.
+- `data/treasury/events.json` monitors the Juno DAO core and the DAO-controlled
+  Osmosis Polytone proxy, deduplicates on `chain_id:tx_hash`, and keeps a durable
+  per-chain scan cursor. The scheduled collector safely replays both still-small
+  address indexes and merges idempotently. Juno providers must expose the historical
+  index; the Osmosis proxy is monitored even when a provider has no retained legacy
+  matches so new activity is captured immediately.
 - The Treasury Events frontend now reads that ledger. The default list is the three
   latest non-technical value movements; `VIEW ALL` filters all confirmed inflows and
-  payments. Proposal badges open the matching Operations proposal in the local
-  Governance view, while TX and counterparty links open Atomscan. Pruned timestamps
-  are represented by exact block heights rather than estimates.
+  payments. Proposal titles are displayed inline and proposal badges open the
+  matching Operations proposal in the local Governance view. TX and counterparty
+  links use Atomscan for Juno and Mintscan for Osmosis. Pruned timestamps are
+  represented by exact block heights rather than estimates.
 
 ## Operational rules
 

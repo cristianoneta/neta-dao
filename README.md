@@ -41,9 +41,11 @@ mobile.
 Known native and IBC-denom mappings are versioned in `data/treasury/token-registry.json`. Each generated snapshot also retains the full on-chain denom, resolved base denom and IBC path. Unknown hashes are queried from Juno at collection time and remain visibly unpriced instead of being assigned a guessed identity.
 
 Transaction-backed NETA Operations activity is retained in
-`data/treasury/events.json`. The first trial covers only the Juno DAO core. The
-collector combines indexed contract activity with confirmed native transfers,
-deduplicates by chain and transaction hash, and stores a block-height watermark.
+`data/treasury/events.json`. The collector monitors both the Juno DAO core and its
+DAO-controlled Osmosis Polytone proxy, combines indexed contract activity with
+confirmed native transfers, deduplicates by chain and transaction hash, and stores
+a block-height watermark for each chain. Proposal IDs are enriched with the title
+from the canonical Operations proposal module.
 Because the historical Juno index only permits strict height equality for filtered
 queries, every scheduled run replays the complete, still-small DAO address index.
 Delayed runs and short RPC outages therefore cannot create gaps. Historic block
@@ -53,9 +55,10 @@ corresponding block body.
 The Treasury Events card consumes that ledger directly. Its compact view shows the
 three latest non-technical native movements; `VIEW ALL` exposes all confirmed
 inflows and payments with filters. Historical rows without an archive timestamp use
-their exact block height. Transaction and counterparty links open Atomscan, while a
-proposal badge opens the corresponding NETA Operations proposal inside this
-workspace. The unpriced `testingaten` movement remains visible only in the expanded
+their exact block height. Transaction and counterparty links open the appropriate
+chain explorer, while the proposal title is shown inline and its badge opens the
+corresponding NETA Operations proposal inside this workspace. The unpriced
+`testingaten` movement remains visible only in the expanded
 ledger and is never presented as treasury income.
 
 ### Proposal deliverables

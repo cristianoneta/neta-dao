@@ -1,17 +1,35 @@
 {
   "cursor": {
-    "contract_creation_height": 4322988,
-    "last_scanned_height": 41978061,
+    "chains": [
+      {
+        "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
+        "chain_id": "juno-1",
+        "contract_creation_height": 4322988,
+        "indexed_transactions": 47,
+        "last_scanned_height": 41977994,
+        "source": "https://juno-rpc.publicnode.com"
+      },
+      {
+        "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
+        "chain_id": "osmosis-1",
+        "contract_creation_height": 15838602,
+        "indexed_transactions": 0,
+        "last_scanned_height": 71052935,
+        "source": "https://osmosis-rpc.publicnode.com"
+      }
+    ],
     "strategy": "full-address-index-replay"
   },
   "events": [
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/2578EF47277EF5531595BAB710AFF6431EFA9612E9C89B73DEB81B66C83FF1DD",
       "height": 31746799,
@@ -19,20 +37,24 @@
       "id": "juno-1:2578EF47277EF5531595BAB710AFF6431EFA9612E9C89B73DEB81B66C83FF1DD",
       "movements": [],
       "proposal_id": "98",
+      "proposal_title": "modify ATONE calc strategy",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "2578EF47277EF5531595BAB710AFF6431EFA9612E9C89B73DEB81B66C83FF1DD",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/889291AD841C138BE8395DE20EDC0F5E43CF515251362DA6BDBA653A3996844E",
       "height": 31745744,
@@ -40,20 +62,24 @@
       "id": "juno-1:889291AD841C138BE8395DE20EDC0F5E43CF515251362DA6BDBA653A3996844E",
       "movements": [],
       "proposal_id": "97",
+      "proposal_title": "modify calc strat and swap",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "889291AD841C138BE8395DE20EDC0F5E43CF515251362DA6BDBA653A3996844E",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/C96E3E811A017FA8715C3FD1A8B1FC0F105A2034D50E62E478D6A3C703872368",
       "height": 31745407,
@@ -61,20 +87,24 @@
       "id": "juno-1:C96E3E811A017FA8715C3FD1A8B1FC0F105A2034D50E62E478D6A3C703872368",
       "movements": [],
       "proposal_id": "96",
+      "proposal_title": "Cancel Calc strategy",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "C96E3E811A017FA8715C3FD1A8B1FC0F105A2034D50E62E478D6A3C703872368",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/DC5CE670C7EADA3AA7CD0712A85CD6A11626E524B4B20CDED6E9BF7C7604F317",
       "height": 31743945,
@@ -82,20 +112,24 @@
       "id": "juno-1:DC5CE670C7EADA3AA7CD0712A85CD6A11626E524B4B20CDED6E9BF7C7604F317",
       "movements": [],
       "proposal_id": "94",
+      "proposal_title": "Swap $1070 USDC into Atone over the next 11 hours",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "DC5CE670C7EADA3AA7CD0712A85CD6A11626E524B4B20CDED6E9BF7C7604F317",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/A36C3DDDF49F17BE69AB393C7415C24E922C6B515C1523BAB50B9D321B17D80F",
       "height": 31708128,
@@ -103,20 +137,24 @@
       "id": "juno-1:A36C3DDDF49F17BE69AB393C7415C24E922C6B515C1523BAB50B9D321B17D80F",
       "movements": [],
       "proposal_id": "93",
+      "proposal_title": "Calc.Fi Strategy: ATONE, 2.0",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "A36C3DDDF49F17BE69AB393C7415C24E922C6B515C1523BAB50B9D321B17D80F",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/58DA2E6477021A3C8550CE324FE8A67315BB4DB74DD10D9D5EA8061E2D8956D0",
       "height": 31708107,
@@ -124,20 +162,24 @@
       "id": "juno-1:58DA2E6477021A3C8550CE324FE8A67315BB4DB74DD10D9D5EA8061E2D8956D0",
       "movements": [],
       "proposal_id": "92",
+      "proposal_title": "Calc.Fi Strategy: AKT, 2.0",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "58DA2E6477021A3C8550CE324FE8A67315BB4DB74DD10D9D5EA8061E2D8956D0",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/86349EAEEA5FB37BC7C9F240B80832AA1F6F7982035D5D0A27ECC68518B7A384",
       "height": 31708097,
@@ -145,20 +187,24 @@
       "id": "juno-1:86349EAEEA5FB37BC7C9F240B80832AA1F6F7982035D5D0A27ECC68518B7A384",
       "movements": [],
       "proposal_id": "91",
+      "proposal_title": "Calc.fi Strategy: JUNO, 2.0",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "86349EAEEA5FB37BC7C9F240B80832AA1F6F7982035D5D0A27ECC68518B7A384",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/E77FE5F510A10B6419975DABD201EA47B0DDB1293988E2AE9781A65A5ADB789A",
       "height": 31701401,
@@ -166,20 +212,24 @@
       "id": "juno-1:E77FE5F510A10B6419975DABD201EA47B0DDB1293988E2AE9781A65A5ADB789A",
       "movements": [],
       "proposal_id": "88",
+      "proposal_title": "Calc Strategy: ATONE",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "E77FE5F510A10B6419975DABD201EA47B0DDB1293988E2AE9781A65A5ADB789A",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/003BBDB5E47210DDD71E518E3A91A60BA6F7ADEB7C5F6EC7806BA1A9D13AD159",
       "height": 31701389,
@@ -187,20 +237,24 @@
       "id": "juno-1:003BBDB5E47210DDD71E518E3A91A60BA6F7ADEB7C5F6EC7806BA1A9D13AD159",
       "movements": [],
       "proposal_id": "89",
+      "proposal_title": "Calc Strategy: AKT",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "003BBDB5E47210DDD71E518E3A91A60BA6F7ADEB7C5F6EC7806BA1A9D13AD159",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/703CB8B22CC6FC881662C2F581B5631674D4D56D2DB0C79472EA9371ECEC57F9",
       "height": 31701370,
@@ -208,20 +262,24 @@
       "id": "juno-1:703CB8B22CC6FC881662C2F581B5631674D4D56D2DB0C79472EA9371ECEC57F9",
       "movements": [],
       "proposal_id": "90",
+      "proposal_title": "Calc Strategy: JUNO",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "703CB8B22CC6FC881662C2F581B5631674D4D56D2DB0C79472EA9371ECEC57F9",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/D1832B18F626D274D98C07E542595DAC19160093994C0DD74C85FCE9DA6A2E0B",
       "height": 31572826,
@@ -229,14 +287,17 @@
       "id": "juno-1:D1832B18F626D274D98C07E542595DAC19160093994C0DD74C85FCE9DA6A2E0B",
       "movements": [],
       "proposal_id": "87",
+      "proposal_title": "Swap $900 in $50 increments every 12hours into Atone if price drops to $1.50",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "D1832B18F626D274D98C07E542595DAC19160093994C0DD74C85FCE9DA6A2E0B",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
@@ -244,6 +305,7 @@
         "update_members"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/1E98EFBBD1AB47F5C557AC515EA42A6BE6ADA325104F40D9D5E986BA0CE794A7",
       "height": 31004711,
@@ -251,20 +313,24 @@
       "id": "juno-1:1E98EFBBD1AB47F5C557AC515EA42A6BE6ADA325104F40D9D5E986BA0CE794A7",
       "movements": [],
       "proposal_id": "85",
+      "proposal_title": "add the correct voting weight for Lil D",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "DAO proposal 85 executed",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "1E98EFBBD1AB47F5C557AC515EA42A6BE6ADA325104F40D9D5E986BA0CE794A7",
       "type": "proposal_execution"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/2B1AF4BFEF393B401DB225EBBAF862075D7ABAD55CCAA4D7BDABAB62328A203B",
       "height": 30974153,
@@ -272,14 +338,17 @@
       "id": "juno-1:2B1AF4BFEF393B401DB225EBBAF862075D7ABAD55CCAA4D7BDABAB62328A203B",
       "movements": [],
       "proposal_id": "84",
+      "proposal_title": "Retro active Contributor payments",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "2B1AF4BFEF393B401DB225EBBAF862075D7ABAD55CCAA4D7BDABAB62328A203B",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
@@ -287,6 +356,7 @@
         "update_members"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/31F2AD9EDED4B2EAB856C1205891CDB24DED66C925732E72AA721FDE492F22B1",
       "height": 30974015,
@@ -294,14 +364,17 @@
       "id": "juno-1:31F2AD9EDED4B2EAB856C1205891CDB24DED66C925732E72AA721FDE492F22B1",
       "movements": [],
       "proposal_id": "83",
+      "proposal_title": "Add Lil D to the operations multisig",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "DAO proposal 83 executed",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "31F2AD9EDED4B2EAB856C1205891CDB24DED66C925732E72AA721FDE492F22B1",
       "type": "proposal_execution"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "instantiate",
@@ -311,6 +384,7 @@
         "set_minter"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/B03D511E6E45DD0094E35FA1B5066A2FBC5AC228643A3B8090456DEA8C4F69F8",
       "height": 30927359,
@@ -327,20 +401,24 @@
         }
       ],
       "proposal_id": null,
+      "proposal_title": null,
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "90000 factory/juno1upn6s8v7ykrkef8f9gvqsdy4vqm4qpd8lf6yt5rn0r6cm3amg77q3sjt0n/testingaten received",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "B03D511E6E45DD0094E35FA1B5066A2FBC5AC228643A3B8090456DEA8C4F69F8",
       "type": "inflow"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/8DFD1A9DECBD48FD5AC93C75A856277F7863301A56E08A1D1D4C681B22AE0BB7",
       "height": 30812998,
@@ -348,20 +426,24 @@
       "id": "juno-1:8DFD1A9DECBD48FD5AC93C75A856277F7863301A56E08A1D1D4C681B22AE0BB7",
       "movements": [],
       "proposal_id": "82",
+      "proposal_title": "Swap 650 Atone for USDC",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "8DFD1A9DECBD48FD5AC93C75A856277F7863301A56E08A1D1D4C681B22AE0BB7",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/5023AF4CC39B15E04B70863CAC587C91EAEAC2885EA53E65B172D2D322474217",
       "height": 30422414,
@@ -369,20 +451,24 @@
       "id": "juno-1:5023AF4CC39B15E04B70863CAC587C91EAEAC2885EA53E65B172D2D322474217",
       "movements": [],
       "proposal_id": "81",
+      "proposal_title": "Payment for validator services Provided by Poroburu to Neta DAO.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "5023AF4CC39B15E04B70863CAC587C91EAEAC2885EA53E65B172D2D322474217",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/21B321D06C0418DE570F8D790254CE274EEB3EDB251DFFAF6A427D9F8A2E07D4",
       "height": 30351106,
@@ -390,20 +476,24 @@
       "id": "juno-1:21B321D06C0418DE570F8D790254CE274EEB3EDB251DFFAF6A427D9F8A2E07D4",
       "movements": [],
       "proposal_id": "79",
+      "proposal_title": "Swap 400 AKT to USDC for Poro's payment",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "21B321D06C0418DE570F8D790254CE274EEB3EDB251DFFAF6A427D9F8A2E07D4",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/EC9A612912EBEDE6FE1E8582E8BCC1EF431472EFBFE77543FF76B7E06220ACB0",
       "height": 29563160,
@@ -411,20 +501,24 @@
       "id": "juno-1:EC9A612912EBEDE6FE1E8582E8BCC1EF431472EFBFE77543FF76B7E06220ACB0",
       "movements": [],
       "proposal_id": "78",
+      "proposal_title": "Send 575 to Cristiano to pay for onesafe",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "EC9A612912EBEDE6FE1E8582E8BCC1EF431472EFBFE77543FF76B7E06220ACB0",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/EB1B38474B38F4891180BDA3C6AF78EE7A4C0DBE680BB800B987EA1784EE2CF9",
       "height": 29562509,
@@ -441,20 +535,24 @@
         }
       ],
       "proposal_id": "77",
+      "proposal_title": "Payment for validator services Provided by Poroburu to Neta DAO.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "798 JUNO sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "EB1B38474B38F4891180BDA3C6AF78EE7A4C0DBE680BB800B987EA1784EE2CF9",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/D4E991EA7960935914111BCFE2C3E4FFDC05AC62ED0AF8A38355B6F1CB25A3D9",
       "height": 29562494,
@@ -462,20 +560,24 @@
       "id": "juno-1:D4E991EA7960935914111BCFE2C3E4FFDC05AC62ED0AF8A38355B6F1CB25A3D9",
       "movements": [],
       "proposal_id": "76",
+      "proposal_title": "Swap Akash for USDC",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "D4E991EA7960935914111BCFE2C3E4FFDC05AC62ED0AF8A38355B6F1CB25A3D9",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/1E58904DC3A1A3314F8B4F20A6E51ED2DC2ABCF6FA4E14FBAB667CB096288DE3",
       "height": 29129021,
@@ -492,20 +594,24 @@
         }
       ],
       "proposal_id": "75",
+      "proposal_title": "Payment for validator services Provided by Poroburu to Neta DAO.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "798 JUNO sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "1E58904DC3A1A3314F8B4F20A6E51ED2DC2ABCF6FA4E14FBAB667CB096288DE3",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/C164D259020B605CDE715227A275FF2BC18C2D66FDA18F4DA229EBEE533911A1",
       "height": 29121746,
@@ -513,20 +619,24 @@
       "id": "juno-1:C164D259020B605CDE715227A275FF2BC18C2D66FDA18F4DA229EBEE533911A1",
       "movements": [],
       "proposal_id": "74",
+      "proposal_title": "sell 960 Atone to USDC",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "C164D259020B605CDE715227A275FF2BC18C2D66FDA18F4DA229EBEE533911A1",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/0D1DABD865869DB95C9CC04C28150528E5B874766FCEF0983E4D336A848BF0EE",
       "height": 29120925,
@@ -543,14 +653,17 @@
         }
       ],
       "proposal_id": "73",
+      "proposal_title": "move 198 AKT that currently resides on Juno to Lil'D to transfer to Osmosis to sell",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "198.832484 AKT sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "0D1DABD865869DB95C9CC04C28150528E5B874766FCEF0983E4D336A848BF0EE",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
@@ -558,6 +671,7 @@
         "update_members"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/550DC8AB371A6356524E56FCF853D2C1B5F310BBB47D7B22D384CF4D601819EB",
       "height": 28324103,
@@ -565,20 +679,24 @@
       "id": "juno-1:550DC8AB371A6356524E56FCF853D2C1B5F310BBB47D7B22D384CF4D601819EB",
       "movements": [],
       "proposal_id": "72",
+      "proposal_title": "change Fishermans voting weight to 1",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "DAO proposal 72 executed",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "550DC8AB371A6356524E56FCF853D2C1B5F310BBB47D7B22D384CF4D601819EB",
       "type": "proposal_execution"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/E95FDF67344B9D54C41F49916B6C6BB6456533AE33F0A871E1C4D2A14AAD2F8A",
       "height": 28322302,
@@ -595,20 +713,24 @@
         }
       ],
       "proposal_id": "71",
+      "proposal_title": "Payment for validator services Provided by Poroburu to Neta DAO.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "1290 JUNO sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "E95FDF67344B9D54C41F49916B6C6BB6456533AE33F0A871E1C4D2A14AAD2F8A",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/1E0DDB4FACD5AEA9CF4134939E4DD84124B910239816F99105D43D6C21966BB3",
       "height": 27477944,
@@ -616,14 +738,17 @@
       "id": "juno-1:1E0DDB4FACD5AEA9CF4134939E4DD84124B910239816F99105D43D6C21966BB3",
       "movements": [],
       "proposal_id": "69",
+      "proposal_title": "Domain renewal payment for envy",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "1E0DDB4FACD5AEA9CF4134939E4DD84124B910239816F99105D43D6C21966BB3",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
@@ -631,6 +756,7 @@
         "update_members"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/3444A5871B6C510B73BB6D6AE1F80662809D41CA3DEB7B689EA8F74991970826",
       "height": 27468813,
@@ -638,20 +764,24 @@
       "id": "juno-1:3444A5871B6C510B73BB6D6AE1F80662809D41CA3DEB7B689EA8F74991970826",
       "movements": [],
       "proposal_id": "70",
+      "proposal_title": "Add Fisherman to the multisig ",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "DAO proposal 70 executed",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "3444A5871B6C510B73BB6D6AE1F80662809D41CA3DEB7B689EA8F74991970826",
       "type": "proposal_execution"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/F0F33C70F95BEDB610B4E6CFA0DE6477B0A86AE5A82CB9D800B1FE951BDF59C0",
       "height": 27462251,
@@ -668,20 +798,24 @@
         }
       ],
       "proposal_id": "68",
+      "proposal_title": "Payment for validator services Provided by Poroburu to Neta DAO.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "489.5 JUNO sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "F0F33C70F95BEDB610B4E6CFA0DE6477B0A86AE5A82CB9D800B1FE951BDF59C0",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/15630B509FD2C7246C759E9A39B26560935E7E5C18603F1C3302BD2A1E68BD27",
       "height": 27225334,
@@ -689,14 +823,17 @@
       "id": "juno-1:15630B509FD2C7246C759E9A39B26560935E7E5C18603F1C3302BD2A1E68BD27",
       "movements": [],
       "proposal_id": "67",
+      "proposal_title": "Swap 640 Atom one",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "15630B509FD2C7246C759E9A39B26560935E7E5C18603F1C3302BD2A1E68BD27",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
@@ -704,6 +841,7 @@
         "update_members"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/8F73A0A90EA91D535487366F3BD2C5CB8178082409800DC515FEB7ADA8EA609A",
       "height": 26619429,
@@ -711,20 +849,24 @@
       "id": "juno-1:8F73A0A90EA91D535487366F3BD2C5CB8178082409800DC515FEB7ADA8EA609A",
       "movements": [],
       "proposal_id": "66",
+      "proposal_title": "This prop is to remove Dude from the internet and whiskey from the operations multi sig",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "DAO proposal 66 executed",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "8F73A0A90EA91D535487366F3BD2C5CB8178082409800DC515FEB7ADA8EA609A",
       "type": "proposal_execution"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/F16011678D87CF496E3090F8A4B3463E075B40C5A3078D5AA66C6805555E2101",
       "height": 26523518,
@@ -741,20 +883,24 @@
         }
       ],
       "proposal_id": "65",
+      "proposal_title": "Payment for validator services Provided by Poroburu to Neta DAO.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "355 JUNO sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "F16011678D87CF496E3090F8A4B3463E075B40C5A3078D5AA66C6805555E2101",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/7A364DB2D6DBF7B7AC20644C2D0540086EDE3B743112F99AF5FED749CFB423D3",
       "height": 25512543,
@@ -762,16 +908,20 @@
       "id": "juno-1:7A364DB2D6DBF7B7AC20644C2D0540086EDE3B743112F99AF5FED749CFB423D3",
       "movements": [],
       "proposal_id": "64",
+      "proposal_title": "Send Aone Back to Validator",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "7A364DB2D6DBF7B7AC20644C2D0540086EDE3B743112F99AF5FED749CFB423D3",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/A8BC6961E41C48026EEA8E785FD493FB2EE7AEFDB5C272D54B3FE04A30A4509B",
       "height": 25278671,
@@ -788,20 +938,24 @@
         }
       ],
       "proposal_id": null,
+      "proposal_title": null,
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "799 JUNO received",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "A8BC6961E41C48026EEA8E785FD493FB2EE7AEFDB5C272D54B3FE04A30A4509B",
       "type": "inflow"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/3B1B897D2CA6198E709E663F3B8D9B3AC8E4C0C3104A502EB6E13132D1214B58",
       "height": 24077230,
@@ -818,16 +972,20 @@
         }
       ],
       "proposal_id": "62",
+      "proposal_title": "Payment for validator services Provided by Poroburu to Neta DAO.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "496 JUNO sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "3B1B897D2CA6198E709E663F3B8D9B3AC8E4C0C3104A502EB6E13132D1214B58",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/616173BC1E4F89BD35A4014CC3F5FF76F9EA5D0F9A83734BB88DFA3DD5C37E5C",
       "height": 23700424,
@@ -844,20 +1002,24 @@
         }
       ],
       "proposal_id": null,
+      "proposal_title": null,
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "496 JUNO received",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "616173BC1E4F89BD35A4014CC3F5FF76F9EA5D0F9A83734BB88DFA3DD5C37E5C",
       "type": "inflow"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/608CB5723CF11B3E01588E4BD6712C2D7465B9EB0DC701AB72E4579EADC846E8",
       "height": 23632710,
@@ -865,20 +1027,24 @@
       "id": "juno-1:608CB5723CF11B3E01588E4BD6712C2D7465B9EB0DC701AB72E4579EADC846E8",
       "movements": [],
       "proposal_id": "61",
+      "proposal_title": "MIDAO 2025 Annual Renewal",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "608CB5723CF11B3E01588E4BD6712C2D7465B9EB0DC701AB72E4579EADC846E8",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/1BBEDE662E647823603DD0B781E57054426A208DEC4CB0BE7AFAF4C2589432B1",
       "height": 23600736,
@@ -895,20 +1061,24 @@
         }
       ],
       "proposal_id": "60",
+      "proposal_title": " Send 2000 juno to Osmosis",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "2000 JUNO sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "1BBEDE662E647823603DD0B781E57054426A208DEC4CB0BE7AFAF4C2589432B1",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/A2D3D9D840EC6EEE21D9DB9FE2EDA28B4860BAA475DF8DBBB23E2A4EFC789EC6",
       "height": 23199639,
@@ -933,16 +1103,20 @@
         }
       ],
       "proposal_id": "59",
+      "proposal_title": "Payment for validator services Provided by Poroburu to Neta DAO.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "554 JUNO, 122.1 AKT sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "A2D3D9D840EC6EEE21D9DB9FE2EDA28B4860BAA475DF8DBBB23E2A4EFC789EC6",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/6DDE6A1D7CE2230E417F6A3AD65B2E92E9733E4687838E534449CB075FC39BB3",
       "height": 22742286,
@@ -959,20 +1133,24 @@
         }
       ],
       "proposal_id": null,
+      "proposal_title": null,
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "554 JUNO received",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "6DDE6A1D7CE2230E417F6A3AD65B2E92E9733E4687838E534449CB075FC39BB3",
       "type": "inflow"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/2592F2E904F1418777DE0BFCC31CB69D9AD8CAF81857B82055E85DB9EFBE6549",
       "height": 22203657,
@@ -980,20 +1158,24 @@
       "id": "juno-1:2592F2E904F1418777DE0BFCC31CB69D9AD8CAF81857B82055E85DB9EFBE6549",
       "movements": [],
       "proposal_id": "57",
+      "proposal_title": "DCA out 300 AKT",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "2592F2E904F1418777DE0BFCC31CB69D9AD8CAF81857B82055E85DB9EFBE6549",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/059DBD910BCE7DCBA5420FD1BFBE7391B8593113FB530C2553B10A95B66B2ED0",
       "height": 22203473,
@@ -1001,19 +1183,23 @@
       "id": "juno-1:059DBD910BCE7DCBA5420FD1BFBE7391B8593113FB530C2553B10A95B66B2ED0",
       "movements": [],
       "proposal_id": "58",
+      "proposal_title": "This prop is to make a payment to Poroburu for the Atom One validator service",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "059DBD910BCE7DCBA5420FD1BFBE7391B8593113FB530C2553B10A95B66B2ED0",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/9095876E58EED6CA91A1DEE68DC323B011867FE42E43CE1E8ED92528991596F6",
       "height": 21963639,
@@ -1030,20 +1216,24 @@
         }
       ],
       "proposal_id": "9",
+      "proposal_title": "Payment to Poroburu for monthly costs of JUNO validator",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "4631.61 JUNO received",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "9095876E58EED6CA91A1DEE68DC323B011867FE42E43CE1E8ED92528991596F6",
       "type": "inflow"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/F89398C3B826C6FDDB0B9CBAEBB18A975806473B0E2EA022A8879DC286EB16E7",
       "height": 21838915,
@@ -1068,20 +1258,24 @@
         }
       ],
       "proposal_id": "54",
+      "proposal_title": "Payment for validator services Provided by Poroburu to Neta DAO.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "462 JUNO, 88.2 AKT sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "F89398C3B826C6FDDB0B9CBAEBB18A975806473B0E2EA022A8879DC286EB16E7",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/97A77B336F94C31373A157B674DEADECBCDF9A76CCDA4EA0CEB10F31CA02AEBC",
       "height": 21682282,
@@ -1089,20 +1283,24 @@
       "id": "juno-1:97A77B336F94C31373A157B674DEADECBCDF9A76CCDA4EA0CEB10F31CA02AEBC",
       "movements": [],
       "proposal_id": "53",
+      "proposal_title": "Swap 1000 juno to Jakel",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "97A77B336F94C31373A157B674DEADECBCDF9A76CCDA4EA0CEB10F31CA02AEBC",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/A92B98BB0D25E9856AA40CA8B0AA1D6D95DE1553B91E024B0BF97B9B3DFD69FE",
       "height": 21681889,
@@ -1119,20 +1317,24 @@
         }
       ],
       "proposal_id": "52",
+      "proposal_title": "Send 1000 juno to Osmosis to sell.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "1000 JUNO sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "A92B98BB0D25E9856AA40CA8B0AA1D6D95DE1553B91E024B0BF97B9B3DFD69FE",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/662FC1695AEFB0111ADC1453E3F457FBAB439D1A145B9E7EC441A363FEC41C23",
       "height": 21681735,
@@ -1140,20 +1342,24 @@
       "id": "juno-1:662FC1695AEFB0111ADC1453E3F457FBAB439D1A145B9E7EC441A363FEC41C23",
       "movements": [],
       "proposal_id": "50",
+      "proposal_title": "Cancel Weighted AKT DCA",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "662FC1695AEFB0111ADC1453E3F457FBAB439D1A145B9E7EC441A363FEC41C23",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/8E6190FCE2FAE73E41E0F5D5CAB0770EC0E4EB28D9D192DF4D35161929B5F052",
       "height": 21681713,
@@ -1170,16 +1376,20 @@
         }
       ],
       "proposal_id": "51",
+      "proposal_title": "Send 1 juno to Osmosis test transaction",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "1 JUNO sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "8E6190FCE2FAE73E41E0F5D5CAB0770EC0E4EB28D9D192DF4D35161929B5F052",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/D3FF1046ED96D523D82BFF629E6AAA34E5815E1D3E17F0B8E45D29C3C167D387",
       "height": 21680960,
@@ -1196,20 +1406,24 @@
         }
       ],
       "proposal_id": null,
+      "proposal_title": null,
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "508 JUNO received",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "D3FF1046ED96D523D82BFF629E6AAA34E5815E1D3E17F0B8E45D29C3C167D387",
       "type": "inflow"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/F6CBF93C1ADD525E5FA7E1A50595D745EC67382DDFCFB88EB200AC57FD3FA6EC",
       "height": 21346749,
@@ -1217,20 +1431,24 @@
       "id": "juno-1:F6CBF93C1ADD525E5FA7E1A50595D745EC67382DDFCFB88EB200AC57FD3FA6EC",
       "movements": [],
       "proposal_id": "47",
+      "proposal_title": "DCA out 260 AKT",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "F6CBF93C1ADD525E5FA7E1A50595D745EC67382DDFCFB88EB200AC57FD3FA6EC",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "derived",
       "explorer_url": "https://atomscan.com/juno/transactions/47A1F835991158C7AC32C79DE381EE00DCF47FBABCD3FC6FF7273C3B2B6C6FCB",
       "height": 21269278,
@@ -1238,20 +1456,24 @@
       "id": "juno-1:47A1F835991158C7AC32C79DE381EE00DCF47FBABCD3FC6FF7273C3B2B6C6FCB",
       "movements": [],
       "proposal_id": "48",
+      "proposal_title": "DCA out 500 AKT",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "Cross-chain command sent from the DAO",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "47A1F835991158C7AC32C79DE381EE00DCF47FBABCD3FC6FF7273C3B2B6C6FCB",
       "type": "cross_chain_command"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/9F548CE59383C31025E6878E32BE1CDF068E76D6B49E4AC234D69C9B336362D1",
       "height": 20848077,
@@ -1276,16 +1498,20 @@
         }
       ],
       "proposal_id": "46",
+      "proposal_title": "Payment for validator services Provided by Poroburu to Neta DAO.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "290 JUNO, 166.5 AKT sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "9F548CE59383C31025E6878E32BE1CDF068E76D6B49E4AC234D69C9B336362D1",
       "type": "payment"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/638B2099EA5924D95BCD3613700F56ACCB8D5F5057DE83B119D2B430AA7E7DE2",
       "height": 20640839,
@@ -1302,20 +1528,24 @@
         }
       ],
       "proposal_id": null,
+      "proposal_title": null,
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "290 JUNO received",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "638B2099EA5924D95BCD3613700F56ACCB8D5F5057DE83B119D2B430AA7E7DE2",
       "type": "inflow"
     },
     {
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "actions": [
         "execute",
         "execute_proposal_completed_hook",
         "execute_proposal_hook"
       ],
       "chain_id": "juno-1",
+      "chain_name": "Juno",
       "classification_confidence": "confirmed",
       "explorer_url": "https://atomscan.com/juno/transactions/6B27A3F2849A78EAE1C9BA07BD0B5F207CEA2D2174A5747A23D4391FB25A687C",
       "height": 20293572,
@@ -1340,21 +1570,144 @@
         }
       ],
       "proposal_id": "44",
+      "proposal_title": "Payment for validator services Provided by Poroburu to Neta DAO.",
       "status": "confirmed",
       "timestamp": null,
       "timestamp_status": "archive_unavailable",
       "title": "350 JUNO, 155.58 AKT sent",
+      "treasury_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "tx_hash": "6B27A3F2849A78EAE1C9BA07BD0B5F207CEA2D2174A5747A23D4391FB25A687C",
       "type": "payment"
+    },
+    {
+      "account_explorer_url": "https://www.mintscan.io/osmosis/address/osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
+      "actions": [
+        "order_filled"
+      ],
+      "chain_id": "osmosis-1",
+      "chain_name": "Osmosis",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://www.mintscan.io/osmosis/tx/D0D5EF884C0C978F69A0519189D0532B3E978836CE83E0BFA6CD41C2646F8295",
+      "height": 65103567,
+      "ibc_packets": 0,
+      "id": "osmosis-1:D0D5EF884C0C978F69A0519189D0532B3E978836CE83E0BFA6CD41C2646F8295",
+      "movements": [
+        {
+          "amount": "2435.935982",
+          "asset": "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
+          "counterparty": "osmo1vy34lpt5zlj797w7zqdta3qfq834kapx88qtgudy7jgljztj567s73ny82",
+          "denom": "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
+          "direction": "in",
+          "raw_amount": "2435935982"
+        }
+      ],
+      "proposal_id": null,
+      "proposal_title": null,
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "2435.935982 ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4 received",
+      "treasury_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
+      "tx_hash": "D0D5EF884C0C978F69A0519189D0532B3E978836CE83E0BFA6CD41C2646F8295",
+      "type": "inflow"
+    },
+    {
+      "account_explorer_url": "https://www.mintscan.io/osmosis/address/osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
+      "actions": [
+        "try_transfer"
+      ],
+      "chain_id": "osmosis-1",
+      "chain_name": "Osmosis",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://www.mintscan.io/osmosis/tx/EAE0D9E688B7280DCD039593C06D0702D5F33F02F05609136D0E8F207AD8D491",
+      "height": 65103251,
+      "ibc_packets": 0,
+      "id": "osmosis-1:EAE0D9E688B7280DCD039593C06D0702D5F33F02F05609136D0E8F207AD8D491",
+      "movements": [
+        {
+          "amount": "999.98",
+          "asset": "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
+          "counterparty": "osmo1yl6hdjhmkf37639730gffanpzndzdpmhxy9ep3",
+          "denom": "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
+          "direction": "in",
+          "raw_amount": "999980000"
+        }
+      ],
+      "proposal_id": null,
+      "proposal_title": null,
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "999.98 ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4 received",
+      "treasury_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
+      "tx_hash": "EAE0D9E688B7280DCD039593C06D0702D5F33F02F05609136D0E8F207AD8D491",
+      "type": "inflow"
+    },
+    {
+      "account_explorer_url": "https://www.mintscan.io/osmosis/address/osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
+      "actions": [
+        "try_transfer"
+      ],
+      "chain_id": "osmosis-1",
+      "chain_name": "Osmosis",
+      "classification_confidence": "confirmed",
+      "explorer_url": "https://www.mintscan.io/osmosis/tx/F93104E8558FB65D105154B2945741DF27652EDF6A870BAA4AB153DE6EB449C0",
+      "height": 65100619,
+      "ibc_packets": 0,
+      "id": "osmosis-1:F93104E8558FB65D105154B2945741DF27652EDF6A870BAA4AB153DE6EB449C0",
+      "movements": [
+        {
+          "amount": "4.98",
+          "asset": "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
+          "counterparty": "osmo1yl6hdjhmkf37639730gffanpzndzdpmhxy9ep3",
+          "denom": "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
+          "direction": "in",
+          "raw_amount": "4980000"
+        }
+      ],
+      "proposal_id": null,
+      "proposal_title": null,
+      "status": "confirmed",
+      "timestamp": null,
+      "timestamp_status": "archive_unavailable",
+      "title": "4.98 ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4 received",
+      "treasury_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
+      "tx_hash": "F93104E8558FB65D105154B2945741DF27652EDF6A870BAA4AB153DE6EB449C0",
+      "type": "inflow"
     }
   ],
-  "generated_at": "2026-09-21T21:28:31.638854Z",
-  "schema_version": 1,
-  "scope": "neta-operations-juno-core",
-  "source": "https://juno-rpc.publicnode.com",
-  "source_indexed_contract_transactions": 47,
-  "treasury": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
+  "generated_at": "2026-09-21T21:27:46.553844Z",
+  "schema_version": 2,
+  "scope": "neta-operations-cross-chain",
+  "sources": [
+    {
+      "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
+      "chain_id": "juno-1",
+      "contract_creation_height": 4322988,
+      "indexed_transactions": 47,
+      "last_scanned_height": 41977994,
+      "source": "https://juno-rpc.publicnode.com"
+    },
+    {
+      "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
+      "chain_id": "osmosis-1",
+      "contract_creation_height": 15838602,
+      "indexed_transactions": 0,
+      "last_scanned_height": 71052935,
+      "source": "https://osmosis-rpc.publicnode.com"
+    }
+  ],
+  "treasuries": [
+    {
+      "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
+      "chain_id": "juno-1"
+    },
+    {
+      "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
+      "chain_id": "osmosis-1"
+    }
+  ],
   "warnings": [
-    "Exact block timestamp unavailable from public RPC archives for 54 historical events."
+    "Exact block timestamp unavailable from public RPC archives for 57 historical events."
   ]
 }
