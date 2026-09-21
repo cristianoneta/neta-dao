@@ -19,7 +19,11 @@ OUT = ROOT / "data" / "treasury"
 TOKEN_REGISTRY_PATH = OUT / "token-registry.json"
 TREASURY = "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl"
 OSMOSIS_TREASURY = "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80"
-RESTS = ("https://juno-api.polkachu.com", "https://juno-api.lavenderfive.com")
+RESTS = (
+    "https://juno-api.polkachu.com",
+    "https://juno.api.m.stavr.tech",
+    "https://juno-rest.publicnode.com",
+)
 OSMOSIS_RESTS = ("https://osmosis-api.polkachu.com", "https://lcd.osmosis.zone")
 NETA = "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr"
 WYND = "juno1mkw83sv6c7sjdvsaplrzc8yaes9l42p4mhy0ssuxjnyzl87c9eps7ce3m9"

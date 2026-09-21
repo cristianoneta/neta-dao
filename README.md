@@ -1,5 +1,8 @@
 # NETA DAO Workspace
 
+> New maintainers and AI agents: start with [`HANDOFF.md`](HANDOFF.md) for the
+> verified deployment state, safety gates, data ownership and current backlog.
+
 Static governance workspace for DAO collaboration on Juno. The frontend combines private browser drafts, public UNI-7 review contracts and read-only mainnet governance data.
 
 ## Current product boundary
