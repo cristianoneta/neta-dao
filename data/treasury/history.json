@@ -24,24 +24,24 @@
           "key": "juno:native:ujuno",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00965698",
-          "usd_value": "7.34974188050138"
+          "usd_price": "0.0096519",
+          "usd_value": "7.3458755901339"
         },
         {
           "amount": "817.744263",
           "key": "osmosis:native:ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4",
           "source_chain": "osmosis",
           "symbol": "AKT",
-          "usd_price": "0.635139",
-          "usd_value": "519.381273457557"
+          "usd_price": "0.639172",
+          "usd_value": "522.679236070236"
         },
         {
           "amount": "1932.499146",
           "key": "osmosis:native:ibc/46B44899322F3CD854D2D46DEEF881958467CDD4B3B10086DA49296BBED94BED",
           "source_chain": "osmosis",
           "symbol": "JUNO",
-          "usd_price": "0.00965698",
-          "usd_value": "18.66210560293908"
+          "usd_price": "0.0096519",
+          "usd_value": "18.6522885072774"
         },
         {
           "amount": "3441.43943",
@@ -56,30 +56,30 @@
           "key": "osmosis:native:ibc/8E697BDABE97ACE8773C6DF7402B2D1D5104DD1EEABE12608E3469B7F64C15BA",
           "source_chain": "osmosis",
           "symbol": "JKL",
-          "usd_price": "0.00036029",
-          "usd_value": "1.13923605441499"
+          "usd_price": "0.00036011",
+          "usd_value": "1.13866689487741"
         },
         {
           "amount": "177.320495",
           "key": "osmosis:native:ibc/BC26A7A805ECD6822719472BCB7842A48EF09DF206182F8F259B2593EB5D23FB",
           "source_chain": "osmosis",
           "symbol": "ATONE",
-          "usd_price": "0.107343",
-          "usd_value": "19.034113894785"
+          "usd_price": "0.106995",
+          "usd_value": "18.972406362525"
         },
         {
           "amount": "3.200008",
           "key": "osmosis:native:uosmo",
           "source_chain": "osmosis",
           "symbol": "OSMO",
-          "usd_price": "0.03661747",
-          "usd_value": "0.11717619693976"
+          "usd_price": "0.03653401",
+          "usd_value": "0.11690912427208"
         }
       ],
-      "generated_at": "2026-09-21T19:28:43.261904Z",
-      "height": 41975463,
+      "generated_at": "2026-09-21T19:42:39.104465Z",
+      "height": 41975764,
       "status": "PARTIAL",
-      "total_usd": "4027.39490609900721"
+      "total_usd": "4030.61664156119179"
     }
   ]
 }
