@@ -50,6 +50,14 @@ Delayed runs and short RPC outages therefore cannot create gaps. Historic block
 timestamps remain explicitly unavailable when public RPC archives have pruned the
 corresponding block body.
 
+The Treasury Events card consumes that ledger directly. Its compact view shows the
+three latest non-technical native movements; `VIEW ALL` exposes all confirmed
+inflows and payments with filters. Historical rows without an archive timestamp use
+their exact block height. Transaction and counterparty links open Atomscan, while a
+proposal badge opens the corresponding NETA Operations proposal inside this
+workspace. The unpriced `testingaten` movement remains visible only in the expanded
+ledger and is never presented as treasury income.
+
 ### Proposal deliverables
 
 Drafts and public revisions can contain structured deliverables with a milestone title, deadline, responsible party, required confirmer and expected evidence. They are embedded in the existing `actions_json` array as entries with `type: "dao_deliverable_v1"`. This keeps the format backward-compatible with the deployed workshop contract while allowing the Delivery view to consume approved milestones later. Submission adapters must separate these planning records from executable chain messages.

@@ -61,6 +61,17 @@ test("operations events replay the address index and keep a durable watermark", 
   assert.match(collector, /historical address index is empty/);
 });
 
+test("treasury events replace sample activity with verified linked transactions", () => {
+  for (const id of ["treasury-events", "treasury-events-toggle", "treasury-event-filters", "treasury-event-count"]) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  assert.match(treasury, /data\/treasury\/events\.json/);
+  assert.match(treasury, /neta:open-proposal/);
+  assert.match(treasury, /testingaten/);
+  assert.match(governance, /neta:open-proposal/);
+  assert.doesNotMatch(html, /4,200 USDC received from Osmosis|2,500 JUNO → 731\.42 NETA|Milestone 02 released/);
+});
+
 test("small and unpriced treasury assets are collapsed without changing totals", () => {
   assert.match(treasury, /Number\(item\.usd_value\)>=50/);
   assert.match(treasury, /SMALL \/ UNPRICED ASSETS/);
