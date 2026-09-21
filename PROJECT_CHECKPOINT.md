@@ -1,6 +1,6 @@
 # NETA DAO Workspace Checkpoint
 
-Updated: 20 September 2026
+Updated: 21 September 2026
 
 ## Implemented
 
@@ -11,7 +11,7 @@ Updated: 20 September 2026
 - Revision confirmation dialog requiring an explanation of what changed and why.
 - Full cursor pagination for workshop proposals, revisions and comments.
 - Mainnet Juno governance history and live funding/voting parameters.
-- Home, Delivery, Contributors and Treasury pages; the last three remain clearly marked UX drafts.
+- Home, Delivery, Contributors and Treasury pages; Delivery and Contributors remain UX concepts, while Treasury balances are live and read-only.
 - Request race protection and Keplr account-change invalidation.
 - Structured proposal deliverables with deadline, responsible party, confirmer and evidence requirements, stored revision-by-revision in the existing payload.
 - Per-DAO contextual staking destinations shown only when a connected discussion participant lacks comment eligibility.
@@ -45,6 +45,7 @@ Updated: 20 September 2026
 - SHA-256: `6eb604c255d01414880bdcb9cc1d1df69dc2507f25ffc6e6d51388945ff63f22`.
 - Operations UNI-7 workshop: `juno1d2xdlvy23am07twe046zzxxndjtccgpwwl3pyu5g98u07qu3nyqqkaz65h` (legacy contract API).
 - Juno v0.3.0 review workshop: deployed, unpaused and configured as the canonical frontend contract at `juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw` using code ID `114`.
+- The canonical Juno review address is committed in the `neta-governance.js` DAO registry; it is not browser-local scaffolding.
 - Test administrator: `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.
 - UNI-7 access mock: `juno10739807rjqkf4kmtvpu5ll5e67dkch82xzgph83cmn5h8n0fxmnszasg86`.
 
@@ -56,6 +57,15 @@ Updated: 20 September 2026
 - Treasury execution and accounting feeds.
 - Contributor claims as authoritative DAO records.
 
-## Next operational step
+## Next product step
 
-Test publish/revise/comment/finalize against the canonical Juno review contract with the dual stake gate. See `UNI7_DEPLOYMENT_RUNBOOK.md` for the confirmed deployment and UNI-7 recovery rules.
+Continue with read-only Treasury phase 2:
+
+1. historical and forecast cash flow;
+2. recurring income and expenses;
+3. proposal-linked obligations;
+4. open milestone payments;
+5. price and treasury-value history;
+6. derived runway.
+
+Proposal-workshop smoke tests remain a regression gate whenever review-contract behavior changes; they are no longer the primary continuation task. Native mainnet submission, voting, Treasury execution and payment release remain separately gated.
