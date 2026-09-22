@@ -12,7 +12,7 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   split is deliberate preparation for DAO tooling that can control other chains.
 - The active workspace section is encoded in the URL hash and retained locally,
   so refreshing or directly opening `#treasury`, `#contributors`, `#delivery`
-  `#governance` or `#relay` preserves the selected view.
+  `#governance`, `#relay` or `#names` preserves the selected view.
 - Proposals supports private browser drafts, public UNI-7 review, revisions,
   threaded discussion, withdrawal and structured deliverables.
 - NETA Operations uses its DAO voting/staking contracts. Publishing requires DAO
@@ -36,7 +36,16 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   reviewed Double Ratchet client are connected. It does not transmit or persist
   plaintext. UNI-7 will have no NETA stake gate; the separate mainnet configuration
   must require at least 5 actively staked NETA. See
-  `docs/RELAY_SECURITY_ARCHITECTURE.md`.
+  `docs/RELAY_SECURITY_ARCHITECTURE.md`. The composer action reads `SEND MESSAGE`
+  and stays disabled while messaging is not active; there is no plaintext send.
+- NETA Names UI and contract draft were introduced in PR #69. Verify the live
+  Pages deployment before claiming the UI is available on the deployed site.
+  Its contract charges 5 NETA for first-year registration and forwards all fees to
+  the NETA DAO treasury `juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6`.
+  Annual renewals use a manually adjustable NETA quote targeting USD 5; there is
+  no automatic price oracle or universal wallet/DNS support. The shared-layout
+  `#names` page includes lookup and prepared Keplr registration/renewal flows,
+  all gated until the registry is verified and deployed. See `docs/NETA_NAMES_DESIGN.md`.
 
 ## Treasury architecture
 
@@ -90,6 +99,7 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
 cargo test --locked --manifest-path contracts/neta-proposal-workshop/Cargo.toml
 cargo clippy --locked --all-targets --manifest-path contracts/neta-proposal-workshop/Cargo.toml -- -D warnings
 cargo test --locked --manifest-path contracts/workshop-access-mock/Cargo.toml
+cargo test --locked --manifest-path contracts/neta-names/Cargo.toml
 node --test tests/frontend-smoke.test.mjs
 python -m py_compile scripts/update_treasury.py
 ```

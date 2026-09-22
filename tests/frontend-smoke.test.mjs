@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import vm from "node:vm";
 
 const governance = readFileSync("neta-governance.js", "utf8");
 const html = readFileSync("index.html", "utf8");
@@ -16,6 +17,7 @@ test("browser scripts parse", () => {
   execFileSync(process.execPath, ["--check", "ux-draft.js"]);
   execFileSync(process.execPath, ["--check", "treasury.js"]);
   execFileSync(process.execPath, ["--check", "relay.js"]);
+  execFileSync(process.execPath, ["--check", "names.js"]);
 });
 
 test("Relay follows DAOs and creates local governance notifications safely", () => {
@@ -34,7 +36,8 @@ test("Relay messaging remains locked behind explicit security gates", () => {
   assert.match(html, /Messaging is not active. This preview does not send or save your text/);
   assert.match(html, /TESTNET · NO STAKE GATE/);
   assert.match(relay, /ENCRYPTED MESSAGING IS NOT ACTIVE YET/);
-  assert.match(relay, /MESSAGE NOT SENT · UNI-7 CONTRACT ACTIVATION REQUIRED/);
+  assert.match(html, /type="submit" disabled aria-describedby="relay-send-note">SEND MESSAGE/);
+  assert.match(relay, /event=>event.preventDefault\(\)/);
   assert.match(relay, /closeComposer/);
 });
 
@@ -52,7 +55,7 @@ test("Relay hides a zero badge and keeps the inbox before the watchlist", () => 
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
   assert.match(html, /relay\.css\?v=4/);
-  assert.match(html, /relay\.js\?v=3/);
+  assert.match(html, /relay\.js\?v=4/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
 
@@ -217,4 +220,27 @@ test("deliverables are embedded in the revision payload", () => {
   assert.match(governance, /DEADLINE/);
   assert.match(governance, /CONFIRMED BY/);
   assert.match(governance, /EXPECTED RESULT \/ EVIDENCE/);
+});
+
+test("Names has honest deployment gate and is linked in workspace", () => {
+  const names=readFileSync("names.js", "utf8");
+  assert.match(html, /data-workspace-view="names"/);
+  assert.match(html, /id="names-view"/);
+  assert.match(names, /const REGISTRY=null/);
+  assert.match(html, /5 NETA for the first year/);
+  assert.match(html, /REGISTER · COMING SOON/);
+  assert.match(names, /neta-names-v1:/);
+  assert.match(names, /config.treasury!==DAO_TREASURY/);
+  assert.match(names, /amount:INITIAL_FEE/);
+  assert.match(names, /current.renewal_fee!==amount/);
+});
+
+test("Names validates the full 5–32 character label and rejects ambiguous names", () => {
+  const context={window:{},document:{querySelector:()=>null},sessionStorage:{getItem:()=>null}};
+  vm.runInNewContext(readFileSync("names.js","utf8"),context);
+  const {validName}=context.window.NetaNames;
+  assert.equal(validName("cristiano.neta"),true);
+  assert.equal(validName(`${"a".repeat(32)}.neta`),true);
+  for(const value of ["abcd.neta",`${"a".repeat(33)}.neta`,"Admin.neta","admin.neta","a--name.neta","-owner.neta","owner-.neta","owner.juno"])
+    assert.equal(validName(value),false,value);
 });
