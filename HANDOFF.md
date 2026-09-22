@@ -1,6 +1,6 @@
 # NETA DAO handoff
 
-Last verified: 2026-09-21
+Last verified: 2026-09-22
 
 Read this file and `README.md` before changing the application. The deployed site is
 `https://dao.netareborn.com`; this repository is the canonical source for the DAO
@@ -12,7 +12,7 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   split is deliberate preparation for DAO tooling that can control other chains.
 - The active workspace section is encoded in the URL hash and retained locally,
   so refreshing or directly opening `#treasury`, `#contributors`, `#delivery`
-  or `#governance` preserves the selected view.
+  `#governance` or `#relay` preserves the selected view.
 - Proposals supports private browser drafts, public UNI-7 review, revisions,
   threaded discussion, withdrawal and structured deliverables.
 - NETA Operations uses its DAO voting/staking contracts. Publishing requires DAO
@@ -27,6 +27,16 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   flow and runway are sample UX only.
 - Deliverables are stored inside `actions_json` as `dao_deliverable_v1`. They are
   planning records, not executable Cosmos messages.
+- RELAY is the unified inbox. Its live read-only layer polls Operations and native
+  Juno governance, creates local notifications for new proposals, status changes
+  and content/revision changes, and opens the matching proposal in this workspace.
+  DAO favorites, comparison baselines, notifications and read state are browser-local.
+  The first load establishes a read baseline instead of creating a false unread flood.
+- The RELAY message composer is UI-only until the UNI-7 messaging contract and a
+  reviewed Double Ratchet client are connected. It does not transmit or persist
+  plaintext. UNI-7 will have no NETA stake gate; the separate mainnet configuration
+  must require at least 5 actively staked NETA. See
+  `docs/RELAY_SECURITY_ARCHITECTURE.md`.
 
 ## Treasury architecture
 
@@ -70,6 +80,9 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
 - Use a feature branch, run the relevant tests, open a PR and merge only green CI.
 - Generated treasury snapshots may advance `main` while a PR is open. Rebase or
   recreate the documentation commit on current `main`; never overwrite snapshots.
+- Increment the query version in `index.html` whenever changing a static CSS or JS
+  asset. The production site is aggressively cached; reusing `relay.css?v=1` and
+  `relay.js?v=1` previously left users on the obsolete three-column RELAY layout.
 
 ## Verification
 
@@ -98,10 +111,13 @@ collection is intended; syntax and frontend tests are non-mutating.
   list or add a separate custody-by-chain panel. Asset rows expose their chain and
   custody address on hover/focus and inline on mobile. Fewer than two daily
   observations remain explicitly unavailable rather than using sample values.
-- Next Treasury work: review the generated Juno Operations ledger, connect approved
-  events to the UI, then add the Osmosis proxy and IBC correlation before deriving
-  cash flow. Recurring income/expenses, proposal-linked obligations, open milestone
-  payments and runway remain later phases.
+- Operations Treasury Events and the Osmosis proxy are connected to the UI. Remaining
+  Treasury work is higher-level accounting: cross-chain IBC correlation beyond the
+  current custody consolidation, recurring income/expenses, proposal-linked
+  obligations, open milestone payments and derived runway.
+- RELAY notifications currently update while the page is open or regains focus.
+  There is no service worker, push delivery, backend account or cross-device read
+  state. Encrypted messaging remains the next active product phase.
 - AtomOne is research only. Its reserved treasury address is not an active DAO;
   AtomOne lacks CosmWasm for native Polytone deployment. ICA would create a separate
   host-chain account and needs host support plus an adapter/controller design.
@@ -114,3 +130,5 @@ collection is intended; syntax and frontend tests are non-mutating.
    local branch.
 3. Confirm whether the task concerns NETA Operations, Juno Governance or both.
 4. Keep live/read-only, testnet-write and future/sample states visibly distinct.
+5. For RELAY messaging, start with the contract/state-machine and library selection;
+   do not invent cryptographic primitives or enable a fake send path.
