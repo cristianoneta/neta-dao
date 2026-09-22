@@ -51,7 +51,7 @@ test("Relay hides a zero badge and keeps the inbox before the watchlist", () => 
   assert.match(relayCss, /relay-watchlist\{order:2\}/);
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
-  assert.match(html, /relay\.css\?v=3/);
+  assert.match(html, /relay\.css\?v=4/);
   assert.match(html, /relay\.js\?v=3/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
