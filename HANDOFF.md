@@ -38,7 +38,8 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   must require at least 5 actively staked NETA. See
   `docs/RELAY_SECURITY_ARCHITECTURE.md`. The composer action reads `SEND MESSAGE`
   and stays disabled while messaging is not active; there is no plaintext send.
-- NETA Names is in draft PR #69 (`codex/neta-names`), not on the deployed site.
+- NETA Names UI and contract draft were introduced in PR #69. Verify the live
+  Pages deployment before claiming the UI is available on the deployed site.
   Its contract charges 5 NETA for first-year registration and forwards all fees to
   the NETA DAO treasury `juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6`.
   Annual renewals use a manually adjustable NETA quote targeting USD 5; there is
