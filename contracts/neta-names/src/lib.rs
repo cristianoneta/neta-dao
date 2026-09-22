@@ -180,7 +180,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cosmwasm_std::{coin, testing::{mock_dependencies, mock_env, mock_info}};
+    use cosmwasm_std::{coin, CosmosMsg, testing::{mock_dependencies, mock_env, mock_info}};
 
     fn init(deps: DepsMut) {
         instantiate(deps, mock_env(), mock_info("deployer", &[]), InstantiateMsg {
@@ -202,6 +202,10 @@ mod tests {
         env.block.height += 1;
         let response = execute(deps.as_mut(), env.clone(), mock_info("neta-token", &[]), pay("alice-wallet", INITIAL_FEE, HookMsg::Register { name:"alice.neta".into(), salt:"private-salt".into() })).unwrap();
         assert_eq!(response.messages.len(), 1);
+        if let CosmosMsg::Wasm(WasmMsg::Execute { contract_addr, msg, funds }) = &response.messages[0].msg {
+            assert_eq!(contract_addr, "neta-token"); assert!(funds.is_empty());
+            assert_eq!(msg, &to_json_binary(&TokenExecute::Transfer { recipient: NETA_DAO_TREASURY.into(), amount: Uint128::new(INITIAL_FEE) }).unwrap());
+        } else { panic!("registration fee must transfer to the NETA DAO"); }
         let found: ResolveResponse = from_json(query(deps.as_ref(), env.clone(), QueryMsg::Resolve { name:"alice.neta".into() }).unwrap()).unwrap();
         assert_eq!(found.address.as_deref(), Some("alice-wallet"));
         assert_eq!(execute(deps.as_mut(), env.clone(), mock_info("neta-token", &[]), pay("alice-wallet", 1, HookMsg::Renew { name:"alice".into() })).unwrap_err(), Error::Fee);
@@ -215,6 +219,8 @@ mod tests {
     #[test]
     fn wrong_token_and_price_authority_fail() {
         let mut deps = mock_dependencies(); init(deps.as_mut());
+        let mut other = mock_dependencies();
+        assert_eq!(instantiate(other.as_mut(), mock_env(), mock_info("deployer", &[]), InstantiateMsg { neta_token:"neta-token".into(), dao_treasury:"operations-dao".into(), admin:"admin-wallet".into(), renewal_fee:Uint128::new(INITIAL_FEE) }).unwrap_err(), Error::Treasury);
         assert_eq!(execute(deps.as_mut(), mock_env(), mock_info("attacker", &[]), pay("alice-wallet", INITIAL_FEE, HookMsg::Register { name:"alice".into(), salt:"secret".into() })).unwrap_err(), Error::Unauthorized);
         assert_eq!(execute(deps.as_mut(), mock_env(), mock_info("attacker", &[]), ExecuteMsg::SetRenewalFee { amount: Uint128::new(1) }).unwrap_err(), Error::Unauthorized);
         assert_eq!(execute(deps.as_mut(), mock_env(), mock_info("admin-wallet", &[coin(1,"ujuno")]), ExecuteMsg::SetRenewalFee { amount: Uint128::new(1) }).unwrap_err(), Error::Funds);

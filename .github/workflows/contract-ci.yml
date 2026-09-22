@@ -83,3 +83,4 @@ jobs:
           # CosmWasm line that upgrades curve25519-dalek.
           cargo +1.85.1 audit --file contracts/neta-proposal-workshop/Cargo.lock --ignore RUSTSEC-2024-0344
           cargo +1.85.1 audit --file contracts/workshop-access-mock/Cargo.lock --ignore RUSTSEC-2024-0344
+          cargo +1.85.1 audit --file contracts/neta-names/Cargo.lock --ignore RUSTSEC-2024-0344
