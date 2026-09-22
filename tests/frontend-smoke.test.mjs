@@ -49,6 +49,11 @@ test("Relay hides a zero badge and keeps the inbox before the watchlist", () => 
   assert.match(relayCss, /relay-unread-badge\[hidden\]\{display:none\}/);
   assert.match(relayCss, /relay-feed-card\{order:1\}/);
   assert.match(relayCss, /relay-watchlist\{order:2\}/);
+  assert.match(relay, /count\.hidden=unread===0/);
+  assert.match(relay, /markRead\.disabled=unread===0/);
+  assert.match(html, /relay\.css\?v=2/);
+  assert.match(html, /relay\.js\?v=2/);
+  assert.doesNotMatch(html, /LIVE ALERTS/);
 });
 
 test("Juno community history is seeded with two daily snapshots", () => {
