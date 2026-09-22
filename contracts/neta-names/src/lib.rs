@@ -212,7 +212,11 @@ mod tests {
         env.block.time = env.block.time.plus_seconds(YEAR + 1);
         let expired: ResolveResponse = from_json(query(deps.as_ref(), env.clone(), QueryMsg::Resolve { name:"alice".into() }).unwrap()).unwrap();
         assert!(expired.in_grace); assert_eq!(expired.address, None);
-        execute(deps.as_mut(), env.clone(), mock_info("neta-token", &[]), pay("alice-wallet", 2_000_000, HookMsg::Renew { name:"alice".into() })).unwrap();
+        let renewal = execute(deps.as_mut(), env.clone(), mock_info("neta-token", &[]), pay("alice-wallet", 2_000_000, HookMsg::Renew { name:"alice".into() })).unwrap();
+        if let CosmosMsg::Wasm(WasmMsg::Execute { contract_addr, msg, funds }) = &renewal.messages[0].msg {
+            assert_eq!(contract_addr, "neta-token"); assert!(funds.is_empty());
+            assert_eq!(msg, &to_json_binary(&TokenExecute::Transfer { recipient: NETA_DAO_TREASURY.into(), amount: Uint128::new(2_000_000) }).unwrap());
+        } else { panic!("renewal fee must transfer to the NETA DAO"); }
         let active: ResolveResponse = from_json(query(deps.as_ref(), env, QueryMsg::Resolve { name:"alice".into() }).unwrap()).unwrap();
         assert_eq!(active.address.as_deref(), Some("alice-wallet"));
     }
