@@ -29,5 +29,10 @@
   document.querySelectorAll("[data-relay-dao]").forEach(button=>button.addEventListener("click",()=>{const id=button.dataset.relayDao;favorites=favorites.includes(id)?favorites.filter(item=>item!==id):[...favorites,id];write(FAVORITES_KEY,favorites);render();refresh()}));
   document.querySelectorAll("[data-relay-filter]").forEach(button=>button.addEventListener("click",()=>{filter=button.dataset.relayFilter;document.querySelectorAll("[data-relay-filter]").forEach(item=>item.classList.toggle("active",item===button));render()}));
   document.querySelector("#relay-mark-read").addEventListener("click",()=>{events.forEach(item=>{if(favorites.includes(item.dao))item.read=true});write(EVENTS_KEY,events);render()});
+  const composer=document.querySelector("#relay-composer"),newMessage=document.querySelector("#relay-new-message"),recipient=document.querySelector("#relay-recipient"),message=document.querySelector("#relay-message");
+  function closeComposer(){composer.hidden=true;newMessage.setAttribute("aria-expanded","false");composer.reset()}
+  newMessage.addEventListener("click",()=>{const opening=composer.hidden;composer.hidden=!opening;newMessage.setAttribute("aria-expanded",String(opening));if(opening)recipient.focus()});
+  document.querySelector("#relay-discard-message").addEventListener("click",()=>{closeComposer();status.textContent="NEW MESSAGE DISCARDED"});
+  composer.addEventListener("submit",event=>{event.preventDefault();if(!recipient.value.trim()||!message.value.trim())return;closeComposer();status.textContent="MESSAGE NOT SENT · UNI-7 CONTRACT ACTIVATION REQUIRED"});
   render();refresh();setInterval(refresh,60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
 })();

@@ -19,7 +19,7 @@ test("browser scripts parse", () => {
 });
 
 test("Relay follows DAOs and creates local governance notifications safely", () => {
-  for (const id of ["relay-view", "relay-unread-badge", "relay-feed", "relay-mark-read"]) {
+  for (const id of ["relay-view", "relay-unread-badge", "relay-feed", "relay-mark-read", "relay-new-message", "relay-composer", "relay-discard-message"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
   assert.match(relay, /neta-relay-favorites:v1/);
@@ -31,11 +31,24 @@ test("Relay follows DAOs and creates local governance notifications safely", () 
 });
 
 test("Relay messaging remains locked behind explicit security gates", () => {
-  assert.match(html, /UNI-7 CONTRACT ACTIVATION REQUIRED/);
-  assert.match(html, /Double Ratchet sessions/);
-  assert.match(html, /UNI-7: no NETA stake gate/);
-  assert.match(html, /Mainnet: ≥ 5 actively staked NETA/);
+  assert.match(html, /End-to-end encryption requires the UNI-7 messaging contract/);
+  assert.match(html, /TESTNET · NO STAKE GATE/);
   assert.match(relay, /ENCRYPTED MESSAGING IS NOT ACTIVE YET/);
+  assert.match(relay, /MESSAGE NOT SENT · UNI-7 CONTRACT ACTIVATION REQUIRED/);
+  assert.match(relay, /closeComposer/);
+});
+
+test("Relay prioritizes messages before governance in the inbox", () => {
+  const messages = html.indexOf('data-relay-filter="messages"');
+  const governanceFilter = html.indexOf('data-relay-filter="governance"');
+  assert.ok(messages > -1 && messages < governanceFilter);
+});
+
+test("Relay hides a zero badge and keeps the inbox before the watchlist", () => {
+  const relayCss = readFileSync("relay.css", "utf8");
+  assert.match(relayCss, /relay-unread-badge\[hidden\]\{display:none\}/);
+  assert.match(relayCss, /relay-feed-card\{order:1\}/);
+  assert.match(relayCss, /relay-watchlist\{order:2\}/);
 });
 
 test("Juno community history is seeded with two daily snapshots", () => {
