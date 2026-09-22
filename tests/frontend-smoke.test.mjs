@@ -226,6 +226,8 @@ test("Names has honest deployment gate and is linked in workspace", () => {
   const names=readFileSync("names.js", "utf8");
   assert.match(html, /data-workspace-view="names"/);
   assert.match(html, /ux-draft\.js\?v=8/);
+  assert.match(html, /governance-overrides\.css\?v=16/);
+  assert.doesNotMatch(html, /GOVERNANCE · ACCOUNTABILITY · TRANSPARENCY/);
   assert.match(ux, /names:document\.querySelector\("#names-view"\)/);
   assert.match(html, /id="names-view"/);
   assert.match(names, /const REGISTRY=null/);
