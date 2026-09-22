@@ -22,6 +22,21 @@ Static governance workspace for DAO collaboration on Juno. The frontend combines
 - Review writes require at least 1 delegated JUNOX and 1 actively staked test NETA.
 - Mainnet deposit, `MsgSubmitProposal` and native Juno voting remain disabled until the exact transactions have been simulated and reviewed.
 
+### RELAY
+
+- RELAY is a unified local-first inbox for watched DAOs. It currently reads NETA
+  Operations and native Juno proposals and detects new proposals, status transitions
+  and changed content/revisions while the page is open.
+- Favorites, the comparison baseline, generated notifications and read status stay
+  in this browser. There is no push service, user account or cross-device sync yet.
+- `CREATE NEW MESSAGE` opens a composer above the inbox. Until the UNI-7 message
+  contract and reviewed Double Ratchet client are connected, input is neither
+  transmitted nor persisted and the UI reports that activation is required.
+- UNI-7 messaging is intentionally open for testing without a NETA stake gate.
+  A later, separately instantiated mainnet contract must require at least 5 actively
+  staked NETA. The threat model and release gates are documented in
+  [`docs/RELAY_SECURITY_ARCHITECTURE.md`](docs/RELAY_SECURITY_ARCHITECTURE.md).
+
 ### UX concepts
 
 Delivery and Contributors remain visual drafts. Treasury asset balances are collected read-only from the NETA Operations DAO core address `juno1excm…mancl`, its DAO-controlled Osmosis Polytone proxy `osmo1xj…9f80`, and Juno's native distribution-module Community Pool. Chain custody and IBC representations remain explicit. USD prices are refreshed centrally, while planning, commitments and runway remain explicitly marked sample values until their accounting model is connected.
