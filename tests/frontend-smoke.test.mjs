@@ -8,12 +8,41 @@ const governance = readFileSync("neta-governance.js", "utf8");
 const html = readFileSync("index.html", "utf8");
 const treasury = readFileSync("treasury.js", "utf8");
 const ux = readFileSync("ux-draft.js", "utf8");
+const relay = readFileSync("relay.js", "utf8");
 const tokenRegistry = JSON.parse(readFileSync("data/treasury/token-registry.json", "utf8"));
 
 test("browser scripts parse", () => {
   execFileSync(process.execPath, ["--check", "neta-governance.js"]);
   execFileSync(process.execPath, ["--check", "ux-draft.js"]);
   execFileSync(process.execPath, ["--check", "treasury.js"]);
+  execFileSync(process.execPath, ["--check", "relay.js"]);
+});
+
+test("Relay follows DAOs and creates local governance notifications safely", () => {
+  for (const id of ["relay-view", "relay-unread-badge", "relay-feed", "relay-mark-read"]) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  assert.match(relay, /neta-relay-favorites:v1/);
+  assert.match(relay, /NEW PROPOSAL/);
+  assert.match(relay, /STATUS CHANGED/);
+  assert.match(relay, /NEW REVISION/);
+  assert.match(relay, /neta:relay-open/);
+  assert.doesNotMatch(relay, /\.innerHTML\s*=|insertAdjacentHTML|\.outerHTML\s*=/);
+});
+
+test("Relay messaging remains locked behind explicit security gates", () => {
+  assert.match(html, /UNI-7 CONTRACT ACTIVATION REQUIRED/);
+  assert.match(html, /Double Ratchet sessions/);
+  assert.match(html, /UNI-7: no NETA stake gate/);
+  assert.match(html, /Mainnet: ≥ 5 actively staked NETA/);
+  assert.match(relay, /ENCRYPTED MESSAGING IS NOT ACTIVE YET/);
+});
+
+test("Juno community history is seeded with two daily snapshots", () => {
+  const history = JSON.parse(readFileSync("data/treasury/juno-community-history.json", "utf8"));
+  assert.ok(history.snapshots.length >= 2);
+  assert.notEqual(history.snapshots.at(-2).generated_at.slice(0, 10), history.snapshots.at(-1).generated_at.slice(0, 10));
+  assert.ok(history.snapshots.every(snapshot => snapshot.assets.length > 0));
 });
 
 test("treasury renders LP ownership and underlying assets without HTML injection", () => {
