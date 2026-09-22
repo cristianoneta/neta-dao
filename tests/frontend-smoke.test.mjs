@@ -31,7 +31,7 @@ test("Relay follows DAOs and creates local governance notifications safely", () 
 });
 
 test("Relay messaging remains locked behind explicit security gates", () => {
-  assert.match(html, /End-to-end encryption requires the UNI-7 messaging contract/);
+  assert.match(html, /Messaging is not active. This preview does not send or save your text/);
   assert.match(html, /TESTNET · NO STAKE GATE/);
   assert.match(relay, /ENCRYPTED MESSAGING IS NOT ACTIVE YET/);
   assert.match(relay, /MESSAGE NOT SENT · UNI-7 CONTRACT ACTIVATION REQUIRED/);
@@ -51,8 +51,8 @@ test("Relay hides a zero badge and keeps the inbox before the watchlist", () => 
   assert.match(relayCss, /relay-watchlist\{order:2\}/);
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
-  assert.match(html, /relay\.css\?v=2/);
-  assert.match(html, /relay\.js\?v=2/);
+  assert.match(html, /relay\.css\?v=3/);
+  assert.match(html, /relay\.js\?v=3/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
 
