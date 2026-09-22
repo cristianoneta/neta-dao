@@ -225,6 +225,8 @@ test("deliverables are embedded in the revision payload", () => {
 test("Names has honest deployment gate and is linked in workspace", () => {
   const names=readFileSync("names.js", "utf8");
   assert.match(html, /data-workspace-view="names"/);
+  assert.match(html, /ux-draft\.js\?v=8/);
+  assert.match(ux, /names:document\.querySelector\("#names-view"\)/);
   assert.match(html, /id="names-view"/);
   assert.match(names, /const REGISTRY=null/);
   assert.match(html, /5 NETA for the first year/);
