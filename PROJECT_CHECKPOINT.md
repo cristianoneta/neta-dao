@@ -1,6 +1,6 @@
 # NETA DAO Workspace Checkpoint
 
-Updated: 21 September 2026
+Updated: 22 September 2026
 
 ## Implemented
 
@@ -15,6 +15,15 @@ Updated: 21 September 2026
 - Request race protection and Keplr account-change invalidation.
 - Structured proposal deliverables with deadline, responsible party, confirmer and evidence requirements, stored revision-by-revision in the existing payload.
 - Per-DAO contextual staking destinations shown only when a connected discussion participant lacks comment eligibility.
+- RELAY workspace with DAO favorites, a unified inbox, locally persisted read state
+  and notification detection for new Operations/Juno proposals, status changes and
+  content/revision changes. Message filters precede governance filters, the inbox is
+  the primary left column and followed DAOs sit in the right sidebar.
+- Collapsible `CREATE NEW MESSAGE` composer above the inbox. Discard and send attempt
+  both clear and close it; no message is transmitted until the UNI-7 contract and
+  reviewed encryption client are connected.
+- RELAY unread counts are hidden at zero. Non-zero counts use a high-contrast badge;
+  `MARK ALL READ` is disabled when nothing is unread.
 
 ## Access rules
 
@@ -54,6 +63,7 @@ Updated: 21 September 2026
 - The canonical Juno review address is committed in the `neta-governance.js` DAO registry; it is not browser-local scaffolding.
 - Test administrator: `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.
 - UNI-7 access mock: `juno10739807rjqkf4kmtvpu5ll5e67dkch82xzgph83cmn5h8n0fxmnszasg86`.
+- RELAY inbox UI is deployed from main. Encrypted messaging has no deployed contract yet.
 
 ## Intentionally locked
 
@@ -62,15 +72,24 @@ Updated: 21 September 2026
 - Delivery milestone acceptance and payment release.
 - Treasury execution and accounting feeds.
 - Contributor claims as authoritative DAO records.
+- RELAY ciphertext transmission and device registration until the UNI-7 messaging
+  contract and reviewed Double Ratchet client pass their test gates.
 
 ## Next product step
 
-Continue with the remaining read-only Treasury phase 2 work:
+Build encrypted RELAY messaging on UNI-7:
 
-1. transaction-backed historical and forecast cash flow;
-2. recurring income and expenses;
-3. proposal-linked obligations;
-4. open milestone payments;
-5. derived runway.
+1. finalize the message/device/prekey state machine and select a maintained,
+   independently reviewed Double Ratchet implementation;
+2. implement and test the CosmWasm registry/ciphertext contract with no UNI-7 stake
+   gate, payload limits, cooldown, blocklist, device revocation and pagination;
+3. compile reproducible Wasm and deploy/instantiate it through an explicit Keplr
+   transaction;
+4. connect device registration, session establishment, encrypted send/receive and
+   multi-device behavior to the existing composer and inbox;
+5. keep mainnet disabled until the external review gates are satisfied, then use a
+   separate immutable mainnet configuration requiring at least 5 actively staked NETA.
 
-Proposal-workshop smoke tests remain a regression gate whenever review-contract behavior changes; they are no longer the primary continuation task. Native mainnet submission, voting, Treasury execution and payment release remain separately gated.
+After messaging, continue Treasury accounting with recurring flows,
+proposal-linked obligations, open milestone payments and derived runway. Native
+Juno submission/voting, Treasury execution and payment release remain separately gated.

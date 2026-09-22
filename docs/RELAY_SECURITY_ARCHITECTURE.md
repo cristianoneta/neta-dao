@@ -1,6 +1,8 @@
 # RELAY security architecture
 
-Status: design gate for UNI-7 implementation. Messaging must remain disabled on mainnet until every release gate below is satisfied.
+Status: design gate for UNI-7 implementation. The current frontend composer is a
+non-persisting interaction shell; no messaging contract is deployed or connected.
+Messaging must remain disabled on mainnet until every release gate below is satisfied.
 
 ## Security claim
 
@@ -52,4 +54,6 @@ RELAY protects message content against chain observers, RPC operators, indexers 
 6. Independent external audit findings are resolved or explicitly accepted and disclosed.
 7. Clear user warnings explain public metadata, device compromise and irreversible loss of undecryptable history.
 
-Until all gates pass, the frontend must label messaging as testnet-locked and must not accept or transmit message text.
+Until the UNI-7 contract and reviewed client are connected, the frontend may accept
+temporary composer input for UX testing but must not transmit or persist it. Mainnet
+messaging stays disabled until every release gate passes.

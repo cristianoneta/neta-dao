@@ -12,6 +12,9 @@
 | Delivery/Contributors | UX concepts | No execution authority |
 | Treasury balances | Read-only Juno and Osmosis snapshots | Collector-generated |
 | Treasury forecasts/commitments/runway | UX sample data | No execution authority |
+| RELAY governance notifications | Live chain reads + browser comparison state | Browser-local and replaceable |
+| RELAY favorites/read state | Browser `localStorage` | User/browser can replace/delete |
+| RELAY encrypted messages | Not connected | Composer does not transmit or persist |
 
 ## Trust boundaries
 
@@ -22,6 +25,10 @@
 - Mainnet Juno submission and voting stay disabled.
 - Treasury collection is read-only; the frontend has no treasury execution authority.
 - A DAO proposal ID cannot be self-asserted as submitted; `MarkSubmitted` fails until verifiable forwarding or chain-query validation is implemented.
+- RELAY notification state is convenience state, not a chain source of truth. Opening
+  a notification re-selects the DAO and resolves the proposal from its canonical source.
+- Wallet signatures bind future RELAY device keys to an address; wallet signing keys
+  must never be reused directly as message-encryption keys.
 
 ## Review lifecycle
 
@@ -62,3 +69,7 @@ Neither workshop contract authorizes native Juno mainnet submission or voting.
   read-only; the remaining Treasury phase covers transaction-backed cash flow,
   recurring income/expenses, proposal-linked obligations, milestone payments and
   runway.
+- Keep RELAY message transmission disabled until the UNI-7 device/ciphertext contract
+  and reviewed Double Ratchet client are integrated. UNI-7 has no stake gate;
+  mainnet requires a separately instantiated 5-active-NETA configuration and the
+  release gates in `docs/RELAY_SECURITY_ARCHITECTURE.md`.

@@ -7,11 +7,16 @@ on:
       - "neta-governance.js"
       - "ux-draft.js"
       - "treasury.js"
+      - "relay.js"
+      - "relay.css"
       - "scripts/update_treasury.py"
       - "scripts/update_treasury_events.py"
       - "tests/test_treasury_events.py"
+      - "tests/test_treasury_history.py"
+      - "tests/frontend-smoke.test.mjs"
       - "data/treasury/**"
       - "index.html"
+      - "docs/RELAY_SECURITY_ARCHITECTURE.md"
       - "assets/neta_proposal_workshop.sha256"
       - "rust-toolchain.toml"
       - ".github/workflows/contract-ci.yml"
@@ -22,11 +27,16 @@ on:
       - "neta-governance.js"
       - "ux-draft.js"
       - "treasury.js"
+      - "relay.js"
+      - "relay.css"
       - "scripts/update_treasury.py"
       - "scripts/update_treasury_events.py"
       - "tests/test_treasury_events.py"
+      - "tests/test_treasury_history.py"
+      - "tests/frontend-smoke.test.mjs"
       - "data/treasury/**"
       - "index.html"
+      - "docs/RELAY_SECURITY_ARCHITECTURE.md"
       - "assets/neta_proposal_workshop.sha256"
       - "rust-toolchain.toml"
 
@@ -55,7 +65,7 @@ jobs:
       - name: Frontend syntax and invariants
         run: |
           node --test tests/frontend-smoke.test.mjs
-          python -m unittest tests/test_treasury_events.py
+          python -m unittest tests/test_treasury_events.py tests/test_treasury_history.py
       - name: Dependency audit
         run: |
           rustup toolchain install 1.85.1 --profile minimal
