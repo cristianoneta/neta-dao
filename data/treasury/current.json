@@ -17,7 +17,7 @@
     {
       "amount": "11.5",
       "base_denom": "uatom",
-      "change_24h": 2.4265167311732383,
+      "change_24h": 1.7957329259316115,
       "custody_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "ibc_path": "transfer/channel-1/uatom",
       "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
@@ -25,13 +25,13 @@
       "source_chain": "juno",
       "symbol": "ATOM",
       "type": "token",
-      "usd_price": "1.81",
-      "usd_value": "20.815"
+      "usd_price": "1.8",
+      "usd_value": "20.70"
     },
     {
       "amount": "761.080781",
       "base_denom": "ujuno",
-      "change_24h": -1.9257137675957585,
+      "change_24h": -2.6377961572076885,
       "custody_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "ibc_path": null,
       "key": "juno:native:ujuno",
@@ -39,13 +39,13 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00960382",
-      "usd_value": "7.30928282618342"
+      "usd_price": "0.00953419",
+      "usd_value": "7.25628877140239"
     },
     {
       "amount": "817.744263",
       "base_denom": "uakt",
-      "change_24h": 12.074661054515083,
+      "change_24h": 9.600139862836334,
       "custody_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
       "ibc_path": "transfer/channel-1",
       "key": "osmosis:native:ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4",
@@ -53,13 +53,13 @@
       "source_chain": "osmosis",
       "symbol": "AKT",
       "type": "token",
-      "usd_price": "0.665017",
-      "usd_value": "543.813836547471"
+      "usd_price": "0.651149",
+      "usd_value": "532.473359108187"
     },
     {
       "amount": "1932.499146",
       "base_denom": "ujuno",
-      "change_24h": -1.9257137675957585,
+      "change_24h": -2.6377961572076885,
       "custody_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
       "ibc_path": "transfer/channel-42",
       "key": "osmosis:native:ibc/46B44899322F3CD854D2D46DEEF881958467CDD4B3B10086DA49296BBED94BED",
@@ -67,13 +67,13 @@
       "source_chain": "osmosis",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00960382",
-      "usd_value": "18.55937394833772"
+      "usd_price": "0.00953419",
+      "usd_value": "18.42481403280174"
     },
     {
       "amount": "3441.43943",
       "base_denom": "uusdc",
-      "change_24h": 0.011428190522662583,
+      "change_24h": 0.004413946078295773,
       "custody_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
       "ibc_path": "transfer/channel-750",
       "key": "osmosis:native:ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
@@ -81,13 +81,13 @@
       "source_chain": "osmosis",
       "symbol": "USDC.n",
       "type": "token",
-      "usd_price": "0.999861",
-      "usd_value": "3440.96106991923"
+      "usd_price": "0.99981",
+      "usd_value": "3440.7855565083"
     },
     {
       "amount": "3161.997431",
       "base_denom": "ujkl",
-      "change_24h": 1.8531847504733219,
+      "change_24h": 1.3614835673573875,
       "custody_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
       "ibc_path": "transfer/channel-412",
       "key": "osmosis:native:ibc/8E697BDABE97ACE8773C6DF7402B2D1D5104DD1EEABE12608E3469B7F64C15BA",
@@ -95,13 +95,13 @@
       "source_chain": "osmosis",
       "symbol": "JKL",
       "type": "token",
-      "usd_price": "0.00033166",
-      "usd_value": "1.04870806796546"
+      "usd_price": "0.00033007",
+      "usd_value": "1.04368049205017"
     },
     {
       "amount": "177.320495",
       "base_denom": "uatone",
-      "change_24h": 9.926570471631093,
+      "change_24h": 8.444768644985306,
       "custody_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
       "ibc_path": "transfer/channel-94814",
       "key": "osmosis:native:ibc/BC26A7A805ECD6822719472BCB7842A48EF09DF206182F8F259B2593EB5D23FB",
@@ -109,13 +109,13 @@
       "source_chain": "osmosis",
       "symbol": "ATONE",
       "type": "token",
-      "usd_price": "0.115184",
-      "usd_value": "20.424483896080"
+      "usd_price": "0.113633",
+      "usd_value": "20.149459808335"
     },
     {
       "amount": "3.200008",
       "base_denom": "uosmo",
-      "change_24h": -1.0553490301875466,
+      "change_24h": -1.3350191946112984,
       "custody_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
       "ibc_path": null,
       "key": "osmosis:native:uosmo",
@@ -123,18 +123,18 @@
       "source_chain": "osmosis",
       "symbol": "OSMO",
       "type": "token",
-      "usd_price": "0.03668115",
-      "usd_value": "0.11737997344920"
+      "usd_price": "0.03651923",
+      "usd_value": "0.11686182815384"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-09-22T00:57:42.755678Z",
-  "height": 41982611,
+  "generated_at": "2026-09-22T01:15:24.507400Z",
+  "height": 41982996,
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "4053.04913517871680",
+  "total_usd": "4040.95002054923014",
   "treasury_accounts": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
