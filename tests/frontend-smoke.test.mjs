@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import vm from "node:vm";
 
 const governance = readFileSync("neta-governance.js", "utf8");
 const html = readFileSync("index.html", "utf8");
@@ -227,5 +228,19 @@ test("Names has honest deployment gate and is linked in workspace", () => {
   assert.match(html, /id="names-view"/);
   assert.match(names, /const REGISTRY=null/);
   assert.match(html, /5 NETA for the first year/);
-  assert.match(html, /REGISTER A NAME · COMING SOON/);
+  assert.match(html, /REGISTER · COMING SOON/);
+  assert.match(names, /neta-names-v1:/);
+  assert.match(names, /config.treasury!==DAO_TREASURY/);
+  assert.match(names, /amount:INITIAL_FEE/);
+  assert.match(names, /current.renewal_fee!==amount/);
+});
+
+test("Names validates the full 5–32 character label and rejects ambiguous names", () => {
+  const context={window:{},document:{querySelector:()=>null},sessionStorage:{getItem:()=>null}};
+  vm.runInNewContext(readFileSync("names.js","utf8"),context);
+  const {validName}=context.window.NetaNames;
+  assert.equal(validName("cristiano.neta"),true);
+  assert.equal(validName(`${"a".repeat(32)}.neta`),true);
+  for(const value of ["abcd.neta",`${"a".repeat(33)}.neta`,"Admin.neta","admin.neta","a--name.neta","-owner.neta","owner-.neta","owner.juno"])
+    assert.equal(validName(value),false,value);
 });
