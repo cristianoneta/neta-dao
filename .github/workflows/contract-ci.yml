@@ -9,6 +9,8 @@ on:
       - "treasury.js"
       - "relay.js"
       - "relay.css"
+      - "names.css"
+      - "names.js"
       - "scripts/update_treasury.py"
       - "scripts/update_treasury_events.py"
       - "tests/test_treasury_events.py"
@@ -29,6 +31,8 @@ on:
       - "treasury.js"
       - "relay.js"
       - "relay.css"
+      - "names.css"
+      - "names.js"
       - "scripts/update_treasury.py"
       - "scripts/update_treasury_events.py"
       - "tests/test_treasury_events.py"
@@ -54,14 +58,17 @@ jobs:
         run: |
           cargo fmt --manifest-path contracts/neta-proposal-workshop/Cargo.toml --check
           cargo fmt --manifest-path contracts/workshop-access-mock/Cargo.toml --check
+          cargo fmt --manifest-path contracts/neta-names/Cargo.toml --check
       - name: Test
         run: |
           cargo test --locked --manifest-path contracts/neta-proposal-workshop/Cargo.toml
           cargo test --locked --manifest-path contracts/workshop-access-mock/Cargo.toml
+          cargo test --locked --manifest-path contracts/neta-names/Cargo.toml
       - name: Clippy
         run: |
           cargo clippy --locked --all-targets --manifest-path contracts/neta-proposal-workshop/Cargo.toml -- -D warnings
           cargo clippy --locked --all-targets --manifest-path contracts/workshop-access-mock/Cargo.toml -- -D warnings
+          cargo clippy --locked --all-targets --manifest-path contracts/neta-names/Cargo.toml -- -D warnings
       - name: Frontend syntax and invariants
         run: |
           node --test tests/frontend-smoke.test.mjs

@@ -1,6 +1,6 @@
 (()=>{
   const buttons=[...document.querySelectorAll("[data-workspace-view]")];
-  const views={home:document.querySelector("#home-view"),governance:document.querySelector("#governance-view"),delivery:document.querySelector("#delivery-view"),contributors:document.querySelector("#contributors-view"),treasury:document.querySelector("#treasury-view"),relay:document.querySelector("#relay-view")};
+  const views={home:document.querySelector("#home-view"),governance:document.querySelector("#governance-view"),delivery:document.querySelector("#delivery-view"),contributors:document.querySelector("#contributors-view"),treasury:document.querySelector("#treasury-view"),relay:document.querySelector("#relay-view"),names:document.querySelector("#names-view")};
   const VIEW_STORAGE_KEY="neta-workspace-active-view";
   function selectView(selected,{updateHash=true,scroll=true}={}){
     if(!views[selected])selected="home";

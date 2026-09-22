@@ -16,6 +16,7 @@ test("browser scripts parse", () => {
   execFileSync(process.execPath, ["--check", "ux-draft.js"]);
   execFileSync(process.execPath, ["--check", "treasury.js"]);
   execFileSync(process.execPath, ["--check", "relay.js"]);
+  execFileSync(process.execPath, ["--check", "names.js"]);
 });
 
 test("Relay follows DAOs and creates local governance notifications safely", () => {
@@ -34,7 +35,8 @@ test("Relay messaging remains locked behind explicit security gates", () => {
   assert.match(html, /Messaging is not active. This preview does not send or save your text/);
   assert.match(html, /TESTNET · NO STAKE GATE/);
   assert.match(relay, /ENCRYPTED MESSAGING IS NOT ACTIVE YET/);
-  assert.match(relay, /MESSAGE NOT SENT · UNI-7 CONTRACT ACTIVATION REQUIRED/);
+  assert.match(html, /type="submit" disabled aria-describedby="relay-send-note">SEND MESSAGE/);
+  assert.match(relay, /event=>event.preventDefault\(\)/);
   assert.match(relay, /closeComposer/);
 });
 
@@ -52,7 +54,7 @@ test("Relay hides a zero badge and keeps the inbox before the watchlist", () => 
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
   assert.match(html, /relay\.css\?v=4/);
-  assert.match(html, /relay\.js\?v=3/);
+  assert.match(html, /relay\.js\?v=4/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
 
@@ -217,4 +219,13 @@ test("deliverables are embedded in the revision payload", () => {
   assert.match(governance, /DEADLINE/);
   assert.match(governance, /CONFIRMED BY/);
   assert.match(governance, /EXPECTED RESULT \/ EVIDENCE/);
+});
+
+test("Names has honest deployment gate and is linked in workspace", () => {
+  const names=readFileSync("names.js", "utf8");
+  assert.match(html, /data-workspace-view="names"/);
+  assert.match(html, /id="names-view"/);
+  assert.match(names, /const REGISTRY=null/);
+  assert.match(html, /5 NETA for the first year/);
+  assert.match(html, /REGISTER A NAME · COMING SOON/);
 });

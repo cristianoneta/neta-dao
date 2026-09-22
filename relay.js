@@ -33,6 +33,7 @@
   function closeComposer(){composer.hidden=true;newMessage.setAttribute("aria-expanded","false");composer.reset()}
   newMessage.addEventListener("click",()=>{const opening=composer.hidden;composer.hidden=!opening;newMessage.setAttribute("aria-expanded",String(opening));if(opening)recipient.focus()});
   document.querySelector("#relay-discard-message").addEventListener("click",()=>{closeComposer();status.textContent="NEW MESSAGE DISCARDED"});
-  composer.addEventListener("submit",event=>{event.preventDefault();if(!recipient.value.trim()||!message.value.trim())return;closeComposer();status.textContent="MESSAGE NOT SENT · UNI-7 CONTRACT ACTIVATION REQUIRED"});
+  composer.addEventListener("submit",event=>event.preventDefault());
+  recipient.addEventListener("input",()=>{const target=document.querySelector("#relay-recipient-resolution");if(target)target.textContent=""});
   render();refresh();setInterval(refresh,60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
 })();
