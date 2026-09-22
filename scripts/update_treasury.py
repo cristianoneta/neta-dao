@@ -290,10 +290,11 @@ def write_snapshot(snapshot, name="current", history_name="history"):
         }
         for item in snapshot["assets"]
     ]
-    rows = [row for row in history.get("snapshots", []) if row.get("generated_at", "")[:10] != day]
+    rows = list(history.get("snapshots", []))
     daily_mode = os.environ.get("TREASURY_DAILY_SNAPSHOT")
     berlin = datetime.now(ZoneInfo("Europe/Berlin"))
     if daily_mode == "1" or daily_mode == "auto" and berlin.hour == 21:
+        rows = [row for row in rows if row.get("generated_at", "")[:10] != day]
         rows.append(compact)
     history["snapshots"] = rows[-730:]
     history_path.write_text(json.dumps(history, indent=2, sort_keys=True) + "\n", encoding="utf-8")
