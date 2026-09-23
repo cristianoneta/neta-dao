@@ -59,7 +59,10 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   encrypted IndexedDB blocks plus that wrapped key. Chromium restored a device
   in a fresh profile, matched its original fingerprint and decrypted a message
   that had been encrypted before backup. This is an isolated layout-dependent
-  proof, not a shipped device backup UI or a reviewed production mechanism.
+  proof of unread-message recovery, not a shipped backup UI or proof that an
+  already-read chat history can be recovered. Used ratchet message keys may
+  be gone; readable history needs its own encrypted local archive in the same
+  wallet-bound backup. A stale backup must not resume sending without review.
 - NETA Names UI and contract draft were introduced in PR #69. Verify the live
   Pages deployment before claiming the UI is available on the deployed site.
   Its contract charges 5 NETA for first-year registration and forwards all fees to
