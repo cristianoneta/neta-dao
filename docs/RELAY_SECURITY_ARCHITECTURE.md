@@ -1,7 +1,9 @@
 # RELAY security architecture
 
-Status: design gate for UNI-7 implementation. The current frontend composer is a
-non-persisting interaction shell; no messaging contract is deployed or connected.
+Status: design gate for UNI-7 implementation. The mailbox contract is deployed
+at `juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa`.
+The current frontend composer is a non-persisting interaction shell; the
+encrypted messaging client is not connected.
 Messaging must remain disabled on mainnet until every release gate below is satisfied.
 The implementation sequence and current library evaluation are in
 [`RELAY_IMPLEMENTATION_PLAN.md`](RELAY_IMPLEMENTATION_PLAN.md).
