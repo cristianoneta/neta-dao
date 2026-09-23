@@ -50,7 +50,7 @@ try {
   // Contexts have separate storage, even though they visit the same origin.
   const aliceContext = await browser.newContext();
   const bobContext = await browser.newContext();
-  const alice = await aliceContext.newPage();
+  let alice = await aliceContext.newPage();
   let bob = await bobContext.newPage();
   await startClient(alice, 'alice');
   await startClient(bob, 'bob');
@@ -84,7 +84,17 @@ try {
   const afterReplay = await alice.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('after replay')))));
   assert.equal(await receive(afterReplay), 'after replay');
 
-  console.log(JSON.stringify({ success: true, browserContexts: 2, recoveredAfterTabRestart: true, outOfOrder: true, replayRejected: true, sessionRecoveredAfterReplay: true, wasmOnlyCspException: true, initialCiphertextBytes: initial.length, replyCiphertextBytes: reply.length }));
+  // Simulate a crash after the ratchet commits but before an outbox write.
+  const stranded = await alice.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('stranded message')))));
+  await alice.close();
+  alice = await aliceContext.newPage();
+  await startClient(alice, 'alice');
+  const replacement = await alice.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('stranded message')))));
+  assert.notDeepEqual(replacement, stranded, 're-encrypting after a crash must not be mistaken for the original ciphertext');
+  assert.equal(await receive(stranded), 'stranded message');
+  assert.equal(await receive(replacement), 'stranded message');
+
+  console.log(JSON.stringify({ success: true, browserContexts: 2, recoveredAfterTabRestart: true, outOfOrder: true, replayRejected: true, sessionRecoveredAfterReplay: true, crashWindowChangesCiphertext: true, wasmOnlyCspException: true, initialCiphertextBytes: initial.length, replyCiphertextBytes: reply.length }));
 } finally {
   await browser?.close();
   await new Promise(resolve => server.close(resolve));
