@@ -55,6 +55,11 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   corrupted encrypted backup. The green PR #82 proves the browser fixture only.
   It is not integrated with the site, and its encrypted key export alone cannot
   restore the CoreCrypto database or message history.
+  The later `browser-device-backup.mjs` fixture snapshots CoreCrypto 10.5.3's
+  encrypted IndexedDB blocks plus that wrapped key. Chromium restored a device
+  in a fresh profile, matched its original fingerprint and decrypted a message
+  that had been encrypted before backup. This is an isolated layout-dependent
+  proof, not a shipped device backup UI or a reviewed production mechanism.
 - NETA Names UI and contract draft were introduced in PR #69. Verify the live
   Pages deployment before claiming the UI is available on the deployed site.
   Its contract charges 5 NETA for first-year registration and forwards all fees to
@@ -146,8 +151,8 @@ collection is intended; syntax and frontend tests are non-mutating.
 - RELAY notifications currently update while the page is open or regains focus.
   There is no service worker, push delivery, backend account or cross-device read
   state. Next: independently review CoreCrypto's GPL-3.0 browser distribution
-  implications, establish a complete encrypted CoreCrypto database backup and
-  restore flow, isolate wallets and concurrent tabs, bind decrypted envelope
+  implications, review and harden the layout-dependent full encrypted database
+  backup and restore flow, isolate wallets and concurrent tabs, bind decrypted envelope
   identity to the on-chain registration, and prepare a test-only registration
   UI. Then test two real Keplr wallets on UNI-7. Do not enable `SEND MESSAGE`
   until this end-to-end flow passes; mainnet still needs the separate stake gate
