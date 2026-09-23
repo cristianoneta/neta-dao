@@ -17,14 +17,20 @@ This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTU
   by its native entry point as package dependencies (`@ubjs/core`, `@ubjs/node`
   were installed separately for the smoke test). A reproducible, pinned browser
   build and license review are hard gates before integration.
+- GitHub Actions Chromium smoke test (`spikes/relay-corecrypto/browser-smoke.mjs`)
+  passed with two isolated browser contexts: initial encrypted message, reply,
+  and recipient tab restart with encrypted keystore reopened before delivery.
+  The initial 202-byte ciphertext did not contain the message text. This is a
+  partial browser proof; out-of-order delivery, replay rejection, crash recovery,
+  key backup, CSP and protocol review remain open.
 - Local Playwright/Chromium cannot launch in the current execution environment:
-  Chromium's socket call is blocked. Browser tests must run in GitHub Actions
-  or another environment that can launch Chromium. Do not call this browser
-  gate passed on the strength of the native smoke test.
+  Chromium's socket call is blocked. Run the browser fixture in GitHub Actions.
 
 Reproduce the native check with `cd spikes/relay-corecrypto && npm ci && npm test`.
+For the browser check run `npx playwright install --with-deps chromium` and
+`npm run test:browser` in the same directory on a Chromium-capable host.
 The fixture is private and test-only; none of its dependencies are loaded by the
-website. It is not a substitute for the required isolated browser-profile test.
+website. It is not a substitute for the remaining security checks.
 
 ## Step 1: prove the browser client before building the contract
 

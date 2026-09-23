@@ -1,0 +1,29 @@
+name: RELAY browser crypto smoke
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/relay-crypto-browser.yml'
+      - 'spikes/relay-corecrypto/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-crypto:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: spikes/relay-corecrypto
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: spikes/relay-corecrypto/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
