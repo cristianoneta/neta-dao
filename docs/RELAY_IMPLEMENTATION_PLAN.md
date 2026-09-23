@@ -51,6 +51,14 @@ This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTU
   **only the database key**: without a verified backup of the encrypted
   CoreCrypto database it cannot recover message history or device identity.
   Neither the password nor unwrapped key is persisted by the fixture.
+- A second isolated fixture, `browser-device-backup.mjs`, snapshots the
+  encrypted `core-crypto` IndexedDB blocks for one quiesced database alongside
+  the password-wrapped key and authenticates the entire bundle with Web Crypto.
+  GitHub Actions Chromium restores the bundle into a fresh browser profile,
+  recovers the exact Proteus device fingerprint and decrypts a prekey message
+  created before export. Wrong password, wrong wallet, tampering and replacing
+  an existing device are rejected. This is pinned to CoreCrypto 10.5.3's
+  observed `blocks` storage layout; it is not a stable upstream backup API.
 - `spikes/relay-corecrypto/mailbox-transport.mjs` is an isolated UNI-7 adapter
   against the deployed mailbox address. It requires an independently verified
   code identity, exact connected wallet and chain, a ready persisted outbox
@@ -72,10 +80,10 @@ For the browser check run `npx playwright install --with-deps chromium` and
 The fixture is private and test-only; none of its dependencies are loaded by the
 website. It is not a substitute for the remaining security checks.
 
-Before integrating this vault into RELAY, test backup and import of the actual
-encrypted CoreCrypto database alongside the wrapped key, establish a documented
-device reset flow, and check the library's behavior under account switching and
-concurrent tabs. A password cannot restore a lost database by itself. Resolve
+Before integrating this vault into RELAY, review and version the observed
+IndexedDB layout, make backup quiescence reliable across tabs, define failure
+recovery for the two-database restore, and verify larger databases and multiple
+devices. A password or wrapped key alone cannot restore a lost database. Resolve
 the GPL-3.0 distribution obligations for the library and independently review
 the browser build before publishing runtime dependencies on the main site.
 
