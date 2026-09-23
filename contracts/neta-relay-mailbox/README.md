@@ -11,6 +11,8 @@ the device generation. `AddPrekeys` only accepts new IDs greater than every ID
 previously issued by that device generation. `SendInitial` checks the current
 recipient generation, consumes a prekey and stores the ciphertext atomically.
 `Send` stores follow-up ciphertext only for the current recipient device.
+Each sender has a ten-second contract cooldown; ciphertext is limited to 4096
+bytes, and inbox queries return at most 50 entries.
 
 The sender must compare its actual remote Proteus fingerprint with the latest
 registered fingerprint **before encryption**, and confirm the generation again
