@@ -5,6 +5,7 @@
   const RPCS = ['https://juno.test.rpc.nodeshub.online', 'https://juno.rpc.t.stavr.tech'];
   const RESTS = ['https://juno.test.api.nodeshub.online', 'https://juno.api.t.stavr.tech'];
   const EXPECTED_HASH = 'e02c7918d1f8da0f662a0720fc3668765d79ededce8e9e9dcccff9aae2b9e64a';
+  const WASM_PATH = 'assets/neta_relay_mailbox.wasm';
   const LABEL = 'NETA RELAY mailbox v0.1 · UNI-7';
   const $ = id => document.getElementById(id);
   const state = { address: null, client: null, wasm: null, codeId: null, contract: null, busy: false };
@@ -28,6 +29,28 @@
       } catch { /* Try the next public testnet endpoint. */ }
     }
     throw Error('UNI-7 QUERY UNAVAILABLE · NO TRANSACTION WAS STARTED');
+  }
+  async function loadArtifact() {
+    state.wasm = null;
+    $('retry-artifact').hidden = true;
+    $('artifact').textContent = 'VERIFYING CONTRACT FILE…';
+    update();
+    try {
+      const response = await fetch(WASM_PATH, { cache: 'no-store' });
+      if (!response.ok) throw Error(`HTTP ${response.status}`);
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      if (bytes.length !== 266165) throw Error('UNEXPECTED FILE SIZE');
+      const digest = hex(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)));
+      if (digest !== EXPECTED_HASH) throw Error('WASM CHECKSUM MISMATCH');
+      state.wasm = bytes;
+      $('artifact').textContent = `VERIFIED · SHA-256 ${digest}`;
+      status(state.address ? 'CONTRACT VERIFIED · UPLOAD REQUIRES KEPLR CONFIRMATION' : 'CONTRACT VERIFIED · CONNECT YOUR TEST WALLET');
+    } catch (error) {
+      $('artifact').textContent = `CONTRACT VERIFICATION FAILED · ${error.message}`;
+      $('retry-artifact').hidden = false;
+      status('CONTRACT FILE UNAVAILABLE · NO TRANSACTION CAN START');
+    }
+    update();
   }
   async function findCode() {
     let key = '';
@@ -86,18 +109,7 @@
     finally { state.busy = false; update(); }
   }
   $('connect').onclick = () => run(connect);
-  $('wasm').onchange = () => run(async () => {
-    state.wasm = null;
-    $('artifact').textContent = 'WAITING FOR VERIFIED WASM';
-    const file = $('wasm').files?.[0];
-    if (!file || file.name !== 'neta_relay_mailbox.wasm' || file.size !== 266165) throw Error('SELECT THE EXACT REVIEWED WASM FILE');
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    const digest = hex(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)));
-    if (digest !== EXPECTED_HASH) throw Error('WASM CHECKSUM MISMATCH · NOTHING WILL BE UPLOADED');
-    state.wasm = bytes;
-    $('artifact').textContent = `SHA-256 VERIFIED · ${digest}`;
-    status('WASM VERIFIED · UPLOAD REQUIRES A KEPLR SIGNATURE');
-  });
+  $('retry-artifact').onclick = loadArtifact;
   $('upload').onclick = () => run(async () => {
     if (!state.address || !state.wasm || state.codeId) throw Error('CONNECT WALLET AND VERIFY WASM FIRST');
     await assertWallet();
@@ -115,4 +127,5 @@
     await refresh();
   });
   update();
+  loadArtifact();
 })();
