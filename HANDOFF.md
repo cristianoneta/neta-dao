@@ -1,6 +1,6 @@
 # NETA DAO handoff
 
-Last verified: 2026-09-22
+Last verified: 2026-09-23
 
 Read this file and `README.md` before changing the application. The deployed site is
 `https://dao.netareborn.com`; this repository is the canonical source for the DAO
@@ -30,14 +30,31 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
 - RELAY is the unified inbox. Its live read-only layer polls Operations and native
   Juno governance, creates local notifications for new proposals, status changes
   and content/revision changes, and opens the matching proposal in this workspace.
+  The compact inbox groups updates per proposal, supports search and a responsive
+  reading pane. Its Composer performs a read-only UNI-7 contract identity check.
   DAO favorites, comparison baselines, notifications and read state are browser-local.
   The first load establishes a read baseline instead of creating a false unread flood.
-- The RELAY message composer is UI-only until the UNI-7 messaging contract and a
-  reviewed Double Ratchet client are connected. It does not transmit or persist
-  plaintext. UNI-7 will have no NETA stake gate; the separate mainnet configuration
+- The RELAY mailbox v0.1 is instantiated on UNI-7 at
+  `juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa`.
+  Its setup page `relay-testnet-setup.html` includes the pinned WASM, verifies its
+  checksum, and reported the deployed address after the user's Keplr signatures.
+  RELAY independently queries network, creator, label and code hash; if RPCs are
+  inaccessible it reports an unavailable check rather than claiming verification.
+  The message composer is UI-only until a reviewed Double Ratchet client is
+  connected. It does not transmit or persist plaintext. UNI-7 has no NETA stake
+  gate; the separate mainnet configuration
   must require at least 5 actively staked NETA. See
   `docs/RELAY_SECURITY_ARCHITECTURE.md`. The composer action reads `SEND MESSAGE`
   and stays disabled while messaging is not active; there is no plaintext send.
+- `spikes/relay-corecrypto/browser-smoke.mjs` runs in GitHub Actions Chromium,
+  using pinned Wire CoreCrypto 10.5.3 in an isolated test fixture. It exercises
+  identity fingerprints, encrypted exchange/reply, out-of-order delivery, replay,
+  reload and a fail-closed outbox. The additional `browser-key-vault.mjs` creates
+  random CoreCrypto database keys, wraps them with a separate password, scopes
+  them to the UNI-7 wallet and rejects wrong password, cross-wallet reuse and
+  corrupted encrypted backup. The green PR #82 proves the browser fixture only.
+  It is not integrated with the site, and its encrypted key export alone cannot
+  restore the CoreCrypto database or message history.
 - NETA Names UI and contract draft were introduced in PR #69. Verify the live
   Pages deployment before claiming the UI is available on the deployed site.
   Its contract charges 5 NETA for first-year registration and forwards all fees to
@@ -101,6 +118,7 @@ cargo clippy --locked --all-targets --manifest-path contracts/neta-proposal-work
 cargo test --locked --manifest-path contracts/workshop-access-mock/Cargo.toml
 cargo test --locked --manifest-path contracts/neta-names/Cargo.toml
 node --test tests/frontend-smoke.test.mjs
+node --test tests/relay-mailbox-status.test.mjs tests/relay-testnet-setup.test.mjs
 python -m py_compile scripts/update_treasury.py
 ```
 
@@ -127,7 +145,13 @@ collection is intended; syntax and frontend tests are non-mutating.
   obligations, open milestone payments and derived runway.
 - RELAY notifications currently update while the page is open or regains focus.
   There is no service worker, push delivery, backend account or cross-device read
-  state. Encrypted messaging remains the next active product phase.
+  state. Next: independently review CoreCrypto's GPL-3.0 browser distribution
+  implications, establish a complete encrypted CoreCrypto database backup and
+  restore flow, isolate wallets and concurrent tabs, bind decrypted envelope
+  identity to the on-chain registration, and prepare a test-only registration
+  UI. Then test two real Keplr wallets on UNI-7. Do not enable `SEND MESSAGE`
+  until this end-to-end flow passes; mainnet still needs the separate stake gate
+  and audit. See `docs/RELAY_IMPLEMENTATION_PLAN.md`.
 - AtomOne is research only. Its reserved treasury address is not an active DAO;
   AtomOne lacks CosmWasm for native Polytone deployment. ICA would create a separate
   host-chain account and needs host support plus an adapter/controller design.
@@ -140,5 +164,6 @@ collection is intended; syntax and frontend tests are non-mutating.
    local branch.
 3. Confirm whether the task concerns NETA Operations, Juno Governance or both.
 4. Keep live/read-only, testnet-write and future/sample states visibly distinct.
-5. For RELAY messaging, start with the contract/state-machine and library selection;
-   do not invent cryptographic primitives or enable a fake send path.
+5. For RELAY messaging, continue from the deployed UNI-7 contract and isolated
+   browser crypto fixture. Do not mistake the fixture's wrapped key export for a
+   complete device backup or enable a fake send path.
