@@ -59,6 +59,11 @@ This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTU
   created before export. Wrong password, wrong wallet, tampering and replacing
   an existing device are rejected. This is pinned to CoreCrypto 10.5.3's
   observed `blocks` storage layout; it is not a stable upstream backup API.
+  The test restores a still-unread prekey message, not an already-read chat
+  history. The ratchet may discard used message keys, so a production backup
+  also needs an encrypted local archive of received and sent message text if
+  older conversations must remain readable. The chain ciphertext cannot
+  substitute for that archive.
 - `spikes/relay-corecrypto/mailbox-transport.mjs` is an isolated UNI-7 adapter
   against the deployed mailbox address. It requires an independently verified
   code identity, exact connected wallet and chain, a ready persisted outbox
@@ -94,6 +99,12 @@ recovery for the two-database restore, and verify larger databases and multiple
 devices. A password or wrapped key alone cannot restore a lost database. Resolve
 the GPL-3.0 distribution obligations for the library and independently review
 the browser build before publishing runtime dependencies on the main site.
+Design a single wallet-bound backup for both ratchet state and an encrypted
+message archive. Snapshot while the client is locked, include a version and
+last confirmed inbox/outbox positions, and test a restore of already-read
+history plus newer inbound messages. A stale restore must block further sends
+until reconciliation or a freshly wallet-authorized key registration. Never
+promise recovery of messages sent or read after the most recent backup.
 
 The isolated `browser-device-lock.mjs` fixture now demonstrates immediate
 exclusive Web Locks access per physical database path across same-origin tabs.
