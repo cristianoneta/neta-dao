@@ -11,6 +11,7 @@ const paths = {
   '/vault.js': new URL('./browser-key-vault.mjs', import.meta.url),
   '/browser-key-vault.mjs': new URL('./browser-key-vault.mjs', import.meta.url),
   '/device-backup.js': new URL('./browser-device-backup.mjs', import.meta.url),
+  '/device-lock.js': new URL('./browser-device-lock.mjs', import.meta.url),
 };
 const server = http.createServer(async (request, response) => {
   if (request.url === '/') {
@@ -41,8 +42,10 @@ async function startClient(page, name) {
   await page.evaluate(async name => {
     const crypto = await import('/corecrypto.js');
     const { BrowserKeyVault } = await import('/vault.js');
+    const { acquireDeviceLock } = await import('/device-lock.js');
     await crypto.initWasmModule('/index_bg.wasm');
     const address = `juno1${(name === 'alice' ? 'a' : 'b').repeat(38)}`;
+    window.relayDeviceLock = await acquireDeviceLock({ chain: 'uni-7', wallet: address, path: `${name}.db` });
     const password = `independent browser vault password for ${name}`;
     const vault = await BrowserKeyVault.open(`${name}-vault`);
     let secret;
@@ -68,10 +71,46 @@ try {
   // Contexts have separate storage, even though they visit the same origin.
   const aliceContext = await browser.newContext();
   const bobContext = await browser.newContext();
+  // Pages within a browser context share IndexedDB. The second tab must fail
+  // immediately rather than queue behind an active ratchet session.
+  const lockPage = await bobContext.newPage();
+  const competingPage = await bobContext.newPage();
+  await lockPage.goto(origin);
+  await competingPage.goto(origin);
+  await lockPage.evaluate(async () => {
+    const { acquireDeviceLock } = await import('/device-lock.js');
+    window.deviceLock = await acquireDeviceLock({ chain: 'uni-7', wallet: 'bob', path: 'bob.db' });
+  });
+  await assert.rejects(competingPage.evaluate(async () => {
+    const { acquireDeviceLock } = await import('/device-lock.js');
+    await acquireDeviceLock({ chain: 'uni-7', wallet: 'alice', path: 'bob.db' });
+  }), 'a different wallet cannot concurrently access the same database path');
+  const independent = await competingPage.evaluate(async () => {
+    const { acquireDeviceLock } = await import('/device-lock.js');
+    const lock = await acquireDeviceLock({ chain: 'uni-7', wallet: 'alice', path: 'alice.db' });
+    await lock.release();
+    return lock.identity.path;
+  });
+  assert.equal(independent, 'alice.db');
+  await lockPage.evaluate(() => window.deviceLock.release());
+  await competingPage.evaluate(async () => {
+    const { acquireDeviceLock } = await import('/device-lock.js');
+    const lock = await acquireDeviceLock({ chain: 'uni-7', wallet: 'bob', path: 'bob.db' });
+    await lock.release();
+  });
+  await lockPage.close();
+  await competingPage.close();
   let alice = await aliceContext.newPage();
   let bob = await bobContext.newPage();
   await startClient(alice, 'alice');
   await startClient(bob, 'bob');
+  const activeTab = await bobContext.newPage();
+  await activeTab.goto(origin);
+  await assert.rejects(activeTab.evaluate(async () => {
+    const { acquireDeviceLock } = await import('/device-lock.js');
+    await acquireDeviceLock({ chain: 'uni-7', wallet: 'bob', path: 'bob.db' });
+  }), 'a tab cannot open an active CoreCrypto database');
+  await activeTab.close();
 
   // A wallet signature is never used as the database password; the key
   // survives reload only inside a password-wrapped vault record.
@@ -138,7 +177,11 @@ try {
     window.relayDatabase.uniffiDestroy();
     window.relayVault.close();
     const { exportDevice } = await import('/device-backup.js');
-    return exportDevice({ chain: 'uni-7', wallet: window.relayVaultAddress, path: 'bob.db', vaultName: 'bob-vault', password: 'independent browser vault password for bob' });
+    try {
+      return await exportDevice({ chain: 'uni-7', wallet: window.relayVaultAddress, path: 'bob.db', vaultName: 'bob-vault', password: 'independent browser vault password for bob' });
+    } finally {
+      await window.relayDeviceLock.release();
+    }
   });
   assert.ok(!deviceBackup.includes('hello from Alice'), 'plaintext leaked into device backup');
   const brokenBackup = JSON.parse(deviceBackup);
