@@ -24,6 +24,12 @@ RELAY protects message content against chain observers, RPC operators, indexers 
 - Before encrypting an initial message, compare the actual remote Proteus session fingerprint with the current on-chain registration for the resolved Juno address and device generation. Reject a substituted prekey even if it is otherwise valid. Recheck the generation before broadcast; a changed registration needs a visible identity warning and a new session.
 - Registrations are versioned. Devices can be revoked; senders must reject revoked or expired prekeys.
 - Private keys remain on the device in encrypted storage. If local state is lost, wallet control can authorize a new device registration but cannot decrypt old messages. Do not describe this reset as message recovery. A usable encrypted keystore backup and unlock design is still a release gate; the current CoreCrypto browser API does not expose a verified keystore export/import flow.
+- A Double Ratchet deletes used message keys. A backup of the current keys and
+  session state alone cannot replay ciphertext already decrypted and discarded.
+  To restore a readable history, keep an encrypted local message archive and
+  include it with the wallet-bound session backup under a separate recovery
+  password. Never put the archive or password on-chain. A stale session backup
+  cannot safely be resumed for sending without reconciliation or key rotation.
 
 ## Message protocol
 
