@@ -22,6 +22,10 @@ This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTU
   or another environment that can launch Chromium. Do not call this browser
   gate passed on the strength of the native smoke test.
 
+Reproduce the native check with `cd spikes/relay-corecrypto && npm ci && npm test`.
+The fixture is private and test-only; none of its dependencies are loaded by the
+website. It is not a substitute for the required isolated browser-profile test.
+
 ## Step 1: prove the browser client before building the contract
 
 Create a **separate test-only fixture** with two isolated browser profiles and
