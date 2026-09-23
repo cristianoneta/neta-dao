@@ -119,6 +119,17 @@ if missing, require a new device registration and show that the old session
 cannot safely continue. Never regenerate ciphertext for the same message ID.
 This is an interim design constraint, not an implemented recovery path.
 
+The isolated browser fixture `spikes/relay-corecrypto/browser-outbox.mjs`
+implements a test-only fail-closed state machine: persist an intent **before**
+encryption, then store the exact ciphertext as ready. A ready entry survives a
+tab restart; an uncertain RPC query does not trigger a retry, and a confirmed
+message ID is marked sent. If the tab closes with an intent but no ciphertext,
+the device is locked for new sends until reset. This fixture stores only public
+routing metadata and Proteus ciphertext in IndexedDB; production still needs
+reviewed encrypted-at-rest storage, wallet/account isolation, cross-tab locking,
+device-rotation UX, and integration with a real contract query. The ratchet and
+outbox remain two databases and cannot be committed atomically.
+
 Decryption must verify that the authenticated inner identity/conversation data
 matches the public transaction envelope and the on-chain registered device.
 Proteus does not expose an arbitrary associated-data parameter through the
