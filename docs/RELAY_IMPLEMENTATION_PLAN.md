@@ -21,8 +21,21 @@ This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTU
   passed with two isolated browser contexts: initial encrypted message, reply,
   and recipient tab restart with encrypted keystore reopened before delivery.
   The initial 202-byte ciphertext did not contain the message text. This is a
-  partial browser proof; out-of-order delivery, replay rejection, crash recovery,
-  key backup, CSP and protocol review remain open.
+  partial browser proof; crash recovery, key backup and protocol review remain
+  open.
+- The browser fixture also checks out-of-order delivery, replay rejection,
+  session recovery after a replay, and loading WASM with self-only sources
+  plus the `wasm-unsafe-eval` script exception. A duplicate raises a library error; the eventual
+  client must recognize duplicates by message ID before decryption and must
+  not show the raw library error to users. This is not a complete CSP test of
+  the deployed website. The current `index.html` CSP uses `script-src 'self'`
+  and blocks WebAssembly compilation; integration requires a reviewed,
+  narrowly scoped `wasm-unsafe-eval` allowance. Never add broad `unsafe-eval`.
+- A simulated tab crash after encrypting, before any outbox write, leaves a
+  committed ratchet but no locally recoverable original ciphertext. Encrypting
+  the same text after restart produces different ciphertext; both messages can
+  be decrypted if delivered. This demonstrates the duplicate-send risk, not
+  an application-level crash recovery implementation.
 - Local Playwright/Chromium cannot launch in the current execution environment:
   Chromium's socket call is blocked. Run the browser fixture in GitHub Actions.
 
@@ -39,8 +52,9 @@ the official, pinned CoreCrypto browser bundle. No cryptographic primitives
 are written in this repository. Demonstrate device creation, generation and
 publication of a prekey bundle, offline initial send, reply, out-of-order
 delivery, replay rejection, restart and encrypted IndexedDB persistence.
-Verify that the published WASM loads under the site's self-only CSP with no
-remote runtime scripts. Explicitly design unlock, backup and device-loss UX;
+Verify that the published WASM loads under a reviewed CSP with only the
+`wasm-unsafe-eval` exception and no remote runtime scripts. Explicitly design
+unlock, backup and device-loss UX;
 never derive a database key from a wallet signature or store it next to the
 encrypted database. Test that corrupted storage fails safely.
 
@@ -86,6 +100,14 @@ retries must reuse the same ciphertext. Never reuse a message key for different
 plaintext. Test what happens if the browser crashes between library session
 commit and outbox persistence; if the library cannot make these changes atomic,
 specify a fail-closed recovery/reset flow before enabling send.
+
+**Crash window decision:** a ratchet transaction can commit before a separate
+outbox write. Until both are in one atomic storage transaction, block sending
+on any restart with an unconfirmed or incompletely persisted send. Preserve
+the ciphertext when available and reconcile its message ID with the contract;
+if missing, require a new device registration and show that the old session
+cannot safely continue. Never regenerate ciphertext for the same message ID.
+This is an interim design constraint, not an implemented recovery path.
 
 Decryption must verify that the authenticated inner identity/conversation data
 matches the public transaction envelope and the on-chain registered device.
