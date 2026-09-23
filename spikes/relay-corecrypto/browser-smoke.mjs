@@ -12,6 +12,7 @@ const paths = {
   '/browser-key-vault.mjs': new URL('./browser-key-vault.mjs', import.meta.url),
   '/device-backup.js': new URL('./browser-device-backup.mjs', import.meta.url),
   '/device-lock.js': new URL('./browser-device-lock.mjs', import.meta.url),
+  '/envelope.js': new URL('./browser-envelope.mjs', import.meta.url),
 };
 const server = http.createServer(async (request, response) => {
   if (request.url === '/') {
@@ -215,6 +216,34 @@ try {
   assert.equal(restoredFingerprint, bobRegisteredFingerprint, 'device identity must survive a full backup');
   const restoredText = await restoredPage.evaluate(async envelope => new TextDecoder().decode(await window.relayClient.transaction(ctx => ctx.proteusDecryptSafe('alice', new Uint8Array(envelope)))), initial);
   assert.equal(restoredText, 'hello from Alice', 'new browser profile must restore the prekey and decrypt');
+
+  // Bind public routing to plaintext inside Proteus and to the sender's
+  // registered fingerprint. The contract itself stores no plaintext.
+  const aliceFingerprint = await alice.evaluate(() => window.relayClient.transaction(ctx => ctx.proteusFingerprint()));
+  const meta = { chain: 'uni-7', contract: 'juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa', sender: `juno1${'a'.repeat(38)}`, senderGeneration: 1, senderFingerprint: aliceFingerprint, recipient: `juno1${'b'.repeat(38)}`, recipientGeneration: 1, recipientFingerprint: bobRegisteredFingerprint, messageId: '4'.repeat(64) };
+  const bound = await alice.evaluate(async meta => {
+    const { sealEnvelope } = await import('/envelope.js');
+    return Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', sealEnvelope(meta, 'bound secret'))));
+  }, meta);
+  const decrypted = await restoredPage.evaluate(async ({ bound, meta }) => {
+    const { openEnvelope } = await import('/envelope.js');
+    const plain = await window.relayClient.transaction(ctx => ctx.proteusDecryptSafe('alice', new Uint8Array(bound)));
+    const remote = await window.relayClient.transaction(ctx => ctx.proteusFingerprintRemote('alice'));
+    return { message: openEnvelope(plain, meta, remote), remote, raw: Array.from(plain) };
+  }, { bound, meta });
+  assert.equal(decrypted.message, 'bound secret');
+  assert.equal(decrypted.remote, aliceFingerprint);
+  for (const changed of [
+    { ...meta, sender: meta.recipient },
+    { ...meta, messageId: '5'.repeat(64) },
+    { ...meta, recipientGeneration: 2 },
+    { ...meta, senderFingerprint: 'f'.repeat(64) },
+  ]) {
+    await assert.rejects(restoredPage.evaluate(async ({ raw, changed, remote }) => {
+      const { openEnvelope } = await import('/envelope.js');
+      return openEnvelope(new Uint8Array(raw), changed, remote);
+    }, { raw: decrypted.raw, changed, remote: decrypted.remote }));
+  }
 
   // A tab restart must restore the persisted ratchet and prekey before delivery.
   await bob.close();
