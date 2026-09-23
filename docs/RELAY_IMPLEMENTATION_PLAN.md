@@ -75,6 +75,16 @@ cover prekey consumption, message-ID deduplication, device rotation, revocation,
 blocking, pagination and UNI-7-only execution. It does not complete the
 deployment or end-to-end client gates below.
 
+The admin-only `relay-testnet-setup.html` page prepares a real UNI-7 deployment
+with the configured test wallet. It accepts only the validated CI artifact
+`neta_relay_mailbox.wasm` from the [verified workflow run](https://github.com/cristianoneta/neta-dao/actions/runs/35902328405),
+size 266165 bytes, SHA-256
+`e02c7918d1f8da0f662a0720fc3668765d79ededce8e9e9dcccff9aae2b9e64a`.
+It checks on-chain code and instance state before requesting upload and
+instantiate signatures from Keplr; neither transaction is automatic. Until a
+wallet owner confirms both, there is no deployed mailbox address. The page
+does not enable DMs or register any device.
+
 Define and review the complete execute/query schema before deployment:
 
 - Wallet-signed registration binds one active device ID, protocol version,
