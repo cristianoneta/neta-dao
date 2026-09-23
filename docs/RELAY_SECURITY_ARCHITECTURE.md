@@ -18,9 +18,10 @@ RELAY protects message content against chain observers, RPC operators, indexers 
 
 - A wallet address is the account identity, but its wallet signing key is never used directly as an encryption key.
 - Every device creates separate encryption and signing keys locally with a cryptographically secure random-number generator.
-- A Keplr-signed registration transaction binds a device public key, protocol version and device identifier to the Juno address.
+- A Keplr-signed registration transaction binds the Proteus identity fingerprint, protocol version, device identifier and prekey material to `info.sender` on UNI-7. The transaction signature proves wallet control; a separate arbitrary-message signature is unnecessary for this on-chain registration.
+- Before encrypting an initial message, compare the actual remote Proteus session fingerprint with the current on-chain registration for the resolved Juno address and device generation. Reject a substituted prekey even if it is otherwise valid. Recheck the generation before broadcast; a changed registration needs a visible identity warning and a new session.
 - Registrations are versioned. Devices can be revoked; senders must reject revoked or expired prekeys.
-- Private keys remain on the device in encrypted storage. Recovery means registering a new device, not reconstructing an old private key from the wallet signature.
+- Private keys remain on the device in encrypted storage. If local state is lost, wallet control can authorize a new device registration but cannot decrypt old messages. Do not describe this reset as message recovery. A usable encrypted keystore backup and unlock design is still a release gate; the current CoreCrypto browser API does not expose a verified keystore export/import flow.
 
 ## Message protocol
 
@@ -41,7 +42,7 @@ RELAY protects message content against chain observers, RPC operators, indexers 
 
 ## Browser and application controls
 
-- No third-party scripts are permitted on the messaging page. The current self-only content security policy remains mandatory.
+- No third-party scripts are permitted on the messaging page. The currently deployed `script-src 'self'` blocks the selected WASM bundle; a reviewed CSP must allow `wasm-unsafe-eval` while continuing to exclude broad `unsafe-eval` and remote scripts.
 - Rendered message text uses text nodes, never HTML injection.
 - Sensitive key material must not be placed in localStorage. An audited encrypted IndexedDB keystore with explicit lock and device removal is required.
 - Dependency versions and build artifacts are pinned and reproducible. Cryptographic primitives are never implemented inside this repository.
