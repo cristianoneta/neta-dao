@@ -24,7 +24,7 @@ RELAY protects message content against chain observers, RPC operators, indexers 
 
 - One-to-one sessions use a reviewed Double Ratchet implementation to provide forward secrecy and post-compromise recovery.
 - Initial asynchronous sessions use signed device keys and one-time prekeys. A missing or already-used prekey must fail closed.
-- Payloads use XChaCha20-Poly1305 authenticated encryption. Associated data binds protocol version, sender, recipient, device IDs, conversation ID and sequence information.
+- Use the selected reviewed library's authenticated encryption suite as published; do not substitute a preferred cipher. Verify the encrypted envelope binds protocol version, sender, recipient, device IDs, conversation ID and sequence information. If the library lacks external associated data, authenticate these fields inside the encrypted envelope and verify them against the public transaction metadata after decryption.
 - The chain stores public device material and opaque ciphertext only. Plaintext, private keys and decrypted search indexes never go on-chain.
 - Group messaging is out of scope for the first release. MLS should be evaluated rather than extending the one-to-one protocol ad hoc.
 
@@ -48,7 +48,7 @@ RELAY protects message content against chain observers, RPC operators, indexers 
 
 1. Written threat model and protocol state machine reviewed and accepted.
 2. Maintained, independently reviewed cryptographic library selected; no custom primitive or ratchet implementation.
-3. Interoperability test vectors, lost-message, out-of-order-message, replay and multi-device tests pass on UNI-7.
+3. Interoperability test vectors, lost-message, out-of-order-message, replay, device reset and supported device-count tests pass on UNI-7.
 4. Network-policy, mainnet 5 NETA stake gate, cooldown, payload limit, blocklist, device revocation and pagination contract tests pass.
 5. XSS, dependency, CSP and supply-chain review passes against the production build.
 6. Independent external audit findings are resolved or explicitly accepted and disclosed.
