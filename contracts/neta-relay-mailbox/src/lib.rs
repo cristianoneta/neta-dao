@@ -13,12 +13,14 @@ const MAX_PREKEYS: usize = 16;
 const MAX_BUNDLE: usize = 1024;
 const MAX_CIPHERTEXT: usize = 4096;
 const MAX_PAGE: u32 = 50;
+const SEND_COOLDOWN_SECONDS: u64 = 10;
 
 const DEVICES: Map<&Addr, Device> = Map::new("devices");
 const INBOX: Map<(&Addr, u64), Message> = Map::new("inbox");
 const SENT_IDS: Map<(&Addr, &str), u64> = Map::new("sent_ids");
 const BLOCKED: Map<(&Addr, &Addr), bool> = Map::new("blocked");
 const NEXT_SEQUENCE: Item<u64> = Item::new("next_sequence");
+const LAST_SEND: Map<&Addr, u64> = Map::new("last_send");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {}
@@ -129,6 +131,8 @@ pub enum Error {
     PrekeySpent,
     #[error("sequence exhausted")]
     Sequence,
+    #[error("sender cooldown active")]
+    Cooldown,
 }
 
 fn no_funds(info: &MessageInfo) -> Result<(), Error> {
@@ -236,6 +240,11 @@ fn send(deps: DepsMut, env: Env, info: MessageInfo, recipient: String, recipient
         receiver.prekeys.remove(index);
         MessageKind::Initial { prekey_id: id }
     } else { MessageKind::Followup };
+    if let Some(last) = LAST_SEND.may_load(deps.storage, &info.sender)? {
+        if env.block.time.seconds() < last.saturating_add(SEND_COOLDOWN_SECONDS) {
+            return Err(Error::Cooldown);
+        }
+    }
     let sequence = NEXT_SEQUENCE.load(deps.storage)?.checked_add(1).ok_or(Error::Sequence)?;
     let message = Message {
         sequence, message_id: message_id.clone(), sender: info.sender.clone(),
@@ -248,6 +257,7 @@ fn send(deps: DepsMut, env: Env, info: MessageInfo, recipient: String, recipient
     INBOX.save(deps.storage, (&recipient, sequence), &message)?;
     SENT_IDS.save(deps.storage, (&info.sender, &message_id), &sequence)?;
     NEXT_SEQUENCE.save(deps.storage, &sequence)?;
+    LAST_SEND.save(deps.storage, &info.sender, &env.block.time.seconds())?;
     Ok(Response::new().add_attribute("action", "send").add_attribute("sequence", sequence.to_string()))
 }
 
