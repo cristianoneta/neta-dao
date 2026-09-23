@@ -52,8 +52,9 @@ the official, pinned CoreCrypto browser bundle. No cryptographic primitives
 are written in this repository. Demonstrate device creation, generation and
 publication of a prekey bundle, offline initial send, reply, out-of-order
 delivery, replay rejection, restart and encrypted IndexedDB persistence.
-Verify that the published WASM loads under the site's self-only CSP with no
-remote runtime scripts. Explicitly design unlock, backup and device-loss UX;
+Verify that the published WASM loads under a reviewed CSP with only the
+`wasm-unsafe-eval` exception and no remote runtime scripts. Explicitly design
+unlock, backup and device-loss UX;
 never derive a database key from a wallet signature or store it next to the
 encrypted database. Test that corrupted storage fails safely.
 
