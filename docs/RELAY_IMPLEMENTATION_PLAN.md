@@ -1,7 +1,9 @@
 # RELAY private messages: UNI-7 implementation plan
 
-Status: implementation gate, 2026-09-23. No DM contract is deployed and no
-message may be sent by the current composer. Keep mainnet messaging disabled.
+Status: implementation gate, 2026-09-23. The UNI-7 mailbox contract was
+instantiated at `juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa`,
+as reported by the Keplr setup page. No messages may be sent by the current
+composer. Keep mainnet messaging disabled.
 This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTURE.md).
 
 ## What has been verified
@@ -81,10 +83,12 @@ the same site, copied from the validated CI artifact in the
 [verified workflow run](https://github.com/cristianoneta/neta-dao/actions/runs/35902328405),
 size 266165 bytes, SHA-256
 `e02c7918d1f8da0f662a0720fc3668765d79ededce8e9e9dcccff9aae2b9e64a`.
-It verifies the downloaded bytes in the browser and checks on-chain code and instance state before requesting upload and
-instantiate signatures from Keplr; neither transaction is automatic. Until a
-wallet owner confirms both, there is no deployed mailbox address. The page
-does not enable DMs or register any device.
+It verifies the downloaded bytes in the browser and checks on-chain code and
+instance state before requesting upload and instantiate signatures from Keplr;
+neither transaction is automatic. Both confirmations were completed and the
+setup page reported the contract address above. RELAY performs a separate
+read-only check of network, creator, label and code hash when its composer opens.
+The setup page does not enable DMs or register any device.
 
 Define and review the complete execute/query schema before deployment:
 
