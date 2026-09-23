@@ -43,6 +43,14 @@ This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTU
   prekey for another device yields a different fingerprint. The fixture has
   no chain connection; the client and contract still need an end-to-end
   test of the address-to-registration binding and device rotation.
+- The isolated browser fixture now wraps each random CoreCrypto database key
+  with a separate password using Web Crypto PBKDF2-HMAC-SHA256 (600,000
+  iterations) and AES-256-GCM, with a random salt and IV and authenticated
+  UNI-7 wallet identity. It tests reload, wrong password, cross-wallet use,
+  corrupted ciphertext and encrypted record export/import. This export is
+  **only the database key**: without a verified backup of the encrypted
+  CoreCrypto database it cannot recover message history or device identity.
+  Neither the password nor unwrapped key is persisted by the fixture.
 - Local Playwright/Chromium cannot launch in the current execution environment:
   Chromium's socket call is blocked. Run the browser fixture in GitHub Actions.
 
@@ -51,6 +59,13 @@ For the browser check run `npx playwright install --with-deps chromium` and
 `npm run test:browser` in the same directory on a Chromium-capable host.
 The fixture is private and test-only; none of its dependencies are loaded by the
 website. It is not a substitute for the remaining security checks.
+
+Before integrating this vault into RELAY, test backup and import of the actual
+encrypted CoreCrypto database alongside the wrapped key, establish a documented
+device reset flow, and check the library's behavior under account switching and
+concurrent tabs. A password cannot restore a lost database by itself. Resolve
+the GPL-3.0 distribution obligations for the library and independently review
+the browser build before publishing runtime dependencies on the main site.
 
 ## Step 1: prove the browser client before building the contract
 
