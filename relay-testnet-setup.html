@@ -20,10 +20,10 @@
     </section>
     <section>
       <span class="step">02 · VERIFY ARTIFACT</span>
-      <h2>Select the reviewed WASM</h2>
-      <p>Download <a href="https://github.com/cristianoneta/neta-dao/actions/runs/35902328405">neta-relay-mailbox-wasm</a>, extract <code>neta_relay_mailbox.wasm</code>, and select it here. The browser checks its SHA-256 before offering any transaction.</p>
-      <label for="wasm">CONTRACT FILE</label><input id="wasm" type="file" accept=".wasm,application/wasm">
-      <output id="artifact">WAITING FOR VERIFIED WASM</output>
+      <h2>Contract file is included</h2>
+      <p>The reviewed UNI-7 mailbox WASM loads from this site automatically. Its SHA-256 is checked in your browser before upload is enabled. No GitHub download or file selection is needed.</p>
+      <output id="artifact">VERIFYING CONTRACT FILE…</output>
+      <button id="retry-artifact" type="button" hidden>RETRY VERIFICATION</button>
     </section>
     <section>
       <span class="step">03 · SIGN ON UNI-7</span>
