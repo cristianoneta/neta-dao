@@ -24,11 +24,13 @@ This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTU
   partial browser proof; crash recovery, key backup and protocol review remain
   open.
 - The browser fixture also checks out-of-order delivery, replay rejection,
-  session recovery after a replay, and loading WASM with self-only script,
-  connect and worker CSP. A duplicate raises a library error; the eventual
+  session recovery after a replay, and loading WASM with self-only sources
+  plus the `wasm-unsafe-eval` script exception. A duplicate raises a library error; the eventual
   client must recognize duplicates by message ID before decryption and must
   not show the raw library error to users. This is not a complete CSP test of
-  the deployed website.
+  the deployed website. The current `index.html` CSP uses `script-src 'self'`
+  and blocks WebAssembly compilation; integration requires a reviewed,
+  narrowly scoped `wasm-unsafe-eval` allowance. Never add broad `unsafe-eval`.
 - Local Playwright/Chromium cannot launch in the current execution environment:
   Chromium's socket call is blocked. Run the browser fixture in GitHub Actions.
 
