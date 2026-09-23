@@ -29,9 +29,11 @@ Static governance workspace for DAO collaboration on Juno. The frontend combines
   and changed content/revisions while the page is open.
 - Favorites, the comparison baseline, generated notifications and read status stay
   in this browser. There is no push service, user account or cross-device sync yet.
-- `CREATE NEW MESSAGE` opens a composer above the inbox. Until the UNI-7 message
-  contract and reviewed Double Ratchet client are connected, input is neither
-  transmitted nor persisted and the UI reports that activation is required.
+- `COMPOSE MESSAGE` opens a preview above the inbox. The UNI-7 mailbox is
+  deployed at `juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa`;
+  RELAY checks its identity read-only. Until the reviewed Double Ratchet client
+  is connected and tested with two wallets, input is neither transmitted nor
+  persisted and sending remains disabled.
 - UNI-7 messaging is intentionally open for testing without a NETA stake gate.
   A later, separately instantiated mainnet contract must require at least 5 actively
   staked NETA. The threat model and release gates are documented in
