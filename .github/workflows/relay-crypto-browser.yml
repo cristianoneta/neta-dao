@@ -25,5 +25,6 @@ jobs:
           cache: npm
           cache-dependency-path: spikes/relay-corecrypto/package-lock.json
       - run: npm ci
+      - run: npm run test:transport
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser

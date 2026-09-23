@@ -51,10 +51,22 @@ This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTU
   **only the database key**: without a verified backup of the encrypted
   CoreCrypto database it cannot recover message history or device identity.
   Neither the password nor unwrapped key is persisted by the fixture.
+- `spikes/relay-corecrypto/mailbox-transport.mjs` is an isolated UNI-7 adapter
+  against the deployed mailbox address. It requires an independently verified
+  code identity, exact connected wallet and chain, a ready persisted outbox
+  ciphertext, matching on-chain recipient device/fingerprint and (for initial
+  delivery) the exact available prekey. It checks `sent` by message ID before
+  any execute and after broadcast; uncertain RPC outcomes and ambiguous intents
+  block retries. Node tests cover a confirmed send, duplicate recovery and
+  fail-closed identity changes. The adapter has no production integration or
+  live signed UNI-7 transaction yet; a real client must supply the verified
+  fingerprint from its cryptographic session and enforce decrypted envelope
+  binding before displaying messages.
 - Local Playwright/Chromium cannot launch in the current execution environment:
   Chromium's socket call is blocked. Run the browser fixture in GitHub Actions.
 
 Reproduce the native check with `cd spikes/relay-corecrypto && npm ci && npm test`.
+Run the transport boundary checks with `npm run test:transport`.
 For the browser check run `npx playwright install --with-deps chromium` and
 `npm run test:browser` in the same directory on a Chromium-capable host.
 The fixture is private and test-only; none of its dependencies are loaded by the
