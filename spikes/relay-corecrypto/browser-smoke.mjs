@@ -10,7 +10,10 @@ const paths = {
 };
 const server = http.createServer(async (request, response) => {
   if (request.url === '/') {
-    response.writeHead(200, { 'content-type': 'text/html' });
+    response.writeHead(200, {
+      'content-type': 'text/html',
+      'content-security-policy': "default-src 'none'; script-src 'self'; connect-src 'self'; worker-src 'self'; style-src 'none'; object-src 'none'; base-uri 'none'",
+    });
     response.end('<!doctype html><title>RELAY browser crypto test</title>');
     return;
   }
@@ -70,7 +73,18 @@ try {
   const response = await alice.evaluate(async envelope => new TextDecoder().decode(await window.relayClient.transaction(ctx => ctx.proteusDecryptSafe('bob', new Uint8Array(envelope)))), reply);
   assert.equal(response, 'hello from Bob');
 
-  console.log(JSON.stringify({ success: true, browserContexts: 2, recoveredAfterTabRestart: true, initialCiphertextBytes: initial.length, replyCiphertextBytes: reply.length }));
+  const older = await alice.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('older')))));
+  const newer = await alice.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('newer')))));
+  async function receive(envelope) {
+    return bob.evaluate(async bytes => new TextDecoder().decode(await window.relayClient.transaction(ctx => ctx.proteusDecryptSafe('alice', new Uint8Array(bytes)))), envelope);
+  }
+  assert.equal(await receive(newer), 'newer');
+  assert.equal(await receive(older), 'older');
+  await assert.rejects(receive(newer), 'a replay must never be rendered as a new message');
+  const afterReplay = await alice.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('after replay')))));
+  assert.equal(await receive(afterReplay), 'after replay');
+
+  console.log(JSON.stringify({ success: true, browserContexts: 2, recoveredAfterTabRestart: true, outOfOrder: true, replayRejected: true, sessionRecoveredAfterReplay: true, selfOnlyCsp: true, initialCiphertextBytes: initial.length, replyCiphertextBytes: reply.length }));
 } finally {
   await browser?.close();
   await new Promise(resolve => server.close(resolve));
