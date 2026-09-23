@@ -157,6 +157,9 @@ collection is intended; syntax and frontend tests are non-mutating.
   UI. Then test two real Keplr wallets on UNI-7. Do not enable `SEND MESSAGE`
   until this end-to-end flow passes; mainnet still needs the separate stake gate
   and audit. See `docs/RELAY_IMPLEMENTATION_PLAN.md`.
+  A test-only Web Locks fixture now serializes same-origin tabs by physical
+  CoreCrypto database path and holds the lock through device backup. Production
+  wallet binding and crash lifecycle are still open.
 - AtomOne is research only. Its reserved treasury address is not an active DAO;
   AtomOne lacks CosmWasm for native Polytone deployment. ICA would create a separate
   host-chain account and needs host support plus an adapter/controller design.

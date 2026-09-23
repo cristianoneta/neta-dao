@@ -87,6 +87,15 @@ devices. A password or wrapped key alone cannot restore a lost database. Resolve
 the GPL-3.0 distribution obligations for the library and independently review
 the browser build before publishing runtime dependencies on the main site.
 
+The isolated `browser-device-lock.mjs` fixture now demonstrates immediate
+exclusive Web Locks access per physical database path across same-origin tabs.
+Production must acquire it before opening CoreCrypto and hold it through
+quiescence, backup or restore; release only after all database handles close.
+The fixture fails closed when Web Locks are unavailable or another tab holds
+the path. Web Locks do not coordinate separate browser profiles or devices.
+Wallet-to-database binding, tab crashes, and the lifecycle of every CoreCrypto
+handle still require integration review before any messaging is enabled.
+
 ## Step 1: prove the browser client before building the contract
 
 Create a **separate test-only fixture** with two isolated browser profiles and
