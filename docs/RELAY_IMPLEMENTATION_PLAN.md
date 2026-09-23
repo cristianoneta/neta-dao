@@ -36,6 +36,11 @@ This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTU
   the same text after restart produces different ciphertext; both messages can
   be decrypted if delivered. This demonstrates the duplicate-send risk, not
   an application-level crash recovery implementation.
+- The browser fixture checks that a genuine prekey creates the same remote
+  Proteus fingerprint as the recipient registration, while a substituted
+  prekey for another device yields a different fingerprint. The fixture has
+  no chain connection; the client and contract still need an end-to-end
+  test of the address-to-registration binding and device rotation.
 - Local Playwright/Chromium cannot launch in the current execution environment:
   Chromium's socket call is blocked. Run the browser fixture in GitHub Actions.
 
