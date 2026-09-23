@@ -31,6 +31,11 @@ This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTU
   the deployed website. The current `index.html` CSP uses `script-src 'self'`
   and blocks WebAssembly compilation; integration requires a reviewed,
   narrowly scoped `wasm-unsafe-eval` allowance. Never add broad `unsafe-eval`.
+- A simulated tab crash after encrypting, before any outbox write, leaves a
+  committed ratchet but no locally recoverable original ciphertext. Encrypting
+  the same text after restart produces different ciphertext; both messages can
+  be decrypted if delivered. This demonstrates the duplicate-send risk, not
+  an application-level crash recovery implementation.
 - Local Playwright/Chromium cannot launch in the current execution environment:
   Chromium's socket call is blocked. Run the browser fixture in GitHub Actions.
 
