@@ -70,6 +70,11 @@ re-evaluate a maintained library. The frontend remains in preview mode.
 
 ## Step 2: UNI-7 mailbox contract
 
+An undeployed Rust prototype is in `contracts/neta-relay-mailbox`. Its tests
+cover prekey consumption, message-ID deduplication, device rotation, revocation,
+blocking, pagination and UNI-7-only execution. It does not complete the
+deployment or end-to-end client gates below.
+
 Define and review the complete execute/query schema before deployment:
 
 - Wallet-signed registration binds one active device ID, protocol version,
