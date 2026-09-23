@@ -82,7 +82,7 @@ try {
         const store = tx.objectStore(storeName);
         const rows = await new Promise((resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
         const keys = await new Promise((resolve, reject) => { const request = store.getAllKeys(); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
-        stores.push({ name: storeName, keyPath: store.keyPath, count: rows.length, keyTypes: [...new Set(keys.map(key => typeof key))], rowTypes: [...new Set(rows.map(row => Object.prototype.toString.call(row)))], rowFields: rows[0] && typeof rows[0] === 'object' ? Object.keys(rows[0]) : [] });
+        stores.push({ name: storeName, keyPath: store.keyPath, count: rows.length, keyTypes: [...new Set(keys.map(key => typeof key))], rowTypes: [...new Set(rows.map(row => Object.prototype.toString.call(row)))], rowFields: rows[0] && typeof rows[0] === 'object' ? Object.keys(rows[0]) : [], dataTypes: [...new Set(rows.map(row => Object.prototype.toString.call(row?.data)))], offsetTypes: [...new Set(rows.map(row => typeof row?.offset))], uniquePaths: storeName === 'blocks' ? [...new Set(rows.map(row => row.path))] : [] });
       }
       databases.push({ name, stores });
       database.close();
