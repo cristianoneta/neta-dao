@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://juno.test.rpc.nodeshub.online https://juno.test.api.nodeshub.online https://juno.rpc.t.stavr.tech https://juno.api.t.stavr.tech; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>RELAY · UNI-7 setup</title>
+  <link rel="stylesheet" href="relay-testnet-setup.css">
+</head>
+<body>
+  <header><a href="index.html">NETA REBORN</a><span>RELAY · UNI-7 CONTRACT SETUP</span></header>
+  <main>
+    <span class="eyebrow">TESTNET ONLY · WALLET SIGNATURES REQUIRED</span>
+    <h1>Set up the RELAY mailbox.</h1>
+    <p>This page uploads and instantiates the tested UNI-7 mailbox contract. It does not activate direct messages. Uploading and instantiating each need a separate Keplr confirmation and JUNOX gas.</p>
+    <section>
+      <span class="step">01 · CONNECT</span>
+      <h2>Use the UNI-7 test wallet</h2>
+      <p>Only the configured test admin wallet can use this setup page. The wallet remains in Keplr.</p>
+      <button id="connect" type="button">CONNECT KEPLR</button><output id="wallet"></output>
+    </section>
+    <section>
+      <span class="step">02 · VERIFY ARTIFACT</span>
+      <h2>Select the reviewed WASM</h2>
+      <p>Download <a href="https://github.com/cristianoneta/neta-dao/actions/runs/35902328405">neta-relay-mailbox-wasm</a>, extract <code>neta_relay_mailbox.wasm</code>, and select it here. The browser checks its SHA-256 before offering any transaction.</p>
+      <label for="wasm">CONTRACT FILE</label><input id="wasm" type="file" accept=".wasm,application/wasm">
+      <output id="artifact">WAITING FOR VERIFIED WASM</output>
+    </section>
+    <section>
+      <span class="step">03 · SIGN ON UNI-7</span>
+      <h2>Upload and instantiate</h2>
+      <p>If the code or this wallet's instance already exists, the page finds it on-chain before requesting another signature.</p>
+      <button id="upload" type="button" disabled>UPLOAD VERIFIED CODE</button>
+      <button id="instantiate" type="button" disabled>INSTANTIATE MAILBOX</button>
+      <dl><dt>CODE ID</dt><dd id="code-id">—</dd><dt>CONTRACT ADDRESS</dt><dd id="contract-address">—</dd></dl>
+    </section>
+    <p id="status" role="status" aria-live="polite">CONNECT A TEST WALLET TO BEGIN.</p>
+    <a class="back" href="index.html">← BACK TO WORKSPACE</a>
+  </main>
+  <script src="assets/socials-testnet-client.js?v=4"></script><script src="relay-testnet-setup.js"></script>
+</body>
+</html>
