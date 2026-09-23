@@ -3,6 +3,8 @@
 Status: design gate for UNI-7 implementation. The current frontend composer is a
 non-persisting interaction shell; no messaging contract is deployed or connected.
 Messaging must remain disabled on mainnet until every release gate below is satisfied.
+The implementation sequence and current library evaluation are in
+[`RELAY_IMPLEMENTATION_PLAN.md`](RELAY_IMPLEMENTATION_PLAN.md).
 
 ## Security claim
 
