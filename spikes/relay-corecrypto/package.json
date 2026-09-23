@@ -1,0 +1,15 @@
+{
+  "name": "neta-relay-corecrypto-spike",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node native-smoke.mjs"
+  },
+  "license": "UNLICENSED",
+  "type": "module",
+  "dependencies": {
+    "@ubjs/core": "0.31.0-5",
+    "@ubjs/node": "0.31.0-5",
+    "@wireapp/core-crypto": "10.5.3"
+  },
+  "private": true
+}
