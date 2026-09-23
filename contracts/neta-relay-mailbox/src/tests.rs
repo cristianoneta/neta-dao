@@ -7,6 +7,11 @@ fn env() -> Env {
     env.block.chain_id = "uni-7".into();
     env
 }
+fn later(seconds: u64) -> Env {
+    let mut env = env();
+    env.block.time = env.block.time.plus_seconds(seconds);
+    env
+}
 
 fn prekey(id: u16) -> Prekey { Prekey { id, bundle: Binary::from(vec![7; 64]) } }
 fn message_id(id: u8) -> String { format!("{id:064x}") }
@@ -65,7 +70,8 @@ fn consumed_ids_cannot_be_republished_and_blocks_work() {
     execute(deps.as_mut(), env(), mock_info("bob", &[]), ExecuteMsg::SetBlock { address: "alice".into(), blocked: true }).unwrap();
     assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(2, 1, 1)), Err(Error::Blocked));
     execute(deps.as_mut(), env(), mock_info("bob", &[]), ExecuteMsg::SetBlock { address: "alice".into(), blocked: false }).unwrap();
-    execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(2, 1, 1)).unwrap();
+    assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(2, 1, 1)), Err(Error::Cooldown));
+    execute(deps.as_mut(), later(10), mock_info("alice", &[]), send_initial(2, 1, 1)).unwrap();
     let page: InboxResponse = from_json(query(deps.as_ref(), env(), QueryMsg::Inbox { address: "bob".into(), after: Some(1), limit: Some(1) }).unwrap()).unwrap();
     assert_eq!(page.messages[0].sequence, 2);
 }
