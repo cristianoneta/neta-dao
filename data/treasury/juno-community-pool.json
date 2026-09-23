@@ -45,7 +45,7 @@
     {
       "amount": "460.900000000000000000",
       "base_denom": "axlDAI",
-      "change_24h": -0.03190614445082587,
+      "change_24h": 0.006750940982368811,
       "custody_address": null,
       "ibc_path": null,
       "key": "juno:native:ibc/171E8F6687D290D378678310F9F15D367DCD245BF06184532B703A92054A8A4F",
@@ -53,8 +53,8 @@
       "source_chain": "juno",
       "symbol": "DAI.axl",
       "type": "token",
-      "usd_price": "0.999745",
-      "usd_value": "460.782470500000000000000000"
+      "usd_price": "0.999988",
+      "usd_value": "460.894469200000000000000000"
     },
     {
       "amount": "2100000.000000000000000000",
@@ -73,7 +73,7 @@
     {
       "amount": "11515.791275000000000000",
       "base_denom": "uusdc",
-      "change_24h": -0.003965693510956622,
+      "change_24h": -0.004197011905843373,
       "custody_address": null,
       "ibc_path": "transfer/channel-224/uusdc",
       "key": "juno:native:ibc/4A482FA914A4B9B05801ED81C33713899F322B24F76A06F4B8FE872485EA22FF",
@@ -81,8 +81,8 @@
       "source_chain": "juno",
       "symbol": "USDC.n",
       "type": "token",
-      "usd_price": "0.999781",
-      "usd_value": "11513.26931671077500000000000"
+      "usd_price": "0.999759",
+      "usd_value": "11513.01596930272500000000000"
     },
     {
       "amount": "163.000000000000000000",
@@ -99,9 +99,9 @@
       "usd_value": null
     },
     {
-      "amount": "3.284156539964401397908186",
+      "amount": "3.284156990400674428951642",
       "base_denom": "uatom",
-      "change_24h": 0.6359981060955305,
+      "change_24h": -1.3376690116641747,
       "custody_address": null,
       "ibc_path": "transfer/channel-1/uatom",
       "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
@@ -109,8 +109,8 @@
       "source_chain": "juno",
       "symbol": "ATOM",
       "type": "token",
-      "usd_price": "1.78",
-      "usd_value": "5.84579864113663448827657108"
+      "usd_price": "1.72",
+      "usd_value": "5.64875002348916001779682424"
     },
     {
       "amount": "69.000000000000000000",
@@ -129,7 +129,7 @@
     {
       "amount": "0.004215959858409699075278",
       "base_denom": "uusdc",
-      "change_24h": -0.003965693510956622,
+      "change_24h": -0.004197011905843373,
       "custody_address": null,
       "ibc_path": null,
       "key": "juno:native:ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034",
@@ -137,13 +137,13 @@
       "source_chain": "juno",
       "symbol": "USDC",
       "type": "token",
-      "usd_price": "0.999781",
-      "usd_value": "0.004215036563200707351180514118"
+      "usd_price": "0.999759",
+      "usd_value": "0.004214943812083822337800858002"
     },
     {
-      "amount": "20454691.79962061343325247745",
+      "amount": "20454730.38856930092278487603",
       "base_denom": "ujuno",
-      "change_24h": -0.808829127603274,
+      "change_24h": -1.9523243947881845,
       "custody_address": null,
       "ibc_path": null,
       "key": "juno:native:ujuno",
@@ -151,18 +151,18 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00941049",
-      "usd_value": "192488.6726334117865074881065"
+      "usd_price": "0.009229",
+      "usd_value": "188776.7067561060782163816209"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-09-23T14:13:29.090592Z",
-  "height": 42017362,
+  "generated_at": "2026-09-23T14:32:04.818314Z",
+  "height": 42017757,
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "204468.5744343002613426837342",
+  "total_usd": "200756.2701595761044602217555",
   "treasury_address": null,
   "treasury_type": "community-pool",
   "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.",
