@@ -160,6 +160,10 @@ collection is intended; syntax and frontend tests are non-mutating.
   A test-only Web Locks fixture now serializes same-origin tabs by physical
   CoreCrypto database path and holds the lock through device backup. Production
   wallet binding and crash lifecycle are still open.
+  The isolated encrypted-envelope fixture additionally rejects a mismatch
+  between decrypted sender/recipient/generations/message ID and the public
+  record, and checks the remote Proteus fingerprint. Historical sender
+  registration on rotation remains a contract/client design gap.
 - AtomOne is research only. Its reserved treasury address is not an active DAO;
   AtomOne lacks CosmWasm for native Polytone deployment. ICA would create a separate
   host-chain account and needs host support plus an adapter/controller design.

@@ -70,6 +70,14 @@ This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTU
   live signed UNI-7 transaction yet; a real client must supply the verified
   fingerprint from its cryptographic session and enforce decrypted envelope
   binding before displaying messages.
+- The test-only `browser-envelope.mjs` now binds chain, mailbox contract,
+  addresses, generations, device fingerprints and message ID inside the
+  Proteus plaintext. The browser smoke test rejects mismatched on-chain
+  sender, generation, message ID or sender fingerprint after decryption.
+  Production must fetch a trustworthy registration for the sender generation
+  at the time of send. The current contract exposes only the latest device,
+  so older messages cannot be safely attributed after rotation without a
+  historical registration record. Until then, rotated senders fail closed.
 - Local Playwright/Chromium cannot launch in the current execution environment:
   Chromium's socket call is blocked. Run the browser fixture in GitHub Actions.
 
@@ -195,6 +203,8 @@ Proteus does not expose an arbitrary associated-data parameter through the
 reviewed high-level API: document and test the envelope-binding design rather
 than claiming the external metadata is authenticated by default. Add a visible
 identity-change warning when the registered device changes.
+The browser fixture tests the inner envelope; it does not authenticate a
+historical sender registration after rotation or perform a live inbox query.
 
 Only after two real Keplr wallets exchange and recover messages on UNI-7 do we
 enable `SEND MESSAGE` in RELAY. Show pending/signing/confirmed/failed states;
