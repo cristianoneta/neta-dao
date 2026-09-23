@@ -69,6 +69,19 @@ try {
   let bob = await bobContext.newPage();
   await startClient(alice, 'alice');
   await startClient(bob, 'bob');
+  // Inspect storage shape without exposing keys or encrypted record contents.
+  const storageShape = await bob.evaluate(async () => {
+    const names = await indexedDB.databases();
+    const databases = [];
+    for (const { name } of names) {
+      const request = indexedDB.open(name);
+      const database = await new Promise((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+      databases.push({ name, stores: [...database.objectStoreNames] });
+      database.close();
+    }
+    return databases;
+  });
+  console.log(JSON.stringify({ storageShape }));
 
   // A wallet signature is never used as the database password; the key
   // survives reload only inside a password-wrapped vault record.
