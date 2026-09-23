@@ -55,12 +55,33 @@ try {
   await startClient(alice, 'alice');
   await startClient(bob, 'bob');
 
+  // The wallet-signed registration would publish this fingerprint on-chain.
+  const bobRegisteredFingerprint = await bob.evaluate(() => window.relayClient.transaction(ctx => ctx.proteusFingerprint()));
   const prekey = await bob.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusNewPrekey(1))));
-  const initial = await alice.evaluate(async prekey => Array.from(await window.relayClient.transaction(async ctx => {
+  const initial = await alice.evaluate(async ({ prekey, expected }) => Array.from(await window.relayClient.transaction(async ctx => {
     await ctx.proteusSessionFromPrekey('bob', new Uint8Array(prekey));
+    if (await ctx.proteusFingerprintRemote('bob') !== expected) throw Error('Recipient device identity changed');
     return ctx.proteusEncrypt('bob', new TextEncoder().encode('hello from Alice'));
-  })), prekey);
+  })), { prekey, expected: bobRegisteredFingerprint });
+  const aliceSeesBob = await alice.evaluate(() => window.relayClient.transaction(ctx => ctx.proteusFingerprintRemote('bob')));
+  assert.equal(aliceSeesBob, bobRegisteredFingerprint, 'session identity must match registered device');
   assert.ok(!new TextDecoder().decode(new Uint8Array(initial)).includes('hello from Alice'), 'ciphertext exposed plaintext');
+
+  // An attacker can supply a valid prekey bundle for a different device.
+  // The library accepts that bundle; the application must compare identities
+  // before encrypting any message for the claimed wallet address.
+  const attackerContext = await browser.newContext();
+  const attacker = await attackerContext.newPage();
+  const freshSenderContext = await browser.newContext();
+  const freshSender = await freshSenderContext.newPage();
+  await startClient(attacker, 'attacker');
+  await startClient(freshSender, 'fresh-sender');
+  const attackPrekey = await attacker.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusNewPrekey(1))));
+  const attackResult = await freshSender.evaluate(async bundle => window.relayClient.transaction(async ctx => {
+    await ctx.proteusSessionFromPrekey('claimed-bob', new Uint8Array(bundle));
+    return ctx.proteusFingerprintRemote('claimed-bob');
+  }), attackPrekey);
+  assert.notEqual(attackResult, bobRegisteredFingerprint, 'substituted prekey must be detected');
 
   // A tab restart must restore the persisted ratchet and prekey before delivery.
   await bob.close();
@@ -94,7 +115,7 @@ try {
   assert.equal(await receive(stranded), 'stranded message');
   assert.equal(await receive(replacement), 'stranded message');
 
-  console.log(JSON.stringify({ success: true, browserContexts: 2, recoveredAfterTabRestart: true, outOfOrder: true, replayRejected: true, sessionRecoveredAfterReplay: true, crashWindowChangesCiphertext: true, wasmOnlyCspException: true, initialCiphertextBytes: initial.length, replyCiphertextBytes: reply.length }));
+  console.log(JSON.stringify({ success: true, browserContexts: 4, registeredFingerprintMatches: true, substitutedPrekeyDetected: true, recoveredAfterTabRestart: true, outOfOrder: true, replayRejected: true, sessionRecoveredAfterReplay: true, crashWindowChangesCiphertext: true, wasmOnlyCspException: true, initialCiphertextBytes: initial.length, replyCiphertextBytes: reply.length }));
 } finally {
   await browser?.close();
   await new Promise(resolve => server.close(resolve));
