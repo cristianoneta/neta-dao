@@ -141,10 +141,20 @@ try {
     return exportDevice({ chain: 'uni-7', wallet: window.relayVaultAddress, path: 'bob.db', vaultName: 'bob-vault', password: 'independent browser vault password for bob' });
   });
   assert.ok(!deviceBackup.includes('hello from Alice'), 'plaintext leaked into device backup');
+  const brokenBackup = JSON.parse(deviceBackup);
+  brokenBackup.ciphertext[0] ^= 1;
   const restoredContext = await browser.newContext();
   const restoredPage = await restoredContext.newPage();
   await restoredPage.goto(origin);
   const restoredAddress = await bob.evaluate(() => window.relayVaultAddress);
+  await assert.rejects(restoredPage.evaluate(async ({ backup, wallet }) => {
+    const { importDevice } = await import('/device-backup.js');
+    return importDevice({ chain: 'uni-7', wallet, path: 'bob.db', vaultName: 'bob-vault', password: 'independent browser vault password for bob', backup });
+  }, { backup: JSON.stringify(brokenBackup), wallet: restoredAddress }), 'tampered backup must fail before any import');
+  await assert.rejects(restoredPage.evaluate(async ({ backup, wallet }) => {
+    const { importDevice } = await import('/device-backup.js');
+    return importDevice({ chain: 'uni-7', wallet, path: 'bob.db', vaultName: 'bob-vault', password: 'independent browser vault password for bob', backup });
+  }, { backup: deviceBackup, wallet: `juno1${'a'.repeat(38)}` }), 'another wallet cannot import this backup');
   await assert.rejects(restoredPage.evaluate(async ({ backup, wallet }) => {
     const { importDevice } = await import('/device-backup.js');
     return importDevice({ chain: 'uni-7', wallet, path: 'bob.db', vaultName: 'bob-vault', password: 'wrong password that is long', backup });
@@ -158,6 +168,8 @@ try {
     await importDevice({ chain: 'uni-7', wallet, path: 'bob.db', vaultName: 'bob-vault', password: 'independent browser vault password for bob', backup });
   }, { backup: deviceBackup, wallet: restoredAddress }), 'import must not overwrite existing device');
   await startClient(restoredPage, 'bob');
+  const restoredFingerprint = await restoredPage.evaluate(() => window.relayClient.transaction(ctx => ctx.proteusFingerprint()));
+  assert.equal(restoredFingerprint, bobRegisteredFingerprint, 'device identity must survive a full backup');
   const restoredText = await restoredPage.evaluate(async envelope => new TextDecoder().decode(await window.relayClient.transaction(ctx => ctx.proteusDecryptSafe('alice', new Uint8Array(envelope)))), initial);
   assert.equal(restoredText, 'hello from Alice', 'new browser profile must restore the prekey and decrypt');
 
