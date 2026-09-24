@@ -288,6 +288,102 @@
       "height": 42024374,
       "status": "PARTIAL",
       "total_usd": "195148.2451391646347020458934"
+    },
+    {
+      "assets": [
+        {
+          "amount": "0.000001000000000000",
+          "key": "juno:native:factory/juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0/reece",
+          "source_chain": "juno",
+          "symbol": "factory/juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0/reece",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "3000000.000000000000000000",
+          "key": "juno:native:factory/juno1ulnur0yl5e3d7d6gekw2stlft8ydltes50lzkem8hnazkvp23g8sfcjt5d/sas",
+          "source_chain": "juno",
+          "symbol": "factory/juno1ulnur0yl5e3d7d6gekw2stlft8ydltes50lzkem8hnazkvp23g8sfcjt5d/sas",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "2846700.000000000000000000",
+          "key": "juno:native:ibc/055F223602B754BF34FE269B729837A02BDF79E069F2387AEEA9CD28DE961BE7",
+          "source_chain": "juno",
+          "symbol": "ibc/055F223602B754\u2026",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "460.900000000000000000",
+          "key": "juno:native:ibc/171E8F6687D290D378678310F9F15D367DCD245BF06184532B703A92054A8A4F",
+          "source_chain": "juno",
+          "symbol": "DAI.axl",
+          "usd_price": "1.0",
+          "usd_value": "460.9000000000000000000"
+        },
+        {
+          "amount": "2100000.000000000000000000",
+          "key": "juno:native:ibc/2578547913C40B0DEBAB7E458F191491DE6288A01E1000E9BAE34103DEB189D3",
+          "source_chain": "juno",
+          "symbol": "ibc/2578547913C40B\u2026",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "11515.791275000000000000",
+          "key": "juno:native:ibc/4A482FA914A4B9B05801ED81C33713899F322B24F76A06F4B8FE872485EA22FF",
+          "source_chain": "juno",
+          "symbol": "USDC.n",
+          "usd_price": "0.999796",
+          "usd_value": "11513.44205357990000000000000"
+        },
+        {
+          "amount": "163.000000000000000000",
+          "key": "juno:native:ibc/8F865D9760B482FF6254EDFEC1FF2F1273B9AB6873A7DE484F89639795D73D75",
+          "source_chain": "juno",
+          "symbol": "ibc/8F865D9760B482\u2026",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "3.284179760507762839646981",
+          "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
+          "source_chain": "juno",
+          "symbol": "ATOM",
+          "usd_price": "1.78",
+          "usd_value": "5.84583997370381785457162618"
+        },
+        {
+          "amount": "69.000000000000000000",
+          "key": "juno:native:ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241",
+          "source_chain": "juno",
+          "symbol": "ibc/D836B191CDAE8E\u2026",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "0.004215992923048123879307",
+          "key": "juno:native:ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034",
+          "source_chain": "juno",
+          "symbol": "USDC",
+          "usd_price": "0.999796",
+          "usd_value": "0.004215132860491822062035621372"
+        },
+        {
+          "amount": "20458229.77125782946014588504",
+          "key": "juno:native:ujuno",
+          "source_chain": "juno",
+          "symbol": "JUNO",
+          "usd_price": "0.00959565",
+          "usd_value": "196310.0125045701912592488618"
+        }
+      ],
+      "generated_at": "2026-09-24T19:15:38.157699Z",
+      "height": 42053471,
+      "status": "PARTIAL",
+      "total_usd": "208290.2046132566555689254955"
     }
   ]
 }
