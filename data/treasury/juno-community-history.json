@@ -416,8 +416,8 @@
           "key": "juno:native:ibc/171E8F6687D290D378678310F9F15D367DCD245BF06184532B703A92054A8A4F",
           "source_chain": "juno",
           "symbol": "DAI.axl",
-          "usd_price": "1.0",
-          "usd_value": "460.9000000000000000000"
+          "usd_price": "0.999909",
+          "usd_value": "460.858058100000000000000000"
         },
         {
           "amount": "2100000.000000000000000000",
@@ -432,8 +432,8 @@
           "key": "juno:native:ibc/4A482FA914A4B9B05801ED81C33713899F322B24F76A06F4B8FE872485EA22FF",
           "source_chain": "juno",
           "symbol": "USDC.n",
-          "usd_price": "0.999883",
-          "usd_value": "11514.44392742082500000000000"
+          "usd_price": "0.999918",
+          "usd_value": "11514.84698011545000000000000"
         },
         {
           "amount": "163.000000000000000000",
@@ -464,22 +464,22 @@
           "key": "juno:native:ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034",
           "source_chain": "juno",
           "symbol": "USDC",
-          "usd_price": "0.999883",
-          "usd_value": "0.004215519451404435778112285046"
+          "usd_price": "0.999918",
+          "usd_value": "0.004215667011849807041802370716"
         },
         {
-          "amount": "20461234.34783000007496490240",
+          "amount": "20461261.67194100007496809932",
           "key": "juno:native:ujuno",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00948461",
-          "usd_value": "194066.8279077718970110128630"
+          "usd_price": "0.0094623",
+          "usd_value": "193610.5963184073250093706462"
         }
       ],
-      "generated_at": "2026-09-25T19:40:56.696694Z",
-      "height": 42084144,
+      "generated_at": "2026-09-25T19:53:30.786663Z",
+      "height": 42084419,
       "status": "PARTIAL",
-      "total_usd": "206047.9890916254260770425052"
+      "total_usd": "205592.1186132030395207715521"
     }
   ]
 }
