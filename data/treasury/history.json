@@ -320,6 +320,86 @@
       "height": 42054282,
       "status": "PARTIAL",
       "total_usd": "4074.38705440271125"
+    },
+    {
+      "assets": [
+        {
+          "amount": "90000",
+          "key": "juno:native:factory/juno1upn6s8v7ykrkef8f9gvqsdy4vqm4qpd8lf6yt5rn0r6cm3amg77q3sjt0n/testingaten",
+          "source_chain": "juno",
+          "symbol": "factory/juno1upn6s8v7ykrkef8f9gvqsdy4vqm4qpd8lf6yt5rn0r6cm3amg77q3sjt0n/testingaten",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "11.5",
+          "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
+          "source_chain": "juno",
+          "symbol": "ATOM",
+          "usd_price": "1.76",
+          "usd_value": "20.240"
+        },
+        {
+          "amount": "761.080781",
+          "key": "juno:native:ujuno",
+          "source_chain": "juno",
+          "symbol": "JUNO",
+          "usd_price": "0.00946572",
+          "usd_value": "7.20417757032732"
+        },
+        {
+          "amount": "817.744263",
+          "key": "osmosis:native:ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4",
+          "source_chain": "osmosis",
+          "symbol": "AKT",
+          "usd_price": "0.672258",
+          "usd_value": "549.735122755854"
+        },
+        {
+          "amount": "1932.499146",
+          "key": "osmosis:native:ibc/46B44899322F3CD854D2D46DEEF881958467CDD4B3B10086DA49296BBED94BED",
+          "source_chain": "osmosis",
+          "symbol": "JUNO",
+          "usd_price": "0.00946572",
+          "usd_value": "18.29249581627512"
+        },
+        {
+          "amount": "3441.43943",
+          "key": "osmosis:native:ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
+          "source_chain": "osmosis",
+          "symbol": "USDC.n",
+          "usd_price": "0.999886",
+          "usd_value": "3441.04710590498"
+        },
+        {
+          "amount": "3161.997431",
+          "key": "osmosis:native:ibc/8E697BDABE97ACE8773C6DF7402B2D1D5104DD1EEABE12608E3469B7F64C15BA",
+          "source_chain": "osmosis",
+          "symbol": "JKL",
+          "usd_price": "0.0003937",
+          "usd_value": "1.2448783885847"
+        },
+        {
+          "amount": "177.320495",
+          "key": "osmosis:native:ibc/BC26A7A805ECD6822719472BCB7842A48EF09DF206182F8F259B2593EB5D23FB",
+          "source_chain": "osmosis",
+          "symbol": "ATONE",
+          "usd_price": "0.095297",
+          "usd_value": "16.898111212015"
+        },
+        {
+          "amount": "3.200008",
+          "key": "osmosis:native:uosmo",
+          "source_chain": "osmosis",
+          "symbol": "OSMO",
+          "usd_price": "0.03762158",
+          "usd_value": "0.12038935697264"
+        }
+      ],
+      "generated_at": "2026-09-25T19:10:53.938876Z",
+      "height": 42083483,
+      "status": "PARTIAL",
+      "total_usd": "4054.78228100500878"
     }
   ]
 }
