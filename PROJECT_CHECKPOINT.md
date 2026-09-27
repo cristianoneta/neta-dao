@@ -1,6 +1,6 @@
 # NETA DAO Workspace Checkpoint
 
-Updated: 22 September 2026
+Updated: 27 September 2026
 
 ## Implemented
 
@@ -75,20 +75,33 @@ Updated: 22 September 2026
 - RELAY ciphertext transmission and device registration until the UNI-7 messaging
   contract and reviewed Double Ratchet client pass their test gates.
 
+## RELAY recovery checkpoint · 27 September 2026
+
+Agreed: automatic encrypted off-chain backup of wallet-bound ratchet state and
+separate readable-history archive, with a generated recovery code and visible
+last confirmed backup. This is not implemented; storage and sync remain open.
+Keplr alone cannot decrypt old chat. Used ratchet keys remain discarded.
+Stale restores cannot send until safe reconciliation or fresh registration;
+backup plus code exposes archived texts. Details and test gates:
+`docs/RELAY_RECOVERY_DECISION.md`. The existing fixture proves unread-message
+recovery only. The live two-address UNI-7 diagnostic is read-only, and two real
+wallets have not exchanged encrypted messages. SEND MESSAGE stays disabled.
+Next: review user's RELAY UX annotations, then resume test-only E2E work.
+
 ## Next product step
 
 Build encrypted RELAY messaging on UNI-7:
 
-1. finalize the message/device/prekey state machine and select a maintained,
-   independently reviewed Double Ratchet implementation;
-2. implement and test the CosmWasm registry/ciphertext contract with no UNI-7 stake
-   gate, payload limits, cooldown, blocklist, device revocation and pagination;
-3. compile reproducible Wasm and deploy/instantiate it through an explicit Keplr
-   transaction;
-4. connect device registration, session establishment, encrypted send/receive and
-   multi-device behavior to the existing composer and inbox;
-5. keep mainnet disabled until the external review gates are satisfied, then use a
-   separate immutable mainnet configuration requiring at least 5 actively staked NETA.
+1. review the user's RELAY UX annotations and keep live/read-only and test-only
+   signing flows visibly distinct;
+2. resolve CoreCrypto distribution/license and historical sender identity after
+   rotation, then build reviewed wallet-bound test-only device registration;
+3. connect the deployed mailbox to two real Keplr wallets on UNI-7 and verify
+   encrypted send, receive, restart and crash recovery;
+4. implement and test the agreed encrypted archive/backup and stale-restore
+   policy before calling recovery complete;
+5. keep the main SEND MESSAGE action and mainnet disabled until their separate
+   release gates pass.
 
 After messaging, continue Treasury accounting with recurring flows,
 proposal-linked obligations, open milestone payments and derived runway. Native

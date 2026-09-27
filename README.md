@@ -39,6 +39,13 @@ Static governance workspace for DAO collaboration on Juno. The frontend combines
   staked NETA. The threat model and release gates are documented in
   [`docs/RELAY_SECURITY_ARCHITECTURE.md`](docs/RELAY_SECURITY_ARCHITECTURE.md).
 
+The agreed RELAY recovery direction is automatic client-side encrypted,
+wallet-bound off-chain backup of current messaging state and a separate
+readable-history archive, opened with a generated recovery code. This is not
+implemented. The live `relay-uni7-readiness.html` page reads public state only;
+no encrypted two-wallet exchange has passed. See
+[`docs/RELAY_RECOVERY_DECISION.md`](docs/RELAY_RECOVERY_DECISION.md).
+
 ### UX concepts
 
 Delivery and Contributors remain visual drafts. Treasury asset balances are collected read-only from the NETA Operations DAO core address `juno1excm…mancl`, its DAO-controlled Osmosis Polytone proxy `osmo1xj…9f80`, and Juno's native distribution-module Community Pool. Chain custody and IBC representations remain explicit. USD prices are refreshed centrally, while planning, commitments and runway remain explicitly marked sample values until their accounting model is connected.
