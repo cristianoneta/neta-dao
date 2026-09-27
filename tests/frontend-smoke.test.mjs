@@ -54,7 +54,7 @@ test("Relay hides a zero badge and keeps the inbox before the watchlist", () => 
   assert.match(relayCss, /relay-watchlist\{order:2\}/);
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
-  assert.match(html, /relay\.css\?v=7/);
+  assert.match(html, /relay\.css\?v=8/);
   assert.match(html, /relay\.js\?v=6/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
@@ -229,6 +229,7 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(html, /id="relay-following-view"/);
   assert.match(html, /id="relay-open-names"/);
   assert.match(html, /ALL FOLLOWED DAOS/);
+  assert.match(readFileSync("relay.css", "utf8"), /body\[data-workspace-view="relay"\] \.governance-selectors\{display:none!important\}/);
   assert.match(ux, /if\(value==="names"\)return \{view:"relay",panel:"names"\}/);
   assert.match(ux, /relay\/following/);
   assert.match(ux, /relayPanels\.forEach/);
