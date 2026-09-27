@@ -58,7 +58,7 @@ fresh registration. Wallet ownership alone cannot decrypt old messages.
 
 ## Browser and application controls
 
-- No third-party scripts are permitted on the messaging page. The currently deployed `script-src 'self'` blocks the selected WASM bundle; a reviewed CSP must allow `wasm-unsafe-eval` while continuing to exclude broad `unsafe-eval` and remote scripts.
+- No third-party scripts are permitted on the messaging page. The isolated UNI-7 lab uses `wasm-unsafe-eval` in its page CSP while excluding broad `unsafe-eval` and remote scripts; the main application remains separately gated.
 - Rendered message text uses text nodes, never HTML injection.
 - Sensitive key material must not be placed in localStorage. An audited encrypted IndexedDB keystore with explicit lock and device removal is required.
 - Dependency versions and build artifacts are pinned and reproducible. Cryptographic primitives are never implemented inside this repository.
@@ -73,6 +73,12 @@ fresh registration. Wallet ownership alone cannot decrypt old messages.
 6. Independent external audit findings are resolved or explicitly accepted and disclosed.
 7. Clear user warnings explain public metadata, device compromise and irreversible loss of undecryptable history.
 
-Until the UNI-7 contract and reviewed client are connected, the frontend may accept
+Until a real two-wallet UNI-7 client exchange and independent review, the main frontend may accept
 temporary composer input for UX testing but must not transmit or persist it. Mainnet
 messaging stays disabled until every release gate passes.
+
+The isolated lab has only a local encrypted archive and unlock code. It does not
+provide an off-device backup, stale-restore reconciliation or historical sender
+registration proof after device rotation. An ambiguous registration or incomplete
+outbox/inbox intent blocks continuation. Its two-profile browser test mocks chain
+and Keplr; no claim of live UNI-7 end-to-end validation follows from it.
