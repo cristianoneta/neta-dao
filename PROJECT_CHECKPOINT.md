@@ -63,7 +63,7 @@ Updated: 22 September 2026
 - The canonical Juno review address is committed in the `neta-governance.js` DAO registry; it is not browser-local scaffolding.
 - Test administrator: `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.
 - UNI-7 access mock: `juno10739807rjqkf4kmtvpu5ll5e67dkch82xzgph83cmn5h8n0fxmnszasg86`.
-- RELAY inbox UI is deployed from main. Encrypted messaging has no deployed contract yet.
+- RELAY inbox UI is deployed from main. The UNI-7 mailbox is deployed at `juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa`; encrypted messaging and device registration remain disabled in the production UI. See the newer `HANDOFF.md` for the current state.
 
 ## Intentionally locked
 
