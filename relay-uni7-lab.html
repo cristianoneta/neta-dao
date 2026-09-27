@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; connect-src 'self' https://juno.test.rpc.nodeshub.online https://juno.test.api.nodeshub.online https://juno.rpc.t.stavr.tech https://juno.api.t.stavr.tech; img-src 'self' data:; worker-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>RELAY · UNI-7 encrypted lab</title>
+  <link rel="stylesheet" href="relay-testnet-setup.css">
+  <link rel="stylesheet" href="relay-uni7-lab.css">
+</head>
+<body>
+  <header><a href="index.html#relay">NETA REBORN</a><span>RELAY · UNI-7 ENCRYPTED LAB</span></header>
+  <main>
+    <span class="eyebrow">TESTNET ONLY · TWO REAL KEPLR WALLETS</span>
+    <h1>Encrypted message test.</h1>
+    <p>This separate lab uses Wire CoreCrypto 10.5.3. Registration and sending require explicit Keplr transactions on UNI-7. The main RELAY inbox still cannot send. Sender, recipient and timing are public on-chain.</p>
+    <section>
+      <span class="step">01 · WALLET &amp; LOCAL DEVICE</span>
+      <h2>Connect and unlock</h2>
+      <button id="connect" type="button">CONNECT KEPLR · UNI-7</button>
+      <p id="wallet">NO WALLET CONNECTED</p>
+      <label for="recovery">RECOVERY CODE · FOR THIS BROWSER DEVICE</label>
+      <input id="recovery" type="password" autocomplete="off" placeholder="Enter saved code after a restart">
+      <div class="lab-actions"><button id="create" type="button" disabled>CREATE LOCAL DEVICE</button><button id="unlock" type="button" disabled>UNLOCK EXISTING DEVICE</button></div>
+      <output id="new-code" hidden></output>
+      <p class="lab-caution">Save a newly generated code before proceeding. The archive and ratchet remain in this browser; automatic off-device backup is not implemented. Losing browser data still loses old messages.</p>
+      <p id="device">DEVICE LOCKED</p>
+      <button id="register" type="button" disabled>REGISTER DEVICE WITH KEPLR</button>
+    </section>
+    <section>
+      <span class="step">02 · MESSAGE TEST</span>
+      <h2>Send encrypted on UNI-7</h2>
+      <label for="recipient">RECIPIENT JUNO ADDRESS</label><input id="recipient" autocomplete="off" spellcheck="false" placeholder="juno1…">
+      <label for="message">MESSAGE</label><textarea id="message" rows="4" maxlength="1800" placeholder="Only encrypted bytes go on-chain"></textarea>
+      <button id="send" type="button" disabled>TEST ENCRYPTED SEND · KEPLR</button>
+      <p class="lab-caution">The recipient must have registered this lab device. Never use private information in this early test.</p>
+    </section>
+    <section>
+      <span class="step">03 · INBOX &amp; RESTART</span>
+      <h2>Read and reload</h2>
+      <button id="receive" type="button" disabled>CHECK &amp; DECRYPT INBOX</button>
+      <div id="history" aria-live="polite"></div>
+      <p>After a successful exchange, reload this page, connect the same Keplr wallet, enter the recovery code and unlock. The readable history should return from a separately encrypted local archive.</p>
+    </section>
+    <output id="status" role="status" aria-live="polite">CONNECT KEPLR TO START.</output>
+    <p class="lab-caution">CoreCrypto is GPL-3.0. <a href="assets/relay-crypto/LICENSE">License</a> · <a href="https://github.com/cristianoneta/neta-dao">RELAY test client source</a> · <a href="https://github.com/wireapp/core-crypto">Wire CoreCrypto source</a>.</p>
+  </main>
+  <script src="assets/socials-testnet-client.js?v=4"></script>
+  <script type="module" src="relay-uni7-lab.mjs?v=1"></script>
+</body>
+</html>
