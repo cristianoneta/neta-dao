@@ -55,7 +55,7 @@ test("Relay hides a zero badge and gives the inbox the full width", () => {
   assert.match(html, /data-relay-panel-view="following"/);
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
-  assert.match(html, /relay\.css\?v=10/);
+  assert.match(html, /relay\.css\?v=11/);
   assert.match(html, /relay\.js\?v=7/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
@@ -231,6 +231,7 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(html, /id="relay-open-names"/);
   assert.match(html, /ALL FOLLOWED DAOS/);
   assert.match(readFileSync("relay.css", "utf8"), /body\[data-workspace-view="relay"\] \.governance-selectors\{display:none!important\}/);
+  assert.match(readFileSync("relay.css", "utf8"), /\.gov-header \.relay-global-scope\{display:none/);
   assert.match(ux, /if\(value==="names"\)return \{view:"relay",panel:"names"\}/);
   assert.match(ux, /relay\/following/);
   assert.match(ux, /relayPanels\.forEach/);
