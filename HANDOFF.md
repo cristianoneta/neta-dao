@@ -34,7 +34,7 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   reading pane. Its Composer performs a read-only UNI-7 contract identity check.
   DAO favorites, comparison baselines, notifications and read state are browser-local.
   The first load establishes a read baseline instead of creating a false unread flood.
-- The RELAY mailbox v0.1 is instantiated on UNI-7 at
+- A separate read-only UNI-7 readiness diagnostic is available at `relay-uni7-readiness.html` for two wallet addresses. It checks contract identity and public device/inbox state only; it never signs, registers, decrypts or sends. This does not complete E2E testing.\n- The RELAY mailbox v0.1 is instantiated on UNI-7 at
   `juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa`.
   Its setup page `relay-testnet-setup.html` includes the pinned WASM, verifies its
   checksum, and reported the deployed address after the user's Keplr signatures.
