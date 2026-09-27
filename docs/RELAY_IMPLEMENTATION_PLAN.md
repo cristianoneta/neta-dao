@@ -232,3 +232,15 @@ enable `SEND MESSAGE` in RELAY. Show pending/signing/confirmed/failed states;
 label loss of local keys, public metadata and per-message chain gas clearly.
 Do not promote this testnet result to mainnet without independent contract and
 client review, a security audit, and the mainnet policy gates.
+
+## UNI-7 isolated lab checkpoint · 27 September 2026
+
+PR #97 packages pinned Wire CoreCrypto 10.5.3 under GPL-3.0 for a separate
+`relay-uni7-lab.html` page. The browser fixture uses two isolated profiles and
+mocked Keplr/contract queries to prove an encrypted exchange, reply and
+readable archive after reload. This is not an actual UNI-7 E2E. The lab stores
+registration intents before signing, outbox intents before ratchet work and
+inbound intents before decrypting. Unresolved intents block continuation; no
+silent reset or replay is offered. Its wallet-bound local archive is encrypted
+separately from the ratchet database but is not exported or backed up off-device.
+Real Keplr transactions and chain confirmation remain the next test gate.

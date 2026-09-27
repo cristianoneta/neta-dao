@@ -54,10 +54,12 @@ export class Uni7MailboxClient {
   constructor({ keplr, bundle, fetcher = fetch, assertDevicePrepared }) {
     if (!keplr || !bundle?.connect || !bundle?.execute || typeof fetcher !== 'function' ||
         typeof assertDevicePrepared !== 'function') throw Error('UNI-7 dependencies unavailable');
-    Object.assign(this, { keplr, bundle, fetcher, assertDevicePrepared });
+    Object.assign(this, { keplr, bundle, assertDevicePrepared });
+    this.fetcher = (...args) => fetcher(...args);
     this.address = null;
     this.base = null;
     this.signingClient = null;
+    this.registrationStore = globalThis.localStorage || new Map();
   }
   async get(base, path) {
     const controller = new AbortController();
@@ -140,12 +142,17 @@ export class Uni7MailboxClient {
       throw Error('Local encrypted device is not durably prepared');
     const old = await this.device();
     if (old) throw Error('Device already registered; rotation needs a separate reviewed flow');
+    const intentKey = 'relay-uni7-registration-intent:' + this.address;
+    if (this.registrationStore.getItem?.(intentKey) || this.registrationStore.get?.(intentKey))
+      throw Error('Unresolved registration intent; inspect chain before another attempt');
     await this.verify();
     await this.assertWallet();
     const msg = { register: {
       device_id: device.device_id, protocol_version: 1,
       fingerprint: device.fingerprint, prekeys: device.prekeys
     } };
+    this.registrationStore.setItem ? this.registrationStore.setItem(intentKey, device.fingerprint) :
+      this.registrationStore.set(intentKey, device.fingerprint);
     let result, failure;
     try {
       result = await this.bundle.execute(await this.signer(), this.address, RELAY_UNI7_MAILBOX, msg,
@@ -156,8 +163,11 @@ export class Uni7MailboxClient {
     let confirmed;
     try { confirmed = await this.device(); } catch { /* Preserve the ambiguous outcome. */ }
     if (confirmed?.active && confirmed.generation === 1 &&
-        confirmed.device_id === device.device_id && confirmed.fingerprint === device.fingerprint)
+        confirmed.device_id === device.device_id && confirmed.fingerprint === device.fingerprint) {
+      this.registrationStore.removeItem ? this.registrationStore.removeItem(intentKey) :
+        this.registrationStore.delete(intentKey);
       return { device: confirmed, transactionHash: result?.transactionHash || null };
+    }
     if (failure) throw Error('Registration outcome uncertain; inspect chain before retry: ' + failure.message);
     throw Error('Registration not confirmed; inspect chain before retry');
   }

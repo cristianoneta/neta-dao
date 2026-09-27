@@ -86,7 +86,13 @@ backup plus code exposes archived texts. Details and test gates:
 `docs/RELAY_RECOVERY_DECISION.md`. The existing fixture proves unread-message
 recovery only. The live two-address UNI-7 diagnostic is read-only, and two real
 wallets have not exchanged encrypted messages. SEND MESSAGE stays disabled.
-Next: review user's RELAY UX annotations, then resume test-only E2E work.
+The UX annotations were addressed in the main inbox. PR #97 adds a separate
+UNI-7 Keplr lab with GPL CoreCrypto runtime, local encrypted archive and
+browser-profile fixture covering exchange, reply and restart. This is not a
+live two-wallet test; the main composer remains disabled. Local unlock is not
+the agreed automatic off-device backup. Next: real Keplr registrations and
+exchange on UNI-7, investigate any network/wallet failures and keep the release
+gates separate.
 
 ## RELAY information architecture · 27 September 2026
 
