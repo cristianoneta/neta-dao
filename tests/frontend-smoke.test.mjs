@@ -47,15 +47,16 @@ test("Relay prioritizes messages before governance in the inbox", () => {
   assert.ok(messages > -1 && messages < governanceFilter);
 });
 
-test("Relay hides a zero badge and keeps the inbox before the watchlist", () => {
+test("Relay hides a zero badge and gives the inbox the full width", () => {
   const relayCss = readFileSync("relay.css", "utf8");
   assert.match(relayCss, /relay-unread-badge\[hidden\]\{display:none\}/);
-  assert.match(relayCss, /relay-feed-card\{order:1\}/);
-  assert.match(relayCss, /relay-watchlist\{order:2\}/);
+  assert.match(relayCss, /\.relay-layout\{display:block\}/);
+  assert.doesNotMatch(html, /class="relay-watchlist/);
+  assert.match(html, /data-relay-panel-view="following"/);
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
-  assert.match(html, /relay\.css\?v=8/);
-  assert.match(html, /relay\.js\?v=6/);
+  assert.match(html, /relay\.css\?v=9/);
+  assert.match(html, /relay\.js\?v=7/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
 
@@ -255,4 +256,14 @@ test("Names validates the full 5–32 character label and rejects ambiguous name
   assert.equal(validName(`${"a".repeat(32)}.neta`),true);
   for(const value of ["abcd.neta",`${"a".repeat(33)}.neta`,"Admin.neta","admin.neta","a--name.neta","-owner.neta","owner-.neta","owner.juno"])
     assert.equal(validName(value),false,value);
+});
+
+test("Relay reading pane shows the proposal summary and message styling remains distinct", () => {
+  assert.match(relay, /proposal=previous\?\.items\?\.\[selectedKey\]/);
+  assert.match(relay, /summary\.textContent=proposal\?\.summary/);
+  assert.match(relay, /summaryHeading\.textContent="SUMMARY"/);
+  assert.match(relay, /GOVERNANCE ·/);
+  assert.match(readFileSync("relay.css","utf8"), /\.relay-event-message\.selected/);
+  assert.match(html, /PREVIEW · SEND DISABLED/);
+  assert.match(html, /type="submit" disabled aria-describedby="relay-send-note">SEND MESSAGE/);
 });
