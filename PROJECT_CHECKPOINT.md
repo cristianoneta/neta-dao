@@ -88,6 +88,15 @@ recovery only. The live two-address UNI-7 diagnostic is read-only, and two real
 wallets have not exchanged encrypted messages. SEND MESSAGE stays disabled.
 Next: review user's RELAY UX annotations, then resume test-only E2E work.
 
+## RELAY information architecture · 27 September 2026
+
+The main navigation consolidates Names under RELAY. Internal sections are
+Inbox (default), Following and Names & Contacts; Privacy & Recovery waits for
+an implemented feature. The watchlist remains a compact sidebar in Inbox and
+shares state with Following. Old `#names` links route to `#relay/names`.
+The DAO picker is hidden in RELAY because the inbox spans followed DAOs.
+Messaging and Names registry writes remain disabled.
+
 ## Next product step
 
 Build encrypted RELAY messaging on UNI-7:
