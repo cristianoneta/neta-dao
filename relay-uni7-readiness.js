@@ -27,7 +27,7 @@
     const node = await get(base, '/cosmos/base/tendermint/v1beta1/node_info');
     if (node.default_node_info?.network !== CHAIN) throw Error('WRONG CHAIN');
     const info = (await get(base, '/cosmwasm/wasm/v1/contract/' + CONTRACT)).contract_info;
-    if (info?.creator !== CREATOR || info.label !== LABEL || !/^[1-9]\\d*$/.test(String(info.code_id)))
+    if (info?.creator !== CREATOR || info.label !== LABEL || !/^[1-9]\d*$/.test(String(info.code_id)))
       throw Error('CONTRACT IDENTITY MISMATCH');
     const code = (await get(base, '/cosmwasm/wasm/v1/code/' + info.code_id)).code_info;
     if (hex(code?.data_hash) !== HASH) throw Error('CODE HASH MISMATCH');
