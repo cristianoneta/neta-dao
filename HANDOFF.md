@@ -87,6 +87,17 @@ review the user's RELAY UX annotations. PR #89's read-only two-address diagnosti
 is deployed and verified; no encrypted two-wallet E2E occurred. SEND MESSAGE
 and mainnet DMs remain disabled.
 
+## RELAY navigation · 2026-09-27
+
+RELAY uses Inbox, Following and Names & Contacts as internal sections. Inbox is
+the default. Names is no longer a top-level workspace tab; legacy `#names`
+links canonicalize to `#relay/names`. `#relay/following` is directly linkable.
+The compact watchlist remains alongside Inbox and shares state with Following.
+The top DAO picker is hidden in RELAY in favor of ALL FOLLOWED DAOS, because the
+inbox spans followed DAOs. Names registry deployment remains pending; moving
+its UI does not activate registration or message sending. Privacy & Recovery
+stays a future section until a real feature exists.
+
 ## Treasury architecture
 
 - `.github/workflows/treasury-snapshot.yml` runs every 15 minutes and commits only
