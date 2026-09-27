@@ -232,7 +232,7 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(ux, /if\(value==="names"\)return \{view:"relay",panel:"names"\}/);
   assert.match(ux, /relay\/following/);
   assert.match(ux, /relayPanels\.forEach/);
-  assert.match(html, /ux-draft\.js\?v=8/);
+  assert.match(html, /ux-draft\.js\?v=9/);
   assert.match(html, /governance-overrides\.css\?v=16/);
   assert.doesNotMatch(html, /GOVERNANCE · ACCOUNTABILITY · TRANSPARENCY/);
   assert.match(html, /data-relay-panel-view="names"/);
