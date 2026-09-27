@@ -53,6 +53,6 @@
   window.addEventListener("neta:dao-change",event=>applyDaoScope(event.detail.id));
   applyDaoScope(window.NETA_SELECTED_DAO||"neta-operations");
   let initialView=window.location.hash.slice(1);
-  if(!views[route(initialView).view]||!initialView)try{initialView=localStorage.getItem(VIEW_STORAGE_KEY)||"home"}catch{initialView="home"}
+  if(!initialView||!(initialView in views)&&!["names","relay/inbox","relay/following","relay/names"].includes(initialView))try{initialView=localStorage.getItem(VIEW_STORAGE_KEY)||"home"}catch{initialView="home"}
   selectView(initialView,{updateHash:true,scroll:false});
 })();
