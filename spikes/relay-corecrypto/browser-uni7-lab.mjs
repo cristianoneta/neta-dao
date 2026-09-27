@@ -104,11 +104,14 @@ async function context(wallet) {
   return ctx;
 }
 async function ready(page, pattern) {
-  await page.waitForFunction(text => document.querySelector('#status')?.textContent.includes(text), pattern,
-    { timeout: 20000 });
+  try { await page.waitForFunction(text => document.querySelector('#status')?.textContent.includes(text), pattern,
+    { timeout: 12000 }); }
+  catch (error) { throw Error('Waiting for ' + pattern + ' but got: ' + await page.locator('#status').textContent(), { cause: error }); }
 }
 async function setup(ctx) {
   const page = await ctx.newPage();
+  page.on('pageerror', error => console.error('LAB PAGE ERROR', error));
+  page.on('console', item => { if(item.type() === 'error') console.error('LAB CONSOLE', item.text()); });
   await page.goto(origin + '/relay-uni7-lab.html');
   await page.getByRole('button', { name: 'CONNECT KEPLR · UNI-7' }).click();
   await ready(page, 'WALLET CONNECTED');
