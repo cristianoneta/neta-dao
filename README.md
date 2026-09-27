@@ -46,6 +46,10 @@ implemented. The live `relay-uni7-readiness.html` page reads public state only;
 no encrypted two-wallet exchange has passed. See
 [`docs/RELAY_RECOVERY_DECISION.md`](docs/RELAY_RECOVERY_DECISION.md).
 
+RELAY groups Inbox, Following and Names & Contacts under one workspace tab.
+The top DAO selector does not scope the cross-DAO inbox. Old `#names` links
+resolve to `#relay/names`; the Names registry remains deployment-gated.
+
 ### UX concepts
 
 Delivery and Contributors remain visual drafts. Treasury asset balances are collected read-only from the NETA Operations DAO core address `juno1excm…mancl`, its DAO-controlled Osmosis Polytone proxy `osmo1xj…9f80`, and Juno's native distribution-module Community Pool. Chain custody and IBC representations remain explicit. USD prices are refreshed centrally, while planning, commitments and runway remain explicitly marked sample values until their accounting model is connected.

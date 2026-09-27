@@ -54,8 +54,8 @@ test("Relay hides a zero badge and keeps the inbox before the watchlist", () => 
   assert.match(relayCss, /relay-watchlist\{order:2\}/);
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
-  assert.match(html, /relay\.css\?v=6/);
-  assert.match(html, /relay\.js\?v=5/);
+  assert.match(html, /relay\.css\?v=7/);
+  assert.match(html, /relay\.js\?v=6/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
 
@@ -222,13 +222,20 @@ test("deliverables are embedded in the revision payload", () => {
   assert.match(governance, /EXPECTED RESULT \/ EVIDENCE/);
 });
 
-test("Names has honest deployment gate and is linked in workspace", () => {
+test("Names is a RELAY panel with legacy deep links and an honest deployment gate", () => {
   const names=readFileSync("names.js", "utf8");
-  assert.match(html, /data-workspace-view="names"/);
-  assert.match(html, /ux-draft\.js\?v=8/);
+  assert.doesNotMatch(html, /data-workspace-view="names"/);
+  for (const panel of ["inbox","following","names"]) assert.match(html, new RegExp(`data-relay-panel="${panel}"`));
+  assert.match(html, /id="relay-following-view"/);
+  assert.match(html, /id="relay-open-names"/);
+  assert.match(html, /ALL FOLLOWED DAOS/);
+  assert.match(ux, /if\(value==="names"\)return \{view:"relay",panel:"names"\}/);
+  assert.match(ux, /relay\/following/);
+  assert.match(ux, /relayPanels\.forEach/);
+  assert.match(html, /ux-draft\.js\?v=9/);
   assert.match(html, /governance-overrides\.css\?v=16/);
   assert.doesNotMatch(html, /GOVERNANCE · ACCOUNTABILITY · TRANSPARENCY/);
-  assert.match(ux, /names:document\.querySelector\("#names-view"\)/);
+  assert.match(html, /data-relay-panel-view="names"/);
   assert.match(html, /id="names-view"/);
   assert.match(names, /const REGISTRY=null/);
   assert.match(html, /5 NETA for the first year/);
