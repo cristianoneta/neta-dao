@@ -87,6 +87,28 @@ review the user's RELAY UX annotations. PR #89's read-only two-address diagnosti
 is deployed and verified; no encrypted two-wallet E2E occurred. SEND MESSAGE
 and mainnet DMs remain disabled.
 
+## UNI-7 messaging integration boundary · 2026-09-27
+
+The new `relay-uni7-client.mjs` is a browser-compatible, testnet-only
+Keplr/mailbox adapter. It verifies UNI-7 network, contract creator/label and
+pinned code hash; binds the selected Keplr address before reads and writes;
+requires a durable local crypto device before registration; refuses silent
+rotation; and reconciles an uncertain registration against on-chain state.
+`tests/relay-uni7-client.test.mjs` runs in frontend CI. This module is not
+yet loaded by the site: it has no key generation, sender session, decrypted
+inbox, archive, or usable send action. Never describe a green adapter test as
+a two-wallet E2E result. The main RELAY composer remains disabled.
+
+CoreCrypto 10.5.3 is GPL-3.0. Browser distribution requires a concrete
+licensing/source-compliance decision for the combined client; the repo has not
+made that decision. The existing isolated browser fixture is not a production
+asset. An Apache-2.0 Matrix alternative exists but its browser integration
+would need fresh protocol, persistence and interoperability work. Do not
+silently swap algorithms/libraries or publish the CoreCrypto bundle while the
+choice remains unresolved. The next testable integration milestone is a
+wallet-bound local device lifecycle and a test-only registration UI; then
+encrypted outbox, validated inbox, restart and two real Keplr wallets on UNI-7.
+
 ## RELAY inbox UX · 2026-09-27
 
 The Inbox reading pane displays the currently fetched proposal summary above
