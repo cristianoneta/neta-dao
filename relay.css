@@ -56,6 +56,9 @@
 @media(max-width:700px){.relay-subnav{overflow-x:auto}.relay-subnav button{flex:0 0 auto;padding:10px 13px;font-size:10px}.relay-following-card{padding:18px}}
 
 .relay-global-scope{display:none;color:var(--gov);font-size:11px;font-weight:800;letter-spacing:.1em}
-body[data-workspace-view="relay"] .governance-selectors{display:none}
+body[data-workspace-view="relay"] .governance-selectors{display:none!important}
 body[data-workspace-view="relay"] .relay-global-scope{display:block;margin-left:auto}
 @media(max-width:700px){body[data-workspace-view="relay"] .relay-global-scope{font-size:9px}}
+
+@media(max-width:900px){body[data-workspace-view="relay"] .relay-global-scope{grid-column:1/-1;grid-row:2;margin:0}body[data-workspace-view="relay"] .gov-controls{grid-column:2;grid-row:1}}
+@media(max-width:560px){body[data-workspace-view="relay"] .relay-global-scope{grid-column:1;grid-row:3}body[data-workspace-view="relay"] .gov-controls{grid-column:1;grid-row:2}}
