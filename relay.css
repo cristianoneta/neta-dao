@@ -39,8 +39,8 @@
 .relay-subnav button:hover,.relay-subnav button:focus-visible{color:var(--text)}
 .relay-subnav button.active{border-color:var(--gov);color:var(--gov)}
 .relay-subnav #relay-subnav-unread:not([hidden]){display:inline-grid;place-items:center;min-width:20px;height:20px;margin-left:6px;padding:0 4px;border-radius:11px;background:#ffcc5c;color:#00120c;font-size:10px}
-.relay-following-card{max-width:760px;padding:28px;background:#001710}
-.relay-following-card header{border-bottom:1px solid var(--line);padding-bottom:16px}
+.relay-following-card{max-width:760px;margin:0 auto;padding:28px;background:#001710}
+.relay-following-card header{display:block;border-bottom:1px solid var(--line);padding-bottom:16px}
 .relay-following-card header span{font-size:10px;color:var(--muted)}
 .relay-following-card h2{margin:6px 0 0;color:var(--gov);font-size:22px}
 .relay-following-card p{max-width:560px;color:var(--muted);font-size:12px;line-height:1.7}
