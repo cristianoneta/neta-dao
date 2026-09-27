@@ -11,6 +11,9 @@ on:
       - "relay-mailbox-status.js"
       - "relay-testnet-setup.js"
       - "relay-testnet-setup.html"
+      - "relay-uni7-readiness.js"
+      - "relay-uni7-readiness.html"
+      - "tests/relay-uni7-readiness.test.mjs"
       - "relay-testnet-setup.css"
       - "relay.css"
       - "names.css"
@@ -38,6 +41,9 @@ on:
       - "relay-mailbox-status.js"
       - "relay-testnet-setup.js"
       - "relay-testnet-setup.html"
+      - "relay-uni7-readiness.js"
+      - "relay-uni7-readiness.html"
+      - "tests/relay-uni7-readiness.test.mjs"
       - "relay-testnet-setup.css"
       - "relay.css"
       - "names.css"
@@ -88,6 +94,8 @@ jobs:
           node --test tests/relay-mailbox-status.test.mjs
           node --check relay-testnet-setup.js
           node --test tests/relay-testnet-setup.test.mjs
+          node --check relay-uni7-readiness.js
+          node --test tests/relay-uni7-readiness.test.mjs
           python -m unittest tests/test_treasury_events.py tests/test_treasury_history.py
       - name: Dependency audit
         run: |
