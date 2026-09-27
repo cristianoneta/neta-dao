@@ -6,6 +6,16 @@ as reported by the Keplr setup page. No messages may be sent by the current
 composer. Keep mainnet messaging disabled.
 This plan supplements [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTURE.md).
 
+## Recovery UX decision
+
+The user chose automatic encrypted off-chain backup with a generated recovery
+code rather than recurring manual file exports. Include both current ratchet
+state and separately encrypted already-readable history, bound to the wallet.
+This is a product direction, not a completed feature. Storage provider, sync,
+rollback and crash handling remain open. See `RELAY_RECOVERY_DECISION.md` for
+user flow, security consequences and tests. Do not turn on SEND MESSAGE on the
+basis of the existing unread-message restore fixture.
+
 ## What has been verified
 
 - Wire CoreCrypto 10.5.3 exposes a Proteus one-to-one prekey/session API, an
