@@ -62,3 +62,15 @@ body[data-workspace-view="relay"] .relay-global-scope{display:block;margin-left:
 
 @media(max-width:900px){body[data-workspace-view="relay"] .relay-global-scope{grid-column:1/-1;grid-row:2;margin:0}body[data-workspace-view="relay"] .gov-controls{grid-column:2;grid-row:1}}
 @media(max-width:560px){body[data-workspace-view="relay"] .relay-global-scope{grid-column:1;grid-row:3}body[data-workspace-view="relay"] .gov-controls{grid-column:1;grid-row:2}}
+
+/* The Inbox owns the full reading width; Following holds watchlist controls. */
+.relay-layout{display:block}.relay-feed-card{width:100%;min-width:0;box-sizing:border-box}
+.relay-header-actions #relay-new-message{display:flex;align-items:center;gap:11px;min-height:54px;padding:8px 16px;border:1px solid var(--gov);background:var(--gov);color:#00120c;text-align:left;cursor:pointer}
+.relay-header-actions #relay-new-message:hover,.relay-header-actions #relay-new-message:focus-visible{background:#b9ffe7;border-color:#b9ffe7;color:#00120c;outline:2px solid var(--gov);outline-offset:2px}
+.relay-compose-icon{display:grid;place-items:center;font-size:22px;line-height:1}.relay-compose-copy{display:grid;gap:3px}.relay-compose-copy strong{font-size:11px;letter-spacing:.06em}.relay-compose-copy small{font-size:8px;font-weight:800;letter-spacing:.04em}
+.relay-reader-summary{margin:0 0 18px;color:var(--text);font-size:12px;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere}
+.relay-reader .relay-reader-summary+h4{margin-top:32px}.relay-reader h4{margin-top:24px}
+.relay-event-governance .relay-event-main small{color:#8bb6a6}.relay-event-governance.selected{box-shadow:inset 3px 0 var(--gov)}
+/* Reserved for the reviewed encrypted message reader; labels and sender will accompany color. */
+.relay-event-message .relay-event-main small{color:#d5bdff}.relay-event-message.selected{background:#21192d;box-shadow:inset 3px 0 #b995f7}.relay-event-message.unread .relay-event-dot{background:#b995f7}.relay-event-message.unread .relay-event-main strong{color:#e1cbff}
+@media(max-width:700px){.relay-header-actions #relay-new-message{flex:1;justify-content:center}.relay-inbox{min-width:0}}
