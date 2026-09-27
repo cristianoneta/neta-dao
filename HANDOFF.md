@@ -72,6 +72,21 @@ workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
   `#names` page includes lookup and prepared Keplr registration/renewal flows,
   all gated until the registry is verified and deployed. See `docs/NETA_NAMES_DESIGN.md`.
 
+## RELAY recovery decision · 2026-09-27
+
+The user chose automatic client-side encrypted, wallet-bound off-chain backups
+of both current ratchet/device state and a separate archive of already-readable
+message history, unlocked with a generated recovery code. This is a product
+direction, **not shipped**. The provider and synchronization protocol remain
+undecided. Keplr proves wallet control but does not reconstruct message keys or
+already-read history. Used ratchet keys stay deleted. A stale restore must not
+send before reconciliation or fresh registration; messages after the last
+confirmed backup may be lost. Backup plus code exposes included old texts.
+See `docs/RELAY_RECOVERY_DECISION.md` for UX and gates. The next session should
+review the user's RELAY UX annotations. PR #89's read-only two-address diagnostic
+is deployed and verified; no encrypted two-wallet E2E occurred. SEND MESSAGE
+and mainnet DMs remain disabled.
+
 ## Treasury architecture
 
 - `.github/workflows/treasury-snapshot.yml` runs every 15 minutes and commits only
