@@ -7,7 +7,7 @@ const other = 'juno1' + 'p'.repeat(38);
 const fingerprint = 'a'.repeat(64);
 const device = { device_id: 'local-device-1', protocol_version: 1, fingerprint,
   prekeys: [{ id: 1, bundle: btoa('x'.repeat(32)) }] };
-function harness({ network = 'uni-7', existing = null, executeError = null } = {}) {
+function harness({ network = 'uni-7', existing = null, executeError = null, noBroadcast = false } = {}) {
   let active = wallet, registered = existing, writes = 0, prepared = true;
   const keplr = {
     experimentalSuggestChain: async config => assert.equal(config.chainId, 'uni-7'),
@@ -24,7 +24,7 @@ function harness({ network = 'uni-7', existing = null, executeError = null } = {
       assert.equal(address, wallet); assert.equal(contract, RELAY_UNI7_MAILBOX);
       assert.deepEqual(message, { register: device });
       writes++;
-      registered = { ...device, generation: 1, active: true };
+      if (!noBroadcast) registered = { ...device, generation: 1, active: true };
       if (executeError) throw executeError;
       return { transactionHash: 'tx-hash' };
     }
@@ -83,6 +83,13 @@ test('broadcast uncertainty is reconciled without a second Register', async () =
   const result = await h.client.registerPreparedDevice(device);
   assert.equal(result.device.generation, 1);
   assert.equal(result.transactionHash, null);
+  assert.equal(h.writes(), 1);
+});
+test('unconfirmed registration intent prevents a second signature in the same device store', async () => {
+  const h = harness({ executeError: Error('timeout before broadcast'), noBroadcast: true });
+  await h.client.connect();
+  await assert.rejects(h.client.registerPreparedDevice(device), /outcome uncertain/);
+  await assert.rejects(h.client.registerPreparedDevice(device), /Unresolved registration intent/);
   assert.equal(h.writes(), 1);
 });
 test('inbox exposes only public ciphertext records for the connected wallet', async () => {
