@@ -31,6 +31,14 @@ RELAY protects message content against chain observers, RPC operators, indexers 
   password. Never put the archive or password on-chain. A stale session backup
   cannot safely be resumed for sending without reconciliation or key rotation.
 
+The agreed recovery UX uses automatic client-side encrypted backup of both
+current state and a separate archive of already-readable history, protected
+by a generated high-entropy recovery code; see `RELAY_RECOVERY_DECISION.md`.
+No provider or implementation is selected. Possession of both encrypted backup
+and code exposes its archived old texts. Surface backup failures and last
+confirmed backup; prevent stale restores from sending until reconciliation or
+fresh registration. Wallet ownership alone cannot decrypt old messages.
+
 ## Message protocol
 
 - One-to-one sessions use a reviewed Double Ratchet implementation to provide forward secrecy and post-compromise recovery.
