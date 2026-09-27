@@ -31,3 +31,26 @@
 @media(max-width:1050px){.relay-layout{grid-template-columns:minmax(0,1fr)}.relay-watchlist{display:block}.relay-inbox{grid-template-columns:minmax(220px,42%) minmax(0,1fr)}}
 @media(max-width:700px){.relay-toolbar{align-items:stretch;flex-direction:column;gap:8px}.relay-search-label{max-width:none;width:100%}.relay-toolbar p{margin:0}.relay-inbox{display:block;min-height:280px}.relay-feed{border-right:0;max-height:none}.relay-reader{display:none;max-height:none;min-height:280px}.relay-reader.open{display:block}.relay-inbox:has(.relay-reader.open) .relay-feed{display:none}.relay-reader-back{display:block;margin-bottom:24px}.relay-event{grid-template-columns:8px minmax(0,1fr) auto}.relay-feed-controls button{flex:1 1 44%}}
 .relay-composer .relay-mailbox-status{padding:10px 12px;border-left:2px solid var(--gov);background:#002219;color:var(--gov);font-size:10px;line-height:1.6;overflow-wrap:anywhere}
+
+/* RELAY sections share the global workspace but keep the inbox as the default. */
+.relay-layout[hidden],.relay-subpage[hidden]{display:none}
+.relay-subnav{display:flex;gap:0;margin:0 0 24px;border-bottom:1px solid var(--line)}
+.relay-subnav button{min-height:44px;padding:10px 20px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font:inherit;font-size:11px;font-weight:800;letter-spacing:.08em;cursor:pointer}
+.relay-subnav button:hover,.relay-subnav button:focus-visible{color:var(--text)}
+.relay-subnav button.active{border-color:var(--gov);color:var(--gov)}
+.relay-subnav #relay-subnav-unread:not([hidden]){display:inline-grid;place-items:center;min-width:20px;height:20px;margin-left:6px;padding:0 4px;border-radius:11px;background:#ffcc5c;color:#00120c;font-size:10px}
+.relay-following-card{max-width:760px;padding:28px;background:#001710}
+.relay-following-card header{border-bottom:1px solid var(--line);padding-bottom:16px}
+.relay-following-card header span{font-size:10px;color:var(--muted)}
+.relay-following-card h2{margin:6px 0 0;color:var(--gov);font-size:22px}
+.relay-following-card p{max-width:560px;color:var(--muted);font-size:12px;line-height:1.7}
+.relay-following-options{display:grid;gap:8px;margin-top:20px}
+.relay-following-options button{display:flex;align-items:center;gap:16px;width:100%;padding:18px;border:1px solid var(--line);background:#00120c;color:var(--text);text-align:left;cursor:pointer}
+.relay-following-options button:hover,.relay-following-options button:focus-visible{border-color:var(--gov)}
+.relay-following-options button i{color:var(--gov);font-style:normal;font-size:20px}
+.relay-following-options button span{display:grid;gap:5px}
+.relay-following-options button small{color:var(--muted);font-size:10px}
+.relay-following-options button[aria-pressed="false"]{opacity:.55}
+.relay-names-link{margin:-5px 0 8px;padding:0;border:0;background:transparent;color:var(--gov);font:inherit;font-size:10px;cursor:pointer}
+.relay-names-link:hover,.relay-names-link:focus-visible{text-decoration:underline}
+@media(max-width:700px){.relay-subnav{overflow-x:auto}.relay-subnav button{flex:0 0 auto;padding:10px 13px;font-size:10px}.relay-following-card{padding:18px}}
