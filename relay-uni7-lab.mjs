@@ -43,7 +43,13 @@ async function run(action) {
   if (state.busy) return;
   state.busy = true; controls();
   try { await action(); }
-  catch (error) { notice('BLOCKED · ' + (error.message || String(error))); }
+  catch (error) {
+    try {
+      if ((await state.outbox?.entries())?.some(row => row.state !== 'confirmed') ||
+          (await state.archive?.all())?.some(row => row.status !== 'confirmed')) state.poisoned = true;
+    } catch { state.poisoned = true; }
+    notice('BLOCKED · ' + (error.message || String(error)));
+  }
   finally { state.busy = false; controls(); }
 }
 async function closeLocal() {
@@ -208,7 +214,7 @@ $('connect').onclick = () => run(async () => {
 $('create').onclick = () => run(async () => {
   const code = randomId();
   await openLocal(code, true);
-  $('new-code').textContent = 'SAVE THIS RECOVERY CODE NOW · ' + code;
+  $('new-code').textContent = 'SAVE THIS LOCAL UNLOCK CODE NOW · ' + code;
   $('new-code').hidden = false;
   $('recovery').value = '';
 });
