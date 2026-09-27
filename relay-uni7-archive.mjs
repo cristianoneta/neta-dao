@@ -46,6 +46,27 @@ export class Uni7Archive {
       direction, status: 'intent', sequence: null, iv: Array.from(iv), ciphertext: Array.from(ciphertext) });
     await done(tx);
   }
+  async reserve(id) {
+    if (!/^[0-9a-f]{64}$/.test(id) || await this.record(id)) throw Error('Inbound record already exists');
+    const tx = this.db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).add({ id: this.wallet + ':' + id, wallet: this.wallet, messageId: id,
+      direction: 'in', status: 'pending', sequence: null });
+    await done(tx);
+  }
+  async complete(id, meta, text, sequence) {
+    if (!Number.isSafeInteger(sequence) || sequence < 1 || typeof text !== 'string' ||
+        !text || enc.encode(text).length > 1800) throw Error('Invalid received message');
+    const row = await this.record(id);
+    if (row?.status !== 'pending') throw Error('Inbound intent missing');
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const aad = enc.encode(this.wallet + ':' + id + ':in');
+    const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: aad },
+      this.key, enc.encode(JSON.stringify({ meta, text }))));
+    const tx = this.db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put({ ...row, status: 'confirmed', sequence, iv: Array.from(iv),
+      ciphertext: Array.from(ciphertext) });
+    await done(tx);
+  }
   async commit(id, sequence) {
     if (!Number.isSafeInteger(sequence) || sequence < 1) throw Error('Invalid chain sequence');
     const tx = this.db.transaction(STORE, 'readwrite');
