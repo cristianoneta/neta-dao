@@ -99,15 +99,21 @@ yet loaded by the site: it has no key generation, sender session, decrypted
 inbox, archive, or usable send action. Never describe a green adapter test as
 a two-wallet E2E result. The main RELAY composer remains disabled.
 
-CoreCrypto 10.5.3 is GPL-3.0. Browser distribution requires a concrete
-licensing/source-compliance decision for the combined client; the repo has not
-made that decision. The existing isolated browser fixture is not a production
+The user selected the Wire CoreCrypto 10.5.3 GPL-3.0 path for this isolated lab.
+The pinned browser runtime and GPL license are distributed with the test page;
+source and build provenance are linked there. This is not an audit or mainnet approval. The existing isolated browser fixture is not a production
 asset. An Apache-2.0 Matrix alternative exists but its browser integration
 would need fresh protocol, persistence and interoperability work. Do not
 silently swap algorithms/libraries or publish the CoreCrypto bundle while the
-choice remains unresolved. The next testable integration milestone is a
-wallet-bound local device lifecycle and a test-only registration UI; then
-encrypted outbox, validated inbox, restart and two real Keplr wallets on UNI-7.
+choice remains unresolved. PR #97 adds an isolated `relay-uni7-lab.html` with wallet-bound local device,
+Keplr registration, encrypted send/receive, separate encrypted local archive
+and restart unlock. Two independent Chromium profiles with mocked UNI-7/Keplr
+exchanged messages and read history after reload. This is a simulated fixture,
+not a real two-wallet UNI-7 result. Registration intent and incomplete send or
+receive state fail closed. The local unlock code is not an off-device backup;
+automatic encrypted backup is still unimplemented. The next step is two real
+Keplr wallets, registration, send, reply, receive and reload on UNI-7.
+The main RELAY SEND MESSAGE and mainnet DMs stay disabled.
 
 ## RELAY inbox UX · 2026-09-27
 
