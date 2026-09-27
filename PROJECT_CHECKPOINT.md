@@ -92,16 +92,16 @@ Next: review user's RELAY UX annotations, then resume test-only E2E work.
 
 Build encrypted RELAY messaging on UNI-7:
 
-1. finalize the message/device/prekey state machine and select a maintained,
-   independently reviewed Double Ratchet implementation;
-2. implement and test the CosmWasm registry/ciphertext contract with no UNI-7 stake
-   gate, payload limits, cooldown, blocklist, device revocation and pagination;
-3. compile reproducible Wasm and deploy/instantiate it through an explicit Keplr
-   transaction;
-4. connect device registration, session establishment, encrypted send/receive and
-   multi-device behavior to the existing composer and inbox;
-5. keep mainnet disabled until the external review gates are satisfied, then use a
-   separate immutable mainnet configuration requiring at least 5 actively staked NETA.
+1. review the user's RELAY UX annotations and keep live/read-only and test-only
+   signing flows visibly distinct;
+2. resolve CoreCrypto distribution/license and historical sender identity after
+   rotation, then build reviewed wallet-bound test-only device registration;
+3. connect the deployed mailbox to two real Keplr wallets on UNI-7 and verify
+   encrypted send, receive, restart and crash recovery;
+4. implement and test the agreed encrypted archive/backup and stale-restore
+   policy before calling recovery complete;
+5. keep the main SEND MESSAGE action and mainnet disabled until their separate
+   release gates pass.
 
 After messaging, continue Treasury accounting with recurring flows,
 proposal-linked obligations, open milestone payments and derived runway. Native
