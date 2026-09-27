@@ -1,6 +1,6 @@
 # NETA DAO Workspace Checkpoint
 
-Updated: 22 September 2026
+Updated: 27 September 2026
 
 ## Implemented
 
@@ -74,6 +74,19 @@ Updated: 22 September 2026
 - Contributor claims as authoritative DAO records.
 - RELAY ciphertext transmission and device registration until the UNI-7 messaging
   contract and reviewed Double Ratchet client pass their test gates.
+
+## RELAY recovery checkpoint · 27 September 2026
+
+Agreed: automatic encrypted off-chain backup of wallet-bound ratchet state and
+separate readable-history archive, with a generated recovery code and visible
+last confirmed backup. This is not implemented; storage and sync remain open.
+Keplr alone cannot decrypt old chat. Used ratchet keys remain discarded.
+Stale restores cannot send until safe reconciliation or fresh registration;
+backup plus code exposes archived texts. Details and test gates:
+`docs/RELAY_RECOVERY_DECISION.md`. The existing fixture proves unread-message
+recovery only. The live two-address UNI-7 diagnostic is read-only, and two real
+wallets have not exchanged encrypted messages. SEND MESSAGE stays disabled.
+Next: review user's RELAY UX annotations, then resume test-only E2E work.
 
 ## Next product step
 
