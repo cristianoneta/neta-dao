@@ -54,7 +54,8 @@ export class Uni7MailboxClient {
   constructor({ keplr, bundle, fetcher = fetch, assertDevicePrepared }) {
     if (!keplr || !bundle?.connect || !bundle?.execute || typeof fetcher !== 'function' ||
         typeof assertDevicePrepared !== 'function') throw Error('UNI-7 dependencies unavailable');
-    Object.assign(this, { keplr, bundle, fetcher, assertDevicePrepared });
+    Object.assign(this, { keplr, bundle, assertDevicePrepared });
+    this.fetcher = (...args) => fetcher(...args);
     this.address = null;
     this.base = null;
     this.signingClient = null;
