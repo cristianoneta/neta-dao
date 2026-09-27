@@ -74,3 +74,5 @@ body[data-workspace-view="relay"] .relay-global-scope{display:block;margin-left:
 /* Reserved for the reviewed encrypted message reader; labels and sender will accompany color. */
 .relay-event-message .relay-event-main small{color:#d5bdff}.relay-event-message.selected{background:#21192d;box-shadow:inset 3px 0 #b995f7}.relay-event-message.unread .relay-event-dot{background:#b995f7}.relay-event-message.unread .relay-event-main strong{color:#e1cbff}
 @media(max-width:700px){.relay-header-actions #relay-new-message{flex:1;justify-content:center}.relay-inbox{min-width:0}}
+
+.relay-header-actions #relay-new-message .relay-compose-copy strong,.relay-header-actions #relay-new-message .relay-compose-copy small{color:#00120c}
