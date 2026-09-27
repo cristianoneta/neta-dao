@@ -45,8 +45,10 @@ function validateDevice(device) {
   const ids = new Set();
   for (const key of device.prekeys) { prekey(key); if (ids.has(key.id)) throw Error('Duplicate prekey'); ids.add(key.id); }
 }
-function deadline(promise, ms = 12000) {
-  return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(Error('UNI-7 query timed out')), ms))]);
+async function deadline(promise, ms = 12000) {
+  let timer;
+  try { return await Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => reject(Error('UNI-7 query timed out')), ms); })]); }
+  finally { clearTimeout(timer); }
 }
 export class Uni7MailboxClient {
   constructor({ keplr, bundle, fetcher = fetch, assertDevicePrepared }) {
@@ -70,7 +72,7 @@ export class Uni7MailboxClient {
     const node = await this.get(base, '/cosmos/base/tendermint/v1beta1/node_info');
     if (node.default_node_info?.network !== CHAIN) throw Error('UNI-7 NETWORK MISMATCH');
     const info = (await this.get(base, '/cosmwasm/wasm/v1/contract/' + RELAY_UNI7_MAILBOX)).contract_info;
-    if (info?.creator !== CREATOR || info.label !== LABEL || !/^[1-9]\\d*$/.test(String(info.code_id)))
+    if (info?.creator !== CREATOR || info.label !== LABEL || !/^[1-9]\d*$/.test(String(info.code_id)))
       throw Error('UNI-7 CONTRACT MISMATCH');
     const code = (await this.get(base, '/cosmwasm/wasm/v1/code/' + info.code_id)).code_info;
     if (hash(code?.data_hash) !== CODE_HASH) throw Error('UNI-7 CODE MISMATCH');
