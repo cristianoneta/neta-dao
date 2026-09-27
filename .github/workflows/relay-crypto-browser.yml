@@ -5,6 +5,10 @@ on:
     paths:
       - '.github/workflows/relay-crypto-browser.yml'
       - 'spikes/relay-corecrypto/**'
+      - 'relay-uni7-*.mjs'
+      - 'relay-uni7-lab.html'
+      - 'relay-uni7-lab.css'
+      - 'assets/relay-crypto/**'
   workflow_dispatch:
 
 permissions:
@@ -28,3 +32,4 @@ jobs:
       - run: npm run test:transport
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
+      - run: node browser-uni7-lab.mjs
