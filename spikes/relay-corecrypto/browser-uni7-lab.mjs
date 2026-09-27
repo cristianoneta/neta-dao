@@ -85,6 +85,7 @@ async function context(wallet) {
   }, wallet);
   await ctx.route('https://juno.test.api.nodeshub.online/**', async route => {
     const path = new URL(route.request().url()).pathname;
+    console.log('MOCK REST', path);
     let data;
     if (path.endsWith('/node_info')) data = { default_node_info: { network: 'uni-7' } };
     else if (path.endsWith('/contract/' + contract)) data = { contract_info: {
@@ -98,6 +99,7 @@ async function context(wallet) {
         (inbox.get(query.inbox.address) || []).filter(item => item.sequence > (query.inbox.after || 0)) } };
       else if (query.sent) data = { data: sent.get(query.sent.sender + ':' + query.sent.message_id) || null };
     }
+    if (!data) console.log('UNMATCHED REST', path);
     await route.fulfill({ status: data ? 200 : 404, contentType: 'application/json',
       headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(data || {}) });
   });
@@ -111,6 +113,7 @@ async function ready(page, pattern) {
 async function setup(ctx) {
   const page = await ctx.newPage();
   page.on('pageerror', error => console.error('LAB PAGE ERROR', error));
+  page.on('requestfailed', request => console.error('LAB REQUEST FAILED', request.url(), request.failure()));
   page.on('console', item => { if(item.type() === 'error') console.error('LAB CONSOLE', item.text()); });
   await page.goto(origin + '/relay-uni7-lab.html');
   await page.getByRole('button', { name: 'CONNECT KEPLR · UNI-7' }).click();
