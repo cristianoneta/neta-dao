@@ -54,3 +54,8 @@
 .relay-names-link{margin:-5px 0 8px;padding:0;border:0;background:transparent;color:var(--gov);font:inherit;font-size:10px;cursor:pointer}
 .relay-names-link:hover,.relay-names-link:focus-visible{text-decoration:underline}
 @media(max-width:700px){.relay-subnav{overflow-x:auto}.relay-subnav button{flex:0 0 auto;padding:10px 13px;font-size:10px}.relay-following-card{padding:18px}}
+
+.relay-global-scope{display:none;color:var(--gov);font-size:11px;font-weight:800;letter-spacing:.1em}
+body[data-workspace-view="relay"] .governance-selectors{display:none}
+body[data-workspace-view="relay"] .relay-global-scope{display:block;margin-left:auto}
+@media(max-width:700px){body[data-workspace-view="relay"] .relay-global-scope{font-size:9px}}
