@@ -87,6 +87,19 @@ review the user's RELAY UX annotations. PR #89's read-only two-address diagnosti
 is deployed and verified; no encrypted two-wallet E2E occurred. SEND MESSAGE
 and mainnet DMs remain disabled.
 
+## RELAY inbox UX · 2026-09-27
+
+The Inbox reading pane displays the currently fetched proposal summary above
+activity; a missing source summary is stated explicitly. The duplicate compact
+watchlist was removed from the Inbox; DAO selection remains in Following.
+COMPOSE MESSAGE is the prominent inbox action but explicitly says PREVIEW · SEND
+DISABLED, and its submit control is disabled. Governance rows carry a textual
+GOVERNANCE label. Separate violet row styling is reserved for future verified
+private messages; no chat messages, sender identities or decrypted content are
+fabricated by this UI change. A real message type must render sender/conversation
+identity and accessible text as well as visual differentiation, after the UNI-7
+client passes its release gates.
+
 ## RELAY navigation · 2026-09-27
 
 RELAY uses Inbox, Following and Names & Contacts as internal sections. Inbox is
