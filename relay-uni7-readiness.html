@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://juno.test.api.nodeshub.online https://juno.api.t.stavr.tech; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>RELAY · UNI-7 readiness</title>
+  <link rel="stylesheet" href="relay-testnet-setup.css">
+</head>
+<body>
+  <header><a href="index.html#relay">NETA REBORN</a><span>RELAY · UNI-7 READINESS</span></header>
+  <main>
+    <span class="eyebrow">TESTNET ONLY · READ-ONLY</span>
+    <h1>Check two wallet addresses.</h1>
+    <p>This checks the deployed mailbox and public registration and inbox metadata. It does not register a device, decrypt messages, store text, or send a transaction. Addresses, timing and message counts are public on-chain.</p>
+    <section>
+      <span class="step">01 · MAILBOX</span>
+      <h2>Contract identity</h2>
+      <output id="identity" role="status">CHECKING UNI-7…</output>
+    </section>
+    <section>
+      <span class="step">02 · TWO ADDRESSES</span>
+      <h2>Readiness for each wallet</h2>
+      <p>Connecting Keplr only fills the first address. You can paste both addresses without connecting. Never enter a seed phrase or recovery password.</p>
+      <button id="connect" type="button">CONNECT KEPLR ON UNI-7</button>
+      <label for="first">FIRST JUNO ADDRESS</label>
+      <input id="first" autocomplete="off" spellcheck="false" placeholder="juno1…">
+      <label for="second">SECOND JUNO ADDRESS</label>
+      <input id="second" autocomplete="off" spellcheck="false" placeholder="juno1…">
+      <button id="check" type="button" disabled>CHECK PUBLIC STATE</button>
+      <output id="status" role="status" aria-live="polite">WAITING FOR VERIFIED MAILBOX.</output>
+      <div id="results"></div>
+    </section>
+    <p>Messages remain disabled in the main RELAY UI. A device registration must come from a reviewed encrypted client and a Keplr transaction; this page never creates one.</p>
+    <a class="back" href="index.html#relay">← BACK TO RELAY</a>
+  </main>
+  <script src="relay-uni7-readiness.js?v=1"></script>
+</body>
+</html>
