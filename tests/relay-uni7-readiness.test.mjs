@@ -17,7 +17,7 @@ async function setup({ chain = 'uni-7', hash = 'e02c7918d1f8da0f662a0720fc366876
   const calls = [];
   const context = {
     document: { getElementById: id => elements[id], createElement: () => element(), createTextNode: text => ({ textContent: text }) },
-    window: { addEventListener() {} }, AbortController, setTimeout, clearTimeout, atob,
+    window: { addEventListener() {} }, AbortController, setTimeout, clearTimeout, atob, btoa: value => Buffer.from(value, 'binary').toString('base64'),
     fetch: async url => {
       calls.push(url);
       if (offline) throw Error('offline');
