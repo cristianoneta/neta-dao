@@ -704,8 +704,8 @@
           "key": "juno:native:ibc/171E8F6687D290D378678310F9F15D367DCD245BF06184532B703A92054A8A4F",
           "source_chain": "juno",
           "symbol": "DAI.axl",
-          "usd_price": "1.0",
-          "usd_value": "460.9000000000000000000"
+          "usd_price": "0.999949",
+          "usd_value": "460.876494100000000000000000"
         },
         {
           "amount": "2100000.000000000000000000",
@@ -720,8 +720,8 @@
           "key": "juno:native:ibc/4A482FA914A4B9B05801ED81C33713899F322B24F76A06F4B8FE872485EA22FF",
           "source_chain": "juno",
           "symbol": "USDC.n",
-          "usd_price": "0.999912",
-          "usd_value": "11514.77788536780000000000000"
+          "usd_price": "0.999876",
+          "usd_value": "11514.36331688190000000000000"
         },
         {
           "amount": "163.000000000000000000",
@@ -732,12 +732,12 @@
           "usd_value": null
         },
         {
-          "amount": "3.284268606256928256772946",
+          "amount": "3.284273937296622290707863",
           "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
           "source_chain": "juno",
           "symbol": "ATOM",
           "usd_price": "1.74",
-          "usd_value": "5.71462737488705516678492604"
+          "usd_value": "5.71463665089612278583168162"
         },
         {
           "amount": "69.000000000000000000",
@@ -752,22 +752,22 @@
           "key": "juno:native:ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034",
           "source_chain": "juno",
           "symbol": "USDC",
-          "usd_price": "0.999912",
-          "usd_value": "0.004215750754844584291587607608"
+          "usd_price": "0.999876",
+          "usd_value": "0.004215598974460736107912947084"
         },
         {
-          "amount": "20470068.67872293986011746113",
+          "amount": "20470107.47643432409452915294",
           "key": "juno:native:ujuno",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00851509",
-          "usd_value": "174304.4771055069179734875921"
+          "usd_price": "0.00850996",
+          "usd_value": "174199.7958201570406714793104"
         }
       ],
-      "generated_at": "2026-09-28T19:12:30.702899Z",
-      "height": 42174302,
+      "generated_at": "2026-09-28T19:30:27.868179Z",
+      "height": 42174698,
       "status": "PARTIAL",
-      "total_usd": "186285.8738340003598732386686"
+      "total_usd": "186180.7544833888112550012500"
     }
   ]
 }
