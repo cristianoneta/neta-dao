@@ -25,8 +25,8 @@
       "source_chain": "juno",
       "symbol": "ATOM",
       "type": "token",
-      "usd_price": "1.725922167052309",
-      "usd_value": "19.8481049211015535"
+      "usd_price": "1.723671416835526",
+      "usd_value": "19.8222212936085490"
     },
     {
       "amount": "761.080781",
@@ -81,8 +81,8 @@
       "source_chain": "osmosis",
       "symbol": "USDC.n",
       "type": "token",
-      "usd_price": "0.9998962692026611",
-      "usd_value": "3441.082446743932570467173"
+      "usd_price": "0.9999075892597824",
+      "usd_value": "3441.121404034859664580032"
     },
     {
       "amount": "3161.997431",
@@ -129,12 +129,12 @@
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-09-29T19:56:07.812723Z",
-  "height": 42207350,
+  "generated_at": "2026-09-29T20:15:50.582467Z",
+  "height": 42207789,
   "price_source": "DefiLlama",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "4061.188170341944089120100832",
+  "total_usd": "4061.201244005378178732959832",
   "treasury_accounts": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
