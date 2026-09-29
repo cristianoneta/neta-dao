@@ -53,8 +53,8 @@
       "source_chain": "juno",
       "symbol": "DAI.axl",
       "type": "token",
-      "usd_price": "1.0001664305694729",
-      "usd_value": "460.9767078494700596100000000"
+      "usd_price": "1.0001323930935029",
+      "usd_value": "460.9610199767954866100000000"
     },
     {
       "amount": "2100000.000000000000000000",
@@ -81,8 +81,8 @@
       "source_chain": "juno",
       "symbol": "USDC.n",
       "type": "token",
-      "usd_price": "0.9998957467658368",
-      "usd_value": "11514.59071651563288951392000"
+      "usd_price": "0.9998717316073195",
+      "usd_value": "11514.31416296271162423736250"
     },
     {
       "amount": "163.000000000000000000",
@@ -109,8 +109,8 @@
       "source_chain": "juno",
       "symbol": "ATOM",
       "type": "token",
-      "usd_price": "1.7278786923417822",
-      "usd_value": "5.674903691889904631945476204"
+      "usd_price": "1.7254460403543352",
+      "usd_value": "5.666914088333918660010170490"
     },
     {
       "amount": "69.000000000000000000",
@@ -137,11 +137,11 @@
       "source_chain": "juno",
       "symbol": "USDC",
       "type": "token",
-      "usd_price": "0.9998957467658368",
-      "usd_value": "0.004215763166589515519313692253"
+      "usd_price": "0.9998717316073195",
+      "usd_value": "0.004215661913812869044092106026"
     },
     {
-      "amount": "20473536.97861708950833901352",
+      "amount": "20473566.85330103949492338150",
       "base_denom": "ujuno",
       "change_24h": null,
       "custody_address": null,
@@ -152,17 +152,17 @@
       "symbol": "JUNO",
       "type": "token",
       "usd_price": "0.00860189371164814",
-      "usd_value": "176111.1889915620019762263228"
+      "usd_value": "176111.4459704180088414425875"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-09-29T21:41:37.172987Z",
-  "height": 42209700,
+  "generated_at": "2026-09-29T21:55:18.012239Z",
+  "height": 42210006,
   "price_source": "DefiLlama",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "188092.4355353821614194977076",
+  "total_usd": "188092.3922831077636838190043",
   "treasury_address": null,
   "treasury_type": "community-pool",
   "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.",
