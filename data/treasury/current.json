@@ -25,8 +25,8 @@
       "source_chain": "juno",
       "symbol": "ATOM",
       "type": "token",
-      "usd_price": "1.7363918049490277",
-      "usd_value": "19.96850575691381855"
+      "usd_price": "1.736095701177171",
+      "usd_value": "19.9651005635374665"
     },
     {
       "amount": "761.080781",
@@ -53,8 +53,8 @@
       "source_chain": "osmosis",
       "symbol": "AKT",
       "type": "token",
-      "usd_price": "0.6742669769603382",
-      "usd_value": "551.3779521396697415897466"
+      "usd_price": "0.6747812596017309",
+      "usd_value": "551.7985038192291083448267"
     },
     {
       "amount": "1932.499146",
@@ -81,8 +81,8 @@
       "source_chain": "osmosis",
       "symbol": "USDC.n",
       "type": "token",
-      "usd_price": "0.9998721370319118",
-      "usd_value": "3440.999397339984436802274"
+      "usd_price": "0.9999024876554108",
+      "usd_value": "3441.103847172418979967844"
     },
     {
       "amount": "3161.997431",
@@ -109,8 +109,8 @@
       "source_chain": "osmosis",
       "symbol": "ATONE",
       "type": "token",
-      "usd_price": "0.09786034468606242",
-      "usd_value": "17.35264476060320791529790"
+      "usd_price": "0.09860404760764253",
+      "usd_value": "17.48451853079073920265235"
     },
     {
       "amount": "3.200008",
@@ -123,22 +123,22 @@
       "source_chain": "osmosis",
       "symbol": "OSMO",
       "type": "token",
-      "usd_price": "0.03695284813938587",
-      "usd_value": "0.11824940966881989908696"
+      "usd_price": "0.037246124391761",
+      "usd_value": "0.119187896022630334088"
     }
   ],
-  "balance_source": "https://juno-api.polkachu.com",
+  "balance_source": "https://juno.api.m.stavr.tech",
   "chain_id": "juno-1",
-  "generated_at": "2026-09-29T19:13:11.765673Z",
-  "height": 42206398,
+  "generated_at": "2026-09-29T19:32:45.306452Z",
+  "height": 42206834,
   "price_source": "DefiLlama",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "4054.670366877611656951821772",
+  "total_usd": "4055.324775452770556544827362",
   "treasury_accounts": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-      "balance_source": "https://juno-api.polkachu.com",
+      "balance_source": "https://juno.api.m.stavr.tech",
       "chain_id": "juno-1",
       "control": "dao-core"
     },

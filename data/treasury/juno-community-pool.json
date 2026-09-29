@@ -53,8 +53,8 @@
       "source_chain": "juno",
       "symbol": "DAI.axl",
       "type": "token",
-      "usd_price": "1.000175168710098",
-      "usd_value": "460.9807352584841682000000000"
+      "usd_price": "0.9999273138969135",
+      "usd_value": "460.8664989750874321500000000"
     },
     {
       "amount": "2100000.000000000000000000",
@@ -81,8 +81,8 @@
       "source_chain": "juno",
       "symbol": "USDC.n",
       "type": "token",
-      "usd_price": "0.9998721370319118",
-      "usd_value": "11514.31883174769430300954500"
+      "usd_price": "0.9999024876554108",
+      "usd_value": "11514.66834319297489718077000"
     },
     {
       "amount": "163.000000000000000000",
@@ -99,7 +99,7 @@
       "usd_value": null
     },
     {
-      "amount": "3.28431720808407234818284",
+      "amount": "3.284317665940117064271312",
       "base_denom": "uatom",
       "change_24h": null,
       "custody_address": null,
@@ -109,8 +109,8 @@
       "source_chain": "juno",
       "symbol": "ATOM",
       "type": "token",
-      "usd_price": "1.7363918049490277",
-      "usd_value": "5.702861484970253774386166257"
+      "usd_price": "1.736095701177171",
+      "usd_value": "5.701889781138877203910441941"
     },
     {
       "amount": "69.000000000000000000",
@@ -137,11 +137,11 @@
       "source_chain": "juno",
       "symbol": "USDC",
       "type": "token",
-      "usd_price": "0.9998721370319118",
-      "usd_value": "0.004215663623165137594323981353"
+      "usd_price": "0.9999024876554108",
+      "usd_value": "0.004215791587546468316146149409"
     },
     {
-      "amount": "20473212.92437762120789089378",
+      "amount": "20473256.22485131777978669678",
       "base_denom": "ujuno",
       "change_24h": null,
       "custody_address": null,
@@ -152,25 +152,25 @@
       "symbol": "JUNO",
       "type": "token",
       "usd_price": "0.008640565820411927",
-      "usd_value": "176900.1438283929877621092715"
+      "usd_value": "176900.5179689860180069175479"
     }
   ],
-  "balance_source": "https://juno-api.polkachu.com",
+  "balance_source": "https://juno.api.m.stavr.tech",
   "chain_id": "juno-1",
-  "generated_at": "2026-09-29T19:13:11.765673Z",
-  "height": 42206398,
+  "generated_at": "2026-09-29T19:32:45.306452Z",
+  "height": 42206834,
   "price_source": "DefiLlama",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "188881.1504725477596522307970",
+  "total_usd": "188881.7589167268067599205445",
   "treasury_address": null,
   "treasury_type": "community-pool",
   "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.",
   "warnings": [
-    "Denom trace unavailable for ibc/055F223602B754BF34FE269B729837A02BDF79E069F2387AEEA9CD28DE961BE7: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 501: Not Implemented | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
-    "Denom trace unavailable for ibc/2578547913C40B0DEBAB7E458F191491DE6288A01E1000E9BAE34103DEB189D3: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 501: Not Implemented | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
-    "Denom trace unavailable for ibc/8F865D9760B482FF6254EDFEC1FF2F1273B9AB6873A7DE484F89639795D73D75: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 501: Not Implemented | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
-    "Denom trace unavailable for ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 501: Not Implemented | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
+    "Denom trace unavailable for ibc/055F223602B754BF34FE269B729837A02BDF79E069F2387AEEA9CD28DE961BE7: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 521: <none> | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
+    "Denom trace unavailable for ibc/2578547913C40B0DEBAB7E458F191491DE6288A01E1000E9BAE34103DEB189D3: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 521: <none> | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
+    "Denom trace unavailable for ibc/8F865D9760B482FF6254EDFEC1FF2F1273B9AB6873A7DE484F89639795D73D75: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 521: <none> | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
+    "Denom trace unavailable for ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 521: <none> | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
     "Unpriced assets excluded from USD total: factory/juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0/reece, factory/juno1ulnur0yl5e3d7d6gekw2stlft8ydltes50lzkem8hnazkvp23g8sfcjt5d/sas, ibc/055F223602B754\u2026, ibc/2578547913C40B\u2026, ibc/8F865D9760B482\u2026, ibc/D836B191CDAE8E\u2026"
   ]
 }

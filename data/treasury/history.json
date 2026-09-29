@@ -656,8 +656,8 @@
           "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
           "source_chain": "juno",
           "symbol": "ATOM",
-          "usd_price": "1.7363918049490277",
-          "usd_value": "19.96850575691381855"
+          "usd_price": "1.736095701177171",
+          "usd_value": "19.9651005635374665"
         },
         {
           "amount": "761.080781",
@@ -672,8 +672,8 @@
           "key": "osmosis:native:ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4",
           "source_chain": "osmosis",
           "symbol": "AKT",
-          "usd_price": "0.6742669769603382",
-          "usd_value": "551.3779521396697415897466"
+          "usd_price": "0.6747812596017309",
+          "usd_value": "551.7985038192291083448267"
         },
         {
           "amount": "1932.499146",
@@ -688,8 +688,8 @@
           "key": "osmosis:native:ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
           "source_chain": "osmosis",
           "symbol": "USDC.n",
-          "usd_price": "0.9998721370319118",
-          "usd_value": "3440.999397339984436802274"
+          "usd_price": "0.9999024876554108",
+          "usd_value": "3441.103847172418979967844"
         },
         {
           "amount": "3161.997431",
@@ -704,22 +704,22 @@
           "key": "osmosis:native:ibc/BC26A7A805ECD6822719472BCB7842A48EF09DF206182F8F259B2593EB5D23FB",
           "source_chain": "osmosis",
           "symbol": "ATONE",
-          "usd_price": "0.09786034468606242",
-          "usd_value": "17.35264476060320791529790"
+          "usd_price": "0.09860404760764253",
+          "usd_value": "17.48451853079073920265235"
         },
         {
           "amount": "3.200008",
           "key": "osmosis:native:uosmo",
           "source_chain": "osmosis",
           "symbol": "OSMO",
-          "usd_price": "0.03695284813938587",
-          "usd_value": "0.11824940966881989908696"
+          "usd_price": "0.037246124391761",
+          "usd_value": "0.119187896022630334088"
         }
       ],
-      "generated_at": "2026-09-29T19:13:11.765673Z",
-      "height": 42206398,
+      "generated_at": "2026-09-29T19:32:45.306452Z",
+      "height": 42206834,
       "status": "PARTIAL",
-      "total_usd": "4054.670366877611656951821772"
+      "total_usd": "4055.324775452770556544827362"
     }
   ]
 }
