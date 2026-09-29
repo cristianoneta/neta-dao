@@ -25,8 +25,8 @@
       "source_chain": "juno",
       "symbol": "ATOM",
       "type": "token",
-      "usd_price": "1.7323461681157908",
-      "usd_value": "19.92198093333159420"
+      "usd_price": "1.7284998086079975",
+      "usd_value": "19.87774779899197125"
     },
     {
       "amount": "761.080781",
@@ -53,8 +53,8 @@
       "source_chain": "osmosis",
       "symbol": "AKT",
       "type": "token",
-      "usd_price": "0.6702169693106282",
-      "usd_value": "548.0660816190132754760166"
+      "usd_price": "0.669281863750083",
+      "usd_value": "547.301404411578039023829"
     },
     {
       "amount": "1932.499146",
@@ -81,8 +81,8 @@
       "source_chain": "osmosis",
       "symbol": "USDC.n",
       "type": "token",
-      "usd_price": "0.9998835885053182",
-      "usd_value": "3441.038806892096818176626"
+      "usd_price": "0.9998686761775711",
+      "usd_value": "3440.987487019394865168473"
     },
     {
       "amount": "3161.997431",
@@ -109,8 +109,8 @@
       "source_chain": "osmosis",
       "symbol": "ATONE",
       "type": "token",
-      "usd_price": "0.08628233574127578",
-      "usd_value": "15.29962648339921324111110"
+      "usd_price": "0.08699257145518355",
+      "usd_value": "15.42556583175601740185725"
     },
     {
       "amount": "3.200008",
@@ -123,18 +123,18 @@
       "source_chain": "osmosis",
       "symbol": "OSMO",
       "type": "token",
-      "usd_price": "0.03669427035369302",
-      "usd_value": "0.11742195868598049354416"
+      "usd_price": "0.0367050155000697",
+      "usd_value": "0.1174563432403470405576"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-09-29T22:12:59.414762Z",
-  "height": 42210403,
+  "generated_at": "2026-09-29T22:30:57.977444Z",
+  "height": 42210803,
   "price_source": "DefiLlama",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "4049.201843295841491658190446",
+  "total_usd": "4048.467586814275849955609436",
   "treasury_accounts": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
