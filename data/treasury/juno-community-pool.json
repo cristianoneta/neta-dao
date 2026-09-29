@@ -53,8 +53,8 @@
       "source_chain": "juno",
       "symbol": "DAI.axl",
       "type": "token",
-      "usd_price": "0.9999003798170963",
-      "usd_value": "460.8540850576996846700000000"
+      "usd_price": "0.9999791642135957",
+      "usd_value": "460.8903967860462581300000000"
     },
     {
       "amount": "2100000.000000000000000000",
@@ -81,8 +81,8 @@
       "source_chain": "juno",
       "symbol": "USDC.n",
       "type": "token",
-      "usd_price": "0.9999113783373117",
-      "usd_value": "11514.77072643003808181541750"
+      "usd_price": "0.9998750646377872",
+      "usd_value": "11514.35254544589087306668000"
     },
     {
       "amount": "163.000000000000000000",
@@ -99,7 +99,7 @@
       "usd_value": null
     },
     {
-      "amount": "3.284305310179597573680336",
+      "amount": "3.284305806420500849251098",
       "base_denom": "uatom",
       "change_24h": null,
       "custody_address": null,
@@ -109,8 +109,8 @@
       "source_chain": "juno",
       "symbol": "ATOM",
       "type": "token",
-      "usd_price": "1.7548141418271546",
-      "usd_value": "5.763345404381177317103023986"
+      "usd_price": "1.7690202806782898",
+      "usd_value": "5.810003579507331338658215411"
     },
     {
       "amount": "69.000000000000000000",
@@ -137,11 +137,11 @@
       "source_chain": "juno",
       "symbol": "USDC",
       "type": "token",
-      "usd_price": "0.9999113783373117",
-      "usd_value": "0.004215829072463675845648094887"
+      "usd_price": "0.9998750646377872",
+      "usd_value": "0.004215675966544990666886294785"
     },
     {
-      "amount": "20471971.36624676075180697507",
+      "amount": "20472003.09910686912767024611",
       "base_denom": "ujuno",
       "change_24h": null,
       "custody_address": null,
@@ -152,17 +152,17 @@
       "symbol": "JUNO",
       "type": "token",
       "usd_price": "0.008661196175793195",
-      "usd_value": "177311.7601082842336575407962"
+      "usd_value": "177312.0349528108513029991953"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-09-29T09:44:58.208043Z",
-  "height": 42193722,
+  "generated_at": "2026-09-29T09:59:32.083987Z",
+  "height": 42194046,
   "price_source": "DefiLlama",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "189293.1524810054250650191624",
+  "total_usd": "189293.0921142982623105252004",
   "treasury_address": null,
   "treasury_type": "community-pool",
   "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.",
