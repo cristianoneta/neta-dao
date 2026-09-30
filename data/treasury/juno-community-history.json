@@ -912,8 +912,8 @@
           "key": "juno:native:ibc/4A482FA914A4B9B05801ED81C33713899F322B24F76A06F4B8FE872485EA22FF",
           "source_chain": "juno",
           "symbol": "USDC.n",
-          "usd_price": "0.99981",
-          "usd_value": "11513.60327465775000000000000"
+          "usd_price": "0.999769",
+          "usd_value": "11513.13112721547500000000000"
         },
         {
           "amount": "163.000000000000000000",
@@ -924,12 +924,12 @@
           "usd_value": null
         },
         {
-          "amount": "3.284347407771246042288406",
+          "amount": "3.284348229398133141453719",
           "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
           "source_chain": "juno",
           "symbol": "ATOM",
           "usd_price": "1.73",
-          "usd_value": "5.68192101544425565315894238"
+          "usd_value": "5.68192243685877033471493387"
         },
         {
           "amount": "69.000000000000000000",
@@ -944,22 +944,22 @@
           "key": "juno:native:ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034",
           "source_chain": "juno",
           "symbol": "USDC",
-          "usd_price": "0.99981",
-          "usd_value": "0.00421541000361887011149633642"
+          "usd_price": "0.999769",
+          "usd_value": "0.004215237138964437395605745858"
         },
         {
-          "amount": "20476407.53279111439916327797",
+          "amount": "20476451.02773910779161043995",
           "key": "juno:native:ujuno",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00914697",
-          "usd_value": "187297.0854102143396757145287"
+          "usd_price": "0.00910987",
+          "usd_value": "186537.8069240696658975581986"
         }
       ],
-      "generated_at": "2026-09-30T19:32:57.378218Z",
-      "height": 42239003,
+      "generated_at": "2026-09-30T19:54:46.999707Z",
+      "height": 42239448,
       "status": "PARTIAL",
-      "total_usd": "199277.2748212975375502377991"
+      "total_usd": "198517.5241889591386323303091"
     }
   ]
 }
