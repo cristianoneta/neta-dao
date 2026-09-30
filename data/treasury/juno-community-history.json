@@ -912,8 +912,8 @@
           "key": "juno:native:ibc/4A482FA914A4B9B05801ED81C33713899F322B24F76A06F4B8FE872485EA22FF",
           "source_chain": "juno",
           "symbol": "USDC.n",
-          "usd_price": "0.999793",
-          "usd_value": "11513.40750620607500000000000"
+          "usd_price": "0.99981",
+          "usd_value": "11513.60327465775000000000000"
         },
         {
           "amount": "163.000000000000000000",
@@ -924,12 +924,12 @@
           "usd_value": null
         },
         {
-          "amount": "3.284346951209347621997714",
+          "amount": "3.284347407771246042288406",
           "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
           "source_chain": "juno",
           "symbol": "ATOM",
           "usd_price": "1.73",
-          "usd_value": "5.68192022559217138605604522"
+          "usd_value": "5.68192101544425565315894238"
         },
         {
           "amount": "69.000000000000000000",
@@ -940,26 +940,26 @@
           "usd_value": null
         },
         {
-          "amount": "0.004216208974653399882518",
+          "amount": "0.004216211083724777819282",
           "key": "juno:native:ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034",
           "source_chain": "juno",
           "symbol": "USDC",
-          "usd_price": "0.999793",
-          "usd_value": "0.004215336219395646628742318774"
+          "usd_price": "0.99981",
+          "usd_value": "0.00421541000361887011149633642"
         },
         {
-          "amount": "20476366.96952908205533745029",
+          "amount": "20476407.53279111439916327797",
           "key": "juno:native:ujuno",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00914745",
-          "usd_value": "187306.5430354188016470965597"
+          "usd_price": "0.00914697",
+          "usd_value": "187297.0854102143396757145287"
         }
       ],
-      "generated_at": "2026-09-30T19:14:31.756027Z",
-      "height": 42238591,
+      "generated_at": "2026-09-30T19:32:57.378218Z",
+      "height": 42239003,
       "status": "PARTIAL",
-      "total_usd": "199286.5366771866882141292445"
+      "total_usd": "199277.2748212975375502377991"
     }
   ]
 }
