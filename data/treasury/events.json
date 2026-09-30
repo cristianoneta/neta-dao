@@ -6,7 +6,7 @@
         "chain_id": "juno-1",
         "contract_creation_height": 4322988,
         "indexed_transactions": 47,
-        "last_scanned_height": 42227545,
+        "last_scanned_height": 42227988,
         "source": "https://juno-rpc.publicnode.com"
       },
       {
@@ -14,7 +14,7 @@
         "chain_id": "osmosis-1",
         "contract_creation_height": 15838602,
         "indexed_transactions": 0,
-        "last_scanned_height": 71623103,
+        "last_scanned_height": 71624009,
         "source": "https://osmosis-rpc.publicnode.com"
       }
     ],
@@ -1676,7 +1676,7 @@
       "type": "inflow"
     }
   ],
-  "generated_at": "2026-09-30T10:59:25.311430Z",
+  "generated_at": "2026-09-30T11:19:22.149896Z",
   "schema_version": 2,
   "scope": "neta-operations-cross-chain",
   "sources": [
@@ -1685,7 +1685,7 @@
       "chain_id": "juno-1",
       "contract_creation_height": 4322988,
       "indexed_transactions": 47,
-      "last_scanned_height": 42227545,
+      "last_scanned_height": 42227988,
       "source": "https://juno-rpc.publicnode.com"
     },
     {
@@ -1693,7 +1693,7 @@
       "chain_id": "osmosis-1",
       "contract_creation_height": 15838602,
       "indexed_transactions": 0,
-      "last_scanned_height": 71623103,
+      "last_scanned_height": 71624009,
       "source": "https://osmosis-rpc.publicnode.com"
     }
   ],
