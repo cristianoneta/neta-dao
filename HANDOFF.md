@@ -59,8 +59,9 @@ gates first. Treasury accounting is the next separate product stream.
 
 ## Known work to keep visible
 
-CURRENT_STATE records the actual gaps: Treasury async DAO-switch race, symbol-based
-attribution/denom heuristics, legacy proposal completeness limits, RELAY notification
+CURRENT_STATE and [the security audit](docs/SECURITY_EFFICIENCY_AUDIT_2026-10-02.md)
+record the remaining gaps: symbol-based attribution, unknown-token display decimals,
+legacy proposal completeness limits, RELAY notification
 coverage limits, encrypted lab rotation/prekey/crash/backup gaps, and branch-specific
-runtime preparation. These are **unfixed observations**, not instructions to enable
-new behavior during a documentation task.
+runtime preparation. The audit distinguishes fixes from open findings. Treat the RELAY receive-lock
+and prekey-exhaustion issues as blockers before any Mainnet messaging release.

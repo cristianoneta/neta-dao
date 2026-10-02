@@ -152,4 +152,23 @@ try {
   assert.match(await b.page.locator('#history').innerText(), /hello from Alice on UNI-7/);
   assert.match(await b.page.locator('#history').innerText(), /hello back from Bob/);
   console.log('UNI-7 lab: encrypted exchange, reply and readable restart passed in isolated browser profiles');
+  if (process.env.RELAY_AUDIT_ADVERSARIAL === '1') {
+    // Local mock only: document the known availability blocker. No live chain.
+    const bad = await fetch(origin + '/mock/execute', {method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({sender:alice,contract,msg:{send:{recipient:bob,recipient_generation:1,
+        message_id:'de'.repeat(32),ciphertext:Buffer.alloc(32).toString('base64')}}})});
+    assert.equal(bad.status,200);
+    await b.page.getByRole('button', {name:'CHECK & DECRYPT INBOX'}).click();
+    await ready(b.page,'BLOCKED');
+    assert.equal(await b.page.locator('#send').isDisabled(),true);
+    await b.page.reload();
+    await b.page.getByRole('button', {name:'CONNECT KEPLR · UNI-7'}).click();
+    await ready(b.page,'WALLET CONNECTED');
+    await b.page.locator('#recovery').fill(b.code);
+    await b.page.getByRole('button', {name:'UNLOCK EXISTING DEVICE'}).click();
+    await ready(b.page,'Unresolved archive intent');
+    assert.equal(await b.page.locator('#send').isDisabled(),true);
+    console.log('KNOWN OPEN BLOCKER reproduced locally: unauthenticated ciphertext persists a device-wide receive lock');
+  }
+
 } finally { await browser?.close(); server.close(); }

@@ -83,9 +83,10 @@ verified universal asset ID. It can consolidate internal transfers but is not
 transaction-derived cash flow and can be distorted by symbol collisions,
 coverage changes and LP composition. Balances are fetched at latest endpoints;
 the recorded Juno height is context, not height-pinning of every query/chain.
-Native metadata uses a persisted registry and traces, with fallback decimals and
-substring USDC/DAI pricing heuristics. Do not describe unknown-denom identity or
-pricing as universally verified. Registry changes are not automatically persisted.
+Native metadata uses a persisted exact-denom registry and traces. Unknown IBC
+base names no longer inherit USDC/DAI/ATOM prices; they remain unpriced until
+reviewed. Fallback display decimals still default to six. Unpriced LP underlying
+assets now also make the snapshot PARTIAL. Registry changes are not automatically persisted.
 
 Event ledger: schema v2, chain/hash deduplication, full address-index replay,
 per-chain scan watermarks and proposal-title enrichment. Monetary extraction is
@@ -95,9 +96,9 @@ Juno historical indexing is required; absent legacy Osmosis matches are allowed.
 The frontend shows three latest non-technical movements and expanded filters.
 There is no Juno Community Pool transaction feed or treasury execution.
 
-`treasury.js` lacks a request epoch for overlapping DAO-switch/refresh loads;
-an older response can update the newly selected DAO view. Governance's request
-protection must not be claimed for Treasury. This is an unfixed code observation.
+`treasury.js` now aborts superseded requests, bounds fetch time to 15 seconds and
+checks a request epoch before changing shared state or the UI. Late responses
+cannot overwrite a newly selected DAO snapshot. See the security audit for tests.
 Recurring cash flow, obligations, milestone payments and runway remain future work.
 
 ## RELAY: main inbox versus encrypted lab
@@ -156,7 +157,8 @@ do not infer a blanket repository license from the vendor license.
 ## Names and concept modules
 
 `names.js` has `REGISTRY=null`; no active name registry is configured. Existing
-handlers request `juno-1` and validate treasury/token metadata before CW20 payments;
+handlers request `juno-1` and pin the exact NETA token address as well as
+treasury/token metadata before CW20 payments;
 there is no wired UNI-7 Names flow. Prepared metadata checks are not a substitute
 for pinning exact token/registry/code identity before activation.
 First registration is 5 NETA for **365 days**, not a permanent name. Renewals use
@@ -168,7 +170,9 @@ AtomOne remains prior research only; no AtomOne adapter or active integration ex
 
 ## Verification and CI scope
 
-2026-10-02 local review: 41 Node tests and 8 Treasury Python tests passed.
+2026-10-02 documentation review: 41 Node tests and 8 Treasury Python tests passed.
+The later security audit adds regression tests and fixes; see
+[SECURITY_EFFICIENCY_AUDIT_2026-10-02.md](SECURITY_EFFICIENCY_AUDIT_2026-10-02.md).
 No new wallet write, Rust execution or browser E2E is claimed by those checks.
 The main contract/frontend CI, WASM build and crypto-browser CI are path-filtered;
 Root README/HANDOFF/ordinary docs alone do not trigger them; contract Markdown
@@ -179,3 +183,11 @@ mainnet/sample snapshots in frontend tests are assertions, not live-chain checks
 integration branch, not a recurring main runtime publisher. Browser crypto
 workflow uses version-tag Actions; do not claim all this repo's Actions are SHA-pinned.
 Check Actions and actual served files again at the next session.
+
+## Security audit continuation
+
+Read [the security and efficiency audit](SECURITY_EFFICIENCY_AUDIT_2026-10-02.md)
+before enabling messaging or extending transaction flows. Mainnet Operations
+voting now explicitly selects `0.075ujuno`; UNI7 keeps `0.2ujunox`. The shared
+signing bundle accepts an explicit gas price. Governance guards rapid proposal
+selection, malformed thread markers and context changes before transaction calls.

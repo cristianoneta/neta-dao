@@ -150,12 +150,9 @@ def native_metadata(denom, providers=RESTS):
     trace = trace.get("denom_trace", trace)
     base = trace.get("base_denom", "")
     fallback = {"symbol": base or denom[:18] + "…", "decimals": 6}
-    normalized = base.lower()
-    if "usdc" in normalized:
-        fallback = {"symbol": "USDC", "decimals": 6, "coingecko": "usd-coin"}
-    elif "dai" in normalized:
-        fallback = {"symbol": "DAI.axl", "decimals": 6, "coingecko": "dai"}
-    result = dict(BASE_ASSETS.get(base, fallback))
+    # A ticker/base denom does not identify an IBC asset: origin and route matter.
+    # Only exact denoms in the reviewed registry receive a market price.
+    result = fallback
     result.update({"origin": "IBC", "ibc_path": trace.get("path"), "base_denom": base})
     return result
 
@@ -176,6 +173,11 @@ def native_assets(coins, market, warnings, source_chain="juno", custody_address=
 
 def snapshot_result(stamp, height, endpoint, price_source, assets, warnings, treasury_type, treasury_address=None):
     unresolved = [item["symbol"] for item in assets if item.get("usd_value") is None]
+    unresolved.extend(
+        f"{item['symbol']}: {part['symbol']}"
+        for item in assets if item.get("type") == "lp"
+        for part in item.get("underlyings", []) if part.get("usd_value") is None
+    )
     if unresolved:
         warnings.append("Unpriced assets excluded from USD total: " + ", ".join(unresolved))
     total = sum((Decimal(item["usd_value"]) for item in assets if item.get("usd_value") is not None), Decimal(0))

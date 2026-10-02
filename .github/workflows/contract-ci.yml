@@ -24,7 +24,7 @@ on:
       - "scripts/update_treasury_events.py"
       - "tests/test_treasury_events.py"
       - "tests/test_treasury_history.py"
-      - "tests/frontend-smoke.test.mjs"
+      - "tests/*.test.mjs"
       - "tests/relay-mailbox-status.test.mjs"
       - "data/treasury/**"
       - "index.html"
@@ -56,7 +56,7 @@ on:
       - "scripts/update_treasury_events.py"
       - "tests/test_treasury_events.py"
       - "tests/test_treasury_history.py"
-      - "tests/frontend-smoke.test.mjs"
+      - "tests/*.test.mjs"
       - "tests/relay-mailbox-status.test.mjs"
       - "data/treasury/**"
       - "index.html"
@@ -94,13 +94,9 @@ jobs:
           cargo clippy --locked --all-targets --manifest-path contracts/neta-relay-mailbox/Cargo.toml -- -D warnings
       - name: Frontend syntax and invariants
         run: |
-          node --test tests/frontend-smoke.test.mjs
-          node --test tests/relay-mailbox-status.test.mjs
+          node --test tests/*.test.mjs
           node --check relay-testnet-setup.js
-          node --test tests/relay-testnet-setup.test.mjs
           node --check relay-uni7-readiness.js
-          node --test tests/relay-uni7-readiness.test.mjs
-          node --test tests/relay-uni7-client.test.mjs
           python -m unittest tests/test_treasury_events.py tests/test_treasury_history.py
       - name: Dependency audit
         run: |
