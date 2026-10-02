@@ -54,7 +54,8 @@ gates first. Treasury accounting is the next separate product stream.
   force push or silent transaction retry after an uncertain broadcast.
 - Update static asset query versions in `index.html` for JS/CSS changes.
 - CI is path-filtered. Inspect `.github/workflows/` for the checks actually triggered.
-  This repo has no general docs CI and no root npm package.
+  This repo has no general docs CI and no root npm package. Contract Markdown
+  and the RELAY security document still match existing CI path filters.
 
 ## Known work to keep visible
 

@@ -99,6 +99,8 @@ Frontend Refresh refetches committed JSON, not the chain or a server collector.
 See [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md) for data ownership and limitations.
 
 Use a branch/PR, preserve generated snapshots and inspect checks before merging.
-Documentation-only PRs do not match the existing path-filtered CI workflows;
-run the relevant local checks. A successful Pages deployment proves publication,
+Root README/Handoff and ordinary docs edits alone do not match CI path filters.
+Contract Markdown matches `contracts/**`; `docs/RELAY_SECURITY_ARCHITECTURE.md`
+also matches frontend/contract CI. This reconciliation PR includes both and
+triggers those workflows. Run relevant local checks and inspect actual checks. A successful Pages deployment proves publication,
 not wallet transactions or cryptographic security.

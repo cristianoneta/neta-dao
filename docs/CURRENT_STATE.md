@@ -171,7 +171,9 @@ AtomOne remains prior research only; no AtomOne adapter or active integration ex
 2026-10-02 local review: 41 Node tests and 8 Treasury Python tests passed.
 No new wallet write, Rust execution or browser E2E is claimed by those checks.
 The main contract/frontend CI, WASM build and crypto-browser CI are path-filtered;
-README/HANDOFF/general documentation edits alone do not trigger them. Existing
+Root README/HANDOFF/ordinary docs alone do not trigger them; contract Markdown
+matches contract/frontend and WASM CI, and the RELAY security doc matches the
+former. This reconciliation PR includes those paths and runs those checks. Existing
 mainnet/sample snapshots in frontend tests are assertions, not live-chain checks.
 `relay-client-assets.yml` is a branch-specific preparation writer for the old
 integration branch, not a recurring main runtime publisher. Browser crypto
