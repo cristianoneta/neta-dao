@@ -1,6 +1,6 @@
 # RELAY recovery decision · 2026-09-27
 
-Status: agreed product direction, **not implemented**. The user requested a simple UX with automatic encrypted backups instead of recurring manual file exports. The next conversation will review RELAY UX annotations.
+Status: agreed product direction, **not implemented**. The user requested a simple UX with automatic encrypted backups instead of recurring manual file exports. The main Inbox UX annotations were implemented by 27 September; current code-backed state is in `CURRENT_STATE.md`.
 
 ## User flow
 
@@ -18,4 +18,6 @@ Keplr proves address ownership. Its private key does not reconstruct the distinc
 - The read-only `relay-uni7-readiness.html` page is deployed and verified the UNI-7 mailbox identity and public device/inbox query. PR #89 merged with green CI and Pages. It did not register, decrypt or send. Two real Keplr wallets have not completed encrypted send, receive and restart on UNI-7.
 - Keep the main RELAY `SEND MESSAGE` action and all mainnet DMs disabled until testnet E2E and recovery gates pass. Mainnet needs a separate policy and audit.
 
-Next: review the user's UX annotations, then continue the test-only registration and two-wallet client. See `HANDOFF.md`, `docs/RELAY_IMPLEMENTATION_PLAN.md` and `docs/RELAY_SECURITY_ARCHITECTURE.md` for remaining technical gates.
+The later PR #97 lab includes an encrypted local readable-history archive and a mocked two-profile exchange/reply/reload test. It does not provide automatic off-device backup. Its code is a local unlock code, not recovery after browser-data loss.
+
+Next: use the existing lab for the real two-wallet test in `RELAY_UNI7_E2E_RUNBOOK.md`, then implement reviewed failure recovery and the automatic backup. See `HANDOFF.md`, `docs/RELAY_IMPLEMENTATION_PLAN.md` and `docs/RELAY_SECURITY_ARCHITECTURE.md` for remaining technical gates.

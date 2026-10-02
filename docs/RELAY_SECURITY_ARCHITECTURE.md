@@ -1,84 +1,87 @@
-# RELAY security architecture
+# RELAY security requirements and implementation boundary
 
-Status: design gate for UNI-7 implementation. The mailbox contract is deployed
-at `juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa`.
-The current frontend composer is a non-persisting interaction shell; the
-encrypted messaging client is not connected.
-Messaging must remain disabled on mainnet until every release gate below is satisfied.
-The implementation sequence and current library evaluation are in
-[`RELAY_IMPLEMENTATION_PLAN.md`](RELAY_IMPLEMENTATION_PLAN.md).
+Reviewed 2026-10-02. This is a threat model and release-gate document, not a
+claim of an audited implementation. [CURRENT_STATE.md](CURRENT_STATE.md) and
+[RELAY_IMPLEMENTATION_PLAN.md](RELAY_IMPLEMENTATION_PLAN.md) inventory actual code.
 
-## Security claim
+Main RELAY has a disabled, non-persisting composer. A separate UNI-7 encrypted
+lab is shipped with GPL Wire CoreCrypto 10.5.3 Proteus, local encrypted storage
+and Keplr registration/send. Two-profile CI uses mocked chain/wallet services;
+no live two-wallet E2E has been recorded. Mainnet messaging is not implemented.
 
-RELAY must never be presented as perfectly or “110 percent” secure. Its intended guarantee is that only devices authorized by the sender and recipient can decrypt message contents, assuming their devices, wallets, implementation dependencies and random-number generators are not compromised. Public-chain metadata cannot be hidden by payload encryption.
+## Threat model and intended guarantee
 
-## Threat model
+Payload encryption is intended to protect message contents from chain/RPC/
+index observers. Sender/recipient, timing, frequency and approximate ciphertext
+size remain public. Unlocked/compromised devices, extensions, dependencies,
+malicious builds, recipient screenshots and social engineering are outside
+that guarantee. Forward secrecy/post-compromise recovery are protocol goals;
+lab tests are not an independent proof of those guarantees. Never claim perfect security.
 
-RELAY protects message content against chain observers, RPC operators, indexers and an attacker who later obtains an old session key. It does not conceal sender and recipient addresses, transaction timing, ciphertext size or messaging frequency. It does not protect an unlocked or malware-infected device, a malicious browser extension, compromised build infrastructure, social engineering or screenshots made by a recipient.
+## Identity and envelope
 
-## Identity and devices
+Wallet signing keys are not encryption keys. Device keys are generated locally;
+Keplr registration binds public fingerprint/prekeys to `info.sender`. Before
+initial encryption, verify the actual remote Proteus fingerprint against the
+recipient registration; recheck wallet/network/contract/generation before send.
+The lab encrypts an inner envelope containing chain, mailbox, sender/recipient,
+generations, fingerprints and message ID and checks it against public state.
+A `.neta` alias is an address convenience, not key trust.
 
-- A wallet address is the account identity, but its wallet signing key is never used directly as an encryption key.
-- Every device creates separate encryption and signing keys locally with a cryptographically secure random-number generator.
-- A Keplr-signed registration transaction binds the Proteus identity fingerprint, protocol version, device identifier and prekey material to `info.sender` on UNI-7. The transaction signature proves wallet control; a separate arbitrary-message signature is unnecessary for this on-chain registration.
-- Before encrypting an initial message, compare the actual remote Proteus session fingerprint with the current on-chain registration for the resolved Juno address and device generation. Reject a substituted prekey even if it is otherwise valid. Recheck the generation before broadcast; a changed registration needs a visible identity warning and a new session.
-- Registrations are versioned. Devices can be revoked; senders must reject revoked or expired prekeys.
-- Private keys remain on the device in encrypted storage. If local state is lost, wallet control can authorize a new device registration but cannot decrypt old messages. Do not describe this reset as message recovery. A usable encrypted keystore backup and unlock design is still a release gate; the current CoreCrypto browser API does not expose a verified keystore export/import flow.
-- A Double Ratchet deletes used message keys. A backup of the current keys and
-  session state alone cannot replay ciphertext already decrypted and discarded.
-  To restore a readable history, keep an encrypted local message archive and
-  include it with the wallet-bound session backup under a separate recovery
-  password. Never put the archive or password on-chain. A stale session backup
-  cannot safely be resumed for sending without reconciliation or key rotation.
+The current contract exposes only latest devices. The lab rejects old-generation
+sender messages after rotation. Historical proof, rotation/revocation UX and
+prekey refill must be designed before claiming supported device replacement.
+One active device per wallet is the current contract model; multi-device/groups
+are not supported product features.
 
-The agreed recovery UX uses automatic client-side encrypted backup of both
-current state and a separate archive of already-readable history, protected
-by a generated high-entropy recovery code; see `RELAY_RECOVERY_DECISION.md`.
-No provider or implementation is selected. Possession of both encrypted backup
-and code exposes its archived old texts. Surface backup failures and last
-confirmed backup; prevent stale restores from sending until reconciliation or
-fresh registration. Wallet ownership alone cannot decrypt old messages.
+## Contract boundary: implemented versus required
 
-## Message protocol
+Implemented in `contracts/neta-relay-mailbox/src/lib.rs`: hardcoded `uni-7`;
+no attached funds; one current registration; generation increments on register/
+revoke; bounded prekeys; atomic initial-prekey consumption with ciphertext storage;
+message-ID deduplication; public inbox/device/sent queries; blocklist;
+10-second sender cooldown; 4096-byte ciphertext limit; 50-entry query limit.
+The contract stores opaque ciphertext and does not perform encryption or verify
+its decrypted envelope. Gas fees are separate from attached application funds.
 
-- One-to-one sessions use a reviewed Double Ratchet implementation to provide forward secrecy and post-compromise recovery.
-- Initial asynchronous sessions use signed device keys and one-time prekeys. A missing or already-used prekey must fail closed.
-- Use the selected reviewed library's authenticated encryption suite as published; do not substitute a preferred cipher. Verify the encrypted envelope binds protocol version, sender, recipient, device IDs, conversation ID and sequence information. If the library lacks external associated data, authenticate these fields inside the encrypted envelope and verify them against the public transaction metadata after decryption.
-- The chain stores public device material and opaque ciphertext only. Plaintext, private keys and decrypted search indexes never go on-chain.
-- Group messaging is out of scope for the first release. MLS should be evaluated rather than extending the one-to-one protocol ad hoc.
+**Not implemented:** mainnet network configuration, stake queries or a 5-NETA
+gate, historical registrations and a production migration/recovery policy.
+The agreed future mainnet policy requires at least 5 actively staked NETA at
+registration/send, with independent review. The current crate cannot simply be
+instantiated on `juno-1`; it rejects that chain.
 
-## Network policy and spam controls
+## Local state, crash and recovery
 
-- UNI-7 deliberately has no NETA stake requirement. Registration and sending stay open so the full workflow can be tested without creating an artificial test-token barrier.
-- The mainnet configuration checks at registration and send time that the sender has at least 5 actively staked NETA.
-- Network configuration is immutable after instantiation. A testnet contract cannot be migrated or reused as the stake-gated mainnet instance.
-- A recipient can block an address without decrypting new payloads from it.
-- Contract-enforced ciphertext limits, per-sender cooldowns and bounded pagination prevent unbounded storage and query work.
-- The stake check is an anti-spam cost, not an identity or trust guarantee.
+The lab wraps a random DB key, stores encrypted CoreCrypto state and separately
+archives readable text encrypted under an HKDF-derived key. Public descriptors/
+registration intent live in localStorage; secrets and plaintext do not. Outbox
+contains ciphertext and public metadata. Same-origin tabs use Web Locks; these
+do not coordinate devices/profiles.
 
-## Browser and application controls
+Intent is persisted before ratchet send/decrypt work; unresolved state blocks
+continuation. Ratchet, outbox and archive are separate stores, not one atomic
+transaction. Their failure recovery needs more review and a reconciliation UX.
+A green reload test is not complete crash-window/rollback recovery.
 
-- No third-party scripts are permitted on the messaging page. The isolated UNI-7 lab uses `wasm-unsafe-eval` in its page CSP while excluding broad `unsafe-eval` and remote scripts; the main application remains separately gated.
-- Rendered message text uses text nodes, never HTML injection.
-- Sensitive key material must not be placed in localStorage. An audited encrypted IndexedDB keystore with explicit lock and device removal is required.
-- Dependency versions and build artifacts are pinned and reproducible. Cryptographic primitives are never implemented inside this repository.
+The agreed [recovery direction](RELAY_RECOVERY_DECISION.md) is automatic encrypted
+off-device backup of current state plus a separate readable-history archive,
+unlocked by a generated high-entropy code. It is not implemented. Provider,
+versioning, authentication, sync, retention and anti-rollback remain open.
+Keplr alone cannot recreate messaging keys. A stale restore must not send before
+safe reconciliation/fresh registration. Backup plus code exposes archived text;
+used ratchet keys remain deleted. Messages after the last confirmed backup may
+be lost. Local lab unlock does not recover erased browser data.
 
-## Mainnet release gates
+## Browser and release gates
 
-1. Written threat model and protocol state machine reviewed and accepted.
-2. Maintained, independently reviewed cryptographic library selected; no custom primitive or ratchet implementation.
-3. Interoperability test vectors, lost-message, out-of-order-message, replay, device reset and supported device-count tests pass on UNI-7.
-4. Network-policy, mainnet 5 NETA stake gate, cooldown, payload limit, blocklist, device revocation and pagination contract tests pass.
-5. XSS, dependency, CSP and supply-chain review passes against the production build.
-6. Independent external audit findings are resolved or explicitly accepted and disclosed.
-7. Clear user warnings explain public metadata, device compromise and irreversible loss of undecryptable history.
+Lab CSP uses same-origin scripts and the narrow `wasm-unsafe-eval` allowance,
+not broad `unsafe-eval`. Main page CSP/runtime remain separately gated. Render
+message text through text nodes. Review dependency provenance, vendor hashes,
+GPL obligations, XSS/CSP and wallet/tab isolation against the actual build.
 
-Until a real two-wallet UNI-7 client exchange and independent review, the main frontend may accept
-temporary composer input for UX testing but must not transmit or persist it. Mainnet
-messaging stays disabled until every release gate passes.
-
-The isolated lab has only a local encrypted archive and unlock code. It does not
-provide an off-device backup, stale-restore reconciliation or historical sender
-registration proof after device rotation. An ambiguous registration or incomplete
-outbox/inbox intent blocks continuation. Its two-profile browser test mocks chain
-and Keplr; no claim of live UNI-7 end-to-end validation follows from it.
+Before main application messaging: real two-wallet UNI-7 exchange/reply/reload,
+measured gas/storage, authenticated identities, replay/out-of-order/lost-message
+and crash-state testing, usable encrypted backup/recovery and independent client
+review. Before mainnet: new reviewed stake/network policy, contract/client audit,
+resolved findings and explicit activation approval. No documentation edit, mock
+CI result or Pages deployment satisfies those gates by itself.

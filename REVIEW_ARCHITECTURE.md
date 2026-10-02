@@ -1,75 +1,72 @@
-# Review Architecture
+# Review architecture
+
+Code-reviewed 2026-10-02. Current deployment inventory and limitations:
+[docs/CURRENT_STATE.md](docs/CURRENT_STATE.md).
 
 ## Sources of truth
 
-| Data | Source of truth | Mutability |
+| Data | Source | Boundary |
 | --- | --- | --- |
-| Private draft | Browser `localStorage` | User can replace/delete |
-| Public proposal review | UNI-7 workshop contract | Revisions/comments append-only |
-| Finalized review | UNI-7 workshop contract | Terminal; hash computed on-chain |
-| Operations governance result | Juno mainnet DAO proposal module | Read from chain |
-| Native Juno governance | Juno mainnet `x/gov` | Read-only in this frontend |
-| Delivery/Contributors | UX concepts | No execution authority |
-| Treasury balances | Read-only Juno and Osmosis snapshots | Collector-generated |
-| Treasury forecasts/commitments/runway | UX sample data | No execution authority |
-| RELAY governance notifications | Live chain reads + browser comparison state | Browser-local and replaceable |
-| RELAY favorites/read state | Browser `localStorage` | User/browser can replace/delete |
-| RELAY encrypted messages | Not connected | Composer does not transmit or persist |
+| Private per-DAO draft | Browser localStorage | Replaceable, not shared/on-chain |
+| Operations public review | Legacy UNI-7 `neta-governance` contract | Other repository owns source; API differs from v0.3.0 |
+| Juno public review | UNI-7 `neta-proposal-workshop` v0.3.0 | Immutable revisions, native threaded comments, contract hash on finalization |
+| Operations DAO result/vote | Mainnet DAO proposal module | Existing Keplr vote execute; no automatic review submission |
+| Native Juno governance | Mainnet `x/gov` | Read-only in frontend |
+| Treasury | Generated current/history/event JSON | Read-only snapshots and limited native movement extraction |
+| Delivery / Contributors / forecasting | UX concepts | No execution authority |
+| RELAY main Inbox | Mainnet proposal reads and local comparison state | No UNI-7 review polling or private messages |
+| RELAY encrypted lab | UNI-7 ciphertext and wallet-bound local crypto/archive | Separate test page; no recorded real two-wallet E2E |
 
-## Trust boundaries
+## Distinct lifecycle implementations
 
-- Wallet identity and eligibility are re-queried from the selected workshop contract.
-- Operations and Juno use separate access policies.
-- The frontend never grants membership or stake eligibility.
-- Public reads work without a wallet.
-- Mainnet Juno submission and voting stay disabled.
-- Treasury collection is read-only; the frontend has no treasury execution authority.
-- A DAO proposal ID cannot be self-asserted as submitted; `MarkSubmitted` fails until verifiable forwarding or chain-query validation is implemented.
-- RELAY notification state is convenience state, not a chain source of truth. Opening
-  a notification re-selects the DAO and resolves the proposal from its canonical source.
-- Wallet signatures bind future RELAY device keys to an address; wallet signing keys
-  must never be reused directly as message-encryption keys.
+### Operations legacy
 
-## Review lifecycle
+`neta-governance.js` calls `publish_draft`, `publish_revision`, `add_comment`,
+`finalize_and_submit` and owner `set_status`. The source is
+<https://github.com/cristianoneta/neta-website/tree/main/contracts/neta-governance>.
+Comments encode thread/reply metadata in body markers. Publishing/revising/
+finalizing requires positive configured voting power; comments require strictly
+more than the 10-NETA configured threshold. Failed access queries become zero
+in the legacy source; it has no v0.3.0 cooldown/hash/JSON-array hardening.
 
-1. Create and optionally save a private local draft.
-2. Publish the first immutable public revision on UNI-7.
-3. Add titled discussion threads, replies and further immutable revisions.
-4. Finalize only the latest revision.
-5. The contract computes and stores the revision hash and closes discussion.
-6. A separately reviewed adapter may later create and verify the mainnet proposal.
+Despite the button label, `finalize_and_submit` only sets the UNI-7 review to
+`voting`. It emits no mainnet proposal message. The UI's withdrawal action is
+restricted to a discussion author who is also the config owner and maps to
+`set_status: declined`. Do not claim generic author withdrawal for this instance.
 
-## Contract operations
+### Juno v0.3.0
 
-- Instantiation starts paused.
-- Attached funds are rejected.
-- Owner changes require proposal and acceptance by the new owner.
-- Migration records and checks the prior contract identity.
-- Moderator and block-list removal deletes obsolete storage records.
-- Queries are cursor-paginated; the frontend follows all pages.
+`publish_proposal` → `add_revision` / `add_comment` → `finalize`.
+All community review writes require at least 1 delegated JUNOX plus 1 staked
+test NETA through the configured UNI-7 access mock. Finalization applies only
+to the latest version, stores a contract-computed SHA-256 hash and closes
+discussion. `MarkSubmitted` always rejects until a verifiable adapter exists.
+The contract permits author withdrawal before submission; the UI exposes it
+only during discussion. Attached funds are rejected, instances start paused,
+owner transfer is two-step, queries are cursor-paginated, and moderation plus
+30-second comment cooldown are contract behavior.
 
-## Verified deployment state
+The crate also supports Operations mode (positive voting power to publish,
+strictly greater than configured stake to comment). That supported mode does
+not mean the legacy Operations instance has been replaced or migrated.
 
-The canonical Juno Governance community-review contract is deployed and unpaused on
-UNI-7 at `juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw`
-using code ID `114`. The address is committed as the Juno DAO registry entry in
-`neta-governance.js`; it is no longer browser-local scaffolding.
+## Mainnet and deliverable boundary
 
-The Operations workshop remains the legacy UNI-7 contract at
-`juno1d2xdlvy23am07twe046zzxxndjtccgpwwl3pyu5g98u07qu3nyqqkaz65h`.
-Neither workshop contract authorizes native Juno mainnet submission or voting.
+Mainnet Operations proposal reads are separate from UNI-7 reviews. Open
+non-native proposal records expose Keplr voting on `juno-1`; native Juno voting
+buttons are hidden. Neither review flow creates mainnet proposals. Mainnet
+native deposit/submission is absent; review status is not DAO approval.
 
-## Remaining gates
+`dao_deliverable_v1` objects in `actions_json` retain milestone title, deadline,
+responsible wallet, confirmer and evidence. They are planning records. Future
+submission adapters must validate executable messages separately. Delivery
+acceptance and payment release do not exist.
 
-- Run focused publish, revise, threaded-comment and finalize smoke tests whenever
-  review-contract behavior changes.
-- Keep native Juno submission and voting disabled until exact messages, simulation,
-  verification and recovery behavior have been separately reviewed.
-- Keep Treasury execution disabled. Daily value and price/flow attribution are
-  read-only; the remaining Treasury phase covers transaction-backed cash flow,
-  recurring income/expenses, proposal-linked obligations, milestone payments and
-  runway.
-- Keep RELAY message transmission disabled until the UNI-7 device/ciphertext contract
-  and reviewed Double Ratchet client are integrated. UNI-7 has no stake gate;
-  mainnet requires a separately instantiated 5-active-NETA configuration and the
-  release gates in `docs/RELAY_SECURITY_ARCHITECTURE.md`.
+## Change and verification rules
+
+Preserve DAO/chain identity and governance request epochs. Re-query contract
+access before relying on frontend controls. See CURRENT_STATE for history/
+pagination limits and the separate unfixed Treasury async response race.
+Use `node --test tests/*.test.mjs` for frontend checks, and the pinned Rust
+workflow for contract changes. A new submission/voting adapter requires exact
+message simulation, wallet/network binding and confirmed post-state evidence.
