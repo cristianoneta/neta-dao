@@ -65,3 +65,9 @@ legacy proposal completeness limits, RELAY notification
 coverage limits, encrypted lab rotation/prekey/crash/backup gaps, and branch-specific
 runtime preparation. The audit distinguishes fixes from open findings. Treat the RELAY receive-lock
 and prekey-exhaustion issues as blockers before any Mainnet messaging release.
+
+## Security audit continuation — 2026-10-03 Berlin
+
+Audit changes are published in PR #100, branch `audit/security-efficiency-20261002`; code checkpoint `32b784a7862c69573e866f39d4a2927a18ef0ed0`. Cross-project PRs: https://github.com/cristianoneta/neta-dao/pull/100 and https://github.com/cristianoneta/neta-website/pull/137. At handoff, website tests and DAO RELAY browser tests passed; DAO contract/frontend CI was still running and website production-data CI pending. PRs were not merged. Check current results before integration.
+
+The isolated adversarial browser test reproduced the persistent RELAY receive lock after malformed ciphertext and reload. Mainnet messaging remains blocked. Read `docs/SECURITY_EFFICIENCY_AUDIT_2026-10-02.md`; prioritize authenticated transactional receive/recovery, sender-scoped archive identity, prekey abuse and ambiguous mainnet broadcast retries. Preserve unrelated changes/data-bot updates. Local audit worktrees contain commits, while the original worktrees have documentation edits already published in the earlier documentation PRs; do not discard these blindly.

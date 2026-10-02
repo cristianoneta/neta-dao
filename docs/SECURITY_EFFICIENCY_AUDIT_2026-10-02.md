@@ -43,3 +43,7 @@ Browser scenarios were added for DAO switch races, malformed markers/proposal ra
 ## Continuation
 
 Use CURRENT_STATE.md and HANDOFF.md together with this report. Resolve R1–R3 before any messaging activation; then W2 and moderation/pagination/data completeness. Re-run browser/contract CI before merging the audit branch. Keep report findings open until the repair and its adversarial regression have passed.
+
+### CI evidence at continuation handoff
+
+Website Test website run 307 passed, including browser integration and reproducible bundles. DAO RELAY browser crypto run 31 passed, including stale-response regressions and the optional adversarial test that intentionally reproduces the open persistent-lock blocker. DAO contract/frontend run 136 was still running; website production-data run 409 was pending. Check final outcomes before merging. Code checkpoint SHAs are recorded in HANDOFF.md; these follow-up documentation changes do not change the tested implementation.
