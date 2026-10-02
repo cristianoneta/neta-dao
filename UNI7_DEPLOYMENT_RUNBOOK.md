@@ -1,6 +1,6 @@
 # UNI-7 CosmWasm Deployment Runbook
 
-Updated: 20 September 2026
+Deployment evidence: 20 September 2026; documentation reviewed: 2026-10-02
 
 This runbook records the compatibility issues observed while deploying the Juno governance review workshop from a browser with Keplr. It applies to UNI-7 and may also be useful for older Cosmos SDK/CosmWasm chains.
 
@@ -18,7 +18,7 @@ The contract configuration was queried after deployment and confirmed:
 
 - owner is the test administrator;
 - voting and stake checks use the access mock;
-- community gate requires `1 JUNOX` and `1` test NETA in minimal units;
+- community gate requires `1000000 ujunox` (1 JUNOX) and `1000000` raw test NETA (1 NETA);
 - comment cooldown is 30 seconds;
 - `paused` is `false`.
 
@@ -45,7 +45,7 @@ This error may be nested in `error.data`, not only `error.message`. Treat it as 
 
 - after store code, search code metadata by creator and checksum;
 - after instantiate, search contracts by creator and verify code ID, creator and label;
-- only retry the write if the expected state is not visible after bounded polling.
+- an unavailable or absent query result is not proof that a write failed; inspect the operation-specific recovery path before deciding whether a new write is safe. The RELAY lab preserves unresolved intent and blocks automatic retry.
 
 This avoids duplicate transactions when broadcast succeeded but RPC result lookup failed.
 
@@ -85,3 +85,14 @@ For a non-2xx REST response, retain a short, whitespace-normalized response body
 ## Operational rule
 
 Never automatically rebroadcast a transaction solely because RPC transaction lookup failed. State-based, idempotent recovery is required first. Cache-bust frontend JavaScript after changing deployment logic so browsers do not continue executing an older recovery path.
+
+## RELAY-specific continuation
+
+The mailbox is already recorded as deployed; do not upload/instantiate it again
+just to start the message test. Use [docs/RELAY_UNI7_E2E_RUNBOOK.md](docs/RELAY_UNI7_E2E_RUNBOOK.md).
+Primary UNI-7 endpoints are NodesHub, with STAVR fallback; controllers configure
+`0.2ujunox` signing gas and Keplr steps `0.1/0.2/0.3`. Endpoint/minimum-gas behavior
+can change. Reset suggested-chain/cache data when necessary; never erase wallet
+keys or request a seed. Mailbox registration queries once after broadcast and
+blocks unresolved intent; the generic deployment polling path is not a claim of
+complete RELAY recovery.

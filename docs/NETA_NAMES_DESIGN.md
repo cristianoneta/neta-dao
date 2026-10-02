@@ -1,5 +1,10 @@
 # NETA Names — implementation and activation
 
+Code-reviewed 2026-10-02. `names.js` has `REGISTRY=null`; the UI is under
+RELAY → Names & Contacts (`#relay/names`). No registry is configured and no
+registration/renewal is active. Existing handlers select `juno-1`; a UNI-7
+Names test is not yet wired. See [CURRENT_STATE.md](CURRENT_STATE.md).
+
 ## User-facing behavior
 
 `cristiano.neta` resolves to one Juno wallet in the NETA Names registry. A wallet may own one name; names are 5–32 lowercase ASCII letters, digits or interior hyphens. The name works only in clients that explicitly query this registry. It is not a DNS domain or a universally recognized wallet alias. RELAY accepts either the name or the Juno address and displays the resolved address, but messaging remains disabled until its separate encryption and contract review is finished.
@@ -20,8 +25,8 @@ Current contract does not support changing the wallet associated with a name, de
 
 ## Activation checklist
 
-1. Run Rust formatting, tests, Clippy and a security review of `contracts/neta-names`. The CI workflow covers these steps; a mainnet WASM build should additionally be reproducible.
-2. Verify the NETA CW20 token contract, its six-decimal denomination, the given DAO treasury and an admin controlled by the DAO. The provided treasury address is not independently attested by this repository.
+1. Run Rust formatting, tests, Clippy and a security review of `contracts/neta-names`. The path-filtered contract CI covers tests and Clippy (Names formatting currently runs as a formatter, not a check); a mainnet WASM build should additionally be reproducible.
+2. Verify and pin the exact NETA CW20 token contract, its six-decimal denomination, registry/code identity, the given DAO treasury and an admin controlled by the DAO. Current frontend checks of symbol/decimals and treasury alone do not prove token identity. The provided treasury address is not independently attested by this repository.
 3. Deploy and instantiate on Juno with `neta_token`, the fixed `dao_treasury`, `admin` and `renewal_fee: "5000000"`. Verify the resulting on-chain config and CW20 transfer destination before showing any registration CTA.
 4. Add the verified registry address to `names.js` after deployment. The prepared Keplr commit/reveal and renewal flow is gated by this address. Test real transaction receipts and register/renew against the deployed contract before activating the UI; the current UI keeps registration disabled until then.
 5. Enable RELAY message delivery only after the separate security design in `RELAY_SECURITY_ARCHITECTURE.md` is implemented and reviewed.

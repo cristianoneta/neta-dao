@@ -8,15 +8,22 @@ On-chain storage and access control for the public NETA DAO proposal workshop.
 - Queries are public and require no wallet.
 - **Operations DAO mode:** publishing, revising and finalizing require positive voting power from `dao_voting_contract`.
 - **Operations DAO mode:** comments and replies require an active NETA stake **strictly greater than** `minimum_comment_stake`.
-- The production threshold is `10000000` raw units (10 NETA with six decimals), so exactly 10 NETA is not sufficient.
-- **Juno community mode:** all writes require at least the configured native delegated stake **and** the configured active NETA stake. The intended thresholds are exactly 1 JUNO and 1 NETA.
+- The Operations-mode threshold used by the frontend is `10000000` raw units (10 NETA with six decimals), so exactly 10 NETA is not sufficient.
+- **Juno community mode:** all writes require at least the configured native delegated stake **and** the configured active NETA stake. The configured UNI-7 thresholds are exactly 1 JUNOX and 1 test NETA.
 - A global 30-second comment cooldown, owner block list and moderator tombstones are enforced on-chain.
 - Revisions are immutable. Only the latest revision can be finalized.
 - Finalization computes the SHA-256 content hash inside the contract and closes discussion.
 - `MarkSubmitted` is deliberately disabled until a submission adapter can verify the target DAO proposal on-chain.
 - Ownership changes use a two-step propose/accept flow; v0.3.0 also provides a migration entry point.
 
-## Operations DAO configuration
+## Configuration examples (not current deployed instances)
+
+The frontend Operations instance still uses the legacy API in the other repository.
+These examples describe this crate's supported modes, not a deployed Operations
+migration or enabled mainnet submission. The configured Juno UNI-7 deployment
+uses an access mock and `ujunox`; see [current state](../../docs/CURRENT_STATE.md).
+
+## Operations DAO mode example
 
 ```json
 {
@@ -28,7 +35,7 @@ On-chain storage and access control for the public NETA DAO proposal workshop.
 }
 ```
 
-## Juno community governance configuration
+## Prospective mainnet Juno community mode example
 
 This uses the same NETA staking contract, but replaces Operations DAO membership
 with a dual stake gate. Both amounts use six decimal places.

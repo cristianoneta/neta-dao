@@ -1,251 +1,65 @@
 # NETA DAO handoff
 
-Last verified: 2026-09-23
+Code/documentation reviewed: **2026-10-02**. Canonical repository:
+`cristianoneta/neta-dao`; site: <https://dao.netareborn.com>.
 
-Read this file and `README.md` before changing the application. The deployed site is
-`https://dao.netareborn.com`; this repository is the canonical source for the DAO
-workspace. `cristianoneta/neta-website` owns `https://netareborn.com`.
+## Read in this order
 
-## Product state
+1. [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md): exact connected features,
+   source files, recorded deployments and limitations.
+2. [README.md](README.md): verification commands and project boundary.
+3. The relevant specialized document below; then its owning code and tests.
+4. [PROJECT_CHECKPOINT.md](PROJECT_CHECKPOINT.md): current continuation priorities.
 
-- The header selects a chain and then a DAO. Both current DAOs live on Juno; the
-  split is deliberate preparation for DAO tooling that can control other chains.
-- The active workspace section is encoded in the URL hash and retained locally,
-  so refreshing or directly opening `#treasury`, `#contributors`, `#delivery`
-  `#governance`, `#relay` or `#names` preserves the selected view.
-- Proposals supports private browser drafts, public UNI-7 review, revisions,
-  threaded discussion, withdrawal and structured deliverables.
-- NETA Operations uses its DAO voting/staking contracts. Publishing requires DAO
-  voting power; comments require strictly more than 10 actively staked NETA.
-- Juno Governance reads native mainnet governance but uses the dedicated UNI-7
-  workshop `juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw`
-  for community review. Review writes require 1 delegated JUNOX plus 1 staked test
-  NETA. Native mainnet deposit, submission and voting are intentionally disabled.
-- Delivery, Treasury and Contributors communicate the intended product model.
-  Delivery and Contributors are still UX concepts. Treasury balances and daily
-  value history are live and read-only; forecasting, commitments, recurring cash
-  flow and runway are sample UX only.
-- Deliverables are stored inside `actions_json` as `dao_deliverable_v1`. They are
-  planning records, not executable Cosmos messages.
-- RELAY is the unified inbox. Its live read-only layer polls Operations and native
-  Juno governance, creates local notifications for new proposals, status changes
-  and content/revision changes, and opens the matching proposal in this workspace.
-  The compact inbox groups updates per proposal, supports search and a responsive
-  reading pane. Its Composer performs a read-only UNI-7 contract identity check.
-  DAO favorites, comparison baselines, notifications and read state are browser-local.
-  The first load establishes a read baseline instead of creating a false unread flood.
-- A separate read-only UNI-7 readiness diagnostic is available at `relay-uni7-readiness.html` for two wallet addresses. It checks contract identity and public device/inbox state only; it never signs, registers, decrypts or sends. This does not complete E2E testing.\n- The RELAY mailbox v0.1 is instantiated on UNI-7 at
-  `juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa`.
-  Its setup page `relay-testnet-setup.html` includes the pinned WASM, verifies its
-  checksum, and reported the deployed address after the user's Keplr signatures.
-  RELAY independently queries network, creator, label and code hash; if RPCs are
-  inaccessible it reports an unavailable check rather than claiming verification.
-  The message composer is UI-only until a reviewed Double Ratchet client is
-  connected. It does not transmit or persist plaintext. UNI-7 has no NETA stake
-  gate; the separate mainnet configuration
-  must require at least 5 actively staked NETA. See
-  `docs/RELAY_SECURITY_ARCHITECTURE.md`. The composer action reads `SEND MESSAGE`
-  and stays disabled while messaging is not active; there is no plaintext send.
-- `spikes/relay-corecrypto/browser-smoke.mjs` runs in GitHub Actions Chromium,
-  using pinned Wire CoreCrypto 10.5.3 in an isolated test fixture. It exercises
-  identity fingerprints, encrypted exchange/reply, out-of-order delivery, replay,
-  reload and a fail-closed outbox. The additional `browser-key-vault.mjs` creates
-  random CoreCrypto database keys, wraps them with a separate password, scopes
-  them to the UNI-7 wallet and rejects wrong password, cross-wallet reuse and
-  corrupted encrypted backup. The green PR #82 proves the browser fixture only.
-  It is not integrated with the site, and its encrypted key export alone cannot
-  restore the CoreCrypto database or message history.
-  The later `browser-device-backup.mjs` fixture snapshots CoreCrypto 10.5.3's
-  encrypted IndexedDB blocks plus that wrapped key. Chromium restored a device
-  in a fresh profile, matched its original fingerprint and decrypted a message
-  that had been encrypted before backup. This is an isolated layout-dependent
-  proof of unread-message recovery, not a shipped backup UI or proof that an
-  already-read chat history can be recovered. Used ratchet message keys may
-  be gone; readable history needs its own encrypted local archive in the same
-  wallet-bound backup. A stale backup must not resume sending without review.
-- NETA Names UI and contract draft were introduced in PR #69. Verify the live
-  Pages deployment before claiming the UI is available on the deployed site.
-  Its contract charges 5 NETA for first-year registration and forwards all fees to
-  the NETA DAO treasury `juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6`.
-  Annual renewals use a manually adjustable NETA quote targeting USD 5; there is
-  no automatic price oracle or universal wallet/DNS support. The shared-layout
-  `#names` page includes lookup and prepared Keplr registration/renewal flows,
-  all gated until the registry is verified and deployed. See `docs/NETA_NAMES_DESIGN.md`.
+| Task | Read next | Owning implementation |
+| --- | --- | --- |
+| Proposals / permissions | [REVIEW_ARCHITECTURE.md](REVIEW_ARCHITECTURE.md) | `neta-governance.js`; Juno v0.3.0 in `contracts/neta-proposal-workshop/`; legacy Operations source in the other repo |
+| Treasury | CURRENT_STATE Treasury section | `treasury.js`, `scripts/update_treasury.py`, `scripts/update_treasury_events.py` |
+| RELAY notifications / routing | CURRENT_STATE RELAY section | `relay.js`, `ux-draft.js`, `index.html`, `relay.css` |
+| Encrypted messaging | [Implementation plan](docs/RELAY_IMPLEMENTATION_PLAN.md), [live test runbook](docs/RELAY_UNI7_E2E_RUNBOOK.md) | `relay-uni7-lab.mjs`, `relay-uni7-client.mjs`, `relay-uni7-archive.mjs`, `spikes/relay-corecrypto/` |
+| Recovery | [Recovery decision](docs/RELAY_RECOVERY_DECISION.md) | Product direction only; no automatic backup service |
+| Names | [Names design](docs/NETA_NAMES_DESIGN.md) | `names.js`, `contracts/neta-names/src/lib.rs` |
+| UNI-7 deployment failure | [UNI7_DEPLOYMENT_RUNBOOK.md](UNI7_DEPLOYMENT_RUNBOOK.md) | Contract identity, checksum and state-based recovery |
 
-## RELAY recovery decision · 2026-09-27
+## Next concrete task
 
-The user chose automatic client-side encrypted, wallet-bound off-chain backups
-of both current ratchet/device state and a separate archive of already-readable
-message history, unlocked with a generated recovery code. This is a product
-direction, **not shipped**. The provider and synchronization protocol remain
-undecided. Keplr proves wallet control but does not reconstruct message keys or
-already-read history. Used ratchet keys stay deleted. A stale restore must not
-send before reconciliation or fresh registration; messages after the last
-confirmed backup may be lost. Backup plus code exposes included old texts.
-See `docs/RELAY_RECOVERY_DECISION.md` for UX and gates. The next session should
-review the user's RELAY UX annotations. PR #89's read-only two-address diagnostic
-is deployed and verified; no encrypted two-wallet E2E occurred. SEND MESSAGE
-and mainnet DMs remain disabled.
+Complete the **real two-Keplr-wallet UNI-7 encrypted lab test**. The device UI,
+GPL CoreCrypto runtime, mailbox adapter and encrypted local archive already
+exist. Do not rebuild them based on an older chat. Follow the runbook and record
+wallets, registrations, message IDs/sequences, transaction evidence and reload
+results without recording text, codes or secrets. No live exchange has been
+recorded. Existing CI exchange/reply/reload evidence uses mocked chain and wallets.
 
-## UNI-7 messaging integration boundary · 2026-09-27
+After that, address historical sender identity/rotation and crash recovery,
+then implement the agreed automatic encrypted backup. Do not activate the main
+composer or mainnet from a green lab test alone. Review the security/recovery
+gates first. Treasury accounting is the next separate product stream.
 
-The new `relay-uni7-client.mjs` is a browser-compatible, testnet-only
-Keplr/mailbox adapter. It verifies UNI-7 network, contract creator/label and
-pinned code hash; binds the selected Keplr address before reads and writes;
-requires a durable local crypto device before registration; refuses silent
-rotation; and reconciles an uncertain registration against on-chain state.
-`tests/relay-uni7-client.test.mjs` runs in frontend CI. This module is not
-yet loaded by the site: it has no key generation, sender session, decrypted
-inbox, archive, or usable send action. Never describe a green adapter test as
-a two-wallet E2E result. The main RELAY composer remains disabled.
+## Rules for accurate continuation
 
-The user selected the Wire CoreCrypto 10.5.3 GPL-3.0 path for this isolated lab.
-The pinned browser runtime and GPL license are distributed with the test page;
-source and build provenance are linked there. This is not an audit or mainnet approval. The existing isolated browser fixture is not a production
-asset. An Apache-2.0 Matrix alternative exists but its browser integration
-would need fresh protocol, persistence and interoperability work. Do not
-silently swap algorithms/libraries or publish the CoreCrypto bundle while the
-choice remains unresolved. PR #97 adds an isolated `relay-uni7-lab.html` with wallet-bound local device,
-Keplr registration, encrypted send/receive, separate encrypted local archive
-and restart unlock. Two independent Chromium profiles with mocked UNI-7/Keplr
-exchanged messages and read history after reload. This is a simulated fixture,
-not a real two-wallet UNI-7 result. Registration intent and incomplete send or
-receive state fail closed. The local unlock code is not an off-device backup;
-automatic encrypted backup is still unimplemented. The next step is two real
-Keplr wallets, registration, send, reply, receive and reload on UNI-7.
-The main RELAY SEND MESSAGE and mainnet DMs stay disabled.
+- `index.html` is the main application; `relay-uni7-lab.html` is a separate test.
+- Native Juno submission/voting is disabled. Operations mainnet voting has an
+  existing UI path. Operations review `voting` is not a mainnet proposal.
+- Operations legacy and Juno v0.3.0 are different APIs and permission models.
+  Never apply v0.3.0 hardening claims to the legacy instance.
+- Inbox polls mainnet proposals only; review-revision notifications are not connected.
+  Following owns favorites; Inbox has no watchlist sidebar.
+- Names is under RELAY; `REGISTRY=null`. Mainnet Names signing code is prepared,
+  not active. A requested UNI-7 Names test still needs explicit testnet wiring.
+- Delivery/Contributors and Treasury forecasts/commitments/runway are concepts.
+- Read timestamp and source for every data claim. A successful snapshot or Pages
+  run does not prove a live crypto flow, full accounting or current contract state.
+- Never request seeds/private keys. Wallet writes use explicit Keplr confirmation.
+- Preserve snapshots and unrelated work. Use branches/PRs; no destructive reset,
+  force push or silent transaction retry after an uncertain broadcast.
+- Update static asset query versions in `index.html` for JS/CSS changes.
+- CI is path-filtered. Inspect `.github/workflows/` for the checks actually triggered.
+  This repo has no general docs CI and no root npm package.
 
-## RELAY inbox UX · 2026-09-27
+## Known work to keep visible
 
-The Inbox reading pane displays the currently fetched proposal summary above
-activity; a missing source summary is stated explicitly. The duplicate compact
-watchlist was removed from the Inbox; DAO selection remains in Following.
-COMPOSE MESSAGE is the prominent inbox action but explicitly says PREVIEW · SEND
-DISABLED, and its submit control is disabled. Governance rows carry a textual
-GOVERNANCE label. Separate violet row styling is reserved for future verified
-private messages; no chat messages, sender identities or decrypted content are
-fabricated by this UI change. A real message type must render sender/conversation
-identity and accessible text as well as visual differentiation, after the UNI-7
-client passes its release gates.
-
-## RELAY navigation · 2026-09-27
-
-RELAY uses Inbox, Following and Names & Contacts as internal sections. Inbox is
-the default. Names is no longer a top-level workspace tab; legacy `#names`
-links canonicalize to `#relay/names`. `#relay/following` is directly linkable.
-The compact watchlist remains alongside Inbox and shares state with Following.
-The top DAO picker is hidden in RELAY in favor of ALL FOLLOWED DAOS, because the
-inbox spans followed DAOs. Names registry deployment remains pending; moving
-its UI does not activate registration or message sending. Privacy & Recovery
-stays a future section until a real feature exists.
-
-## Treasury architecture
-
-- `.github/workflows/treasury-snapshot.yml` runs every 15 minutes and commits only
-  changed snapshots. `scripts/update_treasury.py` collects balances and
-  `scripts/update_treasury_events.py` collects transaction-backed Operations events.
-- NETA Operations combines the Juno DAO core
-  `juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl` and its
-  DAO-controlled Osmosis Polytone proxy
-  `osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80`.
-- Juno Governance displays the native distribution-module Community Pool.
-- Denom identities and IBC traces are persisted in
-  `data/treasury/token-registry.json`. Never guess an unresolved denom.
-- LP tokens stay visible as positions and expand into proportional reserves. Their
-  reserve value is counted exactly once; do not also count the underlying as free
-  treasury assets.
-- Assets below USD 50 and unpriced assets are collapsed by default together with
-  technical warnings. They remain inspectable and are not silently discarded.
-- The collector is fail-closed and records source, block height and timestamp.
-  Current Juno REST fallbacks come from the Cosmos Chain Registry.
-- `data/treasury/events.json` monitors the Juno DAO core and the DAO-controlled
-  Osmosis Polytone proxy, deduplicates on `chain_id:tx_hash`, and keeps a durable
-  per-chain scan cursor. The scheduled collector safely replays both still-small
-  address indexes and merges idempotently. Juno providers must expose the historical
-  index; the Osmosis proxy is monitored even when a provider has no retained legacy
-  matches so new activity is captured immediately.
-- The Treasury Events frontend now reads that ledger. The default list is the three
-  latest non-technical value movements; `VIEW ALL` filters all confirmed inflows and
-  payments. Proposal titles are displayed inline and proposal badges open the
-  matching Operations proposal in the local Governance view. TX and counterparty
-  links use Atomscan for Juno and Mintscan for Osmosis. Pruned timestamps are
-  represented by exact block heights rather than estimates.
-
-## Operational rules
-
-- Never request or enter a seed phrase. All user transactions go through Keplr.
-- Do not enable a mainnet write merely because a UNI-7 flow works. Mainnet messages
-  require exact simulation, review and explicit user approval.
-- Preserve DAO/chain identity in every state key and asynchronous response; changing
-  the selector must never leak the prior DAO's data into the current view.
-- Use a feature branch, run the relevant tests, open a PR and merge only green CI.
-- Generated treasury snapshots may advance `main` while a PR is open. Rebase or
-  recreate the documentation commit on current `main`; never overwrite snapshots.
-- Increment the query version in `index.html` whenever changing a static CSS or JS
-  asset. The production site is aggressively cached; reusing `relay.css?v=1` and
-  `relay.js?v=1` previously left users on the obsolete three-column RELAY layout.
-
-## Verification
-
-```bash
-cargo test --locked --manifest-path contracts/neta-proposal-workshop/Cargo.toml
-cargo clippy --locked --all-targets --manifest-path contracts/neta-proposal-workshop/Cargo.toml -- -D warnings
-cargo test --locked --manifest-path contracts/workshop-access-mock/Cargo.toml
-cargo test --locked --manifest-path contracts/neta-names/Cargo.toml
-node --test tests/frontend-smoke.test.mjs
-node --test tests/relay-mailbox-status.test.mjs tests/relay-testnet-setup.test.mjs
-python -m py_compile scripts/update_treasury.py
-```
-
-Running `scripts/update_treasury.py` writes snapshots. Use it only when a fresh
-collection is intended; syntax and frontend tests are non-mutating.
-
-## Current incidents and open work
-
-- On 2026-09-21 two snapshot runs failed because Polkachu returned 502 while the old
-  Lavender endpoint no longer resolved. Later runs succeeded. The stale endpoint was
-  replaced with STAVR and PublicNode fallbacks; failures must still remain visible if
-  every provider is unavailable.
-- A Pages deployment timed out in GitHub's `updating_pages` phase after a successful
-  build. Later deployments succeeded; this was not an application build defect.
-- Treasury history uses the daily snapshots plus the current verified state. It
-  shows total value and attributes changes between comparable holdings to price
-  effect versus net token flow. It deliberately does not duplicate the live asset
-  list or add a separate custody-by-chain panel. Asset rows expose their chain and
-  custody address on hover/focus and inline on mobile. Fewer than two daily
-  observations remain explicitly unavailable rather than using sample values.
-- Operations Treasury Events and the Osmosis proxy are connected to the UI. Remaining
-  Treasury work is higher-level accounting: cross-chain IBC correlation beyond the
-  current custody consolidation, recurring income/expenses, proposal-linked
-  obligations, open milestone payments and derived runway.
-- RELAY notifications currently update while the page is open or regains focus.
-  There is no service worker, push delivery, backend account or cross-device read
-  state. Next: independently review CoreCrypto's GPL-3.0 browser distribution
-  implications, review and harden the layout-dependent full encrypted database
-  backup and restore flow, isolate wallets and concurrent tabs, bind decrypted envelope
-  identity to the on-chain registration, and prepare a test-only registration
-  UI. Then test two real Keplr wallets on UNI-7. Do not enable `SEND MESSAGE`
-  until this end-to-end flow passes; mainnet still needs the separate stake gate
-  and audit. See `docs/RELAY_IMPLEMENTATION_PLAN.md`.
-  A test-only Web Locks fixture now serializes same-origin tabs by physical
-  CoreCrypto database path and holds the lock through device backup. Production
-  wallet binding and crash lifecycle are still open.
-  The isolated encrypted-envelope fixture additionally rejects a mismatch
-  between decrypted sender/recipient/generations/message ID and the public
-  record, and checks the remote Proteus fingerprint. Historical sender
-  registration on rotation remains a contract/client design gap.
-- AtomOne is research only. Its reserved treasury address is not an active DAO;
-  AtomOne lacks CosmWasm for native Polytone deployment. ICA would create a separate
-  host-chain account and needs host support plus an adapter/controller design.
-
-## First steps for the next AI
-
-1. Read `README.md`, this file, `neta-governance.js`, `treasury.js` and the snapshot
-   workflow before proposing changes.
-2. Check current GitHub Actions and deployed pages; do not infer production from a
-   local branch.
-3. Confirm whether the task concerns NETA Operations, Juno Governance or both.
-4. Keep live/read-only, testnet-write and future/sample states visibly distinct.
-5. For RELAY messaging, continue from the deployed UNI-7 contract and isolated
-   browser crypto fixture. Do not mistake the fixture's wrapped key export for a
-   complete device backup or enable a fake send path.
+CURRENT_STATE records the actual gaps: Treasury async DAO-switch race, symbol-based
+attribution/denom heuristics, legacy proposal completeness limits, RELAY notification
+coverage limits, encrypted lab rotation/prekey/crash/backup gaps, and branch-specific
+runtime preparation. These are **unfixed observations**, not instructions to enable
+new behavior during a documentation task.
