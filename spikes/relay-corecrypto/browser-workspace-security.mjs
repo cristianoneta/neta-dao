@@ -61,6 +61,7 @@ try{
  delayOperations=false;
  await page.locator('#dao-search').fill('Operations');
  await page.locator('#dao-options button').filter({hasText:'NETA Operations DAO'}).click();
+ await page.locator('[data-workspace-view=governance]').click();
  await page.waitForFunction(()=>document.querySelector('#proposal-list').textContent.includes('Proposal 2'));
  await page.locator('#proposal-list button').filter({hasText:'Proposal 1'}).click();
  await page.locator('#proposal-list button').filter({hasText:'Proposal 2'}).click();
