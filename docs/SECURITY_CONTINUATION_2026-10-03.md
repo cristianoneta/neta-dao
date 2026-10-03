@@ -12,7 +12,7 @@ GitHub state before further integration; preserve subsequent data-bot commits.
 | #102 | `0bc53fb93fe95b07cb05e93563f6705624d9558d` | Contract/frontend 139; all four WASM build jobs in run 22 |
 | #103 | `9ee6cdf362d99538ec19cd5c13249cc22c291610` | [Contract/frontend 147](https://github.com/cristianoneta/neta-dao/actions/runs/37110056510); [RELAY browser 41](https://github.com/cristianoneta/neta-dao/actions/runs/37110056522) |
 
-All listed checks passed before merge. Website #137 and #138 also merged after
+All listed checks passed before merge. [Main push contract/frontend run 148](https://github.com/cristianoneta/neta-dao/actions/runs/37110369052) also passed after #103 was integrated. Website #137 and #138 also merged after
 their relevant website and production-data checks passed. Website main push 312,
 Pages 1122 and freshness 426 passed. Its bot commit `6faa4443a91227ac1705d385818772f20b902894`
 was preserved. DAO Treasury run 933 and Pages 1028 passed before #103; bot commit
