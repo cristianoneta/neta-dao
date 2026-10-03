@@ -4,6 +4,16 @@
 
 Review of first-party website and DAO contracts, wallet transaction flows, RELAY cryptography integration, data collectors, browser rendering, dependency manifests and CI. DAO baseline: `ce12e579c9035e898964d3a9e7d62ca6def29ef3`; website baseline: audit branch parent in `cristianoneta/neta-website`. This is a source review with targeted regression tests, not a formal cryptographic audit or certification of deployed chain state. Third-party chains, wallets and contracts are outside the assurance boundary. No real wallet secrets or live attack transactions were used.
 
+## 2026-10-03 valuation follow-up
+
+The T2 safety rule is retained. Its registry was incomplete for five legitimate
+Osmosis routes, causing a roughly USD 26 subtotal and false USD 4,000 history
+outflow despite unchanged holdings. PR #110 registers verified chain-scoped
+identities, keeps unknown routes unpriced, exposes subtotal warnings and withholds
+comparisons when price coverage changes. This follow-up repairs the regression;
+it does not weaken exact-identity pricing. See
+[Treasury valuation correction](TREASURY_VALUATION_FIX_2026-10-03.md).
+
 ## Findings
 
 | ID | Severity | Status | Finding and evidence |

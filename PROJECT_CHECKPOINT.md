@@ -4,6 +4,20 @@ Updated: **2026-10-03** after the interrupted chat. This is the continuation ind
 [CURRENT_STATE](docs/CURRENT_STATE.md) owns the feature inventory and
 [HANDOFF](HANDOFF.md) owns navigation and working rules.
 
+## Current user-facing work
+
+The owner requested progressive publication of the graphite/mint redesign.
+#108 shared foundations/Home and #109 mobile corrections are live. #110 corrects
+Treasury price coverage and its false history outflow; see the dedicated
+[incident record](docs/TREASURY_VALUATION_FIX_2026-10-03.md) for final release evidence.
+
+Tonight: resume Proposals detail/dialog/keyboard review, then Treasury responsive
+layouts, Delivery/Contributors and RELAY/Names/auxiliary pages. Shared styling is
+already applied, but full per-page QA is not complete. Preserve the approved
+assembly plaza/four voxel accents and consult `docs/DESIGN_SYSTEM.md`.
+
+The security priorities below remain release blockers, not a messaging release.
+
 ## Completed and verified
 
 - #100: signing denomination, async context, Treasury pricing and dependency fixes.

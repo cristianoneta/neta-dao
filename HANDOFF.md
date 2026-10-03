@@ -22,6 +22,27 @@ Baseline review: **2026-10-02**; security integration rechecked **2026-10-03**. 
 | Names | [Names design](docs/NETA_NAMES_DESIGN.md) | `names.js`, `contracts/neta-names/src/lib.rs` |
 | UNI-7 deployment failure | [UNI7_DEPLOYMENT_RUNBOOK.md](UNI7_DEPLOYMENT_RUNBOOK.md) | Contract identity, checksum and state-based recovery |
 
+## Evening checkpoint — 2026-10-03
+
+- Owner wants page-by-page publication. Shared graphite/mint theme and assembly
+  plaza shipped in #108; #109 mobile heading/selector corrections are live and
+  inspected. Design rules remain canonical in `docs/DESIGN_SYSTEM.md`.
+- Treasury #110 restores five verified, chain-scoped Osmosis price identities;
+  missing-price coverage no longer becomes a false history outflow. Read
+  `docs/TREASURY_VALUATION_FIX_2026-10-03.md` for incident, tests and live evidence.
+  Both PR checks, bot run 940 and Pages run 1043 succeeded; the 12:47 Berlin
+  snapshot showed USD 4,040.81 across nine holdings (one unpriced factory token).
+- Home was inspected at desktop and 320/768 px frames. Proposals list/filter and
+  existing-proposal selection worked on desktop; its narrow page had no document
+  overflow. Full per-page interaction/accessibility checks are still outstanding.
+- Continue with Proposals detail/dialog/keyboard states, then Treasury layouts,
+  Delivery/Contributors concepts and RELAY/Names/auxiliary pages. They already
+  inherit the shared theme; do not call the full design review complete.
+- Mainnet messaging remains disabled. No real keys or live attack transactions
+  were used. Preserve bot updates and pending crypto/transaction journals.
+- Fetch fresh GitHub main/open PRs and workflow state before continuing; recorded
+  totals and deployment hashes are timestamped evidence.
+
 ## Next concrete task
 
 The owner selected the modern graphite/mint design and voxel assembly plaza on
@@ -30,8 +51,8 @@ images, tokens, shared components, per-page rules and responsive acceptance crit
 The shared theme and Home implementation shipped in PR #108; Pages and live asset
 verification succeeded (see CURRENT_STATE). `neta-ui.css` owns
 foundations/components; existing module colors now refer to its tokens. Home desktop
-and 320/768 px layouts were inspected; a small mobile follow-up fixes heading word
-separation and chain-selector width. Continue with Proposals, Treasury,
+and 320/768 px layouts were inspected; #109 fixed heading word
+separation and chain-selector width and was rechecked live. Continue with Proposals, Treasury,
 Delivery/Contributors and RELAY/Names on the actual
 deployment, including the fixed-width review at `docs/design/responsive-preview.html`.
 Full per-page interaction/accessibility verification is still outstanding.
