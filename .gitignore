@@ -2,4 +2,11 @@ __pycache__/
 *.py[cod]
 target/
 
-node_modules/
+node_modules
+
+# Faucet runtime data and secrets never belong in the static site.
+*.sqlite*
+faucet/.env*
+faucet/secrets/
+
+artifacts/faucet-*.png

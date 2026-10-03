@@ -1,0 +1,28 @@
+name: UNI-7 faucet checks
+on:
+  pull_request:
+    paths: ['juno-faucet*', 'faucet/**', 'assets/faucet-signing.js', 'tests/juno-faucet.test.mjs', 'spikes/relay-corecrypto/browser-faucet.mjs', '.github/workflows/faucet-ci.yml']
+  push:
+    branches: [main]
+    paths: ['juno-faucet*', 'faucet/**', 'assets/faucet-signing.js', 'tests/juno-faucet.test.mjs', 'spikes/relay-corecrypto/browser-faucet.mjs', '.github/workflows/faucet-ci.yml']
+permissions:
+  contents: read
+jobs:
+  faucet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: faucet/package-lock.json
+      - run: npm ci --prefix faucet --ignore-scripts
+      - run: npm audit --prefix faucet --audit-level=high
+      - run: npm run build --prefix faucet && git diff --exit-code -- assets/faucet-signing.js
+      - run: npm test --prefix faucet
+      - run: node --test tests/juno-faucet.test.mjs
+      - run: npm ci --prefix spikes/relay-corecrypto
+      - run: cd spikes/relay-corecrypto && npx playwright install --with-deps chromium
+      - run: node spikes/relay-corecrypto/browser-faucet.mjs
