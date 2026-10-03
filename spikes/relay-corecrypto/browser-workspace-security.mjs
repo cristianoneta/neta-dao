@@ -76,6 +76,40 @@ try{
  assert.deepEqual(errors,[]);
  console.log('Workspace security: stale DAO snapshot, rapid proposal switch and malformed public marker passed');
 
+ // Names is part of the actual RELAY route, with read-only controls.
+ await page.goto(origin+'/index.html#relay/names');
+ assert.equal(await page.locator('#names-view').isVisible(),true);
+ assert.equal(await page.locator('.relay-hero').isVisible(),false);
+ assert.equal(await page.getByText('Explore the preview',{exact:true}).count(),0);
+ await page.getByRole('button',{name:'View NETA Operations DAO',exact:true}).click();
+ assert.equal(await page.locator('[data-name-panel="dao"]').isVisible(),true);
+ assert.match(await page.locator('#names-dao-address').textContent(),/^juno1excmam/);
+ assert.equal(await page.getByRole('button',{name:'Send NETA',exact:true}).isDisabled(),true);
+ await page.getByRole('button',{name:'← Back to directory',exact:true}).click();
+ await page.locator('#names-directory-query').fill('<img src=x onerror=alert(1)>');
+ assert.equal(await page.locator('#names-directory-list img').count(),0);
+ await page.locator('#names-directory-query').fill('cristiano');
+ await page.getByRole('button',{name:'Calculate name fee',exact:true}).click();
+ for(const [label,total] of [['abc','$640 USD'],['abcd','$160 USD'],['cristiano','$5 USD']]){
+  await page.locator('#names-fee-label').fill(label);
+  assert.equal(await page.locator('#names-fee-total').textContent(),total);
+ }
+ await page.locator('#names-fee-years').selectOption('3');
+ assert.equal(await page.locator('#names-fee-total').textContent(),'$15 USD');
+ await page.locator('#names-fee-label').fill('ab');
+ assert.equal(await page.locator('#names-fee-label').getAttribute('aria-invalid'),'true');
+ assert.equal(await page.getByRole('button',{name:'REGISTER · COMING SOON',exact:true}).isDisabled(),true);
+ for(const width of [320,390,768,1440]){
+  await page.setViewportSize({width,height:1000});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'Names overflow at '+width);
+ }
+ assert.equal(await page.locator('.names-heading h1').evaluate(el=>getComputedStyle(el).color),'rgb(242, 244, 247)');
+ await page.locator('[data-relay-panel="inbox"]').click();
+ assert.equal(await page.locator('.relay-hero').isVisible(),true);
+ assert.equal(await page.locator('#names-view').isVisible(),false);
+ assert.deepEqual(errors,[]);
+ console.log('Integrated Names: routing, contrast, responsive fee form, tariffs and disabled writes passed');
+
  // Exercise the actual shared generated bundle with synthetic TxRaw data only.
  const attempt=()=>page.evaluate(async()=>{
    let signs=0,broadcasts=0;
@@ -92,3 +126,4 @@ try{
  console.log('Shared signing bundle: exact signed transaction journal blocks repeated signatures after reload');
  await context.close();
 }finally{await browser?.close();server.close();}
+

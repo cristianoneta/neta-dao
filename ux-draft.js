@@ -25,6 +25,7 @@
       button.setAttribute("aria-pressed",String(active));
     });
     document.body.dataset.workspaceView=view;
+    document.body.dataset.relayPanel=panel;
     const target=view==="relay"?(panel==="inbox"?"#relay":`#relay/${panel}`):`#${view}`;
     try{localStorage.setItem(VIEW_STORAGE_KEY,target.slice(1))}catch{}
     if(updateHash&&window.location.hash!==target)history.replaceState(null,"",target);
@@ -60,3 +61,4 @@
   if(!initialView||!(initialView in views)&&!["names","relay/inbox","relay/following","relay/names"].includes(initialView))try{initialView=localStorage.getItem(VIEW_STORAGE_KEY)||"home"}catch{initialView="home"}
   selectView(initialView,{updateHash:true,scroll:false});
 })();
+

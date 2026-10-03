@@ -202,11 +202,14 @@ do not infer a blanket repository license from the vendor license.
 
 ## Names and concept modules
 
-Names v2 UI preview: `docs/design/names-v2-prototype.html`, linked from the Names
-page. It contains example profiles and simulated actions only. The planned USD
-5/160/640 fee tiers are now described in the public page, but the inactive v1 source
-below still implements its old fee policy. See `NETA_NAMES_V2_PLAN.md` and
-`NAMES_V2_UI_REVIEW.md` for agreed rules, validation and publication status.
+Names & Contacts is integrated into the main RELAY page at `index.html#relay/names`.
+`names-workspace.js` owns directory search, DAO detail/address copy, navigation and
+the USD fee calculator. It uses shared `names.css`/`neta-ui.css` foundations.
+The separate prototype link and simulated accounts/actions are removed. The old
+prototype URL redirects here. Contacts, profile edits, DAO profile proposals and
+payments have honest unavailable states pending their backing services. The fee
+calculator is not an availability check or a live NETA quote. Names v1 remains
+inactive and is not wired to the new fee form. See `NAMES_MAIN_PAGE_INTEGRATION.md`.
 
 
 `names.js` has `REGISTRY=null`; no active name registry is configured. Existing
