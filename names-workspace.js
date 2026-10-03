@@ -7,7 +7,9 @@
   const panels = [...root.querySelectorAll("[data-name-panel]")];
   const status = find("#names-ui-status");
   const query = find("#names-directory-query");
-  const directory = [{id:"neta-operations",title:"NETA Operations DAO",name:"neta-operations.dao.neta",address:find("#names-dao-address").textContent.trim()},{id:"juno",title:"Juno Governance",name:"",address:""}];
+  const directory = window.NetaDaoDirectory.map(dao=>({...dao,title:dao.profileName||dao.name,name:dao.directoryName,address:dao.core||""}));
+  let activeDao=directory[0];
+
   function element(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -33,8 +35,8 @@
       if (heading) { heading.tabIndex = -1; heading.focus({preventScroll:true}); }
     }
   }
-  function navigate(panel) { window.dispatchEvent(new CustomEvent("neta:navigate-relay", {detail:{panel}})); }
-  window.addEventListener("neta:relay-panel", event => show(event.detail.panel, event.detail.focus));
+  function navigate(panel,dao) { window.dispatchEvent(new CustomEvent("neta:navigate-relay", {detail:{panel,dao}})); }
+  window.addEventListener("neta:relay-panel", event => {if(event.detail.panel==="dao")renderDao(event.detail.dao);show(event.detail.panel, event.detail.focus)});
   root.addEventListener("click", event => {
     const button = event.target.closest("button[data-name-view]");
     if (button && !button.disabled) navigate(button.dataset.nameView);
@@ -55,10 +57,10 @@
     const star = element("i", null, "☆"); star.setAttribute("aria-hidden", "true");
     const label = element("span", null, "Follow"); label.dataset.followLabel = "";
     follow.append(star, label); actions.append(follow);
-    if (entry.id === "neta-operations") {
+    {
       const button = element("button", null, "View profile"); button.type = "button";
       button.setAttribute("aria-label", `View ${entry.title}`);
-      button.addEventListener("click", () => navigate("dao")); actions.append(button);
+      button.addEventListener("click", () => navigate("dao",entry.id)); actions.append(button);
     }
     row.append(avatar, identity, actions); list.append(row);
   }
@@ -97,9 +99,30 @@
   find("#names-fee-form").addEventListener("submit", event => { event.preventDefault(); updateFee(); });
   find("#names-fee-label").addEventListener("input", updateFee);
   find("#names-fee-years").addEventListener("change", updateFee);
-  find("#names-copy-address").addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(directory[0].address); announce("Juno DAO address copied."); }
-    catch { announce("Copy is unavailable in this browser. Select and copy the full address below."); }
-  });
-  renderDirectory(); show(document.body.dataset.relayPanel || "directory", false);
+  function workspace(dao,view) {
+    window.dispatchEvent(new CustomEvent("neta:select-dao",{detail:{id:dao.id}}));
+    document.querySelector(`button[data-workspace-view="${view}"]`).click();
+  }
+  function renderDao(id) {
+    activeDao=directory.find(dao=>dao.id===id);
+    const dao=activeDao,host=find("#names-dao-profile");host.replaceChildren();
+    if(!dao){host.append(element("h2",null,"Unknown DAO"),element("p","names-help","This DAO is not in the verified directory. Return to the directory to choose an available profile."));return;}
+    const layout=element("div","names-layout"),profile=element("article","names-panel"),address=element("aside","names-panel");
+    profile.append(element("span","names-badge",dao.mode==="native-gov"?"Network governance":"DAO · directory entry"),element("h2",null,dao.title),element("p","names-identity",dao.directoryName),element("p","names-help","Directory name · not registered on-chain · name-based payments unavailable"),element("p",null,dao.description));
+    const follow=element("button");follow.type="button";follow.dataset.relayDao=dao.id;follow.setAttribute("aria-pressed","false");follow.setAttribute("aria-label",`Follow ${dao.title}`);const star=element("i",null,"☆");star.setAttribute("aria-hidden","true");const label=element("span",null,"Follow");label.dataset.followLabel="";follow.append(star,label);profile.append(follow);
+    const details=element("details","names-info");details.append(element("summary",null,"About this identity"),element("p",null,dao.mode==="native-gov"?"This directory label identifies Juno's native governance module on juno-1. It is not a DAO contract or a normal receiving address. Future registry binding requires a native-governance authorization adapter.":"The directory name is bound here to the Juno DAO core. Its label is derived from the DAO name by removing one trailing DAO. Directory publication does not mean the DAO has approved this profile."),element("p",null,"On-chain DAO names and profile changes remain unavailable until the registry and governance adapters are verified."));profile.append(details);
+    profile.append(element("h3",null,"Who can participate?"),element("p",null,dao.membership));
+    const actions=element("div","names-actions");for(const [text,view] of [["View proposals","governance"],["View treasury","treasury"],["View participation","contributors"]]){const b=element("button",null,text);b.type="button";b.onclick=()=>workspace(dao,view);actions.append(b)}profile.append(actions);
+    const edit=element("button",null,"Propose a profile change");edit.type="button";edit.disabled=true;edit.setAttribute("aria-describedby","names-dao-edit-help");const help=element("p","names-help","Profile governance becomes available with the DAO profile registry.");help.id="names-dao-edit-help";profile.append(edit,help);
+    address.append(element("h3",null,dao.core?"DAO address":"Community Pool"),element("p","names-help","Juno · juno-1"));
+    const full=element("p","names-address",dao.core||"Native distribution module · no ordinary receiving address");full.id="names-dao-address";address.append(full);
+    if(dao.core){const copy=element("button",null,"Copy address");copy.type="button";copy.id="names-copy-address";copy.onclick=async()=>{try{await navigator.clipboard.writeText(dao.core);announce("Juno DAO address copied.")}catch{announce("Select and copy the full address above.")}};address.append(copy,element("p","names-help","Verify this core address and network before sending funds."));}
+    else address.append(element("p",null,"Community Pool funding requires the supported chain transaction. Do not send tokens to the directory name."));
+    for(const label of ["Send NETA","Save contact"]){const b=element("button",null,label);b.type="button";b.disabled=true;address.append(b)}
+    address.append(element("p","names-help","Name-based payments and wallet-linked contacts are not available yet."));layout.append(profile,address);host.append(layout);
+    if(dao.id==="neta"){const members=element("section","names-panel");host.append(members);window.NetaDaoMembers.mount(members,dao);}
+    window.dispatchEvent(new Event("neta:directory-profile"));
+  }
+  renderDirectory(); if(document.body.dataset.relayPanel==="dao")renderDao(location.hash.split("/")[2]); show(document.body.dataset.relayPanel || "directory", false);
 })();
+

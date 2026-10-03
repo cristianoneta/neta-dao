@@ -16,7 +16,7 @@ let browser;
 const json=(route,data)=>route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(data)});
 const proposal=id=>({id,author:'juno1'+'q'.repeat(38),title:'Proposal '+id,status:'discussion',current_revision:1,created_time:id});
 try{
- browser=await chromium.launch({headless:true});
+ browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}: {})});
  const context=await browser.newContext();
  await context.route('https://**/*',async route=>{
   const url=new URL(route.request().url());
@@ -25,7 +25,7 @@ try{
    let data=[];
    if(query.config)data={owner:'owner'};
    if(query.proposals)data=query.proposals.start_after?[]:[proposal(1),proposal(2)];
-   if(query.reverse_proposals)data={proposals:[]};
+   if(query.reverse_proposals)data={proposals:url.pathname.includes('juno13z0mu9cyd0rj9cwr0hgwm9rxl8g9zwleqjg6pulcyypts26nua8qkzmlg0')?[3,2,1].map(id=>({id,proposal:{title:['','Initial proposal','LLC Operating Agreement Ratification','Ratify Neta DAO Constitution'][id],description:'Historical main DAO decision '+id,status:'executed',votes:{yes:'1000000',no:'0',abstain:'0'},msgs:[],expiration:{at_height:100}}})):[]};
    if(query.revisions){const id=query.revisions.proposal_id;
     if(id===1)await new Promise(resolve=>setTimeout(resolve,350));
     data=[{revision:1,author:'author',title:'Proposal '+id,summary:'Summary '+id,body:'Body '+id,actions_json:'[]',created_time:id,change_note:'Initial'}];
@@ -46,10 +46,12 @@ try{
   const path=new URL(route.request().url()).pathname;
   if(path.endsWith('current.json')&&delayOperations)await new Promise(resolve=>setTimeout(resolve,500));
   if(path.endsWith('history.json'))return json(route,{snapshots:[]});
+  if(path.endsWith('neta-main-events.json'))return json(route,{scope:'neta-main-dao',treasuries:[{chain_id:'juno-1',address:'juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6'}],status:'UNAVAILABLE',events:[]});
   if(path.endsWith('events.json'))return json(route,{events:[]});
   const juno=path.endsWith('juno-community-pool.json');
-  return json(route,{generated_at:'2026-10-02T20:00:00Z',height:1,status:'LIVE',total_usd:juno?'200':'100',price_source:'mock',assets:[{type:'token',symbol:'JUNO',amount:'1',usd_value:juno?'200':'100'}]});
+  return json(route,{chain_id:'juno-1',treasury_type:'dao-core',treasury_address:path.endsWith("neta-main.json")?"juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6":undefined,generated_at:'2026-10-02T20:00:00Z',height:1,status:'LIVE',total_usd:juno?'200':'100',price_source:'mock',assets:[{type:'token',symbol:'JUNO',amount:'1',usd_value:juno?'200':'100'}]});
  });
+ await context.route('**/data/daos/neta.json',route=>json(route,{chain_id:'juno-1',token_contract:'juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr',core:'juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6',voting_module:'juno1839rlmw33avduccuhpnv6cqxsdlwpz87vq8g6x6jkfrdzpwtl8nsgf20f4',staking_contract:'juno1a7x8aj7k38vnj9edrlymkerhrl5d4ud3makmqhx6vt3dhu0d824qh038zh',members_complete:true,members:[{address:'juno1'+'q'.repeat(38),power_raw:'1000000'}],total_power_raw:'1000000',height:100,generated_at:'2026-10-03T18:00:00Z'}));
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(origin+'/index.html');
  await page.locator('#dao-search').fill('Juno');
@@ -162,6 +164,77 @@ try{
  assert.deepEqual(errors,[]);
  console.log('Integrated Names: routing, contrast, responsive fee form, tariffs and disabled writes passed');
 
+ await page.getByRole('button',{name:'RELAY',exact:true}).click();
+ await page.locator('[data-relay-panel="directory"]').click();
+ await page.locator('#names-directory-query').fill('');
+ await page.getByRole('button',{name:'View Juno Governance',exact:true}).click();
+ assert.equal(new URL(page.url()).hash,'#relay/dao/juno');
+ assert.match(await page.locator('#names-dao-profile').textContent(),/juno-governance.dao.neta/);
+ assert.equal(await page.locator('#names-copy-address').count(),0);
+ await page.getByRole('button',{name:'← Back to directory',exact:true}).click();
+ await page.getByRole('button',{name:'View Neta DAO',exact:true}).click();
+ assert.equal(new URL(page.url()).hash,'#relay/dao/neta');
+ assert.match(await page.locator('#names-dao-address').textContent(),/^juno1c5v6/);
+ await page.getByRole('button',{name:'View participation',exact:true}).click();
+ assert.equal(await page.locator('#dao-search').inputValue(),'Neta DAO');
+ await page.waitForFunction(()=>document.querySelector('#dao-members-panel').textContent.includes('1 active staking addresses'));
+ await page.getByRole('button',{name:'Treasury',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('#treasury-live-status').textContent.includes('NETA DAO'));
+ assert.equal(await page.locator('#treasury-nns').isVisible(),true);
+ assert.match(await page.locator('#treasury-events').textContent(),/history unavailable/i);
+ assert.equal(await page.locator('.allocation-card').isVisible(),false);
+ assert.equal(await page.locator('.treasury-bottom-grid').isVisible(),false);
+ assert.doesNotMatch(await page.locator('.treasury-events-note').textContent(),/OSMOSIS/i);
+ assert.match(await page.locator('#treasury-nns').textContent(),/Not active yet/);
+ await page.getByRole('button',{name:'Proposals',exact:true}).click();
+ assert.equal(await page.locator('#primary-action').isDisabled(),true);
+ assert.match(await page.locator('#action-hint').textContent(),/not connected/);
+ await page.waitForFunction(()=>document.querySelector('#proposal-list').textContent.includes('Ratify Neta DAO Constitution'));
+ await page.locator('#proposal-list button').filter({hasText:'Ratify Neta DAO Constitution'}).click();
+ assert.equal(await page.locator('#proposal-heading').textContent(),'Ratify Neta DAO Constitution');
+ assert.match(await page.locator('#action-hint').textContent(),/Neta DAO proposal module/);
+ assert.equal(await page.locator('#vote-actions').isVisible(),false);
+ await page.reload();
+ assert.equal(await page.locator('#dao-search').inputValue(),'Neta DAO');
+ for(const width of [320,768,1440]){
+  await page.setViewportSize({width,height:1000});
+  await page.getByRole('button',{name:'Contributors',exact:true}).click();
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'main DAO member overflow');
+ }
+ assert.deepEqual(errors,[]);
+ console.log('DAO onboarding: Juno/native identity, NETA profile, membership, treasury scope, disabled writes and persistence passed');
+ // Reject unknown directory routes instead of displaying Operations identity.
+ await page.goto(origin+'/index.html#relay/dao/not-a-dao');
+ assert.match(await page.locator('#names-dao-profile').textContent(),/Unknown DAO/);
+ assert.equal(await page.locator('#names-copy-address').count(),0);
+ // Snapshot identity checks include chain and voting token.
+ await context.route('**/data/daos/neta.json',route=>json(route,{chain_id:'wrong-chain',members_complete:true,members:[]}));
+ await page.goto(origin+'/index.html#relay/dao/neta');await page.reload();
+ await page.waitForFunction(()=>document.querySelector('#names-dao-profile').textContent.includes('Membership unavailable'));
+ await context.unroute('**/data/daos/neta.json');
+ // Wrong event scope cannot masquerade as the selected DAO's payments.
+ await context.route('**/data/treasury/neta-main-events.json*',route=>json(route,{scope:'neta-operations-cross-chain',events:[{title:'FOREIGN PAYMENT'}]}));
+ await page.getByRole('button',{name:'View treasury',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('#treasury-events').textContent.includes('source identity'));
+ assert.doesNotMatch(await page.locator('#treasury-events').textContent(),/FOREIGN PAYMENT/);
+ await context.unroute('**/data/treasury/neta-main-events.json*');
+ if(process.env.SCREENSHOT_DIR){
+  // Use actual committed snapshots for visual review, while chain queries stay synthetic.
+  await context.unroute('**/data/treasury/**');
+  const {mkdir}=await import('node:fs/promises');await mkdir(process.env.SCREENSHOT_DIR,{recursive:true});
+  for(const width of [320,768,1440]){
+   await page.setViewportSize({width,height:1000});
+   for(const view of ['treasury','contributors','relay/dao/neta','relay/dao/juno']){
+    await page.goto(origin+'/index.html#'+view);await page.reload();await page.waitForTimeout(500);
+    await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+    assert.equal(await page.locator('.gov-header').evaluate(el=>Math.round(el.getBoundingClientRect().top)),0,'header at page top');
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,view+' real snapshot overflow '+width);
+    await page.screenshot({path:process.env.SCREENSHOT_DIR+'/'+view.replaceAll('/','-')+'-'+width+'.png',fullPage:true});
+   }
+  }
+ }
+
+
  // Exercise the actual shared generated bundle with synthetic TxRaw data only.
  const attempt=()=>page.evaluate(async()=>{
    let signs=0,broadcasts=0;
@@ -178,5 +251,6 @@ try{
  console.log('Shared signing bundle: exact signed transaction journal blocks repeated signatures after reload');
  await context.close();
 }finally{await browser?.close();server.close();}
+
 
 

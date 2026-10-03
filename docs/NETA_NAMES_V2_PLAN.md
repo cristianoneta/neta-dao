@@ -184,3 +184,12 @@ USD reference and quote thresholds, and verify DAO identity/recipient coverage.
 Names v1 signing remains inactive. The site links to the preview and displays the
 planned v2 tariff; contracts, production data and crypto journals are unchanged.
 
+
+## DAO directory boundary — 2026-10-03
+
+The onboarding integration supplies local directory profiles for Operations,
+Neta DAO and Juno governance from `data/dao-directory.json`. Their `.dao.neta`
+labels are not on-chain registrations and cannot receive name-based payments.
+No registry, fee collector or profile-governance adapter is activated by this
+integration. Main DAO Treasury displays NNS revenue as inactive, not zero.
+See [the integration record](DAO_ONBOARDING_2026-10-03.md).

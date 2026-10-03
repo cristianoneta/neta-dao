@@ -150,11 +150,11 @@ def native_metadata(denom, providers=RESTS, source_chain="juno"):
     if registered is not None:
         return dict(registered)
     if not denom.startswith("ibc/"):
-        return dict(BASE_ASSETS.get(denom, {"symbol": denom, "decimals": 6}))
+        return dict(BASE_ASSETS.get(denom, {"symbol": denom, "decimals": None}))
     trace, _ = rest(f"/ibc/apps/transfer/v1/denom_traces/{denom[4:]}", providers)
     trace = trace.get("denom_trace", trace)
     base = trace.get("base_denom", "")
-    fallback = {"symbol": base or denom[:18] + "…", "decimals": 6}
+    fallback = {"symbol": base or denom[:18] + "…", "decimals": None}
     # A ticker/base denom does not identify an IBC asset: origin and route matter.
     # Only exact denoms in the reviewed registry receive a market price.
     result = fallback
@@ -168,11 +168,13 @@ def native_assets(coins, market, warnings, source_chain="juno", custody_address=
         try:
             meta = native_metadata(coin["denom"], providers, source_chain)
         except Exception as error:
-            meta = {"symbol": coin["denom"][:18] + "…", "decimals": 6}
+            meta = {"symbol": coin["denom"][:18] + "…", "decimals": None}
             warnings.append(f"Denom trace unavailable for {coin['denom']}: {error}")
-        amount = decimal(coin["amount"], meta["decimals"])
+        amount = decimal(coin["amount"], meta["decimals"]) if meta["decimals"] is not None else None
+        if amount is None:
+            warnings.append(f"Unknown decimals for {coin['denom']}; quantity shown in raw units")
         price = market.get(meta.get("coingecko"), {}).get("usd")
-        result.append({"type": "token", "key": f"{source_chain}:native:" + coin["denom"], "symbol": meta["symbol"], "amount": str(amount), "origin": meta.get("origin", source_chain.title()), "source_chain": source_chain, "custody_address": custody_address, "ibc_path": meta.get("ibc_path"), "base_denom": meta.get("base_denom", coin["denom"]), "usd_price": str(price) if price is not None else None, "usd_value": str(amount * price) if price is not None else None, "change_24h": market.get(meta.get("coingecko"), {}).get("change_24h")})
+        result.append({"type": "token", "key": f"{source_chain}:native:" + coin["denom"], "symbol": meta["symbol"], "amount": str(amount) if amount is not None else None, "raw_amount": str(coin["amount"]), "decimals": meta["decimals"], "origin": meta.get("origin", "IBC" if coin["denom"].startswith("ibc/") else source_chain.title()), "source_chain": source_chain, "custody_address": custody_address, "ibc_path": meta.get("ibc_path"), "base_denom": meta.get("base_denom", coin["denom"]), "usd_price": str(price) if price is not None else None, "usd_value": str(amount * price) if price is not None and amount is not None else None, "change_24h": market.get(meta.get("coingecko"), {}).get("change_24h")})
     return result
 
 
@@ -189,23 +191,23 @@ def snapshot_result(stamp, height, endpoint, price_source, assets, warnings, tre
     return {"schema_version": 1, "status": "LIVE" if not unresolved else "PARTIAL", "generated_at": stamp, "chain_id": "juno-1", "height": height, "treasury_type": treasury_type, "treasury_address": treasury_address, "balance_source": endpoint, "price_source": price_source, "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.", "total_usd": str(total), "assets": assets, "warnings": warnings}
 
 
-def build_operations(market, price_source, stamp, height):
-    bank, endpoint = rest(f"/cosmos/bank/v1beta1/balances/{TREASURY}?pagination.limit=1000")
-    osmosis_bank, osmosis_endpoint = rest(f"/cosmos/bank/v1beta1/balances/{OSMOSIS_TREASURY}?pagination.limit=1000", OSMOSIS_RESTS)
+def build_operations(market, price_source, stamp, height, address=TREASURY, cross_chain=True):
+    bank, endpoint = rest(f"/cosmos/bank/v1beta1/balances/{address}?pagination.limit=1000")
+    osmosis_bank, osmosis_endpoint = rest(f"/cosmos/bank/v1beta1/balances/{OSMOSIS_TREASURY}?pagination.limit=1000", OSMOSIS_RESTS) if cross_chain else ({"balances": []}, None)
     warnings = []
-    free = native_assets(bank.get("balances", []), market, warnings)
+    free = native_assets(bank.get("balances", []), market, warnings, custody_address=address)
     free.extend(native_assets(osmosis_bank.get("balances", []), market, warnings, "osmosis", OSMOSIS_TREASURY, OSMOSIS_RESTS))
     for contract, meta in CW20.items():
-        response, _ = smart(contract, {"balance": {"address": TREASURY}})
+        response, _ = smart(contract, {"balance": {"address": address}})
         amount = decimal(response.get("balance", "0"), meta["decimals"])
         if amount:
-            free.append({"type": "token", "key": "cw20:" + contract, "symbol": meta["symbol"], "amount": str(amount), "source_chain": "juno", "custody_address": TREASURY, "usd_price": None, "usd_value": None, "change_24h": None})
+            free.append({"type": "token", "key": "cw20:" + contract, "symbol": meta["symbol"], "amount": str(amount), "source_chain": "juno", "custody_address": address, "usd_price": None, "usd_value": None, "change_24h": None})
 
     pool_states = {}
     for name, lp, pair, stake in POOLS:
-        balance, _ = smart(lp, {"balance": {"address": TREASURY}})
-        staked, _ = smart(stake, {"all_staked": {"address": TREASURY}})
-        claims, _ = smart(stake, {"claims": {"address": TREASURY}})
+        balance, _ = smart(lp, {"balance": {"address": address}})
+        staked, _ = smart(stake, {"all_staked": {"address": address}})
+        claims, _ = smart(stake, {"claims": {"address": address}})
         active_raw = sum(int(row.get("stake", "0")) for row in staked.get("stakes", []))
         claims_raw = sum(int(row.get("amount", "0")) for row in claims.get("claims", []))
         direct_raw = int(balance.get("balance", "0"))
@@ -222,10 +224,10 @@ def build_operations(market, price_source, stamp, height):
             raw = int(asset["amount"]) * lp_raw // supply
             amount = decimal(raw, meta["decimals"])
             price = market.get(meta.get("coingecko"), {}).get("usd")
-            underlyings.append({"key": key, "symbol": meta["symbol"], "amount": str(amount), "usd_price": str(price) if price is not None else None, "usd_value": str(amount * price) if price is not None else None})
+            underlyings.append({"key": key, "symbol": meta["symbol"], "amount": str(amount), "usd_price": str(price) if price is not None else None, "usd_value": str(amount * price) if price is not None and amount is not None else None})
         pool_states[pair] = (pool, underlyings)
         value = sum((Decimal(item["usd_value"]) for item in underlyings if item["usd_value"] is not None), Decimal(0))
-        free.append({"type": "lp", "key": "cw20:" + lp, "symbol": name + " LP", "amount": str(decimal(lp_raw, int(token_info.get("decimals", 6)))), "source_chain": "juno", "custody_address": TREASURY, "usd_price": None, "usd_value": str(value), "change_24h": None, "pair": pair, "custody": {"direct_raw": str(direct_raw), "staked_raw": str(active_raw), "claims_raw": str(claims_raw)}, "underlyings": underlyings})
+        free.append({"type": "lp", "key": "cw20:" + lp, "symbol": name + " LP", "amount": str(decimal(lp_raw, int(token_info.get("decimals", 6)))), "source_chain": "juno", "custody_address": address, "usd_price": None, "usd_value": str(value), "change_24h": None, "pair": pair, "custody": {"direct_raw": str(direct_raw), "staked_raw": str(active_raw), "claims_raw": str(claims_raw)}, "underlyings": underlyings})
 
     derived_pairs = ((NETA, "JUNO / NETA", "native:ujuno"), (WYND, "WYND / USDC", "native:ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034"))
     for contract, pool_name, anchor_key in derived_pairs:
@@ -254,8 +256,8 @@ def build_operations(market, price_source, stamp, height):
         else:
             warnings.append(f"{CW20[contract]['symbol']} price unavailable: {pool_name} pool or USD anchor missing")
 
-    result = snapshot_result(stamp, height, endpoint, price_source, free, warnings, "dao-and-cross-chain", TREASURY)
-    result["treasury_accounts"] = [{"chain_id": "juno-1", "address": TREASURY, "control": "dao-core", "balance_source": endpoint}, {"chain_id": "osmosis-1", "address": OSMOSIS_TREASURY, "control": "polytone-proxy", "balance_source": osmosis_endpoint}]
+    result = snapshot_result(stamp, height, endpoint, price_source, free, warnings, "dao-and-cross-chain" if cross_chain else "dao-core", address)
+    result["treasury_accounts"] = [{"chain_id": "juno-1", "address": address, "control": "dao-core", "balance_source": endpoint}] + ([{"chain_id": "osmosis-1", "address": OSMOSIS_TREASURY, "control": "polytone-proxy", "balance_source": osmosis_endpoint}] if cross_chain else [])
     return result
 
 
@@ -266,12 +268,20 @@ def build_community_pool(market, price_source, stamp, height):
     return snapshot_result(stamp, height, endpoint, price_source, assets, warnings, "community-pool")
 
 
-def build():
+def build(dao_id="neta-operations"):
     stamp = now()
     height_data, _ = rest("/cosmos/base/tendermint/v1beta1/blocks/latest")
     height = int(height_data["block"]["header"]["height"])
     price_ids = [item["coingecko"] for item in [*BASE_ASSETS.values(), *ASSETS.values()] if item.get("coingecko")]
     market, price_source = prices(price_ids)
+    dao = next(d for d in json.loads((ROOT / "data/dao-directory.json").read_text())["daos"] if d["id"] == "neta")
+    if height_data["block"]["header"]["chain_id"] != "juno-1":
+        raise RuntimeError("Treasury chain identity mismatch")
+    if dao_id == "neta":
+        config, _ = smart(dao["core"], {"config": {}})
+        if config.get("name") != dao["name"]:
+            raise RuntimeError("Main DAO identity mismatch")
+        return build_operations(market, price_source, stamp, height, dao["core"], False)
     return build_operations(market, price_source, stamp, height), build_community_pool(market, price_source, stamp, height)
 
 
@@ -284,6 +294,8 @@ def write_snapshot(snapshot, name="current", history_name="history"):
         history = json.loads(history_path.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError):
         history = {"schema_version": 1, "snapshots": []}
+    if name == "neta-main":
+        history.update({"chain_id": snapshot["chain_id"], "treasury_address": snapshot["treasury_address"]})
     day = snapshot["generated_at"][:10]
     compact = {key: snapshot[key] for key in ("generated_at", "height", "status", "total_usd")}
     compact["assets"] = [
@@ -292,6 +304,8 @@ def write_snapshot(snapshot, name="current", history_name="history"):
             "symbol": item.get("symbol"),
             "source_chain": item.get("source_chain", "juno"),
             "amount": item["amount"],
+            "raw_amount": item.get("raw_amount"),
+            "decimals": item.get("decimals"),
             "usd_price": item.get("usd_price"),
             "usd_value": item.get("usd_value"),
             **({"underlyings": item["underlyings"]} if "underlyings" in item else {}),
@@ -309,11 +323,16 @@ def write_snapshot(snapshot, name="current", history_name="history"):
 
 
 if __name__ == "__main__":
-    try:
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dao", choices=["neta-operations", "neta"], default="neta-operations")
+    args = parser.parse_args()
+    if args.dao == "neta":
+        snapshot = build("neta")
+        write_snapshot(snapshot, "neta-main", "neta-main-history")
+        print(json.dumps({"dao": "neta", "status": snapshot["status"], "assets": len(snapshot["assets"])}))
+    else:
         operations, community = build()
         write_snapshot(operations)
         write_snapshot(community, "juno-community-pool", "juno-community-history")
-        print(json.dumps({"operations": {"status": operations["status"], "assets": len(operations["assets"]), "total_usd": operations["total_usd"]}, "juno_community_pool": {"status": community["status"], "assets": len(community["assets"]), "total_usd": community["total_usd"]}, "height": operations["height"]}))
-    except Exception as error:
-        print(f"treasury snapshot failed: {error}", file=sys.stderr)
-        raise
+        print(json.dumps({"operations": operations["status"], "community": community["status"], "height": operations["height"]}))

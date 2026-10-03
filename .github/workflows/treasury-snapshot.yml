@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "scripts/update_treasury.py"
+      - "scripts/update_treasury_events.py"
+      - "scripts/update_dao_directory.py"
+      - "data/dao-directory.json"
       - "data/treasury/token-registry.json"
   schedule:
     - cron: "*/15 * * * *"
@@ -64,3 +67,4 @@ jobs:
             git fetch origin main
             git rebase -X theirs origin/main
           done
+

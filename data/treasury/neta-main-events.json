@@ -1,0 +1,26 @@
+{
+  "checked_at": "2026-10-03T19:16:40.930509Z",
+  "events": [],
+  "generated_at": null,
+  "last_success_at": null,
+  "nns": {
+    "note": "No verified NNS fee source is configured. Incoming NETA alone does not establish naming revenue.",
+    "registry": null,
+    "revenue_raw": null,
+    "status": "not_active"
+  },
+  "schema_version": 2,
+  "scope": "neta-main-dao",
+  "sources": [],
+  "status": "UNAVAILABLE",
+  "treasuries": [
+    {
+      "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
+      "chain_id": "juno-1"
+    }
+  ],
+  "warnings": [
+    "Historical transaction source unavailable; retained records are not a complete history.",
+    "no Juno RPC with a usable transaction index: https://juno-rpc.publicnode.com: historical address index is empty | https://juno.api.pocket.network: historical address index is empty | https://juno-rpc.polkachu.com: historical address index is empty"
+  ]
+}

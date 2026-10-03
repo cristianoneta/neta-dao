@@ -1,5 +1,15 @@
 # NETA DAO handoff
 
+## Main DAO continuation — 2026-10-03
+
+Read [the integration record](docs/DAO_ONBOARDING_2026-10-03.md) for current release
+status and source limitations. The [original handoff](docs/HANDOFF_NEXT_CHAT_2026-10-03.md)
+is a historical WIP snapshot; its code defects have been addressed in PR #118.
+[DAO onboarding checklist](docs/DAO_ONBOARDING_CHECKLIST.md) and the GitHub issue
+template define the repeatable process. Main DAO events need a verified historical
+index; directory labels still need the planned NNS v2 registry and DAO adapters.
+Check the integration record's release evidence before assuming this branch is live.
+
 ## Latest maintenance checkpoint — 2026-10-03
 
 Read [the maintenance checkpoint](docs/MAINTENANCE_CHECKPOINT_2026-10-03.md)
@@ -116,5 +126,6 @@ source only. The pinned UNI-7 v0.1 address/artifact has not changed. Automatic
 off-device recovery, historical sender resolution, consent/refill integration and
 the full rotation/exhaustion/restore matrix remain release blockers. Never discard
 pending ratchet/archive/outbox or transaction-journal state to unblock the UI.
+
 
 

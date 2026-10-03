@@ -1,0 +1,37 @@
+name: DAO onboarding
+description: Integrate a verified DAO across all workspace modules.
+title: "Onboard DAO: "
+body:
+  - type: input
+    id: identity
+    attributes:
+      label: On-chain name, chain ID and core (or native governance type)
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Identity evidence
+      description: Modules, contract versions, creation height, sources, timestamp and voting model.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Module scope and gaps
+      description: Proposals, Treasury, members, Delivery, Directory/Names and RELAY; distinguish read-only from signing.
+    validations:
+      required: true
+  - type: checkboxes
+    id: gates
+    attributes:
+      label: Release evidence
+      options:
+        - label: Completed docs/DAO_ONBOARDING_CHECKLIST.md with source limitations recorded.
+        - label: Identity, custody, raw units and unavailable-history states verified.
+        - label: Historical proposal details and existing DAO regressions tested.
+        - label: Responsive UI inspected; final CI, Pages and data jobs verified.
+  - type: textarea
+    id: remaining
+    attributes:
+      label: Remaining work and evidence links

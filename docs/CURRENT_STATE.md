@@ -10,6 +10,25 @@ Security integration through #103, documentation #104 and Treasury bot commit
 `11fa3c1ff447ed1722e78ba8bb310f23d384019a` were rechecked on 2026-10-03. Automated snapshots advance
 `main` frequently. Dates here describe evidence, not perpetual network availability.
 
+## Main DAO onboarding — implementation update 2026-10-03
+
+See [the integration record](DAO_ONBOARDING_2026-10-03.md) for release evidence and
+[the reusable onboarding checklist](DAO_ONBOARDING_CHECKLIST.md). PR #118 adds the
+main Neta DAO alongside Operations and native Juno through a central directory.
+The main DAO has read-only historical proposals, core Treasury snapshots, verified
+staking participants and RELAY following. Every DAO has a Directory profile;
+unknown profiles do not fall back to Operations. New DAO writes remain disabled.
+Directory names under `.dao.neta` are labels, not active NNS registrations.
+
+Main DAO events remain UNAVAILABLE because verified historical indexing is missing;
+this is not evidence of zero activity. NNS revenue remains null/inactive. Unknown
+native/IBC decimals are represented as raw units. An independent 30-minute workflow
+owns main DAO snapshots, retaining previous successful outputs on source failure;
+the Operations/Community Pool workflow retains ownership of its existing files.
+Operations examples are hidden for other DAOs. Native Juno participation has an
+explanation, not a fabricated member list. Further details below include historical
+release records; this section supersedes the prior two-DAO scope.
+
 ## Repository and source map
 
 Design decision 2026-10-03: [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) records the selected
@@ -123,7 +142,7 @@ the selected range; missing prices must never be interpreted as a cash outflow. 
 the recorded Juno height is context, not height-pinning of every query/chain.
 Native metadata uses a persisted exact-denom registry and traces. Unknown IBC
 base names no longer inherit USDC/DAI/ATOM prices; they remain unpriced until
-reviewed. Fallback display decimals still default to six. Unpriced LP underlying
+reviewed. Unreviewed native/IBC decimals now remain unknown and quantities display raw units. Unpriced LP underlying
 assets now also make the snapshot PARTIAL. Registry changes are not automatically persisted.
 The five reviewed Osmosis routes are explicitly chain-scoped in the registry; see
 [Treasury valuation correction](TREASURY_VALUATION_FIX_2026-10-03.md). Collector or
@@ -151,7 +170,7 @@ Recurring cash flow, obligations, milestone payments and runway remain future wo
 
 ## RELAY: main inbox versus encrypted lab
 
-Main `relay.js` polls Operations mainnet module (at most 4 × 30 records) and
+Main `relay.js` polls followed, configured DAO proposal modules (at most 4 × 30 records each) and
 native Juno proposals (latest 100) every 60 seconds and on visibility restoration.
 It does **not** poll the UNI-7 workshops. Change detection can report new/status/
 content updates from those sources; a `NEW REVISION` branch is not proof of a

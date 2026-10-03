@@ -55,3 +55,12 @@
 .names-page [data-relay-dao]{display:inline-flex;align-items:center;gap:8px}
 .names-page [data-relay-dao] i{font-style:normal;color:var(--neta-accent)}
 @media(max-width:760px){.names-directory-actions{margin-left:64px}}
+
+
+#names-dao-profile > .names-panel { margin-top: 24px; }
+.dao-member-list { margin: 16px 0; }
+.dao-member-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px 24px; padding: 14px 0; border-bottom: 1px solid var(--neta-border); }
+.dao-member-row a { min-width: 0; overflow-wrap: anywhere; color: var(--neta-accent); }
+.dao-member-row span { color: var(--neta-text-secondary); }
+#dao-members-panel label { display: grid; gap: 8px; }
+#dao-members-panel input { max-width: 100%; }

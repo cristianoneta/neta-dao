@@ -63,7 +63,7 @@ def rpc(base, method, timeout=30, **params):
 
 def select_rpc(chain):
     errors = []
-    probe = f"wasm._contract_address='{chain['address']}'"
+    probe = f"{chain.get('probe_key', 'wasm._contract_address')}='{chain['address']}'"
     for base in chain["rpcs"]:
         try:
             status = rpc(base, "status", timeout=15)
@@ -87,9 +87,9 @@ def select_rpc(chain):
     raise RuntimeError(f"no {chain['name']} RPC with a usable transaction index: " + " | ".join(errors))
 
 
-def load_existing():
+def load_existing(path=OUT):
     try:
-        return json.loads(OUT.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError):
         return {"schema_version": 2, "events": []}
 
@@ -170,7 +170,7 @@ def denom_registry():
     return {"ujuno": {"symbol": "JUNO", "decimals": 6}, "uosmo": {"symbol": "OSMO", "decimals": 6}, "uatom": {"symbol": "ATOM", "decimals": 6}, **persisted}
 
 
-def movements(events, registry, address=TREASURY):
+def movements(events, registry, address=TREASURY, cw20_tokens=None):
     result = []
     for row in transfer_rows(events):
         if address not in {row["sender"], row["recipient"]}:
@@ -182,9 +182,22 @@ def movements(events, registry, address=TREASURY):
             if not match:
                 continue
             raw, denom = match.groups()
-            meta = registry.get(denom, {"symbol": denom, "decimals": 6})
-            amount = Decimal(raw) / (Decimal(10) ** int(meta.get("decimals", 6)))
-            result.append({"direction": direction, "asset": meta.get("symbol", denom), "amount": str(amount), "raw_amount": raw, "denom": denom, "counterparty": counterparty})
+            meta = registry.get(denom, {"symbol": denom, "decimals": None})
+            amount = Decimal(raw) / (Decimal(10) ** int(meta["decimals"])) if meta.get("decimals") is not None else None
+            result.append({"direction": direction, "asset": meta.get("symbol", denom), "amount": str(amount) if amount is not None else None, "raw_amount": raw, "denom": denom, "counterparty": counterparty})
+    for event in events:
+        if event.get("type") != "wasm":
+            continue
+        attrs = dict(attributes(event))
+        contract = attrs.get("_contract_address")
+        meta = (cw20_tokens or {}).get(contract)
+        if not meta or attrs.get("action") not in {"transfer", "transfer_from", "send", "send_from"}:
+            continue
+        sender, recipient, raw = attrs.get("from"), attrs.get("to"), attrs.get("amount")
+        if address not in {sender, recipient} or not raw or not raw.isdigit() or sender == recipient:
+            continue
+        direction = "out" if sender == address else "in"
+        result.append({"direction": direction, "asset": meta["symbol"], "amount": str(Decimal(raw) / Decimal(10) ** meta["decimals"]), "raw_amount": raw, "denom": "cw20:" + contract, "counterparty": recipient if direction == "out" else sender})
     return result
 
 
@@ -200,7 +213,7 @@ def classify(events, movement_rows, address=TREASURY):
 def event_title(kind, movement_rows, proposal_id):
     if movement_rows:
         verb = "received" if kind == "inflow" else "sent" if kind == "payment" else "moved"
-        summary = ", ".join(f"{row['amount']} {row['asset']}" for row in movement_rows[:3])
+        summary = ", ".join(f"{row['amount'] if row['amount'] is not None else row['raw_amount'] + ' raw units'} {row['asset']}" for row in movement_rows[:3])
         return f"{summary} {verb}"
     if kind == "cross_chain_command":
         return "Cross-chain command sent from the DAO"
@@ -209,12 +222,12 @@ def event_title(kind, movement_rows, proposal_id):
     return "DAO contract activity"
 
 
-def proposal_titles():
+def proposal_titles(module=PROPOSAL_MODULE):
     query = base64.b64encode(json.dumps({"reverse_proposals": {"limit": 100}}, separators=(",", ":")).encode()).decode()
     errors = []
     for base in PROPOSAL_RESTS:
         try:
-            proposals = request_json(f"{base}/cosmwasm/wasm/v1/contract/{PROPOSAL_MODULE}/smart/{query}")["data"]["proposals"]
+            proposals = request_json(f"{base}/cosmwasm/wasm/v1/contract/{module}/smart/{query}")["data"]["proposals"]
             return {str(item["id"]): item["proposal"].get("title") for item in proposals}
         except Exception as error:
             errors.append(f"{base}: {error}")
@@ -231,7 +244,7 @@ def block_time(base, height):
 def normalize(tx, timestamp, registry, chain=None, titles=None):
     chain = chain or CHAINS[0]
     raw_events = tx.get("tx_result", {}).get("events", [])
-    movement_rows = movements(raw_events, registry, chain["address"])
+    movement_rows = movements(raw_events, registry, chain["address"], chain.get("cw20_tokens"))
     kind, actions, proposal_id, packets = classify(raw_events, movement_rows, chain["address"])
     return {
         "id": f"{chain['id']}:{tx['hash']}", "chain_id": chain["id"], "chain_name": chain["name"],
@@ -254,7 +267,7 @@ def collect_chain(chain, existing, registry, titles, source=None):
         start_height, incremental = chain["creation_height"], False
     found = {}
     with ThreadPoolExecutor(max_workers=3) as pool:
-        futures = [pool.submit(search, base, key, chain["address"], start_height if range_capable else None, end_height if range_capable else None) for key in QUERIES]
+        futures = [pool.submit(search, base, key, chain["address"], start_height if range_capable else None, end_height if range_capable else None) for key in chain.get("queries", QUERIES)]
         for future in futures:
             for tx in future.result():
                 if start_height <= int(tx["height"]) <= end_height and int(tx.get("tx_result", {}).get("code", 0)) == 0:
@@ -286,13 +299,13 @@ def collect_chain(chain, existing, registry, titles, source=None):
     return list(prior.values()), {"chain_id": chain["id"], "address": chain["address"], "source": base, "indexed_transactions": indexed_total, "last_scanned_height": end_height, "anchor_hash": anchor_hash, "scan_start_height": start_height, "incremental": incremental, "range_capable": range_capable, "historical_missing_transactions": historical_missing, "historical_missing_tx_hashes": sorted(unresolved), "contract_creation_height": chain["creation_height"]}
 
 
-def collect():
-    previous = load_existing()
+def collect(chains=CHAINS, output=OUT, proposal_module=PROPOSAL_MODULE, scope="neta-operations-cross-chain"):
+    previous = load_existing(output)
     existing = previous.get("events", [])
     source_by_chain = {row["chain_id"]: row for row in previous.get("sources", [])}
-    registry, titles = denom_registry(), proposal_titles()
+    registry, titles = denom_registry(), proposal_titles(proposal_module)
     rows, sources = [], []
-    for chain in CHAINS:
+    for chain in chains:
         chain_rows, source = collect_chain(chain, existing, registry, titles, source_by_chain.get(chain["id"]))
         rows.extend(chain_rows)
         sources.append(source)
@@ -300,13 +313,48 @@ def collect():
     missing = sum(not row.get("timestamp") for row in rows)
     warnings = [f"Exact block timestamp unavailable from public RPC archives for {missing} historical events."] if missing else []
     warnings += [f"{source['chain_id']}: {source['historical_missing_transactions']} cached historical transactions are currently absent from the public index; records retained." for source in sources if source["historical_missing_transactions"]]
-    return {"schema_version": 2, "generated_at": now(), "treasuries": [{"chain_id": chain["id"], "address": chain["address"]} for chain in CHAINS], "scope": "neta-operations-cross-chain", "sources": sources, "cursor": {"strategy": "anchored-incremental-with-full-replay-fallback", "chains": sources}, "warnings": warnings, "events": rows}
+    return {"schema_version": 2, "generated_at": now(), "treasuries": [{"chain_id": chain["id"], "address": chain["address"]} for chain in chains], "scope": scope, "sources": sources, "cursor": {"strategy": "anchored-incremental-with-full-replay-fallback", "chains": sources}, "warnings": warnings, "events": rows}
+
+
+def collect_main(dao, output):
+    chain = {**CHAINS[0], "address": dao["core"], "creation_height": dao["creationHeight"],
+             "probe_key": "transfer.recipient", "queries": (*QUERIES, "wasm.from", "wasm.contract_address"),
+             "cw20_tokens": {dao["tokenContract"]: {"symbol": "NETA", "decimals": 6}}}
+    expected = [{"chain_id": dao["network"], "address": dao["core"]}]
+    previous = load_existing(output)
+    if previous.get("events") or previous.get("sources"):
+        if previous.get("scope") != "neta-main-dao" or previous.get("treasuries") != expected or any(
+            row.get("chain_id") != dao["network"] or row.get("treasury_address") != dao["core"]
+            for row in previous.get("events", [])
+        ):
+            raise RuntimeError("Main DAO event ledger identity mismatch; refusing to relabel records")
+    try:
+        data = collect((chain,), output, dao["proposalModule"], "neta-main-dao")
+        data["status"] = "PARTIAL"  # Supported indexes/tokens are not complete accounting.
+        data["last_success_at"] = data["generated_at"]
+    except Exception as error:
+        data = {**previous, "schema_version": 2, "scope": "neta-main-dao", "treasuries": expected,
+                "status": "UNAVAILABLE", "generated_at": previous.get("generated_at"),
+                "last_success_at": previous.get("last_success_at"), "sources": previous.get("sources", []),
+                "warnings": ["Historical transaction source unavailable; retained records are not a complete history.", str(error)]}
+    data["checked_at"] = now()
+    data["nns"] = {"status": "not_active", "registry": dao["nnsRegistry"], "revenue_raw": None,
+                   "note": "No verified NNS fee source is configured. Incoming NETA alone does not establish naming revenue."}
+    return data
 
 
 def main():
-    data = collect()
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    import argparse
+    parser = argparse.ArgumentParser(); parser.add_argument('--dao', choices=['neta-operations', 'neta'], default='neta-operations'); args = parser.parse_args()
+    output = OUT
+    if args.dao == 'neta':
+        dao = next(d for d in json.loads((ROOT / 'data/dao-directory.json').read_text())['daos'] if d['id'] == 'neta')
+        output = OUT.with_name('neta-main-events.json')
+        data = collect_main(dao, output)
+    else:
+        data = collect()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     counts = {}
     for event in data["events"]:
         counts[event["type"]] = counts.get(event["type"], 0) + 1
@@ -315,3 +363,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
