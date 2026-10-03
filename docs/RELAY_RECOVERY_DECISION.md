@@ -20,4 +20,4 @@ Keplr proves address ownership. Its private key does not reconstruct the distinc
 
 The later PR #97 lab includes an encrypted local readable-history archive and a mocked two-profile exchange/reply/reload test. It does not provide automatic off-device backup. Its code is a local unlock code, not recovery after browser-data loss.
 
-Next: use the existing lab for the real two-wallet test in `RELAY_UNI7_E2E_RUNBOOK.md`, then implement reviewed failure recovery and the automatic backup. See `HANDOFF.md`, `docs/RELAY_IMPLEMENTATION_PLAN.md` and `docs/RELAY_SECURITY_ARCHITECTURE.md` for remaining technical gates.
+Current continuation (2026-10-03): local interrupted-receive recovery is implemented, but automatic off-device backup is not. Follow `PROJECT_CHECKPOINT.md` and `HANDOFF.md`: finish isolated consent/generation and coherent restore testing first. No real wallet keys or live attack transactions are permitted in the current task. The live two-wallet runbook is a later, separately authorized evidence gate.

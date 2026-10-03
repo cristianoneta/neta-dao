@@ -19,7 +19,7 @@ Review of first-party website and DAO contracts, wallet transaction flows, RELAY
 | D1 | High advisory; limited local exposure | Fixed | RELAY spike Playwright 1.55.0 affected by GHSA-7mvr-c777-76hp. Updated to 1.63.0; audit now reports zero advisories. Advisory concerns insecure installer downloads on macOS; no production wallet exploit was established. Source: https://github.com/advisories/GHSA-7mvr-c777-76hp |
 | W1 | Medium | Fixed in website | Swap/IBC bind signing to reviewed parameters, freeze controls during signing and recheck wallet identity. See website audit for details. |
 | W2 | Medium | Website #138 repaired; DAO shared bundle in #103 | An RPC timeout after submitting a transaction can leave acceptance ambiguous. A subsequent user retry may duplicate a spend. Persist signed transaction hash/sequence and reconcile pending transactions before allowing a retry. |
-| G3 | Medium, policy/availability | Open | Legacy governance permits eligible members to revise/finalize shared proposals; this is the current collaborative policy, not demonstrated outsider access. Revision growth and incomplete pagination can degrade queries. Decide explicit ownership/review policy and bounded pagination before expanding use. DAO comment display also does not enforce the workshop moderation-hidden flag. |
+| G3 | Medium, policy/availability | Moderation/cycle/depth fixes shipped in #103; policy/completeness open | Hidden title/body are replaced with a moderation placeholder; invalid parents and deep threads are bounded. Legacy revisions use one query with a truncation warning. Collaborative revision/finalization policy and full historical completeness remain open. |
 
 ## RELAY release requirements
 
@@ -28,13 +28,13 @@ Implement transactional authenticated receive with safe Ratchet rollback or comm
 ## Efficiency and remaining data risks
 
 * Shared explicit fees remove a second automatic simulation in website signing and keep the fee based on the gas estimate that passed the cap. Recovery clients disconnect after each attempt.
-* Treasury history currently replays substantial chain history every refresh. Cache immutable ranges, advance cursors and validate reorganizations. Bound pool query concurrency and cache denom traces.
+* Treasury now supports anchored incremental queries where the node supports height ranges, with bounded concurrency and full-replay fallback. Run 934 used full replay on both selected RPCs. Pool-query concurrency and denom-trace caching remain separate efficiency work.
 * Suspend view-specific refresh work when a view/tab is hidden; keep freshness labels accurate. Social author/ban checks should batch/cache rather than repeat per displayed record.
 * Three separate signing bundles are roughly 1.6 MB each before compression. Measure transferred bytes and loading time before choosing shared chunks; keep signing code lazy-loaded. CoreCrypto remains isolated to the lab.
 * Treasury RPC responses are trusted, not independent chain proofs. Unknown assets have approximate display metadata; cashflow grouping and event-derived labels require provenance. Add bank pagination and snapshot-height consistency before claiming complete accounting.
 * CI now audits browser dependencies, pins browser workflow actions to commit SHAs and runs the new regressions. Other workflows and optimizer images still need a repository-wide immutable dependency policy.
 
-## Validation and limits
+## Original audit validation and limits (historical)
 
 Local DAO Node suite: 42 passing tests. Treasury Python suite: 11 passing tests, including unreviewed IBC price and partially valued LP regressions. Vendor CoreCrypto checksum verification passed. npm dependency audit passed after the Playwright update. Tracked-file scans found no PEM private-key/GitHub-token patterns; this is not a complete secret/history audit.
 
@@ -42,9 +42,9 @@ Browser scenarios were added for DAO switch races, malformed markers/proposal ra
 
 ## Continuation
 
-Use CURRENT_STATE.md and HANDOFF.md together with this report. Resolve R1–R3 before any messaging activation; then W2 and moderation/pagination/data completeness. Re-run browser/contract CI before merging the audit branch. Keep report findings open until the repair and its adversarial regression have passed.
+Use CURRENT_STATE.md and HANDOFF.md together with this report. Resolve R1–R3 before any messaging activation; then W2 and moderation/pagination/data completeness. Audit branch repairs are already merged; require relevant browser/contract CI for further code changes. Keep report findings open until the repair and its adversarial regression have passed.
 
-### CI evidence at continuation handoff
+### Original CI handoff (superseded by verified integration below)
 
 Website Test website run 307 passed, including browser integration and reproducible bundles. DAO RELAY browser crypto run 31 passed, including stale-response regressions and the optional adversarial test that intentionally reproduces the open persistent-lock blocker. DAO contract/frontend run 136 was still running; website production-data run 409 was pending. Check final outcomes before merging. Code checkpoint SHAs are recorded in HANDOFF.md; these follow-up documentation changes do not change the tested implementation.
 
@@ -83,8 +83,8 @@ duplicate/inconsistent pagination, checks a stored block-hash anchor and replays
 100-block overlap after a 20-block tip delay. Missing anchors fall back to full replay;
 a changed anchor or loss of a recorded transaction fails without publishing over the
 existing ledger. This does not fix unindexed CW20/LP cashflow or guarantee RPC honesty.
-Local continuation checks: 42 Node and 16 Python tests passed. Browser/contract CI
-for this follow-up must pass before merge. Mainnet messaging stays disabled.
+Local continuation checks: 42 Node and 16 Python tests passed. Final #103
+contract/frontend run 147 and browser run 41 passed before integration. Mainnet messaging stays disabled.
 
 2026-10-03 RPC compatibility check: the public Juno gateway rejects height-range
 queries with an explicit strict-equality policy. Collector selection now probes
@@ -106,6 +106,23 @@ gaps still fail publication. Seven independent address queries run with a bound
 of three workers; capability probes have eight-second timeouts and run only on the selected node.
 
 
-## Verified integration checkpoint — 2026-10-03 UTC
+## Current security checkpoint — 2026-10-03
 
-PRs #100–#103 and Website #137/#138 are integrated after their relevant final checks passed. DAO #103 merged as `9ee6cdf362d99538ec19cd5c13249cc22c291610`; Pages run 1029 passed and deployed security assets matched the tested bytes. The earlier pending-PR statements above are historical snapshots superseded by this checkpoint. See [the continuation evidence](SECURITY_CONTINUATION_2026-10-03.md) for exact runs, source-versus-deployment distinctions, RPC validation limits and remaining Mainnet gates. Messaging remains disabled; v0.2 consent is source-only and off-device restore is still open. Preserve all later bot updates and pending journals.
+DAO #100–#103 and Website #137/#138 are merged after their relevant final CI
+checks passed. Documentation PRs DAO #104 and Website #139 are also merged.
+The resumed verification confirmed the exact PR-head checks and compared 23
+production files with GitHub, including both shared signing bundles and the
+published Treasury event ledger. See [the evidence](SECURITY_CONTINUATION_2026-10-03.md).
+
+Treasury run 934 successfully executed the final collector source and retained all
+57 cached events. Both selected public RPCs required full replay; three historical
+Osmosis transactions remain absent from the index and are retained from cache.
+Unpriced assets still yield PARTIAL balance snapshots. Successful collection is
+not proof of complete accounting. Preserve the subsequent bot commits.
+
+Mainnet messaging remains disabled. Local receive recovery and sender-scoped
+archive identities are shipped; v0.2 consent/historical identities are tested
+source only. The pinned UNI-7 v0.1 address/artifact has not changed. Automatic
+off-device recovery, historical sender resolution, consent/refill integration and
+the full rotation/exhaustion/restore matrix remain release blockers. Never discard
+pending ratchet/archive/outbox or transaction-journal state to unblock the UI.

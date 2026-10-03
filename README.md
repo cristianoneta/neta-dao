@@ -101,19 +101,27 @@ See [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md) for data ownership and limita
 Use a branch/PR, preserve generated snapshots and inspect checks before merging.
 Root README/Handoff and ordinary docs edits alone do not match CI path filters.
 Contract Markdown matches `contracts/**`; `docs/RELAY_SECURITY_ARCHITECTURE.md`
-also matches frontend/contract CI. This reconciliation PR includes both and
-triggers those workflows. Run relevant local checks and inspect actual checks. A successful Pages deployment proves publication,
+also matches frontend/contract CI. Inspect the changed paths and actual checks for each PR; ordinary documentation
+updates do not imply that application CI ran. A successful Pages deployment proves publication,
 not wallet transactions or cryptographic security.
 
-## Security continuation (2026-10-03)
+## Current security checkpoint — 2026-10-03
 
-Audit PR #100 and receive-recovery PR #101 are integrated after successful CI.
-The lab now journals encrypted ratchet checkpoints and isolates invalid messages;
-read the current Handoff and audit before extending it. Full off-device recovery
-and source-only v0.2 mailbox consent/historical identity wiring are still gates.
-The pinned deployed UNI-7 mailbox is v0.1. Mainnet messaging remains disabled.
+DAO #100–#103 and Website #137/#138 are merged after their relevant final CI
+checks passed. Documentation PRs DAO #104 and Website #139 are also merged.
+The resumed verification confirmed the exact PR-head checks and compared 23
+production files with GitHub, including both shared signing bundles and the
+published Treasury event ledger. See [the evidence](docs/SECURITY_CONTINUATION_2026-10-03.md).
 
+Treasury run 934 successfully executed the final collector source and retained all
+57 cached events. Both selected public RPCs required full replay; three historical
+Osmosis transactions remain absent from the index and are retained from cache.
+Unpriced assets still yield PARTIAL balance snapshots. Successful collection is
+not proof of complete accounting. Preserve the subsequent bot commits.
 
-## Verified integration checkpoint — 2026-10-03 UTC
-
-PRs #100–#103 and Website #137/#138 are integrated after their relevant final checks passed. DAO #103 merged as `9ee6cdf362d99538ec19cd5c13249cc22c291610`; Pages run 1029 passed and deployed security assets matched the tested bytes. The earlier pending-PR statements above are historical snapshots superseded by this checkpoint. See [the continuation evidence](docs/SECURITY_CONTINUATION_2026-10-03.md) for exact runs, source-versus-deployment distinctions, RPC validation limits and remaining Mainnet gates. Messaging remains disabled; v0.2 consent is source-only and off-device restore is still open. Preserve all later bot updates and pending journals.
+Mainnet messaging remains disabled. Local receive recovery and sender-scoped
+archive identities are shipped; v0.2 consent/historical identities are tested
+source only. The pinned UNI-7 v0.1 address/artifact has not changed. Automatic
+off-device recovery, historical sender resolution, consent/refill integration and
+the full rotation/exhaustion/restore matrix remain release blockers. Never discard
+pending ratchet/archive/outbox or transaction-journal state to unblock the UI.

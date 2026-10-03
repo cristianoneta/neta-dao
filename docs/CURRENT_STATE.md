@@ -1,9 +1,10 @@
 # NETA DAO code-backed current state
 
-Reviewed 2026-10-02 against `main`, including application controllers, contract
-source, tests and workflows. Checkout: `936af0cedc16a8b797c194796f2b0534eb359de5`.
-Latest application/lab documentation change: PR #97 (`4ca74ff`); later PR #98
-(`ccd7998`) hardens Treasury collection/push retries. Automated snapshots advance
+Baseline review 2026-10-02 against `main`, including application controllers,
+contract source, tests and workflows. Baseline checkout: `936af0cedc16a8b797c194796f2b0534eb359de5`.
+That baseline included PR #97 (`4ca74ff`) and Treasury retry PR #98 (`ccd7998`).
+Security integration through #103, documentation #104 and Treasury bot commit
+`11fa3c1ff447ed1722e78ba8bb310f23d384019a` were rechecked on 2026-10-03. Automated snapshots advance
 `main` frequently. Dates here describe evidence, not perpetual network availability.
 
 ## Repository and source map
@@ -180,11 +181,12 @@ No new wallet write, Rust execution or browser E2E is claimed by those checks.
 The main contract/frontend CI, WASM build and crypto-browser CI are path-filtered;
 Root README/HANDOFF/ordinary docs alone do not trigger them; contract Markdown
 matches contract/frontend and WASM CI, and the RELAY security doc matches the
-former. This reconciliation PR includes those paths and runs those checks. Existing
+former. Inspect each PR's actual paths and checks. Existing
 mainnet/sample snapshots in frontend tests are assertions, not live-chain checks.
 `relay-client-assets.yml` is a branch-specific preparation writer for the old
 integration branch, not a recurring main runtime publisher. Browser crypto
-workflow uses version-tag Actions; do not claim all this repo's Actions are SHA-pinned.
+workflow actions are now SHA-pinned; that does not establish a repository-wide
+immutable dependency policy for every workflow and build image.
 Check Actions and actual served files again at the next session.
 
 ## Security audit continuation
@@ -232,6 +234,23 @@ gaps still fail publication. Seven independent address queries run with a bound
 of three workers; capability probes have eight-second timeouts and run only on the selected node.
 
 
-## Verified integration checkpoint — 2026-10-03 UTC
+## Current security checkpoint — 2026-10-03
 
-PRs #100–#103 and Website #137/#138 are integrated after their relevant final checks passed. DAO #103 merged as `9ee6cdf362d99538ec19cd5c13249cc22c291610`; Pages run 1029 passed and deployed security assets matched the tested bytes. The earlier pending-PR statements above are historical snapshots superseded by this checkpoint. See [the continuation evidence](SECURITY_CONTINUATION_2026-10-03.md) for exact runs, source-versus-deployment distinctions, RPC validation limits and remaining Mainnet gates. Messaging remains disabled; v0.2 consent is source-only and off-device restore is still open. Preserve all later bot updates and pending journals.
+DAO #100–#103 and Website #137/#138 are merged after their relevant final CI
+checks passed. Documentation PRs DAO #104 and Website #139 are also merged.
+The resumed verification confirmed the exact PR-head checks and compared 23
+production files with GitHub, including both shared signing bundles and the
+published Treasury event ledger. See [the evidence](SECURITY_CONTINUATION_2026-10-03.md).
+
+Treasury run 934 successfully executed the final collector source and retained all
+57 cached events. Both selected public RPCs required full replay; three historical
+Osmosis transactions remain absent from the index and are retained from cache.
+Unpriced assets still yield PARTIAL balance snapshots. Successful collection is
+not proof of complete accounting. Preserve the subsequent bot commits.
+
+Mainnet messaging remains disabled. Local receive recovery and sender-scoped
+archive identities are shipped; v0.2 consent/historical identities are tested
+source only. The pinned UNI-7 v0.1 address/artifact has not changed. Automatic
+off-device recovery, historical sender resolution, consent/refill integration and
+the full rotation/exhaustion/restore matrix remain release blockers. Never discard
+pending ratchet/archive/outbox or transaction-journal state to unblock the UI.

@@ -1,49 +1,48 @@
 # NETA DAO Workspace checkpoint
 
-Updated: **2026-10-02**. This file is a continuation index, not a second feature
-specification. [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md) owns the reviewed
-state; [HANDOFF.md](HANDOFF.md) owns the reading order and working rules.
-Historical snapshots remain in Git history.
+Updated: **2026-10-03** after the interrupted chat. This is the continuation index;
+[CURRENT_STATE](docs/CURRENT_STATE.md) owns the feature inventory and
+[HANDOFF](HANDOFF.md) owns navigation and working rules.
 
-## Last completed implementation
+## Completed and verified
 
-- PR #97: isolated GPL CoreCrypto UNI-7 lab, wallet-bound device registration,
-  encrypted send/receive, local readable-history archive and restart unlock.
-- Its integrated browser test uses two profiles with mocked Keplr/chain services.
-  It is not a live UNI-7 exchange.
-- PR #98: retries for Treasury event-index collection and GitHub snapshot pushes.
-- RELAY's main navigation now contains Inbox, Following and Names & Contacts;
-  Favorites are in Following, with no Inbox sidebar. Main SEND remains disabled.
+- #100: signing denomination, async context, Treasury pricing and dependency fixes.
+- #101: transactional local receive recovery, invalid-ciphertext isolation and
+  sender/generation-scoped archive identity; adversarial browser checks passed.
+- #102: v0.2 recipient consent and historical identity **source only**; Rust/audit
+  and WASM checks passed. The pinned live UNI-7 v0.1 artifact is unchanged.
+- #103: guarded shared signing bundle, moderation/depth/cycle protection and
+  anchored Treasury scans with full-replay fallback. Final CI passed.
+- #104 / Website #139: integration evidence. Resumed verification confirmed the
+  PR-head checks, successful Pages deployments and 23 matching production files.
+- Treasury run 934 successfully ran the final source and retained 57 events.
+  PARTIAL valuation and three cached Osmosis transactions missing from the current
+  index remain explicit limitations; no generated exports were hand-edited.
+
+Exact runs and deployment hashes: [security continuation](docs/SECURITY_CONTINUATION_2026-10-03.md).
 
 ## Next work, in order
 
-1. Follow [docs/RELAY_UNI7_E2E_RUNBOOK.md](docs/RELAY_UNI7_E2E_RUNBOOK.md) with
-   two real Keplr wallets; record public transaction/message and restart evidence.
-   The test-only UI already exists. Investigate actual network/wallet failures
-   before adding another client or redeploying the mailbox.
-2. Address historical sender registration/rotation, depleted prekeys and safe
-   reconciliation of uncertain registration/outbox/inbound state.
-3. Specify provider/auth/sync/versioning and implement the agreed automatic
-   encrypted backup of current state plus readable archive. Local unlock is not backup.
-4. Test stale restore, wrong wallet/code, corruption, crash and concurrent device/tab
-   behavior. Main composer activation requires its own integration/recovery review.
-5. Continue Treasury accounting and proposal-linked delivery only after their data
-   model is defined; keep concepts visibly separate from authoritative records.
+1. Implement and test generation-aware sessions and consent/prekey replenishment
+   against isolated v0.2 fixtures. Cover rotating unapproved senders, depleted
+   prekeys, historical unread messages, collisions, revoke and concurrent use.
+   Prepare a separately verified UNI-7 deployment plan; do not repin or deploy
+   source-only changes as if they were already active.
+2. Specify authenticated automatic backup provider, versioning, synchronization
+   and anti-rollback policy; implement a coherent snapshot of ratchet, archive,
+   outbox, cursors, vault and descriptor. A recovery code alone is not a backup.
+   Fresh-profile and stale restores must not silently resume sending.
+3. Test wrong wallet/code, corruption, rollback, already-read history, newer inbound
+   messages, interrupted writes and concurrent tabs/devices using synthetic keys.
+   Resolve legacy intents without checkpoints and uncertain outbound state by
+   verified reconciliation; never clear pending records simply to unblock the UI.
+4. After these gates, prepare the live E2E runbook for a separately authorized
+   wallet session. **This task prohibits real wallet keys and live attack
+   transactions.** The old immediate-real-wallet-test instruction is superseded.
+5. Continue accounting completeness, governance policy/pagination and measured
+   efficiency work without describing partial data as a complete ledger.
 
-## Gates still open
-
-- Real two-wallet encrypted UNI-7 E2E and measured gas/storage.
-- Automatic off-device backup and safe stale restore.
-- Production client/distribution review and independent security audit.
-- New mainnet mailbox implementation with at least 5 active NETA and reviewed policy.
-- Native Juno mainnet deposit/submission/voting adapters.
-- Names registry deployment and explicit UNI-7 Names test wiring.
-- Treasury execution, milestone acceptance/payment and authoritative contributor records.
-
-## Documentation correction checkpoint
-
-The 2026-10-02 review reconciled README, Handoff, checkpoint and specialized docs
-with source. It explicitly distinguishes Operations legacy finalization (UNI-7
-status only) from mainnet voting, mainnet notifications from absent review feeds,
-mocked lab from live E2E, local archive from remote recovery, and Treasury snapshot
-attribution from complete accounting. No application code or contract was changed.
+Mainnet messaging and the main composer SEND remain disabled. Production release
+also needs reviewed mainnet stake/network policy, client/distribution review and
+independent security review. Native Juno submission/voting, Names activation and
+Treasury execution are separate unfinished features.
