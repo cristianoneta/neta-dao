@@ -272,6 +272,7 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
 .neta-utility .lab-caution { color: var(--neta-warning); font-size: 13px; }
 .neta-utility #status { position: static; border-radius: 8px; background: var(--neta-surface); }
 .neta-utility #new-code { color: var(--neta-warning); border-color: var(--neta-warning); border-radius: 8px; }
+.contributor-main-grid > * { min-width: 0; }
 /* Shared desktop introductions reuse the cached Home artwork. */
 .gov-shell .page-hero, #relay-view .relay-hero.page-hero {
   display: grid; grid-template-columns: minmax(0, 1fr) 168px;
@@ -337,7 +338,7 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
   .relay-header-actions #relay-new-message { justify-content: flex-start; }
   .treasury-history-legend { font-size: 12px; }
   .legend { display: flex; flex-wrap: wrap; }
-  .milestone-panel > header, .contributor-mandates > header, .compensation-card > header { flex-wrap: wrap; gap: 12px; }
+  .milestone-panel > header, .contributor-mandates > header, .compensation-card > header, .responsibility-card > header { flex-wrap: wrap; gap: 12px; }
   .neta-utility > header { position: static; }
 }
 @media (max-width: 540px) {

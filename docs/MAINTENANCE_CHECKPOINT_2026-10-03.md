@@ -25,6 +25,8 @@ assembly plaza across all sections. Shared CSS reserves a 136 px slot; at 960 px
 and below decoration is hidden while action/status controls remain visible. No
 new image files or graphics runtime are introduced. Browser regression coverage
 checks desktop/mobile artwork, document overflow and the stable RELAY shell.
+The expanded 320 px check exposed existing Contributors card overflow; allow grid
+items to shrink and the responsibility header to wrap without hiding content.
 
 ## CI maintenance
 
