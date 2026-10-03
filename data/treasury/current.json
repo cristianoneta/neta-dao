@@ -17,7 +17,7 @@
     {
       "amount": "11.5",
       "base_denom": "uatom",
-      "change_24h": -4.595788697321599,
+      "change_24h": -4.353917045701424,
       "custody_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "ibc_path": "transfer/channel-1/uatom",
       "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
@@ -25,13 +25,13 @@
       "source_chain": "juno",
       "symbol": "ATOM",
       "type": "token",
-      "usd_price": "1.66",
-      "usd_value": "19.090"
+      "usd_price": "1.67",
+      "usd_value": "19.205"
     },
     {
       "amount": "761.080781",
       "base_denom": "ujuno",
-      "change_24h": -5.235669926514259,
+      "change_24h": -4.796956323996623,
       "custody_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "ibc_path": null,
       "key": "juno:native:ujuno",
@@ -39,8 +39,8 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00868156",
-      "usd_value": "6.60736846509836"
+      "usd_price": "0.00868175",
+      "usd_value": "6.60751307044675"
     },
     {
       "amount": "817.744263",
@@ -115,7 +115,7 @@
     {
       "amount": "3.200008",
       "base_denom": "uosmo",
-      "change_24h": -6.884755136159544,
+      "change_24h": -6.484594369624075,
       "custody_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
       "ibc_path": null,
       "key": "osmosis:native:uosmo",
@@ -123,18 +123,18 @@
       "source_chain": "osmosis",
       "symbol": "OSMO",
       "type": "token",
-      "usd_price": "0.03463367",
-      "usd_value": "0.11082802106936"
+      "usd_price": "0.03465012",
+      "usd_value": "0.11088066120096"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-10-03T09:33:27.792994Z",
-  "height": 42321155,
+  "generated_at": "2026-10-03T09:54:41.084366Z",
+  "height": 42321631,
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "25.80819648616772",
+  "total_usd": "25.92339373164771",
   "treasury_accounts": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
