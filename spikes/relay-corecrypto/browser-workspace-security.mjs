@@ -135,6 +135,7 @@ try{
    await page.locator(`[data-relay-panel="${panel}"]`).click();
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'RELAY '+panel+' overflow at '+width);
    assert.equal(await page.locator('.relay-hero').isVisible(),true);
+   assert.equal(await page.locator('.relay-hero .page-hero-art').isVisible(),width>960);
    const layout=await page.evaluate(()=>{
     const nav=document.querySelector('.relay-subnav'),card=document.querySelector('[data-relay-panel-view="inbox"]:not([hidden]) .relay-section-card, #names-view:not([hidden])');
     const rect=nav.getBoundingClientRect(),style=getComputedStyle(card),heading=getComputedStyle(card.querySelector('header h2'));
@@ -148,6 +149,16 @@ try{
  await page.locator('[data-relay-panel="inbox"]').click();
  assert.equal(await page.locator('.relay-hero').isVisible(),true);
  assert.equal(await page.locator('#names-view').isVisible(),false);
+ for(const width of [320,390,768,1440]){
+  await page.setViewportSize({width,height:1000});
+  for(const view of ['governance','delivery','contributors','treasury']){
+   await page.locator(`button[data-workspace-view="${view}"]`).click();
+   const hero=page.locator(`#${view==='governance'?'governance':view}-view .page-hero`);
+   assert.equal(await hero.locator('.page-hero-art').isVisible(),width>960,view+' artwork at '+width);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,view+' overflow at '+width);
+   assert.equal(await hero.locator(view==='governance'?'#new-draft':'.concept-badge').isVisible(),true);
+  }
+ }
  assert.deepEqual(errors,[]);
  console.log('Integrated Names: routing, contrast, responsive fee form, tariffs and disabled writes passed');
 
@@ -167,4 +178,5 @@ try{
  console.log('Shared signing bundle: exact signed transaction journal blocks repeated signatures after reload');
  await context.close();
 }finally{await browser?.close();server.close();}
+
 

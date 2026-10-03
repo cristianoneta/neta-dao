@@ -103,19 +103,45 @@ pub enum ExecuteMsg {
         message_id: String,
         ciphertext: Binary,
     },
-    SetBlock { address: String, blocked: bool },
-    AllowSender { address: String, recipient_generation: u64, sender_generation: u64, allowed: bool },
+    SetBlock {
+        address: String,
+        blocked: bool,
+    },
+    AllowSender {
+        address: String,
+        recipient_generation: u64,
+        sender_generation: u64,
+        allowed: bool,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    Device { address: String },
-    HistoricalDevice { address: String, generation: u64 },
-    Consent { recipient: String, sender: String },
-    Inbox { address: String, after: Option<u64>, limit: Option<u32> },
-    Sent { sender: String, message_id: String },
-    Blocked { recipient: String, sender: String },
+    Device {
+        address: String,
+    },
+    HistoricalDevice {
+        address: String,
+        generation: u64,
+    },
+    Consent {
+        recipient: String,
+        sender: String,
+    },
+    Inbox {
+        address: String,
+        after: Option<u64>,
+        limit: Option<u32>,
+    },
+    Sent {
+        sender: String,
+        message_id: String,
+    },
+    Blocked {
+        recipient: String,
+        sender: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -156,15 +182,26 @@ pub enum Error {
 }
 
 fn no_funds(info: &MessageInfo) -> Result<(), Error> {
-    if info.funds.is_empty() { Ok(()) } else { Err(Error::Funds) }
+    if info.funds.is_empty() {
+        Ok(())
+    } else {
+        Err(Error::Funds)
+    }
 }
 
 fn network(env: &Env) -> Result<(), Error> {
-    if env.block.chain_id == CHAIN { Ok(()) } else { Err(Error::Network) }
+    if env.block.chain_id == CHAIN {
+        Ok(())
+    } else {
+        Err(Error::Network)
+    }
 }
 
 fn hex_id(value: &str, len: usize) -> bool {
-    value.len() == len && value.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+    value.len() == len
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
 }
 
 fn validate_prekeys(prekeys: &[Prekey], required: bool) -> Result<(), Error> {
@@ -181,7 +218,12 @@ fn validate_prekeys(prekeys: &[Prekey], required: bool) -> Result<(), Error> {
 }
 
 #[entry_point]
-pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, _msg: InstantiateMsg) -> Result<Response, Error> {
+pub fn instantiate(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    _msg: InstantiateMsg,
+) -> Result<Response, Error> {
     network(&env)?;
     no_funds(&info)?;
     NEXT_SEQUENCE.save(deps.storage, &0)?;
@@ -190,13 +232,28 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, _msg: Instantiate
 }
 
 #[entry_point]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> Result<Response, Error> {
+pub fn execute(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> Result<Response, Error> {
     network(&env)?;
     no_funds(&info)?;
     match msg {
-        ExecuteMsg::Register { device_id, protocol_version, fingerprint, prekeys } => {
-            if !(1..=64).contains(&device_id.len()) || !device_id.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
-                || protocol_version != 1 || !hex_id(&fingerprint, 64) {
+        ExecuteMsg::Register {
+            device_id,
+            protocol_version,
+            fingerprint,
+            prekeys,
+        } => {
+            if !(1..=64).contains(&device_id.len())
+                || !device_id
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'-')
+                || protocol_version != 1
+                || !hex_id(&fingerprint, 64)
+            {
                 return Err(Error::Device);
             }
             validate_prekeys(&prekeys, true)?;
@@ -205,13 +262,32 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> R
                 Some(old) => old.generation.checked_add(1).ok_or(Error::Sequence)?,
                 None => 1,
             };
-            IDENTITIES.save(deps.storage, (&info.sender, generation), &DeviceIdentity {
-                generation, device_id: device_id.clone(), protocol_version, fingerprint: fingerprint.clone(),
-            })?;
-            DEVICES.save(deps.storage, &info.sender, &Device {
-                generation, device_id, protocol_version, fingerprint, active: true, prekeys, max_prekey_id,
-            })?;
-            Ok(Response::new().add_attribute("action", "register").add_attribute("generation", generation.to_string()))
+            IDENTITIES.save(
+                deps.storage,
+                (&info.sender, generation),
+                &DeviceIdentity {
+                    generation,
+                    device_id: device_id.clone(),
+                    protocol_version,
+                    fingerprint: fingerprint.clone(),
+                },
+            )?;
+            DEVICES.save(
+                deps.storage,
+                &info.sender,
+                &Device {
+                    generation,
+                    device_id,
+                    protocol_version,
+                    fingerprint,
+                    active: true,
+                    prekeys,
+                    max_prekey_id,
+                },
+            )?;
+            Ok(Response::new()
+                .add_attribute("action", "register")
+                .add_attribute("generation", generation.to_string()))
         }
         ExecuteMsg::Revoke {} => {
             let mut device = DEVICES.load(deps.storage, &info.sender)?;
@@ -221,11 +297,18 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> R
             DEVICES.save(deps.storage, &info.sender, &device)?;
             Ok(Response::new().add_attribute("action", "revoke"))
         }
-        ExecuteMsg::AddPrekeys { generation, prekeys } => {
+        ExecuteMsg::AddPrekeys {
+            generation,
+            prekeys,
+        } => {
             validate_prekeys(&prekeys, true)?;
             let mut device = DEVICES.load(deps.storage, &info.sender)?;
-            if !device.active || device.generation != generation { return Err(Error::DeviceChanged); }
-            if device.prekeys.len() + prekeys.len() > MAX_PREKEYS || prekeys.iter().any(|p| p.id <= device.max_prekey_id) {
+            if !device.active || device.generation != generation {
+                return Err(Error::DeviceChanged);
+            }
+            if device.prekeys.len() + prekeys.len() > MAX_PREKEYS
+                || prekeys.iter().any(|p| p.id <= device.max_prekey_id)
+            {
                 return Err(Error::Prekey);
             }
             device.max_prekey_id = prekeys.iter().map(|p| p.id).max().ok_or(Error::Prekey)?;
@@ -233,61 +316,140 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> R
             DEVICES.save(deps.storage, &info.sender, &device)?;
             Ok(Response::new().add_attribute("action", "add_prekeys"))
         }
-        ExecuteMsg::AllowSender { address, recipient_generation, sender_generation, allowed } => {
+        ExecuteMsg::AllowSender {
+            address,
+            recipient_generation,
+            sender_generation,
+            allowed,
+        } => {
             let sender = deps.api.addr_validate(&address)?;
             if allowed {
                 let recipient = DEVICES.load(deps.storage, &info.sender)?;
                 let author = DEVICES.load(deps.storage, &sender)?;
-                if !recipient.active || !author.active || recipient.generation != recipient_generation || author.generation != sender_generation {
+                if !recipient.active
+                    || !author.active
+                    || recipient.generation != recipient_generation
+                    || author.generation != sender_generation
+                {
                     return Err(Error::DeviceChanged);
                 }
-                CONSENT.save(deps.storage, (&info.sender, &sender), &(recipient_generation, sender_generation))?;
-            } else { CONSENT.remove(deps.storage, (&info.sender, &sender)); }
+                CONSENT.save(
+                    deps.storage,
+                    (&info.sender, &sender),
+                    &(recipient_generation, sender_generation),
+                )?;
+            } else {
+                CONSENT.remove(deps.storage, (&info.sender, &sender));
+            }
             Ok(Response::new().add_attribute("action", "allow_sender"))
         }
         ExecuteMsg::SetBlock { address, blocked } => {
             let address = deps.api.addr_validate(&address)?;
-            if blocked { BLOCKED.save(deps.storage, (&info.sender, &address), &true)?; }
-            else { BLOCKED.remove(deps.storage, (&info.sender, &address)); }
+            if blocked {
+                BLOCKED.save(deps.storage, (&info.sender, &address), &true)?;
+            } else {
+                BLOCKED.remove(deps.storage, (&info.sender, &address));
+            }
             Ok(Response::new().add_attribute("action", "set_block"))
         }
-        ExecuteMsg::SendInitial { recipient, recipient_generation, prekey_id, message_id, ciphertext } => {
-            send(deps, env, info, recipient, recipient_generation, message_id, ciphertext, Some(prekey_id))
-        }
-        ExecuteMsg::Send { recipient, recipient_generation, message_id, ciphertext } => {
-            send(deps, env, info, recipient, recipient_generation, message_id, ciphertext, None)
-        }
+        ExecuteMsg::SendInitial {
+            recipient,
+            recipient_generation,
+            prekey_id,
+            message_id,
+            ciphertext,
+        } => send(
+            deps,
+            env,
+            info,
+            recipient,
+            recipient_generation,
+            message_id,
+            ciphertext,
+            Some(prekey_id),
+        ),
+        ExecuteMsg::Send {
+            recipient,
+            recipient_generation,
+            message_id,
+            ciphertext,
+        } => send(
+            deps,
+            env,
+            info,
+            recipient,
+            recipient_generation,
+            message_id,
+            ciphertext,
+            None,
+        ),
     }
 }
 
 #[allow(clippy::too_many_arguments)]
-fn send(deps: DepsMut, env: Env, info: MessageInfo, recipient: String, recipient_generation: u64,
-    message_id: String, ciphertext: Binary, prekey_id: Option<u16>) -> Result<Response, Error> {
-    if !hex_id(&message_id, 64) || !(16..=MAX_CIPHERTEXT).contains(&ciphertext.len()) { return Err(Error::Message); }
-    if SENT_IDS.has(deps.storage, (&info.sender, &message_id)) { return Err(Error::Duplicate); }
+fn send(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    recipient: String,
+    recipient_generation: u64,
+    message_id: String,
+    ciphertext: Binary,
+    prekey_id: Option<u16>,
+) -> Result<Response, Error> {
+    if !hex_id(&message_id, 64) || !(16..=MAX_CIPHERTEXT).contains(&ciphertext.len()) {
+        return Err(Error::Message);
+    }
+    if SENT_IDS.has(deps.storage, (&info.sender, &message_id)) {
+        return Err(Error::Duplicate);
+    }
     let recipient = deps.api.addr_validate(&recipient)?;
-    if BLOCKED.has(deps.storage, (&recipient, &info.sender)) { return Err(Error::Blocked); }
+    if BLOCKED.has(deps.storage, (&recipient, &info.sender)) {
+        return Err(Error::Blocked);
+    }
     let sender_device = DEVICES.load(deps.storage, &info.sender)?;
     let mut receiver = DEVICES.load(deps.storage, &recipient)?;
-    if !sender_device.active || !receiver.active || receiver.generation != recipient_generation { return Err(Error::DeviceChanged); }
+    if !sender_device.active || !receiver.active || receiver.generation != recipient_generation {
+        return Err(Error::DeviceChanged);
+    }
     let generations = (receiver.generation, sender_device.generation);
-    if CONSENT.may_load(deps.storage, (&recipient, &info.sender))? != Some(generations) { return Err(Error::Consent); }
+    if CONSENT.may_load(deps.storage, (&recipient, &info.sender))? != Some(generations) {
+        return Err(Error::Consent);
+    }
     let kind = if let Some(id) = prekey_id {
-        if INITIAL_USED.may_load(deps.storage, (&recipient, &info.sender))? == Some(generations) { return Err(Error::InitialUsed); }
-        let index = receiver.prekeys.iter().position(|prekey| prekey.id == id).ok_or(Error::PrekeySpent)?;
+        if INITIAL_USED.may_load(deps.storage, (&recipient, &info.sender))? == Some(generations) {
+            return Err(Error::InitialUsed);
+        }
+        let index = receiver
+            .prekeys
+            .iter()
+            .position(|prekey| prekey.id == id)
+            .ok_or(Error::PrekeySpent)?;
         receiver.prekeys.remove(index);
         MessageKind::Initial { prekey_id: id }
-    } else { MessageKind::Followup };
+    } else {
+        MessageKind::Followup
+    };
     if let Some(last) = LAST_SEND.may_load(deps.storage, &info.sender)? {
         if env.block.time.seconds() < last.saturating_add(SEND_COOLDOWN_SECONDS) {
             return Err(Error::Cooldown);
         }
     }
-    let sequence = NEXT_SEQUENCE.load(deps.storage)?.checked_add(1).ok_or(Error::Sequence)?;
+    let sequence = NEXT_SEQUENCE
+        .load(deps.storage)?
+        .checked_add(1)
+        .ok_or(Error::Sequence)?;
     let message = Message {
-        sequence, message_id: message_id.clone(), sender: info.sender.clone(),
-        sender_generation: sender_device.generation, recipient: recipient.clone(), recipient_generation,
-        kind, ciphertext, block_height: env.block.height, timestamp: env.block.time.seconds(),
+        sequence,
+        message_id: message_id.clone(),
+        sender: info.sender.clone(),
+        sender_generation: sender_device.generation,
+        recipient: recipient.clone(),
+        recipient_generation,
+        kind,
+        ciphertext,
+        block_height: env.block.height,
+        timestamp: env.block.time.seconds(),
     };
     // CosmWasm rolls back all writes if any operation fails. A competing initial
     // send observes the consumed prekey and fails without storing a message.
@@ -299,18 +461,25 @@ fn send(deps: DepsMut, env: Env, info: MessageInfo, recipient: String, recipient
     SENT_IDS.save(deps.storage, (&info.sender, &message_id), &sequence)?;
     NEXT_SEQUENCE.save(deps.storage, &sequence)?;
     LAST_SEND.save(deps.storage, &info.sender, &env.block.time.seconds())?;
-    Ok(Response::new().add_attribute("action", "send").add_attribute("sequence", sequence.to_string()))
+    Ok(Response::new()
+        .add_attribute("action", "send")
+        .add_attribute("sequence", sequence.to_string()))
 }
 
 #[entry_point]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
-    if env.block.chain_id != CHAIN { return Err(StdError::generic_err("UNI-7 only")); }
+    if env.block.chain_id != CHAIN {
+        return Err(StdError::generic_err("UNI-7 only"));
+    }
     match msg {
         QueryMsg::Device { address } => {
             let address = deps.api.addr_validate(&address)?;
             to_json_binary(&DEVICES.may_load(deps.storage, &address)?)
         }
-        QueryMsg::HistoricalDevice { address, generation } => {
+        QueryMsg::HistoricalDevice {
+            address,
+            generation,
+        } => {
             let address = deps.api.addr_validate(&address)?;
             to_json_binary(&IDENTITIES.may_load(deps.storage, (&address, generation))?)
         }
@@ -319,11 +488,24 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             let sender = deps.api.addr_validate(&sender)?;
             to_json_binary(&CONSENT.may_load(deps.storage, (&recipient, &sender))?)
         }
-        QueryMsg::Inbox { address, after, limit } => {
+        QueryMsg::Inbox {
+            address,
+            after,
+            limit,
+        } => {
             let address = deps.api.addr_validate(&address)?;
             let limit = limit.unwrap_or(20).min(MAX_PAGE) as usize;
-            let messages = INBOX.prefix(&address).range(deps.storage, after.map(Bound::exclusive), None, Order::Ascending)
-                .take(limit).map(|row| row.map(|(_, message)| message)).collect::<StdResult<Vec<_>>>()?;
+            let messages = INBOX
+                .prefix(&address)
+                .range(
+                    deps.storage,
+                    after.map(Bound::exclusive),
+                    None,
+                    Order::Ascending,
+                )
+                .take(limit)
+                .map(|row| row.map(|(_, message)| message))
+                .collect::<StdResult<Vec<_>>>()?;
             to_json_binary(&InboxResponse { messages })
         }
         QueryMsg::Sent { sender, message_id } => {

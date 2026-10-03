@@ -1,5 +1,8 @@
 # NETA DAO code-backed current state
 
+Latest review: [maintenance checkpoint, 2026-10-03](MAINTENANCE_CHECKPOINT_2026-10-03.md).
+
+
 Baseline review 2026-10-02 against `main`, including application controllers,
 contract source, tests and workflows. Baseline checkout: `936af0cedc16a8b797c194796f2b0534eb359de5`.
 That baseline included PR #97 (`4ca74ff`) and Treasury retry PR #98 (`ccd7998`).
@@ -30,8 +33,8 @@ and increases the selector minimum width. PR #109 shipped that follow-up; the li
 320 px frame confirms normal word separation and a 100 px selector without
 document overflow. Proposals filtering and existing-proposal selection were also
 smoke-checked on desktop. Full per-page interaction/accessibility
-review is not complete. Next: Proposals, then Treasury, Delivery/Contributors and
-RELAY/Names. Mainnet messaging remains disabled.
+review is not complete. The later Names integration and maintenance checkpoint
+supersede that initial page-by-page continuation order. Mainnet messaging remains disabled.
 
 This repo owns `dao.netareborn.com`. `cristianoneta/neta-website` owns the main
 site and the legacy Operations governance contract source. No duplicated DAO
@@ -207,7 +210,7 @@ do not infer a blanket repository license from the vendor license.
 
 ## Names and concept modules
 
-Names & Contacts is integrated into the main RELAY page at `index.html#relay/names`.
+Names & Contacts is integrated into the main RELAY page at `index.html#relay/directory`.
 `names-workspace.js` owns directory search, DAO detail/address copy, navigation and
 the USD fee calculator. It uses shared `names.css`/`neta-ui.css` foundations.
 The separate prototype link and simulated accounts/actions are removed. The old
@@ -222,10 +225,12 @@ handlers request `juno-1` and pin the exact NETA token address as well as
 treasury/token metadata before CW20 payments;
 there is no wired UNI-7 Names flow. Prepared metadata checks are not a substitute
 for pinning exact token/registry/code identity before activation.
-First registration is 5 NETA for **365 days**, not a permanent name. Renewals use
-an admin-set NETA quote targeting USD 5, with 30-day grace and no oracle. Fees go
-to the NETA DAO (`juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6`),
-not Operations. See the Names design for commit/reveal and deployment gates.
+The inactive v1 source uses fixed 5-NETA first registration and an admin-set renewal
+quote, with 30-day grace. This is superseded product behavior. The accepted v2 plan
+prices registration AND renewal at USD 640/160/5 for 3/4/5+ characters, paid in NETA
+using a fresh quote from the selected JUNO/NETA reference. No v2 quote service or
+registry is deployed. Fees target the NETA DAO treasury, not Operations. See the
+v2 plan and Names implementation boundary for transfer, term and activation gates.
 Delivery/Contributors remain concepts; deliverable records do not release funds.
 AtomOne remains prior research only; no AtomOne adapter or active integration exists.
 
@@ -325,3 +330,4 @@ five destinations. A common content-card class unifies Inbox/Directory/Contacts/
 Profile/Name registration surfaces and section headings. Browser regression
 compares nav coordinates and computed card/title styles across each destination
 at 320/390/768/1440 px. No feature gates or subscription storage change.
+

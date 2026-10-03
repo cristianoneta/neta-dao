@@ -1,5 +1,12 @@
 # NETA DAO handoff
 
+## Latest maintenance checkpoint — 2026-10-03
+
+Read [the maintenance checkpoint](docs/MAINTENANCE_CHECKPOINT_2026-10-03.md)
+first for current UI scope, refreshed data, CI changes and remaining work.
+Older dated sections below retain their historical evidence.
+
+
 Baseline review: **2026-10-02**; security integration rechecked **2026-10-03**. Canonical repository:
 `cristianoneta/neta-dao`; site: <https://dao.netareborn.com>.
 
@@ -19,7 +26,7 @@ Baseline review: **2026-10-02**; security integration rechecked **2026-10-03**. 
 | RELAY notifications / routing | CURRENT_STATE RELAY section | `relay.js`, `ux-draft.js`, `index.html`, `relay.css` |
 | Encrypted messaging | [Implementation plan](docs/RELAY_IMPLEMENTATION_PLAN.md), [live test runbook](docs/RELAY_UNI7_E2E_RUNBOOK.md) | `relay-uni7-lab.mjs`, `relay-uni7-client.mjs`, `relay-uni7-archive.mjs`, `spikes/relay-corecrypto/` |
 | Recovery | [Recovery decision](docs/RELAY_RECOVERY_DECISION.md) | Product direction only; no automatic backup service |
-| Names | [Names design](docs/NETA_NAMES_DESIGN.md) | `names.js`, `contracts/neta-names/src/lib.rs` |
+| Names | [Accepted v2 plan](docs/NETA_NAMES_V2_PLAN.md), [implementation boundary](docs/NETA_NAMES_DESIGN.md) | `names-workspace.js`; inactive legacy `names.js` and `contracts/neta-names/src/lib.rs` |
 | UNI-7 deployment failure | [UNI7_DEPLOYMENT_RUNBOOK.md](UNI7_DEPLOYMENT_RUNBOOK.md) | Contract identity, checksum and state-based recovery |
 
 ## Evening checkpoint — 2026-10-03
@@ -35,9 +42,9 @@ Baseline review: **2026-10-02**; security integration rechecked **2026-10-03**. 
 - Home was inspected at desktop and 320/768 px frames. Proposals list/filter and
   existing-proposal selection worked on desktop; its narrow page had no document
   overflow. Full per-page interaction/accessibility checks are still outstanding.
-- Continue with Proposals detail/dialog/keyboard states, then Treasury layouts,
-  Delivery/Contributors concepts and RELAY/Names/auxiliary pages. They already
-  inherit the shared theme; do not call the full design review complete.
+- Historical UI review queue: Proposals detail/dialog/keyboard states and other
+  module accessibility checks remain incomplete. Current product priority is the
+  small functional Names slice described below.
 - Mainnet messaging remains disabled. No real keys or live attack transactions
   were used. Preserve bot updates and pending crypto/transaction journals.
 - Fetch fresh GitHub main/open PRs and workflow state before continuing; recorded
@@ -45,24 +52,17 @@ Baseline review: **2026-10-02**; security integration rechecked **2026-10-03**. 
 
 ## Next concrete task
 
-The owner selected the modern graphite/mint design and voxel assembly plaza on
-2026-10-03. The canonical [design system](docs/DESIGN_SYSTEM.md) includes reference
-images, tokens, shared components, per-page rules and responsive acceptance criteria.
-The shared theme and Home implementation shipped in PR #108; Pages and live asset
-verification succeeded (see CURRENT_STATE). `neta-ui.css` owns
-foundations/components; existing module colors now refer to its tokens. Home desktop
-and 320/768 px layouts were inspected; #109 fixed heading word
-separation and chain-selector width and was rechecked live. Continue with Proposals, Treasury,
-Delivery/Contributors and RELAY/Names on the actual
-deployment, including the fixed-width review at `docs/design/responsive-preview.html`.
-Full per-page interaction/accessibility verification is still outstanding.
-Do not reintroduce the rejected wizard or remove reviewed content to match mockups.
+The owner wants small functional Names slices next. Keep the integrated RELAY
+navigation and shared masthead; there is no separate preview mode. Read the
+[accepted v2 plan](docs/NETA_NAMES_V2_PLAN.md), then implement/test normalization,
+tariff and term/expiry rules plus the quote interface using synthetic fixtures.
+The JUNO/NETA pool remains the chosen price reference. Do not deploy the legacy
+v1 contract as the accepted v2 product or enable registry writes before its gates.
 
-Follow the 2026-10-03 continuation below. Finish the release gates before any
-live wallet test: full coherent backup/restore, v0.2 mailbox deployment planning,
-consent/replenishment UX and historical generation resolution. Mainnet messaging
-remains disabled. The current user's task prohibits live attack transactions and
-real wallet keys; all adversarial tests use isolated synthetic fixtures.
+Desktop introductions reuse existing Home voxel artwork; mobile hides decoration.
+Remaining per-page keyboard/dialog/accessibility review is still useful, but is
+not a replacement for the owner's selected functional Names work. Mainnet messaging
+remains disabled; preserve transaction and crypto journals.
 
 ## Rules for accurate continuation
 
@@ -116,4 +116,5 @@ source only. The pinned UNI-7 v0.1 address/artifact has not changed. Automatic
 off-device recovery, historical sender resolution, consent/refill integration and
 the full rotation/exhaustion/restore matrix remain release blockers. Never discard
 pending ratchet/archive/outbox or transaction-journal state to unblock the UI.
+
 

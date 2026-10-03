@@ -9,6 +9,7 @@ on:
       - 'relay-uni7-lab.html'
       - 'relay-uni7-lab.css'
       - 'assets/relay-crypto/**'
+      - 'relay.js'
       - 'treasury.js'
       - 'neta-governance.js'
       - 'names.js'
@@ -46,4 +47,5 @@ jobs:
       - run: node browser-workspace-security.mjs
       - name: Adversarial receive and crash recovery regressions
         run: RELAY_AUDIT_ADVERSARIAL=1 node browser-uni7-lab.mjs
+
 

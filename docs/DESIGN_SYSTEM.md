@@ -228,3 +228,13 @@ when switching tabs. Inbox and Names surfaces share `relay-section-card`, paddin
 background, border, title size and supporting text. Section titles are h2 inside
 the card; the persistent masthead supplies the single h1. Keep the nav at the same
 document position and reserve scrollbar space to avoid horizontal movement.
+
+
+## Desktop section artwork — owner update 2026-10-03
+
+Proposals, Delivery, Contributors and Treasury reuse the Home sprite in a shared
+136 px decorative slot at the right of their introduction. RELAY reuses the
+assembly plaza in the same slot, unchanged across all five sections. Keep action
+buttons and status badges visible independently of artwork. At 960 px and below,
+hide decoration and use a single text column. Use shared `page-hero` styles in
+`neta-ui.css`; no additional raster files, animation or runtime rendering library.

@@ -1,32 +1,50 @@
-# NETA Names — implementation and activation
+# NETA Names — implementation boundary
 
-Code-reviewed 2026-10-02. `names.js` has `REGISTRY=null`; the UI is under
-RELAY → Names & Contacts (`#relay/names`). No registry is configured and no
-registration/renewal is active. Existing handlers select `juno-1`; a UNI-7
-Names test is not yet wired. See [CURRENT_STATE.md](CURRENT_STATE.md).
+Updated 2026-10-03. The authoritative product specification is
+[NETA_NAMES_V2_PLAN.md](NETA_NAMES_V2_PLAN.md). The earlier v1 pricing and ownership
+model is superseded. Do not activate v1 as if it implements the accepted v2 plan.
 
-## User-facing behavior
+## Current user interface
 
-`cristiano.neta` resolves to one Juno wallet in the NETA Names registry. A wallet may own one name; names are 5–32 lowercase ASCII letters, digits or interior hyphens. The name works only in clients that explicitly query this registry. It is not a DNS domain or a universally recognized wallet alias. RELAY accepts either the name or the Juno address and displays the resolved address, but messaging remains disabled until its separate encryption and contract review is finished.
+Names is integrated into RELAY: Inbox, Directory, Contacts, My profile and .neta
+name share one persistent heading and navigation. Use `index.html#relay/directory`.
+Legacy `#names`, `#relay/names` and `#relay/following` redirect there. There is no
+separate preview experience or nested Names menu.
 
-The interface uses the same navigation, hero, colors, cards and responsive rules as Proposals, Delivery, Treasury and RELAY. Search and registration clearly state when the registry has not been deployed. No example name is claimed to be active.
+Directory search, supported DAO details/address copy, browser-local follow controls
+and the USD fee calculator work. Contacts and profile writes are not connected.
+Registration, renewal, transfer, DAO profile proposals, lifecycle notifications and
+payments are unavailable. The fee calculator is neither an availability check nor
+a live NETA quote. See [integration details](NAMES_MAIN_PAGE_INTEGRATION.md).
 
-## Pricing and fee destination
+## Legacy code, inactive
 
-The first registration costs exactly 5 NETA (5,000,000 CW20 base units), including 365 days. A renewal extends the current expiry, or renews from today during the 30-day grace period. The initial renewal quote is 5 NETA (5,000,000 units). The USD 5 annual target requires an authorized admin to set a new on-chain NETA amount when necessary; it is **not** an automatic USD peg, because there is no trustworthy on-chain NETA/USD feed specified. The admin may change only the renewal fee, never the initial 5 NETA or the treasury. The displayed on-chain quote must be reread before a future signing flow.
+`names.js` has `REGISTRY=null`. Its prepared handlers target `juno-1` and pin the
+exact NETA token address and configured treasury. `contracts/neta-names/` is the
+v1 source: fixed 5-NETA first year, admin-set renewal price and 30-day grace. These
+are legacy implementation details, not the accepted current commercial offer.
+No UNI-7 Names registry is wired. Metadata checks alone do not verify deployment.
 
-Every CW20 payment is forwarded atomically to the **NETA DAO** treasury `juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6`. The contract refuses instantiation with any other treasury. This is distinct from the NETA Operations DAO treasury. Verify this destination with the DAO before mainnet activation.
+## Accepted next implementation
 
-## Contract rules
+- Register AND renew: USD 640 for 3 characters, USD 160 for 4, USD 5 for 5+;
+  settle in NETA from a fresh quote using the existing JUNO/NETA reference pool.
+  Labels have 3–32 characters; 1–2 are unavailable. Fees go to the NETA DAO treasury.
+- Explicit ownership transfers, 1–5-year terms, maximum five years remaining,
+  expiry generations and 30-day exclusive renewal grace.
+- One preferred chain also determines the receiving network. Start with verified
+  Juno records; add Osmosis and explicit IBC routing only with supported adapters.
+- Free DAO identities under `.dao.neta`, stable deterministic allocation and
+  separate directory-verification / DAO-confirmation evidence. DAO profile changes
+  become executable proposals authorized by the DAO, not unilateral member edits.
+- Private contacts and public profiles are different records. Membership badges
+  need chain/module evidence. Lifecycle notifications must be generation/owner-aware.
 
-The sender commits SHA-256 of `neta-names-v1:{label}:{juno_address}:{random_salt}`. The commitment must age at least one block and expires after 100 blocks. The user then sends exactly 5 NETA through CW20 `Send` with `{ "register": { "name": "label.neta", "salt": "…" } }` as the base64-encoded hook. Atomic execution rejects wrong token, fee, ownership, expiration or commitment. There is a 30-day renewal grace after expiry, during which resolution returns no active address; afterward a new owner may register. The admin transfer requires nomination and acceptance. Contract query variants: `resolve`, `name_of`, `config`, `commitment`.
+The v2 plan owns the precise allocation, quote binding, renewal reminders and
+security requirements. Implement a small tested slice next: name normalization,
+tariffs, term/expiry rules and the quote interface using synthetic fixtures. Resolve
+price freshness/jump thresholds and signer custody before enabling any purchase.
 
-Current contract does not support changing the wallet associated with a name, delegated registration, or an appeal for disputed names. Users should keep their wallet safe. Production deployment requires contract security review and a verified NETA CW20 address and DAO admin address.
-
-## Activation checklist
-
-1. Run Rust formatting, tests, Clippy and a security review of `contracts/neta-names`. The path-filtered contract CI covers tests and Clippy (Names formatting currently runs as a formatter, not a check); a mainnet WASM build should additionally be reproducible.
-2. Verify and pin the exact NETA CW20 token contract, its six-decimal denomination, registry/code identity, the given DAO treasury and an admin controlled by the DAO. Current frontend checks of symbol/decimals and treasury alone do not prove token identity. The provided treasury address is not independently attested by this repository.
-3. Deploy and instantiate on Juno with `neta_token`, the fixed `dao_treasury`, `admin` and `renewal_fee: "5000000"`. Verify the resulting on-chain config and CW20 transfer destination before showing any registration CTA.
-4. Add the verified registry address to `names.js` after deployment. The prepared Keplr commit/reveal and renewal flow is gated by this address. Test real transaction receipts and register/renew against the deployed contract before activating the UI; the current UI keeps registration disabled until then.
-5. Enable RELAY message delivery only after the separate security design in `RELAY_SECURITY_ARCHITECTURE.md` is implemented and reviewed.
+Activation requires reviewed v2 source/schema, verified registry/token/treasury/code
+identities, replay-resistant quotes, transfer and expiry tests, deployment evidence,
+and wallet-confirmed end-to-end testing. Never enable writes through a UI change.
