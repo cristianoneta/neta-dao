@@ -26,6 +26,9 @@ on:
       - "data/dao-directory.json"
       - "scripts/build_dao_directory.py"
       - "scripts/update_dao_directory.py"
+      - "scripts/update_members.py"
+      - "tests/test_members.py"
+      - ".github/workflows/members-snapshot.yml"
       - "scripts/update_main_dao.py"
       - ".github/workflows/main-dao-snapshot.yml"
       - "tests/test_dao_onboarding.py"
@@ -70,6 +73,9 @@ on:
       - "data/dao-directory.json"
       - "scripts/build_dao_directory.py"
       - "scripts/update_dao_directory.py"
+      - "scripts/update_members.py"
+      - "tests/test_members.py"
+      - ".github/workflows/members-snapshot.yml"
       - "scripts/update_main_dao.py"
       - ".github/workflows/main-dao-snapshot.yml"
       - "tests/test_dao_onboarding.py"
@@ -133,7 +139,7 @@ jobs:
       - name: Frontend syntax and invariants
         run: |
           python scripts/build_dao_directory.py --check
-          python -m unittest tests/test_dao_onboarding.py
+          python -m unittest tests/test_dao_onboarding.py tests/test_members.py
           node --test tests/*.test.mjs
           node --check relay-testnet-setup.js
           node --check relay-uni7-readiness.js

@@ -1,0 +1,47 @@
+name: DAO member snapshots
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/update_members.py'
+      - 'scripts/update_dao_directory.py'
+      - 'data/dao-directory.json'
+      - '.github/workflows/members-snapshot.yml'
+  schedule:
+    - cron: '12,42 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: dao-members-snapshot
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Refresh configured membership adapters independently
+        run: python scripts/update_members.py
+      - name: Publish membership snapshots and source status
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          python - <<'PYCODE'
+          import json, subprocess
+          from pathlib import Path
+          daos=json.loads(Path('data/dao-directory.json').read_text())['daos']
+          paths=['data/daos/membership-status.json']+[str(Path('data/daos')/d['membershipSource']['file']) for d in daos if d.get('membershipSource')]
+          subprocess.run(['git','add','--',*[p for p in paths if Path(p).exists()]],check=True)
+          PYCODE
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Update DAO member snapshots"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then exit 0; fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            git fetch origin main
+            git rebase origin/main
+          done

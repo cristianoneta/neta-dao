@@ -8,7 +8,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TASKS = {
-    'members': ('update_dao_directory.py', [], 180),
     'balances': ('update_treasury.py', ['--dao', 'neta'], 300),
     'events': ('update_treasury_events.py', ['--dao', 'neta'], 150),
 }

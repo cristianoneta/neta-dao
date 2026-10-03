@@ -238,3 +238,13 @@ assembly plaza in the same slot, unchanged across all five sections. Keep action
 buttons and status badges visible independently of artwork. At 960 px and below,
 hide decoration and use a single text column. Use shared `page-hero` styles in
 `neta-ui.css`; no additional raster files, animation or runtime rendering library.
+
+## People navigation — owner decision 2026-10-03
+
+Rename the main Contributors destination to **People**, with peer **Members**
+and **Contributors** buttons using the existing RELAY subnav styling. Keep the
+People heading, artwork and subnav stable for both panels and every DAO.
+Members shows verified governance participation with DAO-specific units.
+Contributors remains a planned state until the owner defines its real data and
+workflow. Remove illustrative Operations people, mandates and pay from the live
+UI. Preserve legacy `#contributors` links by routing to Members.

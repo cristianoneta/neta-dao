@@ -22,11 +22,11 @@ class Onboarding(unittest.TestCase):
   def smart(base,address,msg,height):
    key=next(iter(msg))
    return {'config':({'name':DAO['name']} if address==DAO['core'] else {'dao':DAO['core']}),'voting_module':DAO['votingModule'],'proposal_modules':[DAO['proposalModule']],'staking_contract':DAO['stakingContract'],'token_contract':DAO['tokenContract'],'total_power_at_height':{'power':'1000000','height':100},'proposal_count':3}[key]
-  with patch.object(members,'get',side_effect=get),patch.object(members,'smart',side_effect=smart):
+  with patch.object(members,'get',side_effect=get),patch.object(members,'collect_stakers',return_value=[members.decode_member(self.model())]),patch.object(members,'smart',side_effect=smart):
    self.assertTrue(members.collect(DAO,'fixture')['members_complete'])
   def mismatch(base,address,msg,height):
    return {'power':'2000000','height':100} if 'total_power_at_height' in msg else smart(base,address,msg,height)
-  with patch.object(members,'get',side_effect=get),patch.object(members,'smart',side_effect=mismatch):
+  with patch.object(members,'get',side_effect=get),patch.object(members,'collect_stakers',return_value=[members.decode_member(self.model())]),patch.object(members,'smart',side_effect=mismatch):
    with self.assertRaisesRegex(ValueError,'reconcile'):members.collect(DAO,'fixture')
   def foreign(base,address,msg,height):
    return 'other' if 'voting_module' in msg else smart(base,address,msg,height)
@@ -64,9 +64,9 @@ class MainDaoCoverage(unittest.TestCase):
    row=treasury.native_assets([{'denom':'ibc/unknown','amount':'9007199254740993123'}],{},[])[0]
   self.assertEqual(row['raw_amount'],'9007199254740993123');self.assertIsNone(row['amount']);self.assertIsNone(row['usd_value'])
  def test_main_collector_timeout_keeps_existing_output(self):
-  collector=module('update_main_dao')
+  collector=module('update_members')
   with patch.object(collector.subprocess,'run',side_effect=collector.subprocess.TimeoutExpired('test',180)):
-   name,result=collector.run(('members',collector.TASKS['members']))
-  self.assertEqual(name,'members');self.assertEqual(result['status'],'unavailable')
+   name,result=collector.run({'id':'neta'})
+  self.assertEqual(name,'neta');self.assertEqual(result['status'],'unavailable')
 
 if __name__=='__main__':unittest.main()
