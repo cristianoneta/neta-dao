@@ -104,3 +104,11 @@ Contract Markdown matches `contracts/**`; `docs/RELAY_SECURITY_ARCHITECTURE.md`
 also matches frontend/contract CI. This reconciliation PR includes both and
 triggers those workflows. Run relevant local checks and inspect actual checks. A successful Pages deployment proves publication,
 not wallet transactions or cryptographic security.
+
+## Security continuation (2026-10-03)
+
+Audit PR #100 and receive-recovery PR #101 are integrated after successful CI.
+The lab now journals encrypted ratchet checkpoints and isolates invalid messages;
+read the current Handoff and audit before extending it. Full off-device recovery
+and source-only v0.2 mailbox consent/historical identity wiring are still gates.
+The pinned deployed UNI-7 mailbox is v0.1. Mainnet messaging remains disabled.

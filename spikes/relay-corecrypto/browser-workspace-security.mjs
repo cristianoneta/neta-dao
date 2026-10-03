@@ -32,7 +32,7 @@ try{
    }
    if(query.comments){const id=query.comments.proposal_id;
     if(id===1)await new Promise(resolve=>setTimeout(resolve,350));
-    data=[{id:1,body:id===2?'[[NETA_THREAD:%]]\nVisible comment 2':'Old comment 1',author:'author',verified_stake:'11000000',created_time:1}];
+    data=[{id:1,body:id===2?'[[NETA_THREAD:%]]\nVisible comment 2':'Old comment 1',author:'author',verified_stake:'11000000',created_time:1},{id:2,parent_id:1,title:'hidden title',body:'NEVER RENDER HIDDEN BODY',author:'author',moderation:{hidden:true,reason:'spam'},created_time:1},{id:3,body:'[[NETA_REPLY:4]]\nforward reference',author:'author',created_time:1},{id:4,body:'[[NETA_REPLY:3]]\ncycle candidate',author:'author',created_time:1}];
    }
    return json(route,{data});
   }
@@ -70,7 +70,25 @@ try{
  assert.equal(await page.locator('#proposal-heading').textContent(),'Proposal 2');
  assert.match(await page.locator('#comment-list').textContent(),/Visible comment 2/);
  assert.doesNotMatch(await page.locator('#comment-list').textContent(),/Old comment 1/);
+ assert.doesNotMatch(await page.locator('#comment-list').textContent(),/NEVER RENDER HIDDEN BODY|hidden title/);
+ assert.match(await page.locator('#comment-list').textContent(),/COMMENT HIDDEN BY MODERATION.*spam/);
+ assert.match(await page.locator('#comment-list').textContent(),/cycle candidate/);
  assert.deepEqual(errors,[]);
  console.log('Workspace security: stale DAO snapshot, rapid proposal switch and malformed public marker passed');
+
+ // Exercise the actual shared generated bundle with synthetic TxRaw data only.
+ const attempt=()=>page.evaluate(async()=>{
+   let signs=0,broadcasts=0;
+   const client={getChainId:async()=> 'juno-1',getTx:async()=>null,simulate:async()=>100,
+     gasPrice:{denom:'ujuno',amount:{multiply:()=>({ceil:()=>({toString:()=> '1'})})}},
+     sign:async(_sender,_messages,fee)=>{if(fee.amount[0].denom!=='ujuno')throw Error('wrong fee denom');signs++;return {bodyBytes:new Uint8Array([1]),authInfoBytes:new Uint8Array([10,2,24,7]),signatures:[new Uint8Array([2])]};},
+     broadcastTx:async()=>{broadcasts++;throw Error('node accepted, response lost');}};
+   let error;try{await window.NetaSocialsTestnet.execute(client,'journal-fixture','contract',{test:{}},'local fixture');}catch(e){error=e.message;}
+   return {error,signs,broadcasts,record:JSON.parse(localStorage.getItem('neta-pending-tx-v1:juno-1:journal-fixture'))};
+ });
+ const first=await attempt();assert.match(first.error,/OUTCOME UNKNOWN/);assert.equal(first.signs,1);assert.equal(first.broadcasts,1);assert.equal(first.record.sequence,'7');
+ await page.reload();await page.waitForFunction(()=>!!window.NetaSocialsTestnet);
+ const second=await attempt();assert.match(second.error,/RETRY LOCKED/);assert.equal(second.signs,0);assert.equal(second.broadcasts,0);assert.deepEqual(second.record,first.record);
+ console.log('Shared signing bundle: exact signed transaction journal blocks repeated signatures after reload');
  await context.close();
 }finally{await browser?.close();server.close();}

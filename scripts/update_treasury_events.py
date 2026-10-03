@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import re
 import urllib.parse
 import urllib.request
@@ -65,12 +66,22 @@ def select_rpc(chain):
     probe = f"wasm._contract_address='{chain['address']}'"
     for base in chain["rpcs"]:
         try:
-            status = rpc(base, "status")
-            indexed = rpc(base, "tx_search", query=probe, page=1, per_page=1, order_by="desc")
+            status = rpc(base, "status", timeout=15)
+            if status.get("node_info", {}).get("network") != chain["id"]:
+                raise RuntimeError("RPC network identity mismatch")
+            indexed = rpc(base, "tx_search", timeout=15, query=probe, page=1, per_page=1, order_by="desc")
             total = int(indexed.get("total_count", 0))
             if chain["require_history"] and total == 0:
                 raise RuntimeError("historical address index is empty")
-            return base, int(status["sync_info"]["latest_block_height"]), total
+            height = int(status["sync_info"]["latest_block_height"])
+            # Probe only the selected usable index; avoid multiple slow archive
+            # probes on every scheduled refresh. Range-policy rejection is a
+            # capability result, not loss of the working full-history endpoint.
+            try:
+                rpc(base, "tx_search", timeout=8, query=f"{probe} AND tx.height>={chain['creation_height']} AND tx.height<={height-20}", page=1, per_page=1, order_by="asc")
+                return base, height, total, True
+            except Exception:
+                return base, height, total, False
         except Exception as error:
             errors.append(f"{base}: {error}")
     raise RuntimeError(f"no {chain['name']} RPC with a usable transaction index: " + " | ".join(errors))
@@ -83,15 +94,53 @@ def load_existing():
         return {"schema_version": 2, "events": []}
 
 
-def search(base, key, address):
-    rows, page = [], 1
-    while True:
-        result = rpc(base, "tx_search", query=f"{key}='{address}'", page=page, per_page=PER_PAGE, order_by="asc")
+def search(base, key, address, start_height=None, end_height=None):
+    rows, page, expected = [], 1, None
+    expression = f"{key}='{address}'"
+    if start_height is not None:
+        expression += f" AND tx.height>={int(start_height)}"
+    if end_height is not None:
+        expression += f" AND tx.height<={int(end_height)}"
+    while page <= 1000:
+        result = rpc(base, "tx_search", query=expression, page=page, per_page=PER_PAGE, order_by="asc")
+        total = int(result.get("total_count", 0))
+        if total < 0 or (expected is not None and total != expected):
+            raise RuntimeError("transaction index changed during bounded scan")
+        expected = total
         batch = result.get("txs", [])
+        if not batch and len(rows) < total:
+            raise RuntimeError("transaction pagination truncated before total_count")
         rows.extend(batch)
-        if len(rows) >= int(result.get("total_count", 0)) or not batch:
+        if len(rows) >= total:
+            if len(rows) != total or len({tx["hash"] for tx in rows}) != total:
+                raise RuntimeError("duplicate or inconsistent transaction pages")
             return rows
         page += 1
+    raise RuntimeError("transaction pagination safety limit reached")
+
+
+def block_hash(base, height):
+    value = rpc(base, "block", timeout=10, height=height).get("block_id", {}).get("hash")
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9A-Fa-f]{64}", value):
+        raise RuntimeError("missing block identity for scan anchor")
+    return value.upper()
+
+
+def scan_start(chain, base, end_height, source):
+    if source and isinstance(source.get("last_scanned_height"), int) and source["last_scanned_height"] > end_height:
+        raise RuntimeError("RPC is behind prior scan watermark")
+    if os.environ.get("TREASURY_EVENTS_FULL_REPLAY") == "1" or not source:
+        return chain["creation_height"], False
+    anchor = source.get("last_scanned_height")
+    if source.get("address") != chain["address"] or not isinstance(anchor, int) or anchor < chain["creation_height"] or anchor > end_height or not source.get("anchor_hash"):
+        return chain["creation_height"], False
+    try:
+        observed = block_hash(base, anchor)
+    except Exception:
+        return chain["creation_height"], False
+    if observed != source["anchor_hash"]:
+        raise RuntimeError("stored scan anchor changed; preserve ledger for explicit reconciliation")
+    return max(chain["creation_height"], anchor - 100), True
 
 
 def attributes(event):
@@ -195,41 +244,63 @@ def normalize(tx, timestamp, registry, chain=None, titles=None):
     }
 
 
-def collect_chain(chain, existing, registry, titles):
-    base, latest_height, indexed_total = select_rpc(chain)
+def collect_chain(chain, existing, registry, titles, source=None):
+    base, latest_height, indexed_total, range_capable = select_rpc(chain)
+    # Scan only finalized older blocks and retain an overlap for delayed indexing.
+    end_height = max(chain["creation_height"], latest_height - 20)
+    anchor_hash = block_hash(base, end_height)
+    start_height, incremental = scan_start(chain, base, end_height, source)
+    if not range_capable:
+        start_height, incremental = chain["creation_height"], False
     found = {}
-    for key in QUERIES:
-        for tx in search(base, key, chain["address"]):
-            if int(tx.get("tx_result", {}).get("code", 0)) == 0:
-                found[tx["hash"]] = tx
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = [pool.submit(search, base, key, chain["address"], start_height if range_capable else None, end_height if range_capable else None) for key in QUERIES]
+        for future in futures:
+            for tx in future.result():
+                if start_height <= int(tx["height"]) <= end_height and int(tx.get("tx_result", {}).get("code", 0)) == 0:
+                    found[tx["hash"]] = tx
     prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"]}
+    absent = {digest for digest, row in prior.items() if start_height <= int(row["height"]) <= end_height and digest not in found}
+    unresolved = set(source.get("historical_missing_tx_hashes", [])) if incremental and source else set()
+    unresolved = (unresolved - set(found)) | absent
+    historical_missing = len(unresolved)
+    if historical_missing and chain["require_history"]:
+        raise RuntimeError("historical index lost recorded transactions; preserve existing ledger")
+    # Optional Osmosis legacy indexing was incomplete before this change. Keep
+    # every cached event and report the gap rather than blocking fresh balances.
     timestamp_by_height = {int(row["height"]): row.get("timestamp") for row in prior.values()}
     missing_heights = sorted({int(tx["height"]) for tx in found.values()} - set(timestamp_by_height))
     with ThreadPoolExecutor(max_workers=4) as pool:
         futures = {pool.submit(block_time, base, height): height for height in missing_heights}
         for future in as_completed(futures):
             timestamp_by_height[futures[future]] = future.result()
+    if block_hash(base, end_height) != anchor_hash:
+        raise RuntimeError("scan block identity changed during collection")
     for tx in found.values():
         prior[tx["hash"]] = normalize(tx, timestamp_by_height[int(tx["height"])], registry, chain, titles)
     for row in prior.values():
         row["chain_name"] = chain["name"]
         row["treasury_address"] = chain["address"]
-        row["proposal_title"] = titles.get(str(row.get("proposal_id"))) if row.get("proposal_id") else None
+        row["proposal_title"] = titles.get(str(row.get("proposal_id")), row.get("proposal_title")) if row.get("proposal_id") else None
         row["account_explorer_url"] = chain["explorer_account"].format(address=chain["address"])
-    return list(prior.values()), {"chain_id": chain["id"], "address": chain["address"], "source": base, "indexed_transactions": indexed_total, "last_scanned_height": latest_height, "contract_creation_height": chain["creation_height"]}
+    return list(prior.values()), {"chain_id": chain["id"], "address": chain["address"], "source": base, "indexed_transactions": indexed_total, "last_scanned_height": end_height, "anchor_hash": anchor_hash, "scan_start_height": start_height, "incremental": incremental, "range_capable": range_capable, "historical_missing_transactions": historical_missing, "historical_missing_tx_hashes": sorted(unresolved), "contract_creation_height": chain["creation_height"]}
 
 
 def collect():
-    existing = load_existing().get("events", [])
+    previous = load_existing()
+    existing = previous.get("events", [])
+    source_by_chain = {row["chain_id"]: row for row in previous.get("sources", [])}
     registry, titles = denom_registry(), proposal_titles()
     rows, sources = [], []
     for chain in CHAINS:
-        chain_rows, source = collect_chain(chain, existing, registry, titles)
+        chain_rows, source = collect_chain(chain, existing, registry, titles, source_by_chain.get(chain["id"]))
         rows.extend(chain_rows)
         sources.append(source)
     rows.sort(key=lambda row: (row.get("timestamp") or "", row["chain_id"] == "juno-1", row["height"], row["tx_hash"]), reverse=True)
     missing = sum(not row.get("timestamp") for row in rows)
-    return {"schema_version": 2, "generated_at": now(), "treasuries": [{"chain_id": chain["id"], "address": chain["address"]} for chain in CHAINS], "scope": "neta-operations-cross-chain", "sources": sources, "cursor": {"strategy": "full-address-index-replay", "chains": sources}, "warnings": [f"Exact block timestamp unavailable from public RPC archives for {missing} historical events."] if missing else [], "events": rows}
+    warnings = [f"Exact block timestamp unavailable from public RPC archives for {missing} historical events."] if missing else []
+    warnings += [f"{source['chain_id']}: {source['historical_missing_transactions']} cached historical transactions are currently absent from the public index; records retained." for source in sources if source["historical_missing_transactions"]]
+    return {"schema_version": 2, "generated_at": now(), "treasuries": [{"chain_id": chain["id"], "address": chain["address"]} for chain in CHAINS], "scope": "neta-operations-cross-chain", "sources": sources, "cursor": {"strategy": "anchored-incremental-with-full-replay-fallback", "chains": sources}, "warnings": warnings, "events": rows}
 
 
 def main():

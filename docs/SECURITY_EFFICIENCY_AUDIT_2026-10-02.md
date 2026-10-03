@@ -8,9 +8,9 @@ Review of first-party website and DAO contracts, wallet transaction flows, RELAY
 
 | ID | Severity | Status | Finding and evidence |
 | --- | --- | --- | --- |
-| R1 | High, prototype availability | Open; release blocker | `relay-uni7-archive.mjs` and UNI7 receive flow persist an archive intent before authenticated decryption completes. A malformed mailbox ciphertext can leave a pending intent that blocks local receive/send after reload. The contract checks byte lengths, not cryptographic validity. The optional local adversarial browser test exercises this failure without chain transactions. Do not skip the record blindly: Ratchet state and archive state must remain consistent. |
-| R2 | High, prototype availability | Open; release blocker | Initial sends consume recipient prekeys. An attacker can register multiple funded sender accounts and consume the lab's finite prekey inventory with invalid messages. Per-sender rate limits do not stop account rotation. Add authenticated acceptance/replenishment and bounded abuse handling before release. |
-| R3 | Medium, prototype availability | Open | Contract deduplication includes sender and message ID, whereas local archive identity uses recipient wallet and message ID. Malicious senders can choose colliding IDs. Migrate storage and authenticated envelope identity together; add adversarial collision and migration tests. Current-generation-only sender lookup also creates availability problems for unread messages after sender rotation. |
+| R1 | High, prototype availability | Repaired in PR #101; local receive | `relay-uni7-archive.mjs` and UNI7 receive flow persist an archive intent before authenticated decryption completes. A malformed mailbox ciphertext can leave a pending intent that blocks local receive/send after reload. The contract checks byte lengths, not cryptographic validity. The optional local adversarial browser test exercises this failure without chain transactions. Do not skip the record blindly: Ratchet state and archive state must remain consistent. |
+| R2 | High, prototype availability | v0.2 source repaired in #102; deployed v0.1 still blocked | Initial sends consume recipient prekeys. An attacker can register multiple funded sender accounts and consume the lab's finite prekey inventory with invalid messages. Per-sender rate limits do not stop account rotation. Add authenticated acceptance/replenishment and bounded abuse handling before release. |
+| R3 | Medium, prototype availability | Local namespace repaired in #101; historical lookup still open | Contract deduplication includes sender and message ID, whereas local archive identity uses recipient wallet and message ID. Malicious senders can choose colliding IDs. Migrate storage and authenticated envelope identity together; add adversarial collision and migration tests. Current-generation-only sender lookup also creates availability problems for unread messages after sender rotation. |
 | T1 | Medium | Fixed | `treasury.js` allowed a slow response for the previously selected DAO to overwrite the current view. Abort superseded fetches and guard every state update by load epoch; parse responses before committing them. |
 | T2 | Medium, financial display integrity | Fixed | `scripts/update_treasury.py` assigned prices to unreviewed IBC assets using base-denom names/substrings. Exact reviewed denom mapping now determines prices; unknown traces stay unpriced. Unpriced LP components now force PARTIAL even when other components have a value. Display totals are not custody guarantees. |
 | G1 | Medium | Fixed | Mainnet votes used the shared signing client's default `ujunox` testnet fee. The client accepts an explicit gas price; mainnet uses `0.075ujuno`. Rebuilt shared bundles are synchronized across repositories. |
@@ -18,7 +18,7 @@ Review of first-party website and DAO contracts, wallet transaction flows, RELAY
 | N1 | Medium, activation gate | Fixed; activation still gated | Names registry token validation now pins the exact canonical NETA contract rather than trusting symbol/decimals. Registry remains unset. Verify chain, registry address/code identity and treasury configuration before enabling mainnet writes. |
 | D1 | High advisory; limited local exposure | Fixed | RELAY spike Playwright 1.55.0 affected by GHSA-7mvr-c777-76hp. Updated to 1.63.0; audit now reports zero advisories. Advisory concerns insecure installer downloads on macOS; no production wallet exploit was established. Source: https://github.com/advisories/GHSA-7mvr-c777-76hp |
 | W1 | Medium | Fixed in website | Swap/IBC bind signing to reviewed parameters, freeze controls during signing and recheck wallet identity. See website audit for details. |
-| W2 | Medium | Open in website | An RPC timeout after submitting a transaction can leave acceptance ambiguous. A subsequent user retry may duplicate a spend. Persist signed transaction hash/sequence and reconcile pending transactions before allowing a retry. |
+| W2 | Medium | Website #138 repaired; DAO shared bundle in #103 | An RPC timeout after submitting a transaction can leave acceptance ambiguous. A subsequent user retry may duplicate a spend. Persist signed transaction hash/sequence and reconcile pending transactions before allowing a retry. |
 | G3 | Medium, policy/availability | Open | Legacy governance permits eligible members to revise/finalize shared proposals; this is the current collaborative policy, not demonstrated outsider access. Revision growth and incomplete pagination can degrade queries. Decide explicit ownership/review policy and bounded pagination before expanding use. DAO comment display also does not enforce the workshop moderation-hidden flag. |
 
 ## RELAY release requirements
@@ -47,3 +47,60 @@ Use CURRENT_STATE.md and HANDOFF.md together with this report. Resolve R1–R3 b
 ### CI evidence at continuation handoff
 
 Website Test website run 307 passed, including browser integration and reproducible bundles. DAO RELAY browser crypto run 31 passed, including stale-response regressions and the optional adversarial test that intentionally reproduces the open persistent-lock blocker. DAO contract/frontend run 136 was still running; website production-data run 409 was pending. Check final outcomes before merging. Code checkpoint SHAs are recorded in HANDOFF.md; these follow-up documentation changes do not change the tested implementation.
+
+## Verified continuation — 2026-10-03
+
+Prior audit PRs Website #137 / DAO #100 merged after the current relevant checks
+passed, preserving all bot updates. Served website swap/IBC/recovery bundles and
+DAO Governance/Treasury/Names/shared bundle matched reviewed bytes.
+
+R1: repaired in PR #101, merged as `bc7fb520cbb9626684ba04262b7a42835b497681`.
+RELAY browser run 34 passes normal encrypted exchange/reply/reload and adversarial
+malformed ciphertext, cross-sender ID collision, valid progression after quarantine,
+reload and interrupted archive completion after ratchet commit. Rollback restores
+an encrypted pre-receive checkpoint before retrying; unresolved older v1 intents
+without checkpoints remain locked. Full off-device recovery is not implemented.
+
+R3: new archive records use a SHA-256 routing tuple (chain, contract, sender and
+recipient generations, sender/recipient, message ID). Confirmed legacy records keep
+the original authenticated AAD so history survives. Historical generation lookup in
+the lab still uses the current deployed device and remains a release blocker.
+
+R2: PR #102 adds v0.2 source consent bound to recipient/sender generations, at most
+one initial per approved pair and immutable historical identity queries. The deployed
+v0.1 checksum/address is unchanged. No chain migration was attempted. Activation
+requires new reviewed deployment/identity pinning and consent/replenishment UX;
+source-level tests are not proof the deployed contract has changed.
+
+G3 follow-up: moderated title/body no longer enter visible DOM, malicious forward/
+self parent IDs cannot create reply cycles, and deep rendering stops at 32 levels
+with an omission notice. Legacy revision queries no longer repeat an unsupported
+cursor; a 100-record response shows potential truncation. Collaborative ownership
+policy and full history completeness remain unchanged/open.
+
+Efficiency follow-up: Treasury search bounds every query by height, rejects empty/
+duplicate/inconsistent pagination, checks a stored block-hash anchor and replays a
+100-block overlap after a 20-block tip delay. Missing anchors fall back to full replay;
+a changed anchor or loss of a recorded transaction fails without publishing over the
+existing ledger. This does not fix unindexed CW20/LP cashflow or guarantee RPC honesty.
+Local continuation checks: 42 Node and 16 Python tests passed. Browser/contract CI
+for this follow-up must pass before merge. Mainnet messaging stays disabled.
+
+2026-10-03 RPC compatibility check: the public Juno gateway rejects height-range
+queries with an explicit strict-equality policy. Collector selection now probes
+the selected usable index for range capability and falls back to full replay
+when that endpoint rejects the feature. The optimization is conditional on node support, not a guarantee
+of incremental scans on every endpoint. Snapshot ownership/data remain unchanged.
+
+W2 shared adapter follow-up: website browser CI run 311 passes including an actual
+bundle lost-response/reload regression. The synchronized DAO bundle adds the same
+journal for mainnet votes and prepared Names/testnet executes. DAO's actual shared
+bundle has its own browser regression. The scope and manual recovery limitations
+are described in the website audit; upload/instantiate helpers remain outside it.
+Mailbox v0.2 source PR #102 passed contract/frontend run 139 and all WASM jobs in
+run 22 and is merged; the deployed mailbox remains v0.1.
+
+Known optional Osmosis legacy index gaps preserve all cached events and emit an
+explicit coverage warning; they do not block fresh balances. Required Juno history
+gaps still fail publication. Seven independent address queries run with a bound
+of three workers; capability probes have eight-second timeouts and run only on the selected node.

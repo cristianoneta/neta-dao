@@ -85,3 +85,30 @@ and crash-state testing, usable encrypted backup/recovery and independent client
 review. Before mainnet: new reviewed stake/network policy, contract/client audit,
 resolved findings and explicit activation approval. No documentation edit, mock
 CI result or Pages deployment satisfies those gates by itself.
+
+## Verified implementation changes — 2026-10-03
+
+PR #101 passes adversarial encrypted receive/reload and interrupted ratchet/archive
+completion tests. It persists encrypted pre-receive checkpoints while handles are
+closed, authenticates the envelope inside the CoreCrypto transaction, restores
+pending receive state at unlock and quarantines invalid ciphertext. Legacy pending
+intents without a checkpoint stay locked. Outbound crash reconciliation and a full
+off-device consistent backup remain separate unresolved gates.
+
+PR #102 passes Rust/Clippy/audit and WASM validation for v0.2 **source only**.
+Recipient-granted consent binds both device generations; at most one initial may
+consume a prekey for each approved pair. Historical fingerprint records are
+immutable. The pinned v0.1 UNI-7 artifact/address has not been replaced. The lab
+therefore still cannot promise unread historical sender generation resolution,
+prekey exhaustion resistance on the deployed contract or generation-separated
+Ratchet sessions. New deployment, consent/refill UX and generation-aware session
+resolution require tests before activation.
+
+Mainnet messaging remains disabled. No live attack, secret key or new contract
+deployment was used in this continuation. The generated local unlock code is not
+an off-device backup.
+
+The continuation also defers destruction/release on a Keplr account-change event
+until a busy operation has completed or left a recoverable journal. An adversarial
+browser test suspends archive completion, changes the account, verifies the lock
+remains held, then completes/reloads and checks the archived message.

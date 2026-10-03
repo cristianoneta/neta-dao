@@ -45,9 +45,8 @@ are chain records. `dao_deliverable_v1` records in `actions_json` are plans, not
 executable Cosmos messages; future adapters must separate them.
 
 Completeness and implementation limits: Operations mainnet history stops after
-20 pages of 30; workshop pagination stops after 100 pages of 100. Legacy revision
-queries ignore cursors; a history of at least 100 legacy revisions can hit the
-frontend pagination guard. Recovery queries for some writes inspect only 100
+20 pages of 30; workshop pagination stops after 100 pages of 100. Legacy revision queries ignore cursors; the frontend now queries them once and
+shows an explicit potential truncation warning at 100 records. Recovery queries for some writes inspect only 100
 records. Do not promise unlimited/full history without these qualifications.
 The legacy contract has no v0.3.0 hash/JSON-array/cooldown/withdraw hardening, and
 converts failed access reads to zero. Frontend checks are not contract guarantees.
@@ -88,8 +87,11 @@ base names no longer inherit USDC/DAI/ATOM prices; they remain unpriced until
 reviewed. Fallback display decimals still default to six. Unpriced LP underlying
 assets now also make the snapshot PARTIAL. Registry changes are not automatically persisted.
 
-Event ledger: schema v2, chain/hash deduplication, full address-index replay,
-per-chain scan watermarks and proposal-title enrichment. Monetary extraction is
+Event ledger: schema v2, chain/hash deduplication and proposal-title enrichment.
+The continuation adds height-bounded scans, a verified block-hash anchor, 100-block
+overlap and 20-block tip delay. Missing anchors use full replay. Changed anchors,
+truncated pages or loss of recorded historical TXs fail without replacing exports.
+`TREASURY_EVENTS_FULL_REPLAY=1` requests a full replay; it preserves prior records. Monetary extraction is
 native `transfer` event based; contract activity alone is not complete CW20/LP
 cash flow. Missing historical timestamps remain null with exact block heights.
 Juno historical indexing is required; absent legacy Osmosis matches are allowed.
@@ -121,7 +123,7 @@ Recorded mailbox identity: UNI-7,
 creator `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`, label
 `NETA RELAY mailbox v0.1 · UNI-7`, code hash
 `e02c7918d1f8da0f662a0720fc3668765d79ededce8e9e9dcccff9aae2b9e64a`.
-Contract source is `contracts/neta-relay-mailbox/src/lib.rs`: hardcoded UNI-7,
+The pinned deployed mailbox is v0.1: hardcoded UNI-7,
 no funds, no stake gate, one current device, max 16 prekeys, max 4096 ciphertext
 bytes, 10-second sender cooldown and inbox pages up to 50. There is no historical
 device registry, mainnet network configuration or mainnet 5-NETA implementation.
@@ -144,7 +146,8 @@ Current receive queries need the sender's **current** generation; messages from
 rotated generations fail closed. The lab does not expose revoke/block/add-prekey
 or rotation UX. Inbox fetch is one page per check; repeated checks can advance.
 Failed send/receive intents have no complete user-facing reconciliation flow.
-Follow-up sends still require a nonempty recipient prekey list in the lab.
+Follow-up sends in an established current-generation session no longer require
+an unused recipient prekey. First contact still requires one.
 
 Two mocked browser profiles exchanged/replied and reloaded successfully in PR #97.
 No real two-Keplr UNI-7 E2E evidence is recorded. The older DB backup fixture
@@ -191,3 +194,39 @@ before enabling messaging or extending transaction flows. Mainnet Operations
 voting now explicitly selects `0.075ujuno`; UNI7 keeps `0.2ujunox`. The shared
 signing bundle accepts an explicit gas price. Governance guards rapid proposal
 selection, malformed thread markers and context changes before transaction calls.
+
+## Continuation inventory — 2026-10-03
+
+RELAY receive in PR #101 is shipped and adversarial browser CI run 34 passed.
+`relay-uni7-checkpoint.mjs` snapshots/restores the pinned CoreCrypto encrypted IDB
+layout while handles are closed and the device lock is held. The archive encrypts
+its checkpoint journal. Unlock rolls pending receive state back before reopening
+CoreCrypto and retries the original chain ciphertext. Cryptographic envelope checks
+run inside the transaction. Quarantined messages advance the inbox cursor without
+blocking unrelated processing. Storage failures preserve a pending journal and lock.
+The normal exchange/reply/reload test also passes. This is **local receive recovery**,
+not an automatic backup service or proof of live Keplr E2E.
+
+V0.2 mailbox source is in PR #102; the shipped v0.1 WASM checksum/address remains
+pinned. Do not infer the deployed contract implements source-only consent or
+historical identities. A new deployment and adapter pinning are separate gates.
+
+Discussion moderation hides both title and body in DOM with a reason placeholder.
+Forward/self parent markers become roots; nesting display is limited to 32 levels
+with an explicit omission notice. Legacy revisions are queried once because the
+legacy API does not support pagination; this avoids repetitive non-advancing queries
+but cannot provide missing records. Native review pagination remains bounded.
+
+Full consistent fresh-profile backup/restore, sender rotation handling and v0.2
+consent/prekey UX remain unfinished. Mainnet messaging stays disabled.
+
+2026-10-03 RPC compatibility check: the public Juno gateway rejects height-range
+queries with an explicit strict-equality policy. Collector selection now probes
+the selected usable index for range capability and falls back to full replay
+when that endpoint rejects the feature. The optimization is conditional on node support, not a guarantee
+of incremental scans on every endpoint. Snapshot ownership/data remain unchanged.
+
+Known optional Osmosis legacy index gaps preserve all cached events and emit an
+explicit coverage warning; they do not block fresh balances. Required Juno history
+gaps still fail publication. Seven independent address queries run with a bound
+of three workers; capability probes have eight-second timeouts and run only on the selected node.
