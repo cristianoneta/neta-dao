@@ -18,7 +18,7 @@ test("browser scripts parse", () => {
   execFileSync(process.execPath, ["--check", "treasury.js"]);
   execFileSync(process.execPath, ["--check", "relay.js"]);
   execFileSync(process.execPath, ["--check", "names.js"]);
-  execFileSync(process.execPath, ["--check", "docs/design/names-v2-prototype.js"]);
+  execFileSync(process.execPath, ["--check", "names-workspace.js"]);
 });
 
 test("Relay follows DAOs and creates local governance notifications safely", () => {
@@ -236,7 +236,7 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(ux, /if\(value==="names"\)return \{view:"relay",panel:"names"\}/);
   assert.match(ux, /relay\/following/);
   assert.match(ux, /relayPanels\.forEach/);
-  assert.match(html, /ux-draft\.js\?v=10/);
+  assert.match(html, /ux-draft\.js\?v=11/);
   assert.match(html, /governance-overrides\.css\?v=20261003-1/);
   assert.doesNotMatch(html, /GOVERNANCE · ACCOUNTABILITY · TRANSPARENCY/);
   assert.match(html, /data-relay-panel-view="names"/);
@@ -245,7 +245,9 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(html, /Planned annual registration and renewal/);
   assert.match(html, /USD 5 · 4 characters: USD 160 · 3 characters: USD 640/);
   assert.match(html, /This pricing requires the new registry and is not active yet/);
-  assert.match(html, /href="docs\/design\/names-v2-prototype\.html"/);
+  assert.doesNotMatch(html, /names-preview-entry|Explore the preview/);
+  assert.match(html, /names-workspace\.js\?v=1/);
+  assert.match(html, /data-name-panel="directory"/);
   assert.match(html, /REGISTER · COMING SOON/);
   assert.match(names, /neta-names-v1:/);
   assert.match(names, /config.treasury!==DAO_TREASURY/);
@@ -272,3 +274,4 @@ test("Relay reading pane shows the proposal summary and message styling remains 
   assert.match(html, /PREVIEW · SEND DISABLED/);
   assert.match(html, /type="submit" disabled aria-describedby="relay-send-note">SEND MESSAGE/);
 });
+

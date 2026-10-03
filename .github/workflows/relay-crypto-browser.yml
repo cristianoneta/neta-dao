@@ -12,6 +12,7 @@ on:
       - 'treasury.js'
       - 'neta-governance.js'
       - 'names.js'
+      - 'names-workspace.js'
       - 'index.html'
       - "*.css"
       - "assets/design/**"
@@ -45,3 +46,4 @@ jobs:
       - run: node browser-workspace-security.mjs
       - name: Adversarial receive and crash recovery regressions
         run: RELAY_AUDIT_ADVERSARIAL=1 node browser-uni7-lab.mjs
+
