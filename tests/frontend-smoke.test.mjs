@@ -56,7 +56,7 @@ test("Relay hides a zero badge and gives the inbox the full width", () => {
   assert.doesNotMatch(html, /data-relay-panel-view="following"/);
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
-  assert.match(html, /relay\.css\?v=20261003-2/);
+  assert.match(html, /relay\.css\?v=20261003-3/);
   assert.match(html, /relay\.js\?v=8/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });

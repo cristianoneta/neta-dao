@@ -1,10 +1,5 @@
 /* Names inside RELAY; shared foundations in neta-ui.css. */
-body[data-workspace-view="relay"]:not([data-relay-panel="inbox"]) .relay-hero{display:none}
-.names-page{padding:8px 0 40px;scroll-margin-top:110px;min-width:0}
-.names-heading{display:flex;justify-content:space-between;align-items:center;gap:24px;margin:8px 0 24px}
-.names-heading h1{margin:8px 0 12px;font-size:36px;color:var(--neta-text)}
-.names-heading p{margin:0;color:var(--neta-text-secondary)}
-.names-heading>button{flex-shrink:0}
+.names-page{scroll-margin-top:110px;min-width:0}
 .names-search-area{max-width:760px;margin-bottom:32px}
 .names-page label{display:block;margin:20px 0 8px;color:var(--neta-text);font-size:14px;font-weight:500}
 .names-page input,.names-page textarea,.names-page select{width:100%;min-width:0}
@@ -26,7 +21,7 @@ body[data-workspace-view="relay"]:not([data-relay-panel="inbox"]) .relay-hero{di
 .names-panel .names-identity{color:var(--neta-accent);overflow-wrap:anywhere;font-size:17px;margin:8px 0}
 .names-stack{display:grid;gap:24px}
 .names-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
-.names-empty{padding:28px;border:1px dashed var(--neta-control-border);border-radius:12px}
+.names-empty{padding:28px;border:1px solid var(--neta-border);border-radius:12px}
 .names-empty h2,.names-empty h3{margin-top:0}
 .names-empty p{color:var(--neta-text-secondary)}
 .names-empty button{margin-top:12px}
@@ -51,7 +46,7 @@ body[data-workspace-view="relay"]:not([data-relay-panel="inbox"]) .relay-hero{di
 .names-footer{margin-top:32px;padding-top:20px;border-top:1px solid var(--neta-border);font-size:12px;color:var(--neta-text-secondary)}
 .names-resolution,.relay-send-note{color:var(--neta-text-secondary);font-size:12px;line-height:1.5}
 .relay-composer-actions button[type="submit"]:disabled{cursor:not-allowed}
-@media(max-width:760px){.names-heading{align-items:flex-start;flex-direction:column;gap:16px}.names-heading h1{font-size:30px}.names-layout{grid-template-columns:1fr}.names-panel,.names-empty{padding:20px}.names-directory-row{flex-wrap:wrap}.names-directory-identity{flex-basis:calc(100% - 64px)}.names-directory-row>button{margin-left:64px}.names-page{scroll-margin-top:160px}}
+@media(max-width:760px){.names-layout{grid-template-columns:1fr}.names-panel,.names-empty{padding:20px}.names-directory-row{flex-wrap:wrap}.names-directory-identity{flex-basis:calc(100% - 64px)}.names-directory-row>button{margin-left:64px}.names-page{scroll-margin-top:160px}}
 
 .names-directory-row[hidden],.names-empty[hidden]{display:none}
 .names-directory-actions{display:flex;gap:12px;flex-wrap:wrap}

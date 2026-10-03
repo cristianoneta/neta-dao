@@ -68,3 +68,13 @@ body[data-workspace-view="relay"] .relay-global-scope{display:block;margin-left:
 
 .relay-subnav{flex-wrap:wrap}.relay-subnav button{font-size:14px;letter-spacing:0}
 @media(max-width:700px){.relay-subnav{overflow:visible}.relay-subnav button{padding:10px 12px}}
+
+/* Every RELAY destination shares one stable masthead, nav and content surface. */
+html{scrollbar-gutter:stable}
+#relay-view .relay-hero{display:block}
+#relay-view .relay-section-card{padding:24px;background:var(--neta-surface);border:1px solid var(--neta-border);border-radius:12px;color:var(--neta-text);min-width:0}
+#relay-view .relay-section-card>header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 24px;padding:0;border:0;background:transparent}
+#relay-view .relay-section-card>header h2{margin:0;font-size:22px;line-height:1.25;letter-spacing:-.025em;color:var(--neta-text)}
+#relay-view .relay-section-description{margin:8px 0 0;font-size:14px;line-height:1.6;letter-spacing:0;color:var(--neta-text-secondary)}
+#relay-view .relay-section-card button{font-size:14px}
+@media(max-width:700px){#relay-view .relay-section-card{padding:16px}#relay-view .relay-section-card>header{align-items:flex-start;gap:16px}}

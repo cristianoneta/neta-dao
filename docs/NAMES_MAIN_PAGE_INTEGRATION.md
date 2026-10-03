@@ -7,8 +7,8 @@ The 2026-10-03 navigation follow-up promotes Directory, Contacts, My profile and
 controls with the same saved subscriptions. There is no nested Names tab bar.
 
 - Reuse the actual sticky workspace header, navigation, RELAY tabs and shared
-  graphite/mint tokens. Suppress the duplicate RELAY marketing introduction only
-  outside Inbox. Inbox keeps its existing introduction.
+  graphite/mint tokens. Keep one common RELAY masthead above the section navigation
+  on every destination. Section headings sit inside the shared content-card surface.
 - Integrate Directory, Contacts, My profile, DAO detail and name fee calculation.
   No iframe, second app shell, preview banner or separate preview launch remains.
 - Directory search uses the real Operations DAO and Juno Governance entries.

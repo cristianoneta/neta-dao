@@ -104,7 +104,7 @@ try{
  await page.goto(origin+'/index.html#relay/following');
  await page.waitForURL(origin+'/index.html#relay/directory');
  assert.equal(new URL(page.url()).hash,'#relay/directory');
- assert.equal(await page.locator('.relay-hero').isVisible(),false);
+ assert.equal(await page.locator('.relay-hero').isVisible(),true);
  assert.equal(await page.getByText('Explore the preview',{exact:true}).count(),0);
  await page.getByRole('button',{name:'View NETA Operations DAO',exact:true}).click();
  assert.equal(await page.locator('[data-name-panel="dao"]').isVisible(),true);
@@ -130,12 +130,21 @@ try{
  assert.equal(await page.getByRole('button',{name:'REGISTER · COMING SOON',exact:true}).isDisabled(),true);
  for(const width of [320,390,768,1440]){
   await page.setViewportSize({width,height:1000});
-  for(const panel of ['directory','contacts','profile','register']){
+  let baseline;
+  for(const panel of ['inbox','directory','contacts','profile','register']){
    await page.locator(`[data-relay-panel="${panel}"]`).click();
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'RELAY '+panel+' overflow at '+width);
+   assert.equal(await page.locator('.relay-hero').isVisible(),true);
+   const layout=await page.evaluate(()=>{
+    const nav=document.querySelector('.relay-subnav'),card=document.querySelector('[data-relay-panel-view="inbox"]:not([hidden]) .relay-section-card, #names-view:not([hidden])');
+    const rect=nav.getBoundingClientRect(),style=getComputedStyle(card),heading=getComputedStyle(card.querySelector('header h2'));
+    return {navTop:Math.round(rect.top+scrollY),navLeft:Math.round(rect.left),navHeight:Math.round(rect.height),background:style.backgroundColor,border:style.borderColor,radius:style.borderRadius,padding:style.padding,headingSize:heading.fontSize,headingColor:heading.color};
+   });
+   if(!baseline)baseline=layout;
+   else assert.deepEqual(layout,baseline,'Stable RELAY shell for '+panel+' at '+width);
   }
  }
- assert.equal(await page.locator('.names-heading h1').evaluate(el=>getComputedStyle(el).color),'rgb(242, 244, 247)');
+ assert.equal(await page.locator('.names-heading h2').evaluate(el=>getComputedStyle(el).color),'rgb(242, 244, 247)');
  await page.locator('[data-relay-panel="inbox"]').click();
  assert.equal(await page.locator('.relay-hero').isVisible(),true);
  assert.equal(await page.locator('#names-view').isVisible(),false);

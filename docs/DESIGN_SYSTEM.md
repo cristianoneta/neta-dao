@@ -220,3 +220,11 @@ Following page or a Names tab containing another tab bar. DAO discovery and foll
 preferences live together in Directory. Use a Followed filter, retaining existing
 subscriptions. Profile detail stays a contextual view with a Back to directory
 action. On narrow screens, section buttons wrap and remain directly discoverable.
+
+RELAY shell correction (owner feedback, 2026-10-03): use the same persistent
+masthead above the section navigation for every RELAY destination. The heading
+is "Your conversations. Your connections."; it must not be hidden or replaced
+when switching tabs. Inbox and Names surfaces share `relay-section-card`, padding,
+background, border, title size and supporting text. Section titles are h2 inside
+the card; the persistent masthead supplies the single h1. Keep the nav at the same
+document position and reserve scrollbar space to avoid horizontal movement.

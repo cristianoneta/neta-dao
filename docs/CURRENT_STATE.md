@@ -319,3 +319,9 @@ page and promoted Names functions into the RELAY section navigation. No registry
 payment, messaging or profile-write gate changed. The browser regression covers
 direct routes, Back/Forward, legacy links, persistent follow preferences and
 320/390/768/1440 px layouts. See the change PR for final CI/deployment evidence.
+
+RELAY visual consistency follow-up: the shared masthead remains visible on all
+five destinations. A common content-card class unifies Inbox/Directory/Contacts/
+Profile/Name registration surfaces and section headings. Browser regression
+compares nav coordinates and computed card/title styles across each destination
+at 320/390/768/1440 px. No feature gates or subscription storage change.
