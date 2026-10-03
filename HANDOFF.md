@@ -1,6 +1,6 @@
 # NETA DAO handoff
 
-Code/documentation reviewed: **2026-10-02**. Canonical repository:
+Baseline review: **2026-10-02**; security integration rechecked **2026-10-03**. Canonical repository:
 `cristianoneta/neta-dao`; site: <https://dao.netareborn.com>.
 
 ## Read in this order
@@ -51,64 +51,32 @@ real wallet keys; all adversarial tests use isolated synthetic fixtures.
   This repo has no general docs CI and no root npm package. Contract Markdown
   and the RELAY security document still match existing CI path filters.
 
-## Known work to keep visible
+## Remaining work
 
-CURRENT_STATE and [the security audit](docs/SECURITY_EFFICIENCY_AUDIT_2026-10-02.md)
-record the remaining gaps: symbol-based attribution, unknown-token display decimals,
-legacy proposal completeness limits, RELAY notification
-coverage limits, encrypted lab rotation/prekey/crash/backup gaps, and branch-specific
-runtime preparation. The audit distinguishes fixes from open findings. Treat the RELAY receive-lock
-and prekey-exhaustion issues as blockers before any Mainnet messaging release.
+Use [PROJECT_CHECKPOINT.md](PROJECT_CHECKPOINT.md) for the ordered release gates.
+Outstanding areas include safe off-device restore, sender-generation history,
+prekey consent/refill, legacy pending-state reconciliation, symbol-based Treasury
+attribution, unknown-token decimals, incomplete historical queries and missing
+RELAY review-revision notifications. The original receive-lock and ID-collision
+defects have local fixes; do not confuse those with completed remote recovery.
 
-## Security audit continuation — 2026-10-03 Berlin
+## Current security checkpoint — 2026-10-03
 
-Audit changes are published in PR #100, branch `audit/security-efficiency-20261002`; code checkpoint `32b784a7862c69573e866f39d4a2927a18ef0ed0`. Cross-project PRs: https://github.com/cristianoneta/neta-dao/pull/100 and https://github.com/cristianoneta/neta-website/pull/137. At handoff, website tests and DAO RELAY browser tests passed; DAO contract/frontend CI was still running and website production-data CI pending. PRs were not merged. Check current results before integration.
+DAO #100–#103 and Website #137/#138 are merged after their relevant final CI
+checks passed. Documentation PRs DAO #104 and Website #139 are also merged.
+The resumed verification confirmed the exact PR-head checks and compared 23
+production files with GitHub, including both shared signing bundles and the
+published Treasury event ledger. See [the evidence](docs/SECURITY_CONTINUATION_2026-10-03.md).
 
-The isolated adversarial browser test reproduced the persistent RELAY receive lock after malformed ciphertext and reload. Mainnet messaging remains blocked. Read `docs/SECURITY_EFFICIENCY_AUDIT_2026-10-02.md`; prioritize authenticated transactional receive/recovery, sender-scoped archive identity, prekey abuse and ambiguous mainnet broadcast retries. Preserve unrelated changes/data-bot updates. Local audit worktrees contain commits, while the original worktrees have documentation edits already published in the earlier documentation PRs; do not discard these blindly.
+Treasury run 934 successfully executed the final collector source and retained all
+57 cached events. Both selected public RPCs required full replay; three historical
+Osmosis transactions remain absent from the index and are retained from cache.
+Unpriced assets still yield PARTIAL balance snapshots. Successful collection is
+not proof of complete accounting. Preserve the subsequent bot commits.
 
-## Checked continuation — 2026-10-03
-
-* PR #100 merged as `c99ac99419d50ff35042fe71aec4c0ceed070572` after contract/frontend
-  run 137 and RELAY browser run 32 passed. Mainnet signing fee, Treasury epoch,
-  exact-denom pricing and Names pinning are shipped; served bytes were verified.
-* PR #101 merged as `bc7fb520cbb9626684ba04262b7a42835b497681` after RELAY browser
-  run 34 passed. Receive checkpoints restore interrupted ratchet/archive writes;
-  invalid ciphertext is quarantined and does not persist a device-wide lock.
-  New archive IDs bind the sender/generations/message ID. Legacy readable records
-  stay readable; unresolved legacy intents without a checkpoint still fail closed.
-* PR #102 adds v0.2 **source only**: recipient-granted generation-bound consent,
-  one initial per sender/generation pair, immutable historical identities. Contract/frontend run 139 and WASM run 22 passed; PR #102 merged as
-  `0bc53fb93fe95b07cb05e93563f6705624d9558d`. The live pinned v0.1 artifact/address
-  is unchanged: neither new consent nor historical queries exist there.
-* Website PR #138 merged as `3fb29ea5454d9f73b01bc24b746dbbaa0ba85358` after website run 311 and production-data run 422 passed. Main push run 312 and Pages passed; the deployed bundles were verified byte-for-byte. DAO #103 synchronized the shared journal and passed contract/frontend 147 and RELAY browser 41 before merge. It has no auto reset/rebroadcast.
-* This follow-up implements moderation-hidden placeholders, invalid-parent/cycle
-  protection, depth limits, a one-shot legacy revision query with truncation warning,
-  and anchored incremental Treasury event scans. Reorg/partial-index errors preserve
-  existing data and fail publication. Never hand-edit generated JSON snapshots.
-
-Still blocked: automatic off-device backup and fresh-profile coherent restore of
-ratchet + archive + outbox + descriptor; historical sender generation in the lab;
-consent/replenishment integration on a new verified UNI-7 deployment; full adversarial
-rotation/exhaustion/recovery matrix. No mainnet messaging activation or wallet writes.
-
-2026-10-03 RPC compatibility check: the public Juno gateway rejects height-range
-queries with an explicit strict-equality policy. Collector selection now probes
-the selected usable index for range capability and falls back to full replay
-when that endpoint rejects the feature. The optimization is conditional on node support, not a guarantee
-of incremental scans on every endpoint. Snapshot ownership/data remain unchanged.
-
-The shared generated bundle contains the same broadcast journal as Website #138.
-A browser regression checks its actual execute path, including mainnet fee denom
-and persisted retry blocking after reload. The guarantee is per origin/browser,
-not coordination across domains/devices or manually cleared storage. Interrupted
-signatures and permanently rejected broadcasts need manual investigation.
-
-Known optional Osmosis legacy index gaps preserve all cached events and emit an
-explicit coverage warning; they do not block fresh balances. Required Juno history
-gaps still fail publication. Seven independent address queries run with a bound
-of three workers; capability probes have eight-second timeouts and run only on the selected node.
-
-
-## Verified integration checkpoint — 2026-10-03 UTC
-
-PRs #100–#103 and Website #137/#138 are integrated after their relevant final checks passed. DAO #103 merged as `9ee6cdf362d99538ec19cd5c13249cc22c291610`; Pages run 1029 passed and deployed security assets matched the tested bytes. The earlier pending-PR statements above are historical snapshots superseded by this checkpoint. See [the continuation evidence](docs/SECURITY_CONTINUATION_2026-10-03.md) for exact runs, source-versus-deployment distinctions, RPC validation limits and remaining Mainnet gates. Messaging remains disabled; v0.2 consent is source-only and off-device restore is still open. Preserve all later bot updates and pending journals.
+Mainnet messaging remains disabled. Local receive recovery and sender-scoped
+archive identities are shipped; v0.2 consent/historical identities are tested
+source only. The pinned UNI-7 v0.1 address/artifact has not changed. Automatic
+off-device recovery, historical sender resolution, consent/refill integration and
+the full rotation/exhaustion/restore matrix remain release blockers. Never discard
+pending ratchet/archive/outbox or transaction-journal state to unblock the UI.
