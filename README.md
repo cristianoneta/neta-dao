@@ -112,3 +112,8 @@ The lab now journals encrypted ratchet checkpoints and isolates invalid messages
 read the current Handoff and audit before extending it. Full off-device recovery
 and source-only v0.2 mailbox consent/historical identity wiring are still gates.
 The pinned deployed UNI-7 mailbox is v0.1. Mainnet messaging remains disabled.
+
+
+## Verified integration checkpoint — 2026-10-03 UTC
+
+PRs #100–#103 and Website #137/#138 are integrated after their relevant final checks passed. DAO #103 merged as `9ee6cdf362d99538ec19cd5c13249cc22c291610`; Pages run 1029 passed and deployed security assets matched the tested bytes. The earlier pending-PR statements above are historical snapshots superseded by this checkpoint. See [the continuation evidence](docs/SECURITY_CONTINUATION_2026-10-03.md) for exact runs, source-versus-deployment distinctions, RPC validation limits and remaining Mainnet gates. Messaging remains disabled; v0.2 consent is source-only and off-device restore is still open. Preserve all later bot updates and pending journals.

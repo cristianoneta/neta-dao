@@ -80,10 +80,7 @@ The isolated adversarial browser test reproduced the persistent RELAY receive lo
   one initial per sender/generation pair, immutable historical identities. Contract/frontend run 139 and WASM run 22 passed; PR #102 merged as
   `0bc53fb93fe95b07cb05e93563f6705624d9558d`. The live pinned v0.1 artifact/address
   is unchanged: neither new consent nor historical queries exist there.
-* Website PR #138 adds a browser-local signed-transaction journal. Check its current
-  CI and deployment; The shared Socials signing bundle is synchronized here from the website
-  implementation after website browser/bundle CI run 311 passed; the additional
-  production-data check and this PR's tests must still finish before integration. It has no auto reset/rebroadcast.
+* Website PR #138 merged as `3fb29ea5454d9f73b01bc24b746dbbaa0ba85358` after website run 311 and production-data run 422 passed. Main push run 312 and Pages passed; the deployed bundles were verified byte-for-byte. DAO #103 synchronized the shared journal and passed contract/frontend 147 and RELAY browser 41 before merge. It has no auto reset/rebroadcast.
 * This follow-up implements moderation-hidden placeholders, invalid-parent/cycle
   protection, depth limits, a one-shot legacy revision query with truncation warning,
   and anchored incremental Treasury event scans. Reorg/partial-index errors preserve
@@ -110,3 +107,8 @@ Known optional Osmosis legacy index gaps preserve all cached events and emit an
 explicit coverage warning; they do not block fresh balances. Required Juno history
 gaps still fail publication. Seven independent address queries run with a bound
 of three workers; capability probes have eight-second timeouts and run only on the selected node.
+
+
+## Verified integration checkpoint — 2026-10-03 UTC
+
+PRs #100–#103 and Website #137/#138 are integrated after their relevant final checks passed. DAO #103 merged as `9ee6cdf362d99538ec19cd5c13249cc22c291610`; Pages run 1029 passed and deployed security assets matched the tested bytes. The earlier pending-PR statements above are historical snapshots superseded by this checkpoint. See [the continuation evidence](docs/SECURITY_CONTINUATION_2026-10-03.md) for exact runs, source-versus-deployment distinctions, RPC validation limits and remaining Mainnet gates. Messaging remains disabled; v0.2 consent is source-only and off-device restore is still open. Preserve all later bot updates and pending journals.
