@@ -25,6 +25,7 @@ fn setup() -> OwnedDeps<cosmwasm_std::testing::MockStorage, cosmwasm_std::testin
     instantiate(deps.as_mut(), env(), mock_info("creator", &[]), InstantiateMsg {}).unwrap();
     execute(deps.as_mut(), env(), mock_info("alice", &[]), register("alice-device", vec![prekey(1)])).unwrap();
     execute(deps.as_mut(), env(), mock_info("bob", &[]), register("bob-device", vec![prekey(1), prekey(2)])).unwrap();
+    execute(deps.as_mut(), env(), mock_info("bob", &[]), ExecuteMsg::AllowSender { address: "alice".into(), recipient_generation: 1, sender_generation: 1, allowed: true }).unwrap();
     deps
 }
 
@@ -39,7 +40,7 @@ fn send_initial(id: u8, key: u16, generation: u64) -> ExecuteMsg {
 fn initial_message_consumes_prekey_once_and_deduplicates_id() {
     let mut deps = setup();
     execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(1, 1, 1)).unwrap();
-    assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(2, 1, 1)), Err(Error::PrekeySpent));
+    assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(2, 1, 1)), Err(Error::InitialUsed));
     assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(1, 2, 1)), Err(Error::Duplicate));
     let device: Option<Device> = from_json(query(deps.as_ref(), env(), QueryMsg::Device { address: "bob".into() }).unwrap()).unwrap();
     assert_eq!(device.unwrap().prekeys, vec![prekey(2)]);
@@ -55,6 +56,8 @@ fn device_rotation_rejects_stale_sends_and_revocation() {
     let mut deps = setup();
     execute(deps.as_mut(), env(), mock_info("bob", &[]), register("bob-replacement", vec![prekey(1)])).unwrap();
     assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(1, 1, 1)), Err(Error::DeviceChanged));
+    assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(1, 1, 2)), Err(Error::Consent));
+    execute(deps.as_mut(), env(), mock_info("bob", &[]), ExecuteMsg::AllowSender { address: "alice".into(), recipient_generation: 2, sender_generation: 1, allowed: true }).unwrap();
     execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(1, 1, 2)).unwrap();
     execute(deps.as_mut(), env(), mock_info("bob", &[]), ExecuteMsg::Revoke {}).unwrap();
     let followup = ExecuteMsg::Send { recipient: "bob".into(), recipient_generation: 2, message_id: message_id(2), ciphertext: ciphertext() };
@@ -70,8 +73,8 @@ fn consumed_ids_cannot_be_republished_and_blocks_work() {
     execute(deps.as_mut(), env(), mock_info("bob", &[]), ExecuteMsg::SetBlock { address: "alice".into(), blocked: true }).unwrap();
     assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(2, 1, 1)), Err(Error::Blocked));
     execute(deps.as_mut(), env(), mock_info("bob", &[]), ExecuteMsg::SetBlock { address: "alice".into(), blocked: false }).unwrap();
-    assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(2, 1, 1)), Err(Error::Cooldown));
-    execute(deps.as_mut(), later(10), mock_info("alice", &[]), send_initial(2, 1, 1)).unwrap();
+    assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), ExecuteMsg::Send { recipient: "bob".into(), recipient_generation: 1, message_id: message_id(2), ciphertext: ciphertext() }), Err(Error::Cooldown));
+    execute(deps.as_mut(), later(10), mock_info("alice", &[]), ExecuteMsg::Send { recipient: "bob".into(), recipient_generation: 1, message_id: message_id(2), ciphertext: ciphertext() }).unwrap();
     let page: InboxResponse = from_json(query(deps.as_ref(), env(), QueryMsg::Inbox { address: "bob".into(), after: Some(1), limit: Some(1) }).unwrap()).unwrap();
     assert_eq!(page.messages[0].sequence, 2);
 }
@@ -83,4 +86,31 @@ fn rejects_funds_and_wrong_network() {
     mainnet.block.chain_id = "juno-1".into();
     assert_eq!(execute(deps.as_mut(), mainnet, mock_info("alice", &[]), send_initial(1, 1, 1)), Err(Error::Network));
     assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[Coin::new(1, "ujunox")]), send_initial(1, 1, 1)), Err(Error::Funds));
+}
+
+#[test]
+fn rotating_accounts_cannot_exhaust_prekeys_without_recipient_consent() {
+    let mut deps = setup();
+    for index in 0..20 {
+        let sender = format!("attacker{index}");
+        execute(deps.as_mut(), env(), mock_info(&sender, &[]), register("attacker", vec![prekey(1)])).unwrap();
+        assert_eq!(execute(deps.as_mut(), env(), mock_info(&sender, &[]), send_initial(1, 1, 1)), Err(Error::Consent));
+    }
+    let bob = DEVICES.load(&deps.storage, &Addr::unchecked("bob")).unwrap();
+    assert_eq!(bob.prekeys.len(), 2);
+    assert_eq!(NEXT_SEQUENCE.load(&deps.storage).unwrap(), 0);
+}
+
+#[test]
+fn recipient_consent_cannot_be_granted_by_sender_and_rotation_invalidates_it() {
+    let mut deps = setup();
+    execute(deps.as_mut(), env(), mock_info("bob", &[]), ExecuteMsg::AllowSender { address: "alice".into(), recipient_generation: 1, sender_generation: 1, allowed: false }).unwrap();
+    // Alice granting Bob access changes Alice's own recipient policy only.
+    execute(deps.as_mut(), env(), mock_info("alice", &[]), ExecuteMsg::AllowSender { address: "bob".into(), recipient_generation: 1, sender_generation: 1, allowed: true }).unwrap();
+    assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(1, 1, 1)), Err(Error::Consent));
+    execute(deps.as_mut(), env(), mock_info("bob", &[]), ExecuteMsg::AllowSender { address: "alice".into(), recipient_generation: 1, sender_generation: 1, allowed: true }).unwrap();
+    execute(deps.as_mut(), env(), mock_info("alice", &[]), register("alice-new", vec![prekey(1)])).unwrap();
+    assert_eq!(execute(deps.as_mut(), env(), mock_info("alice", &[]), send_initial(1, 1, 1)), Err(Error::Consent));
+    let identity: Option<DeviceIdentity> = from_json(query(deps.as_ref(), env(), QueryMsg::HistoricalDevice { address: "alice".into(), generation: 1 }).unwrap()).unwrap();
+    assert_eq!(identity.unwrap().device_id, "alice-device");
 }
