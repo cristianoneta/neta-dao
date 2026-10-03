@@ -1,5 +1,13 @@
 # NETA DAO handoff
 
+## People update — 2026-10-03
+
+Read [People / Members / Contributors](docs/PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
+The owner approved one shared People navigation for every DAO. Members is backed
+by verified governance data; Contributors stays planned pending a later product
+decision. Do not resurrect sample contributor profiles as live assignments.
+
+
 ## Main DAO continuation — 2026-10-03
 
 Read [the integration record](docs/DAO_ONBOARDING_2026-10-03.md) for current release

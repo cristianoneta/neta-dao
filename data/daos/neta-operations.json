@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-10-03T20:18:20.324416+00:00",
+  "chain_id": "juno-1",
+  "height": 42335628,
+  "source": "https://juno.api.m.stavr.tech",
+  "core": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
+  "name": "Neta DAO Operations",
+  "voting_module": "juno1dq855g5vxesxjwh6np6wne9fmyljsezm3la0zka0xx3gey7revfqdwnplx",
+  "group_contract": "juno1r8emnt2yryvfcs0398vlsjrp0npy09yk928p8lk4zphk2v4zpmzshp9wa0",
+  "total_power_raw": "5",
+  "members_complete": true,
+  "membership_method": "height-pinned cw4 group weights reconciled with voting module",
+  "members": [
+    {
+      "address": "juno176x8n6gkx3kavqrs9kamjag4c344tnglpp4dsa",
+      "power_raw": "1"
+    },
+    {
+      "address": "juno1apqn99eg4q38cmwtxtq3tp88a9pwsqhtxskun0",
+      "power_raw": "1"
+    },
+    {
+      "address": "juno1fzw7lp3u708rg49zqv48pdm8e03uz4srw2dx39",
+      "power_raw": "1"
+    },
+    {
+      "address": "juno1g5t9r670acafp8ys3zpd5dxzunv99l3t6ruq9r",
+      "power_raw": "1"
+    },
+    {
+      "address": "juno1kkerfymlqzjd45xlvvle6yyjh849m7xvpf9jaq",
+      "power_raw": "1"
+    }
+  ],
+  "adapter": "cw4-group",
+  "power_decimals": 0,
+  "power_unit": "votes"
+}

@@ -51,7 +51,7 @@ try{
   const juno=path.endsWith('juno-community-pool.json');
   return json(route,{chain_id:'juno-1',treasury_type:'dao-core',treasury_address:path.endsWith("neta-main.json")?"juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6":undefined,generated_at:'2026-10-02T20:00:00Z',height:1,status:'LIVE',total_usd:juno?'200':'100',price_source:'mock',assets:[{type:'token',symbol:'JUNO',amount:'1',usd_value:juno?'200':'100'}]});
  });
- await context.route('**/data/daos/neta.json',route=>json(route,{chain_id:'juno-1',token_contract:'juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr',core:'juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6',voting_module:'juno1839rlmw33avduccuhpnv6cqxsdlwpz87vq8g6x6jkfrdzpwtl8nsgf20f4',staking_contract:'juno1a7x8aj7k38vnj9edrlymkerhrl5d4ud3makmqhx6vt3dhu0d824qh038zh',members_complete:true,members:[{address:'juno1'+'q'.repeat(38),power_raw:'1000000'}],total_power_raw:'1000000',height:100,generated_at:'2026-10-03T18:00:00Z'}));
+ await context.route('**/data/daos/neta.json',route=>json(route,{adapter:'cw20-staked-legacy',power_decimals:6,power_unit:'NETA',chain_id:'juno-1',token_contract:'juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr',core:'juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6',voting_module:'juno1839rlmw33avduccuhpnv6cqxsdlwpz87vq8g6x6jkfrdzpwtl8nsgf20f4',staking_contract:'juno1a7x8aj7k38vnj9edrlymkerhrl5d4ud3makmqhx6vt3dhu0d824qh038zh',members_complete:true,members:[{address:'juno1'+'q'.repeat(38),power_raw:'1000000'}],total_power_raw:'1000000',height:100,generated_at:'2026-10-03T18:00:00Z'}));
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(origin+'/index.html');
  await page.locator('#dao-search').fill('Juno');
@@ -153,7 +153,7 @@ try{
  assert.equal(await page.locator('#names-view').isVisible(),false);
  for(const width of [320,390,768,1440]){
   await page.setViewportSize({width,height:1000});
-  for(const view of ['governance','delivery','contributors','treasury']){
+  for(const view of ['governance','delivery','people','treasury']){
    await page.locator(`button[data-workspace-view="${view}"]`).click();
    const hero=page.locator(`#${view==='governance'?'governance':view}-view .page-hero`);
    assert.equal(await hero.locator('.page-hero-art').isVisible(),width>960,view+' artwork at '+width);
@@ -198,7 +198,7 @@ try{
  assert.equal(await page.locator('#dao-search').inputValue(),'Neta DAO');
  for(const width of [320,768,1440]){
   await page.setViewportSize({width,height:1000});
-  await page.getByRole('button',{name:'Contributors',exact:true}).click();
+  await page.getByRole('button',{name:'People',exact:true}).click();
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'main DAO member overflow');
  }
  assert.deepEqual(errors,[]);
@@ -207,6 +207,33 @@ try{
  await page.goto(origin+'/index.html#relay/dao/not-a-dao');
  assert.match(await page.locator('#names-dao-profile').textContent(),/Unknown DAO/);
  assert.equal(await page.locator('#names-copy-address').count(),0);
+ // Shared People navigation for every DAO; legacy links, planned contributors and reload.
+ await page.goto(origin+'/index.html#contributors');
+ await page.waitForURL('**/index.html#people/members');
+ assert.equal(new URL(page.url()).hash,'#people/members');
+ for(const [name,id] of [['Operations','neta-operations'],['Neta DAO','neta'],['Juno Network Governance','juno']]){
+  await page.locator('#dao-search').fill(name);
+  await page.locator('#dao-options button').filter({hasText:name}).click();
+  await page.locator('[data-people-panel="contributors"]').click();
+  assert.equal(await page.locator('#people-contributors-panel').isVisible(),true);
+  assert.match(await page.locator('#people-contributors-panel').textContent(),/No contributor records are connected/);
+  assert.equal(await page.locator('#dao-members-panel').isVisible(),false);
+  await page.reload();assert.equal(new URL(page.url()).hash,'#people/contributors');
+  await page.locator('[data-people-panel="members"]').click();
+  assert.equal(await page.locator('#dao-members-panel').isVisible(),true);
+  if(id==='neta-operations')await page.waitForFunction(()=>document.querySelector('#dao-members-panel').textContent.includes('weighted member addresses'));
+  if(id==='juno')await page.waitForFunction(()=>document.querySelector('#dao-members-panel').textContent.includes('bonded delegator addresses'));
+  assert.ok(await page.locator('#dao-members-panel .dao-member-row').count()>0);
+  await page.goBack();await page.waitForURL('**/index.html#people/contributors');assert.equal(new URL(page.url()).hash,'#people/contributors');
+  await page.goForward();await page.waitForURL('**/index.html#people/members');assert.equal(new URL(page.url()).hash,'#people/members');
+ }
+ await page.locator('#dao-search').fill('Neta DAO');
+ await page.locator('#dao-options button').filter({hasText:'Neta DAO'}).click();
+ await page.waitForFunction(()=>document.querySelector('#dao-members-panel').textContent.includes('1 active staking addresses'));
+ await page.locator('#dao-members-panel input').fill('no-match');
+ assert.match(await page.locator('#dao-members-panel').textContent(),/No member matches/);
+ await page.locator('#dao-members-panel input').fill('');
+ assert.equal(await page.locator('#dao-members-panel .dao-member-row').count(),1);
  // Snapshot identity checks include chain and voting token.
  await context.route('**/data/daos/neta.json',route=>json(route,{chain_id:'wrong-chain',members_complete:true,members:[]}));
  await page.goto(origin+'/index.html#relay/dao/neta');await page.reload();
@@ -224,7 +251,7 @@ try{
   const {mkdir}=await import('node:fs/promises');await mkdir(process.env.SCREENSHOT_DIR,{recursive:true});
   for(const width of [320,768,1440]){
    await page.setViewportSize({width,height:1000});
-   for(const view of ['treasury','contributors','relay/dao/neta','relay/dao/juno']){
+   for(const view of ['treasury','people/members','people/contributors','relay/dao/neta','relay/dao/juno']){
     await page.goto(origin+'/index.html#'+view);await page.reload();await page.waitForTimeout(500);
     await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
     assert.equal(await page.locator('.gov-header').evaluate(el=>Math.round(el.getBoundingClientRect().top)),0,'header at page top');

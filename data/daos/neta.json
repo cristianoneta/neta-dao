@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-03T19:59:05.369020+00:00",
+  "generated_at": "2026-10-03T20:38:58.815216+00:00",
   "chain_id": "juno-1",
-  "height": 42335179,
+  "height": 42336088,
   "source": "https://juno.api.m.stavr.tech",
   "core": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
   "name": "Neta DAO",
@@ -8392,5 +8392,8 @@
     },
     "executor_addr": "juno1zt8zwtpu0qy8tqdyz3knzlqe8q806n8zwgrasln4knlwkt6qllmqg9zzkk"
   },
-  "nns_registry": null
+  "nns_registry": null,
+  "adapter": "cw20-staked-legacy",
+  "power_decimals": 6,
+  "power_unit": "NETA"
 }

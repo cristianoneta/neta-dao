@@ -14,11 +14,21 @@
       "commentStakeUrl": "https://daodao.zone/dao/juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6/home",
       "commentStakeLabel": "OPEN NETA STAKING",
       "description": "Community operations, coordination and delivery for NETA.",
-      "membership": "DAO voting power is controlled by its configured membership module. This is separate from NETA-holder staking in the main DAO.",
+      "membership": "Governance membership is recorded in a DAO-controlled weighted member group. Assigned voting weight determines participation; it is not a NETA staking balance or a contributor role.",
       "snapshot": "current.json",
       "history": "history.json",
       "events": "events.json",
-      "canVote": true
+      "canVote": true,
+      "onChainName": "Neta DAO Operations",
+      "votingModule": "juno1dq855g5vxesxjwh6np6wne9fmyljsezm3la0zka0xx3gey7revfqdwnplx",
+      "groupContract": "juno1r8emnt2yryvfcs0398vlsjrp0npy09yk928p8lk4zphk2v4zpmzshp9wa0",
+      "membershipSource": {
+        "adapter": "cw4-group",
+        "file": "neta-operations.json",
+        "decimals": 0,
+        "unit": "votes",
+        "label": "voting weight"
+      }
     },
     {
       "id": "neta",
@@ -39,7 +49,14 @@
       "history": "neta-main-history.json",
       "events": "neta-main-events.json",
       "canVote": false,
-      "nnsRegistry": null
+      "nnsRegistry": null,
+      "membershipSource": {
+        "adapter": "cw20-staked-legacy",
+        "file": "neta.json",
+        "decimals": 6,
+        "unit": "NETA",
+        "label": "NETA staked"
+      }
     },
     {
       "id": "juno",
@@ -54,11 +71,18 @@
       "commentStakeUrl": "https://explorer.stavr.tech/Juno-Testnet/staking",
       "commentStakeLabel": "OPEN JUNO STAKING",
       "description": "Native governance of the Juno network, including protocol decisions and Community Pool proposals.",
-      "membership": "Juno uses native validator and delegator voting, rather than a DAO-contract member list. Bonded JUNO determines voting power; delegation is not membership of the NETA DAO.",
+      "membership": "Juno governance uses bonded stake. Delegators can vote directly; a validator vote applies to delegated stake when its delegator does not override it. Validator totals are not additional voting power.",
       "snapshot": "juno-community-pool.json",
       "history": "juno-community-history.json",
       "events": null,
-      "canVote": false
+      "canVote": false,
+      "membershipSource": {
+        "adapter": "native-staking",
+        "file": "juno.json",
+        "decimals": 6,
+        "unit": "JUNO",
+        "label": "JUNO bonded"
+      }
     }
   ]
 }

@@ -29,6 +29,10 @@ it does not replace governance-specific adapters or grant signing permissions.
 - [ ] NNS: require deployed registry identity, DAO-approved fee recipient and
       attributable fee events/transaction evidence. Ordinary NETA inflows are not
       automatically naming revenue. Keep inactive revenue null, not zero.
+- [ ] People: provide the shared Members and Contributors subnavigation. Configure
+      `membershipSource` with the matching verified adapter, file, units and
+      decimals; validate its refresh job. Unsupported adapters must fail visibly.
+      Contributors stays planned until a real source and owner-approved scope exist.
 - [ ] Contributors/participation: explain eligibility and voting weight, include
       timestamp, block and source, reconcile members against voting total. Do not
       infer legal membership or contributor roles from staking.

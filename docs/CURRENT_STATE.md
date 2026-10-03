@@ -1,5 +1,14 @@
 # NETA DAO code-backed current state
 
+## People update — 2026-10-03
+
+The shared People section supersedes the different Contributors screens.
+Members uses the configured membership adapter; Contributors is a common planned
+state. Operations uses a weighted cw4 group, the main DAO uses staked NETA,
+and native Juno uses bonded delegations. No real contributor-role or assignment
+service is enabled. Read [People implementation and release evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
+
+
 Latest review: [maintenance checkpoint, 2026-10-03](MAINTENANCE_CHECKPOINT_2026-10-03.md).
 
 

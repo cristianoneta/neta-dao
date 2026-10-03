@@ -112,7 +112,7 @@
     const follow=element("button");follow.type="button";follow.dataset.relayDao=dao.id;follow.setAttribute("aria-pressed","false");follow.setAttribute("aria-label",`Follow ${dao.title}`);const star=element("i",null,"☆");star.setAttribute("aria-hidden","true");const label=element("span",null,"Follow");label.dataset.followLabel="";follow.append(star,label);profile.append(follow);
     const details=element("details","names-info");details.append(element("summary",null,"About this identity"),element("p",null,dao.mode==="native-gov"?"This directory label identifies Juno's native governance module on juno-1. It is not a DAO contract or a normal receiving address. Future registry binding requires a native-governance authorization adapter.":"The directory name is bound here to the Juno DAO core. Its label is derived from the DAO name by removing one trailing DAO. Directory publication does not mean the DAO has approved this profile."),element("p",null,"On-chain DAO names and profile changes remain unavailable until the registry and governance adapters are verified."));profile.append(details);
     profile.append(element("h3",null,"Who can participate?"),element("p",null,dao.membership));
-    const actions=element("div","names-actions");for(const [text,view] of [["View proposals","governance"],["View treasury","treasury"],["View participation","contributors"]]){const b=element("button",null,text);b.type="button";b.onclick=()=>workspace(dao,view);actions.append(b)}profile.append(actions);
+    const actions=element("div","names-actions");for(const [text,view] of [["View proposals","governance"],["View treasury","treasury"],["View participation","people"]]){const b=element("button",null,text);b.type="button";b.onclick=()=>workspace(dao,view);actions.append(b)}profile.append(actions);
     const edit=element("button",null,"Propose a profile change");edit.type="button";edit.disabled=true;edit.setAttribute("aria-describedby","names-dao-edit-help");const help=element("p","names-help","Profile governance becomes available with the DAO profile registry.");help.id="names-dao-edit-help";profile.append(edit,help);
     address.append(element("h3",null,dao.core?"DAO address":"Community Pool"),element("p","names-help","Juno · juno-1"));
     const full=element("p","names-address",dao.core||"Native distribution module · no ordinary receiving address");full.id="names-dao-address";address.append(full);
@@ -120,7 +120,7 @@
     else address.append(element("p",null,"Community Pool funding requires the supported chain transaction. Do not send tokens to the directory name."));
     for(const label of ["Send NETA","Save contact"]){const b=element("button",null,label);b.type="button";b.disabled=true;address.append(b)}
     address.append(element("p","names-help","Name-based payments and wallet-linked contacts are not available yet."));layout.append(profile,address);host.append(layout);
-    if(dao.id==="neta"){const members=element("section","names-panel");host.append(members);window.NetaDaoMembers.mount(members,dao);}
+    if(dao.membershipSource){const members=element("section","names-panel");host.append(members);window.NetaDaoMembers.mount(members,dao);}
     window.dispatchEvent(new Event("neta:directory-profile"));
   }
   renderDirectory(); if(document.body.dataset.relayPanel==="dao")renderDao(location.hash.split("/")[2]); show(document.body.dataset.relayPanel || "directory", false);
