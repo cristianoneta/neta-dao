@@ -7,14 +7,18 @@ still-disabled production registry. No v2 contract or pricing service is deploye
 
 ## This branch
 
-`design/names-v2-prototype.html` is a self-contained, interactive UI prototype.
-Open it in a browser. It uses the existing graphite/mint tokens and RELAY shell
-direction from `DESIGN_SYSTEM.md`. Prototype-only styles are scoped and embedded
-for portability; production integration must use `neta-ui.css`, not introduce
-another theme. There are no wallet calls, network requests, real registrations,
-payments, published proposals or persisted user data. All names, profile states,
-membership examples and conversions are illustrative. The Operations core address
-is taken from CURRENT_STATE; its name/identity must be queried before assignment.
+`design/names-v2-prototype.html` is an interactive UI prototype with adjacent CSS
+and JavaScript, using the production `neta-ui.css` foundations. The existing Names
+page links to it. Every profile and action is labeled as an example or simulation;
+there are no wallet calls, API requests, actual registrations, payments, published
+proposals or persisted user data. CSP blocks network connections. The Operations
+core address comes from CURRENT_STATE; its identity must be queried before assignment.
+
+The revised layout follows a search → profile → action sequence. Profiles open as
+separate views instead of preselecting a DAO. Contacts start empty and support
+add/remove. Heading and emphasized-text colors are explicit to prevent host-style
+inheritance failures. The public entry point now describes the planned USD tariff,
+while the original v1 contract and registry activation guards remain unchanged.
 
 Preview flows:
 - Discover example names and a DAO; save a contact.
@@ -28,13 +32,13 @@ Preview flows:
 - Read simulated registration/renewal/transfer system messages in RELAY.
 - Inspect a future payment route; actual sending is disabled.
 
-Validation in this session: JavaScript syntax, initial HTML IDs and absence of
-network/wallet calls passed. DOM execution checks passed for search, invalid names,
-3/4/5-character tariffs, commit/register, renewal, inbox confirmations, draft/profile
-isolation and transfer request. Responsive CSS is included, but visual browser QA
-is not complete: the default browser download failed, and automatic approval review
-rejected escalated rendering because the command would load the protected runtime
-Playwright dependency. Do not infer screenshot or full accessibility approval.
+Validation: JavaScript syntax and DOM interaction checks passed for search, empty
+states, contact add/remove, invalid/reserved/example-taken names, 3/4/5-character
+prices, registration, renewal, notifications, IBC route preview, transfer request
+and draft/profile isolation. No wallet or storage calls are present. Initial local
+browser launch was blocked in the prior session; publication review now uses the
+supported cloud browser. See `NAMES_V2_UI_REVIEW.md` for current visual/deployment
+results and remaining limitations; do not infer full WCAG certification.
 
 ## Accepted product decisions
 
@@ -195,5 +199,5 @@ Playwright dependency. Do not infer screenshot or full accessibility approval.
 No additional product decision blocks the prototype. Before live operation we
 must concretely choose service hosting/storage and signing-key custody, pin the
 USD reference and quote thresholds, and verify DAO identity/recipient coverage.
-Existing Names v1 source and UI remain inactive; no changes to production data,
-crypto journals or the existing site are made by this prototype branch.
+Names v1 signing remains inactive. The site links to the preview and displays the
+planned v2 tariff; contracts, production data and crypto journals are unchanged.

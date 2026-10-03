@@ -1,0 +1,153 @@
+
+#neta-names-preview{color-scheme:dark;background:var(--neta-bg);color:var(--neta-text);font:16px/1.55 var(--neta-font);min-width:0;isolation:isolate}
+#neta-names-preview *{box-sizing:border-box}
+#neta-names-preview [hidden]{display:none!important}
+#neta-names-preview button,#neta-names-preview input,#neta-names-preview select,#neta-names-preview textarea{font:inherit;color:inherit}
+#neta-names-preview button{border:1px solid var(--neta-control-border);border-radius:8px;padding:10px 15px;min-height:44px;background:transparent;touch-action:manipulation}
+#neta-names-preview button:hover{background:var(--neta-surface-raised)}
+#neta-names-preview button:disabled{opacity:1;color:var(--neta-text-secondary);background:var(--neta-surface-raised);cursor:not-allowed}
+#neta-names-preview :focus-visible{outline:2px solid var(--neta-focus);outline-offset:3px}
+#neta-names-preview .np-primary{background:var(--neta-accent);border-color:var(--neta-accent);color:var(--neta-on-accent);font-weight:650}
+#neta-names-preview .np-primary:hover{background:var(--neta-accent-hover)}
+#neta-names-preview .np-quiet{border-color:transparent;color:var(--neta-text-secondary)}
+#neta-names-preview h1,#neta-names-preview h2,#neta-names-preview h3,#neta-names-preview p{margin:0}
+#neta-names-preview h1{font-size:34px;line-height:1.2;letter-spacing:-1.1px;font-weight:650;margin:8px 0 10px}
+#neta-names-preview h2{font-size:22px;line-height:1.3;letter-spacing:-.5px;margin-bottom:8px}
+#neta-names-preview h3{font-size:17px;margin-bottom:8px}
+#neta-names-preview p{color:var(--neta-text-secondary)}
+#neta-names-preview .np-preview{padding:9px 28px;background:var(--neta-warning-soft);color:var(--neta-warning);font-size:12px;letter-spacing:.07em;display:flex;gap:12px;flex-wrap:wrap}
+#neta-names-preview .np-preview span{letter-spacing:0;color:var(--neta-warning)}
+#neta-names-preview .np-header{display:flex;align-items:center;gap:24px;padding:24px 32px;border-bottom:1px solid var(--neta-border)}
+#neta-names-preview .np-brand{font-size:22px;letter-spacing:1px;font-weight:750;white-space:nowrap}
+#neta-names-preview .np-brand span{display:block;font-size:12px;font-weight:500;letter-spacing:1.5px;color:var(--neta-text-secondary)}
+#neta-names-preview .np-scope{color:var(--neta-text-secondary);font-size:13px;flex:1}
+#neta-names-preview .np-wallet{font-size:13px;background:var(--neta-surface)}
+#neta-names-preview .np-dot{display:inline-block;width:7px;height:7px;background:var(--neta-accent);border-radius:50%;margin-right:8px}
+#neta-names-preview .np-mainnav{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0 26px;border-bottom:1px solid var(--neta-border)}
+#neta-names-preview .np-mainnav>span,#neta-names-preview .np-mainnav>button{padding:15px 12px;color:var(--neta-text-secondary);font-size:14px;border:0;border-radius:0;border-bottom:2px solid transparent}
+#neta-names-preview .np-mainnav .np-active{color:var(--neta-text);border-bottom-color:var(--neta-accent)}
+#neta-names-preview .np-count{font-size:12px;background:var(--neta-accent);color:var(--neta-on-accent);border-radius:5px;padding:2px 5px;margin-left:4px}
+#neta-names-preview .np-body{padding:24px 32px 20px}
+#neta-names-preview .np-relaynav{display:flex;gap:8px;align-items:center;margin-bottom:30px}
+#neta-names-preview .np-relaynav>*{font-size:13px;padding:9px 12px;border:0;min-height:38px;color:var(--neta-text-secondary)}
+#neta-names-preview .np-relaynav .np-active{background:var(--neta-surface-raised);color:var(--neta-text);border-radius:8px}
+#neta-names-preview .np-heading{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-bottom:30px}
+#neta-names-preview .np-heading>button{white-space:nowrap}
+#neta-names-preview .np-eyebrow{font-size:12px;color:var(--neta-text-secondary);letter-spacing:.12em;font-weight:600}
+#neta-names-preview .np-tabs{display:flex;gap:24px;border-bottom:1px solid var(--neta-border);margin-bottom:24px}
+#neta-names-preview .np-tabs button{padding:12px 0;border:0;border-bottom:2px solid transparent;border-radius:0;color:var(--neta-text-secondary)}
+#neta-names-preview .np-tabs button[aria-current=page]{border-bottom-color:var(--neta-accent);color:var(--neta-text)}
+#neta-names-preview .np-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(245px,1fr);gap:24px;align-items:start}
+#neta-names-preview .np-panel{background:var(--neta-surface);border:1px solid var(--neta-border);border-radius:12px;padding:24px;min-width:0}
+#neta-names-preview .np-stack{display:grid;gap:20px;min-width:0}
+#neta-names-preview .np-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#neta-names-preview .np-between{justify-content:space-between}
+#neta-names-preview label{display:block;font-size:13px;color:var(--neta-text-secondary);margin-bottom:7px}
+#neta-names-preview input,#neta-names-preview select,#neta-names-preview textarea{background:var(--neta-bg);border:1px solid var(--neta-control-border);border-radius:8px;padding:11px 13px;width:100%;min-height:44px;font-size:16px}
+#neta-names-preview textarea{min-height:100px;resize:vertical}
+#neta-names-preview .np-field{margin-top:18px}
+#neta-names-preview .np-search{margin-bottom:24px}
+#neta-names-preview .np-search input{background:var(--neta-surface);padding:14px 16px}
+#neta-names-preview .np-small{font-size:12px;color:var(--neta-text-secondary)}
+#neta-names-preview .np-tag{display:inline-block;padding:3px 8px;font-size:12px;border-radius:5px;background:var(--neta-surface-raised);color:var(--neta-text-secondary)}
+#neta-names-preview .np-tag.np-green{background:var(--neta-success-soft);color:var(--neta-accent)}
+#neta-names-preview .np-tag.np-amber{background:var(--neta-warning-soft);color:var(--neta-warning)}
+#neta-names-preview .np-avatar{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:44px;height:44px;border-radius:12px;background:var(--neta-surface-raised);color:var(--neta-accent);font-size:16px;font-weight:600}
+#neta-names-preview .np-avatar.np-large{width:64px;height:64px;font-size:24px;border-radius:16px;margin-bottom:18px}
+#neta-names-preview .np-person{display:flex;gap:12px;align-items:center;padding:17px 0;border-bottom:1px solid var(--neta-border)}
+#neta-names-preview .np-person:last-child{border:0}
+#neta-names-preview .np-person>div:nth-child(2){flex:1;min-width:0}
+#neta-names-preview .np-person strong{font-size:14px;overflow-wrap:anywhere}
+#neta-names-preview .np-person button{font-size:12px;padding:7px 11px}
+#neta-names-preview .np-chain{font-size:12px;color:var(--neta-text-secondary)}
+#neta-names-preview .np-mint{color:var(--neta-accent)}
+#neta-names-preview .np-address{font:12px/1.65 ui-monospace,monospace;overflow-wrap:anywhere;color:var(--neta-text-secondary);margin-top:8px}
+#neta-names-preview .np-separator{border:0;border-top:1px solid var(--neta-border);margin:22px 0}
+#neta-names-preview .np-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+#neta-names-preview .np-actions button{flex:0 1 auto}
+#neta-names-preview .np-footnote{font-size:12px;margin-top:16px}
+#neta-names-preview .np-footer{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;color:var(--neta-text-secondary);font-size:12px;margin-top:28px;padding-top:18px;border-top:1px solid var(--neta-border)}
+#neta-names-preview .np-note{padding:14px 16px;background:var(--neta-surface-raised);border-radius:8px;font-size:13px;color:var(--neta-text-secondary);margin:16px 0}
+#neta-names-preview .np-status{margin-bottom:18px;padding:12px 16px;background:var(--neta-success-soft);border-radius:8px;color:var(--neta-accent);font-size:13px}
+#neta-names-preview .np-price{font-size:30px;letter-spacing:-1px;font-weight:650;color:var(--neta-text);margin:12px 0 0}
+#neta-names-preview .np-price small{font-size:14px;font-weight:400;letter-spacing:0;color:var(--neta-text-secondary)}
+#neta-names-preview .np-kv{display:flex;gap:16px;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--neta-border);font-size:14px}
+#neta-names-preview .np-kv>span:first-child{color:var(--neta-text-secondary)}
+#neta-names-preview .np-kv>span:last-child{text-align:right;overflow-wrap:anywhere;min-width:0}
+#neta-names-preview .np-error{color:var(--neta-danger);font-size:13px;margin-top:10px;min-height:20px}
+#neta-names-preview .np-steps{display:flex;gap:16px;flex-wrap:wrap;color:var(--neta-text-secondary);font-size:12px;margin-bottom:20px}
+#neta-names-preview .np-steps .np-mint{font-weight:600}
+#neta-names-preview .np-transfer{border-color:var(--neta-danger);color:var(--neta-danger)}
+#neta-names-preview .np-single{max-width:680px;margin:0 auto}
+#neta-names-preview .np-empty{padding:30px 0;text-align:center}
+#neta-names-preview .np-update{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+#neta-names-preview .np-update>div{padding:16px;background:var(--neta-bg);border-radius:8px;overflow-wrap:anywhere}
+#neta-names-preview .np-update p{margin-top:8px}
+#neta-names-preview details{font-size:13px;color:var(--neta-text-secondary);margin-top:18px}
+#neta-names-preview summary{padding:8px 0}
+@media(max-width:760px){#neta-names-preview .np-grid{grid-template-columns:1fr}#neta-names-preview .np-heading{align-items:flex-start;flex-direction:column}#neta-names-preview .np-scope{display:none}#neta-names-preview .np-header{justify-content:space-between;padding:20px}#neta-names-preview .np-body{padding:20px}#neta-names-preview .np-mainnav{padding:0 8px}#neta-names-preview .np-mainnav>span,#neta-names-preview .np-mainnav>button{font-size:12px;padding:12px 9px}#neta-names-preview h1{font-size:30px}}
+@media(max-width:390px){#neta-names-preview .np-body{padding:16px}#neta-names-preview .np-panel{padding:16px}#neta-names-preview .np-preview{padding:8px 16px}#neta-names-preview .np-header{padding:16px;gap:12px}#neta-names-preview .np-wallet{font-size:12px;padding:8px}#neta-names-preview .np-relaynav{gap:2px}#neta-names-preview .np-relaynav>*{padding:8px;font-size:12px}#neta-names-preview .np-update{grid-template-columns:1fr}#neta-names-preview .np-person{flex-wrap:wrap}#neta-names-preview .np-person>button{margin-left:56px}}
+
+/* Names preview uses the workspace foundations; no independent color palette. */
+#neta-names-preview h1,#neta-names-preview h2,#neta-names-preview h3,#neta-names-preview strong,#neta-names-preview b{color:var(--neta-text);overflow-wrap:anywhere}
+#neta-names-preview a{color:var(--neta-accent)}
+#neta-names-preview input::placeholder,#neta-names-preview textarea::placeholder{color:var(--neta-text-secondary);opacity:1}
+#neta-names-preview .np-preview{font-size:13px;letter-spacing:0;justify-content:center;padding:10px 20px}
+#neta-names-preview .np-header{max-width:1280px;margin:auto;padding:20px 24px;border:0}
+#neta-names-preview .np-brand{text-decoration:none;color:var(--neta-text);font-size:20px;letter-spacing:.025em}
+#neta-names-preview .np-mainnav{max-width:1232px;margin:auto;padding:0;gap:8px}
+#neta-names-preview .np-mainnav a{padding:14px 16px;min-height:48px;color:var(--neta-text-secondary);text-decoration:none;border-bottom:2px solid transparent;font-size:15px}
+#neta-names-preview .np-mainnav a[aria-current]{color:var(--neta-text);border-color:var(--neta-accent)}
+#neta-names-preview .np-body{max-width:1120px;margin:auto;padding:24px 24px 40px}
+#neta-names-preview .np-relaynav{margin:0 0 24px;flex-wrap:wrap}
+#neta-names-preview .np-relaynav a{color:var(--neta-text-secondary);text-decoration:none;min-height:44px;padding:10px 12px}
+#neta-names-preview .np-relaynav [aria-current]{color:var(--neta-text);background:var(--neta-surface-raised);border-radius:8px}
+#neta-names-preview .np-heading{margin-bottom:24px;align-items:flex-start}
+#neta-names-preview h1{font-size:36px;margin:0 0 10px}
+#neta-names-preview .np-heading p{max-width:620px}
+#neta-names-preview .np-tabs{gap:24px;margin-bottom:28px}
+#neta-names-preview .np-find{max-width:760px;margin-bottom:32px}
+#neta-names-preview .np-find label{font-size:15px;color:var(--neta-text);font-weight:600}
+#neta-names-preview .np-search{margin:8px 0 10px}
+#neta-names-preview .np-search input{min-height:56px;font-size:17px}
+#neta-names-preview .np-directory{border-top:1px solid var(--neta-border);padding-top:24px}
+#neta-names-preview .np-person{padding:20px 0}
+#neta-names-preview .np-person strong{font-size:16px;font-weight:600}
+#neta-names-preview .np-person button{font-size:14px}
+#neta-names-preview .np-person .np-small{font-size:13px;margin-top:4px}
+#neta-names-preview .np-profile-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,1fr);gap:24px}
+#neta-names-preview .np-profile-head{margin:24px 0}
+#neta-names-preview .np-profile-head h2{font-size:28px;margin-top:16px}
+#neta-names-preview .np-name{font-size:17px;color:var(--neta-accent);overflow-wrap:anywhere}
+#neta-names-preview .np-back{margin-bottom:12px;padding-left:0}
+#neta-names-preview .np-small,#neta-names-preview .np-footnote{font-size:13px}
+#neta-names-preview .np-tag{font-size:12px}
+#neta-names-preview .np-wallet{white-space:normal}
+#neta-names-preview .np-tariff{display:flex;gap:8px 24px;flex-wrap:wrap;font-size:13px;color:var(--neta-text-secondary);margin:16px 0}
+#neta-names-preview .np-empty{padding:32px 16px;border:1px dashed var(--neta-control-border);border-radius:12px;text-align:left}
+#neta-names-preview .np-empty h3{font-size:20px}
+#neta-names-preview .np-disclosure{margin-top:28px;border-top:1px solid var(--neta-border);padding-top:12px}
+#neta-names-preview .np-disclosure summary{min-height:44px;color:var(--neta-text);font-size:15px}
+#neta-names-preview .np-footer{font-size:12px}
+#neta-names-preview .np-price{font-variant-numeric:tabular-nums}
+#neta-names-preview .np-profile-layout .np-actions>button{flex:1}
+@media(max-width:760px){
+ #neta-names-preview .np-profile-layout{grid-template-columns:1fr}
+ #neta-names-preview .np-body{padding:20px 16px 32px}
+ #neta-names-preview .np-mainnav{padding:0 8px;gap:0}
+ #neta-names-preview .np-mainnav a{font-size:13px;padding:12px 10px}
+ #neta-names-preview .np-header{padding:16px;gap:12px}
+ #neta-names-preview h1{font-size:30px}
+ #neta-names-preview .np-heading{gap:16px}
+ #neta-names-preview .np-tabs{gap:20px}
+ #neta-names-preview .np-profile-head h2{font-size:24px}
+ #neta-names-preview .np-kv{gap:12px;flex-wrap:wrap}
+ #neta-names-preview .np-update{grid-template-columns:1fr}
+}
+@media(max-width:390px){
+ #neta-names-preview .np-brand{font-size:17px}
+ #neta-names-preview .np-wallet{max-width:140px;font-size:12px}
+ #neta-names-preview .np-relaynav{gap:0}
+ #neta-names-preview .np-relaynav a{padding:10px 8px;font-size:12px}
+ #neta-names-preview .np-person>div:nth-child(2){flex-basis:calc(100% - 60px)}
+}
