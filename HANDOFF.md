@@ -1,5 +1,13 @@
 # NETA DAO handoff
 
+## Latest continuation — faucet, 2026-10-03
+
+Read [the next-chat faucet handoff](docs/HANDOFF_NEXT_CHAT_FAUCET_2026-10-03.md) first.
+PR #123 adds the separate English faucet page and bottom footer link. The owner
+asks to review this page now and continue in a new chat. Payout/donation backend
+activation remains pending hosting and a privately provisioned, funded UNI-7
+account. Do not claim actual payouts or real signed wallet E2E are verified.
+
 ## People update — 2026-10-03
 
 Read [People / Members / Contributors](docs/PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).

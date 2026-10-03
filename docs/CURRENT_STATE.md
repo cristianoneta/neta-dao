@@ -375,3 +375,10 @@ these actions while its API/address config is null. Fixed payout is 10 JUNOX per
 wallet every rolling 24h, verified server-side with ADR-36 ownership proof;
 donations accept whole JUNOX only. See `faucet/README.md` for activation/recovery.
 Automated wallet/chain tests are mocked, not a real-payout attestation.
+
+Faucet release evidence: PR #123 merged as `5d047f630e742c5eac92aa07673b90e0a34a2cd6`
+after all three exact-head checks passed. Pages run `37156018654` succeeded.
+Eight production files were compared with the implementation, including the
+published bottom footer link and signing bundle. See the complete
+[next-chat handoff](HANDOFF_NEXT_CHAT_FAUCET_2026-10-03.md). Payout/donation
+activation and real-wallet E2E remain pending.
