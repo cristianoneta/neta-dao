@@ -218,3 +218,9 @@ but cannot provide missing records. Native review pagination remains bounded.
 
 Full consistent fresh-profile backup/restore, sender rotation handling and v0.2
 consent/prekey UX remain unfinished. Mainnet messaging stays disabled.
+
+2026-10-03 RPC compatibility check: the public Juno gateway rejects height-range
+queries with an explicit strict-equality policy. Collector selection now probes
+range capability, prefers a compatible archive and falls back to full replay when
+none is reachable. The optimization is conditional on node support, not a guarantee
+of incremental scans on every endpoint. Snapshot ownership/data remain unchanged.

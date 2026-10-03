@@ -92,3 +92,9 @@ Still blocked: automatic off-device backup and fresh-profile coherent restore of
 ratchet + archive + outbox + descriptor; historical sender generation in the lab;
 consent/replenishment integration on a new verified UNI-7 deployment; full adversarial
 rotation/exhaustion/recovery matrix. No mainnet messaging activation or wallet writes.
+
+2026-10-03 RPC compatibility check: the public Juno gateway rejects height-range
+queries with an explicit strict-equality policy. Collector selection now probes
+range capability, prefers a compatible archive and falls back to full replay when
+none is reachable. The optimization is conditional on node support, not a guarantee
+of incremental scans on every endpoint. Snapshot ownership/data remain unchanged.

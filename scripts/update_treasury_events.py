@@ -62,7 +62,7 @@ def rpc(base, method, timeout=30, **params):
 
 
 def select_rpc(chain):
-    errors = []
+    errors, fallback = [], None
     probe = f"wasm._contract_address='{chain['address']}'"
     for base in chain["rpcs"]:
         try:
@@ -71,9 +71,18 @@ def select_rpc(chain):
             total = int(indexed.get("total_count", 0))
             if chain["require_history"] and total == 0:
                 raise RuntimeError("historical address index is empty")
-            return base, int(status["sync_info"]["latest_block_height"]), total
+            height = int(status["sync_info"]["latest_block_height"])
+            if fallback is None:
+                fallback = (base, height, total, False)
+            # Some public gateways reject every height range. Probe this before
+            # choosing a node; keep a full-replay fallback rather than breaking
+            # production when no range-capable archive is reachable.
+            rpc(base, "tx_search", query=f"{probe} AND tx.height>={chain['creation_height']} AND tx.height<={height-20}", page=1, per_page=1, order_by="asc")
+            return base, height, total, True
         except Exception as error:
             errors.append(f"{base}: {error}")
+    if fallback is not None:
+        return fallback
     raise RuntimeError(f"no {chain['name']} RPC with a usable transaction index: " + " | ".join(errors))
 
 
@@ -233,15 +242,17 @@ def normalize(tx, timestamp, registry, chain=None, titles=None):
 
 
 def collect_chain(chain, existing, registry, titles, source=None):
-    base, latest_height, indexed_total = select_rpc(chain)
+    base, latest_height, indexed_total, range_capable = select_rpc(chain)
     # Scan only finalized older blocks and retain an overlap for delayed indexing.
     end_height = max(chain["creation_height"], latest_height - 20)
     anchor_hash = block_hash(base, end_height)
     start_height, incremental = scan_start(chain, base, end_height, source)
+    if not range_capable:
+        start_height, incremental = chain["creation_height"], False
     found = {}
     for key in QUERIES:
-        for tx in search(base, key, chain["address"], start_height, end_height):
-            if int(tx.get("tx_result", {}).get("code", 0)) == 0:
+        for tx in search(base, key, chain["address"], start_height if range_capable else None, end_height if range_capable else None):
+            if start_height <= int(tx["height"]) <= end_height and int(tx.get("tx_result", {}).get("code", 0)) == 0:
                 found[tx["hash"]] = tx
     prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"]}
     if not incremental and any(int(row["height"]) <= end_height and digest not in found for digest, row in prior.items()):
@@ -261,7 +272,7 @@ def collect_chain(chain, existing, registry, titles, source=None):
         row["treasury_address"] = chain["address"]
         row["proposal_title"] = titles.get(str(row.get("proposal_id")), row.get("proposal_title")) if row.get("proposal_id") else None
         row["account_explorer_url"] = chain["explorer_account"].format(address=chain["address"])
-    return list(prior.values()), {"chain_id": chain["id"], "address": chain["address"], "source": base, "indexed_transactions": indexed_total, "last_scanned_height": end_height, "anchor_hash": anchor_hash, "scan_start_height": start_height, "incremental": incremental, "contract_creation_height": chain["creation_height"]}
+    return list(prior.values()), {"chain_id": chain["id"], "address": chain["address"], "source": base, "indexed_transactions": indexed_total, "last_scanned_height": end_height, "anchor_hash": anchor_hash, "scan_start_height": start_height, "incremental": incremental, "range_capable": range_capable, "contract_creation_height": chain["creation_height"]}
 
 
 def collect():

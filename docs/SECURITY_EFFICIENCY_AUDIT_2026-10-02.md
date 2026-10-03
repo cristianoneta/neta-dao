@@ -85,3 +85,9 @@ a changed anchor or loss of a recorded transaction fails without publishing over
 existing ledger. This does not fix unindexed CW20/LP cashflow or guarantee RPC honesty.
 Local continuation checks: 42 Node and 14 Python tests passed. Browser/contract CI
 for this follow-up must pass before merge. Mainnet messaging stays disabled.
+
+2026-10-03 RPC compatibility check: the public Juno gateway rejects height-range
+queries with an explicit strict-equality policy. Collector selection now probes
+range capability, prefers a compatible archive and falls back to full replay when
+none is reachable. The optimization is conditional on node support, not a guarantee
+of incremental scans on every endpoint. Snapshot ownership/data remain unchanged.
