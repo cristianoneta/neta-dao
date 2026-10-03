@@ -177,6 +177,7 @@ try {
     assert.equal(forged.status,200);
     await a.page.locator('#message').fill('valid after malformed ciphertext and colliding ID');
     await a.page.getByRole('button',{name:'TEST ENCRYPTED SEND · KEPLR'}).click();
+    await a.page.waitForFunction(()=>document.querySelector('#history').textContent.includes('valid after malformed ciphertext and colliding ID'));
     await ready(a.page,'MESSAGE CONFIRMED');
     await b.page.getByRole('button',{name:'CHECK & DECRYPT INBOX'}).click();
     await ready(b.page,'QUARANTINED');
@@ -194,7 +195,7 @@ try {
     await b.page.locator('#recovery').fill(b.code); await b.page.getByRole('button',{name:'UNLOCK EXISTING DEVICE'}).click(); await ready(b.page,'HISTORY RESTORED');
     await b.page.evaluate(()=>window.__failArchive=true);
     await a.page.locator('#message').fill('recover exact ratchet and archive after interruption');
-    await a.page.getByRole('button',{name:'TEST ENCRYPTED SEND · KEPLR'}).click(); await ready(a.page,'MESSAGE CONFIRMED');
+    await a.page.getByRole('button',{name:'TEST ENCRYPTED SEND · KEPLR'}).click(); await a.page.waitForFunction(()=>document.querySelector('#history').textContent.includes('recover exact ratchet and archive after interruption')); await ready(a.page,'MESSAGE CONFIRMED');
     await b.page.getByRole('button',{name:'CHECK & DECRYPT INBOX'}).click(); await ready(b.page,'TEST archive interruption');
     assert.equal(await b.page.locator('#send').isDisabled(),true);
     await b.page.reload();
