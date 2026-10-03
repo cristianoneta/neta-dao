@@ -16,6 +16,11 @@ const MAX_PAGE: u32 = 50;
 const SEND_COOLDOWN_SECONDS: u64 = 10;
 
 const DEVICES: Map<&Addr, Device> = Map::new("devices");
+// Recipient-granted, generation-bound consent. Account rotation cannot drain
+// a recipient's prekeys without a distinct explicit recipient approval.
+const CONSENT: Map<(&Addr, &Addr), (u64, u64)> = Map::new("consent");
+const INITIAL_USED: Map<(&Addr, &Addr), (u64, u64)> = Map::new("initial_used");
+const IDENTITIES: Map<(&Addr, u64), DeviceIdentity> = Map::new("identities");
 const INBOX: Map<(&Addr, u64), Message> = Map::new("inbox");
 const SENT_IDS: Map<(&Addr, &str), u64> = Map::new("sent_ids");
 const BLOCKED: Map<(&Addr, &Addr), bool> = Map::new("blocked");
@@ -40,6 +45,14 @@ pub struct Device {
     pub active: bool,
     pub prekeys: Vec<Prekey>,
     pub max_prekey_id: u16,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct DeviceIdentity {
+    pub generation: u64,
+    pub device_id: String,
+    pub protocol_version: u16,
+    pub fingerprint: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -91,12 +104,15 @@ pub enum ExecuteMsg {
         ciphertext: Binary,
     },
     SetBlock { address: String, blocked: bool },
+    AllowSender { address: String, recipient_generation: u64, sender_generation: u64, allowed: bool },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Device { address: String },
+    HistoricalDevice { address: String, generation: u64 },
+    Consent { recipient: String, sender: String },
     Inbox { address: String, after: Option<u64>, limit: Option<u32> },
     Sent { sender: String, message_id: String },
     Blocked { recipient: String, sender: String },
@@ -127,6 +143,10 @@ pub enum Error {
     Message,
     #[error("message ID already used")]
     Duplicate,
+    #[error("recipient consent required for these device generations")]
+    Consent,
+    #[error("initial message already accepted for these device generations")]
+    InitialUsed,
     #[error("prekey already consumed or unavailable")]
     PrekeySpent,
     #[error("sequence exhausted")]
@@ -185,6 +205,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> R
                 Some(old) => old.generation.checked_add(1).ok_or(Error::Sequence)?,
                 None => 1,
             };
+            IDENTITIES.save(deps.storage, (&info.sender, generation), &DeviceIdentity {
+                generation, device_id: device_id.clone(), protocol_version, fingerprint: fingerprint.clone(),
+            })?;
             DEVICES.save(deps.storage, &info.sender, &Device {
                 generation, device_id, protocol_version, fingerprint, active: true, prekeys, max_prekey_id,
             })?;
@@ -209,6 +232,18 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> R
             device.prekeys.extend(prekeys);
             DEVICES.save(deps.storage, &info.sender, &device)?;
             Ok(Response::new().add_attribute("action", "add_prekeys"))
+        }
+        ExecuteMsg::AllowSender { address, recipient_generation, sender_generation, allowed } => {
+            let sender = deps.api.addr_validate(&address)?;
+            if allowed {
+                let recipient = DEVICES.load(deps.storage, &info.sender)?;
+                let author = DEVICES.load(deps.storage, &sender)?;
+                if !recipient.active || !author.active || recipient.generation != recipient_generation || author.generation != sender_generation {
+                    return Err(Error::DeviceChanged);
+                }
+                CONSENT.save(deps.storage, (&info.sender, &sender), &(recipient_generation, sender_generation))?;
+            } else { CONSENT.remove(deps.storage, (&info.sender, &sender)); }
+            Ok(Response::new().add_attribute("action", "allow_sender"))
         }
         ExecuteMsg::SetBlock { address, blocked } => {
             let address = deps.api.addr_validate(&address)?;
@@ -235,7 +270,10 @@ fn send(deps: DepsMut, env: Env, info: MessageInfo, recipient: String, recipient
     let sender_device = DEVICES.load(deps.storage, &info.sender)?;
     let mut receiver = DEVICES.load(deps.storage, &recipient)?;
     if !sender_device.active || !receiver.active || receiver.generation != recipient_generation { return Err(Error::DeviceChanged); }
+    let generations = (receiver.generation, sender_device.generation);
+    if CONSENT.may_load(deps.storage, (&recipient, &info.sender))? != Some(generations) { return Err(Error::Consent); }
     let kind = if let Some(id) = prekey_id {
+        if INITIAL_USED.may_load(deps.storage, (&recipient, &info.sender))? == Some(generations) { return Err(Error::InitialUsed); }
         let index = receiver.prekeys.iter().position(|prekey| prekey.id == id).ok_or(Error::PrekeySpent)?;
         receiver.prekeys.remove(index);
         MessageKind::Initial { prekey_id: id }
@@ -253,7 +291,10 @@ fn send(deps: DepsMut, env: Env, info: MessageInfo, recipient: String, recipient
     };
     // CosmWasm rolls back all writes if any operation fails. A competing initial
     // send observes the consumed prekey and fails without storing a message.
-    if prekey_id.is_some() { DEVICES.save(deps.storage, &recipient, &receiver)?; }
+    if prekey_id.is_some() {
+        DEVICES.save(deps.storage, &recipient, &receiver)?;
+        INITIAL_USED.save(deps.storage, (&recipient, &info.sender), &generations)?;
+    }
     INBOX.save(deps.storage, (&recipient, sequence), &message)?;
     SENT_IDS.save(deps.storage, (&info.sender, &message_id), &sequence)?;
     NEXT_SEQUENCE.save(deps.storage, &sequence)?;
@@ -268,6 +309,15 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Device { address } => {
             let address = deps.api.addr_validate(&address)?;
             to_json_binary(&DEVICES.may_load(deps.storage, &address)?)
+        }
+        QueryMsg::HistoricalDevice { address, generation } => {
+            let address = deps.api.addr_validate(&address)?;
+            to_json_binary(&IDENTITIES.may_load(deps.storage, (&address, generation))?)
+        }
+        QueryMsg::Consent { recipient, sender } => {
+            let recipient = deps.api.addr_validate(&recipient)?;
+            let sender = deps.api.addr_validate(&sender)?;
+            to_json_binary(&CONSENT.may_load(deps.storage, (&recipient, &sender))?)
         }
         QueryMsg::Inbox { address, after, limit } => {
             let address = deps.api.addr_validate(&address)?;
