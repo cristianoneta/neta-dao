@@ -230,3 +230,8 @@ Known optional Osmosis legacy index gaps preserve all cached events and emit an
 explicit coverage warning; they do not block fresh balances. Required Juno history
 gaps still fail publication. Seven independent address queries run with a bound
 of three workers; capability probes have eight-second timeouts and run only on the selected node.
+
+
+## Verified integration checkpoint — 2026-10-03 UTC
+
+PRs #100–#103 and Website #137/#138 are integrated after their relevant final checks passed. DAO #103 merged as `9ee6cdf362d99538ec19cd5c13249cc22c291610`; Pages run 1029 passed and deployed security assets matched the tested bytes. The earlier pending-PR statements above are historical snapshots superseded by this checkpoint. See [the continuation evidence](SECURITY_CONTINUATION_2026-10-03.md) for exact runs, source-versus-deployment distinctions, RPC validation limits and remaining Mainnet gates. Messaging remains disabled; v0.2 consent is source-only and off-device restore is still open. Preserve all later bot updates and pending journals.
