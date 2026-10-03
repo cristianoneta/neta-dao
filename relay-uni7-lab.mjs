@@ -52,11 +52,11 @@ async function run(action) {
     notice('BLOCKED · ' + (error.message || String(error)));
   }
   finally {
-    state.busy=false;
     if(state.closeRequested) {
       state.closeRequested=false;
       await closeLocal(); notice('KEPLR ACCOUNT CHANGED · CONNECT AGAIN.');
-    } else controls();
+    }
+    state.busy=false; controls();
   }
 }
 async function closeLocal() {
@@ -272,7 +272,11 @@ window.addEventListener('keplr_keystorechange', () => {
   // Keep the device lock/crypto handles until the running operation reaches its
   // durable commit or recoverable journal. Never release into a second tab early.
   if(state.busy) state.closeRequested=true;
-  else closeLocal().then(()=>notice('KEPLR ACCOUNT CHANGED · CONNECT AGAIN.'));
+  else {
+    state.busy=true;
+    closeLocal().then(()=>notice('KEPLR ACCOUNT CHANGED · CONNECT AGAIN.'))
+      .finally(()=>{state.busy=false;controls();});
+  }
 });
 window.addEventListener('pagehide', () => { state.crypto?.uniffiDestroy(); state.db?.uniffiDestroy(); state.key?.uniffiDestroy(); state.vault?.close(); state.archive?.close(); state.outbox?.close(); });
 controls();
