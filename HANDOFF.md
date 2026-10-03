@@ -137,3 +137,15 @@ pending ratchet/archive/outbox or transaction-journal state to unblock the UI.
 
 
 
+
+### Juno testnet faucet continuation — 2026-10-03
+
+New independent English `juno-faucet.html`, footer link opens a separate tab.
+Current UNI-7 validators, stake, commission, unstaking and rewards share the
+NETA theme. Source/build/test instructions and deployment gates: `faucet/README.md`.
+The payout backend is prepared with persistent 10 JUNOX / rolling 24h limits,
+ADR-36 authentication and durable transaction reconciliation, but **is not hosted
+or funded**. API/address remain null; payout/donation controls explain this.
+Operator needs to provision a dedicated testnet key privately and provide backend
+hosting. Never substitute a browser-only daily limit or silently activate a
+third-party faucet. No real signed staking/payout transaction was performed.

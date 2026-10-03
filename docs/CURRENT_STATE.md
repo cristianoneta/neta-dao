@@ -359,3 +359,19 @@ Profile/Name registration surfaces and section headings. Browser regression
 compares nav coordinates and computed card/title styles across each destination
 at 320/390/768/1440 px. No feature gates or subscription storage change.
 
+
+## Juno testnet faucet — 2026-10-03 implementation
+
+`juno-faucet.html` is a separate English UNI-7 tool, linked from the workspace
+footer with `target=_blank` and `noopener noreferrer`. It reuses `neta-ui.css`.
+Keplr, live validators/commission, wallet balances/delegations/unbonding/rewards,
+stake/unstake and reward withdrawal are implemented. Browser writes use the
+existing origin-wide transaction journal semantics. Mainnet is not supported.
+
+**Payouts and donations are not activated.** The durable Node 24/SQLite payout
+service in `faucet/service` requires a host, HTTPS origin and a dedicated funded
+UNI-7 wallet provisioned privately by the operator. The page visibly disables
+these actions while its API/address config is null. Fixed payout is 10 JUNOX per
+wallet every rolling 24h, verified server-side with ADR-36 ownership proof;
+donations accept whole JUNOX only. See `faucet/README.md` for activation/recovery.
+Automated wallet/chain tests are mocked, not a real-payout attestation.
