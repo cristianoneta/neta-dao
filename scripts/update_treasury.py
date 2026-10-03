@@ -141,9 +141,14 @@ def metadata(key):
     return CW20.get(address, {"symbol": address[:12] + "…", "decimals": 6})
 
 
-def native_metadata(denom, providers=RESTS):
-    if denom in ASSETS:
-        return dict(ASSETS[denom])
+def native_metadata(denom, providers=RESTS, source_chain="juno"):
+    # Channel identifiers are local to a chain. A matching hash on another
+    # chain must not borrow an identity approved only for Juno or Osmosis.
+    registered = ASSETS.get(f"{source_chain}:{denom}")
+    if registered is None and source_chain == "juno":
+        registered = ASSETS.get(denom)
+    if registered is not None:
+        return dict(registered)
     if not denom.startswith("ibc/"):
         return dict(BASE_ASSETS.get(denom, {"symbol": denom, "decimals": 6}))
     trace, _ = rest(f"/ibc/apps/transfer/v1/denom_traces/{denom[4:]}", providers)
@@ -161,7 +166,7 @@ def native_assets(coins, market, warnings, source_chain="juno", custody_address=
     result = []
     for coin in coins:
         try:
-            meta = native_metadata(coin["denom"], providers)
+            meta = native_metadata(coin["denom"], providers, source_chain)
         except Exception as error:
             meta = {"symbol": coin["denom"][:18] + "…", "decimals": 6}
             warnings.append(f"Denom trace unavailable for {coin['denom']}: {error}")
@@ -265,7 +270,7 @@ def build():
     stamp = now()
     height_data, _ = rest("/cosmos/base/tendermint/v1beta1/blocks/latest")
     height = int(height_data["block"]["header"]["height"])
-    price_ids = [item["coingecko"] for item in BASE_ASSETS.values() if item.get("coingecko")]
+    price_ids = [item["coingecko"] for item in [*BASE_ASSETS.values(), *ASSETS.values()] if item.get("coingecko")]
     market, price_source = prices(price_ids)
     return build_operations(market, price_source, stamp, height), build_community_pool(market, price_source, stamp, height)
 
@@ -289,6 +294,7 @@ def write_snapshot(snapshot, name="current", history_name="history"):
             "amount": item["amount"],
             "usd_price": item.get("usd_price"),
             "usd_value": item.get("usd_value"),
+            **({"underlyings": item["underlyings"]} if "underlyings" in item else {}),
         }
         for item in snapshot["assets"]
     ]

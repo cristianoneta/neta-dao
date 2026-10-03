@@ -43,6 +43,51 @@
     "origin": "IBC",
     "symbol": "OSMO"
   },
+  "osmosis:ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4": {
+    "base_denom": "uakt",
+    "coingecko": "akash-network",
+    "decimals": 6,
+    "ibc_path": "transfer/channel-1",
+    "origin": "IBC",
+    "source_chain": "osmosis",
+    "symbol": "AKT"
+  },
+  "osmosis:ibc/46B44899322F3CD854D2D46DEEF881958467CDD4B3B10086DA49296BBED94BED": {
+    "base_denom": "ujuno",
+    "coingecko": "juno-network",
+    "decimals": 6,
+    "ibc_path": "transfer/channel-42",
+    "origin": "IBC",
+    "source_chain": "osmosis",
+    "symbol": "JUNO"
+  },
+  "osmosis:ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4": {
+    "base_denom": "uusdc",
+    "coingecko": "usd-coin",
+    "decimals": 6,
+    "ibc_path": "transfer/channel-750",
+    "origin": "IBC",
+    "source_chain": "osmosis",
+    "symbol": "USDC.n"
+  },
+  "osmosis:ibc/8E697BDABE97ACE8773C6DF7402B2D1D5104DD1EEABE12608E3469B7F64C15BA": {
+    "base_denom": "ujkl",
+    "coingecko": "jackal-protocol",
+    "decimals": 6,
+    "ibc_path": "transfer/channel-412",
+    "origin": "IBC",
+    "source_chain": "osmosis",
+    "symbol": "JKL"
+  },
+  "osmosis:ibc/BC26A7A805ECD6822719472BCB7842A48EF09DF206182F8F259B2593EB5D23FB": {
+    "base_denom": "uatone",
+    "coingecko": "atomone",
+    "decimals": 6,
+    "ibc_path": "transfer/channel-94814",
+    "origin": "IBC",
+    "source_chain": "osmosis",
+    "symbol": "ATONE"
+  },
   "ujuno": {
     "base_denom": "ujuno",
     "coingecko": "juno-network",

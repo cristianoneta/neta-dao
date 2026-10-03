@@ -54,6 +54,22 @@ class TreasuryIdentityTests(unittest.TestCase):
                 assets = treasury.native_assets([{'denom': 'ibc/' + 'A' * 64, 'amount': '1000000000'}], {'usd-coin': {'usd': treasury.Decimal(1)}, 'cosmos': {'usd': treasury.Decimal(10)}}, [])
                 self.assertIsNone(assets[0]['usd_value'])
 
+    def test_osmosis_holdings_have_exact_chain_scoped_prices(self):
+        import hashlib
+        verified = {key: value for key, value in treasury.ASSETS.items() if key.startswith('osmosis:')}
+        self.assertEqual({v['symbol'] for v in verified.values()}, {'AKT', 'JUNO', 'USDC.n', 'JKL', 'ATONE'})
+        for key, expected in verified.items():
+            denom = key.split(':', 1)[1]
+            trace = {'path': expected['ibc_path'], 'base_denom': expected['base_denom']}
+            self.assertEqual(denom, 'ibc/' + hashlib.sha256((trace['path'] + '/' + trace['base_denom']).encode()).hexdigest().upper())
+            with patch.object(treasury, 'rest', return_value=({'denom_trace': trace}, 'mock')):
+                asset = treasury.native_assets([{'denom': denom, 'amount': '2000000'}],
+                    {expected['coingecko']: {'usd': treasury.Decimal('3')}}, [], source_chain='osmosis')[0]
+                self.assertEqual(asset['usd_value'], '6')
+                self.assertEqual(asset['symbol'], expected['symbol'])
+                # Same local channel/hash on a different chain is not this asset.
+                self.assertNotIn('coingecko', treasury.native_metadata(denom, source_chain='juno'))
+
     def test_exact_reviewed_denom_retains_market_identity(self):
         denom = 'ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034'
         with patch.object(treasury, 'rest', side_effect=AssertionError('registry identity should not need a trace')):

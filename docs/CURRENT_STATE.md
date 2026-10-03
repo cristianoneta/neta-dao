@@ -104,18 +104,24 @@ Assets include native/IBC coins, configured CW20s and eight configured WYND LPs
 including direct/staked/claim shares. LP USD value is counted once via underlying
 reserves. Unpriced assets and sub-USD-50 assets/warnings remain inspectable.
 Core balance failures fail collection; unresolved asset prices can yield a
-`PARTIAL` snapshot and are excluded from the USD total.
+`PARTIAL` snapshot and are excluded from the USD total. The UI labels this a
+priced-assets subtotal and shows warnings outside the collapsed asset details.
 
 History market effect revalues opening quantities at closing implied prices;
 the remainder is labeled net flow. `economicAssets` groups by **symbol**, not a
 verified universal asset ID. It can consolidate internal transfers but is not
 transaction-derived cash flow and can be distorted by symbol collisions,
-coverage changes and LP composition. Balances are fetched at latest endpoints;
+LP composition and changing coverage not captured by the available records.
+History metrics/chart are withheld when excluded-price coverage changes across
+the selected range; missing prices must never be interpreted as a cash outflow. Balances are fetched at latest endpoints;
 the recorded Juno height is context, not height-pinning of every query/chain.
 Native metadata uses a persisted exact-denom registry and traces. Unknown IBC
 base names no longer inherit USDC/DAI/ATOM prices; they remain unpriced until
 reviewed. Fallback display decimals still default to six. Unpriced LP underlying
 assets now also make the snapshot PARTIAL. Registry changes are not automatically persisted.
+The five reviewed Osmosis routes are explicitly chain-scoped in the registry; see
+[Treasury valuation correction](TREASURY_VALUATION_FIX_2026-10-03.md). Collector or
+registry changes on main now trigger a fresh bot collection.
 
 Event ledger: schema v2, chain/hash deduplication and proposal-title enrichment.
 The continuation adds height-bounded scans, a verified block-hash anchor, 100-block
