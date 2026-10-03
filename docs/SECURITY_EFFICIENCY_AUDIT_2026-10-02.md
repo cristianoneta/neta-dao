@@ -91,3 +91,11 @@ queries with an explicit strict-equality policy. Collector selection now probes
 range capability, prefers a compatible archive and falls back to full replay when
 none is reachable. The optimization is conditional on node support, not a guarantee
 of incremental scans on every endpoint. Snapshot ownership/data remain unchanged.
+
+W2 shared adapter follow-up: website browser CI run 311 passes including an actual
+bundle lost-response/reload regression. The synchronized DAO bundle adds the same
+journal for mainnet votes and prepared Names/testnet executes. DAO's actual shared
+bundle has its own browser regression. The scope and manual recovery limitations
+are described in the website audit; upload/instantiate helpers remain outside it.
+Mailbox v0.2 source PR #102 passed contract/frontend run 139 and all WASM jobs in
+run 22 and is merged; the deployed mailbox remains v0.1.

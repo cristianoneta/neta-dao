@@ -77,12 +77,13 @@ The isolated adversarial browser test reproduced the persistent RELAY receive lo
   New archive IDs bind the sender/generations/message ID. Legacy readable records
   stay readable; unresolved legacy intents without a checkpoint still fail closed.
 * PR #102 adds v0.2 **source only**: recipient-granted generation-bound consent,
-  one initial per sender/generation pair, immutable historical identities. Check
-  its final Rust/audit/WASM CI before merge. The live pinned v0.1 artifact/address
+  one initial per sender/generation pair, immutable historical identities. Contract/frontend run 139 and WASM run 22 passed; PR #102 merged as
+  `0bc53fb93fe95b07cb05e93563f6705624d9558d`. The live pinned v0.1 artifact/address
   is unchanged: neither new consent nor historical queries exist there.
 * Website PR #138 adds a browser-local signed-transaction journal. Check its current
-  CI and deployment; synchronize the shared Socials signing bundle to this repo
-  only after the website implementation passes. It has no auto reset/rebroadcast.
+  CI and deployment; The shared Socials signing bundle is synchronized here from the website
+  implementation after website browser/bundle CI run 311 passed; the additional
+  production-data check and this PR's tests must still finish before integration. It has no auto reset/rebroadcast.
 * This follow-up implements moderation-hidden placeholders, invalid-parent/cycle
   protection, depth limits, a one-shot legacy revision query with truncation warning,
   and anchored incremental Treasury event scans. Reorg/partial-index errors preserve
@@ -98,3 +99,9 @@ queries with an explicit strict-equality policy. Collector selection now probes
 range capability, prefers a compatible archive and falls back to full replay when
 none is reachable. The optimization is conditional on node support, not a guarantee
 of incremental scans on every endpoint. Snapshot ownership/data remain unchanged.
+
+The shared generated bundle contains the same broadcast journal as Website #138.
+A browser regression checks its actual execute path, including mainnet fee denom
+and persisted retry blocking after reload. The guarantee is per origin/browser,
+not coordination across domains/devices or manually cleared storage. Interrupted
+signatures and permanently rejected broadcasts need manual investigation.
