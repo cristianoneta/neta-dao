@@ -11,6 +11,7 @@ const files = {
   '/relay-testnet-setup.css': new URL('relay-testnet-setup.css', root),
   '/relay-uni7-lab.mjs': new URL('relay-uni7-lab.mjs', root),
   '/relay-uni7-client.mjs': new URL('relay-uni7-client.mjs', root),
+  '/relay-uni7-checkpoint.mjs': new URL('relay-uni7-checkpoint.mjs', root),
   '/relay-uni7-archive.mjs': new URL('relay-uni7-archive.mjs', root),
   '/spikes/relay-corecrypto/browser-key-vault.mjs': new URL('./browser-key-vault.mjs', import.meta.url),
   '/spikes/relay-corecrypto/browser-outbox.mjs': new URL('./browser-outbox.mjs', import.meta.url),
@@ -153,22 +154,57 @@ try {
   assert.match(await b.page.locator('#history').innerText(), /hello back from Bob/);
   console.log('UNI-7 lab: encrypted exchange, reply and readable restart passed in isolated browser profiles');
   if (process.env.RELAY_AUDIT_ADVERSARIAL === '1') {
-    // Local mock only: document the known availability blocker. No live chain.
+    // Local adversarial regression only. No live-chain writes or wallet keys.
     const bad = await fetch(origin + '/mock/execute', {method:'POST',headers:{'content-type':'application/json'},
       body:JSON.stringify({sender:alice,contract,msg:{send:{recipient:bob,recipient_generation:1,
         message_id:'de'.repeat(32),ciphertext:Buffer.alloc(32).toString('base64')}}})});
     assert.equal(bad.status,200);
     await b.page.getByRole('button', {name:'CHECK & DECRYPT INBOX'}).click();
-    await ready(b.page,'BLOCKED');
-    assert.equal(await b.page.locator('#send').isDisabled(),true);
+    await ready(b.page,'QUARANTINED');
+    assert.equal(await b.page.locator('#send').isDisabled(),false);
     await b.page.reload();
     await b.page.getByRole('button', {name:'CONNECT KEPLR · UNI-7'}).click();
     await ready(b.page,'WALLET CONNECTED');
     await b.page.locator('#recovery').fill(b.code);
     await b.page.getByRole('button', {name:'UNLOCK EXISTING DEVICE'}).click();
-    await ready(b.page,'Unresolved archive intent');
+    await ready(b.page,'HISTORY RESTORED');
+    assert.equal(await b.page.locator('#send').isDisabled(),false);
+    // Same public ID as the quarantined forged record must not block another sender.
+    const oldId=inbox.get(bob)[0].message_id;
+    const forged=await fetch(origin+'/mock/execute',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({sender:bob,contract,msg:{send:{recipient:bob,recipient_generation:1,
+        message_id:oldId,ciphertext:Buffer.alloc(32).toString('base64')}}})});
+    assert.equal(forged.status,200);
+    await a.page.locator('#message').fill('valid after malformed ciphertext and colliding ID');
+    await a.page.getByRole('button',{name:'TEST ENCRYPTED SEND · KEPLR'}).click();
+    await a.page.waitForFunction(()=>document.querySelector('#history').textContent.includes('valid after malformed ciphertext and colliding ID'));
+    await ready(a.page,'MESSAGE CONFIRMED');
+    await b.page.getByRole('button',{name:'CHECK & DECRYPT INBOX'}).click();
+    await ready(b.page,'QUARANTINED');
+    assert.match(await b.page.locator('#history').innerText(),/valid after malformed ciphertext/);
+    assert.equal(await b.page.locator('#send').isDisabled(),false);
+    // Failure after ratchet commit, before archive completion: journal must recover.
+    await b.page.route('**/relay-uni7-archive.mjs',async route=>{
+      const source=await readFile(files['/relay-uni7-archive.mjs'],'utf8');
+      await route.fulfill({contentType:'text/javascript',body:source.replace(
+        'async complete(id, meta, text, sequence) {',
+        'async complete(id, meta, text, sequence) { if(window.__failArchive) throw Error("TEST archive interruption");')});
+    });
+    await b.page.reload();
+    await b.page.getByRole('button',{name:'CONNECT KEPLR · UNI-7'}).click(); await ready(b.page,'WALLET CONNECTED');
+    await b.page.locator('#recovery').fill(b.code); await b.page.getByRole('button',{name:'UNLOCK EXISTING DEVICE'}).click(); await ready(b.page,'HISTORY RESTORED');
+    await b.page.evaluate(()=>window.__failArchive=true);
+    await a.page.locator('#message').fill('recover exact ratchet and archive after interruption');
+    await a.page.getByRole('button',{name:'TEST ENCRYPTED SEND · KEPLR'}).click(); await a.page.waitForFunction(()=>document.querySelector('#history').textContent.includes('recover exact ratchet and archive after interruption')); await ready(a.page,'MESSAGE CONFIRMED');
+    await b.page.getByRole('button',{name:'CHECK & DECRYPT INBOX'}).click(); await ready(b.page,'TEST archive interruption');
     assert.equal(await b.page.locator('#send').isDisabled(),true);
-    console.log('KNOWN OPEN BLOCKER reproduced locally: unauthenticated ciphertext persists a device-wide receive lock');
+    await b.page.reload();
+    await b.page.getByRole('button',{name:'CONNECT KEPLR · UNI-7'}).click(); await ready(b.page,'WALLET CONNECTED');
+    await b.page.locator('#recovery').fill(b.code); await b.page.getByRole('button',{name:'UNLOCK EXISTING DEVICE'}).click(); await ready(b.page,'HISTORY RESTORED');
+    await b.page.getByRole('button',{name:'CHECK & DECRYPT INBOX'}).click(); await ready(b.page,'DECRYPTED & ARCHIVED');
+    assert.match(await b.page.locator('#history').innerText(),/recover exact ratchet and archive/);
+    assert.equal(await b.page.locator('#send').isDisabled(),false);
+    console.log('Adversarial receive: malformed ciphertext, colliding IDs, reload and ratchet/archive interruption recovery passed');
   }
 
 } finally { await browser?.close(); server.close(); }

@@ -2,7 +2,8 @@
 // Isolated UNI-7 E2E lab. No mainnet route or main RELAY send control uses this.
 import * as wire from './assets/relay-crypto/corecrypto.js';
 import { Uni7MailboxClient, RELAY_UNI7_MAILBOX } from './relay-uni7-client.mjs';
-import { Uni7Archive } from './relay-uni7-archive.mjs';
+import { captureRatchet, restoreRatchet } from './relay-uni7-checkpoint.mjs';
+import { Uni7Archive, archiveIdentity } from './relay-uni7-archive.mjs';
 import { BrowserKeyVault } from './spikes/relay-corecrypto/browser-key-vault.mjs';
 import { BrowserOutbox } from './spikes/relay-corecrypto/browser-outbox.mjs';
 import { acquireDeviceLock } from './spikes/relay-corecrypto/browser-device-lock.mjs';
@@ -12,7 +13,7 @@ import { MailboxTransport } from './spikes/relay-corecrypto/mailbox-transport.mj
 const $ = id => document.getElementById(id);
 const address = value => /^juno1[023456789acdefghjklmnpqrstuvwxyz]{38,90}$/.test(value || '');
 const state = { wallet: null, crypto: null, db: null, vault: null, archive: null, outbox: null,
-  lock: null, descriptor: null, registration: null, busy: false, poisoned: false };
+  key: null, path: null, lock: null, descriptor: null, registration: null, busy: false, poisoned: false };
 let wasmReady = false;
 const encoder = new TextEncoder();
 const hex = bytes => Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
@@ -54,11 +55,11 @@ async function run(action) {
 }
 async function closeLocal() {
   try { state.crypto?.uniffiDestroy(); } catch {}
-  try { state.db?.uniffiDestroy(); } catch {}
+  try { state.db?.uniffiDestroy(); state.key?.uniffiDestroy(); } catch {}
   try { state.vault?.close(); state.archive?.close(); state.outbox?.close(); } catch {}
   await state.lock?.release();
   Object.assign(state, { crypto: null, db: null, vault: null, archive: null, outbox: null,
-    lock: null, descriptor: null, registration: null, poisoned: false });
+    key: null, path: null, lock: null, descriptor: null, registration: null, poisoned: false });
   $('history').replaceChildren(); $('device').textContent = 'DEVICE LOCKED'; controls();
 }
 async function localPath(wallet) {
@@ -70,18 +71,19 @@ async function openLocal(code, create) {
   if (!wasmReady) { await wire.initWasmModule('./assets/relay-crypto/index_bg.wasm'); wasmReady = true; }
   const wallet = state.wallet, path = await localPath(wallet);
   const lock = await acquireDeviceLock({ chain: 'uni-7', wallet, path });
-  let vault, db, client, archive, outbox, secret;
+  let vault, db, client, archive, outbox, secret, key;
   try {
     vault = await BrowserKeyVault.open('relay-uni7-vault');
     secret = create ? await vault.create('uni-7', wallet, code) : await vault.unlock('uni-7', wallet, code);
     archive = await Uni7Archive.open(wallet, secret);
-    const key = new wire.DatabaseKey(secret);
+    key = new wire.DatabaseKey(secret);
     secret.fill(0); secret = null;
+    await archive.recover(blocks => restoreRatchet(path, blocks));
     db = await wire.Database.open(path, key);
     client = wire.CoreCrypto.new(db);
     await client.transaction(ctx => ctx.proteusInit());
     outbox = await BrowserOutbox.open('relay-uni7-outbox-' + wallet);
-    Object.assign(state, { lock, vault, db, crypto: client, archive, outbox });
+    Object.assign(state, { lock, vault, db, crypto: client, archive, outbox, key, path });
     if (create) {
       const fingerprint = await client.transaction(ctx => ctx.proteusFingerprint());
       const prekeys = [];
@@ -114,9 +116,9 @@ async function openLocal(code, create) {
   } catch (error) {
     secret?.fill(0);
     state.poisoned = true;
-    try { client?.uniffiDestroy(); db?.uniffiDestroy(); vault?.close(); archive?.close(); outbox?.close(); }
+    try { client?.uniffiDestroy(); db?.uniffiDestroy(); key?.uniffiDestroy(); vault?.close(); archive?.close(); outbox?.close(); }
     finally { await lock.release(); Object.assign(state, { lock: null, crypto: null, db: null, vault: null,
-      archive: null, outbox: null, registration: null }); }
+      archive: null, outbox: null, key: null, path: null, registration: null }); }
     throw error;
   }
 }
@@ -143,16 +145,18 @@ async function testSend() {
   if (!address(recipient) || recipient === state.wallet) throw Error('Enter another registered Juno wallet');
   if (!text || encoder.encode(text).length > 1800) throw Error('Enter at most 1800 UTF-8 bytes');
   const remote = await adapter.device(recipient);
-  if (!remote?.active || !remote.prekeys?.length) throw Error('Recipient has no active device/prekeys');
+  if (!remote?.active) throw Error('Recipient has no active device');
   const history = await state.archive.readable();
-  const hasSession = history.some(row => row.meta.sender === recipient || row.meta.recipient === recipient);
-  const prekey = hasSession ? null : remote.prekeys[0];
+  const hasSession = history.some(row => (row.meta.sender === recipient && row.meta.senderGeneration===remote.generation) || (row.meta.recipient === recipient && row.meta.recipientGeneration===remote.generation));
+  const prekey = hasSession ? null : remote.prekeys?.[0];
+  if(!hasSession && !prekey) throw Error('Recipient needs an available prekey for a new session');
   const messageId = randomId();
   const meta = { chain: 'uni-7', contract: RELAY_UNI7_MAILBOX, sender: state.wallet,
     senderGeneration: state.registration.generation, senderFingerprint: state.descriptor.fingerprint,
     recipient, recipientGeneration: remote.generation, recipientFingerprint: remote.fingerprint, messageId };
   await state.outbox.begin({ id: messageId, recipient, generation: remote.generation });
-  await state.archive.begin(messageId, 'out', meta, text);
+  const archiveId=await archiveIdentity(meta);
+  await state.archive.begin(archiveId, 'out', meta, text);
   const ciphertext = await state.crypto.transaction(async ctx => {
     if (prekey) await ctx.proteusSessionFromPrekey(recipient, fromBase64(prekey.bundle));
     if (await ctx.proteusFingerprintRemote(recipient) !== remote.fingerprint)
@@ -172,37 +176,62 @@ async function testSend() {
   const sent = await transport.sendReady({ messageId, recipient, generation: remote.generation,
     deviceId: remote.device_id, fingerprint: remote.fingerprint,
     ...(prekey ? { initialPrekeyId: prekey.id, initialPrekeyBundle: fromBase64(prekey.bundle) } : {}) });
-  await state.archive.commit(messageId, sent.sequence);
+  await state.archive.commit(archiveId, sent.sequence);
   $('message').value = '';
   renderHistory(await state.archive.readable());
   notice('ENCRYPTED UNI-7 MESSAGE CONFIRMED · #' + sent.sequence);
 }
+function quiesceRatchet() {
+  state.crypto?.uniffiDestroy(); state.db?.uniffiDestroy();
+  state.crypto=null; state.db=null;
+}
+async function reopenRatchet() {
+  state.db=await wire.Database.open(state.path,state.key);
+  state.crypto=wire.CoreCrypto.new(state.db);
+  await state.crypto.transaction(ctx=>ctx.proteusInit());
+}
 async function receive() {
   await assertLocal();
-  const history = await state.archive.readable();
-  const after = Math.max(0, ...history.filter(row => row.direction === 'in').map(row => row.sequence));
-  const rows = await adapter.inbox(after || null);
-  let count = 0;
-  for (const row of rows) {
-    if (!/^[0-9a-f]{64}$/.test(row.message_id) || row.recipient !== state.wallet ||
-        row.recipient_generation !== state.registration.generation || !address(row.sender))
-      throw Error('Invalid public message envelope');
-    const sender = await adapter.device(row.sender);
-    if (!sender?.active || sender.generation !== row.sender_generation)
-      throw Error('Historical sender identity unavailable; refusing decryption');
-    const meta = { chain: 'uni-7', contract: RELAY_UNI7_MAILBOX, sender: row.sender,
-      senderGeneration: row.sender_generation, senderFingerprint: sender.fingerprint,
-      recipient: state.wallet, recipientGeneration: state.registration.generation,
-      recipientFingerprint: state.descriptor.fingerprint, messageId: row.message_id };
-    await state.archive.reserve(row.message_id);
-    const plain = await state.crypto.transaction(ctx => ctx.proteusDecryptSafe(row.sender, fromBase64(row.ciphertext)));
-    const remoteFingerprint = await state.crypto.transaction(ctx => ctx.proteusFingerprintRemote(row.sender));
-    const text = openEnvelope(plain, meta, remoteFingerprint);
-    await state.archive.complete(row.message_id, meta, text, row.sequence);
+  const after=await state.archive.cursor();
+  const rows=await adapter.inbox(after || null);
+  let count=0, quarantined=0, previous=after;
+  for(const row of rows) {
+    if(!Number.isSafeInteger(row.sequence) || row.sequence<=previous || !/^[0-9a-f]{64}$/.test(row.message_id) || row.recipient!==state.wallet ||
+       row.recipient_generation!==state.registration.generation || !address(row.sender)) throw Error('Invalid public message envelope');
+    previous=row.sequence;
+    const sender=await adapter.device(row.sender);
+    // Historical identity resolution is still a gate: never guess a fingerprint.
+    if(!sender?.active || sender.generation!==row.sender_generation) throw Error('Historical sender identity unavailable; refusing decryption');
+    const meta={chain:'uni-7',contract:RELAY_UNI7_MAILBOX,sender:row.sender,
+      senderGeneration:row.sender_generation,senderFingerprint:sender.fingerprint,
+      recipient:state.wallet,recipientGeneration:state.registration.generation,
+      recipientFingerprint:state.descriptor.fingerprint,messageId:row.message_id};
+    const id=await archiveIdentity(meta);
+    quiesceRatchet();
+    const blocks=await captureRatchet(state.path);
+    await state.archive.reserve(id,meta,row.sequence,blocks);
+    await reopenRatchet();
+    let text;
+    try {
+      text=await state.crypto.transaction(async ctx=>{
+        const plain=await ctx.proteusDecryptSafe(row.sender,fromBase64(row.ciphertext));
+        const fingerprint=await ctx.proteusFingerprintRemote(row.sender);
+        return openEnvelope(plain,meta,fingerprint); // Authenticate inside crypto transaction.
+      });
+    } catch {
+      quiesceRatchet();
+      await state.archive.rollback(id,blocks=>restoreRatchet(state.path,blocks),true);
+      await reopenRatchet();
+      quarantined++; continue;
+    }
+    // Storage failures keep the checkpoint pending and fail closed. Unlock
+    // restores pre-receive state and retries, never silently advances ratchet.
+    await state.archive.complete(id,meta,text,row.sequence);
     count++;
   }
   renderHistory(await state.archive.readable());
-  notice(count ? count + ' ENCRYPTED MESSAGE(S) DECRYPTED & ARCHIVED.' : 'NO NEW MESSAGES.');
+  notice((count ? count+' ENCRYPTED MESSAGE(S) DECRYPTED & ARCHIVED.' : 'NO NEW MESSAGES.')+
+    (quarantined ? ' '+quarantined+' INVALID MESSAGE(S) QUARANTINED.' : ''));
 }
 $('connect').onclick = () => run(async () => {
   await closeLocal();
@@ -233,5 +262,5 @@ $('register').onclick = () => run(async () => {
 $('send').onclick = () => run(testSend);
 $('receive').onclick = () => run(receive);
 window.addEventListener('keplr_keystorechange', () => { state.wallet = null; closeLocal().then(() => notice('KEPLR ACCOUNT CHANGED · CONNECT AGAIN.')); });
-window.addEventListener('pagehide', () => { state.crypto?.uniffiDestroy(); state.db?.uniffiDestroy(); state.vault?.close(); state.archive?.close(); state.outbox?.close(); });
+window.addEventListener('pagehide', () => { state.crypto?.uniffiDestroy(); state.db?.uniffiDestroy(); state.key?.uniffiDestroy(); state.vault?.close(); state.archive?.close(); state.outbox?.close(); });
 controls();
