@@ -71,7 +71,14 @@ workspace/security test pass. Responsive People screenshots checked at 320, 768
 and 1440px. Full source reads completed: main DAO 2,088 stakers at block
 42,336,088; Operations 5 weighted members at block 42,335,628; Juno 38,372
 bonded delegator addresses across 25 validators at block 42,336,088.
-GitHub CI/deployment verification is pending.
+Released in [PR #121](https://github.com/cristianoneta/neta-dao/pull/121),
+merge `31375d480c6bafdd8a1ee345a09e0d90eb09b710`.
+
+- Contract/frontend CI [37152425955](https://github.com/cristianoneta/neta-dao/actions/runs/37152425955): success.
+- Full browser/security CI [37152426037](https://github.com/cristianoneta/neta-dao/actions/runs/37152426037): success.
+- First automatic collector workflow [37152552105](https://github.com/cristianoneta/neta-dao/actions/runs/37152552105): all three adapters completed, latest snapshots at block 42,336,242, counts unchanged.
+- Pages [37152576989](https://github.com/cristianoneta/neta-dao/actions/runs/37152576989): success, deploying `9375480` including subsequent Treasury and membership bot updates.
+- Live UI checks: People navigation and all three membership counts/weights verified, including the 38,372-address Juno list. Contributors is visibly planned, with no connected records.
 
 The legacy contract REST endpoint caps pages at 100. The collector scans disjoint
 Bech32 address-prefix ranges with five workers at the same fixed height, then
