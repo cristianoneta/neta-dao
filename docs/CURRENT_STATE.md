@@ -11,8 +11,12 @@ Security integration through #103, documentation #104 and Treasury bot commit
 
 Design decision 2026-10-03: [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) records the selected
 graphite/mint theme, small voxel module illustrations and the assembly-plaza Home
-hero. It applies to all current/future DAO pages. This documentation-only checkpoint
-does not modify the deployed styling, application behavior or security gates.
+hero. It applies to all current/future DAO pages. The shared-theme/Home rollout loads `neta-ui.css` on the workspace and auxiliary
+RELAY pages, replaces the legacy terminal base stylesheet and uses optimized WebP
+assembly/module artwork. Module CSS colors refer to shared semantic tokens. Existing
+feature copy remains present; concept sections gain local illustrative-data notices.
+Routing adds programmatic current-page state and respects reduced motion. Wallet,
+crypto and data logic are unchanged. Live per-page verification remains pending.
 
 This repo owns `dao.netareborn.com`. `cristianoneta/neta-website` owns the main
 site and the legacy Operations governance contract source. No duplicated DAO

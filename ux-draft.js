@@ -12,7 +12,11 @@
   }
   function selectView(selected,{updateHash=true,scroll=true}={}){
     const {view,panel}=route(selected);
-    buttons.forEach(item=>item.classList.toggle("active",item.dataset.workspaceView===view));
+    buttons.forEach(item=>{
+      const active=item.dataset.workspaceView===view;
+      item.classList.toggle("active",active);
+      item.setAttribute("aria-current",active?"page":"false");
+    });
     Object.entries(views).forEach(([name,element])=>element.hidden=name!==view);
     relayPanels.forEach(element=>element.hidden=view!=="relay"||element.dataset.relayPanelView!==panel);
     relayButtons.forEach(button=>{
@@ -24,7 +28,7 @@
     const target=view==="relay"?(panel==="inbox"?"#relay":`#relay/${panel}`):`#${view}`;
     try{localStorage.setItem(VIEW_STORAGE_KEY,target.slice(1))}catch{}
     if(updateHash&&window.location.hash!==target)history.replaceState(null,"",target);
-    if(scroll)window.scrollTo({top:0,behavior:"smooth"});
+    if(scroll)window.scrollTo({top:0,behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});
   }
   buttons.forEach(button=>button.addEventListener("click",()=>selectView(button.dataset.workspaceView)));
   relayButtons.forEach(button=>button.addEventListener("click",()=>selectView("relay/"+button.dataset.relayPanel)));
