@@ -17,7 +17,7 @@
     {
       "amount": "11.5",
       "base_denom": "uatom",
-      "change_24h": -4.239075752926309,
+      "change_24h": -4.346099733333263,
       "custody_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "ibc_path": "transfer/channel-1/uatom",
       "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
@@ -31,7 +31,7 @@
     {
       "amount": "761.080781",
       "base_denom": "ujuno",
-      "change_24h": -5.020284902682046,
+      "change_24h": -4.861764986792619,
       "custody_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "ibc_path": null,
       "key": "juno:native:ujuno",
@@ -39,8 +39,8 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00868166",
-      "usd_value": "6.60744457317646"
+      "usd_price": "0.00868177",
+      "usd_value": "6.60752829206237"
     },
     {
       "amount": "817.744263",
@@ -115,7 +115,7 @@
     {
       "amount": "3.200008",
       "base_denom": "uosmo",
-      "change_24h": -6.650615424757148,
+      "change_24h": -6.495330736951149,
       "custody_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
       "ibc_path": null,
       "key": "osmosis:native:uosmo",
@@ -123,18 +123,18 @@
       "source_chain": "osmosis",
       "symbol": "OSMO",
       "type": "token",
-      "usd_price": "0.03464881",
-      "usd_value": "0.11087646919048"
+      "usd_price": "0.03464384",
+      "usd_value": "0.11086056515072"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-10-03T08:46:52.175490Z",
-  "height": 42320110,
+  "generated_at": "2026-10-03T09:13:56.737747Z",
+  "height": 42320717,
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "25.92332104236694",
+  "total_usd": "25.92338885721309",
   "treasury_accounts": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
