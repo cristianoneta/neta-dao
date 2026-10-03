@@ -17,7 +17,7 @@
     {
       "amount": "11.5",
       "base_denom": "uatom",
-      "change_24h": -3.884215492567937,
+      "change_24h": -4.239075752926309,
       "custody_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "ibc_path": "transfer/channel-1/uatom",
       "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
@@ -31,7 +31,7 @@
     {
       "amount": "761.080781",
       "base_denom": "ujuno",
-      "change_24h": -4.173356077580873,
+      "change_24h": -5.020284902682046,
       "custody_address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
       "ibc_path": null,
       "key": "juno:native:ujuno",
@@ -39,8 +39,8 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00873187",
-      "usd_value": "6.64565843919047"
+      "usd_price": "0.00868166",
+      "usd_value": "6.60744457317646"
     },
     {
       "amount": "817.744263",
@@ -115,7 +115,7 @@
     {
       "amount": "3.200008",
       "base_denom": "uosmo",
-      "change_24h": -5.918414080376843,
+      "change_24h": -6.650615424757148,
       "custody_address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
       "ibc_path": null,
       "key": "osmosis:native:uosmo",
@@ -123,18 +123,18 @@
       "source_chain": "osmosis",
       "symbol": "OSMO",
       "type": "token",
-      "usd_price": "0.0348254",
-      "usd_value": "0.1114415586032"
+      "usd_price": "0.03464881",
+      "usd_value": "0.11087646919048"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-10-03T08:16:04.974949Z",
-  "height": 42319418,
+  "generated_at": "2026-10-03T08:46:52.175490Z",
+  "height": 42320110,
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "25.96209999779367",
+  "total_usd": "25.92332104236694",
   "treasury_accounts": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
