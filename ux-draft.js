@@ -29,7 +29,10 @@
     document.body.dataset.relayPanel=panel;
     const target=view==="relay"?(panel==="inbox"?"#relay":`#relay/${panel}`):`#${view}`;
     try{localStorage.setItem(VIEW_STORAGE_KEY,target.slice(1))}catch{}
-    if(updateHash&&window.location.hash!==target)history[push?"pushState":"replaceState"](null,"",target);
+    if(updateHash&&window.location.hash!==target){
+      if(push)history.pushState(null,"",target);
+      else history.replaceState(null,"",target);
+    }
     window.dispatchEvent(new CustomEvent("neta:relay-panel",{detail:{panel,focus:scroll&&view==="relay"}}));
     if(scroll)window.scrollTo({top:0,behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});
   }

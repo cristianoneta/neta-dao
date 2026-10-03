@@ -102,6 +102,7 @@ try{
  assert.equal(await opsFollow.getAttribute('aria-pressed'),'true');
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('neta-relay-favorites:v1')).includes('neta-operations')),true);
  await page.goto(origin+'/index.html#relay/following');
+ await page.waitForURL(origin+'/index.html#relay/directory');
  assert.equal(new URL(page.url()).hash,'#relay/directory');
  assert.equal(await page.locator('.relay-hero').isVisible(),false);
  assert.equal(await page.getByText('Explore the preview',{exact:true}).count(),0);
