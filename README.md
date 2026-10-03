@@ -12,7 +12,7 @@ state before signing. This documentation review changes no application behavior.
 For UI work and new pages, follow [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
 The 2026-10-03 selected direction is graphite/mint with restrained voxel accents
 and an assembly-plaza Home illustration. The shared theme and Home implementation
-are in rollout; see CURRENT_STATE for visual/deployment verification.
+are live via PR #108; see CURRENT_STATE for evidence and remaining per-page review.
 
 ## What is connected
 
