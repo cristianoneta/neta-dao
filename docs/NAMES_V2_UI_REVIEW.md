@@ -50,5 +50,32 @@ brand direction. The approved graphite/mint workspace design remains authoritati
 - Separate CSS and JS are same-origin assets; CSP disallows network connections.
   The preview never calls wallets, broadcasts, or writes browser persistence.
 - `design/names-v2-review.html` provides 320/390/768/1440 px frames for visual QA.
-- Browser layout, rendered contrast, PR checks and deployment results will be
-  recorded after inspection. No full accessibility certification is claimed.
+- PR #112 final head `9bb5c10dbcc7694e80a5f1417c35d6680f56da3d` passed
+  Contract/frontend run 158 (`37137001003`) and RELAY browser run 47
+  (`37137000988`). The old text assertion was updated to the agreed planned
+  tariff; all registry activation and payment-identity guards remain asserted.
+- Merged as `5c9a7a85552710b1280a6be09cfa3a23082e0663`. Pages build/deploy
+  `37137364945` succeeded. The public Names route visibly links to the preview.
+- Public index.html, names.css and the three preview HTML/CSS/JS files matched
+  the local published source byte-for-byte by SHA-256 on 2026-10-03.
+- Supported cloud-browser inspection confirmed readable light headings and names.
+  DAO heading computed foreground is rgb(242,244,247). Palette contrast: primary
+  text on page 17.01:1; secondary text on raised surface 6.57:1; mint button text
+  12.30:1; warning text 8.49:1. These are targeted checks, not a whole-page audit.
+- Checked fixed 320/390/768/1440 px frames: document scrollWidth equaled clientWidth
+  at 303/373/751/1438 px respectively (frame borders/scrollbars reduce CSS content
+  width). Inspected directory, mobile DAO profile, tablet edit form and desktop
+  proposal comparison. No document-level horizontal overflow in those views.
+- Browser interactions: DAO profile selection/back navigation; invalid two-letter
+  name blocked; demo quote, reservation, registration and RELAY confirmation;
+  DAO profile change produces the before/after local draft. Keyboard Tab reached
+  Save preview with the blue solid focus outline.
+- Native 200% browser zoom could not be confirmed through the browser shortcuts;
+  do not claim it passed. Complete assistive-technology/all-state accessibility
+  review remains future work. No live wallet/contract flow was exercised.
+
+Published preview: https://dao.netareborn.com/docs/design/names-v2-prototype.html
+
+The preview is available from RELAY → Names & Contacts → Explore the preview.
+It remains a simulation. Registration, quote service, profile contracts and system
+notification delivery are not activated by this publication.
