@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://juno.test.rpc.nodeshub.online https://juno.test.api.nodeshub.online https://juno.rpc.t.stavr.tech https://juno.api.t.stavr.tech https://juno-api.polkachu.com https://juno-api.lavenderfive.com https://juno-rpc.polkachu.com https://rpc-juno.whispernode.com; img-src 'self' data:; font-src 'self'; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>NETA Governance</title>
   <link rel="stylesheet" href="neta-governance.css?v=20261003-1"><link rel="stylesheet" href="governance-overrides.css?v=20261003-1"><link rel="stylesheet" href="relay.css?v=20261003-3"><link rel="stylesheet" href="names.css?v=20261003-6">
-  <link rel="stylesheet" href="neta-ui.css?v=20261003-2">
+  <link rel="stylesheet" href="neta-ui.css?v=20261003-3">
 </head>
 <body>
 <header class="gov-header"><a href="index.html" class="gov-brand">NETA REBORN</a><div class="governance-selectors"><div class="chain-picker"><label for="chain-select">SELECT CHAIN</label><div class="chain-select-wrap"><select id="chain-select" aria-label="Select governance chain"><option value="juno">Juno</option></select><span aria-hidden="true">⌄</span></div></div><div class="dao-picker"><label for="dao-search">SELECT DAO</label><div class="dao-combobox"><input id="dao-search" role="combobox" aria-expanded="false" aria-controls="dao-options" aria-autocomplete="list" autocomplete="off" value="NETA Operations DAO"><span aria-hidden="true">⌄</span></div><div id="dao-options" class="dao-options" role="listbox" hidden></div></div></div><div class="relay-global-scope">YOUR RELAY</div><div class="gov-controls"><span class="testnet-pill">UNI-7 TESTNET</span><button id="gov-connect" type="button">Connect Keplr</button></div></header>
@@ -20,7 +20,7 @@
     <section class="home-flow" aria-label="Long-term workspace vision"><span>COMMUNITY</span><i>→</i><span>PROPOSAL</span><i>→</i><span>ON-CHAIN DECISION</span><i>→</i><span>CONTRIBUTOR + DELIVERY</span><i>→</i><span>TREASURY + IMPACT</span></section><p class="home-foundation">OUR LONG-TERM VISION · BUILT ON JUNO · DESIGNED FOR COSMOS DAOS</p>
   </section>
   <section id="governance-view" class="workspace-view" hidden>
-  <section class="gov-intro"><div><span class="eyebrow">NETA DAO · PROPOSAL STUDIO</span><h1>Governance without the interface maze.</h1><p>Draft locally, publish for public review, discuss and revise, then submit the final version on-chain.</p></div><button id="new-draft" type="button">+ NEW DRAFT</button></section>
+  <section class="gov-intro page-hero"><div><span class="eyebrow">NETA DAO · PROPOSAL STUDIO</span><h1>Governance without the interface maze.</h1><p>Draft locally, publish for public review, discuss and revise, then submit the final version on-chain.</p></div><div class="page-hero-aside"><span class="module-art module-art--proposals page-hero-art" aria-hidden="true"></span><button id="new-draft" type="button">+ NEW DRAFT</button></div></section>
   <nav class="workflow" aria-label="Proposal workflow"><span data-stage="1">01 NEW DRAFT</span><span data-stage="2">02 SAVE LOCALLY</span><span data-stage="3">03 PUBLISH FOR REVIEW</span><span data-stage="4">04 DISCUSS + REVISE</span><span data-stage="5">05 FINALIZE</span><span data-stage="6">06 VOTING</span></nav>
   <p id="gov-status" class="gov-status" role="status">READING PUBLIC PROPOSALS…</p>
   <div class="gov-layout">
@@ -46,7 +46,7 @@
   </section>
 
   <section id="delivery-view" class="workspace-view concept-page" hidden>
-    <header class="concept-hero"><div><span class="eyebrow">APPROVED PROPOSALS · DELIVERY</span><h1>Turn decisions into accountable work.</h1><p>Every approved funding proposal becomes a mandate with an owner, budget, milestones, evidence and a visible payment trail.</p></div><div class="concept-badge">UX DRAFT<br><small>NOT LIVE DATA</small></div></header><p class="concept-notice">Concept preview · example data. Tracking, acceptance and payment actions are not active.</p>
+    <header class="concept-hero page-hero"><div><span class="eyebrow">APPROVED PROPOSALS · DELIVERY</span><h1>Turn decisions into accountable work.</h1><p>Every approved funding proposal becomes a mandate with an owner, budget, milestones, evidence and a visible payment trail.</p></div><div class="page-hero-aside"><span class="module-art module-art--delivery page-hero-art" aria-hidden="true"></span><div class="concept-badge">UX DRAFT<br><small>NOT LIVE DATA</small></div></div></header><p class="concept-notice">Concept preview · example data. Tracking, acceptance and payment actions are not active.</p>
     <div class="concept-grid delivery-summary"><article><small>ACTIVE MANDATES</small><strong>3</strong><span>2 on track · 1 needs review</span></article><article><small>APPROVED BUDGET</small><strong>$18,400</strong><span>Across all active mandates</span></article><article><small>PAID TO DATE</small><strong>$7,100</strong><span>38.6% of approved budget</span></article><article class="attention"><small>NEXT PAYMENT</small><strong>$2,500</strong><span>Milestone due 28 Sep</span></article></div>
     <div class="delivery-layout"><aside class="mandate-list"><header><span>MANDATES</span><strong>3 ACTIVE</strong></header><button type="button" class="active"><small>ON TRACK · PROP A42</small><strong>NETA liquidity analytics</strong><span>$5,000 · 2/4 milestones</span></button><button type="button"><small>REVIEW DUE · PROP A39</small><strong>Community growth program</strong><span>$9,600 · monthly budget</span></button><button type="button"><small>NOT STARTED · PROP A44</small><strong>IBC monitoring integration</strong><span>$3,800 · 0/3 milestones</span></button></aside>
       <article class="mandate-detail"><header class="mandate-title"><div><span>FUNDING MANDATE · PROP A42</span><h2>NETA liquidity analytics</h2></div><span class="status-chip on-track">ON TRACK</span></header><div class="mandate-meta"><div><small>OWNER</small><strong>juno1z3…5et57</strong></div><div><small>PAYMENT MODEL</small><strong>MILESTONES</strong></div><div><small>PERIOD</small><strong>01 SEP – 15 NOV</strong></div><div><small>NEXT REVIEW</small><strong>28 SEP</strong></div></div>
@@ -57,7 +57,7 @@
   </section>
 
   <section id="contributors-view" class="workspace-view concept-page" hidden>
-    <header class="concept-hero"><div><span class="eyebrow">PEOPLE · TEAMS · MANDATES</span><h1>Know who owns the work.</h1><p>Contributors become visible through responsibilities, active mandates, compensation and delivered outcomes — not through titles alone.</p></div><div class="concept-badge">UX DRAFT<br><small>SAMPLE PROFILES</small></div></header><p class="concept-notice">Concept preview · example data. Tracking, acceptance and payment actions are not active.</p>
+    <header class="concept-hero page-hero"><div><span class="eyebrow">PEOPLE · TEAMS · MANDATES</span><h1>Know who owns the work.</h1><p>Contributors become visible through responsibilities, active mandates, compensation and delivered outcomes — not through titles alone.</p></div><div class="page-hero-aside"><span class="module-art module-art--contributors page-hero-art" aria-hidden="true"></span><div class="concept-badge">UX DRAFT<br><small>SAMPLE PROFILES</small></div></div></header><p class="concept-notice">Concept preview · example data. Tracking, acceptance and payment actions are not active.</p>
     <div class="concept-grid contributor-summary"><article><small>ACTIVE CONTRIBUTORS</small><strong>7</strong><span>5 individuals · 2 teams</span></article><article><small>ACTIVE MANDATES</small><strong>5</strong><span>3 proposal-funded · 2 recurring</span></article><article><small>MONTHLY COMPENSATION</small><strong>$6,800</strong><span>Fixed + expected milestone releases</span></article><article class="attention"><small>CAPACITY SIGNAL</small><strong>1 AT RISK</strong><span>One contributor owns 3 critical paths</span></article></div>
     <div class="contributor-controls"><div><button type="button" class="active">ACTIVE</button><button type="button">ALL</button><button type="button">TEAMS</button></div><label><span>SEARCH</span><input type="search" placeholder="Name, role or wallet"></label><span>LAST ACTIVITY · 20 SEP 2026</span></div>
     <div class="contributors-layout">
@@ -77,7 +77,7 @@
   </section>
 
   <section id="treasury-view" class="workspace-view concept-page" hidden>
-    <header class="concept-hero"><div><span class="eyebrow">NETA OPERATIONS DAO · TREASURY</span><h1>Know what the DAO owns — and what it already owes.</h1><p>Current assets, historic cashflows and future commitments in one planning view, tied back to governance decisions.</p></div><div class="concept-badge">LIVE ASSETS<br><small>PLANNING DRAFT</small></div></header>
+    <header class="concept-hero page-hero"><div><span class="eyebrow">NETA OPERATIONS DAO · TREASURY</span><h1>Know what the DAO owns — and what it already owes.</h1><p>Current assets, historic cashflows and future commitments in one planning view, tied back to governance decisions.</p></div><div class="page-hero-aside"><span class="module-art module-art--treasury page-hero-art" aria-hidden="true"></span><div class="concept-badge">LIVE ASSETS<br><small>PLANNING DRAFT</small></div></div></header>
     <div class="treasury-controls"><div><button type="button" class="active" disabled>USD</button><button type="button" disabled>NETA</button></div><span id="treasury-updated">LOADING VERIFIED SNAPSHOT…</span></div>
     <div class="concept-grid treasury-kpis"><article><small id="treasury-total-label">CURRENT TREASURY VALUE</small><strong id="treasury-total">—</strong><span id="treasury-live-status">MAINNET DATA LOADING</span></article><article><small id="treasury-period-label">30D CHANGE</small><strong id="treasury-period-change">—</strong><span id="treasury-period-percent">AWAITING DAILY HISTORY</span></article><article><small>ESTIMATED HOLDINGS FLOW</small><strong id="treasury-net-flow">—</strong><span>HOLDING CHANGES · NOT A TRANSACTION LEDGER</span></article><article><small>MARKET EFFECT</small><strong id="treasury-market-effect">—</strong><span>PRICE MOVEMENT ONLY</span></article></div>
     <section class="treasury-card treasury-history-card">
@@ -96,7 +96,7 @@
   </section>
 
   <section id="relay-view" class="workspace-view concept-page relay-page" hidden>
-    <header class="concept-hero relay-hero"><div><span class="eyebrow">RELAY · PEOPLE, DAOS &amp; IDENTITY</span><h1>Your conversations. Your connections.</h1><p>Follow DAO updates, find your contacts and manage your .neta identity in one place.</p></div></header>
+    <header class="concept-hero relay-hero page-hero"><div><span class="eyebrow">RELAY · PEOPLE, DAOS &amp; IDENTITY</span><h1>Your conversations. Your connections.</h1><p>Follow DAO updates, find your contacts and manage your .neta identity in one place.</p></div><div class="page-hero-aside"><span class="page-hero-art page-hero-art--relay" aria-hidden="true"></span></div></header>
     <nav class="relay-subnav" aria-label="RELAY sections"><button type="button" data-relay-panel="inbox" aria-pressed="true">Inbox <span id="relay-subnav-unread" hidden></span></button><button type="button" data-relay-panel="directory" aria-pressed="false">Directory</button><button type="button" data-relay-panel="contacts" aria-pressed="false">Contacts</button><button type="button" data-relay-panel="profile" aria-pressed="false">My profile</button><button type="button" data-relay-panel="register" aria-pressed="false">.neta name</button></nav>
     <div class="relay-layout" data-relay-panel-view="inbox">
 
@@ -139,5 +139,6 @@
 </div>
 <script src="assets/socials-testnet-client.js?v=6"></script><script src="neta-governance.js?v=27"></script><script src="ux-draft.js?v=12"></script><script src="treasury.js?v=12"></script><script src="names.js?v=2"></script><script src="names-workspace.js?v=2"></script><script src="relay.js?v=8"></script><script src="relay-mailbox-status.js?v=1"></script>
 </body></html>
+
 
 

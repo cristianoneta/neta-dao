@@ -5,40 +5,22 @@ session. It supersedes the v1 product choices below, not the current deployment
 inventory. See `NETA_NAMES_DESIGN.md`, `CURRENT_STATE.md` and `HANDOFF.md` for the
 still-disabled production registry. No v2 contract or pricing service is deployed.
 
-## This branch
+## Current implementation
 
-`design/names-v2-prototype.html` is an interactive UI prototype with adjacent CSS
-and JavaScript, using the production `neta-ui.css` foundations. The existing Names
-page links to it. Every profile and action is labeled as an example or simulation;
-there are no wallet calls, API requests, actual registrations, payments, published
-proposals or persisted user data. CSP blocks network connections. The Operations
-core address comes from CURRENT_STATE; its identity must be queried before assignment.
+The owner rejected the separate preview mode. PR #114 integrated Names into the
+main application, #115 flattened RELAY navigation, and #116 unified its persistent
+heading and cards. Entry: `index.html#relay/directory`; Contacts, My profile and
+.neta name are direct RELAY sections. The old prototype redirects into this UI.
 
-The revised layout follows a search → profile → action sequence. Profiles open as
-separate views instead of preselecting a DAO. Contacts start empty and support
-add/remove. Heading and emphasized-text colors are explicit to prevent host-style
-inheritance failures. The public entry point now describes the planned USD tariff,
-while the original v1 contract and registry activation guards remain unchanged.
+Directory search, supported DAO details/address copy, browser-local DAO follows
+and the USD fee calculator work. Registration, renewal, transfer, profile writes,
+contact persistence, DAO profile proposals, lifecycle messages and payments remain
+unavailable. The calculator does not check availability or quote NETA. No v2
+contract or quote service is deployed; `names.js` still has `REGISTRY=null`.
+See [the main-page integration](NAMES_MAIN_PAGE_INTEGRATION.md).
 
-Preview flows:
-- Discover example names and a DAO; save a contact.
-- Register 3/4/5+ character names at the proposed annual tariff, with a simulated
-  five-minute quote and commit/completion states; reject reserved/invalid labels.
-- Edit a private profile and the single preferred-chain setting.
-- Extend a simulated registration to a maximum five-year remaining term.
-- Prepare a transfer to the example DAO without changing ownership.
-- Edit DAO profile fields and generate a local proposal draft with before/after
-  values; do not simulate a passed vote or silently apply the draft to the profile.
-- Read simulated registration/renewal/transfer system messages in RELAY.
-- Inspect a future payment route; actual sending is disabled.
-
-Validation: JavaScript syntax and DOM interaction checks passed for search, empty
-states, contact add/remove, invalid/reserved/example-taken names, 3/4/5-character
-prices, registration, renewal, notifications, IBC route preview, transfer request
-and draft/profile isolation. No wallet or storage calls are present. Initial local
-browser launch was blocked in the prior session; publication review now uses the
-supported cloud browser. See `NAMES_V2_UI_REVIEW.md` for current visual/deployment
-results and remaining limitations; do not infer full WCAG certification.
+The previous prototype review is historical evidence, not the current production
+capability inventory. The accepted decisions below remain the implementation target.
 
 ## Accepted product decisions
 
@@ -201,3 +183,4 @@ must concretely choose service hosting/storage and signing-key custody, pin the
 USD reference and quote thresholds, and verify DAO identity/recipient coverage.
 Names v1 signing remains inactive. The site links to the preview and displays the
 planned v2 tariff; contracts, production data and crypto journals are unchanged.
+

@@ -11,10 +11,14 @@ The owner requested progressive publication of the graphite/mint redesign.
 Treasury price coverage and its false history outflow; see the dedicated
 [incident record](docs/TREASURY_VALUATION_FIX_2026-10-03.md) for final release evidence.
 
-Tonight: resume Proposals detail/dialog/keyboard review, then Treasury responsive
-layouts, Delivery/Contributors and RELAY/Names/auxiliary pages. Shared styling is
-already applied, but full per-page QA is not complete. Preserve the approved
-assembly plaza/four voxel accents and consult `docs/DESIGN_SYSTEM.md`.
+Current priority: the owner selected small functional Names slices after integrating
+the UI into RELAY. #114–#116 shipped the integration, direct navigation and stable
+shared heading/cards. Desktop section headers now reuse Home voxel motifs; see
+[maintenance checkpoint](docs/MAINTENANCE_CHECKPOINT_2026-10-03.md).
+Next implement/test v2 label, tariff, term/expiry and quote-interface rules, keeping
+registration and payments disabled until their backing services are verified.
+Consult `docs/NETA_NAMES_V2_PLAN.md` and `docs/DESIGN_SYSTEM.md`.
+Full per-page accessibility review is still incomplete.
 
 The security priorities below remain release blockers, not a messaging release.
 
@@ -35,7 +39,7 @@ The security priorities below remain release blockers, not a messaging release.
 
 Exact runs and deployment hashes: [security continuation](docs/SECURITY_CONTINUATION_2026-10-03.md).
 
-## Next work, in order
+## Messaging release blockers, in order
 
 1. Implement and test generation-aware sessions and consent/prekey replenishment
    against isolated v0.2 fixtures. Cover rotating unapproved senders, depleted
@@ -60,3 +64,4 @@ Mainnet messaging and the main composer SEND remain disabled. Production release
 also needs reviewed mainnet stake/network policy, client/distribution review and
 independent security review. Native Juno submission/voting, Names activation and
 Treasury execution are separate unfinished features.
+

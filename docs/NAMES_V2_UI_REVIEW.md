@@ -1,3 +1,7 @@
+> Historical prototype review. The preview was superseded by main-page integration
+> in #114, flat RELAY navigation in #115 and the shared shell in #116. Read
+> [NAMES_MAIN_PAGE_INTEGRATION.md](NAMES_MAIN_PAGE_INTEGRATION.md) for current behavior.
+
 # Names v2 UI review — 2026-10-03
 
 The owner reported black headings/names in the embedded dark preview and requested
@@ -79,3 +83,4 @@ Published preview: https://dao.netareborn.com/docs/design/names-v2-prototype.htm
 The preview is available from RELAY → Names & Contacts → Explore the preview.
 It remains a simulation. Registration, quote service, profile contracts and system
 notification delivery are not activated by this publication.
+

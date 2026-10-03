@@ -32,7 +32,6 @@ on:
       - "*.css"
       - "assets/design/**"
       - "docs/design/responsive-preview.html"
-      - "ux-draft.js"
       - "docs/RELAY_SECURITY_ARCHITECTURE.md"
       - "assets/neta_proposal_workshop.sha256"
       - "rust-toolchain.toml"
@@ -69,27 +68,40 @@ on:
       - "*.css"
       - "assets/design/**"
       - "docs/design/responsive-preview.html"
-      - "ux-draft.js"
       - "docs/RELAY_SECURITY_ARCHITECTURE.md"
       - "assets/neta_proposal_workshop.sha256"
       - "rust-toolchain.toml"
+      - ".github/workflows/contract-ci.yml"
 
 permissions:
   contents: read
 
+concurrency:
+  group: contract-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Install pinned Rust toolchain
         run: rustup show
+      - name: Cache Rust dependencies and build outputs
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            contracts/*/target
+          key: rust-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', 'contracts/**/Cargo.lock') }}
       - name: Format
         run: |
           cargo fmt --manifest-path contracts/neta-proposal-workshop/Cargo.toml --check
           cargo fmt --manifest-path contracts/workshop-access-mock/Cargo.toml --check
-          cargo fmt --manifest-path contracts/neta-names/Cargo.toml
-          cargo fmt --manifest-path contracts/neta-relay-mailbox/Cargo.toml
+          cargo fmt --manifest-path contracts/neta-names/Cargo.toml --check
+          cargo fmt --manifest-path contracts/neta-relay-mailbox/Cargo.toml --check
       - name: Test
         run: |
           cargo test --locked --manifest-path contracts/neta-proposal-workshop/Cargo.toml
@@ -108,16 +120,27 @@ jobs:
           node --check relay-testnet-setup.js
           node --check relay-uni7-readiness.js
           python -m unittest tests/test_treasury_events.py tests/test_treasury_history.py
-      - name: Dependency audit
+      - name: Cache pinned audit binary
+        id: audit-cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: .ci-tools/cargo-audit
+          key: cargo-audit-${{ runner.os }}-${{ runner.arch }}-0.22.1-rust-1.85.1
+      - name: Install pinned audit binary
+        if: steps.audit-cache.outputs.cache-hit != 'true'
         run: |
           rustup toolchain install 1.85.1 --profile minimal
-          cargo +1.85.1 install cargo-audit --version 0.22.1 --locked
+          cargo +1.85.1 install cargo-audit --version 0.22.1 --locked --root .ci-tools/cargo-audit
+      - name: Dependency audit
+        run: |
+          test "$(.ci-tools/cargo-audit/bin/cargo-audit --version)" = "cargo-audit 0.22.1"
           # CosmWasm 1.5.11 pulls curve25519-dalek only for host-side crypto.
           # The affected subtraction is not compiled into these Wasm artifacts.
           # Keep this explicit compatibility exception until Juno supports the
           # CosmWasm line that upgrades curve25519-dalek.
-          cargo +1.85.1 audit --file contracts/neta-proposal-workshop/Cargo.lock --ignore RUSTSEC-2024-0344
-          cargo +1.85.1 audit --file contracts/workshop-access-mock/Cargo.lock --ignore RUSTSEC-2024-0344
-          cargo +1.85.1 audit --file contracts/neta-names/Cargo.lock --ignore RUSTSEC-2024-0344
-          cargo +1.85.1 audit --file contracts/neta-relay-mailbox/Cargo.lock --ignore RUSTSEC-2024-0344
+          .ci-tools/cargo-audit/bin/cargo-audit audit --file contracts/neta-proposal-workshop/Cargo.lock --ignore RUSTSEC-2024-0344
+          .ci-tools/cargo-audit/bin/cargo-audit audit --file contracts/workshop-access-mock/Cargo.lock --ignore RUSTSEC-2024-0344
+          .ci-tools/cargo-audit/bin/cargo-audit audit --file contracts/neta-names/Cargo.lock --ignore RUSTSEC-2024-0344
+          .ci-tools/cargo-audit/bin/cargo-audit audit --file contracts/neta-relay-mailbox/Cargo.lock --ignore RUSTSEC-2024-0344
+
 

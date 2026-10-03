@@ -28,7 +28,7 @@ HANDOFF for release evidence and the evening continuation.
 | RELAY Inbox | Local notifications from Operations and native Juno mainnet proposals | No UNI-7 review polling, push or cross-device sync |
 | RELAY Composer | Temporary preview and read-only UNI-7 mailbox identity check | Main application cannot send or save plaintext drafts |
 | RELAY encrypted lab | Separate UNI-7 device registration, ciphertext send/receive and encrypted local history | Mocked two-profile test passed; real two-wallet E2E still unrecorded |
-| Names & Contacts | UI and prepared commit/reveal/renewal handlers | `names.js` has `REGISTRY=null`; registry writes are disabled |
+| Names in RELAY | Directory search, DAO details/copy/follows, USD fee calculator | v2 registry, live quotes, profile/contacts persistence and payments are not connected; `REGISTRY=null` |
 | Delivery / Contributors | Visual concepts and structured proposal deliverables | No authoritative contributor records, milestone acceptance or payment release |
 
 RELAY directly exposes Inbox, Directory, Contacts, My profile and .neta name.
@@ -65,7 +65,7 @@ remain disabled. The shipped mailbox is hardcoded to UNI-7 and has no mainnet
 - [Implementation inventory and remaining work](docs/RELAY_IMPLEMENTATION_PLAN.md)
 - [Security requirements](docs/RELAY_SECURITY_ARCHITECTURE.md)
 - [Agreed recovery direction](docs/RELAY_RECOVERY_DECISION.md)
-- [Names design and activation](docs/NETA_NAMES_DESIGN.md)
+- [Names implementation boundary](docs/NETA_NAMES_DESIGN.md)
 
 ## Local verification
 
@@ -136,3 +136,6 @@ off-device recovery, historical sender resolution, consent/refill integration an
 the full rotation/exhaustion/restore matrix remain release blockers. Never discard
 pending ratchet/archive/outbox or transaction-journal state to unblock the UI.
 
+
+
+Latest repository/CI/data review: [maintenance checkpoint](docs/MAINTENANCE_CHECKPOINT_2026-10-03.md).
