@@ -16,7 +16,19 @@ RELAY pages, replaces the legacy terminal base stylesheet and uses optimized Web
 assembly/module artwork. Module CSS colors refer to shared semantic tokens. Existing
 feature copy remains present; concept sections gain local illustrative-data notices.
 Routing adds programmatic current-page state and respects reduced motion. Wallet,
-crypto and data logic are unchanged. Live per-page verification remains pending.
+crypto and data logic are unchanged.
+
+Home/shared foundations shipped in PR #108, merge `93638a8d13c838659ceec78aec2f0e2162a01709`.
+Before merge, Contract/frontend run 151 and RELAY browser run 43 succeeded.
+Pages run `37116415492` succeeded; live `index.html`, `neta-ui.css`, `ux-draft.js`
+and both WebP assets matched the integrated source byte-for-byte on 2026-10-03.
+Home hero, module cards and status sections were visually inspected at desktop width.
+Fixed 320/768 px review frames had no document-level horizontal overflow (content
+widths 303/751 px with classic scrollbars). The review exposed joined words in the
+mobile heading and a cramped chain selector; this follow-up supplies whitespace
+and increases the selector minimum width. Full per-page interaction/accessibility
+review is not complete. Next: Proposals, then Treasury, Delivery/Contributors and
+RELAY/Names. Mainnet messaging remains disabled.
 
 This repo owns `dao.netareborn.com`. `cristianoneta/neta-website` owns the main
 site and the legacy Operations governance contract source. No duplicated DAO

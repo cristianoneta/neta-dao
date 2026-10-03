@@ -27,11 +27,14 @@ Baseline review: **2026-10-02**; security integration rechecked **2026-10-03**. 
 The owner selected the modern graphite/mint design and voxel assembly plaza on
 2026-10-03. The canonical [design system](docs/DESIGN_SYSTEM.md) includes reference
 images, tokens, shared components, per-page rules and responsive acceptance criteria.
-The shared theme and Home implementation are in rollout. `neta-ui.css` owns
-foundations/components; existing module colors now refer to its tokens. Verify Home
-first, then Proposals, Treasury, Delivery/Contributors and RELAY/Names on the actual
+The shared theme and Home implementation shipped in PR #108; Pages and live asset
+verification succeeded (see CURRENT_STATE). `neta-ui.css` owns
+foundations/components; existing module colors now refer to its tokens. Home desktop
+and 320/768 px layouts were inspected; a small mobile follow-up fixes heading word
+separation and chain-selector width. Continue with Proposals, Treasury,
+Delivery/Contributors and RELAY/Names on the actual
 deployment, including the fixed-width review at `docs/design/responsive-preview.html`.
-No finished visual verification is claimed until recorded below.
+Full per-page interaction/accessibility verification is still outstanding.
 Do not reintroduce the rejected wizard or remove reviewed content to match mockups.
 
 Follow the 2026-10-03 continuation below. Finish the release gates before any

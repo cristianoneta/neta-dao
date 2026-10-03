@@ -326,7 +326,7 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
 @media (max-width: 540px) {
   .gov-header { grid-template-columns: 1fr; }
   .gov-header .gov-controls { grid-column: 1; grid-row: 2; justify-content: space-between; }
-  .gov-header .governance-selectors { grid-column: 1; grid-row: 3; grid-template-columns: minmax(82px, .4fr) minmax(0, 1fr); }
+  .gov-header .governance-selectors { grid-column: 1; grid-row: 3; grid-template-columns: minmax(100px, .4fr) minmax(0, 1fr); }
   .gov-header .gov-brand { font-size: 18px; }
   .chain-select-wrap select, .dao-combobox input { font-size: 16px; }
   .gov-header .gov-controls button { max-width: 180px; }
