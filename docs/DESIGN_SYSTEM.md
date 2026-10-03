@@ -4,7 +4,9 @@ Version 1.0 · design direction selected by the owner on 2026-10-03.
 Scope: every user-facing surface at `dao.netareborn.com`, including future pages.
 Status: **shared theme and Home live; per-page refinement in progress**. PR #108
 published the graphite/mint foundations and approved artwork. Home desktop and
-320/768 px review frames have been inspected; remaining module review is pending.
+320/768 px review frames have been inspected; #109 mobile corrections were verified
+live. Proposals has an initial read/filter smoke check; full remaining module review
+is pending. Follow the owner’s requested page-by-page publication cadence.
 See CURRENT_STATE and HANDOFF for actual release evidence.
 Actual capabilities remain defined in [CURRENT_STATE.md](CURRENT_STATE.md).
 

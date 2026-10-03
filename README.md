@@ -12,7 +12,10 @@ state before signing. This documentation review changes no application behavior.
 For UI work and new pages, follow [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
 The 2026-10-03 selected direction is graphite/mint with restrained voxel accents
 and an assembly-plaza Home illustration. The shared theme and Home implementation
-are live via PR #108; see CURRENT_STATE for evidence and remaining per-page review.
+are live via PR #108, with mobile follow-up #109. Treasury valuation follow-up #110
+restores verified Osmosis assets and guards against false history flows; see
+[the incident record](docs/TREASURY_VALUATION_FIX_2026-10-03.md), CURRENT_STATE and
+HANDOFF for release evidence and the evening continuation.
 
 ## What is connected
 

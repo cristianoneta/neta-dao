@@ -51,5 +51,31 @@ and <https://osmosis-api.polkachu.com> (read-only REST queries).
   factory token remained unpriced. This is a timestamped valuation, not a fixed
   total or a guarantee of later quotes. No wallet connected or transaction sent.
 
-CI integration and live verification must be recorded after the release.
+Integration and live verification are recorded below.
 Past daily snapshots were not rewritten, and generated data was not hand-edited.
+
+## Release evidence
+
+PR #110 merged as `081dd9aae0a008ec09fb149a02b6e640fe89349c` after successful
+Contract/frontend run 155 (`37117224181`) and RELAY browser run 45 (`37117224194`).
+Treasury bot run 940 (`37117535997`) completed all collection/event/commit steps.
+Its commit `57b2f960fd201a4c3eb72dee6e0b365c83c8b5f2` deployed via successful Pages run
+1043 (`37117549310`); the superseded Pages run for the pre-bot merge was cancelled.
+Production `index.html`, `treasury.js`, collector source and token registry matched
+the integrated code byte-for-byte. Live snapshot matched the bot JSON exactly.
+
+Snapshot `2026-10-03T10:47:09.430358Z` (12:47 Berlin) retained nine holdings and reported
+USD 4040.81154240286529 priced subtotal. The only unpriced position was the
+unsolicited factory `testingaten` token, so PARTIAL is intentional. The browser
+showed USD 4,040.81, USDC.n USD 3,441.31 and AKT USD 538.43 in the main asset list;
+30-day change USD 8.35 and no material holdings outflow. A tiny floating-point
+residual currently formats as -$0.00; normalize presentation during the next
+Treasury visual refinement. It is not an on-chain debit.
+
+Before/after keys and quantities were identical in the read-only incident check.
+All 12 pre-existing daily snapshots remain untouched; today's point is added by
+the UI in memory (13 points displayed). No historical data was fabricated.
+Remaining limitations: symbol-based estimated attribution, spot-market prices,
+configured rather than universal asset coverage and latest rather than globally
+height-pinned balance queries. Full per-page responsive/accessibility review is
+not claimed by this correction.

@@ -26,7 +26,10 @@ Home hero, module cards and status sections were visually inspected at desktop w
 Fixed 320/768 px review frames had no document-level horizontal overflow (content
 widths 303/751 px with classic scrollbars). The review exposed joined words in the
 mobile heading and a cramped chain selector; this follow-up supplies whitespace
-and increases the selector minimum width. Full per-page interaction/accessibility
+and increases the selector minimum width. PR #109 shipped that follow-up; the live
+320 px frame confirms normal word separation and a 100 px selector without
+document overflow. Proposals filtering and existing-proposal selection were also
+smoke-checked on desktop. Full per-page interaction/accessibility
 review is not complete. Next: Proposals, then Treasury, Delivery/Contributors and
 RELAY/Names. Mainnet messaging remains disabled.
 
@@ -121,7 +124,11 @@ reviewed. Fallback display decimals still default to six. Unpriced LP underlying
 assets now also make the snapshot PARTIAL. Registry changes are not automatically persisted.
 The five reviewed Osmosis routes are explicitly chain-scoped in the registry; see
 [Treasury valuation correction](TREASURY_VALUATION_FIX_2026-10-03.md). Collector or
-registry changes on main now trigger a fresh bot collection.
+registry changes on main now trigger a fresh bot collection. PR #110 passed both
+relevant CI runs and shipped; bot run 940 and Pages run 1043 succeeded. The
+2026-10-03 12:47 Berlin live snapshot retained nine holdings with USD 4,040.81
+priced subtotal. Only `testingaten` remains unpriced; no custody quantities were
+lost. See the incident record for exact commits and verification limitations.
 
 Event ledger: schema v2, chain/hash deduplication and proposal-title enrichment.
 The continuation adds height-bounded scans, a verified block-hash anchor, 100-block
