@@ -1,0 +1,29 @@
+{
+  "name": "neta-junox-faucet",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "build": "esbuild src/signing.js --bundle --minify --format=iife --global-name=NetaFaucetSigning --outfile=../assets/faucet-signing.js",
+    "test": "node --test test/*.test.mjs",
+    "start": "node service/server.mjs"
+  },
+  "dependencies": {
+    "@cosmjs/stargate": "0.38.1",
+    "@cosmjs/proto-signing": "0.38.1",
+    "@cosmjs/amino": "0.38.1",
+    "@cosmjs/crypto": "0.38.1",
+    "@cosmjs/encoding": "0.38.1",
+    "cosmjs-types": "0.11.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  },
+  "overrides": {
+    "@cosmjs/encoding": {
+      "@scure/base": "2.0.0"
+    }
+  }
+}
