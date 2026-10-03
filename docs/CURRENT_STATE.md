@@ -15,6 +15,14 @@ frontend should be added there. `index.html` loads `neta-governance.js`,
 `ux-draft.js`, `treasury.js`, `relay.js`, `relay-mailbox-status.js` and `names.js`.
 It does not load `relay-uni7-lab.mjs` or the CoreCrypto runtime.
 
+Home copy was refreshed on 2026-10-03 while preserving the existing layout and
+four core component cards. Its status cards distinguish mainnet reads/Operations
+voting, UNI-7 review, Treasury snapshots/history, RELAY proposal notifications and
+planned Delivery/Contributors/Names. Private messaging and review-to-mainnet
+submission are explicitly unfinished. Latest updates describe the shipped security
+improvements without claiming a messaging release. Dates are curated copy, not a
+live health monitor; maintain `index.html` when user-visible capabilities change.
+
 ## Governance: two different APIs
 
 | Item | Operations | Juno community review |
