@@ -39,5 +39,5 @@ jobs:
       - run: npm run test:browser
       - run: node browser-uni7-lab.mjs
       - run: node browser-workspace-security.mjs
-      - name: Reproduce known UNI-7 availability blocker locally
+      - name: Adversarial receive and crash recovery regressions
         run: RELAY_AUDIT_ADVERSARIAL=1 node browser-uni7-lab.mjs
