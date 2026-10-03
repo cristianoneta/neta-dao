@@ -127,7 +127,7 @@ test("small and unpriced treasury assets are collapsed without changing totals",
   assert.match(treasury, /Number\(item\.usd_value\)>=50/);
   assert.match(treasury, /SMALL \/ UNPRICED ASSETS/);
   assert.match(treasury, /renderAssets\(data\.assets,totalUsd,data\.warnings\|\|\[\],policyText\)/);
-  assert.match(treasury, /details\.append\(warning\)/);
+  assert.match(treasury, /assets\.after\(warning\)/);
   assert.match(treasury, /details\.append\(policy\)/);
 });
 

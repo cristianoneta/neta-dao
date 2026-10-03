@@ -1,6 +1,11 @@
 name: Treasury snapshot
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/update_treasury.py"
+      - "data/treasury/token-registry.json"
   schedule:
     - cron: "*/15 * * * *"
   workflow_dispatch:
