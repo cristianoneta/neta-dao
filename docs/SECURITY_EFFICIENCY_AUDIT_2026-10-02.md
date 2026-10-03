@@ -47,3 +47,41 @@ Use CURRENT_STATE.md and HANDOFF.md together with this report. Resolve R1–R3 b
 ### CI evidence at continuation handoff
 
 Website Test website run 307 passed, including browser integration and reproducible bundles. DAO RELAY browser crypto run 31 passed, including stale-response regressions and the optional adversarial test that intentionally reproduces the open persistent-lock blocker. DAO contract/frontend run 136 was still running; website production-data run 409 was pending. Check final outcomes before merging. Code checkpoint SHAs are recorded in HANDOFF.md; these follow-up documentation changes do not change the tested implementation.
+
+## Verified continuation — 2026-10-03
+
+Prior audit PRs Website #137 / DAO #100 merged after the current relevant checks
+passed, preserving all bot updates. Served website swap/IBC/recovery bundles and
+DAO Governance/Treasury/Names/shared bundle matched reviewed bytes.
+
+R1: repaired in PR #101, merged as `bc7fb520cbb9626684ba04262b7a42835b497681`.
+RELAY browser run 34 passes normal encrypted exchange/reply/reload and adversarial
+malformed ciphertext, cross-sender ID collision, valid progression after quarantine,
+reload and interrupted archive completion after ratchet commit. Rollback restores
+an encrypted pre-receive checkpoint before retrying; unresolved older v1 intents
+without checkpoints remain locked. Full off-device recovery is not implemented.
+
+R3: new archive records use a SHA-256 routing tuple (chain, contract, sender and
+recipient generations, sender/recipient, message ID). Confirmed legacy records keep
+the original authenticated AAD so history survives. Historical generation lookup in
+the lab still uses the current deployed device and remains a release blocker.
+
+R2: PR #102 adds v0.2 source consent bound to recipient/sender generations, at most
+one initial per approved pair and immutable historical identity queries. The deployed
+v0.1 checksum/address is unchanged. No chain migration was attempted. Activation
+requires new reviewed deployment/identity pinning and consent/replenishment UX;
+source-level tests are not proof the deployed contract has changed.
+
+G3 follow-up: moderated title/body no longer enter visible DOM, malicious forward/
+self parent IDs cannot create reply cycles, and deep rendering stops at 32 levels
+with an omission notice. Legacy revision queries no longer repeat an unsupported
+cursor; a 100-record response shows potential truncation. Collaborative ownership
+policy and full history completeness remain unchanged/open.
+
+Efficiency follow-up: Treasury search bounds every query by height, rejects empty/
+duplicate/inconsistent pagination, checks a stored block-hash anchor and replays a
+100-block overlap after a 20-block tip delay. Missing anchors fall back to full replay;
+a changed anchor or loss of a recorded transaction fails without publishing over the
+existing ledger. This does not fix unindexed CW20/LP cashflow or guarantee RPC honesty.
+Local continuation checks: 42 Node and 14 Python tests passed. Browser/contract CI
+for this follow-up must pass before merge. Mainnet messaging stays disabled.

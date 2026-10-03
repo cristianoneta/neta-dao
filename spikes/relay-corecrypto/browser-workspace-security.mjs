@@ -32,7 +32,7 @@ try{
    }
    if(query.comments){const id=query.comments.proposal_id;
     if(id===1)await new Promise(resolve=>setTimeout(resolve,350));
-    data=[{id:1,body:id===2?'[[NETA_THREAD:%]]\nVisible comment 2':'Old comment 1',author:'author',verified_stake:'11000000',created_time:1}];
+    data=[{id:1,body:id===2?'[[NETA_THREAD:%]]\nVisible comment 2':'Old comment 1',author:'author',verified_stake:'11000000',created_time:1},{id:2,parent_id:1,title:'hidden title',body:'NEVER RENDER HIDDEN BODY',author:'author',moderation:{hidden:true,reason:'spam'},created_time:1},{id:3,body:'[[NETA_REPLY:4]]\nforward reference',author:'author',created_time:1},{id:4,body:'[[NETA_REPLY:3]]\ncycle candidate',author:'author',created_time:1}];
    }
    return json(route,{data});
   }
@@ -70,6 +70,9 @@ try{
  assert.equal(await page.locator('#proposal-heading').textContent(),'Proposal 2');
  assert.match(await page.locator('#comment-list').textContent(),/Visible comment 2/);
  assert.doesNotMatch(await page.locator('#comment-list').textContent(),/Old comment 1/);
+ assert.doesNotMatch(await page.locator('#comment-list').textContent(),/NEVER RENDER HIDDEN BODY|hidden title/);
+ assert.match(await page.locator('#comment-list').textContent(),/COMMENT HIDDEN BY MODERATION.*spam/);
+ assert.match(await page.locator('#comment-list').textContent(),/cycle candidate/);
  assert.deepEqual(errors,[]);
  console.log('Workspace security: stale DAO snapshot, rapid proposal switch and malformed public marker passed');
  await context.close();

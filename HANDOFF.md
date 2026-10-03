@@ -23,17 +23,11 @@ Code/documentation reviewed: **2026-10-02**. Canonical repository:
 
 ## Next concrete task
 
-Complete the **real two-Keplr-wallet UNI-7 encrypted lab test**. The device UI,
-GPL CoreCrypto runtime, mailbox adapter and encrypted local archive already
-exist. Do not rebuild them based on an older chat. Follow the runbook and record
-wallets, registrations, message IDs/sequences, transaction evidence and reload
-results without recording text, codes or secrets. No live exchange has been
-recorded. Existing CI exchange/reply/reload evidence uses mocked chain and wallets.
-
-After that, address historical sender identity/rotation and crash recovery,
-then implement the agreed automatic encrypted backup. Do not activate the main
-composer or mainnet from a green lab test alone. Review the security/recovery
-gates first. Treasury accounting is the next separate product stream.
+Follow the 2026-10-03 continuation below. Finish the release gates before any
+live wallet test: full coherent backup/restore, v0.2 mailbox deployment planning,
+consent/replenishment UX and historical generation resolution. Mainnet messaging
+remains disabled. The current user's task prohibits live attack transactions and
+real wallet keys; all adversarial tests use isolated synthetic fixtures.
 
 ## Rules for accurate continuation
 
@@ -71,3 +65,30 @@ and prekey-exhaustion issues as blockers before any Mainnet messaging release.
 Audit changes are published in PR #100, branch `audit/security-efficiency-20261002`; code checkpoint `32b784a7862c69573e866f39d4a2927a18ef0ed0`. Cross-project PRs: https://github.com/cristianoneta/neta-dao/pull/100 and https://github.com/cristianoneta/neta-website/pull/137. At handoff, website tests and DAO RELAY browser tests passed; DAO contract/frontend CI was still running and website production-data CI pending. PRs were not merged. Check current results before integration.
 
 The isolated adversarial browser test reproduced the persistent RELAY receive lock after malformed ciphertext and reload. Mainnet messaging remains blocked. Read `docs/SECURITY_EFFICIENCY_AUDIT_2026-10-02.md`; prioritize authenticated transactional receive/recovery, sender-scoped archive identity, prekey abuse and ambiguous mainnet broadcast retries. Preserve unrelated changes/data-bot updates. Local audit worktrees contain commits, while the original worktrees have documentation edits already published in the earlier documentation PRs; do not discard these blindly.
+
+## Checked continuation — 2026-10-03
+
+* PR #100 merged as `c99ac99419d50ff35042fe71aec4c0ceed070572` after contract/frontend
+  run 137 and RELAY browser run 32 passed. Mainnet signing fee, Treasury epoch,
+  exact-denom pricing and Names pinning are shipped; served bytes were verified.
+* PR #101 merged as `bc7fb520cbb9626684ba04262b7a42835b497681` after RELAY browser
+  run 34 passed. Receive checkpoints restore interrupted ratchet/archive writes;
+  invalid ciphertext is quarantined and does not persist a device-wide lock.
+  New archive IDs bind the sender/generations/message ID. Legacy readable records
+  stay readable; unresolved legacy intents without a checkpoint still fail closed.
+* PR #102 adds v0.2 **source only**: recipient-granted generation-bound consent,
+  one initial per sender/generation pair, immutable historical identities. Check
+  its final Rust/audit/WASM CI before merge. The live pinned v0.1 artifact/address
+  is unchanged: neither new consent nor historical queries exist there.
+* Website PR #138 adds a browser-local signed-transaction journal. Check its current
+  CI and deployment; synchronize the shared Socials signing bundle to this repo
+  only after the website implementation passes. It has no auto reset/rebroadcast.
+* This follow-up implements moderation-hidden placeholders, invalid-parent/cycle
+  protection, depth limits, a one-shot legacy revision query with truncation warning,
+  and anchored incremental Treasury event scans. Reorg/partial-index errors preserve
+  existing data and fail publication. Never hand-edit generated JSON snapshots.
+
+Still blocked: automatic off-device backup and fresh-profile coherent restore of
+ratchet + archive + outbox + descriptor; historical sender generation in the lab;
+consent/replenishment integration on a new verified UNI-7 deployment; full adversarial
+rotation/exhaustion/recovery matrix. No mainnet messaging activation or wallet writes.

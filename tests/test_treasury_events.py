@@ -1,5 +1,6 @@
 import importlib.util
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 
@@ -76,6 +77,31 @@ class TreasuryEventTests(unittest.TestCase):
         tx = {"hash": "TITLE", "height": "30", "tx_result": {"events": raw}}
         row = events.normalize(tx, None, {}, titles={"77": "Validator payment"})
         self.assertEqual(row["proposal_title"], "Validator payment")
+
+    def test_incremental_scan_uses_verified_anchor_and_overlap(self):
+        chain = {"address": "treasury", "creation_height": 10}
+        source = {"address": "treasury", "last_scanned_height": 500, "anchor_hash": "A"*64}
+        with patch.object(events, "block_hash", return_value="A"*64):
+            self.assertEqual(events.scan_start(chain, "rpc", 600, source), (400, True))
+        with patch.object(events, "block_hash", return_value="B"*64):
+            with self.assertRaisesRegex(RuntimeError, "anchor changed"):
+                events.scan_start(chain, "rpc", 600, source)
+        self.assertEqual(events.scan_start(chain, "rpc", 600, {}), (10, False))
+
+    def test_truncated_and_duplicate_pages_fail_instead_of_advancing_watermark(self):
+        with patch.object(events, "rpc", return_value={"total_count": "1", "txs": []}):
+            with self.assertRaisesRegex(RuntimeError, "truncated"):
+                events.search("rpc", "transfer.sender", "wallet", 10, 20)
+        with patch.object(events, "rpc", return_value={"total_count": "2", "txs": [{"hash": "A"}, {"hash": "A"}]}):
+            with self.assertRaisesRegex(RuntimeError, "duplicate"):
+                events.search("rpc", "transfer.sender", "wallet", 10, 20)
+
+    def test_search_is_height_bounded(self):
+        with patch.object(events, "rpc", return_value={"total_count": "0", "txs": []}) as call:
+            self.assertEqual(events.search("rpc", "transfer.sender", "wallet", 10, 20), [])
+        query = call.call_args.kwargs["query"]
+        self.assertIn("tx.height>=10", query)
+        self.assertIn("tx.height<=20", query)
 
 
 if __name__ == "__main__":
