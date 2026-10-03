@@ -21,6 +21,12 @@ on:
       - "names.css"
       - "names.js"
       - "names-workspace.js"
+      - "dao-directory.js"
+      - "dao-members.js"
+      - "data/dao-directory.json"
+      - "scripts/build_dao_directory.py"
+      - "scripts/update_dao_directory.py"
+      - "tests/test_dao_onboarding.py"
       - "scripts/update_treasury.py"
       - "scripts/update_treasury_events.py"
       - "tests/test_treasury_events.py"
@@ -57,6 +63,12 @@ on:
       - "names.css"
       - "names.js"
       - "names-workspace.js"
+      - "dao-directory.js"
+      - "dao-members.js"
+      - "data/dao-directory.json"
+      - "scripts/build_dao_directory.py"
+      - "scripts/update_dao_directory.py"
+      - "tests/test_dao_onboarding.py"
       - "scripts/update_treasury.py"
       - "scripts/update_treasury_events.py"
       - "tests/test_treasury_events.py"
@@ -116,6 +128,8 @@ jobs:
           cargo clippy --locked --all-targets --manifest-path contracts/neta-relay-mailbox/Cargo.toml -- -D warnings
       - name: Frontend syntax and invariants
         run: |
+          python scripts/build_dao_directory.py --check
+          python -m unittest tests/test_dao_onboarding.py
           node --test tests/*.test.mjs
           node --check relay-testnet-setup.js
           node --check relay-uni7-readiness.js
@@ -142,5 +156,6 @@ jobs:
           .ci-tools/cargo-audit/bin/cargo-audit audit --file contracts/workshop-access-mock/Cargo.lock --ignore RUSTSEC-2024-0344
           .ci-tools/cargo-audit/bin/cargo-audit audit --file contracts/neta-names/Cargo.lock --ignore RUSTSEC-2024-0344
           .ci-tools/cargo-audit/bin/cargo-audit audit --file contracts/neta-relay-mailbox/Cargo.lock --ignore RUSTSEC-2024-0344
+
 
 

@@ -48,8 +48,9 @@ try{
   if(path.endsWith('history.json'))return json(route,{snapshots:[]});
   if(path.endsWith('events.json'))return json(route,{events:[]});
   const juno=path.endsWith('juno-community-pool.json');
-  return json(route,{generated_at:'2026-10-02T20:00:00Z',height:1,status:'LIVE',total_usd:juno?'200':'100',price_source:'mock',assets:[{type:'token',symbol:'JUNO',amount:'1',usd_value:juno?'200':'100'}]});
+  return json(route,{treasury_address:path.endsWith("neta-main.json")?"juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6":undefined,generated_at:'2026-10-02T20:00:00Z',height:1,status:'LIVE',total_usd:juno?'200':'100',price_source:'mock',assets:[{type:'token',symbol:'JUNO',amount:'1',usd_value:juno?'200':'100'}]});
  });
+ await context.route('**/data/daos/neta.json',route=>json(route,{core:'juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6',voting_module:'juno1839rlmw33avduccuhpnv6cqxsdlwpz87vq8g6x6jkfrdzpwtl8nsgf20f4',staking_contract:'juno1a7x8aj7k38vnj9edrlymkerhrl5d4ud3makmqhx6vt3dhu0d824qh038zh',members_complete:true,members:[{address:'juno1'+'q'.repeat(38),power_raw:'1000000'}],total_power_raw:'1000000',height:100,generated_at:'2026-10-03T18:00:00Z'}));
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(origin+'/index.html');
  await page.locator('#dao-search').fill('Juno');
@@ -162,6 +163,37 @@ try{
  assert.deepEqual(errors,[]);
  console.log('Integrated Names: routing, contrast, responsive fee form, tariffs and disabled writes passed');
 
+ await page.getByRole('button',{name:'RELAY',exact:true}).click();
+ await page.locator('[data-relay-panel="directory"]').click();
+ await page.locator('#names-directory-query').fill('');
+ await page.getByRole('button',{name:'View Juno Governance',exact:true}).click();
+ assert.equal(new URL(page.url()).hash,'#relay/dao/juno');
+ assert.match(await page.locator('#names-dao-profile').textContent(),/juno-governance.dao.neta/);
+ assert.equal(await page.locator('#names-copy-address').count(),0);
+ await page.getByRole('button',{name:'← Back to directory',exact:true}).click();
+ await page.getByRole('button',{name:'View Neta DAO',exact:true}).click();
+ assert.equal(new URL(page.url()).hash,'#relay/dao/neta');
+ assert.match(await page.locator('#names-dao-address').textContent(),/^juno1c5v6/);
+ await page.getByRole('button',{name:'View participation',exact:true}).click();
+ assert.equal(await page.locator('#dao-search').inputValue(),'Neta DAO');
+ await page.waitForFunction(()=>document.querySelector('#dao-members-panel').textContent.includes('1 active staking addresses'));
+ await page.getByRole('button',{name:'Treasury',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('#treasury-live-status').textContent.includes('NETA DAO'));
+ assert.equal(await page.locator('#treasury-nns').isVisible(),true);
+ assert.match(await page.locator('#treasury-nns').textContent(),/Not active yet/);
+ await page.getByRole('button',{name:'Proposals',exact:true}).click();
+ assert.equal(await page.locator('#primary-action').isDisabled(),true);
+ assert.match(await page.locator('#action-hint').textContent(),/not connected/);
+ await page.reload();
+ assert.equal(await page.locator('#dao-search').inputValue(),'Neta DAO');
+ for(const width of [320,768,1440]){
+  await page.setViewportSize({width,height:1000});
+  await page.getByRole('button',{name:'Contributors',exact:true}).click();
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'main DAO member overflow');
+ }
+ assert.deepEqual(errors,[]);
+ console.log('DAO onboarding: Juno/native identity, NETA profile, membership, treasury scope, disabled writes and persistence passed');
+
  // Exercise the actual shared generated bundle with synthetic TxRaw data only.
  const attempt=()=>page.evaluate(async()=>{
    let signs=0,broadcasts=0;
@@ -178,5 +210,6 @@ try{
  console.log('Shared signing bundle: exact signed transaction journal blocks repeated signatures after reload');
  await context.close();
 }finally{await browser?.close();server.close();}
+
 
 

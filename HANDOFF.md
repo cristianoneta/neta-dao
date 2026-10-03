@@ -1,5 +1,12 @@
 # NETA DAO handoff
 
+## Active WIP handoff — 2026-10-03, chat transition
+
+Read [the new continuation handoff](docs/HANDOFF_NEXT_CHAT_2026-10-03.md) first.
+This branch preserves unfinished main NETA DAO onboarding; it is not deployed.
+The next priority is to finish its documented blockers before resuming the older
+Names implementation task below. Preserve current main Treasury bot updates.
+
 ## Latest maintenance checkpoint — 2026-10-03
 
 Read [the maintenance checkpoint](docs/MAINTENANCE_CHECKPOINT_2026-10-03.md)
@@ -116,5 +123,6 @@ source only. The pinned UNI-7 v0.1 address/artifact has not changed. Automatic
 off-device recovery, historical sender resolution, consent/refill integration and
 the full rotation/exhaustion/restore matrix remain release blockers. Never discard
 pending ratchet/archive/outbox or transaction-journal state to unblock the UI.
+
 
 

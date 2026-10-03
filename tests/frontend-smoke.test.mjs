@@ -57,7 +57,7 @@ test("Relay hides a zero badge and gives the inbox the full width", () => {
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
   assert.match(html, /relay\.css\?v=20261003-3/);
-  assert.match(html, /relay\.js\?v=8/);
+  assert.match(html, /relay\.js\?v=9/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
 
@@ -79,9 +79,9 @@ test("treasury renders LP ownership and underlying assets without HTML injection
 
 test("DAO selection propagates to non-proposal workspace views", () => {
   assert.match(governance, /neta:dao-change/);
-  assert.match(treasury, /juno-community-pool\.json/);
+  assert.equal(JSON.parse(readFileSync("data/dao-directory.json","utf8")).daos.find(d=>d.id==="juno").snapshot,"juno-community-pool.json");
   assert.match(treasury, /community_pool/);
-  assert.match(ux, /JUNO NETWORK GOVERNANCE · TREASURY/);
+  assert.match(ux, /window.NetaDaoDirectory/);
   assert.match(ux, /NO LIVE/);
 });
 
@@ -117,7 +117,7 @@ test("treasury events replace sample activity with verified linked transactions"
   for (const id of ["treasury-events", "treasury-events-toggle", "treasury-event-filters", "treasury-event-count"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
-  assert.match(treasury, /data\/treasury\/events\.json/);
+  assert.match(treasury, /dao.events/);
   assert.match(treasury, /neta:open-proposal/);
   assert.match(treasury, /testingaten/);
   assert.match(governance, /neta:open-proposal/);
@@ -200,7 +200,7 @@ test("UNI-7 code discovery accepts hexadecimal data hashes", () => {
 });
 
 test("Juno review uses the canonical UNI-7 contract", () => {
-  assert.match(governance, /id:"juno"[^}]+mode:"native-gov"[^}]+workshopContract:"juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw"/);
+  assert.equal(JSON.parse(readFileSync("data/dao-directory.json","utf8")).daos.find(d=>d.id==="juno").workshopContract,"juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw");
 });
 
 test("Juno review explains each missing stake requirement", () => {
@@ -236,7 +236,7 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(ux, /panel:"directory"/);
   assert.match(ux, /relay\/following/);
   assert.match(ux, /relayPanels\.forEach/);
-  assert.match(html, /ux-draft\.js\?v=12/);
+  assert.match(html, /ux-draft\.js\?v=13/);
   assert.match(html, /governance-overrides\.css\?v=20261003-1/);
   assert.doesNotMatch(html, /GOVERNANCE · ACCOUNTABILITY · TRANSPARENCY/);
   assert.match(html, /data-relay-panel-view="names"/);
@@ -246,7 +246,7 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(html, /USD 5 · 4 characters: USD 160 · 3 characters: USD 640/);
   assert.match(html, /This pricing requires the new registry and is not active yet/);
   assert.doesNotMatch(html, /names-preview-entry|Explore the preview/);
-  assert.match(html, /names-workspace\.js\?v=2/);
+  assert.match(html, /names-workspace\.js\?v=3/);
   assert.match(html, /data-name-panel="directory"/);
   assert.match(html, /REGISTER · COMING SOON/);
   assert.match(names, /neta-names-v1:/);
@@ -274,4 +274,5 @@ test("Relay reading pane shows the proposal summary and message styling remains 
   assert.match(html, /PREVIEW · SEND DISABLED/);
   assert.match(html, /type="submit" disabled aria-describedby="relay-send-note">SEND MESSAGE/);
 });
+
 
