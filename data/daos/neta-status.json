@@ -1,12 +1,9 @@
 {
-  "members": {
-    "status": "completed"
-  },
   "balances": {
     "status": "completed"
   },
   "events": {
     "status": "unavailable"
   },
-  "checked_at": "2026-10-03T19:59:05.385096+00:00"
+  "checked_at": "2026-10-03T20:43:35.849033+00:00"
 }
