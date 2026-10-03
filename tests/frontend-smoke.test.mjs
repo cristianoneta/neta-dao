@@ -18,6 +18,7 @@ test("browser scripts parse", () => {
   execFileSync(process.execPath, ["--check", "treasury.js"]);
   execFileSync(process.execPath, ["--check", "relay.js"]);
   execFileSync(process.execPath, ["--check", "names.js"]);
+  execFileSync(process.execPath, ["--check", "docs/design/names-v2-prototype.js"]);
 });
 
 test("Relay follows DAOs and creates local governance notifications safely", () => {
@@ -241,7 +242,10 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(html, /data-relay-panel-view="names"/);
   assert.match(html, /id="names-view"/);
   assert.match(names, /const REGISTRY=null/);
-  assert.match(html, /5 NETA for the first year/);
+  assert.match(html, /Planned annual registration and renewal/);
+  assert.match(html, /USD 5 · 4 characters: USD 160 · 3 characters: USD 640/);
+  assert.match(html, /This pricing requires the new registry and is not active yet/);
+  assert.match(html, /href="docs\/design\/names-v2-prototype\.html"/);
   assert.match(html, /REGISTER · COMING SOON/);
   assert.match(names, /neta-names-v1:/);
   assert.match(names, /config.treasury!==DAO_TREASURY/);
