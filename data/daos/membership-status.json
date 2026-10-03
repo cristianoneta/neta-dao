@@ -1,20 +1,14 @@
 {
-  "checked_at": "2026-10-03T20:40:21.419513+00:00",
+  "checked_at": "2026-10-03T20:43:37.922908+00:00",
   "daos": {
-    "neta": {
-      "status": "completed",
-      "height": 42336088,
-      "generated_at": "2026-10-03T20:38:58.815216+00:00"
-    },
     "neta-operations": {
-      "status": "completed",
-      "height": 42335628,
-      "generated_at": "2026-10-03T20:18:20.324416+00:00"
+      "status": "completed"
+    },
+    "neta": {
+      "status": "completed"
     },
     "juno": {
-      "status": "completed",
-      "height": 42336088,
-      "generated_at": "2026-10-03T20:38:46.508814+00:00"
+      "status": "completed"
     }
   }
 }
