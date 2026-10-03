@@ -2,8 +2,9 @@
 
 Version 1.0 · design direction selected by the owner on 2026-10-03.
 Scope: every user-facing surface at `dao.netareborn.com`, including future pages.
-Status: **approved direction, not yet implemented**. This document and its reference
-images do not claim that the current website has been restyled or accessibility-tested.
+Status: **implementation in progress**. The first rollout adds shared graphite/mint
+foundations and the approved Home artwork. Page-by-page live visual verification
+is still pending; see CURRENT_STATE and HANDOFF for actual release evidence.
 Actual capabilities remain defined in [CURRENT_STATE.md](CURRENT_STATE.md).
 
 ## Decision and visual references
@@ -23,8 +24,8 @@ Do not substitute the later abstract cube-stack or illustration-free hero varian
 These generated images are visual references, not pixel specifications, executable
 UI, final logos, or authoritative product copy. Preserve the reviewed live content
 and its status distinctions when implementing. Do not copy generated wording,
-sample values or omissions over the actual application. A separate production
-assembly-plaza asset still needs to be prepared; do not ship the comparison sheet.
+sample values or omissions over the actual application. Production art is now prepared in `assets/design/assembly-plaza.webp` and
+`assets/design/module-illustrations.webp`; do not ship the comparison sheet.
 
 ## Visual principles
 
@@ -41,8 +42,8 @@ assembly-plaza asset still needs to be prepared; do not ship the comparison shee
 
 ## Foundation tokens
 
-The following are implementation targets, not variables already loaded by the site.
-Use a single shared stylesheet for these tokens during rollout. Do not duplicate
+The following tokens are implemented in `neta-ui.css`, loaded by the main workspace
+and auxiliary RELAY pages. Do not duplicate
 hex values or invent per-page theme systems. Semantic aliases should refer to
 these foundations; module CSS should describe layout rather than a separate brand.
 
@@ -169,7 +170,7 @@ Use semantic elements and accessible names; preserve logical heading order.
 
 ## Implementation and future changes
 
-Every UI task must read this guide and the actual feature inventory first. Existing
+Every UI task must read this guide and the actual feature inventory first. The shared design is owned by `neta-ui.css`. Existing module layout
 styling is spread across `styles.css`, `neta-governance.css`,
 `governance-overrides.css`, `relay.css`, `names.css` and lab-specific styles. During
 rollout introduce shared foundations/components deliberately; migrate old rules
@@ -187,8 +188,8 @@ For each new page or visual PR:
 3. Review desktop (1440), tablet (768) and mobile (390/320) screenshots, keyboard
    navigation, zoom, visible focus, contrast and the relevant loading/error/empty states.
 4. Exercise affected selection, filtering, dialog and responsive flows. Run relevant
-   existing tests and inspect actual CI results. CSS-only changes currently may not
-   match frontend CI filters; do not infer coverage from an empty checks list.
+   existing tests and inspect actual CI results. CSS and design-asset changes now match both frontend/contract and RELAY-browser
+   CI filters; inspect actual results rather than assuming coverage.
 5. Verify deployed assets and UI after integration and record what actually shipped.
 
 These are acceptance criteria, not checks already completed for this design. Mainnet

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; frame-src 'self'; object-src 'none'; base-uri 'self'">
+  <title>NETA design · responsive review</title>
+  <link rel="stylesheet" href="../../neta-ui.css?v=20261003-1">
+  <style>
+    main { max-width: 1200px; margin: auto; padding: 24px; }
+    nav { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0; }
+    .previews { display: flex; align-items: start; gap: 24px; overflow-x: auto; }
+    section { flex: none; }
+    section:first-child { width: 320px; }
+    section:last-child { width: 768px; }
+    iframe { display: block; height: 820px; border: 1px solid var(--neta-border); border-radius: 12px; background: var(--neta-bg); }
+    p { color: var(--neta-text-secondary); }
+  </style>
+</head>
+<body><main>
+  <h1>Responsive design review</h1>
+  <p>Actual workspace at fixed viewport widths. These frames load the real application; use them for visual review without connecting a wallet. <a href="../DESIGN_SYSTEM.md">Design guideline</a></p>
+  <div class="previews">
+    <section><h2>Mobile · 320 px</h2>
+      <nav aria-label="Mobile preview page">
+        <a href="../../index.html#home" target="mobile">Home</a><a href="../../index.html#governance" target="mobile">Proposals</a><a href="../../index.html#treasury" target="mobile">Treasury</a><a href="../../index.html#delivery" target="mobile">Delivery</a><a href="../../index.html#contributors" target="mobile">Contributors</a><a href="../../index.html#relay" target="mobile">RELAY</a><a href="../../index.html#relay/names" target="mobile">Names</a>
+      </nav><iframe name="mobile" title="Mobile workspace" width="320" src="../../index.html#home"></iframe>
+    </section>
+    <section><h2>Tablet · 768 px</h2>
+      <nav aria-label="Tablet preview page">
+        <a href="../../index.html#home" target="tablet">Home</a><a href="../../index.html#governance" target="tablet">Proposals</a><a href="../../index.html#treasury" target="tablet">Treasury</a><a href="../../index.html#delivery" target="tablet">Delivery</a><a href="../../index.html#contributors" target="tablet">Contributors</a><a href="../../index.html#relay" target="tablet">RELAY</a><a href="../../index.html#relay/names" target="tablet">Names</a>
+      </nav><iframe name="tablet" title="Tablet workspace" width="768" src="../../index.html#home"></iframe>
+    </section>
+  </div>
+</main></body></html>
