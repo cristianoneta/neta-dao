@@ -62,27 +62,28 @@ def rpc(base, method, timeout=30, **params):
 
 
 def select_rpc(chain):
-    errors, fallback = [], None
+    errors = []
     probe = f"wasm._contract_address='{chain['address']}'"
     for base in chain["rpcs"]:
         try:
-            status = rpc(base, "status", timeout=5)
-            indexed = rpc(base, "tx_search", timeout=5, query=probe, page=1, per_page=1, order_by="desc")
+            status = rpc(base, "status", timeout=15)
+            if status.get("node_info", {}).get("network") != chain["id"]:
+                raise RuntimeError("RPC network identity mismatch")
+            indexed = rpc(base, "tx_search", timeout=15, query=probe, page=1, per_page=1, order_by="desc")
             total = int(indexed.get("total_count", 0))
             if chain["require_history"] and total == 0:
                 raise RuntimeError("historical address index is empty")
             height = int(status["sync_info"]["latest_block_height"])
-            if fallback is None:
-                fallback = (base, height, total, False)
-            # Some public gateways reject every height range. Probe this before
-            # choosing a node; keep a full-replay fallback rather than breaking
-            # production when no range-capable archive is reachable.
-            rpc(base, "tx_search", timeout=5, query=f"{probe} AND tx.height>={chain['creation_height']} AND tx.height<={height-20}", page=1, per_page=1, order_by="asc")
-            return base, height, total, True
+            # Probe only the selected usable index; avoid multiple slow archive
+            # probes on every scheduled refresh. Range-policy rejection is a
+            # capability result, not loss of the working full-history endpoint.
+            try:
+                rpc(base, "tx_search", timeout=8, query=f"{probe} AND tx.height>={chain['creation_height']} AND tx.height<={height-20}", page=1, per_page=1, order_by="asc")
+                return base, height, total, True
+            except Exception:
+                return base, height, total, False
         except Exception as error:
             errors.append(f"{base}: {error}")
-    if fallback is not None:
-        return fallback
     raise RuntimeError(f"no {chain['name']} RPC with a usable transaction index: " + " | ".join(errors))
 
 
@@ -126,6 +127,8 @@ def block_hash(base, height):
 
 
 def scan_start(chain, base, end_height, source):
+    if source and isinstance(source.get("last_scanned_height"), int) and source["last_scanned_height"] > end_height:
+        raise RuntimeError("RPC is behind prior scan watermark")
     if os.environ.get("TREASURY_EVENTS_FULL_REPLAY") == "1" or not source:
         return chain["creation_height"], False
     anchor = source.get("last_scanned_height")
@@ -257,7 +260,10 @@ def collect_chain(chain, existing, registry, titles, source=None):
                 if start_height <= int(tx["height"]) <= end_height and int(tx.get("tx_result", {}).get("code", 0)) == 0:
                     found[tx["hash"]] = tx
     prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"]}
-    historical_missing = sum(start_height <= int(row["height"]) <= end_height and digest not in found for digest, row in prior.items())
+    absent = {digest for digest, row in prior.items() if start_height <= int(row["height"]) <= end_height and digest not in found}
+    unresolved = set(source.get("historical_missing_tx_hashes", [])) if incremental and source else set()
+    unresolved = (unresolved - set(found)) | absent
+    historical_missing = len(unresolved)
     if historical_missing and chain["require_history"]:
         raise RuntimeError("historical index lost recorded transactions; preserve existing ledger")
     # Optional Osmosis legacy indexing was incomplete before this change. Keep
@@ -277,7 +283,7 @@ def collect_chain(chain, existing, registry, titles, source=None):
         row["treasury_address"] = chain["address"]
         row["proposal_title"] = titles.get(str(row.get("proposal_id")), row.get("proposal_title")) if row.get("proposal_id") else None
         row["account_explorer_url"] = chain["explorer_account"].format(address=chain["address"])
-    return list(prior.values()), {"chain_id": chain["id"], "address": chain["address"], "source": base, "indexed_transactions": indexed_total, "last_scanned_height": end_height, "anchor_hash": anchor_hash, "scan_start_height": start_height, "incremental": incremental, "range_capable": range_capable, "historical_missing_transactions": historical_missing, "contract_creation_height": chain["creation_height"]}
+    return list(prior.values()), {"chain_id": chain["id"], "address": chain["address"], "source": base, "indexed_transactions": indexed_total, "last_scanned_height": end_height, "anchor_hash": anchor_hash, "scan_start_height": start_height, "incremental": incremental, "range_capable": range_capable, "historical_missing_transactions": historical_missing, "historical_missing_tx_hashes": sorted(unresolved), "contract_creation_height": chain["creation_height"]}
 
 
 def collect():

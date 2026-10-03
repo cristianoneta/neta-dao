@@ -87,6 +87,8 @@ class TreasuryEventTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "anchor changed"):
                 events.scan_start(chain, "rpc", 600, source)
         self.assertEqual(events.scan_start(chain, "rpc", 600, {}), (10, False))
+        with self.assertRaisesRegex(RuntimeError, "behind prior"):
+            events.scan_start(chain, "rpc", 400, source)
 
     def test_truncated_and_duplicate_pages_fail_instead_of_advancing_watermark(self):
         with patch.object(events, "rpc", return_value={"total_count": "1", "txs": []}):

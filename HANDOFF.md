@@ -96,8 +96,8 @@ rotation/exhaustion/recovery matrix. No mainnet messaging activation or wallet w
 
 2026-10-03 RPC compatibility check: the public Juno gateway rejects height-range
 queries with an explicit strict-equality policy. Collector selection now probes
-range capability, prefers a compatible archive and falls back to full replay when
-none is reachable. The optimization is conditional on node support, not a guarantee
+the selected usable index for range capability and falls back to full replay
+when that endpoint rejects the feature. The optimization is conditional on node support, not a guarantee
 of incremental scans on every endpoint. Snapshot ownership/data remain unchanged.
 
 The shared generated bundle contains the same broadcast journal as Website #138.
@@ -109,4 +109,4 @@ signatures and permanently rejected broadcasts need manual investigation.
 Known optional Osmosis legacy index gaps preserve all cached events and emit an
 explicit coverage warning; they do not block fresh balances. Required Juno history
 gaps still fail publication. Seven independent address queries run with a bound
-of three workers; capability probes have five-second timeouts.
+of three workers; capability probes have eight-second timeouts and run only on the selected node.

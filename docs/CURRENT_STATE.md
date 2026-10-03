@@ -146,7 +146,8 @@ Current receive queries need the sender's **current** generation; messages from
 rotated generations fail closed. The lab does not expose revoke/block/add-prekey
 or rotation UX. Inbox fetch is one page per check; repeated checks can advance.
 Failed send/receive intents have no complete user-facing reconciliation flow.
-Follow-up sends still require a nonempty recipient prekey list in the lab.
+Follow-up sends in an established current-generation session no longer require
+an unused recipient prekey. First contact still requires one.
 
 Two mocked browser profiles exchanged/replied and reloaded successfully in PR #97.
 No real two-Keplr UNI-7 E2E evidence is recorded. The older DB backup fixture
@@ -221,11 +222,11 @@ consent/prekey UX remain unfinished. Mainnet messaging stays disabled.
 
 2026-10-03 RPC compatibility check: the public Juno gateway rejects height-range
 queries with an explicit strict-equality policy. Collector selection now probes
-range capability, prefers a compatible archive and falls back to full replay when
-none is reachable. The optimization is conditional on node support, not a guarantee
+the selected usable index for range capability and falls back to full replay
+when that endpoint rejects the feature. The optimization is conditional on node support, not a guarantee
 of incremental scans on every endpoint. Snapshot ownership/data remain unchanged.
 
 Known optional Osmosis legacy index gaps preserve all cached events and emit an
 explicit coverage warning; they do not block fresh balances. Required Juno history
 gaps still fail publication. Seven independent address queries run with a bound
-of three workers; capability probes have five-second timeouts.
+of three workers; capability probes have eight-second timeouts and run only on the selected node.
