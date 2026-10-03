@@ -1,11 +1,14 @@
 # NETA DAO handoff
 
-## Active WIP handoff — 2026-10-03, chat transition
+## Main DAO continuation — 2026-10-03
 
-Read [the new continuation handoff](docs/HANDOFF_NEXT_CHAT_2026-10-03.md) first.
-This branch preserves unfinished main NETA DAO onboarding; it is not deployed.
-The next priority is to finish its documented blockers before resuming the older
-Names implementation task below. Preserve current main Treasury bot updates.
+Read [the integration record](docs/DAO_ONBOARDING_2026-10-03.md) for current release
+status and source limitations. The [original handoff](docs/HANDOFF_NEXT_CHAT_2026-10-03.md)
+is a historical WIP snapshot; its code defects have been addressed in PR #118.
+[DAO onboarding checklist](docs/DAO_ONBOARDING_CHECKLIST.md) and the GitHub issue
+template define the repeatable process. Main DAO events need a verified historical
+index; directory labels still need the planned NNS v2 registry and DAO adapters.
+Check the integration record's release evidence before assuming this branch is live.
 
 ## Latest maintenance checkpoint — 2026-10-03
 

@@ -1,13 +1,15 @@
 {
   "assets": [
     {
-      "amount": "500",
+      "amount": null,
       "base_denom": "ibc/1D9E14A1F00613ED39E4B8A8763A20C9BE5B5EA0198F2FE47EAE43CD91A0137B",
       "change_24h": null,
       "custody_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
+      "decimals": null,
       "ibc_path": null,
       "key": "juno:native:ibc/1D9E14A1F00613ED39E4B8A8763A20C9BE5B5EA0198F2FE47EAE43CD91A0137B",
       "origin": "Juno",
+      "raw_amount": "500000000",
       "source_chain": "juno",
       "symbol": "ibc/1D9E14A1F00613\u2026",
       "type": "token",
@@ -15,13 +17,15 @@
       "usd_value": null
     },
     {
-      "amount": "69",
+      "amount": null,
       "base_denom": "ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241",
       "change_24h": null,
       "custody_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
+      "decimals": null,
       "ibc_path": null,
       "key": "juno:native:ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241",
       "origin": "Juno",
+      "raw_amount": "69000000",
       "source_chain": "juno",
       "symbol": "ibc/D836B191CDAE8E\u2026",
       "type": "token",
@@ -31,16 +35,18 @@
     {
       "amount": "1402.010133",
       "base_denom": "ujuno",
-      "change_24h": 1.9048589196860324,
+      "change_24h": 1.3303975620092439,
       "custody_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
+      "decimals": 6,
       "ibc_path": null,
       "key": "juno:native:ujuno",
       "origin": "Juno",
+      "raw_amount": "1402010133",
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00880381",
-      "usd_value": "12.34303082900673"
+      "usd_price": "0.00879486",
+      "usd_value": "12.33048283831638"
     },
     {
       "amount": "2.571312",
@@ -50,18 +56,18 @@
       "source_chain": "juno",
       "symbol": "NETA",
       "type": "token",
-      "usd_price": "1.086836903190178127929517213",
-      "usd_value": "2.794596771215743302482702764"
+      "usd_price": "1.085732019022578861902084865",
+      "usd_value": "2.791755769296985298555173638"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-10-03T18:50:04.804826Z",
-  "height": 42333618,
+  "generated_at": "2026-10-03T19:16:34.197396Z",
+  "height": 42334238,
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "15.13762760022247330248270276",
+  "total_usd": "15.12223860761336529855517364",
   "treasury_accounts": [
     {
       "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
@@ -75,7 +81,9 @@
   "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.",
   "warnings": [
     "Denom trace unavailable for ibc/1D9E14A1F00613ED39E4B8A8763A20C9BE5B5EA0198F2FE47EAE43CD91A0137B: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 501: Not Implemented | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
+    "Unknown decimals for ibc/1D9E14A1F00613ED39E4B8A8763A20C9BE5B5EA0198F2FE47EAE43CD91A0137B; quantity shown in raw units",
     "Denom trace unavailable for ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 501: Not Implemented | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
+    "Unknown decimals for ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241; quantity shown in raw units",
     "Unpriced assets excluded from USD total: ibc/1D9E14A1F00613\u2026, ibc/D836B191CDAE8E\u2026"
   ]
 }

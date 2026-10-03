@@ -182,9 +182,9 @@ def movements(events, registry, address=TREASURY, cw20_tokens=None):
             if not match:
                 continue
             raw, denom = match.groups()
-            meta = registry.get(denom, {"symbol": denom, "decimals": 6})
-            amount = Decimal(raw) / (Decimal(10) ** int(meta.get("decimals", 6)))
-            result.append({"direction": direction, "asset": meta.get("symbol", denom), "amount": str(amount), "raw_amount": raw, "denom": denom, "counterparty": counterparty})
+            meta = registry.get(denom, {"symbol": denom, "decimals": None})
+            amount = Decimal(raw) / (Decimal(10) ** int(meta["decimals"])) if meta.get("decimals") is not None else None
+            result.append({"direction": direction, "asset": meta.get("symbol", denom), "amount": str(amount) if amount is not None else None, "raw_amount": raw, "denom": denom, "counterparty": counterparty})
     for event in events:
         if event.get("type") != "wasm":
             continue
@@ -213,7 +213,7 @@ def classify(events, movement_rows, address=TREASURY):
 def event_title(kind, movement_rows, proposal_id):
     if movement_rows:
         verb = "received" if kind == "inflow" else "sent" if kind == "payment" else "moved"
-        summary = ", ".join(f"{row['amount']} {row['asset']}" for row in movement_rows[:3])
+        summary = ", ".join(f"{row['amount'] if row['amount'] is not None else row['raw_amount'] + ' raw units'} {row['asset']}" for row in movement_rows[:3])
         return f"{summary} {verb}"
     if kind == "cross_chain_command":
         return "Cross-chain command sent from the DAO"
@@ -316,16 +316,41 @@ def collect(chains=CHAINS, output=OUT, proposal_module=PROPOSAL_MODULE, scope="n
     return {"schema_version": 2, "generated_at": now(), "treasuries": [{"chain_id": chain["id"], "address": chain["address"]} for chain in chains], "scope": scope, "sources": sources, "cursor": {"strategy": "anchored-incremental-with-full-replay-fallback", "chains": sources}, "warnings": warnings, "events": rows}
 
 
+def collect_main(dao, output):
+    chain = {**CHAINS[0], "address": dao["core"], "creation_height": dao["creationHeight"],
+             "probe_key": "transfer.recipient", "queries": (*QUERIES, "wasm.from", "wasm.contract_address"),
+             "cw20_tokens": {dao["tokenContract"]: {"symbol": "NETA", "decimals": 6}}}
+    expected = [{"chain_id": dao["network"], "address": dao["core"]}]
+    previous = load_existing(output)
+    if previous.get("events") or previous.get("sources"):
+        if previous.get("scope") != "neta-main-dao" or previous.get("treasuries") != expected or any(
+            row.get("chain_id") != dao["network"] or row.get("treasury_address") != dao["core"]
+            for row in previous.get("events", [])
+        ):
+            raise RuntimeError("Main DAO event ledger identity mismatch; refusing to relabel records")
+    try:
+        data = collect((chain,), output, dao["proposalModule"], "neta-main-dao")
+        data["status"] = "PARTIAL"  # Supported indexes/tokens are not complete accounting.
+        data["last_success_at"] = data["generated_at"]
+    except Exception as error:
+        data = {**previous, "schema_version": 2, "scope": "neta-main-dao", "treasuries": expected,
+                "status": "UNAVAILABLE", "generated_at": previous.get("generated_at"),
+                "last_success_at": previous.get("last_success_at"), "sources": previous.get("sources", []),
+                "warnings": ["Historical transaction source unavailable; retained records are not a complete history.", str(error)]}
+    data["checked_at"] = now()
+    data["nns"] = {"status": "not_active", "registry": dao["nnsRegistry"], "revenue_raw": None,
+                   "note": "No verified NNS fee source is configured. Incoming NETA alone does not establish naming revenue."}
+    return data
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(); parser.add_argument('--dao', choices=['neta-operations', 'neta'], default='neta-operations'); args = parser.parse_args()
     output = OUT
     if args.dao == 'neta':
         dao = next(d for d in json.loads((ROOT / 'data/dao-directory.json').read_text())['daos'] if d['id'] == 'neta')
-        chain = {**CHAINS[0], 'address': dao['core'], 'creation_height': dao['creationHeight'], 'probe_key': 'transfer.recipient', 'queries': (*QUERIES, 'wasm.from', 'wasm.contract_address'), 'cw20_tokens': {dao['tokenContract']: {'symbol': 'NETA', 'decimals': 6}}}
         output = OUT.with_name('neta-main-events.json')
-        data = collect((chain,), output, dao['proposalModule'], 'neta-main-dao')
-        data['nns'] = {'status': 'not_active', 'registry': dao['nnsRegistry'], 'revenue_raw': None, 'note': 'No verified NNS fee source is configured. Incoming NETA alone does not establish naming revenue.'}
+        data = collect_main(dao, output)
     else:
         data = collect()
     output.parent.mkdir(parents=True, exist_ok=True)

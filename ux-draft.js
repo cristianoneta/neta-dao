@@ -55,6 +55,15 @@
       if(!empty){empty=document.createElement("div");empty.className="dao-scope-empty";view.append(empty)}
       const unavailable=id!=="neta-operations"&&name!=="treasury";
       [...view.children].slice(1).forEach(child=>{if(child!==empty&&child.id!=="dao-members-panel"&&child.id!=="treasury-nns")child.hidden=unavailable});
+      if(name==="treasury"){
+        view.querySelectorAll(".allocation-card,.risk-impact-grid,.cashflow-card,.treasury-bottom-grid").forEach(el=>el.hidden=id!=="neta-operations");
+        view.querySelector(".treasury-main-grid").style.gridTemplateColumns=id==="neta-operations"?"":"1fr";
+      }
+      if(name==="contributors"){
+        view.querySelector("h1").textContent=id==="neta-operations"?"Know who owns the work.":"Understand who can participate.";
+        view.querySelector(".concept-hero p").textContent=id==="neta-operations"?"Contributors become visible through responsibilities, active mandates, compensation and delivered outcomes.":"Governance participation and its source. Staking does not establish a contributor role or legal membership.";
+        view.querySelector(".concept-badge").textContent=id==="neta-operations"?"UX DRAFT · SAMPLE PROFILES":"GOVERNANCE PARTICIPATION";
+      }
       empty.textContent=`${scope[name]} · NO LIVE ${name.toUpperCase()} DATA CONNECTED YET`;
       empty.hidden=!unavailable;
     }

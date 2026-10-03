@@ -57,7 +57,7 @@ test("Relay hides a zero badge and gives the inbox the full width", () => {
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
   assert.match(html, /relay\.css\?v=20261003-3/);
-  assert.match(html, /relay\.js\?v=9/);
+  assert.match(html, /relay\.js\?v=[^"\s]+/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
 
@@ -127,7 +127,7 @@ test("treasury events replace sample activity with verified linked transactions"
 test("small and unpriced treasury assets are collapsed without changing totals", () => {
   assert.match(treasury, /Number\(item\.usd_value\)>=50/);
   assert.match(treasury, /SMALL \/ UNPRICED ASSETS/);
-  assert.match(treasury, /renderAssets\(data\.assets,totalUsd,data\.warnings\|\|\[\],policyText\)/);
+  assert.match(treasury, /renderAssets\(data\.assets,Number\(data.total_usd\|\|0\),data\.warnings\|\|\[\],policyText\)/);
   assert.match(treasury, /assets\.after\(warning\)/);
   assert.match(treasury, /details\.append\(policy\)/);
 });
@@ -137,7 +137,7 @@ test("treasury history uses daily snapshots and keeps attribution inputs", () =>
   for (const field of ["symbol", "source_chain", "amount", "usd_price", "usd_value"]) {
     assert.match(collector, new RegExp(`item\\.get\\(\\"${field}\\"|item\\[\\"${field}\\"\\]`));
   }
-  assert.match(treasury, /historyFile/);
+  assert.match(treasury, /dao.history/);
   assert.match(treasury, /priceEffect/);
   assert.match(treasury, /netFlow/);
   assert.match(treasury, /treasury-history-chart/);
@@ -236,7 +236,7 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(ux, /panel:"directory"/);
   assert.match(ux, /relay\/following/);
   assert.match(ux, /relayPanels\.forEach/);
-  assert.match(html, /ux-draft\.js\?v=13/);
+  assert.match(html, /ux-draft\.js\?v=[^"\s]+/);
   assert.match(html, /governance-overrides\.css\?v=20261003-1/);
   assert.doesNotMatch(html, /GOVERNANCE · ACCOUNTABILITY · TRANSPARENCY/);
   assert.match(html, /data-relay-panel-view="names"/);
@@ -246,7 +246,7 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(html, /USD 5 · 4 characters: USD 160 · 3 characters: USD 640/);
   assert.match(html, /This pricing requires the new registry and is not active yet/);
   assert.doesNotMatch(html, /names-preview-entry|Explore the preview/);
-  assert.match(html, /names-workspace\.js\?v=3/);
+  assert.match(html, /names-workspace\.js\?v=[^"\s]+/);
   assert.match(html, /data-name-panel="directory"/);
   assert.match(html, /REGISTER · COMING SOON/);
   assert.match(names, /neta-names-v1:/);

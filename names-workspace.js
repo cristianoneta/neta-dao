@@ -104,8 +104,9 @@
     document.querySelector(`button[data-workspace-view="${view}"]`).click();
   }
   function renderDao(id) {
-    activeDao=directory.find(dao=>dao.id===id)||directory[0];
+    activeDao=directory.find(dao=>dao.id===id);
     const dao=activeDao,host=find("#names-dao-profile");host.replaceChildren();
+    if(!dao){host.append(element("h2",null,"Unknown DAO"),element("p","names-help","This DAO is not in the verified directory. Return to the directory to choose an available profile."));return;}
     const layout=element("div","names-layout"),profile=element("article","names-panel"),address=element("aside","names-panel");
     profile.append(element("span","names-badge",dao.mode==="native-gov"?"Network governance":"DAO · directory entry"),element("h2",null,dao.title),element("p","names-identity",dao.directoryName),element("p","names-help","Directory name · not registered on-chain · name-based payments unavailable"),element("p",null,dao.description));
     const follow=element("button");follow.type="button";follow.dataset.relayDao=dao.id;follow.setAttribute("aria-pressed","false");follow.setAttribute("aria-label",`Follow ${dao.title}`);const star=element("i",null,"☆");star.setAttribute("aria-hidden","true");const label=element("span",null,"Follow");label.dataset.followLabel="";follow.append(star,label);profile.append(follow);

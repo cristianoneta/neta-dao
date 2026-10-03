@@ -139,3 +139,13 @@ pending ratchet/archive/outbox or transaction-journal state to unblock the UI.
 
 
 Latest repository/CI/data review: [maintenance checkpoint](docs/MAINTENANCE_CHECKPOINT_2026-10-03.md).
+
+## Adding DAOs
+
+Use [DAO_ONBOARDING_CHECKLIST.md](docs/DAO_ONBOARDING_CHECKLIST.md) and the DAO
+onboarding issue template. `data/dao-directory.json` owns shared identity,
+capability and data-source mapping; generate `dao-directory.js` after changes.
+See [main DAO integration evidence](docs/DAO_ONBOARDING_2026-10-03.md) for known
+coverage limits and deployment status. `python scripts/update_main_dao.py` runs
+isolated, bounded main DAO reads; its status file must be checked alongside the
+underlying snapshot timestamps. It does not change Operations exports.
