@@ -13,7 +13,7 @@ import { MailboxTransport } from './spikes/relay-corecrypto/mailbox-transport.mj
 const $ = id => document.getElementById(id);
 const address = value => /^juno1[023456789acdefghjklmnpqrstuvwxyz]{38,90}$/.test(value || '');
 const state = { wallet: null, crypto: null, db: null, vault: null, archive: null, outbox: null,
-  key: null, path: null, lock: null, descriptor: null, registration: null, busy: false, poisoned: false };
+  key: null, path: null, lock: null, descriptor: null, registration: null, busy: false, poisoned: false, closeRequested: false };
 let wasmReady = false;
 const encoder = new TextEncoder();
 const hex = bytes => Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
@@ -51,7 +51,13 @@ async function run(action) {
     } catch { state.poisoned = true; }
     notice('BLOCKED · ' + (error.message || String(error)));
   }
-  finally { state.busy = false; controls(); }
+  finally {
+    state.busy=false;
+    if(state.closeRequested) {
+      state.closeRequested=false;
+      await closeLocal(); notice('KEPLR ACCOUNT CHANGED · CONNECT AGAIN.');
+    } else controls();
+  }
 }
 async function closeLocal() {
   try { state.crypto?.uniffiDestroy(); } catch {}
@@ -261,6 +267,12 @@ $('register').onclick = () => run(async () => {
 });
 $('send').onclick = () => run(testSend);
 $('receive').onclick = () => run(receive);
-window.addEventListener('keplr_keystorechange', () => { state.wallet = null; closeLocal().then(() => notice('KEPLR ACCOUNT CHANGED · CONNECT AGAIN.')); });
+window.addEventListener('keplr_keystorechange', () => {
+  state.wallet=null; state.poisoned=true; controls();
+  // Keep the device lock/crypto handles until the running operation reaches its
+  // durable commit or recoverable journal. Never release into a second tab early.
+  if(state.busy) state.closeRequested=true;
+  else closeLocal().then(()=>notice('KEPLR ACCOUNT CHANGED · CONNECT AGAIN.'));
+});
 window.addEventListener('pagehide', () => { state.crypto?.uniffiDestroy(); state.db?.uniffiDestroy(); state.key?.uniffiDestroy(); state.vault?.close(); state.archive?.close(); state.outbox?.close(); });
 controls();

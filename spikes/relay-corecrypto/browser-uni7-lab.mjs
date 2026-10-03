@@ -188,7 +188,7 @@ try {
       const source=await readFile(files['/relay-uni7-archive.mjs'],'utf8');
       await route.fulfill({contentType:'text/javascript',body:source.replace(
         'async complete(id, meta, text, sequence) {',
-        'async complete(id, meta, text, sequence) { if(window.__failArchive) throw Error("TEST archive interruption");')});
+        'async complete(id, meta, text, sequence) { if(window.__holdArchive){window.__archiveHeld=true;await new Promise(resolve=>window.__releaseArchive=resolve);} if(window.__failArchive) throw Error("TEST archive interruption");')});
     });
     await b.page.reload();
     await b.page.getByRole('button',{name:'CONNECT KEPLR · UNI-7'}).click(); await ready(b.page,'WALLET CONNECTED');
@@ -204,6 +204,23 @@ try {
     await b.page.getByRole('button',{name:'CHECK & DECRYPT INBOX'}).click(); await ready(b.page,'DECRYPTED & ARCHIVED');
     assert.match(await b.page.locator('#history').innerText(),/recover exact ratchet and archive/);
     assert.equal(await b.page.locator('#send').isDisabled(),false);
+
+    await a.page.locator('#message').fill('coherent receive during wallet change');
+    await a.page.getByRole('button',{name:'TEST ENCRYPTED SEND · KEPLR'}).click();
+    await a.page.waitForFunction(()=>document.querySelector('#history').textContent.includes('coherent receive during wallet change'));
+    await b.page.evaluate(()=>window.__holdArchive=true);
+    await b.page.getByRole('button',{name:'CHECK & DECRYPT INBOX'}).click();
+    await b.page.waitForFunction(()=>window.__archiveHeld);
+    await b.page.evaluate(()=>window.dispatchEvent(new Event('keplr_keystorechange')));
+    assert.equal(await b.page.locator('#send').isDisabled(),true);
+    assert.equal(await b.page.evaluate(async()=>(await navigator.locks.query()).held.length),1,'device lock released before receive completion');
+    await b.page.evaluate(()=>window.__releaseArchive());
+    await ready(b.page,'ACCOUNT CHANGED');
+    assert.equal(await b.page.evaluate(async()=>(await navigator.locks.query()).held.length),0);
+    await b.page.reload();
+    await b.page.getByRole('button',{name:'CONNECT KEPLR · UNI-7'}).click();await ready(b.page,'WALLET CONNECTED');
+    await b.page.locator('#recovery').fill(b.code);await b.page.getByRole('button',{name:'UNLOCK EXISTING DEVICE'}).click();await ready(b.page,'HISTORY RESTORED');
+    assert.match(await b.page.locator('#history').innerText(),/coherent receive during wallet change/);
     console.log('Adversarial receive: malformed ciphertext, colliding IDs, reload and ratchet/archive interruption recovery passed');
   }
 

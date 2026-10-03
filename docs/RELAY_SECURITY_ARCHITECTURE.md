@@ -107,3 +107,8 @@ resolution require tests before activation.
 Mainnet messaging remains disabled. No live attack, secret key or new contract
 deployment was used in this continuation. The generated local unlock code is not
 an off-device backup.
+
+The continuation also defers destruction/release on a Keplr account-change event
+until a busy operation has completed or left a recoverable journal. An adversarial
+browser test suspends archive completion, changes the account, verifies the lock
+remains held, then completes/reloads and checks the archived message.
