@@ -31,9 +31,11 @@ HANDOFF for release evidence and the evening continuation.
 | Names & Contacts | UI and prepared commit/reveal/renewal handlers | `names.js` has `REGISTRY=null`; registry writes are disabled |
 | Delivery / Contributors | Visual concepts and structured proposal deliverables | No authoritative contributor records, milestone acceptance or payment release |
 
-RELAY groups Inbox, Following and Names & Contacts. Favorites are managed in
-Following; there is no Inbox watchlist sidebar. `#names` canonicalizes to
-`#relay/names`. The top DAO picker is hidden in RELAY because Inbox spans favorites.
+RELAY directly exposes Inbox, Directory, Contacts, My profile and .neta name.
+Directory owns search, follow toggles and a Followed filter; stored favorites are
+preserved. There is no separate Following page or nested Names navigation.
+`#names`, `#relay/names` and `#relay/following` canonicalize to `#relay/directory`.
+The top DAO picker is hidden in RELAY because Inbox spans favorites.
 
 ## Important governance distinction
 
@@ -133,3 +135,4 @@ source only. The pinned UNI-7 v0.1 address/artifact has not changed. Automatic
 off-device recovery, historical sender resolution, consent/refill integration and
 the full rotation/exhaustion/restore matrix remain release blockers. Never discard
 pending ratchet/archive/outbox or transaction-journal state to unblock the UI.
+

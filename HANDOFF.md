@@ -72,7 +72,8 @@ real wallet keys; all adversarial tests use isolated synthetic fixtures.
 - Operations legacy and Juno v0.3.0 are different APIs and permission models.
   Never apply v0.3.0 hardening claims to the legacy instance.
 - Inbox polls mainnet proposals only; review-revision notifications are not connected.
-  Following owns favorites; Inbox has no watchlist sidebar.
+  Directory owns follow controls; Inbox has no watchlist sidebar. RELAY directly
+  exposes Inbox, Directory, Contacts, My profile and .neta name; no nested Names tabs.
 - Names is under RELAY; `REGISTRY=null`. Mainnet Names signing code is prepared,
   not active. A requested UNI-7 Names test still needs explicit testnet wiring.
 - Delivery/Contributors and Treasury forecasts/commitments/runway are concepts.
@@ -115,3 +116,4 @@ source only. The pinned UNI-7 v0.1 address/artifact has not changed. Automatic
 off-device recovery, historical sender resolution, consent/refill integration and
 the full rotation/exhaustion/restore matrix remain release blockers. Never discard
 pending ratchet/archive/outbox or transaction-journal state to unblock the UI.
+

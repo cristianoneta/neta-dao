@@ -53,11 +53,11 @@ test("Relay hides a zero badge and gives the inbox the full width", () => {
   assert.match(relayCss, /relay-unread-badge\[hidden\]\{display:none\}/);
   assert.match(relayCss, /\.relay-layout\{display:block\}/);
   assert.doesNotMatch(html, /class="relay-watchlist/);
-  assert.match(html, /data-relay-panel-view="following"/);
+  assert.doesNotMatch(html, /data-relay-panel-view="following"/);
   assert.match(relay, /count\.hidden=unread===0/);
   assert.match(relay, /markRead\.disabled=unread===0/);
-  assert.match(html, /relay\.css\?v=20261003-1/);
-  assert.match(html, /relay\.js\?v=7/);
+  assert.match(html, /relay\.css\?v=20261003-2/);
+  assert.match(html, /relay\.js\?v=8/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
 
@@ -227,16 +227,16 @@ test("deliverables are embedded in the revision payload", () => {
 test("Names is a RELAY panel with legacy deep links and an honest deployment gate", () => {
   const names=readFileSync("names.js", "utf8");
   assert.doesNotMatch(html, /data-workspace-view="names"/);
-  for (const panel of ["inbox","following","names"]) assert.match(html, new RegExp(`data-relay-panel="${panel}"`));
-  assert.match(html, /id="relay-following-view"/);
+  for (const panel of ["inbox","directory","contacts","profile","register"]) assert.match(html, new RegExp(`data-relay-panel="${panel}"`));
+  assert.doesNotMatch(html, /id="relay-following-view"|class="names-tabs"/);
   assert.match(html, /id="relay-open-names"/);
-  assert.match(html, /ALL FOLLOWED DAOS/);
+  assert.match(html, /YOUR RELAY/);
   assert.match(readFileSync("relay.css", "utf8"), /body\[data-workspace-view="relay"\] \.governance-selectors\{display:none!important\}/);
   assert.match(readFileSync("relay.css", "utf8"), /\.gov-header \.relay-global-scope\{display:none/);
-  assert.match(ux, /if\(value==="names"\)return \{view:"relay",panel:"names"\}/);
+  assert.match(ux, /panel:"directory"/);
   assert.match(ux, /relay\/following/);
   assert.match(ux, /relayPanels\.forEach/);
-  assert.match(html, /ux-draft\.js\?v=11/);
+  assert.match(html, /ux-draft\.js\?v=12/);
   assert.match(html, /governance-overrides\.css\?v=20261003-1/);
   assert.doesNotMatch(html, /GOVERNANCE · ACCOUNTABILITY · TRANSPARENCY/);
   assert.match(html, /data-relay-panel-view="names"/);
@@ -246,7 +246,7 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(html, /USD 5 · 4 characters: USD 160 · 3 characters: USD 640/);
   assert.match(html, /This pricing requires the new registry and is not active yet/);
   assert.doesNotMatch(html, /names-preview-entry|Explore the preview/);
-  assert.match(html, /names-workspace\.js\?v=1/);
+  assert.match(html, /names-workspace\.js\?v=2/);
   assert.match(html, /data-name-panel="directory"/);
   assert.match(html, /REGISTER · COMING SOON/);
   assert.match(names, /neta-names-v1:/);

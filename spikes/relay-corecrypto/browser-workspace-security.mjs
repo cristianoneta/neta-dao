@@ -79,12 +79,40 @@ try{
  // Names is part of the actual RELAY route, with read-only controls.
  await page.goto(origin+'/index.html#relay/names');
  assert.equal(await page.locator('#names-view').isVisible(),true);
+ assert.equal(new URL(page.url()).hash,'#relay/directory');
+ assert.equal(await page.locator('[data-relay-panel="following"],.names-tabs').count(),0);
+ for(const panel of ['contacts','profile','register','directory']){
+  await page.locator(`[data-relay-panel="${panel}"]`).click();
+  assert.equal(await page.locator(`[data-name-panel="${panel}"]`).isVisible(),true);
+  assert.equal(new URL(page.url()).hash,'#relay/'+panel);
+ }
+ await page.goBack();
+ assert.equal(await page.locator('[data-name-panel="register"]').isVisible(),true);
+ await page.goForward();
+ assert.equal(await page.locator('[data-name-panel="directory"]').isVisible(),true);
+ const opsFollow=page.locator('#names-directory-list [data-relay-dao="neta-operations"]');
+ assert.equal(await opsFollow.getAttribute('aria-pressed'),'true');
+ await opsFollow.click();
+ assert.equal(await opsFollow.getAttribute('aria-pressed'),'false');
+ await page.locator('#names-directory-filter').selectOption('followed');
+ assert.equal(await opsFollow.isVisible(),false);
+ await page.reload();
+ assert.equal(await opsFollow.getAttribute('aria-pressed'),'false');
+ await opsFollow.click();
+ assert.equal(await opsFollow.getAttribute('aria-pressed'),'true');
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('neta-relay-favorites:v1')).includes('neta-operations')),true);
+ await page.goto(origin+'/index.html#relay/following');
+ assert.equal(new URL(page.url()).hash,'#relay/directory');
  assert.equal(await page.locator('.relay-hero').isVisible(),false);
  assert.equal(await page.getByText('Explore the preview',{exact:true}).count(),0);
  await page.getByRole('button',{name:'View NETA Operations DAO',exact:true}).click();
  assert.equal(await page.locator('[data-name-panel="dao"]').isVisible(),true);
  assert.match(await page.locator('#names-dao-address').textContent(),/^juno1excmam/);
  assert.equal(await page.getByRole('button',{name:'Send NETA',exact:true}).isDisabled(),true);
+ assert.equal(await page.locator('[data-name-panel="dao"] [data-relay-dao]').getAttribute('aria-pressed'),'true');
+ await page.locator('[data-name-panel="dao"] [data-relay-dao]').click();
+ assert.equal(await opsFollow.getAttribute('aria-pressed'),'false');
+ await page.locator('[data-name-panel="dao"] [data-relay-dao]').click();
  await page.getByRole('button',{name:'← Back to directory',exact:true}).click();
  await page.locator('#names-directory-query').fill('<img src=x onerror=alert(1)>');
  assert.equal(await page.locator('#names-directory-list img').count(),0);
@@ -101,7 +129,10 @@ try{
  assert.equal(await page.getByRole('button',{name:'REGISTER · COMING SOON',exact:true}).isDisabled(),true);
  for(const width of [320,390,768,1440]){
   await page.setViewportSize({width,height:1000});
-  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'Names overflow at '+width);
+  for(const panel of ['directory','contacts','profile','register']){
+   await page.locator(`[data-relay-panel="${panel}"]`).click();
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'RELAY '+panel+' overflow at '+width);
+  }
  }
  assert.equal(await page.locator('.names-heading h1').evaluate(el=>getComputedStyle(el).color),'rgb(242, 244, 247)');
  await page.locator('[data-relay-panel="inbox"]').click();

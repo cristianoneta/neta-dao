@@ -1,7 +1,10 @@
 # Names inside the main workspace — 2026-10-03
 
 The owner rejected a separate preview mode and requested direct integration before
-further polish. The canonical surface is now `index.html#relay/names`.
+further polish. The directory is now `index.html#relay/directory`; `#relay/names` remains a legacy alias.
+The 2026-10-03 navigation follow-up promotes Directory, Contacts, My profile and
+.neta name into the RELAY navigation, alongside Inbox. Following becomes directory
+controls with the same saved subscriptions. There is no nested Names tab bar.
 
 - Reuse the actual sticky workspace header, navigation, RELAY tabs and shared
   graphite/mint tokens. Suppress the duplicate RELAY marketing introduction only

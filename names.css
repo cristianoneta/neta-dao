@@ -1,13 +1,10 @@
 /* Names inside RELAY; shared foundations in neta-ui.css. */
-body[data-workspace-view="relay"][data-relay-panel="names"] .relay-hero{display:none}
+body[data-workspace-view="relay"]:not([data-relay-panel="inbox"]) .relay-hero{display:none}
 .names-page{padding:8px 0 40px;scroll-margin-top:110px;min-width:0}
 .names-heading{display:flex;justify-content:space-between;align-items:center;gap:24px;margin:8px 0 24px}
 .names-heading h1{margin:8px 0 12px;font-size:36px;color:var(--neta-text)}
 .names-heading p{margin:0;color:var(--neta-text-secondary)}
 .names-heading>button{flex-shrink:0}
-.names-tabs{display:flex;gap:24px;margin-bottom:28px;border-bottom:1px solid var(--neta-border)}
-.gov-shell .names-tabs button{border:0;border-radius:0;border-bottom:2px solid transparent;padding:12px 0;color:var(--neta-text-secondary);font-weight:500;font-size:15px}
-.gov-shell .names-tabs button[aria-pressed="true"]{color:var(--neta-text);border-bottom-color:var(--neta-accent)}
 .names-search-area{max-width:760px;margin-bottom:32px}
 .names-page label{display:block;margin:20px 0 8px;color:var(--neta-text);font-size:14px;font-weight:500}
 .names-page input,.names-page textarea,.names-page select{width:100%;min-width:0}
@@ -55,3 +52,11 @@ body[data-workspace-view="relay"][data-relay-panel="names"] .relay-hero{display:
 .names-resolution,.relay-send-note{color:var(--neta-text-secondary);font-size:12px;line-height:1.5}
 .relay-composer-actions button[type="submit"]:disabled{cursor:not-allowed}
 @media(max-width:760px){.names-heading{align-items:flex-start;flex-direction:column;gap:16px}.names-heading h1{font-size:30px}.names-layout{grid-template-columns:1fr}.names-panel,.names-empty{padding:20px}.names-directory-row{flex-wrap:wrap}.names-directory-identity{flex-basis:calc(100% - 64px)}.names-directory-row>button{margin-left:64px}.names-page{scroll-margin-top:160px}}
+
+.names-directory-row[hidden],.names-empty[hidden]{display:none}
+.names-directory-actions{display:flex;gap:12px;flex-wrap:wrap}
+.names-page .names-directory-filter{display:flex;align-items:center;gap:12px;margin:0}
+.names-directory-filter select{width:auto;min-width:120px}
+.names-page [data-relay-dao]{display:inline-flex;align-items:center;gap:8px}
+.names-page [data-relay-dao] i{font-style:normal;color:var(--neta-accent)}
+@media(max-width:760px){.names-directory-actions{margin-left:64px}}
