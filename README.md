@@ -9,6 +9,10 @@ The latter is the code-backed feature/deployment inventory. Review date: 2026-10
 Recorded deployments are not a fresh on-chain attestation; recheck identity and
 state before signing. This documentation review changes no application behavior.
 
+For UI work and new pages, follow [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
+The 2026-10-03 selected direction is graphite/mint with restrained voxel accents
+and an assembly-plaza Home illustration. It is documented, not yet implemented.
+
 ## What is connected
 
 | Surface | Current behavior | Boundary |
