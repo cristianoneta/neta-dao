@@ -1,6 +1,6 @@
 # Main Neta DAO integration — 2026-10-03
 
-Implementation on PR #118; release evidence is recorded below after verification.
+Published in PR #118 on 2026-10-03; verified release evidence is recorded below.
 The original `HANDOFF_NEXT_CHAT_2026-10-03.md` is a historical WIP snapshot.
 
 ## Connected scope
@@ -62,7 +62,37 @@ The local real-source run completed in approximately 133 seconds: member/balance
 reads succeeded; historical event indexing remained unavailable. Browser fixtures
 exercise both historical details and unavailable states; they do not sign wallets.
 
-Release evidence: pending final PR checks and deployment verification.
+Release verified on 2026-10-03 around 22:02 Europe/Berlin:
+
+- PR #118 merged as `641b8bd8de27bbf5c4b60ecc934532b80095d039` after exact-head
+  `f8bb037e2b2a07fc089be81efb1666946b55c207` checks succeeded: Contract/frontend
+  [37149693420](https://github.com/cristianoneta/neta-dao/actions/runs/37149693420)
+  and RELAY browser/crypto
+  [37149693465](https://github.com/cristianoneta/neta-dao/actions/runs/37149693465).
+- Main-push Contract/frontend run `37149787305` succeeded.
+- Operations/Community Pool job `37149787273` succeeded, creating bot commit
+  `eb6c2a68173e9207fadbd011415b6adfb5f9dc82`. Main DAO job `37149787307`
+  succeeded, creating `e6a656e1becb908958c8422d54716fc55670e64a`.
+  Source status at `2026-10-03T19:59:05Z`: members and balances completed,
+  events unavailable. Successful workflow completion does not mean full history.
+- Pages run `37149805937` succeeded for the Operations bot continuation; run
+  `37149872156` succeeded for the main DAO bot continuation. Initial Pages run
+  `37149786900` was superseded/cancelled by the newer bot deployment, not a defect.
+- Eight served production files matched the checked source byte-for-byte:
+  index.html, neta-governance.js, dao-directory.js, dao-members.js,
+  names-workspace.js, relay.js, treasury.js and ux-draft.js.
+- Live cloud-browser inspection loaded the main DAO profile and 2088 staking
+  participants, its PARTIAL Treasury and explicit unavailable-history notice;
+  all three real on-chain proposals loaded and Constitution #3 opened with
+  executed status and actual description. Juno's native-governance profile
+  correctly showed no ordinary receiving core address. No wallet writes.
+- The browser initially retained an older unversioned index; release-query URL
+  `index.html?release=641b8bd` served the new build. Reload if a client retains
+  the previous two-DAO menu. Source asset query versions are updated.
+
+Remaining work is tracked in issue #119. NNS registration, attributable fee
+revenue and new main DAO signing remain gated; directory labels are not names
+registered on-chain.
 
 ## Resumed verification after interrupted chat
 
@@ -71,3 +101,7 @@ tests and the Playwright workspace regression successfully. Responsive screensho
 review uses actual snapshots at 320/768/1440 px; chain proposal queries are fixtures.
 No wallet transactions were submitted. Remaining source/activation work is tracked
 in [issue #119](https://github.com/cristianoneta/neta-dao/issues/119).
+
+Owner follow-up: DAO selector results sort alphabetically by displayed name,
+case-insensitively, including filtered results. Stored selection/default DAO
+remains independent of the menu order.
