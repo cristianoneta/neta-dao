@@ -1,14 +1,17 @@
 # Names inside the main workspace — 2026-10-03
 
 The owner rejected a separate preview mode and requested direct integration before
-further polish. The canonical surface is now `index.html#relay/names`.
+further polish. The directory is now `index.html#relay/directory`; `#relay/names` remains a legacy alias.
+The 2026-10-03 navigation follow-up promotes Directory, Contacts, My profile and
+.neta name into the RELAY navigation, alongside Inbox. Following becomes directory
+controls with the same saved subscriptions. There is no nested Names tab bar.
 
 - Reuse the actual sticky workspace header, navigation, RELAY tabs and shared
   graphite/mint tokens. Suppress the duplicate RELAY marketing introduction only
-  while Names is selected. Other RELAY panels keep their existing introduction.
+  outside Inbox. Inbox keeps its existing introduction.
 - Integrate Directory, Contacts, My profile, DAO detail and name fee calculation.
   No iframe, second app shell, preview banner or separate preview launch remains.
-- Directory search uses the real Operations DAO entry configured in this workspace.
+- Directory search uses the real Operations DAO and Juno Governance entries.
   The exact core address can be copied. Its proposed .dao.neta name is explicitly
   unregistered and does not imply on-chain identity verification or DAO endorsement.
 - Do not present sample people, pretend registrations, fake quotes, fake wallet
@@ -18,7 +21,8 @@ further polish. The canonical surface is now `index.html#relay/names`.
   a name, determine the current NETA amount or accept payments.
 - Contacts, profile editing, renewals/transfers, DAO profile proposals and payments
   stay locally disabled with explanations until ownership/registry adapters exist.
-  No new wallet prompts, API calls, persistence or governance submission are added.
+  No new wallet prompts or governance submission are added. Follow controls reuse
+  relay.js and its existing local storage and governance reads.
 - Existing names.js remains inactive (`REGISTRY=null`), available for existing
   RELAY resolver usage. Its old fixed-fee handlers are not connected to the new
   fee form. Existing pending transaction/crypto/name journals are untouched.

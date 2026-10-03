@@ -38,8 +38,8 @@ sample values or omissions over the actual application. Production art is now pr
 3. Shared shell and reusable components across all modules. Content and density
    may differ; typography, spacing, control states and color roles do not.
 4. Existing information architecture and functionality are the starting point.
-   Keep Home, Proposals, Delivery, Contributors, Treasury and RELAY. Following
-   and Names & Contacts remain within RELAY. Maintain sticky header behavior.
+   Keep Home, Proposals, Delivery, Contributors, Treasury and RELAY. Inbox, Directory, Contacts, My profile
+   and .neta name are peers within RELAY (owner update 2026-10-03). Maintain sticky header behavior.
 5. Visual polish must preserve the distinction between real data, local drafts,
    testnet actions, incomplete coverage and planned features.
 
@@ -144,7 +144,7 @@ reserve dimensions to avoid layout shifts. No runtime 3D engine is needed.
 | Delivery | Same panels, milestone rows, owner/deadline/evidence treatment; clearly label concept data and unavailable acceptance/payment actions |
 | Contributors | Same cards/table styles and readable identities; distinguish illustrative contributions from authoritative records; no fictional live scores |
 | Treasury | Clear totals, tabular figures, consistent asset/event tables, neutral chart grid, labeled series; distinguish committed snapshots and PARTIAL coverage from planning/forecast examples at the relevant section |
-| RELAY | Same shell, list/reader/forms and unread treatment; Following owns favorites; zero unread badges stay hidden; unavailable private sending is not the dominant action |
+| RELAY | Same shell, list/reader/forms and unread treatment; Directory owns follow controls; zero unread badges stay hidden; unavailable private sending is not the dominant action |
 | Names & Contacts | Reuse RELAY and shared forms/list patterns; preserve disabled registry activation and clear availability state |
 | Lab/readiness/setup | Shared foundations where practical but unmistakable test/admin context; visual changes never remove security controls or enable writes |
 
@@ -211,3 +211,12 @@ new explicit owner instruction changes the direction, record it here with its da
 - [Atlassian color foundations](https://atlassian.design/foundations/color): semantic color roles and reusable tokens.
 - [WCAG contrast](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html).
 - [WCAG target size](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html).
+
+
+## RELAY navigation update — 2026-10-03
+
+The owner requested one navigation level below RELAY. Do not recreate the separate
+Following page or a Names tab containing another tab bar. DAO discovery and follow
+preferences live together in Directory. Use a Followed filter, retaining existing
+subscriptions. Profile detail stays a contextual view with a Back to directory
+action. On narrow screens, section buttons wrap and remain directly discoverable.

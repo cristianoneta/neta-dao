@@ -156,8 +156,13 @@ connected workshop revision feed. First load seeds up to eight already-read
 current notices, not an unread flood. Up to 200 events, favorites, baselines and
 read state stay browser-local. No push, service worker or cross-device sync.
 
-Inbox has feed and reader with current summary/activity. Favorites are in
-Following; **no watchlist sidebar** exists in `index.html`. Zero unread badges
+Inbox has feed and reader with current summary/activity. Favorites are managed
+in Directory using Follow buttons and the Followed filter. RELAY has one navigation
+level: Inbox, Directory, Contacts, My profile and .neta name. The old Names and
+Following links redirect to Directory; browser Back/Forward restores destinations.
+Operations and Juno Governance subscriptions use the existing browser-local storage
+key, with synchronized follow controls in the Operations profile. There is **no
+watchlist sidebar** in `index.html`. Zero unread badges
 are hidden. Composer input lives temporarily in DOM; submit only prevents default,
 Discard clears/closes, and SEND is disabled. Main UI contains no private messages.
 
@@ -307,3 +312,10 @@ off-device recovery, historical sender resolution, consent/refill integration an
 the full rotation/exhaustion/restore matrix remain release blockers. Never discard
 pending ratchet/archive/outbox or transaction-journal state to unblock the UI.
 
+
+
+RELAY navigation follow-up (2026-10-03): the owner removed the separate Following
+page and promoted Names functions into the RELAY section navigation. No registry,
+payment, messaging or profile-write gate changed. The browser regression covers
+direct routes, Back/Forward, legacy links, persistent follow preferences and
+320/390/768/1440 px layouts. See the change PR for final CI/deployment evidence.
