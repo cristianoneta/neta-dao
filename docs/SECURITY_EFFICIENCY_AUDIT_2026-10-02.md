@@ -8,9 +8,9 @@ Review of first-party website and DAO contracts, wallet transaction flows, RELAY
 
 | ID | Severity | Status | Finding and evidence |
 | --- | --- | --- | --- |
-| R1 | High, prototype availability | Open; release blocker | `relay-uni7-archive.mjs` and UNI7 receive flow persist an archive intent before authenticated decryption completes. A malformed mailbox ciphertext can leave a pending intent that blocks local receive/send after reload. The contract checks byte lengths, not cryptographic validity. The optional local adversarial browser test exercises this failure without chain transactions. Do not skip the record blindly: Ratchet state and archive state must remain consistent. |
-| R2 | High, prototype availability | Open; release blocker | Initial sends consume recipient prekeys. An attacker can register multiple funded sender accounts and consume the lab's finite prekey inventory with invalid messages. Per-sender rate limits do not stop account rotation. Add authenticated acceptance/replenishment and bounded abuse handling before release. |
-| R3 | Medium, prototype availability | Open | Contract deduplication includes sender and message ID, whereas local archive identity uses recipient wallet and message ID. Malicious senders can choose colliding IDs. Migrate storage and authenticated envelope identity together; add adversarial collision and migration tests. Current-generation-only sender lookup also creates availability problems for unread messages after sender rotation. |
+| R1 | High, prototype availability | Repaired in PR #101; local receive | `relay-uni7-archive.mjs` and UNI7 receive flow persist an archive intent before authenticated decryption completes. A malformed mailbox ciphertext can leave a pending intent that blocks local receive/send after reload. The contract checks byte lengths, not cryptographic validity. The optional local adversarial browser test exercises this failure without chain transactions. Do not skip the record blindly: Ratchet state and archive state must remain consistent. |
+| R2 | High, prototype availability | v0.2 source repaired in #102; deployed v0.1 still blocked | Initial sends consume recipient prekeys. An attacker can register multiple funded sender accounts and consume the lab's finite prekey inventory with invalid messages. Per-sender rate limits do not stop account rotation. Add authenticated acceptance/replenishment and bounded abuse handling before release. |
+| R3 | Medium, prototype availability | Local namespace repaired in #101; historical lookup still open | Contract deduplication includes sender and message ID, whereas local archive identity uses recipient wallet and message ID. Malicious senders can choose colliding IDs. Migrate storage and authenticated envelope identity together; add adversarial collision and migration tests. Current-generation-only sender lookup also creates availability problems for unread messages after sender rotation. |
 | T1 | Medium | Fixed | `treasury.js` allowed a slow response for the previously selected DAO to overwrite the current view. Abort superseded fetches and guard every state update by load epoch; parse responses before committing them. |
 | T2 | Medium, financial display integrity | Fixed | `scripts/update_treasury.py` assigned prices to unreviewed IBC assets using base-denom names/substrings. Exact reviewed denom mapping now determines prices; unknown traces stay unpriced. Unpriced LP components now force PARTIAL even when other components have a value. Display totals are not custody guarantees. |
 | G1 | Medium | Fixed | Mainnet votes used the shared signing client's default `ujunox` testnet fee. The client accepts an explicit gas price; mainnet uses `0.075ujuno`. Rebuilt shared bundles are synchronized across repositories. |
@@ -18,7 +18,7 @@ Review of first-party website and DAO contracts, wallet transaction flows, RELAY
 | N1 | Medium, activation gate | Fixed; activation still gated | Names registry token validation now pins the exact canonical NETA contract rather than trusting symbol/decimals. Registry remains unset. Verify chain, registry address/code identity and treasury configuration before enabling mainnet writes. |
 | D1 | High advisory; limited local exposure | Fixed | RELAY spike Playwright 1.55.0 affected by GHSA-7mvr-c777-76hp. Updated to 1.63.0; audit now reports zero advisories. Advisory concerns insecure installer downloads on macOS; no production wallet exploit was established. Source: https://github.com/advisories/GHSA-7mvr-c777-76hp |
 | W1 | Medium | Fixed in website | Swap/IBC bind signing to reviewed parameters, freeze controls during signing and recheck wallet identity. See website audit for details. |
-| W2 | Medium | Open in website | An RPC timeout after submitting a transaction can leave acceptance ambiguous. A subsequent user retry may duplicate a spend. Persist signed transaction hash/sequence and reconcile pending transactions before allowing a retry. |
+| W2 | Medium | Website #138 repaired; DAO shared bundle in #103 | An RPC timeout after submitting a transaction can leave acceptance ambiguous. A subsequent user retry may duplicate a spend. Persist signed transaction hash/sequence and reconcile pending transactions before allowing a retry. |
 | G3 | Medium, policy/availability | Open | Legacy governance permits eligible members to revise/finalize shared proposals; this is the current collaborative policy, not demonstrated outsider access. Revision growth and incomplete pagination can degrade queries. Decide explicit ownership/review policy and bounded pagination before expanding use. DAO comment display also does not enforce the workshop moderation-hidden flag. |
 
 ## RELAY release requirements
@@ -83,7 +83,7 @@ duplicate/inconsistent pagination, checks a stored block-hash anchor and replays
 100-block overlap after a 20-block tip delay. Missing anchors fall back to full replay;
 a changed anchor or loss of a recorded transaction fails without publishing over the
 existing ledger. This does not fix unindexed CW20/LP cashflow or guarantee RPC honesty.
-Local continuation checks: 42 Node and 14 Python tests passed. Browser/contract CI
+Local continuation checks: 42 Node and 16 Python tests passed. Browser/contract CI
 for this follow-up must pass before merge. Mainnet messaging stays disabled.
 
 2026-10-03 RPC compatibility check: the public Juno gateway rejects height-range
@@ -99,3 +99,8 @@ bundle has its own browser regression. The scope and manual recovery limitations
 are described in the website audit; upload/instantiate helpers remain outside it.
 Mailbox v0.2 source PR #102 passed contract/frontend run 139 and all WASM jobs in
 run 22 and is merged; the deployed mailbox remains v0.1.
+
+Known optional Osmosis legacy index gaps preserve all cached events and emit an
+explicit coverage warning; they do not block fresh balances. Required Juno history
+gaps still fail publication. Seven independent address queries run with a bound
+of three workers; capability probes have five-second timeouts.

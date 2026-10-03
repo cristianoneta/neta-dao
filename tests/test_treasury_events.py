@@ -103,6 +103,21 @@ class TreasuryEventTests(unittest.TestCase):
         self.assertIn("tx.height>=10", query)
         self.assertIn("tx.height<=20", query)
 
+    def test_optional_legacy_index_gap_keeps_every_cached_event(self):
+        chain = events.CHAINS[1]
+        old = {"chain_id": chain["id"], "tx_hash": "OLD", "height": chain["creation_height"]+100, "timestamp": None}
+        with patch.object(events, "select_rpc", return_value=("rpc", chain["creation_height"]+300, 0, True)), patch.object(events, "block_hash", return_value="A"*64), patch.object(events, "search", return_value=[]):
+            rows, source = events.collect_chain(chain, [old], {}, {})
+        self.assertEqual([row["tx_hash"] for row in rows], ["OLD"])
+        self.assertEqual(source["historical_missing_transactions"], 1)
+
+    def test_required_history_loss_fails_before_replacing_ledger(self):
+        chain = events.CHAINS[0]
+        old = {"chain_id": chain["id"], "tx_hash": "OLD", "height": chain["creation_height"]+100, "timestamp": None}
+        with patch.object(events, "select_rpc", return_value=("rpc", chain["creation_height"]+300, 0, True)), patch.object(events, "block_hash", return_value="A"*64), patch.object(events, "search", return_value=[]):
+            with self.assertRaisesRegex(RuntimeError, "historical index lost"):
+                events.collect_chain(chain, [old], {}, {})
+
 
 if __name__ == "__main__":
     unittest.main()

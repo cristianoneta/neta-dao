@@ -66,8 +66,8 @@ def select_rpc(chain):
     probe = f"wasm._contract_address='{chain['address']}'"
     for base in chain["rpcs"]:
         try:
-            status = rpc(base, "status")
-            indexed = rpc(base, "tx_search", query=probe, page=1, per_page=1, order_by="desc")
+            status = rpc(base, "status", timeout=5)
+            indexed = rpc(base, "tx_search", timeout=5, query=probe, page=1, per_page=1, order_by="desc")
             total = int(indexed.get("total_count", 0))
             if chain["require_history"] and total == 0:
                 raise RuntimeError("historical address index is empty")
@@ -77,7 +77,7 @@ def select_rpc(chain):
             # Some public gateways reject every height range. Probe this before
             # choosing a node; keep a full-replay fallback rather than breaking
             # production when no range-capable archive is reachable.
-            rpc(base, "tx_search", query=f"{probe} AND tx.height>={chain['creation_height']} AND tx.height<={height-20}", page=1, per_page=1, order_by="asc")
+            rpc(base, "tx_search", timeout=5, query=f"{probe} AND tx.height>={chain['creation_height']} AND tx.height<={height-20}", page=1, per_page=1, order_by="asc")
             return base, height, total, True
         except Exception as error:
             errors.append(f"{base}: {error}")
@@ -250,13 +250,18 @@ def collect_chain(chain, existing, registry, titles, source=None):
     if not range_capable:
         start_height, incremental = chain["creation_height"], False
     found = {}
-    for key in QUERIES:
-        for tx in search(base, key, chain["address"], start_height if range_capable else None, end_height if range_capable else None):
-            if start_height <= int(tx["height"]) <= end_height and int(tx.get("tx_result", {}).get("code", 0)) == 0:
-                found[tx["hash"]] = tx
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = [pool.submit(search, base, key, chain["address"], start_height if range_capable else None, end_height if range_capable else None) for key in QUERIES]
+        for future in futures:
+            for tx in future.result():
+                if start_height <= int(tx["height"]) <= end_height and int(tx.get("tx_result", {}).get("code", 0)) == 0:
+                    found[tx["hash"]] = tx
     prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"]}
-    if not incremental and any(int(row["height"]) <= end_height and digest not in found for digest, row in prior.items()):
+    historical_missing = sum(start_height <= int(row["height"]) <= end_height and digest not in found for digest, row in prior.items())
+    if historical_missing and chain["require_history"]:
         raise RuntimeError("historical index lost recorded transactions; preserve existing ledger")
+    # Optional Osmosis legacy indexing was incomplete before this change. Keep
+    # every cached event and report the gap rather than blocking fresh balances.
     timestamp_by_height = {int(row["height"]): row.get("timestamp") for row in prior.values()}
     missing_heights = sorted({int(tx["height"]) for tx in found.values()} - set(timestamp_by_height))
     with ThreadPoolExecutor(max_workers=4) as pool:
@@ -272,7 +277,7 @@ def collect_chain(chain, existing, registry, titles, source=None):
         row["treasury_address"] = chain["address"]
         row["proposal_title"] = titles.get(str(row.get("proposal_id")), row.get("proposal_title")) if row.get("proposal_id") else None
         row["account_explorer_url"] = chain["explorer_account"].format(address=chain["address"])
-    return list(prior.values()), {"chain_id": chain["id"], "address": chain["address"], "source": base, "indexed_transactions": indexed_total, "last_scanned_height": end_height, "anchor_hash": anchor_hash, "scan_start_height": start_height, "incremental": incremental, "range_capable": range_capable, "contract_creation_height": chain["creation_height"]}
+    return list(prior.values()), {"chain_id": chain["id"], "address": chain["address"], "source": base, "indexed_transactions": indexed_total, "last_scanned_height": end_height, "anchor_hash": anchor_hash, "scan_start_height": start_height, "incremental": incremental, "range_capable": range_capable, "historical_missing_transactions": historical_missing, "contract_creation_height": chain["creation_height"]}
 
 
 def collect():
@@ -287,7 +292,9 @@ def collect():
         sources.append(source)
     rows.sort(key=lambda row: (row.get("timestamp") or "", row["chain_id"] == "juno-1", row["height"], row["tx_hash"]), reverse=True)
     missing = sum(not row.get("timestamp") for row in rows)
-    return {"schema_version": 2, "generated_at": now(), "treasuries": [{"chain_id": chain["id"], "address": chain["address"]} for chain in CHAINS], "scope": "neta-operations-cross-chain", "sources": sources, "cursor": {"strategy": "anchored-incremental-with-full-replay-fallback", "chains": sources}, "warnings": [f"Exact block timestamp unavailable from public RPC archives for {missing} historical events."] if missing else [], "events": rows}
+    warnings = [f"Exact block timestamp unavailable from public RPC archives for {missing} historical events."] if missing else []
+    warnings += [f"{source['chain_id']}: {source['historical_missing_transactions']} cached historical transactions are currently absent from the public index; records retained." for source in sources if source["historical_missing_transactions"]]
+    return {"schema_version": 2, "generated_at": now(), "treasuries": [{"chain_id": chain["id"], "address": chain["address"]} for chain in CHAINS], "scope": "neta-operations-cross-chain", "sources": sources, "cursor": {"strategy": "anchored-incremental-with-full-replay-fallback", "chains": sources}, "warnings": warnings, "events": rows}
 
 
 def main():

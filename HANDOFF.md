@@ -105,3 +105,8 @@ A browser regression checks its actual execute path, including mainnet fee denom
 and persisted retry blocking after reload. The guarantee is per origin/browser,
 not coordination across domains/devices or manually cleared storage. Interrupted
 signatures and permanently rejected broadcasts need manual investigation.
+
+Known optional Osmosis legacy index gaps preserve all cached events and emit an
+explicit coverage warning; they do not block fresh balances. Required Juno history
+gaps still fail publication. Seven independent address queries run with a bound
+of three workers; capability probes have five-second timeouts.
