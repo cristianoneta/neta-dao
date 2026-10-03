@@ -9,6 +9,11 @@ Security integration through #103, documentation #104 and Treasury bot commit
 
 ## Repository and source map
 
+Design decision 2026-10-03: [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) records the selected
+graphite/mint theme, small voxel module illustrations and the assembly-plaza Home
+hero. It applies to all current/future DAO pages. This documentation-only checkpoint
+does not modify the deployed styling, application behavior or security gates.
+
 This repo owns `dao.netareborn.com`. `cristianoneta/neta-website` owns the main
 site and the legacy Operations governance contract source. No duplicated DAO
 frontend should be added there. `index.html` loads `neta-governance.js`,

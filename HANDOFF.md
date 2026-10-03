@@ -13,6 +13,7 @@ Baseline review: **2026-10-02**; security integration rechecked **2026-10-03**. 
 
 | Task | Read next | Owning implementation |
 | --- | --- | --- |
+| UI / new pages | [Design system](docs/DESIGN_SYSTEM.md) | Approved graphite/mint direction and assembly-plaza hero; implementation pending; applies across every DAO page |
 | Proposals / permissions | [REVIEW_ARCHITECTURE.md](REVIEW_ARCHITECTURE.md) | `neta-governance.js`; Juno v0.3.0 in `contracts/neta-proposal-workshop/`; legacy Operations source in the other repo |
 | Treasury | CURRENT_STATE Treasury section | `treasury.js`, `scripts/update_treasury.py`, `scripts/update_treasury_events.py` |
 | RELAY notifications / routing | CURRENT_STATE RELAY section | `relay.js`, `ux-draft.js`, `index.html`, `relay.css` |
@@ -22,6 +23,13 @@ Baseline review: **2026-10-02**; security integration rechecked **2026-10-03**. 
 | UNI-7 deployment failure | [UNI7_DEPLOYMENT_RUNBOOK.md](UNI7_DEPLOYMENT_RUNBOOK.md) | Contract identity, checksum and state-based recovery |
 
 ## Next concrete task
+
+The owner selected the modern graphite/mint design and voxel assembly plaza on
+2026-10-03. The canonical [design system](docs/DESIGN_SYSTEM.md) includes reference
+images, tokens, shared components, per-page rules and responsive acceptance criteria.
+This is a design documentation checkpoint only; the live UI is still the existing
+theme. Continue visual implementation from that guide when working on the redesign.
+Do not reintroduce the rejected wizard or remove reviewed content to match mockups.
 
 Follow the 2026-10-03 continuation below. Finish the release gates before any
 live wallet test: full coherent backup/restore, v0.2 mailbox deployment planning,
