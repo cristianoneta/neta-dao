@@ -86,5 +86,7 @@ export class NamesV2Reader {
   nameOf(owner){address(owner);return this.smart({name_of:{address:owner}});}
   commitment(owner){address(owner);return this.smart({commitment:{address:owner}});}
   transferOffer(name){return this.smart({transfer_offer:{name:normalizeName(name)}});}
+  validatorChallenge(args){return this.smart({challenge:args},this.deployment.profile_contract);}
+  operatorBinding(operator){return this.smart({operator_binding:{operator}},this.deployment.profile_contract);}
   profile(name){return this.smart({profile:{name:normalizeName(name)}},this.deployment.profile_contract);}
 }

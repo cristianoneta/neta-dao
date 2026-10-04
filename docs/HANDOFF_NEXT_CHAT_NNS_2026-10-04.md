@@ -1,90 +1,82 @@
-# Next chat — NNS UNI-7 owner test
+# Next chat — NNS UNI-7 validator ownership
 
-## Profile review correction — 2026-10-04 continuation
+Checkpoint: 2026-10-04, continuation after the 21:40 Europe/Berlin owner tests.
+Read AGENTS.md, HANDOFF.md and CURRENT_STATE.md; read DESIGN_SYSTEM.md before
+UI edits. This records observed session state, not a future chain attestation.
 
-The owner reached public-profile review, but all six fields appeared empty.
-The lab called run(), which disabled the contact controls before FormData read
-those controls; browsers omit disabled controls. Snapshot the name and form values
-before entering the busy state. Normalization, owner/revision checks, explicit
-Keplr confirmation and edit-to-invalidate behavior remain intact. Lab module URL
-is v4. A real-browser regression fills all six fields, checks the reviewed values,
-changes/reviews again and checks the arguments at the mocked publication boundary;
-it also covers intentional blanks and invalid email. No real profile write is
-claimed. Discard the old empty review; after publication reload without clearing
-site data, verify the same manifest, reconnect, re-enter public fields and review.
-PR #144 carries this correction with the earlier label-entry improvement. Check
-its final CI and deployment before asking the owner to retry.
+## Current owner state and completed tests
 
-Checkpoint: 2026-10-04, 21:00 Europe/Berlin. Read AGENTS.md, HANDOFF.md and
-CURRENT_STATE.md; read DESIGN_SYSTEM.md before UI changes. This file records
-session evidence, not a fresh chain attestation at the time of a future read.
+The setup recovery is resolved: the owner exported and used the verified manifest.
+Do not repeat deployment, activation, registration or payment. The name has been
+transferred to the second wallet; reconnect that wallet for name-owner actions.
 
-## Confirmed registration — 2026-10-04, 21:17 Europe/Berlin
+Current name owner: `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.
+Former name owner and unchanged setup admin/treasury:
+`juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`.
 
-Fresh read-only NodesHub queries returned `cristiano.neta` owned by the existing
-owner wallet `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt` in both `identity`
-and `name_of`. Generation=1, ownership_revision=1, expires_at=1822677341.
-The concurrently read UNI-7 latest block was 18540940 at
-2026-10-04T19:17:07.391578106Z; smart queries were latest-state, not height-pinned.
-This verifies current registered ownership through the configured provider, not
-an exact payment receipt. The payment hash/inclusion remains to be recorded.
-The owner previously pasted the confirmed reservation hash
-`A1BBE04F166B3E443BD665A8A82367700950A7F6B3CD489701575C666F3FDC0C`
-and a verified manifest/test-purchases-enabled lab status. The earlier setup
-recovery blocker is superseded by this owner evidence and completed registration.
-Next: optional public contact publication, then renewal and two-wallet transfer/
-acceptance and old-profile invalidation. These later live tests remain unverified.
-Do not repeat setup, reservation or registration. Keep signer and journals intact.
+The owner signed these flows. Read-only NodesHub queries checked resulting state;
+latest block reads were concurrent, not height-pinning each smart query.
 
-## Owner update — continuation at 21:06–21:11 Europe/Berlin
+| Test | Observed state | Latest UNI-7 block read |
+| --- | --- | --- |
+| Registration | `cristiano.neta`, former owner, generation 1 / ownership revision 1, expires_at=1822677341 | 18540940 at 19:17:07 UTC |
+| Public contacts | Profile revision 1, description and website populated; remaining fields empty | 18541230 at 19:29:29 UTC |
+| One-year renewal | expires_at=1854213341, exactly 31,536,000 seconds added | 18541305 at 19:32:41 UTC |
+| Transfer offer | Offer ID 1 to second wallet, former owner still held name | 18541406 at 19:36:57 UTC |
+| Accepted transfer | New owner, ownership revision 2, old name_of=null, new name_of=cristiano.neta, offer=null | 18541478 at 19:39:59 UTC |
+| Profile invalidation | New owner identity, profile revision 2, all visible contacts empty, updated_at=0 | 18541478 at 19:39:59 UTC |
 
-The owner reports saving the verified manifest, then believes both reservation
-and payment for `cristiano.neta` were completed. Read-only NodesHub queries around UNI-7 height 18540830 subsequently returned:
-`identity(cristiano.neta)` not found; `name_of(owner)` name=null; the owner has
-a commitment at height 18540760, hash
-`aeb505d87f846c786e56196ef5a0ae688865055c4f3597e3b3b6fb0e95346b33`,
-expires_at=1791144568. A commitment does not disclose the reserved name.
-Registration was not complete at this query. Inspect the lab transaction status
-before asking for payment again; any pending payment must be recovered first.
-The name-entry decision is now recorded in DESIGN_SYSTEM.md: label-only entry
-with a fixed suffix; accept full-name paste without displaying a duplicate suffix.
+Expiry is 2028-10-03T19:15:41Z: contract years are 365 days, not calendar years.
+Historical profile data remain on-chain; invalidation is not historical deletion.
+Contact values are intentionally omitted from this handoff. Confirmed reservation
+hash pasted by owner: `A1BBE04F166B3E443BD665A8A82367700950A7F6B3CD489701575C666F3FDC0C`.
+Exact registration/profile/renewal/offer/accept receipts still need archival; the
+table is post-state evidence, not a claim that their exact bytes were reverified here.
 
-## Immediate priority and unresolved owner state
+## Current implementation and next action
 
-All seven setup transactions succeeded. The test registry is already activated.
-The corrected reader verified the full deployment at UNI-7 height 18539107.
-However, the latest owner-pasted screen still says `Invalid code checksum` from
-both NodesHub and STAVR, and `unpause · registry · confirmation pending`.
-The owner asked whether to click Check pending transaction. We advised a hard
-reload, Prepare test signer, Connect Keplr, then Check pending transaction.
-No subsequent successful browser recovery or manifest export was reported.
+The validator continuation adds a separate section in names-v2-lab.html:
+prepare a contract-matched challenge, explicitly sign mainnet and UNI-7 ownership
+one at a time, reconnect the name owner, review and publish through the existing
+journaled UNI-7 transaction bridge. The name owner may be a third account.
+Unpublished consent proofs remain in tab memory across deliberate wallet switches;
+reload discards them, not pending transaction records. Proofs expire within nine
+minutes. Wallet changes during signing, changed ownership/revision/deployment,
+wrong challenges and duplicate active bindings fail closed.
 
-Do not call this solved in the owner's browser, do not assume caching is proven,
-and do not ask for another activation. Preserve all pending journals and site
-data, including the non-exportable local quote key. Never clear locks by hand.
+Owner unlink and unilateral operator revocation have separate reviews. Either
+operator can withdraw consent; any connected UNI-7 wallet can pay that revocation's
+gas. The name owner cannot veto a valid operator revocation. Public-contact data
+and registry ownership are not changed by unlink/revoke.
 
-1. Resume https://dao.netareborn.com/names-v2-setup.html in the same browser.
-2. Hard reload without clearing storage. Prepare the existing signer, reconnect
-   the same wallet, then Check pending transaction. The exact activation hash is
-   in the receipt table below if the optional recovery field is needed.
-3. If checksum failure persists, inspect loaded `names-v2-reader.mjs` and dependent
-   module version 3, actual response encoding and pinned manifest. Hex casing
-   normalization must remain strict; never bypass checksum/identity verification.
-4. Save verified manifest after successful recovery. Open
-   https://dao.netareborn.com/names-v2-lab.html, import it, Verify deployment,
-   then Connect Keplr. The public manifest in the repository is a reference, not
-   a substitute for resolving the pending transaction journal.
-5. Prepare a name (e.g. cristiano.neta if available), reserve it in Keplr, then
-   create/review the local quote and explicitly confirm payment. Each action is
-   separate. Record exact hashes, inclusion/code and resulting name ownership.
-6. Test optional public contact persistence, renewal, a two-wallet transfer and
-   acceptance, and invalidation of the previous owner's public profile.
-7. Finish the operator-proof collection/submission UI and test with a consenting
-   operator controlling both mainnet and UNI-7 validators. Cristiano does not run
-   a validator; no volunteer has been recruited or contacted.
+Read current link queries the profile contract. A stored operator-key link does
+not prove validator existence or active-set membership and does not award points.
+No validator has been recruited or contacted. Real validator link/unlink/revoke
+E2E remains outstanding. Tests use synthetic wallets/signatures/adapters; they
+are not evidence of a consenting operator or live validator publication.
 
-Steps 5–7 have no completed live-test evidence. Local/mocked tests are not proof
-of those chain operations. Wallet signatures and transactions remain owner actions.
+1. Verify this continuation's final PR checks and published lab v5 (reader/wallet
+   v4, client v2) before proceeding in a future session.
+2. Retain the same browser/site data and manifest. For name-owner link publication,
+   use the second wallet that now owns cristiano.neta.
+3. Test the new UI with an operator who controls both actual validators, signing
+   in their own Keplr. Never request seeds, private keys or consensus/node keys.
+4. Verify publication, both exclusive bindings, owner unlink and unilateral
+   operator revocation with exact receipts and post-state.
+5. Only then consume links alongside validated mainnet/testnet validator records
+   and active UNI-7 consensus membership in the delegation snapshot.
+
+Mainnet registry constants remain null. Production pricing, service custody and
+mainnet launch are separate gates. Keep Smart Delegation research deferred.
+
+## Profile review release — PR #144
+
+Fixed the owner-reported empty profile preview by reading FormData before busy
+render disabled inputs. PR/main tests and browser regression passed. Merge
+c50ec80e20364069d3efd50c8c531499c411ff2f; Pages run 37228164284 succeeded;
+all four changed public UI files matched after publication. Profile publication
+was then confirmed by the owner test above. The main fee field accepts a bare
+label and strips a valid pasted suffix; DESIGN_SYSTEM records this convention.
 
 ## Existing deployment and exact receipts
 
@@ -172,9 +164,9 @@ keys, erase pending journals or enable mainnet messaging while fixing testnet UI
 
 Suggested next-chat prompt:
 
-> Continue NETA DAO NNS UNI-7 testing. Read AGENTS.md, HANDOFF.md,
-> docs/CURRENT_STATE.md and docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md from current
-> GitHub main. All seven setup transactions succeeded, but owner-browser recovery
-> of the activation/checksum error is unconfirmed. Resolve that first without
-> redeployment, duplicate activation or deleting browser data, then guide the
-> first name registration and profile tests. Keep Smart Delegation research deferred.
+> Continue NNS validator ownership testing from current GitHub main. Read AGENTS,
+> HANDOFF, CURRENT_STATE and the NNS next-chat handoff. Registration, contacts,
+> renewal and two-wallet transfer were checked on UNI-7. cristiano.neta now belongs
+> to juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57 and has an empty current profile.
+> Do not repeat those transactions. Verify the validator UI release and finish
+> consenting-operator link/unlink/revocation E2E. Keep mainnet purchases disabled.

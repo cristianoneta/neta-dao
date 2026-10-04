@@ -56,6 +56,13 @@ jobs:
       - run: node browser-workspace-security.mjs
       - run: node browser-names-profile.mjs
       - run: node browser-names-v2.mjs
+      - name: Validator proof browser flow
+        run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-validators.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: nns-validator-screenshots
+          path: ${{ runner.temp }}/nns-validator-screenshots
+          if-no-files-found: error
       - name: Adversarial receive and crash recovery regressions
         run: RELAY_AUDIT_ADVERSARIAL=1 node browser-uni7-lab.mjs
 

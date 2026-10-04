@@ -1,5 +1,18 @@
 # NNS validator profiles — implementation checkpoint
 
+## Superseding continuation — 2026-10-04 evening
+
+The earlier source-only sections below are historical. The UNI-7 registry and
+profile contract were deployed and verified, and the owner tested registration,
+contacts, renewal and transfer. See HANDOFF_NEXT_CHAT_NNS_2026-10-04.md for the
+actual addresses, post-state observations and current owner. A separate validator
+section now integrates contract-matched challenges, independent Keplr ADR-36 steps,
+name-owner publication, unlink and operator revocation through the existing exact
+receipt journal. New controller/client and browser tests cover these paths with
+synthetic adapters. Real consenting-operator E2E, snapshot validator existence /
+active-set queries and production pricing/mainnet launch remain outstanding.
+
+
 Owner decision: 2026-10-04. Branch: `feat/nns-validator-profiles-20261004`.
 Base: main `d1047a9` (faucet platform banner). This is a tested **source slice**,
 not a deployed registry or evidence of a live operator signing.

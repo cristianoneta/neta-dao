@@ -1,10 +1,11 @@
-import {NamesV2Reader} from './names-v2-reader.mjs?v=3';
-import {connectNamesWallet} from './names-v2-wallet.mjs?v=3';
+import {createValidatorPanel} from './names-v2-validator-ui.mjs?v=1';
+import {NamesV2Reader} from './names-v2-reader.mjs?v=4';
+import {connectNamesWallet} from './names-v2-wallet.mjs?v=4';
 import {normalizeName,normalizeContacts,validateJunoAddress} from './names-profile-core.mjs';
 import {createTestQuote} from './names-v2-test-authority.mjs';
 import {validateQuote} from './names-v2-core.mjs';
 const $=id=>document.getElementById(id);
-let deployment=null,session=null,busy=false,review=null;
+let deployment=null,session=null,busy=false,review=null,validators=null;
 const now=()=>Math.floor(Date.now()/1000);
 const micro=value=>{const n=BigInt(value);return `${n/1000000n}.${(n%1000000n).toString().padStart(6,'0')}`;};
 function clearReview(){review=null;$('review').hidden=true;}
@@ -25,13 +26,14 @@ function render(){
  $('manifest').disabled=busy||connected;
  for(const node of $('profile-form').querySelectorAll('[name]'))node.disabled=busy;
  $('confirm').disabled=busy||!session||!review;$('discard-review').disabled=busy;
+ validators?.render();
 }
 async function run(fn){if(busy)return;busy=true;render();try{await fn();}catch(e){status(e.message);}finally{busy=false;render();}}
 async function jsonFile(id){const file=$(id).files[0];if(!file||file.size>30000)throw Error('Choose a JSON file smaller than 30 KB.');return JSON.parse(await file.text());}
 function showReview(text,action){review={action};$('review-text').textContent=text;$('review').hidden=false;render();$('review-heading').focus();}
 function disconnect(){session?.disconnect();session=null;clearReview();status('Disconnected. Saved intents and transaction journals are preserved.');render();}
-$('verify').addEventListener('click',()=>run(async()=>{deployment=null;clearReview();const reader=new NamesV2Reader({deployment:await jsonFile('manifest')});const config=await reader.verify();deployment=reader.deployment;$('deployment-status').textContent=`UNI-7 manifest matches chain · registry ${deployment.registry} · ${config.purchases_paused?'purchases paused':'test purchases enabled'}`;status('Deployment verified. Connect Keplr to continue.');}));
-$('manifest').addEventListener('change',()=>{if(!session){deployment=null;$('deployment-status').textContent='Manifest changed. Verify again.';render();}});
+$('verify').addEventListener('click',()=>run(async()=>{deployment=null;clearReview();const reader=new NamesV2Reader({deployment:await jsonFile('manifest')});const config=await reader.verify();validators?.reset();deployment=reader.deployment;$('deployment-status').textContent=`UNI-7 manifest matches chain · registry ${deployment.registry} · ${config.purchases_paused?'purchases paused':'test purchases enabled'}`;status('Deployment verified. Connect Keplr to continue.');}));
+$('manifest').addEventListener('change',()=>{if(!session){deployment=null;validators?.reset();$('deployment-status').textContent='Manifest changed. Verify again.';render();}});
 $('connect').addEventListener('click',()=>run(async()=>{session=await connectNamesWallet({deployment});const i=session.client.load(session.owner);if(i&&i.phase!=='complete'){ $('name').value=i.name;$('years').value=String(i.years||1);$('operation').value='register';}status('Connected to UNI-7. No transaction has been sent.');}));
 $('disconnect').addEventListener('click',disconnect);
 window.addEventListener('keplr_keystorechange',disconnect);
@@ -65,4 +67,5 @@ $('confirm').addEventListener('click',()=>run(async()=>{const current=review;if(
 $('discard-review').addEventListener('click',()=>{clearReview();render();});
 for(const id of ['name-form','transfer-form','profile-form','quote'])$(id).addEventListener('input',()=>{clearReview();render();});
 $('operation').addEventListener('change',()=>{clearReview();render();});
+validators=createValidatorPanel({getSession:()=>session,getDeployment:()=>deployment,isBusy:()=>busy,run,showReview,clearReview,status});
 render();

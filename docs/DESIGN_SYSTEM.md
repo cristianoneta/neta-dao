@@ -304,3 +304,14 @@ outside the editable field. Accept a pasted full name and display its label only
 never append a second suffix. Preserve validation of malformed/repeated suffixes.
 The main fee calculator follows this pattern; the UNI-7 lab already accepts either
 form through normalizeName but has not adopted the fixed-suffix presentation.
+
+## Validator proof steps — 2026-10-04
+
+The separate UNI-7 lab uses the same labelled fields, neutral sections and shared
+review panel. Show exact operator chains/addresses, derived signing accounts,
+name owner, profile revision, purpose and expiry before any signature. Use separate
+mainnet and UNI-7 ownership buttons to allow deliberate account switching; a later
+publication review is a separate UNI-7 transaction. Label collected signatures as
+unpublished, and a stored link as operator ownership only, never active-validator
+eligibility. Keep long addresses/challenges wrapped at 320px. Owner unlink and
+operator withdrawal have explicit separate reviews. No new graphics or wizard.
