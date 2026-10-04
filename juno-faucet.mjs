@@ -1,9 +1,10 @@
 import {lookupTransaction, reconcilePendingTransaction} from './juno-faucet-transactions.mjs?v=1';
-import {FAUCET} from './juno-faucet-config.mjs';
+import {FAUCET} from './juno-faucet-config.mjs?v=2';
 import {CHAIN, DENOM, RPCS, CHAIN_CONFIG, Uni7Reader, amountToMicro, formatMicro, rewardsMicro, messagesFor} from './juno-faucet-core.mjs?v=2';
 const $ = id => document.getElementById(id), reader = new Uni7Reader(), bundle = window.NetaFaucetSigning;
 const state = {address:null, data:null, validators:[], unbonding:null, busy:false, revision:0, service:null, action:null};
 const text = (id,value) => { $(id).textContent=value; };
+const donationConfigured = () => typeof FAUCET.address==='string' && bundle.validAddress(FAUCET.address);
 const active = v => v.status === 'BOND_STATUS_BONDED' && !v.jailed;
 const stakeOf = v => state.data?.delegations.find(d=>d.delegation.validator_address===v)?.balance.amount || '0';
 function notice(message, error=false) { text('action-message',message); $('action-status').hidden=false; $('action-status').dataset.error=String(error); }
@@ -11,7 +12,8 @@ function controls() {
   $('disconnect').hidden=!state.address; $('disconnect').disabled=state.busy;
   $('connect').disabled=state.busy; $('refresh').disabled=state.busy;
   $('request').disabled=state.busy || !state.address || !state.service?.ready || (state.service.nextClaimAt && Date.parse(state.service.nextClaimAt)>Date.now()) || state.service.pending;
-  $('donate').disabled=state.busy || !state.address || !state.data || !state.service;
+  $('donate').disabled=state.busy || !state.address || !state.data || !donationConfigured() || state.address===FAUCET.address;
+  text('donate-help',!donationConfigured()?'Donations are not configured yet.':state.address===FAUCET.address?'You are connected to the faucet wallet. Connect a different wallet to donate.':state.address?'Positive whole numbers only. A small UNI-7 transaction fee applies.':'Connect Keplr to donate whole JUNOX amounts. A small UNI-7 transaction fee applies.');
   $('claim').disabled=state.busy || !state.data || BigInt(rewardsMicro(state.data.rewards.total))<1n;
   $('transaction-confirm').disabled=state.busy;
   for(const b of document.querySelectorAll('[data-action]')) b.disabled=state.busy || !state.data || (b.dataset.action==='stake' ? !active(state.validators.find(v=>v.operator_address===b.dataset.validator)) : BigInt(stakeOf(b.dataset.validator))===0n);
@@ -41,7 +43,11 @@ async function api(path, options={}) {
 }
 async function serviceStatus() {
   state.service=null;
-  if(!FAUCET.api || !FAUCET.address) return;
+  if(!FAUCET.api || !FAUCET.address) {
+    text('faucet-status','Faucet payouts are not active yet.'+(donationConfigured()?' You can already fund the faucet using Donate JUNOX.':''));
+    text('faucet-balance',donationConfigured()?'Donation address · UNI-7 · '+FAUCET.address:'Faucet funding address is not configured yet.');
+    controls();return;
+  }
   const address=state.address, revision=state.revision;
   try {
     const data=await api('/status'+(address?'?address='+encodeURIComponent(address):''));
@@ -156,7 +162,7 @@ function openAction(action,target){
   text('transaction-help',action==='unstake'?'Currently staked: '+formatMicro(stakeOf(target))+' JUNOX. '+$('unstaking-help').textContent:'Available: '+formatMicro(state.data.balance)+' JUNOX. Leave enough for the network fee; Keplr shows the final fee.');
   $('transaction-dialog').showModal();$('transaction-amount').focus();
 }
-$('donate-form').addEventListener('submit',event=>{event.preventDefault();try{amountToMicro($('donation').value,true);if(!state.service||!state.data||state.busy)return;openAction('donate',FAUCET.address);}catch(error){notice(error.message,true);}});
+$('donate-form').addEventListener('submit',event=>{event.preventDefault();try{amountToMicro($('donation').value,true);if(!donationConfigured()||!state.address||state.address===FAUCET.address||!state.data||state.busy)return;openAction('donate',FAUCET.address);}catch(error){notice(error.message,true);}});
 $('validators').addEventListener('click',event=>{const b=event.target.closest('[data-action]');if(b&&!b.disabled)openAction(b.dataset.action,b.dataset.validator);});
 $('transaction-cancel').addEventListener('click',()=>$('transaction-dialog').close());
 $('transaction-form').addEventListener('submit',event=>{event.preventDefault();run(async()=>{
@@ -169,7 +175,7 @@ $('transaction-form').addEventListener('submit',event=>{event.preventDefault();r
       const staked=fresh.delegations.find(d=>d.delegation.validator_address===action.target)?.balance.amount||'0';
       if(micro>BigInt(staked))throw Error('Amount exceeds your current stake with this validator.');
     }else if(micro>=BigInt(fresh.balance))throw Error('Leave JUNOX in your wallet for transaction fees.');
-    if(action.action==='donate') {await serviceStatus();if(!state.service||action.target!==FAUCET.address)throw Error('Faucet funding address could not be verified.');}
+    if(action.action==='donate' && (!donationConfigured()||action.target!==FAUCET.address||action.address===FAUCET.address))throw Error('Faucet funding address could not be verified.');
     if(action.action==='stake') {const validator=(await reader.validators()).rows.find(v=>v.operator_address===action.target);if(!validator||!active(validator))throw Error('This validator is no longer active.');}
     await sign(messagesFor(action.action,action.address,action.target,amount),'NETA UNI-7 '+action.action,action.address);
     $('transaction-dialog').close();await refresh();

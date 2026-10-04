@@ -14,9 +14,11 @@ On 2026-10-04, `https://neta-junox-faucet.onrender.com/status` returned UNI-7,
 address `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`, balance `0`, `ready:false`.
 Usage guards are verified live. The backend confirmation fix requires a manual
 deployment; verify `confirmation: "uni7-exact-hash-v1"` before funding/activation.
-`juno-faucet-config.mjs` intentionally has `api: null, address: null`. Get 10 JUNOX
-and Donate remain disabled with a visible explanation until a reviewed deployment
-has a dedicated funded UNI-7 address. Validator reads, wallet balances, staking,
+`juno-faucet-config.mjs` pins the dedicated UNI-7 funding address, while `api`
+remains null. Donate JUNOX is available after Connect Keplr and sends an ordinary
+wallet-confirmed transfer directly to that address, even with an empty faucet or
+unavailable payout backend. The review shows the full recipient. Get 10 JUNOX
+remains disabled until the separate payout activation gates pass. Validator reads, wallet balances, staking,
 unstaking and claiming existing staking rewards do not depend on this service.
 No real wallet signature or payout was performed by the implementation tests.
 
@@ -68,7 +70,8 @@ Activation checklist:
 1. Deploy with the dedicated key and persistent volume; verify `/status` reports
    `chainId=uni-7`, `amount=10000000`, `intervalSeconds=86400`, expected address,
    `protection=usage-guards-v1` and `confirmation=uni7-exact-hash-v1`.
-2. Fund that exact account with JUNOX. A conservative 12-JUNOX reserve is required
+2. Fund that exact account with JUNOX using Donate JUNOX on the public page.
+   Confirm the transfer in Keplr. A conservative 12-JUNOX reserve is required
    to report ready. The service pays transfer gas; an empty recipient can claim.
 3. Pin the HTTPS API origin and funding address in `juno-faucet-config.mjs`, and
    add only that origin to the HTML CSP's `connect-src`.

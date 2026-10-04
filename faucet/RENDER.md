@@ -4,7 +4,8 @@ Status as of 2026-10-04: the owner created the Render service and provisioned
 its private wallet. The public `/status` endpoint returned UNI-7 and balance 0:
 `https://neta-junox-faucet.onrender.com`,
 `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`.
-The public faucet keeps `api: null, address: null`; no live payout is verified.
+The public faucet pins the dedicated donation address but keeps `api: null`.
+Donate JUNOX works independently of Render; no live payout is verified.
 
 Usage guards are already verified live. Deploy the backend confirmation update
 manually and check both `protection: "usage-guards-v1"` and
@@ -31,8 +32,9 @@ the signing/balance endpoint and the source adds indexed STAVR confirmation.
 Verify the new `/status` confirmation marker above; a successful GitHub Pages
 deployment does not update Render because auto-deploy is off.
 
-Then fund the existing dedicated address with an owner-confirmed UNI-7 Keplr
-transfer (100 JUNOX is a useful start). Do not recreate the wallet or database.
+Fund the existing dedicated address using the public page's Donate JUNOX control
+and confirm the UNI-7 transfer in Keplr (100 JUNOX is a useful start). This funding
+can happen before the Render deployment because donations are direct transfers. Do not recreate the wallet or database.
 The sections below also document provisioning for a new installation.
 
 ## 1. Prepare the dedicated wallet and private settings

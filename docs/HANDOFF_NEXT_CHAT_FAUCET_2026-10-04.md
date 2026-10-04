@@ -3,6 +3,20 @@
 This is the current continuation entry point. It supersedes older hosting-pending
 and untested-rewards snapshots in the 2026-10-03 handoff.
 
+## Donations before payout activation — 2026-10-04
+
+The owner requested funding through the existing Donate JUNOX control. Donation
+availability is now independent of the payout API: the public config pins
+`juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt` while `api` remains null.
+After Connect Keplr, a positive whole-number donation opens the transaction review
+and uses the existing UNI-7 signing/confirmation journal. The exact recipient is
+shown before signing; wallet/network, balance/fee room and pinned target are
+rechecked. The faucet account cannot donate to itself. No Render deployment is
+needed for this frontend change. Get 10 JUNOX remains disabled after funding.
+This supersedes older snapshots saying both public values are null and donations
+are unavailable. Payout deployment/activation gates remain in force. No real
+owner-signed donation or payout is claimed by the mocked browser checks.
+
 ## Release evidence — backend confirmation, 2026-10-04
 
 PR #132 merged as `8ef4686d4228faf10aad214eec66d9d8e3e696fb` after faucet
@@ -95,8 +109,9 @@ the consistent bottom link on every workspace route. No local server is needed.
 Backend: https://neta-junox-faucet.onrender.com
 Status: https://neta-junox-faucet.onrender.com/status
 Dedicated faucet address: juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt
-Public juno-faucet-config.mjs still has api:null,address:null. Payout/donation
-controls are intentionally disabled. Last checked balance was 0 JUNOX.
+Public juno-faucet-config.mjs pins the dedicated address but keeps api:null.
+Donations are enabled independently; payouts remain disabled. Last checked
+balance was 0 JUNOX; recheck after the owner donates.
 
 The recovery phrase was provisioned privately by the owner as Render secret file
 /etc/secrets/faucet-mnemonic. Never request/read/print it. Earlier invalid seed
@@ -116,13 +131,13 @@ Keep SQLite/WAL and pending transaction/crypto journals across every deploy/rest
    SQLite/WAL and private settings. Never clear locks or rebroadcast unknown payments.
 3. Fund the dedicated faucet wallet with JUNOX via an ordinary owner-confirmed
    Keplr transfer (100 JUNOX is a useful start). The user's wallet received rewards.
-   Funding through our Donate control is not enabled yet. No mainnet tokens.
+   Funding through Donate JUNOX is now enabled after Connect Keplr. No mainnet tokens.
 4. Prepare/test public integration: pin Render origin in juno-faucet.html CSP and
    juno-faucet-config.mjs API/address. Follow faucet/README.md activation gate;
    perform real fresh-wallet payout, chain receipt, repeated request and
    restart/persistent cooldown checks before making public payout claims.
    Existing limit is exactly 10 JUNOX per rolling 24 hours per wallet.
-5. Test real whole-number donation, stake and unstake with Keplr confirmations;
+5. Verify the funding donation receipt, then test stake and unstake with Keplr confirmations;
    record transaction hashes. No such real tests were completed in this session.
 6. Recheck Connect/Refresh recovery in the user's browser after hard refresh;
    its old rewards journal should clear only after confirmed exact transaction.

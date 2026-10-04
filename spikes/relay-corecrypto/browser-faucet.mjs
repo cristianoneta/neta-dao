@@ -7,6 +7,7 @@ const root=new URL('../../',import.meta.url);
 const server=http.createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;if(path.includes('..'))throw Error();const body=await readFile(new URL('.'+path,root));res.writeHead(200,{'content-type':/\.m?js$/.test(path)?'text/javascript':path.endsWith('.css')?'text/css':'text/html'}).end(body);}catch{res.writeHead(404).end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 const address='juno1qurswpc8qurswpc8qurswpc8qurswpc89pyp8a';
+const faucetAddress='juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt';
 const recoveryBytes=Buffer.from('synthetic recovery fixture'),recoveryHash=createHash('sha256').update(recoveryBytes).digest('hex').toUpperCase();
 let browser;
 try{
@@ -34,8 +35,11 @@ try{
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('Page error:',e.message);});page.on('console',m=>{if(m.type()==='error')console.error(m.text());});
  await page.goto(origin+'/juno-faucet.html');await page.getByText('Live UNI-7 data',{exact:false}).waitFor({timeout:10000}).catch(async e=>{console.error(await page.locator('#chain-status').innerText());throw e;});
  assert.match(await page.locator('#faucet-status').innerText(),/not active/);assert.equal(await page.locator('#request').isDisabled(),true);
+ assert.equal(await page.locator('#donate').isDisabled(),true);
+ assert.match(await page.locator('#faucet-balance').innerText(),new RegExp(faucetAddress));
  assert.match(await page.locator('.validator-name').first().innerText(),/^Alpha/);
  await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#available').textContent==='20',{},{timeout:10000}).catch(async e=>{console.error(await page.locator('#action-status').innerText(), await page.locator('#wallet-help').innerText());throw e;});
+ assert.equal(await page.locator('#donate').isDisabled(),false);assert.equal(await page.locator('#request').isDisabled(),true);
  assert.equal(await page.locator('#staked').innerText(),'5');assert.equal(await page.locator('#rewards').innerText(),'1.234567');assert.match(await page.locator('#unstaking-help').innerText(),/28 days/);
  assert.equal(await page.locator('#connect').innerText(),address.slice(0,9)+'…'+address.slice(-6));
  assert.equal(await page.locator('#connect').getAttribute('title'),address);
@@ -63,9 +67,21 @@ try{
  await page.locator('#claim').click();await page.waitForFunction(()=>!document.querySelector('#refresh').disabled);assert.equal(broadcasts[1][0].typeUrl,'/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward');
  // A changed Keplr account must not use the stale page wallet for a signature.
  await page.locator('[data-action=stake]').first().click();await page.locator('#transaction-amount').fill('1');await page.evaluate(()=>window.walletAddress='other');await page.locator('#transaction-confirm').click();await page.waitForFunction(()=>document.querySelector('#wallet').textContent.includes('not connected'));assert.equal(broadcasts.length,2);
- // Activate only in the test fixture; production config remains deliberately unset.
- await context.route('**/juno-faucet-config.mjs',route=>route.fulfill({contentType:'text/javascript',body:`export const FAUCET={api:${JSON.stringify(origin)},address:${JSON.stringify(address)}};`}));
- await context.route(origin+'/status**',route=>json(route,{chainId:'uni-7',address,amount:'10000000',intervalSeconds:86400,balance:'1000000000',ready:true,pending:false,nextClaimAt:paid?new Date(Date.now()+86400000).toISOString():null}));
+ // Production donation configuration works with no payout API, even unfunded.
+ await page.reload();await page.locator('#connect').click();await page.waitForFunction(()=>!document.querySelector('#donate').disabled);
+ await page.locator('#donation').fill('1.5');await page.locator('#donate').click();assert.equal(await page.locator('#transaction-dialog').evaluate(x=>x.open),false);assert.equal(broadcasts.length,2);
+ await page.locator('#donation').fill('17');await page.locator('#donate').click();
+ assert.match(await page.locator('#transaction-target').innerText(),new RegExp(faucetAddress));
+ await page.locator('#transaction-confirm').click();await page.waitForFunction(()=>!document.querySelector('#transaction-dialog').open);
+ assert.deepEqual(broadcasts.at(-1),[{typeUrl:'/cosmos.bank.v1beta1.MsgSend',value:{fromAddress:address,toAddress:faucetAddress,amount:[{denom:'ujunox',amount:'17000000'}]}}]);
+ assert.equal(broadcasts.length,3);await page.waitForFunction(()=>!document.querySelector('#refresh').disabled);
+ assert.equal(await page.locator('#request').isDisabled(),true);
+ await page.locator('#request').dispatchEvent('click');await page.waitForFunction(()=>!document.querySelector('#refresh').disabled);
+ assert.match(await page.locator('#action-message').innerText(),/payout is not available/);assert.equal(broadcasts.length,3);
+ // Activate payouts only in this fixture; production API stays null.
+
+ await context.route('**/juno-faucet-config.mjs*',route=>route.fulfill({contentType:'text/javascript',body:`export const FAUCET={api:${JSON.stringify(origin)},address:${JSON.stringify(faucetAddress)}};`}));
+ await context.route(origin+'/status**',route=>json(route,{chainId:'uni-7',address:faucetAddress,amount:'10000000',intervalSeconds:86400,balance:'1000000000',ready:true,pending:false,nextClaimAt:paid?new Date(Date.now()+86400000).toISOString():null}));
  await context.route(origin+'/challenge',route=>json(route,{id:'nonce',address,chainId:'uni-7',message:'NETA JUNOX faucet\nTest challenge'}));
  await context.route(origin+'/claim',route=>{paid=true;return json(route,{status:'confirmed',hash:'B'.repeat(64)});});
  await page.reload();await page.locator('#connect').click();await page.waitForFunction(()=>!document.querySelector('#request').disabled);
