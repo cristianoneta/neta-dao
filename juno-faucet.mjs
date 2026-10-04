@@ -1,3 +1,4 @@
+import {lookupTransaction, reconcilePendingTransaction} from './juno-faucet-transactions.mjs?v=1';
 import {FAUCET} from './juno-faucet-config.mjs';
 import {CHAIN, DENOM, RPCS, CHAIN_CONFIG, Uni7Reader, amountToMicro, formatMicro, rewardsMicro, messagesFor} from './juno-faucet-core.mjs?v=2';
 const $ = id => document.getElementById(id), reader = new Uni7Reader(), bundle = window.NetaFaucetSigning;
@@ -7,6 +8,7 @@ const active = v => v.status === 'BOND_STATUS_BONDED' && !v.jailed;
 const stakeOf = v => state.data?.delegations.find(d=>d.delegation.validator_address===v)?.balance.amount || '0';
 function notice(message, error=false) { text('action-message',message); $('action-status').hidden=false; $('action-status').dataset.error=String(error); }
 function controls() {
+  $('disconnect').hidden=!state.address; $('disconnect').disabled=state.busy;
   $('connect').disabled=state.busy; $('refresh').disabled=state.busy;
   $('request').disabled=state.busy || !state.address || !state.service?.ready || (state.service.nextClaimAt && Date.parse(state.service.nextClaimAt)>Date.now()) || state.service.pending;
   $('donate').disabled=state.busy || !state.address || !state.data || !state.service;
@@ -16,7 +18,7 @@ function controls() {
 }
 function resetAccount() {
   state.address=null; state.data=null; state.service=null; state.revision++; state.action=null;
-  $('transaction-dialog').close(); text('connect','Connect Keplr'); text('wallet','Your wallet is not connected.');
+  $('transaction-dialog').close(); text('connect','Connect Keplr'); $('connect').removeAttribute('title'); $('connect').removeAttribute('aria-label'); text('wallet','Your wallet is not connected.');
   renderWallet(); renderValidators(); controls();
 }
 async function assertWallet(expected = state.address) {
@@ -104,7 +106,9 @@ async function refresh() {
     if(d.status==='fulfilled')state.data=d.value; else notice(d.reason.message,true);
   }catch(error){if(revision===state.revision)text('chain-status',error.message);}
   if(revision!==state.revision)return;
-  renderWallet();renderValidators();controls();await serviceStatus();
+  renderWallet();renderValidators();controls();
+  if(address)try{const previous=await reconcilePendingTransaction(address);if(revision===state.revision&&previous)notice((previous.code===0?'Previous transaction confirmed.':'Previous transaction failed on-chain (code '+previous.code+').')+' No new transaction was sent. TX '+previous.hash,previous.code!==0);}catch(error){if(revision===state.revision)notice(error.message,true);}
+  await serviceStatus();
 }
 async function sign(messages,memo,address) {
   await assertWallet(address); await reader.verify();
@@ -113,6 +117,7 @@ async function sign(messages,memo,address) {
   let client;
   for(const rpc of RPCS){try{client=await bundle.connect(rpc,wrapped);break;}catch(error){if(/mismatch/.test(error.message))throw error;}}
   if(!client)throw Error('UNI-7 signing is currently unavailable.');
+  client.getTx=hash=>lookupTransaction(hash.toUpperCase());
   try {await assertWallet(address);notice('Review the transaction and fee in Keplr.');const result=await bundle.broadcast(client,address,messages,memo);notice('Transaction confirmed on UNI-7 · '+result.transactionHash);return result;}
   finally{client.disconnect();}
 }
@@ -122,8 +127,9 @@ $('connect').addEventListener('click',()=>run(async()=>{
   await window.keplr.experimentalSuggestChain(CHAIN_CONFIG);await window.keplr.enable(CHAIN);
   const address=(await window.keplr.getOfflineSigner(CHAIN).getAccounts())[0]?.address;
   if(!bundle.validAddress(address))throw Error('Invalid UNI-7 wallet address.');
-  state.address=address;text('connect','Reconnect Keplr');text('wallet','Connected on UNI-7 · '+address);await refresh();
+  state.address=address;text('connect',address.slice(0,9)+'…'+address.slice(-6)); $('connect').title=address; $('connect').setAttribute('aria-label','Connected wallet '+address+'. Reconnect Keplr');text('wallet','Connected on UNI-7 · '+address);await refresh();
 }));
+$('disconnect').addEventListener('click',()=>{if(state.busy)return;resetAccount();notice('Wallet disconnected.');$('connect').focus();void serviceStatus();});
 $('refresh').addEventListener('click',()=>run(refresh));
 $('validator-search').addEventListener('input',renderValidators);$('validator-filter').addEventListener('change',renderValidators);
 window.addEventListener('keplr_keystorechange',()=>{resetAccount();notice('Keplr account changed. Connect again to load the current wallet.');});

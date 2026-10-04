@@ -1,6 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {amountToMicro,formatMicro,rewardsMicro,messagesFor,Uni7Reader} from '../juno-faucet-core.mjs';
+import {lookupTransaction,reconcilePendingTransaction} from '../juno-faucet-transactions.mjs';
+import {createHash} from 'node:crypto';
+test('indexed UNI-7 fallback confirms exact transaction bytes; unavailable, wrong-chain or mismatched results stay locked',async()=>{
+  const tx=new TextEncoder().encode('synthetic signed transaction'),hash=createHash('sha256').update(tx).digest('hex').toUpperCase();
+  let mode='confirmed',calls=[];
+  const fetcher=async url=>{
+    calls.push(url);let result;
+    if(url.endsWith('/status'))result={node_info:{network:mode==='wrong-chain'?'juno-1':'uni-7'}};
+    else if(mode!=='unavailable')result={hash,height:'123',index:0,tx:Buffer.from(mode==='wrong-bytes'?'other':tx).toString('base64'),tx_result:{code:mode==='failed'?7:0,gas_wanted:'100',gas_used:'90'}};
+    return {ok:true,json:async()=>result?{result}:{error:{message:'transaction indexing is disabled'}}};
+  };
+  const included=await lookupTransaction(hash,fetcher);assert.equal(included.hash,hash);assert.equal(included.code,0);
+  assert.match(calls[0],/stavr/);assert.equal(calls.length,2);
+  const map=new Map(),key='neta-pending-tx-v1:uni-7:wallet';
+  const row=JSON.stringify({version:1,status:'pending',chain:'uni-7',sender:'wallet',hash,bytes:Buffer.from(tx).toString('base64')});
+  const storage={getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)},locks={request:async(k,o,fn)=>{assert.equal(k,key);return fn({});}};
+  const options={storage,locks,lookup:h=>lookupTransaction(h,fetcher)};map.set(key,row);
+  for(mode of ['unavailable','wrong-chain','wrong-bytes']){
+    await assert.rejects(reconcilePendingTransaction('wallet',options),/confirmation is pending/);
+    assert.equal(map.get(key),row);
+  }
+  mode='confirmed';assert.equal((await reconcilePendingTransaction('wallet',options)).code,0);assert.equal(map.has(key),false);
+  map.set(key,row);mode='failed';assert.equal((await reconcilePendingTransaction('wallet',options)).code,7);assert.equal(map.has(key),false);
+  map.set(key,row);assert.equal(await reconcilePendingTransaction('wallet',{...options,locks:{request:async(k,o,fn)=>fn(null)}}),null);assert.equal(map.get(key),row);
+  map.set(key,JSON.stringify({...JSON.parse(row),bytes:Buffer.from('tampered').toString('base64')}));
+  await assert.rejects(reconcilePendingTransaction('wallet',options),/Invalid transaction journal/);assert.ok(map.has(key));
+});
 test('wallet reads use SDK routes and retain paginated delegations; failed reads never become zero stake',async()=>{
   const address='juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt';
   const stakePath='/cosmos/staking/v1beta1/delegations/'+address;

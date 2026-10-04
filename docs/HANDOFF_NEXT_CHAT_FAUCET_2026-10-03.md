@@ -1,5 +1,33 @@
 # Next chat — Juno testnet faucet — 2026-10-03
 
+## Wallet controls and rewards confirmation — 2026-10-04
+
+The shared workspace header and separate faucet now provide a shortened connected
+address (full address in title/accessible label) and explicit Disconnect. Local
+signing clients/access are cleared; drafts, keys and transaction journals remain.
+Disconnect is disabled during a transaction; late connection/access responses
+cannot restore a disconnected account. All workspace routes share the header.
+Read-only DAO connection restrictions and inactive feature gates are unchanged.
+
+PR #129 fixed the faucet delegation route; production core was compared with the
+corrected source. The owner then signed a real reward withdrawal, confirmed on
+UNI-7 at height 18525930, code 0, hash
+`72AA75539747AE522BBBEF06F6149F08252112CA15948E07F9BAE8F5FC2A8387`.
+Rewards were 173.075836 JUNOX; fee 0.037690 JUNOX. NodesHub accepted the transaction
+but has transaction indexing disabled, causing the frontend's retry lock.
+
+`juno-faucet-transactions.mjs` reads exact-hash transactions through the allowlisted
+RPCs, verifies UNI-7 identity and the SHA-256 of returned signed bytes. Signing
+confirmation polling uses this lookup. Connect/Refresh can reconcile a pending
+journal under the existing origin-wide lock; only exact included transactions
+clear it, and no repeat signature/broadcast is performed. Unknown, tampered or
+interrupted-signature records stay locked. Tests cover recovery and preserved
+journals, disconnect/reconnect on all eleven routes, and 320–1440 px layouts.
+Release status is recorded by the associated PR/CI/Pages run. No operator-side
+wallet signing was performed. Faucet payouts/donations remain disabled and the
+faucet account still needs funding. Real stake/unstake/payout E2E remains pending.
+
+
 ## Wallet-data correction — 2026-10-04
 
 The owner reproduced HTTP 501 after connecting Keplr. The faucet reader used

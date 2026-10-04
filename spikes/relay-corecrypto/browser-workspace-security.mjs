@@ -18,11 +18,13 @@ const proposal=id=>({id,author:'juno1'+'q'.repeat(38),title:'Proposal '+id,statu
 try{
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}: {})});
  const context=await browser.newContext();
+ let delayAccess=false;
  await context.route('https://**/*',async route=>{
   const url=new URL(route.request().url());
   if(url.pathname.includes('/smart/')){
    const query=JSON.parse(Buffer.from(decodeURIComponent(url.pathname.split('/smart/')[1]),'base64').toString());
    let data=[];
+   if(query.access){if(delayAccess)await new Promise(resolve=>setTimeout(resolve,600));data={can_publish:true,can_comment:true,staked_neta:"11000000"};}
    if(query.config)data={owner:'owner'};
    if(query.proposals)data=query.proposals.start_after?[]:[proposal(1),proposal(2)];
    if(query.reverse_proposals)data={proposals:url.pathname.includes('juno13z0mu9cyd0rj9cwr0hgwm9rxl8g9zwleqjg6pulcyypts26nua8qkzmlg0')?[3,2,1].map(id=>({id,proposal:{title:['','Initial proposal','LLC Operating Agreement Ratification','Ratify Neta DAO Constitution'][id],description:'Historical main DAO decision '+id,status:'executed',votes:{yes:'1000000',no:'0',abstain:'0'},msgs:[],expiration:{at_height:100}}})):[]};
@@ -77,6 +79,42 @@ try{
  assert.match(await page.locator('#comment-list').textContent(),/cycle candidate/);
  assert.deepEqual(errors,[]);
  console.log('Workspace security: stale DAO snapshot, rapid proposal switch and malformed public marker passed');
+ // The shared header must disconnect on every workspace route, preserving journals/drafts.
+ const wallet='juno1qurswpc8qurswpc8qurswpc8qurswpc89pyp8a';
+ await page.evaluate(address=>{window.keplr={experimentalSuggestChain:async()=>{},enable:async()=>{},getOfflineSigner:()=>({getAccounts:async()=>[{address}]})};localStorage.setItem('neta-pending-tx-v1:uni-7:disconnect-fixture','preserve');localStorage.setItem('wallet-controls-draft-fixture','preserve');},wallet);
+ for(const hash of ['home','governance','treasury','delivery','people/members','people/contributors','relay/inbox','relay/directory','relay/contacts','relay/profile','relay/register']){
+  await page.evaluate(hash=>{location.hash=hash;},hash);
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
+  assert.equal(await page.locator('#gov-connect').innerText(),wallet.slice(0,9)+'…'+wallet.slice(-6));
+  assert.equal(await page.locator('#gov-connect').getAttribute('title'),wallet);
+  assert.equal(await page.locator('#gov-disconnect').isVisible(),true,hash);
+  await page.locator('#gov-disconnect').click();
+  assert.equal(await page.locator('#gov-connect').innerText(),'Connect Keplr');
+  assert.equal(await page.locator('#gov-disconnect').isVisible(),false,hash);
+  assert.equal(await page.locator('#primary-action').isDisabled(),true);
+ }
+ // A late access response must not reconnect a wallet after explicit disconnect.
+ delayAccess=true;await page.locator('#gov-connect').click();
+ await page.locator('#gov-disconnect').waitFor({state:'visible'});await page.locator('#gov-disconnect').click();
+ await page.waitForTimeout(750);delayAccess=false;
+ assert.equal(await page.locator('#gov-disconnect').isVisible(),false);
+ assert.equal(await page.locator('#gov-connect').innerText(),'Connect Keplr');
+ assert.equal(await page.locator('#primary-action').isDisabled(),true);
+ assert.equal(await page.evaluate(()=>localStorage.getItem('neta-pending-tx-v1:uni-7:disconnect-fixture')),'preserve');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('wallet-controls-draft-fixture')),'preserve');
+ await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
+ for(const width of [320,390,768,1440]){
+  await page.setViewportSize({width,height:1000});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'connected header overflow '+width);
+  for(const id of ['gov-connect','gov-disconnect'])assert.equal(await page.locator('#'+id).isVisible(),true);
+  if(process.env.SCREENSHOT_DIR){const {mkdir}=await import('node:fs/promises');await mkdir(process.env.SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:process.env.SCREENSHOT_DIR+'/wallet-header-'+width+'.png'});}
+ }
+ await page.evaluate(()=>window.dispatchEvent(new Event('keplr_keystorechange')));
+ assert.equal(await page.locator('#gov-disconnect').isVisible(),false);
+ await page.setViewportSize({width:1280,height:720});
+ console.log('Wallet controls: every route, shortened address, disconnect, stale access, reconnect and preserved storage passed');
+
 
  // Names is part of the actual RELAY route, with read-only controls.
  await page.goto(origin+'/index.html#relay/names');
