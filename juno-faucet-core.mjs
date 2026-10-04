@@ -76,7 +76,7 @@ export class Uni7Reader {
     const root = '/cosmos/staking/v1beta1/delegators/'+address;
     const [balance,delegations,unbondings,rewards,withdraw] = await Promise.all([
       this.query('/cosmos/bank/v1beta1/balances/'+address+'/by_denom?denom='+DENOM),
-      this.pages(root+'/delegations','delegation_responses'),this.pages(root+'/unbonding_delegations','unbonding_responses'),
+      this.pages('/cosmos/staking/v1beta1/delegations/'+address,'delegation_responses'),this.pages(root+'/unbonding_delegations','unbonding_responses'),
       this.query('/cosmos/distribution/v1beta1/delegators/'+address+'/rewards'),
       this.query('/cosmos/distribution/v1beta1/delegators/'+address+'/withdraw_address')]);
     if (balance.balance?.denom !== DENOM || !/^\d+$/.test(balance.balance.amount) || !Array.isArray(rewards.rewards) || !Array.isArray(rewards.total) || !withdraw.withdraw_address)

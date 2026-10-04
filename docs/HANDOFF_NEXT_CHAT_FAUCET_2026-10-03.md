@@ -1,5 +1,22 @@
 # Next chat — Juno testnet faucet — 2026-10-03
 
+## Wallet-data correction — 2026-10-04
+
+The owner reproduced HTTP 501 after connecting Keplr. The faucet reader used
+`/cosmos/staking/v1beta1/delegators/{address}/delegations`, which is not the
+SDK route. Live NodesHub requests returned 501 for that path and 200 for
+`/cosmos/staking/v1beta1/delegations/{address}`. This change corrects the route,
+versions the frontend modules and makes wallet fixtures reject the invalid path.
+The withdrawal/unbonding routes still correctly use `delegators/{address}`.
+Deployment evidence is the associated PR/Pages run; real signed wallet E2E
+remains unverified. No payout/donation activation or transaction journal change.
+
+Live Render status rechecked at 10:27 Berlin: `protection:usage-guards-v1`,
+`balance:0`, `ready:false`. The guard update is deployed, superseding the older
+manual-deployment gate below. Wallet funding and payout/replay/restart checks
+remain pending. Quotas are not a dollar billing cap.
+
+
 ## Live backend / usage-guard continuation — 2026-10-04
 
 This section supersedes older hosting-pending snapshots below. The owner created
