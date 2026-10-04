@@ -169,6 +169,10 @@ option. A serverless Worker/Durable Object alternative requires a storage and
 runtime adaptation, followed by transaction/restart checks.
 
 Local browser review covers 11 routes at 320/390/768/1440 px against Proposals,
-plus keyboard focus and 200% reflow. Record final CI/deployment evidence after
-integration. The separate website overnight data incident is tracked in
+plus keyboard focus and 200% reflow. PR #125 merged as
+`c7882df276e41bf82a28f7adc33e53033e24aa87`. PR frontend/contract checks
+`37182809799` and RELAY browser checks `37182809846` succeeded; main checks
+`37182875693` and Pages deployment `37182875503` also succeeded. Public,
+cache-busted reads of `index.html` and `neta-ui.css` exactly matched the reviewed
+files. Footer consistency is live. The separate website overnight data incident is tracked in
 cristianoneta/neta-website PR #142.
