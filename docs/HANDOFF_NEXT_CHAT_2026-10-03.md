@@ -1,5 +1,9 @@
 # Handoff für den nächsten Chat – NETA DAO
 
+> Historical checkpoint. Current continuation: [HANDOFF](../HANDOFF.md);
+> current inventory: [CURRENT_STATE](CURRENT_STATE.md). Older next steps below
+> are evidence of that session, not instructions to repeat completed work.
+
 Stand: 3. Oktober 2026, ca. 21:00 Uhr Europe/Berlin.
 
 ## Sofort hier weiterlesen

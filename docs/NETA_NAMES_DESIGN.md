@@ -1,6 +1,6 @@
 # NETA Names — implementation boundary
 
-Updated 2026-10-03. The authoritative product specification is
+Updated 2026-10-04. The authoritative product specification is
 [NETA_NAMES_V2_PLAN.md](NETA_NAMES_V2_PLAN.md). The earlier v1 pricing and ownership
 model is superseded. Do not activate v1 as if it implements the accepted v2 plan.
 
@@ -26,9 +26,18 @@ a live NETA quote. See [integration details](NAMES_MAIN_PAGE_INTEGRATION.md).
 exact NETA token address and configured treasury. `contracts/neta-names/` is the
 v1 source: fixed 5-NETA first year, admin-set renewal price and 30-day grace. These
 are legacy implementation details, not the accepted current commercial offer.
-No UNI-7 Names registry is wired. Metadata checks alone do not verify deployment.
+The separate manifest-driven UNI-7 v2 lab is wired and deployed; this inactive
+v1 module is not its adapter. Metadata checks alone do not verify deployment.
 
-## Accepted next implementation
+## Separate UNI-7 test workspace
+
+`names-v2-lab.html` verifies the reviewed deployment manifest and supports mock-NETA
+registration/renewal, transfers, public contacts and validator proof publication,
+unlink and revocation. Owner name tests are complete; consenting-validator E2E is
+open. See [current test handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md). This does not
+activate production constants or the main workspace's write controls.
+
+## Accepted product scope
 
 - Register AND renew: USD 640 for 3 characters, USD 160 for 4, USD 5 for 5+;
   settle in NETA from a fresh quote using the existing JUNO/NETA reference pool.
@@ -44,9 +53,9 @@ No UNI-7 Names registry is wired. Metadata checks alone do not verify deployment
   need chain/module evidence. Lifecycle notifications must be generation/owner-aware.
 
 The v2 plan owns the precise allocation, quote binding, renewal reminders and
-security requirements. Implement a small tested slice next: name normalization,
-tariffs, term/expiry rules and the quote interface using synthetic fixtures. Resolve
-price freshness/jump thresholds and signer custody before enabling any purchase.
+security requirements. Normalization, tariffs, lifecycle, quotes and the UNI-7
+wallet path now exist. Resolve production price policy, feeds, service custody and
+mainnet deployment before enabling real-NETA purchases.
 
 Activation requires reviewed v2 source/schema, verified registry/token/treasury/code
 identities, replay-resistant quotes, transfer and expiry tests, deployment evidence,

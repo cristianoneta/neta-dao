@@ -18,8 +18,11 @@ The page pins the exact Render origin and address and rejects old/mismatched
 service status. Donate JUNOX remains an independent wallet-confirmed transfer;
 a real 15-JUNOX donation succeeded. Payout receipt/replay/restart and fresh empty
 wallet checks remain unverified until the owner completes them; do not claim E2E
-completion from mocked tests. With the present funding, one 10-JUNOX payout plus
-fee brings the service below its 12-JUNOX readiness reserve.
+completion from mocked tests. At that earlier 15-JUNOX balance, one payout plus fee would fall below the
+12-JUNOX readiness reserve. The closing read on 2026-10-04 reported 1,039.974213
+JUNOX and all three expected markers. Always recheck fresh `/status`; balance
+and readiness alone are not payout/restart evidence. Current test steps and
+receipts: [faucet handoff](../docs/HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md).
 
 GitHub Pages cannot keep a signing key or execute this server. Required from the
 operator: a persistent server/container host, HTTPS origin, and a **dedicated
@@ -118,8 +121,9 @@ and other workspace services can still cost money. No provider API credential is
 stored and no automatic host suspension is installed. Configure the Build
 Pipeline additional-spend limit to USD 0 in Render and monitor workspace usage.
 A guaranteed invoice ceiling requires a provider-enforced billing agreement.
-The public frontend remains disabled until the operator deploys this version,
-funds the account and completes the signed/restart checks.
+The public frontend is connected to the deployed, funded service for controlled
+testing. Signed payout/replay/restart checks remain evidence gates, not a claim
+that the current UI is disabled.
 
 ## Transfer gas policy
 
@@ -127,10 +131,11 @@ Donations and payouts share `src/transfer-fee.mjs`: positive integer simulation
 estimates up to 500000, then `max(250000, ceil(estimate * 1.8))` at 0.2 ujunox/gas.
 The minimum fee is 0.05 JUNOX. A real donation exhausted the previous 1.4x limit
 at height 18526822 (code 11); it transferred no donation tokens, but charged the
-0.0274-JUNOX fee. The increased reserve must still be confirmed by a fresh signed
-transfer. No automatic retry or journal reset. Staking/reward fees are unchanged.
-After manually deploying the backend, verify `gasPolicy:bank-send-gas-v1` alongside
-the confirmation marker before payout activation.
+0.0274-JUNOX fee. The subsequent 15-JUNOX donation succeeded with gas limit
+250000; its exact receipt is in the faucet handoff. No automatic retry or journal
+reset. Staking/reward fees are unchanged. The deployed backend already reports
+`gasPolicy:bank-send-gas-v1`; recheck it alongside the confirmation marker after
+future backend deployments.
 
 ## Limits and transaction integrity
 

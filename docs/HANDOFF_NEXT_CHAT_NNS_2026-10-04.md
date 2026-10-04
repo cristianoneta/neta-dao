@@ -1,6 +1,6 @@
 # Next chat — NNS UNI-7 validator ownership
 
-Checkpoint: 2026-10-04, continuation after the 21:40 Europe/Berlin owner tests.
+Checkpoint: 2026-10-04, end of session; validator UI #145 is merged and live.
 Read AGENTS.md, HANDOFF.md and CURRENT_STATE.md; read DESIGN_SYSTEM.md before
 UI edits. This records observed session state, not a future chain attestation.
 
@@ -55,12 +55,14 @@ No validator has been recruited or contacted. Real validator link/unlink/revoke
 E2E remains outstanding. Tests use synthetic wallets/signatures/adapters; they
 are not evidence of a consenting operator or live validator publication.
 
-1. Verify this continuation's final PR checks and published lab v5 (reader/wallet
-   v4, client v2) before proceeding in a future session.
+1. Fetch fresh main and check current deployment health. PR #145 release checks
+   already passed; published lab v5 uses reader/wallet v4 and client v2.
 2. Retain the same browser/site data and manifest. For name-owner link publication,
    use the second wallet that now owns cristiano.neta.
-3. Test the new UI with an operator who controls both actual validators, signing
-   in their own Keplr. Never request seeds, private keys or consensus/node keys.
+3. Test with a consenting operator who controls both actual validators and an
+   active test name in their own browser/Keplr. Proofs stay in one tab; this UI
+   does not exchange signatures between remote people. Do not share wallets or
+   keys to link the current owner's name. No seeds/private/consensus keys are needed.
 4. Verify publication, both exclusive bindings, owner unlink and unilateral
    operator revocation with exact receipts and post-state.
 5. Only then consume links alongside validated mainnet/testnet validator records
@@ -68,6 +70,19 @@ are not evidence of a consenting operator or live validator publication.
 
 Mainnet registry constants remain null. Production pricing, service custody and
 mainnet launch are separate gates. Keep Smart Delegation research deferred.
+
+## Validator UI release — PR #145
+
+Merged as `50c5814e048230507a1d03c3e7c8c03f97b537ee`; final PR head
+`65abd6514bd3bac94cb4238d4fcde0c15458c969`. PR browser run 37230272454,
+contract/frontend 37230272470 and faucet 37230272450 succeeded. Main runs
+37230567986 and 37230567917, plus Pages 37230567543, succeeded.
+All eight changed public assets matched after publication. 84 root Node tests
+passed; browser integration covers explicit signatures/publication/unlink/revoke,
+wallet switching and late-connect rejection. Screenshots at 320/390/768/1440 px
+were inspected. Tests use synthetic chain/wallet adapters, not operator consent.
+A read-only deployed-contract challenge matched client text and derived signers;
+this was not a live validator write. Full evidence: [PR #145](https://github.com/cristianoneta/neta-dao/pull/145).
 
 ## Profile review release — PR #144
 
@@ -156,9 +171,9 @@ Mainnet deployment constants remain null; no production price service is ready.
 ## Workspace continuity
 
 Use fresh GitHub main and current CI, preserve bot Treasury/member snapshots, and
-work through branches/PRs. Do not reset existing dirty worktrees: neta-dao,
-neta-nns-confirm and neta-nns-checksum contain work already published via GitHub
-Git Data APIs. This documentation was assembled separately in neta-handoff.
+work through branches/PRs. Inspect existing worktrees before touching them;
+previous changes may already be published through GitHub Git Data APIs. Local
+workspace paths are temporary and are not the source of truth for continuation.
 Local dirtiness does not imply missing remote changes. Never request seeds/private
 keys, erase pending journals or enable mainnet messaging while fixing testnet UI.
 
@@ -168,5 +183,6 @@ Suggested next-chat prompt:
 > HANDOFF, CURRENT_STATE and the NNS next-chat handoff. Registration, contacts,
 > renewal and two-wallet transfer were checked on UNI-7. cristiano.neta now belongs
 > to juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57 and has an empty current profile.
-> Do not repeat those transactions. Verify the validator UI release and finish
-> consenting-operator link/unlink/revocation E2E. Keep mainnet purchases disabled.
+> Do not repeat those transactions. Validator UI #145 is published and verified.
+> The next gate is consenting-operator link/unlink/revocation E2E; do not claim it
+> complete without real evidence. Keep mainnet purchases disabled.

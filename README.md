@@ -5,7 +5,8 @@ Static DAO workspace at <https://dao.netareborn.com>, owned by
 owns <https://netareborn.com>.
 
 Start with [HANDOFF.md](HANDOFF.md), then [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md).
-The latter is the code-backed feature/deployment inventory. Base inventory review: 2026-10-02; NNS continuation updated 2026-10-04.
+The latter is the code-backed feature/deployment inventory, consolidated on 2026-10-04.
+Use [docs/README.md](docs/README.md) for the document map and historical evidence.
 Recorded deployments are not a fresh on-chain attestation; recheck identity and
 state before signing. This documentation review changes no application behavior.
 
@@ -19,7 +20,7 @@ and an assembly-plaza Home illustration. The shared theme and Home implementatio
 are live via PR #108, with mobile follow-up #109. Treasury valuation follow-up #110
 restores verified Osmosis assets and guards against false history flows; see
 [the incident record](docs/TREASURY_VALUATION_FIX_2026-10-03.md), CURRENT_STATE and
-HANDOFF for release evidence and the evening continuation.
+HANDOFF for the current continuation.
 
 ## What is connected
 
@@ -28,13 +29,14 @@ HANDOFF for release evidence and the evening continuation.
 | Proposals | Local per-DAO drafts, public UNI-7 revisions/discussion, mainnet proposal reads | Operations uses the legacy workshop; Juno uses v0.3.0 |
 | Operations voting | Keplr execute against the mainnet proposal module for open proposals | Existing frontend path; no new live vote demonstrated by this review |
 | Native Juno governance | Mainnet history/parameters, UNI-7 community review | Native mainnet deposit, submission and voting are disabled |
-| Treasury | Generated Operations Juno/Osmosis balances, Juno Community Pool, daily history and Operations event ledger | Read-only; value-change attribution is an estimate, not a complete cash-flow ledger |
+| Treasury | Generated Operations Juno/Osmosis, main Neta DAO and Juno Community Pool balances, history and Operations events | Read-only; value-change attribution is an estimate, not a complete cash-flow ledger |
 | RELAY Inbox | Local notifications from Operations and native Juno mainnet proposals | No UNI-7 review polling, push or cross-device sync |
 | RELAY Composer | Temporary preview and read-only UNI-7 mailbox identity check | Main application cannot send or save plaintext drafts |
 | RELAY encrypted lab | Separate UNI-7 device registration, ciphertext send/receive and encrypted local history | Mocked two-profile test passed; real two-wallet E2E still unrecorded |
 | Names in RELAY | Directory search, DAO details/copy/follows, USD fee calculator, unpublished contact/validator profile preview | v2 registry, live quotes, profile/contacts persistence and payments are not connected; `REGISTRY=null` |
 | Names v2 UNI-7 lab | Separate Keplr setup/lab with verified deployed mock token, registry and profiles; purchases activated | Registration/profile/renewal/transfer post-state checked; separate operator-proof UI, live validator E2E outstanding; mainnet disabled |
-| Delivery / Contributors | Visual concepts and structured proposal deliverables | No authoritative contributor records, milestone acceptance or payment release |
+| People / Delivery | Chain-backed Members adapters, planned Contributors and structured proposal deliverables | No authoritative contributor assignments, milestone acceptance or payment release |
+| UNI-7 faucet | Connected funded Render service, Keplr, donations, staking/rewards and guarded payout requests | Reward/donation receipts verified; payout/restart and stake/unstake E2E evidence remains open |
 
 RELAY directly exposes Inbox, Directory, Contacts, My profile and .neta name.
 Directory owns search, follow toggles and a Followed filter; stored favorites are
@@ -82,6 +84,9 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 cargo test --locked --manifest-path contracts/neta-proposal-workshop/Cargo.toml
 cargo test --locked --manifest-path contracts/workshop-access-mock/Cargo.toml
 cargo test --locked --manifest-path contracts/neta-names/Cargo.toml
+cargo test --locked --manifest-path contracts/neta-names-v2/Cargo.toml
+cargo test --locked --manifest-path contracts/neta-names-test-token/Cargo.toml
+cargo test --locked --manifest-path contracts/neta-validator-profiles/Cargo.toml
 cargo test --locked --manifest-path contracts/neta-relay-mailbox/Cargo.toml
 ```
 
@@ -99,6 +104,7 @@ npm run test:transport
 npx playwright install --with-deps chromium
 npm run test:browser
 node browser-uni7-lab.mjs
+node browser-names-validators.mjs
 ```
 
 These browser tests mock Keplr and chain responses. They cannot prove live E2E.
@@ -114,36 +120,23 @@ Frontend Refresh refetches committed JSON, not the chain or a server collector.
 See [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md) for data ownership and limitations.
 
 Use a branch/PR, preserve generated snapshots and inspect checks before merging.
-Root README/Handoff and ordinary docs edits alone do not match CI path filters.
+Root README/Handoff and ordinary docs edits alone do not match CI path filters;
+`faucet/**`, including its README, triggers faucet CI.
 Contract Markdown matches `contracts/**`; `docs/RELAY_SECURITY_ARCHITECTURE.md`
 also matches frontend/contract CI. Inspect the changed paths and actual checks for each PR; ordinary documentation
 updates do not imply that application CI ran. A successful Pages deployment proves publication,
 not wallet transactions or cryptographic security.
 
-## Current security checkpoint — 2026-10-03
+## Security and release boundaries
 
-DAO #100–#103 and Website #137/#138 are merged after their relevant final CI
-checks passed. Documentation PRs DAO #104 and Website #139 are also merged.
-The resumed verification confirmed the exact PR-head checks and compared 23
-production files with GitHub, including both shared signing bundles and the
-published Treasury event ledger. See [the evidence](docs/SECURITY_CONTINUATION_2026-10-03.md).
+The completed #100–#103 corrections and original release evidence are recorded in
+[the security continuation](docs/SECURITY_CONTINUATION_2026-10-03.md).
+Mainnet messaging remains disabled. Local receive recovery is shipped; mailbox
+v0.2 consent/history is source only. Off-device backup, sender-generation handling,
+consent/refill and the full restore matrix remain release gates. Never discard
+pending crypto or transaction records to unblock the UI.
 
-Treasury run 934 successfully executed the final collector source and retained all
-57 cached events. Both selected public RPCs required full replay; three historical
-Osmosis transactions remain absent from the index and are retained from cache.
-Unpriced assets still yield PARTIAL balance snapshots. Successful collection is
-not proof of complete accounting. Preserve the subsequent bot commits.
-
-Mainnet messaging remains disabled. Local receive recovery and sender-scoped
-archive identities are shipped; v0.2 consent/historical identities are tested
-source only. The pinned UNI-7 v0.1 address/artifact has not changed. Automatic
-off-device recovery, historical sender resolution, consent/refill integration and
-the full rotation/exhaustion/restore matrix remain release blockers. Never discard
-pending ratchet/archive/outbox or transaction-journal state to unblock the UI.
-
-
-
-Latest repository/CI/data review: [maintenance checkpoint](docs/MAINTENANCE_CHECKPOINT_2026-10-03.md).
+Latest repository/CI/data review: [maintenance checkpoint](docs/MAINTENANCE_CHECKPOINT_2026-10-04.md).
 
 ## Adding DAOs
 
@@ -156,7 +149,7 @@ isolated, bounded main DAO reads; its status file must be checked alongside the
 underlying snapshot timestamps. It does not change Operations exports.
 
 
-NNS validator-profile source slice (2026-10-04): see
-[scope, protocol and next steps](docs/NNS_VALIDATOR_PROFILES_2026-10-04.md).
-The two-operator signature contract is not deployed; v2 paid registration and
-public profile publishing remain unavailable.
+NNS validator-profile protocol and programme decisions: see
+[scope and remaining gates](docs/NNS_VALIDATOR_PROFILES_2026-10-04.md).
+The separate UNI-7 deployment and validator UI are live through PR #145. Mainnet
+purchases and main-workspace profile publishing remain disabled.

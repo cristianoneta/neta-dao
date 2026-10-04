@@ -1,5 +1,9 @@
 # Maintenance checkpoint — 2026-10-03
 
+> Historical checkpoint. Current continuation: [HANDOFF](../HANDOFF.md);
+> current inventory: [CURRENT_STATE](CURRENT_STATE.md). Older next steps below
+> are evidence of that session, not instructions to repeat completed work.
+
 ## Scope and evidence
 
 Reviewed both repositories' current main, open PRs/issues, recent Actions, production

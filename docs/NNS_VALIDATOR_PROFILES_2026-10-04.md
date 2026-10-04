@@ -1,6 +1,6 @@
 # NNS validator profiles — implementation checkpoint
 
-## Superseding continuation — 2026-10-04 evening
+## Current continuation — 2026-10-04 end of session
 
 The earlier source-only sections below are historical. The UNI-7 registry and
 profile contract were deployed and verified, and the owner tested registration,
@@ -37,7 +37,7 @@ not a deployed registry or evidence of a live operator signing.
   already approved delegation. Transfer/re-registration invalidates old identity
   proofs and profile contents. Programme weights remain a separate governance rule.
 
-## What this change implements
+## Original source slice — historical implementation table
 
 | Component | Implemented | Boundary |
 | --- | --- | --- |
@@ -49,8 +49,11 @@ not a deployed registry or evidence of a live operator signing.
 The currently existing `contracts/neta-names` is inactive legacy v1 (fixed 5 NETA).
 It does **not** implement the accepted v2 USD tariffs, ownership generations or
 transfer rules. It must not be activated to make this sidequest appear complete.
-The registry was missing at this checkpoint. The [v2 source continuation](NNS_V2_REGISTRY_2026-10-04.md) now adds the real registry and joint local tests. A deployed registry and running quote service remain missing.
-The sidequest is therefore not ready for a real validator E2E test yet.
+The registry was missing at the original checkpoint. The [v2 protocol](NNS_V2_REGISTRY_2026-10-04.md)
+now describes the real registry and joint tests. The later deployment/UI supersede
+that missing-registry/UI
+boundary. A production quote service remains open; a consenting operator can now
+exercise the isolated test flow.
 
 ## Contract and identity protocol
 
@@ -134,7 +137,7 @@ CI now includes the profile contract format/tests/Clippy/audit/WASM build and
 the new browser test; final CI/build and publication evidence must be recorded
 after actual completion, not inferred from workflow configuration.
 
-## Local verification evidence — 2026-10-04
+## Original source-slice verification evidence — 2026-10-04
 
 - 12 native Rust tests passed, including independent CosmJS/Rust ADR-36 signatures.
 - Rust format and Clippy with warnings denied passed on toolchain 1.81.0.
@@ -154,29 +157,21 @@ Live validator proof submission and production pricing/deployment remain pending
 
 ## Remaining work before public operation
 
-1. Complete the integration in `NNS_V2_REGISTRY_2026-10-04.md`: the registry and
-   quote-policy/client libraries now exist as source. Concrete read/journal/recovery
-   adapters and service hosting, custody and production market policy remain open.
-2. Deploy a separate UNI-7 registry/mock-token configuration and this profile
-   contract. Verify chain, code checksum, registry interface and fee recipient.
-   A registry testdouble is permitted in tests only, never as production proof
-   of purchasing a name.
-3. Add live profile reads and the owner transaction UI with exact before/after
-   review, wallet/context recheck, origin-wide transaction lock, preserved intent,
-   exact-hash confirmation and uncertain-result reconciliation. Connect proof
-   collection only after this path and deployment identities are verified.
-4. Exercise register → profile → link → query → edit → unlink/revoke with test
-   wallets; test expiry, transfer and duplicate binding in the deployed system.
-5. Recruit one willing mainnet + UNI-7 validator for a real two-operator test.
-   Ask them to sign in their own wallets. Never request keys/seeds, and never use
-   consensus signing keys. Mainnet ADR-36 proof is off-chain and has no gas cost;
-   test registry/profile writes do consume UNI-7 gas.
-6. Review mainnet deployment, registry/quote authority and actual payment flow;
-   then enable public registration/profile writes. No mainnet activation by a
-   frontend config change alone.
+1. Find a willing operator controlling a mainnet and UNI-7 validator. No outreach
+   has been sent. They use their own wallets and active test name; current proofs
+   live in one browser tab, without cross-person signature exchange.
+2. Run live link → query → owner unlink and unilateral operator revoke. Archive
+   exact receipts and both binding queries; add deployed expiry/duplicate-binding
+   evidence without treating synthetic tests as live operator consent.
+3. At a programme snapshot independently verify validator existence and active
+   UNI-7 consensus membership. Stored operator signatures do not prove either.
+4. Review production pricing policy/feeds, hosted quote service and signer custody,
+   registry governance/mainnet deployment and wallet payment E2E before activation.
+   Main workspace production writes remain disabled.
 
-No outreach to validators was sent. No new hosting, paid resource, wallet,
-contract deployment, name registration or governance transaction was created.
+Registry deployment, read/journal/recovery integration and the owner contact UI
+are complete for the isolated UNI-7 instance. See the NNS handoff for current
+release evidence and the exact distinction between receipts and post-state reads.
 
 ## Delegation programme continuation (planning, not implementation)
 

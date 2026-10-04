@@ -1,67 +1,36 @@
-# NETA DAO Workspace checkpoint
+# NETA DAO checkpoint index
 
-Updated: **2026-10-03** after the interrupted chat. This is the continuation index;
-[CURRENT_STATE](docs/CURRENT_STATE.md) owns the feature inventory and
-[HANDOFF](HANDOFF.md) owns navigation and working rules.
+Updated **2026-10-04, end of session**. Start with [HANDOFF](HANDOFF.md), then
+[CURRENT_STATE](docs/CURRENT_STATE.md). This file lists open priorities; detailed
+release evidence belongs to the linked runbooks, not another duplicate chronology.
 
-## Current user-facing work
+1. **NNS live validator test:** registration/profile/renewal/transfer and the
+   validator UI are delivered. A consenting operator is the external dependency.
+   Verify link, exclusive bindings, unlink/revoke and exact receipts. Preserve the
+   current deployment and browser data. [NNS handoff](docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md).
+2. **Faucet evidence:** verify a real 10-JUNOX payout, repeat rejection, persistent
+   cooldown after restart, empty-recipient behavior and stake/unstake receipts.
+   Service funding/integration and reward/donation evidence already exist.
+   [Faucet handoff](docs/HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md).
+3. **Delegation programme:** retain approved parameters; use verified operator
+   links plus independent validator and active-consensus snapshots. No automatic
+   points from a stored link. Smart Delegation research stays deferred until the
+   NNS gate is resolved. [Decisions](docs/NNS_VALIDATOR_PROFILES_2026-10-04.md).
+4. **Names production gates:** real quote feeds/policy, signer custody/service,
+   reviewed mainnet governance/deployment and wallet E2E. Main workspace writes
+   remain disabled; separate UNI-7 tests are not a mainnet release.
+5. **Messaging release gates:** generation-aware sessions and consent/prekey refill
+   against isolated v0.2 fixtures; full rotate/revoke/exhaustion/history tests;
+   authenticated coherent backup and anti-rollback; wrong-code/corruption/stale/
+   fresh-profile/concurrent restore tests; reconciliation of legacy and uncertain
+   outgoing state. Only then plan authorized live-wallet E2E. Never erase journals.
+   [Implementation plan](docs/RELAY_IMPLEMENTATION_PLAN.md).
+6. **Data and UI follow-up:** inspect collector timestamp lag; preserve partial
+   valuation and unavailable history labels; continue accounting coverage,
+   governance pagination/policy and per-page accessibility. Measure performance
+   before restructuring bundles or polling. [Maintenance review](docs/MAINTENANCE_CHECKPOINT_2026-10-04.md).
 
-The owner requested progressive publication of the graphite/mint redesign.
-#108 shared foundations/Home and #109 mobile corrections are live. #110 corrects
-Treasury price coverage and its false history outflow; see the dedicated
-[incident record](docs/TREASURY_VALUATION_FIX_2026-10-03.md) for final release evidence.
-
-Current priority: the owner selected small functional Names slices after integrating
-the UI into RELAY. #114–#116 shipped the integration, direct navigation and stable
-shared heading/cards. Desktop section headers now reuse Home voxel motifs; see
-[maintenance checkpoint](docs/MAINTENANCE_CHECKPOINT_2026-10-03.md).
-Next implement/test v2 label, tariff, term/expiry and quote-interface rules, keeping
-registration and payments disabled until their backing services are verified.
-Consult `docs/NETA_NAMES_V2_PLAN.md` and `docs/DESIGN_SYSTEM.md`.
-Full per-page accessibility review is still incomplete.
-
-The security priorities below remain release blockers, not a messaging release.
-
-## Completed and verified
-
-- #100: signing denomination, async context, Treasury pricing and dependency fixes.
-- #101: transactional local receive recovery, invalid-ciphertext isolation and
-  sender/generation-scoped archive identity; adversarial browser checks passed.
-- #102: v0.2 recipient consent and historical identity **source only**; Rust/audit
-  and WASM checks passed. The pinned live UNI-7 v0.1 artifact is unchanged.
-- #103: guarded shared signing bundle, moderation/depth/cycle protection and
-  anchored Treasury scans with full-replay fallback. Final CI passed.
-- #104 / Website #139: integration evidence. Resumed verification confirmed the
-  PR-head checks, successful Pages deployments and 23 matching production files.
-- Treasury run 934 successfully ran the final source and retained 57 events.
-  PARTIAL valuation and three cached Osmosis transactions missing from the current
-  index remain explicit limitations; no generated exports were hand-edited.
-
-Exact runs and deployment hashes: [security continuation](docs/SECURITY_CONTINUATION_2026-10-03.md).
-
-## Messaging release blockers, in order
-
-1. Implement and test generation-aware sessions and consent/prekey replenishment
-   against isolated v0.2 fixtures. Cover rotating unapproved senders, depleted
-   prekeys, historical unread messages, collisions, revoke and concurrent use.
-   Prepare a separately verified UNI-7 deployment plan; do not repin or deploy
-   source-only changes as if they were already active.
-2. Specify authenticated automatic backup provider, versioning, synchronization
-   and anti-rollback policy; implement a coherent snapshot of ratchet, archive,
-   outbox, cursors, vault and descriptor. A recovery code alone is not a backup.
-   Fresh-profile and stale restores must not silently resume sending.
-3. Test wrong wallet/code, corruption, rollback, already-read history, newer inbound
-   messages, interrupted writes and concurrent tabs/devices using synthetic keys.
-   Resolve legacy intents without checkpoints and uncertain outbound state by
-   verified reconciliation; never clear pending records simply to unblock the UI.
-4. After these gates, prepare the live E2E runbook for a separately authorized
-   wallet session. **This task prohibits real wallet keys and live attack
-   transactions.** The old immediate-real-wallet-test instruction is superseded.
-5. Continue accounting completeness, governance policy/pagination and measured
-   efficiency work without describing partial data as a complete ledger.
-
-Mainnet messaging and the main composer SEND remain disabled. Production release
-also needs reviewed mainnet stake/network policy, client/distribution review and
-independent security review. Native Juno submission/voting, Names activation and
-Treasury execution are separate unfinished features.
-
+Mainnet messaging, native Juno proposal submission/voting, Treasury execution,
+contributor-role/payment services and automatic remote recovery remain unfinished.
+No new deployment, wallet transaction or operator outreach is required to close
+this documentation maintenance session.

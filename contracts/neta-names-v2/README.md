@@ -1,6 +1,8 @@
 # NETA Names v2 registry
 
-Source implementation; not deployed or enabled in the website.
+Deployed on UNI-7 for the separate manifest-driven `names-v2-lab.html` test workspace.
+Mainnet deployment and main-workspace purchases remain disabled. See the
+[current deployment and owner-test evidence](../../docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md).
 See [the implementation checkpoint and UNI-7 runbook](../../docs/NNS_V2_REGISTRY_2026-10-04.md).
 The legacy `neta-names` contract is unchanged and is not compatible with v2 profiles.
 
