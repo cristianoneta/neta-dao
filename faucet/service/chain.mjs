@@ -16,7 +16,10 @@ export async function verifyOwnership(address,message,signature) {
 }
 export async function chainAdapter({rpc,mnemonicFile,expectedAddress}) {
   if(!validAddress(expectedAddress))throw Error('Set FAUCET_ADDRESS to the dedicated UNI-7 faucet account.');
-  const wallet=await DirectSecp256k1HdWallet.fromMnemonic((await readFile(mnemonicFile,'utf8')).trim(),{prefix:'juno'});
+  const mnemonic=(await readFile(mnemonicFile,'utf8')).trim().split(/\s+/).join(' ');
+  let wallet;
+  try{wallet=await DirectSecp256k1HdWallet.fromMnemonic(mnemonic,{prefix:'juno'});}
+  catch{throw Error('Invalid faucet recovery phrase. Check the private secret file; never share its contents.');}
   const [{address}]=await wallet.getAccounts();
   if(address!==expectedAddress)throw Error('Faucet signing account does not match FAUCET_ADDRESS.');
   const client=await SigningStargateClient.connectWithSigner(rpc,wallet,{gasPrice:GasPrice.fromString('0.2ujunox')});

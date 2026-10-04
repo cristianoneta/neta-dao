@@ -1,5 +1,30 @@
 # NETA DAO code-backed current state
 
+## Live backend / usage-guard continuation — 2026-10-04
+
+This section supersedes older hosting-pending snapshots below. The owner created
+Render hosting, corrected a recovery-phrase typo privately, and provided
+`https://neta-junox-faucet.onrender.com`. Read-only `/status` verified `uni-7`,
+`juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`, balance `0`, `ready:false`.
+No live signed payout, funding or browser transaction was performed.
+
+The owner accepted keeping Render with additional abuse/usage guards. The update
+adds persistent aggregate quotas: 60 HTTP requests/minute, 5,000/day, 50,000/month;
+100 payout reservations/day, 1,000/month, plus the existing 10 JUNOX/rolling 24h
+per wallet. Day/month boundaries are UTC; failed payout reservations count too.
+Status RPC reads and failures are coalesced/cached for 30s; HTTP concurrency is 4.
+Invalid mnemonic errors no longer echo input words or the BIP-39 dictionary.
+See `faucet/README.md` and `faucet/RENDER.md` for configuration and limitations.
+
+**Deployment gate:** manually deploy this update on Render and verify
+`protection:usage-guards-v1`. Quota exhaustion pauses API work/payouts, not Render
+billing. A hard USD 10 invoice ceiling and automatic provider suspension are NOT
+implemented. Configure Render's additional build-spend limit to USD 0 separately.
+Public API/address config remains null. Next: fund the dedicated account privately,
+verify the guard version, then real-wallet payout/replay/restart checks before
+public activation. Preserve SQLite, WAL and pending transaction journals.
+
+
 ## Faucet hosting preparation — 2026-10-04
 
 `render.yaml` and [the Render runbook](../faucet/RENDER.md) describe one paid
