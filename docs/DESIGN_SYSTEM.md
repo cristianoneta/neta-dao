@@ -248,3 +248,13 @@ Members shows verified governance participation with DAO-specific units.
 Contributors remains a planned state until the owner defines its real data and
 workflow. Remove illustrative Operations people, mandates and pay from the live
 UI. Preserve legacy `#contributors` links by routing to Members.
+
+## Community tools footer — owner update 2026-10-04
+
+Use the Proposals footer on every workspace destination: one shared footer after
+main, aligned with the content width, a subtle full-width divider and centered
+underlined mint “Juno testnet faucet ↗” link. Keep the same 24/40 px vertical
+padding and 44 px link target on Home, Proposals, Delivery, People, Treasury and
+all RELAY panels. On short pages the footer rests at the viewport bottom; on long
+pages it follows the content. Never overlay content with a fixed footer.
+The independent faucet opens in a new tab with noopener/noreferrer.

@@ -156,3 +156,19 @@ cache-busted read matched exactly and confirmed the actual footer markup.
 The owner was given the direct public faucet URL. The backend is still unhosted
 and unfunded; the UI reflects that. This handoff, not an unseen previous chat,
 is the starting point for the next continuation.
+
+## Footer consistency follow-up — 2026-10-04
+
+Owner selected the Proposals footer as the reference across all routes. The
+shared footer now uses the same responsive width as main, explicit link styling
+and a page shell that places it at the bottom on short pages. Its existing
+new-tab behavior and disabled payout service configuration are unchanged.
+No new hosting account or wallet was provisioned. Owner confirms no running
+server; managed Node/container hosting with durable disk is the minimal-change
+option. A serverless Worker/Durable Object alternative requires a storage and
+runtime adaptation, followed by transaction/restart checks.
+
+Local browser review covers 11 routes at 320/390/768/1440 px against Proposals,
+plus keyboard focus and 200% reflow. Record final CI/deployment evidence after
+integration. The separate website overnight data incident is tracked in
+cristianoneta/neta-website PR #142.
