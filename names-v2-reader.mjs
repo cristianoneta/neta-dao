@@ -5,6 +5,16 @@ export const UNI7_RESTS=Object.freeze(['https://juno.test.api.nodeshub.online','
 export const UNI7_RPCS=Object.freeze(['https://juno.test.rpc.nodeshub.online','https://juno.rpc.t.stavr.tech']);
 const hex=/^[a-f0-9]{64}$/;
 const address=validateJunoAddress;
+export function freshUni7Block(latest,now=Math.floor(Date.now()/1000)){
+  const header=latest?.block?.header??latest?.sdk_block?.header;
+  if(!header)throw Error('Latest block response has no header.');
+  if(header.chain_id!=='uni-7')throw Error('UNI-7 block IDENTITY MISMATCH');
+  const time=Date.parse(header.time)/1000,height=Number(header.height);
+  if(!Number.isSafeInteger(height)||height<=0||!Number.isFinite(time))throw Error('Latest block has an invalid height or timestamp.');
+  if(time>now+30||now-time>120)throw Error(`Block time ${header.time}; browser time ${new Date(now*1000).toISOString()}. Outside the freshness window. Check automatic device date/time; if correct, retry when the node catches up.`);
+  return {height,time};
+}
+export function uni7Failure(base,error){return `${new URL(base).hostname}: ${error?.message||'Request failed'}`;}
 function digest(value){
   if(hex.test(value||''))return value;
   const bytes=Uint8Array.from(atob(value||''),c=>c.charCodeAt(0));
@@ -29,7 +39,7 @@ export function validateManifest(input){
 // this verifies deployment identity, not Tendermint light-client proofs.
 export class NamesV2Reader {
   constructor({deployment=NAMES_V2_DEPLOYMENT,fetcher=globalThis.fetch,now=()=>Math.floor(Date.now()/1000)}={}){
-    this.deployment=validateManifest(deployment);this.fetcher=fetcher;this.now=now;this.base=null;
+    this.deployment=validateManifest(deployment);this.fetcher=fetcher.bind(globalThis);this.now=now;this.base=null;
   }
   async get(base,path){
     const r=await this.fetcher(base+path,{cache:'no-store',signal:AbortSignal.timeout(12000)});
@@ -43,15 +53,13 @@ export class NamesV2Reader {
   }
   async verify(deployment=this.deployment){
     if(JSON.stringify(validateManifest(deployment))!==JSON.stringify(this.deployment))throw Error('Deployment manifest changed.');
-    this.base=null;const m=this.deployment;
+    this.base=null;const m=this.deployment,failures=[];
     for(const base of UNI7_RESTS){
       try {
         const node=await this.get(base,'/cosmos/base/tendermint/v1beta1/node_info');
         if(node.default_node_info?.network!=='uni-7')throw Error('UNI-7 IDENTITY MISMATCH');
         const latest=await this.get(base,'/cosmos/base/tendermint/v1beta1/blocks/latest');
-        const header=(latest.block||latest.sdk_block)?.header;
-        const time=Date.parse(header?.time)/1000,height=Number(header?.height);
-        if(header?.chain_id!=='uni-7'||!Number.isSafeInteger(height)||height<=0||!Number.isFinite(time)||time>this.now()+30||this.now()-time>120)throw Error('UNI-7 block is stale or invalid.');
+        const {height,time}=freshUni7Block(latest,this.now());
         for(const [role,contract] of [['registry',m.registry],['token',m.token],['profiles',m.profile_contract]]){
           const pin=m.contracts[role];
           const info=(await this.get(base,`/cosmwasm/wasm/v1/contract/${contract}`)).contract_info;
@@ -68,9 +76,9 @@ export class NamesV2Reader {
         const profile=await this.raw(base,m.profile_contract,{config:{}});
         if(profile?.registry!==m.registry)throw Error('Profile registry IDENTITY MISMATCH');
         this.base=base;this.block={height,time};this.verifiedAt=this.now();return config;
-      }catch(error){if(/MISMATCH/.test(error.message))throw error;}
+      }catch(error){if(/MISMATCH/.test(error.message))throw error;failures.push(uni7Failure(base,error));}
     }
-    throw Error('Verified UNI-7 deployment unavailable.');
+    throw Error('Verified UNI-7 deployment unavailable. '+failures.join(' | '));
   }
   async smart(query,contract=this.deployment.registry){if(!this.base||this.now()-this.verifiedAt>=10)await this.verify();return this.raw(this.base,contract,query);}
   resolve(name){return this.smart({resolve:{name:normalizeName(name)}});}

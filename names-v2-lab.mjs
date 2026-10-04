@@ -1,5 +1,5 @@
-import {NamesV2Reader} from './names-v2-reader.mjs';
-import {connectNamesWallet} from './names-v2-wallet.mjs';
+import {NamesV2Reader} from './names-v2-reader.mjs?v=2';
+import {connectNamesWallet} from './names-v2-wallet.mjs?v=2';
 import {normalizeName,normalizeContacts,validateJunoAddress} from './names-profile-core.mjs';
 import {createTestQuote} from './names-v2-test-authority.mjs';
 import {validateQuote} from './names-v2-core.mjs';

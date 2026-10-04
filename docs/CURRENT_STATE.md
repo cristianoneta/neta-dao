@@ -1,5 +1,26 @@
 # NETA DAO code-backed current state
 
+## UNI-7 connection diagnostics — 2026-10-04
+
+PR #139 is merged; its four PR workflows, two main checks and Pages publication
+succeeded. The owner then reached the local test signer but Connect failed with
+“Fresh UNI-7 data unavailable”. No deployment transaction is evidenced.
+Read-only checks found fresh UNI-7 blocks. The new Chromium connection regression
+then reproduced the actual browser failure: native fetch was stored on the setup/
+reader and invoked with that object as its receiver, causing Illegal invocation.
+Both constructors now bind the supplied fetch function to globalThis. The earlier
+Node/mocked tests did not enforce the browser receiver requirement.
+
+The follow-up retains the 120-second age/30-second future limits and chain checks,
+binds browser fetch correctly and adds provider-specific HTTP/network/header/time diagnostics, correctly selects
+sdk_block.header when block has no header, clears a previously selected node on
+failure, and closes an incomplete signing client. Time errors show both block and
+browser timestamps. A browser fixture exercises failure, retry and REST fallback;
+no real wallet signature is performed. Asset versions are bumped. Pending journals
+and the browser-local test quote key are preserved. After publication reload the
+setup page without clearing site data; retry Connect and inspect the exact error.
+
+
 ## NNS owner-driven UNI-7 setup and wallet flow — 2026-10-04
 
 Read [the owner test runbook](NNS_UNI7_OWNER_TEST_2026-10-04.md). The separate setup page now prepares
