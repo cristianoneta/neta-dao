@@ -1,5 +1,15 @@
-.faucet-header { grid-template-columns: auto 1fr auto; }
+.faucet-header { grid-template-columns:auto auto minmax(0,1fr) auto; grid-template-areas:"brand label promo controls"; gap:20px; }
+.faucet-header .gov-brand { grid-area:brand; }
+.faucet-header .gov-controls { grid-area:controls; }
 .faucet-header-label { color:var(--neta-text-secondary); font-size:12px; letter-spacing:.1em; }
+.faucet-header-label { grid-area:label; }
+.faucet-dao-promo { grid-area:promo; justify-self:center; display:flex; align-items:center; gap:12px; max-width:370px; min-width:0; min-height:72px; padding:0 12px 0 4px; border:1px solid color-mix(in srgb,var(--neta-accent) 25%,var(--neta-border)); border-radius:10px; background:var(--neta-surface); color:var(--neta-text); text-decoration:none; }
+.faucet-dao-promo:hover { border-color:var(--neta-accent); background:var(--neta-surface-raised); }
+.faucet-dao-promo img { width:76px; height:76px; object-fit:contain; flex:none; }
+.faucet-dao-copy { display:flex; flex-direction:column; gap:4px; min-width:0; }
+.faucet-dao-copy strong { font-size:14px; font-weight:650; }
+.faucet-dao-copy > span { font-size:12px; color:var(--neta-text-secondary); }
+.faucet-dao-arrow { font-size:20px; color:var(--neta-accent); flex:none; }
 .faucet-shell { width:min(1160px,calc(100% - 64px)); margin:auto; }
 .faucet-intro { display:grid; grid-template-columns: 1.7fr 1fr; align-items:center; gap:64px; padding:56px 0 24px; }
 .faucet-intro h1 { font-size:clamp(32px,4vw,46px); margin:12px 0 16px; letter-spacing:-.04em; }
@@ -57,9 +67,12 @@ dialog input { width:100%; }
 .dialog-actions { display:flex; gap:12px; justify-content:flex-end; margin-top:24px; }
 .skip-link { position:absolute; left:16px; top:-100px; z-index:60; background:var(--neta-surface); padding:12px; }
 .skip-link:focus { top:8px; }
-@media(max-width:1000px){.faucet-header-label{display:none}.faucet-header{grid-template-columns:auto auto}.faucet-intro{gap:24px}.validator-row{grid-template-columns:minmax(150px,1fr) 1fr 1fr;gap:16px}.validator-actions{grid-column:1/-1;justify-content:flex-end}.wallet-stats article{padding:20px}.amount-input{flex-wrap:wrap}}
+@media(max-width:1200px){.faucet-header-label{display:none}.faucet-header{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"brand promo controls"}}
+@media(max-width:1000px){.faucet-header{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"brand controls" "promo promo"}.faucet-dao-promo{width:100%}.faucet-intro{gap:24px}.validator-row{grid-template-columns:minmax(150px,1fr) 1fr 1fr;gap:16px}.validator-actions{grid-column:1/-1;justify-content:flex-end}.wallet-stats article{padding:20px}.amount-input{flex-wrap:wrap}}
 @media(max-width:640px){.faucet-header{padding:12px 16px;gap:12px}.faucet-header .gov-brand{font-size:16px}.faucet-header .gov-controls{flex-wrap:wrap;gap:8px}.faucet-header .gov-controls button{min-width:0;width:100%;max-width:none}.testnet-pill{font-size:11px}.faucet-shell{width:calc(100% - 32px)}.faucet-intro{grid-template-columns:1fr;padding-top:32px;gap:16px}.network-note{padding-left:16px}.faucet-grid{grid-template-columns:1fr;gap:16px}.faucet-card{padding:20px}.faucet-amount{font-size:48px}.wallet-stats{grid-template-columns:1fr 1fr}.wallet-stats article{border-bottom:1px solid var(--neta-border)}.wallet-stats article:nth-child(2){border-right:0}.wallet-stats article:nth-child(3){border-bottom:0}.wallet-stats strong{font-size:22px}.validator-controls{align-items:stretch;flex-direction:column;gap:8px}.validator-row{padding:20px;grid-template-columns:1fr 1fr}.validator-name{grid-column:1/-1}.validator-actions{justify-content:stretch}.validator-actions button{flex:1}.faucet-footer{flex-direction:column;gap:8px}.section-heading{align-items:flex-start}.section-heading button{max-width:110px}.dialog-actions{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+@media(max-width:640px){.faucet-header{grid-template-columns:minmax(0,1fr);grid-template-areas:"brand" "controls" "promo"}.faucet-header .gov-controls{justify-content:flex-start}.faucet-header .gov-controls button{width:auto}.faucet-dao-promo{gap:8px;min-height:64px;padding-right:8px}.faucet-dao-promo img{width:56px;height:56px}}
 
 .action-status { display:flex; align-items:center; gap:16px; }
 #action-message { min-width:0; }
