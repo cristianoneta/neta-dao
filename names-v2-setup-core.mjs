@@ -1,5 +1,5 @@
 import {NAMES_TEST_ARTIFACTS} from './names-v2-artifacts.mjs';
-import {NamesV2Reader,UNI7_RESTS,UNI7_RPCS} from './names-v2-reader.mjs';
+import {NamesV2Reader,UNI7_RESTS,UNI7_RPCS,freshUni7Block,uni7Failure} from './names-v2-reader.mjs?v=2';
 import {CHAIN_CONFIG} from './juno-faucet-core.mjs?v=2';
 import {lookupTransaction} from './juno-faucet-transactions.mjs';
 import {getTestAuthority} from './names-v2-test-authority.mjs';
@@ -21,14 +21,14 @@ export class NamesSetup {
  state(){const raw=this.storage.getItem(this.key);if(raw===null)return {version:1,owner:this.owner,publicKey:this.publicKey,roles:{},pending:null,history:[]};const s=JSON.parse(raw);if(s.version!==1||s.owner!==this.owner||s.publicKey!==this.publicKey||!s.roles||!Array.isArray(s.history))throw Error('Setup identity or stored authority changed. Preserve the setup journal.');return s;}
  save(s){const raw=JSON.stringify(s);this.storage.setItem(this.key,raw);if(this.storage.getItem(this.key)!==raw)throw Error('Setup storage could not be verified.');}
  lock(fn){return this.locks.request(this.key,{mode:'exclusive',ifAvailable:true},lock=>{if(!lock)throw Error('Another tab is using this setup.');return fn();});}
- async get(base,path){const r=await this.fetcher(base+path,{cache:'no-store',signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('UNI-7 query unavailable.');return r.json();}
+ async get(base,path){const r=await this.fetcher(base+path,{cache:'no-store',signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('UNI-7 query unavailable (HTTP '+r.status+').');return r.json();}
  async network(){
+  this.base=null;const failures=[];
   for(const base of UNI7_RESTS){try{
    const n=await this.get(base,'/cosmos/base/tendermint/v1beta1/node_info');if(n.default_node_info?.network!=='uni-7')throw Error('NETWORK MISMATCH');
-   const latest=await this.get(base,'/cosmos/base/tendermint/v1beta1/blocks/latest'),h=(latest.block||latest.sdk_block)?.header,t=Date.parse(h?.time)/1000,now=Date.now()/1000;
-   if(h?.chain_id!=='uni-7'||!Number.isFinite(t)||now-t>120||t>now+30)throw Error('Stale UNI-7 node.');this.base=base;return;
-  }catch(e){if(/MISMATCH/.test(e.message))throw e;}}
-  throw Error('Fresh UNI-7 data unavailable.');
+   const latest=await this.get(base,'/cosmos/base/tendermint/v1beta1/blocks/latest');freshUni7Block(latest);this.base=base;return;
+  }catch(e){if(/MISMATCH/.test(e.message))throw e;failures.push(uni7Failure(base,e));}}
+  throw Error('Fresh UNI-7 data unavailable. '+failures.join(' | '));
  }
  async code(role,id){
   const c=(await this.get(this.base,'/cosmwasm/wasm/v1/code/'+id)).code_info;
@@ -107,6 +107,7 @@ export async function connectNamesSetup({keplr=globalThis.keplr,bundle=globalThi
  const wrapped={getAccounts:()=>signer.getAccounts(),signDirect:(address,doc)=>keplr.signDirect('uni-7',address,doc,{preferNoSetFee:true})};let client;
  for(const rpc of UNI7_RPCS)try{client=await bundle.connect(rpc,wrapped);break;}catch{}
  if(!client)throw Error('UNI-7 signing RPC unavailable.');
- const setup=new NamesSetup({owner,publicKey:authority.publicKey,client,bundle,assertWallet,storage,locks,fetcher});await setup.network();setup.state();
+ const setup=new NamesSetup({owner,publicKey:authority.publicKey,client,bundle,assertWallet,storage,locks,fetcher});
+ try{await setup.network();setup.state();}catch(error){active=false;client.disconnect();throw error;}
  return {owner,setup,disconnect(){active=false;client.disconnect();}};
 }

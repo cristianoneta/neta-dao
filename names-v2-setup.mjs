@@ -1,4 +1,4 @@
-import {connectNamesSetup} from './names-v2-setup-core.mjs';
+import {connectNamesSetup} from './names-v2-setup-core.mjs?v=2';
 import {getTestAuthority} from './names-v2-test-authority.mjs';
 import {NAMES_TEST_ARTIFACTS} from './names-v2-artifacts.mjs';
 const $=id=>document.getElementById(id);let session=null,authority=false,busy=false,review=null;

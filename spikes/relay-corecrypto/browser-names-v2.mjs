@@ -25,6 +25,27 @@ try{
  });assert.deepEqual(quotes,{amount:'2500000',mainnetBlocked:true});
  await page.reload();await page.locator('#authority').click();await page.waitForFunction(()=>document.querySelector('#authority-status').textContent.includes('ready'));assert.equal(await page.locator('#authority-status').textContent(),authority);
  await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Keplr'));
+ // Exercise the actual setup connection and REST fallback without wallet signing.
+ await page.evaluate(()=>{
+  window.testDisconnects=0;
+  const signer={getAccounts:async()=>[{address:'test-owner'}],signDirect:()=>{throw Error('Unexpected signing');}};
+  window.keplr={experimentalSuggestChain:async()=>{},enable:async()=>{},getOfflineSigner:()=>signer};
+  window.NetaNamesSigning={validAddress:()=>true,createBridge:()=>({}),connect:async()=>({disconnect(){window.testDisconnects++;}})};
+ });
+ await context.unroute('https://**/*');let stale=true;
+ await context.route('https://**/*',route=>{
+  const url=new URL(route.request().url());
+  if(url.hostname.includes('nodeshub'))return route.fulfill({status:503,body:'unavailable'});
+  const body=url.pathname.endsWith('node_info')?{default_node_info:{network:'uni-7'}}:{block:{},sdk_block:{header:{chain_id:'uni-7',height:'100',time:new Date(Date.now()-(stale?300000:0)).toISOString()}}};
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
+ });
+ await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('browser time'));
+ assert.match(await page.locator('#status').textContent(),/HTTP 503/);
+ assert.equal(await page.evaluate(()=>window.testDisconnects),1);
+ assert.equal(await page.locator('#connect').isDisabled(),false);
+ stale=false;await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Connected to UNI-7'));
+ assert.equal(await page.locator('#wallet').textContent(),'test-owner');
+ await page.locator('#disconnect').click();assert.equal(await page.evaluate(()=>window.testDisconnects),2);
  if(process.env.NNS_SCREENSHOT_DIR)await mkdir(process.env.NNS_SCREENSHOT_DIR,{recursive:true});
  for(const name of ['setup','lab']){
   await page.goto(origin+`/names-v2-${name}.html`);
