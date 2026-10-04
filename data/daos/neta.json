@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-04T23:23:07.423420+00:00",
+  "generated_at": "2026-10-04T23:50:24.983826+00:00",
   "chain_id": "juno-1",
-  "height": 42373755,
+  "height": 42374400,
   "source": "https://juno.api.m.stavr.tech",
   "core": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
   "name": "Neta DAO",
