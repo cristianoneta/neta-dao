@@ -1,5 +1,5 @@
 import {FAUCET} from './juno-faucet-config.mjs';
-import {CHAIN, DENOM, RPCS, CHAIN_CONFIG, Uni7Reader, amountToMicro, formatMicro, rewardsMicro, messagesFor} from './juno-faucet-core.mjs';
+import {CHAIN, DENOM, RPCS, CHAIN_CONFIG, Uni7Reader, amountToMicro, formatMicro, rewardsMicro, messagesFor} from './juno-faucet-core.mjs?v=2';
 const $ = id => document.getElementById(id), reader = new Uni7Reader(), bundle = window.NetaFaucetSigning;
 const state = {address:null, data:null, validators:[], unbonding:null, busy:false, revision:0, service:null, action:null};
 const text = (id,value) => { $(id).textContent=value; };

@@ -19,7 +19,7 @@ try{
   if(p.endsWith('/params'))return json(route,{params:{bond_denom:'ujunox',unbonding_time:'2419200s'}});
   if(p.endsWith('/validators'))return json(route,{validators,pagination:{next_key:null}});
   if(p.endsWith('/by_denom'))return json(route,{balance:{denom:'ujunox',amount:paid?'30000000':'20000000'}});
-  if(p.endsWith('/delegations'))return json(route,{delegation_responses:[{delegation:{validator_address:validators[1].operator_address},balance:{denom:'ujunox',amount:'5000000'}}],pagination:{}});
+  if(p==='/cosmos/staking/v1beta1/delegations/'+address)return json(route,{delegation_responses:[{delegation:{validator_address:validators[1].operator_address},balance:{denom:'ujunox',amount:'5000000'}}],pagination:{}});
   if(p.endsWith('/unbonding_delegations'))return json(route,{unbonding_responses:[],pagination:{}});
   if(p.endsWith('/withdraw_address'))return json(route,{withdraw_address:address});
   if(p.endsWith('/rewards'))return json(route,{rewards:[{validator_address:validators[1].operator_address,reward:[{denom:'ujunox',amount:'1234567.123'}]}],total:[{denom:'ujunox',amount:'1234567.123'}]});
