@@ -45,7 +45,7 @@ try{
  await page.evaluate(({owner,proofs})=>{
   window.testWallet=owner;window.operatorSigns=[];
   window.keplr={experimentalSuggestChain:async()=>{},enable:async()=>{},getOfflineSigner:()=>({getAccounts:async()=>[{address:window.testWallet}],signDirect(){throw Error('No real transaction signing in this fixture');}}),getKey:async()=>({bech32Address:window.testWallet}),signArbitrary:async(chain,signer,text)=>{window.operatorSigns.push({chain,signer,text});const p=proofs[chain==='juno-1'?0:1];return {pub_key:{type:'tendermint/PubKeySecp256k1',value:p.public_key},signature:p.signature};}};
-  window.NetaNamesSigning={validAddress:()=>true,connect:async()=>({disconnect(){}}),createBridge:()=>({execute:r=>window.simulateValidatorExecute(r)})};
+  window.NetaNamesSigning={validAddress:()=>true,connect:async()=>{if(window.holdConnection)await new Promise(resolve=>window.releaseConnection=resolve);return {disconnect(){}};},createBridge:()=>({execute:r=>window.simulateValidatorExecute(r)})};
  },{owner,proofs:f.proofs});
  await page.locator('#manifest').setInputFiles({name:'fixture.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(manifest))});
  await page.locator('#verify').click();await page.locator('#connect').click();
@@ -63,8 +63,8 @@ try{
  }
  await collectBoth();assert.equal(writes.length,0);assert.equal(await page.locator('#validator-publish').isDisabled(),true);
  const signs=await page.evaluate(()=>window.operatorSigns);assert.equal(signs[0].text,signs[1].text);
- await page.locator('#connect').click();assert.equal(await page.locator('#validator-publish').isDisabled(),true,'operator is not the name owner');
- await switchWallet(owner);await page.locator('#connect').click();
+ await page.locator('#connect').click();await page.waitForFunction(address=>document.querySelector('#wallet').textContent===address,operators.testnet);assert.equal(await page.locator('#validator-publish').isDisabled(),true,'operator is not the name owner');
+ await switchWallet(owner);await page.locator('#connect').click();await page.waitForFunction(()=>!document.querySelector('#validator-publish').disabled);
  if(process.env.NNS_SCREENSHOT_DIR)await mkdir(process.env.NNS_SCREENSHOT_DIR,{recursive:true});
  for(const width of [1440,768,390,320]){
   await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`validator overflow ${width}`);
@@ -86,5 +86,13 @@ try{
  await switchWallet(operators.testnet);await page.locator('#validator-sign-testnet').click();await page.waitForFunction(()=>document.querySelector('#validator-proof-testnet').textContent.includes('collected'));
  await page.locator('#connect').click();await page.locator('#validator-publish').click();await page.locator('#confirm').click();await page.waitForFunction(()=>!document.querySelector('#validator-prepare').disabled);
  assert.equal(writes.length,3);assert.ok(writes[2].msg.revoke_by_operator);assert.equal(profile.validators,null);
+ // A late connect result cannot restore a session after a Keplr account switch.
+ await page.locator('#disconnect').click();
+ await page.evaluate(()=>window.holdConnection=true);await page.locator('#connect').click();
+ await page.waitForFunction(()=>typeof window.releaseConnection==='function');
+ await switchWallet(owner);await page.evaluate(()=>{window.holdConnection=false;window.releaseConnection();});
+ await page.waitForFunction(()=>!document.querySelector('#connect').disabled);
+ assert.equal(await page.locator('#wallet').textContent(),'Wallet not connected.');
+ assert.match(await page.locator('#status').textContent(),/Wallet changed during connection/);
  assert.deepEqual(errors,[]);console.log('Validator UI: real reader/client, separate mocked ADR-36 signatures, wallet switches, owner publication, unlink, operator revocation, keyboard and 320–1440px reflow passed. No real operator or on-chain write.');
 }finally{await browser?.close();await new Promise(r=>server.close(r));}

@@ -5,7 +5,7 @@ import {normalizeName,normalizeContacts,validateJunoAddress} from './names-profi
 import {createTestQuote} from './names-v2-test-authority.mjs';
 import {validateQuote} from './names-v2-core.mjs';
 const $=id=>document.getElementById(id);
-let deployment=null,session=null,busy=false,review=null,validators=null;
+let deployment=null,session=null,busy=false,review=null,validators=null,connectionEpoch=0;
 const now=()=>Math.floor(Date.now()/1000);
 const micro=value=>{const n=BigInt(value);return `${n/1000000n}.${(n%1000000n).toString().padStart(6,'0')}`;};
 function clearReview(){review=null;$('review').hidden=true;}
@@ -31,10 +31,10 @@ function render(){
 async function run(fn){if(busy)return;busy=true;render();try{await fn();}catch(e){status(e.message);}finally{busy=false;render();}}
 async function jsonFile(id){const file=$(id).files[0];if(!file||file.size>30000)throw Error('Choose a JSON file smaller than 30 KB.');return JSON.parse(await file.text());}
 function showReview(text,action){review={action};$('review-text').textContent=text;$('review').hidden=false;render();$('review-heading').focus();}
-function disconnect(){session?.disconnect();session=null;clearReview();status('Disconnected. Saved intents and transaction journals are preserved.');render();}
+function disconnect(){connectionEpoch++;session?.disconnect();session=null;clearReview();status('Disconnected. Saved intents and transaction journals are preserved.');render();}
 $('verify').addEventListener('click',()=>run(async()=>{deployment=null;clearReview();const reader=new NamesV2Reader({deployment:await jsonFile('manifest')});const config=await reader.verify();validators?.reset();deployment=reader.deployment;$('deployment-status').textContent=`UNI-7 manifest matches chain · registry ${deployment.registry} · ${config.purchases_paused?'purchases paused':'test purchases enabled'}`;status('Deployment verified. Connect Keplr to continue.');}));
 $('manifest').addEventListener('change',()=>{if(!session){deployment=null;validators?.reset();$('deployment-status').textContent='Manifest changed. Verify again.';render();}});
-$('connect').addEventListener('click',()=>run(async()=>{session=await connectNamesWallet({deployment});const i=session.client.load(session.owner);if(i&&i.phase!=='complete'){ $('name').value=i.name;$('years').value=String(i.years||1);$('operation').value='register';}status('Connected to UNI-7. No transaction has been sent.');}));
+$('connect').addEventListener('click',()=>run(async()=>{const epoch=connectionEpoch,next=await connectNamesWallet({deployment});if(epoch!==connectionEpoch){next.disconnect();throw Error('Wallet changed during connection. Reconnect.');}session=next;const i=session.client.load(session.owner);if(i&&i.phase!=='complete'){ $('name').value=i.name;$('years').value=String(i.years||1);$('operation').value='register';}status('Connected to UNI-7. No transaction has been sent.');}));
 $('disconnect').addEventListener('click',disconnect);
 window.addEventListener('keplr_keystorechange',disconnect);
 $('name-form').addEventListener('submit',event=>{event.preventDefault();run(async()=>{clearReview();const i=await session.client.prepareRegistration({owner:session.owner,name:$('name').value,years:Number($('years').value)});$('name').value=i.name;status('Reservation secret saved. Click Reserve name to review the first transaction in Keplr.');});});
