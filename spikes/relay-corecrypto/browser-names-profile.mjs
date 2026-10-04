@@ -65,6 +65,18 @@ try {
   assert.equal(await preview.isVisible(),false);
   await page.locator('#names-profile-form [type=reset]').click();
   assert.equal(await page.locator('#names-profile-email').inputValue(),'');
+  // Real Chromium WebCrypto verification, shared with Rust and Node fixtures.
+  const quoteProtocol=await page.evaluate(async()=>{
+    const {validateQuote,commitmentHash}=await import('/names-v2-core.mjs');
+    const f=await (await fetch('/tests/fixtures/nns-v2-quote.json')).json();
+    const args={deployment:f.deployment,config:f.config,offer:f.offer,expected:f.offer.quote,now:f.now};
+    const verified=await validateQuote(args);
+    let tamperRejected=false;
+    const tampered=structuredClone(f.offer);tampered.quote.nonce='02'.repeat(32);
+    try {await validateQuote({...args,offer:tampered});} catch {tamperRejected=true;}
+    return {amount:verified.amount,tamperRejected,commitmentMatches:await commitmentHash(f.deployment,'alice','alice.neta',f.salt)===f.commitment};
+  });
+  assert.deepEqual(quoteProtocol,{amount:'2500000',tamperRejected:true,commitmentMatches:true});
   assert.deepEqual(errors,[]);
-  console.log('Names profile: optional contacts, escaped preview, validator address checks, disabled publication, keyboard and 320–1440 px passed.');
+  console.log('Names profile: optional contacts, escaped preview, validator address checks, disabled publication, keyboard, 320–1440 px and NNS v2 WebCrypto quote protocol passed.');
 } finally {await browser?.close();await new Promise(resolve=>server.close(resolve));}

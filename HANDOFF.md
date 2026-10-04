@@ -1,5 +1,20 @@
 # NETA DAO handoff
 
+## NNS v2 registry — 2026-10-04 source continuation
+
+Read [the v2 checkpoint and UNI-7 runbook](docs/NNS_V2_REGISTRY_2026-10-04.md). New source implements
+quoted CW20 registration/renewal, recipient-accepted transfers and persistent identity
+for the profile contract. Fees follow the approved USD tariff and main-DAO recipient.
+Joint CW20/registry/profile tests, shared quote protocol, persisted client intents
+and a fail-closed price-policy library are included. These are not a deployed
+service or wallet UI. Both deployment constants remain null.
+
+Next: concrete verified chain/journal/recovery adapters, the UNI-7 deployment and
+owner-signed test flow. Quote HTTP service, live feeds, custody and production
+market policy remain open. No deployment, purchase, outreach or new hosting took
+place. The earlier “registry missing” note below is superseded for source only.
+
+
 ## NNS validator profiles — 2026-10-04 source slice
 
 Read [the profile checkpoint](docs/NNS_VALIDATOR_PROFILES_2026-10-04.md). The owner
@@ -13,12 +28,12 @@ Implemented: integrated unpublished profile preview, strict field/address rules,
 ADR-36 proof collector and a separate v2-bound profile contract with two operator
 signatures, exclusive bindings, identity lifecycle invalidation and revocation.
 No profile deployment or live wallet flow is claimed. `PROFILE_DEPLOYMENT=null`.
-The accepted NNS v2 registry/quote service remains missing: legacy v1 cannot
-substitute for it. Public profile publishing and purchases stay disabled until
+The v2 registry now exists as source (checkpoint above); the live quote service
+and deployment are still missing. Legacy v1 cannot substitute for v2. Public profile publishing and purchases stay disabled until
 registry, deployment identities and journaled transaction integration are ready.
 The user does not run a validator: synthetic wallets suffice for development;
 one consenting mainnet/UNI-7 operator is needed for final live E2E. No outreach
-was sent. Next implement v2 identity/registration, then wire UNI-7 profile writes.
+was sent. Next verify/deploy v2 and wire the journaled UNI-7 profile flow.
 
 
 ## Faucet platform banner — 2026-10-04

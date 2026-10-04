@@ -210,3 +210,13 @@ minimum. Profile transfers do not transfer validator identity or contribution
 credit. Name expiry affects new snapshots, not approved delegation transactions.
 The v2 identity API must provide generation and ownership revision even after
 expiry; both change exactly as specified in the profile checkpoint.
+
+## Registry source continuation — 2026-10-04
+
+See [NNS_V2_REGISTRY_2026-10-04.md](NNS_V2_REGISTRY_2026-10-04.md). The v2 registry
+now implements registration, renewal, recipient-accepted transfer, USD tariff
+arithmetic and a persistent identity query for profiles. Shared quote verification,
+a price-policy library and a transaction coordinator have local tests; these are
+not an activated price service, deployed contract or finished wallet UI. The
+checkpoint lists the exact UNI-7 and production dependencies. The original product
+decisions remain in force; later namespace/address/notification work is not implied.

@@ -1,0 +1,22 @@
+[package]
+name = "neta-names-v2"
+version = "0.2.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+cosmwasm-std = "1.5.11"
+cw-storage-plus = "1.2.0"
+cw2 = "1.1.2"
+schemars = "0.8.22"
+serde = { version = "1.0", features = ["derive"] }
+sha2 = "0.10"
+
+[dev-dependencies]
+cw-multi-test = "0.20.1"
+cw20 = "1.1.2"
+cw20-base = { version = "1.1.2", features = ["library"] }
+ed25519-zebra = "3.1.0"
+neta-validator-profiles = { path = "../neta-validator-profiles" }

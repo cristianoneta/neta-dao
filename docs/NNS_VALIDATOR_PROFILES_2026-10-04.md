@@ -36,7 +36,7 @@ not a deployed registry or evidence of a live operator signing.
 The currently existing `contracts/neta-names` is inactive legacy v1 (fixed 5 NETA).
 It does **not** implement the accepted v2 USD tariffs, ownership generations or
 transfer rules. It must not be activated to make this sidequest appear complete.
-The v2 name registry and quote service were already missing before this change.
+The registry was missing at this checkpoint. The [v2 source continuation](NNS_V2_REGISTRY_2026-10-04.md) now adds the real registry and joint local tests. A deployed registry and running quote service remain missing.
 The sidequest is therefore not ready for a real validator E2E test yet.
 
 ## Contract and identity protocol
@@ -137,9 +137,9 @@ after actual completion, not inferred from workflow configuration.
 
 ## Remaining work before public operation
 
-1. Implement the accepted NNS v2 registration/renewal/transfer identity lifecycle
-   and pricing interface from `NETA_NAMES_V2_PLAN.md`. Determine quote freshness,
-   price-jump policy, custody and service hosting before paid mainnet purchases.
+1. Complete the integration in `NNS_V2_REGISTRY_2026-10-04.md`: the registry and
+   quote-policy/client libraries now exist as source. Concrete read/journal/recovery
+   adapters and service hosting, custody and production market policy remain open.
 2. Deploy a separate UNI-7 registry/mock-token configuration and this profile
    contract. Verify chain, code checksum, registry interface and fee recipient.
    A registry testdouble is permitted in tests only, never as production proof

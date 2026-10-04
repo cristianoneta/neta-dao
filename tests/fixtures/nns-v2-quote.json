@@ -1,0 +1,49 @@
+{
+  "note": "Synthetic Ed25519 test key and cw-multi-test addresses only. Not a deployment or usable live quote.",
+  "now": 1700000000,
+  "deployment": {
+    "chain_id": "uni-7",
+    "registry": "contract1",
+    "token": "contract0",
+    "treasury": "treasury"
+  },
+  "config": {
+    "chain_id": "uni-7",
+    "token": "contract0",
+    "treasury": "treasury",
+    "admin": "admin",
+    "quote_public_key": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+    "signer_version": 1,
+    "tariff": {
+      "three_cents": 64000,
+      "four_cents": 16000,
+      "standard_cents": 500
+    },
+    "tariff_version": 1,
+    "purchases_paused": false,
+    "testnet_only": true
+  },
+  "offer": {
+    "quote": {
+      "operation": "register",
+      "payer": "alice",
+      "owner": "alice",
+      "name": "alice.neta",
+      "generation": 1,
+      "ownership_revision": 1,
+      "expected_expires_at": 0,
+      "years": 1,
+      "tariff_version": 1,
+      "signer_version": 1,
+      "usd_per_neta_12": "2000000000000",
+      "amount": "2500000",
+      "nonce": "0101010101010101010101010101010101010101010101010101010101010101",
+      "issued_at": 1700000000,
+      "expires_at": 1700000300
+    },
+    "signature": "ipZBoo2of5IfvUFEm5fu0zXCYI/4gaiOraYUKtFXR6stYY3RZEZssU44MjsveYfvljSB+JJPy5kOPOD0uugpBw=="
+  },
+  "text": "NETA names quote v2\nRegistry chain: uni-7\nRegistry: contract1\nToken: contract0\nTreasury: treasury\nOperation: register\nPayer: alice\nOwner: alice\nName: alice.neta\nGeneration: 1\nOwnership revision: 1\nExpected expiry: 0\nYears: 1\nTariff version: 1\nSigner version: 1\nUSD per NETA (12 decimals): 2000000000000\nAmount (micro NETA): 2500000\nNonce: 0101010101010101010101010101010101010101010101010101010101010101\nIssued at: 1700000000\nExpires at: 1700000300",
+  "salt": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+  "commitment": "f824691514efcbf3a26c432b0e9d64ff591b4bc401a22e3f8213d982c7a167d2"
+}
