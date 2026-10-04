@@ -63,7 +63,7 @@ export async function connect(rpc,signer){
   if(await client.getChainId()!=='uni-7'){client.disconnect();throw Error('UNI-7 network mismatch.');}
   return client;
 }
-export function createBridge({client,lookup,assertWallet,verifyDeployment,storage=globalThis.localStorage,locks=globalThis.navigator?.locks}){
+export function createBridge({client,lookup,assertWallet,verifyDeployment,storage=globalThis.localStorage,locks=globalThis.navigator?.locks,wait=ms=>new Promise(resolve=>setTimeout(resolve,ms))}){
   if(!storage||!locks?.request||typeof lookup!=='function'||typeof assertWallet!=='function'||typeof verifyDeployment!=='function')throw Error('Names transaction dependencies unavailable.');
   async function checkedReceipt(hashValue,r){
     if(!/^[A-F0-9]{64}$/.test(hashValue))throw Error('Invalid transaction hash.');
@@ -98,9 +98,16 @@ export function createBridge({client,lookup,assertWallet,verifyDeployment,storag
       broadcastTx:async bytes=>{
         if(row.hash!==hash(bytes)||!same(fromBase64(row.bytes),bytes))throw Error('Signed transaction changed.');
         row.status='pending';save(storage,key,row);
-        // A transport exception keeps both the shared and Names journals pending.
-        await client.broadcastTx(bytes);
-        const receipt=await checkedReceipt(row.hash,r);
+        // Submission and confirmation use separate providers: the sending RPC
+        // can accept transactions while its transaction index is disabled.
+        // A lost submit response is also resolved only by exact on-chain bytes.
+        try {await client.broadcastTxSync(bytes);}catch{/* Never resend here. */}
+        let receipt,lastError;
+        for(let attempt=0;attempt<6;attempt++){
+          try {receipt=await checkedReceipt(row.hash,r);break;}catch(error){lastError=error;}
+          if(attempt<5)await wait(2000);
+        }
+        if(!receipt)throw lastError;
         row.status='included';row.receipt=receipt;delete row.bytes;save(storage,key,row);
         return receipt;
       },

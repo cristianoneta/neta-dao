@@ -1,5 +1,32 @@
 # NETA DAO handoff
 
+## NNS UNI-7 upload confirmed; independent receipt lookup — 2026-10-04
+
+The owner's first real NNS transaction is confirmed successful (code 0):
+`ABE19AD1FD53CDF4EB95F79E81ADB93E6454507634D0400CF56C5130E12C1E5B`,
+UNI-7 height 18538759, mock-token code ID 122, creator
+`juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`. The on-chain checksum
+matches the shipped token WASM (`66d18a996d8dd7bd8dfca480870242141677079a7aac1cfb49427f774d24f4db`).
+The owner recovered the pending upload and reached the token instantiate review.
+Token instantiation is also confirmed (code 0), height 18538887, TX
+`D01F03275DA527BB5752B4B7519CEBCFDB5FEC4A4BA0A2A924BD854077756BD7`,
+contract `juno1gcpuzmtetez6mf9tnuk3ua7pwe933pzeqr7ac5jl235au8ls38jsuuf2js`.
+The remaining registry/profile deployments are not yet confirmed.
+
+NodesHub accepts broadcasts but disables transaction indexing. Previously the
+Names bridge awaited CosmJS broadcastTx's same-node lookup before using the
+independent indexed lookup, causing successful submissions to appear unknown.
+The bridge now submits once with broadcastTxSync and checks the exact signed
+bytes, protobuf intent and inclusion through the existing allowlisted lookup.
+Six bounded confirmation checks also cover delayed indexing and lost submit
+responses. Unconfirmed outcomes retain both journals; no automatic resend or
+signature occurs. Existing pending uploads remain recoverable with Check pending
+transaction. The signing asset version is bumped on both Names test pages.
+Regression tests cover an index-disabled sender, lost response, delayed visibility,
+unknown outcomes preserved across reload, and exactly seven setup transactions.
+Release evidence is recorded in the associated PR. Mainnet stays disabled.
+
+
 ## UNI-7 connection diagnostics — 2026-10-04
 
 PR #139 is merged; its four PR workflows, two main checks and Pages publication
