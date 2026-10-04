@@ -3,6 +3,23 @@
 This is the current continuation entry point. It supersedes older hosting-pending
 and untested-rewards snapshots in the 2026-10-03 handoff.
 
+## Release evidence — backend confirmation, 2026-10-04
+
+PR #132 merged as `8ef4686d4228faf10aad214eec66d9d8e3e696fb` after faucet
+CI `37190800126` passed on exact PR head `5120aa7b2b378c742245b4b0faf9c66b97cf857c`.
+Main faucet CI `37190869479` and Pages `37190868955` both succeeded.
+The read-only live lookup confirmed the previous reward hash at height 18525930,
+code 0. The public config was freshly read and remains `api:null,address:null`.
+Render status was freshly read: balance 0, ready false, usage-guards-v1, and no
+confirmation marker yet. **Render has not deployed this correction.**
+
+Immediate operator actions: existing Render service → Manual Deploy → Deploy
+latest commit, then verify `confirmation:uni7-exact-hash-v1`; fund the dedicated
+wallet with an owner-confirmed UNI-7 transfer (suggested 100 JUNOX). Retain the
+existing disk/SQLite/WAL and secret file. Once both are verified, continue the
+public integration and real-wallet/replay/restart checks below. No new payout,
+donation, stake or unstake was signed during this continuation.
+
 ## Backend confirmation correction — 2026-10-04 continuation
 
 The server now submits signed bytes once with `broadcastTxSync` and confirms
