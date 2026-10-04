@@ -1,5 +1,13 @@
 # NETA DAO code-backed current state
 
+## Faucet hosting preparation — 2026-10-04
+
+`render.yaml` and [the Render runbook](../faucet/RENDER.md) describe one paid
+managed Node 24 instance, persistent SQLite disk and operator-provisioned secret
+file. This is deployment preparation only: no hosting account, wallet funding,
+live payout or real-wallet E2E has been completed. `juno-faucet-config.mjs`
+continues to disable payout/donation with null API/address until activation.
+
 ## People update — 2026-10-03
 
 The shared People section supersedes the different Contributors screens.

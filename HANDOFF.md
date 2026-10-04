@@ -1,5 +1,15 @@
 # NETA DAO handoff
 
+## Faucet hosting continuation — 2026-10-04
+
+The owner has no running server and wants to finish the faucet. The root
+`render.yaml` and [Render setup guide](faucet/RENDER.md) prepare managed Node 24
+hosting with persistent SQLite and a private secret file. No service, paid
+hosting or wallet was provisioned. Next operator inputs are the assigned HTTPS
+API URL and the funded, dedicated UNI-7 public address; the mnemonic stays out
+of chat/Git. Only then pin the frontend API/CSP and run real-wallet/restart checks.
+The shared footer consistency change is already live (PR #125).
+
 ## Latest continuation — faucet, 2026-10-03
 
 Read [the next-chat faucet handoff](docs/HANDOFF_NEXT_CHAT_FAUCET_2026-10-03.md) first.

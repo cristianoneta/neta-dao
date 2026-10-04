@@ -21,6 +21,12 @@ operator: a persistent server/container host, HTTPS origin, and a **dedicated
 UNI-7-only funded wallet**. Do not send a mnemonic in chat, put it in Git, host it
 on Pages, or reuse a mainnet wallet. The operator provisions it as a secret file.
 
+No self-managed server is required: the [Render deployment guide](RENDER.md)
+and root `render.yaml` prepare a managed Node service with a persistent disk.
+The operator must create the hosting account, review the paid service cost and
+privately provision the dedicated wallet. This configuration does not activate
+the public faucet by itself.
+
 ## Run the service
 
 Node 24, persistent local disk, one service instance. Build from this directory:
