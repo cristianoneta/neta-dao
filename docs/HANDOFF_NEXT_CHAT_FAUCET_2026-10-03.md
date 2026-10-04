@@ -1,5 +1,16 @@
 # Next chat — Juno testnet faucet — 2026-10-03
 
+## Current continuation — 2026-10-04 final checkpoint
+
+Read [the current faucet handoff](HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md) first.
+PR #129 (HTTP 501) and #130 (Disconnect/address and exact-hash rewards recovery)
+are merged and live. All relevant PR/main checks and Pages succeeded; six live
+files matched source. The owner’s real reward claim succeeded (code 0).
+Frontend recovery does not fix the Render adapter's configured RPC: verify an
+indexed backend RPC before funding/payout activation. Public payouts remain off.
+This checkpoint supersedes earlier incomplete-release snapshots below.
+
+
 ## Wallet controls and rewards confirmation — 2026-10-04
 
 The shared workspace header and separate faucet now provide a shortened connected
