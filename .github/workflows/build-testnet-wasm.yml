@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - "contracts/**"
+      - "assets/names-testnet/**"
+      - "names-v2-artifacts.mjs"
       - ".github/workflows/build-testnet-wasm.yml"
 
 permissions:
@@ -15,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        contract: [neta-proposal-workshop, workshop-access-mock, neta-names, neta-names-v2, neta-validator-profiles, neta-relay-mailbox]
+        contract: [neta-proposal-workshop, workshop-access-mock, neta-names, neta-names-v2, neta-names-test-token, neta-validator-profiles, neta-relay-mailbox]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Install pinned Rust toolchain
@@ -26,6 +28,12 @@ jobs:
         run: |
           cargo install cosmwasm-check --version 1.5.11 --locked
           cosmwasm-check contracts/${{ matrix.contract }}/target/wasm32-unknown-unknown/release/*.wasm
+      - name: Verify shipped Names artifact
+        if: matrix.contract == 'neta-names-v2' || matrix.contract == 'neta-names-test-token' || matrix.contract == 'neta-validator-profiles'
+        run: |
+          artifact="${{ matrix.contract }}"
+          file="${artifact//-/_}.wasm"
+          cmp "contracts/${artifact}/target/wasm32-unknown-unknown/release/${file}" "assets/names-testnet/${file}"
       - name: Stage artifact
         run: |
           mkdir -p artifacts

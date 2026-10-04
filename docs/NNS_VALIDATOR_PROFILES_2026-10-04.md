@@ -135,6 +135,10 @@ after actual completion, not inferred from workflow configuration.
   build resolved it. CosmWasm compatibility validation remains a separate CI check.
 - No live profile/registry deployment, purchase or validator E2E was performed.
 
+See [the later UNI-7 owner test runbook](NNS_UNI7_OWNER_TEST_2026-10-04.md):
+verified read/sign/recovery adapters, setup and public-contact test writes now exist.
+Live validator proof submission and production pricing/deployment remain pending.
+
 ## Remaining work before public operation
 
 1. Complete the integration in `NNS_V2_REGISTRY_2026-10-04.md`: the registry and

@@ -116,3 +116,28 @@ test('transfer acceptance checks recipient, current offer id and existing owners
   assert.equal(h.writes(),0);
   await h.client().transfer({owner:'bob',name:'alice',action:'accept',offerId:2});assert.equal(h.writes(),1);
 });
+
+test('explicit recovery restores only a proven unbroadcast or included-failure attempt',async()=>{
+ const h=harness(),c=h.client();await c.prepareRegistration({owner:'alice',name:'alice',years:1});h.setFail(true);
+ await assert.rejects(c.commit('alice'));const pending=c.load('alice');assert.match(pending.request.intentId,/^[a-f0-9]{32}$/);
+ await assert.rejects(c.recoverPending('alice',async()=>({notBroadcast:true,intentMatched:false})),/prove/);
+ assert.equal(c.load('alice').phase,'commit_pending');
+ await c.recoverPending('alice',async request=>{assert.equal(request.intentId,pending.request.intentId);return {notBroadcast:true,intentMatched:true};});
+ assert.equal(c.load('alice').phase,'prepared');assert.equal(c.load('alice').salt,pending.salt);
+ h.setFail(false);await c.commit('alice');h.setFail(true);await assert.rejects(c.register('alice',fresh()));
+ await c.recoverPending('alice',async()=>({transactionHash:'A'.repeat(64),chainId:'uni-7',height:100,code:5,intentMatched:true}));
+ assert.equal(c.load('alice').phase,'committed');assert.equal(c.load('alice').last_outcome,'failed');assert.equal(h.writes(),3);
+});
+test('cancelling a prepared registration is local; pending outcomes cannot be discarded',async()=>{
+ const h=harness(),c=h.client();await c.prepareRegistration({owner:'alice',name:'alice',years:1});await c.cancelRegistration('alice');
+ assert.equal(h.writes(),0);assert.equal(c.load('alice').phase,'complete');
+ await c.prepareRegistration({owner:'alice',name:'alice',years:1});h.setFail(true);await assert.rejects(c.commit('alice'));
+ await assert.rejects(c.cancelRegistration('alice'),/Reconcile/);assert.equal(c.load('alice').phase,'commit_pending');
+});
+test('public profile writes bind current owner and reviewed profile revision',async()=>{
+ const h=harness();h.opts.deployment={...deployment,profile_contract:'profile-contract'};
+ h.reader.profile=async()=>({active:true,profile:{identity:{name:'alice.neta',owner:'alice',expires_at:now+YEAR},revision:2}});
+ const c=h.client();await assert.rejects(c.updateProfile({owner:'alice',name:'alice',contacts:{},expectedRevision:1}),/revision/);assert.equal(h.writes(),0);
+ await c.updateProfile({owner:'alice',name:'alice',contacts:{discord:'operator'},expectedRevision:2});assert.equal(h.writes(),1);
+ assert.equal(c.load('alice').request.contract,'profile-contract');assert.equal(c.load('alice').phase,'complete');
+});

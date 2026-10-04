@@ -286,3 +286,13 @@ text via textContent; HTTPS links open with noopener/noreferrer. Distinguish
 “Preview · not published”, self-declared contacts and actual operator ownership
 proofs. Editing clears a stale preview. Never show verified identity or an active
 programme award merely because a syntactically valid address was entered.
+
+## Names UNI-7 operator pages — 2026-10-04
+
+Setup and lab reuse graphite/mint foundations and conventional labelled forms.
+Keep UNI-7, mock-token and local-test-price labels explicit. Setup exposes one
+review and one wallet confirmation per action, never an automatic transaction
+queue. Lab reviews exact token debit/owner/recipient and clears stale reviews on
+form edits or wallet changes. Disconnect preserves keys, setup and transaction
+records. Render addresses/hashes with wrapping; all actions remain keyboard
+reachable at 320px. These pages do not enable the production profile button.

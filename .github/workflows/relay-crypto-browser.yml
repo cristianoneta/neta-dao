@@ -16,6 +16,9 @@ on:
       - 'names-workspace.js'
       - 'names-profile*.mjs'
       - 'names-v2*.mjs'
+      - 'names-v2*.html'
+      - 'assets/names-signing.js'
+      - 'assets/names-testnet/**'
       - 'tests/fixtures/nns-v2-quote.json'
       - 'dao-directory.js'
       - 'dao-members.js'
@@ -52,6 +55,7 @@ jobs:
       - run: node browser-uni7-lab.mjs
       - run: node browser-workspace-security.mjs
       - run: node browser-names-profile.mjs
+      - run: node browser-names-v2.mjs
       - name: Adversarial receive and crash recovery regressions
         run: RELAY_AUDIT_ADVERSARIAL=1 node browser-uni7-lab.mjs
 

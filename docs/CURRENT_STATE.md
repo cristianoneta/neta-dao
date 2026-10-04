@@ -1,5 +1,26 @@
 # NETA DAO code-backed current state
 
+## NNS owner-driven UNI-7 setup and wallet flow — 2026-10-04
+
+Read [the owner test runbook](NNS_UNI7_OWNER_TEST_2026-10-04.md). The separate setup page now prepares
+a browser-local test quote authority and lets the owner upload/instantiate a fresh
+mock CW20, v2 registry and profile contract, then activate test purchases. Every
+transaction needs explicit Keplr confirmation. The lab verifies the exported
+manifest and supports reviewed name purchases, renewals, transfers, public contact
+updates and exact-receipt recovery through the existing shared journal.
+
+Source/UI and local tests are complete for this operator test path; publication
+and CI evidence are on PR #139. No owner-signed deployment or live NNS transaction
+has been performed. The test authority uses a fictional rate, requires this browser's
+site data and is not the production pricing service. Both production deployment
+constants remain null; mainnet purchases/profile publishing stay disabled.
+
+Next user action after publication: open `names-v2-setup.html`, prepare the test
+signer and connect Keplr. Continue one reviewed transaction at a time. After
+deployment, record exact receipts and finish a consenting validator's proof flow.
+The older missing-adapter statements below describe preceding source slices.
+
+
 ## NNS v2 registry — 2026-10-04 source continuation
 
 Read [the v2 checkpoint and UNI-7 runbook](NNS_V2_REGISTRY_2026-10-04.md). New source implements
@@ -9,8 +30,8 @@ Joint CW20/registry/profile tests, shared quote protocol, persisted client inten
 and a fail-closed price-policy library are included. These are not a deployed
 service or wallet UI. Both deployment constants remain null.
 
-Next: concrete verified chain/journal/recovery adapters, the UNI-7 deployment and
-owner-signed test flow. Quote HTTP service, live feeds, custody and production
+The concrete chain/journal/recovery adapters and UNI-7 operator pages now exist
+(see the later checkpoint above). Owner-signed deployment/E2E remain pending. Quote HTTP service, live feeds, custody and production
 market policy remain open. No deployment, purchase, outreach or new hosting took
 place. The earlier “registry missing” note below is superseded for source only.
 

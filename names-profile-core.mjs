@@ -32,6 +32,15 @@ function decodeAddress(address, prefix, length) {
 export function operatorAccount(address) {
   return encodeAddress('juno', decodeAddress(address, 'junovaloper', 32));
 }
+export function validateJunoAddress(address, walletOnly = false) {
+  try { decodeAddress(address, 'juno', 32); }
+  catch (error) {
+    if (walletOnly) throw error;
+    const words = decodeAddress(address, 'juno', 52);
+    if (words[51] & 15) throw Error('Invalid contract address padding.');
+  }
+  return address;
+}
 export function normalizeName(value) {
   if (typeof value !== 'string') throw Error('Enter a .neta name.');
   const label = value.trim().toLowerCase().replace(/\.neta$/, '');

@@ -1,5 +1,5 @@
 import {NAMES_V2_DEPLOYMENT,commitmentHash,validateQuote,paymentMessage,renewalExpiry} from './names-v2-core.mjs';
-import {normalizeName} from './names-profile-core.mjs';
+import {normalizeName,normalizeContacts} from './names-profile-core.mjs';
 
 // Transaction coordination only. The host supplies a pinned, verified reader,
 // the existing journaled exact-hash signer, and an origin-wide Web Lock.
@@ -19,7 +19,15 @@ export class NamesV2Client {
       ||!['prepared','commit_pending','committed','payment_pending','complete','write_pending'].includes(intent.phase)) throw Error('Unknown Names intent; preserve it for recovery.');
     return intent;
   }
-  save(intent) { this.storage.setItem(this.key(intent.owner),JSON.stringify(intent)); }
+  save(intent) {
+    const raw=JSON.stringify(intent);this.storage.setItem(this.key(intent.owner),raw);
+    if(this.storage.getItem(this.key(intent.owner))!==raw)throw Error('Names intent storage could not be verified.');
+  }
+  stage(i,request,previousPhase) {
+    i.previous_phase=previousPhase;
+    const id=[...this.crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('');
+    i.request={...request,intentId:id};this.save(i);return structuredClone(i.request);
+  }
   async owner(expected) {
     if(await this.walletAddress()!==expected) throw Error('Wallet changed. Reconnect the original name owner.');
   }
@@ -59,10 +67,11 @@ export class NamesV2Client {
       if((await this.config(owner)).purchases_paused!==false) throw Error('Name purchases are paused.');
       const i=await this.checkedIntent(owner,'prepared');
       await this.owner(owner);
-      i.phase='commit_pending';this.save(i);
+      i.phase='commit_pending';
       // Pending is kept on rejection, timeout or reload. No automatic retry.
       // The public memo must not reveal the name before the reveal transaction.
-      const receipt=await this.execute({owner,contract:this.deployment.registry,msg:{commit:{hash:i.hash}},memo:'Commit NETA name'});
+      const request=this.stage(i,{owner,contract:this.deployment.registry,msg:{commit:{hash:i.hash}},memo:'Commit NETA name'},'prepared');
+      const receipt=await this.execute(request);
       this.receipt(receipt);
       i.commit_hash=receipt.transactionHash;this.save(i);
       const onchain=await this.reader.commitment(owner);
@@ -91,8 +100,9 @@ export class NamesV2Client {
       await validateQuote({deployment:this.deployment,config,offer,expected:this.expectedRegistration(i),now:this.now(),cryptoProvider:this.crypto});
       await this.owner(owner);
       const payment=paymentMessage(this.deployment,config,offer,i.salt);
-      i.phase='payment_pending';i.offer=offer;this.save(i);
-      const receipt=await this.execute({owner,...payment,memo:`Register ${i.name} · ${i.years} year(s)`});
+      i.phase='payment_pending';i.offer=offer;
+      const request=this.stage(i,{owner,...payment,memo:`Register ${i.name} · ${i.years} year(s)`},'committed');
+      const receipt=await this.execute(request);
       this.receipt(receipt);i.payment_hash=receipt.transactionHash;this.save(i);
       const record=await this.reader.identity(i.name);
       if(record?.owner!==owner||record.name!==i.name||record.generation!==i.generation||record.ownership_revision!==1||record.expires_at<=this.now()) throw Error('Payment receipt found; reconcile the name state.');
@@ -134,8 +144,8 @@ export class NamesV2Client {
       await this.owner(payer);
       const payment=paymentMessage(this.deployment,config,offer);
       const i={schema:1,chain_id:this.deployment.chain_id,registry:this.deployment.registry,owner:payer,name,phase:'write_pending',action:'renew',offer,payment,created_at:this.now()};
-      this.save(i);
-      const receipt=await this.execute({owner:payer,...payment,memo:`Renew ${name} · ${years} year(s)`});this.receipt(receipt);
+      const request=this.stage(i,{owner:payer,...payment,memo:`Renew ${name} · ${years} year(s)`},'complete');
+      const receipt=await this.execute(request);this.receipt(receipt);
       i.payment_hash=receipt.transactionHash;i.phase='complete';delete i.offer;this.save(i);return receipt;
     });
   }
@@ -167,9 +177,60 @@ export class NamesV2Client {
       await this.owner(owner);
       const payment={contract:this.deployment.registry,msg};
       const i={schema:1,chain_id:this.deployment.chain_id,registry:this.deployment.registry,owner,name,phase:'write_pending',action:`transfer-${action}`,payment,created_at:this.now()};
-      this.save(i);
-      const receipt=await this.execute({owner,...payment,memo:`${action} name transfer · ${name}`});this.receipt(receipt);
+      const request=this.stage(i,{owner,...payment,memo:`${action} name transfer · ${name}`},'complete');
+      const receipt=await this.execute(request);this.receipt(receipt);
       i.payment_hash=receipt.transactionHash;i.phase='complete';this.save(i);return receipt;
+    });
+  }
+
+  async recoverPending(owner,recover,hash=null) {
+    return this.withLock(this.key(owner),async()=>{
+      await this.config(owner);const i=this.load(owner);
+      if(!i?.request||!['commit_pending','payment_pending','write_pending'].includes(i.phase))throw Error('No recoverable Names attempt.');
+      const result=await recover(structuredClone(i.request),hash);
+      if(result?.intentMatched!==true)throw Error('Recovery did not prove this exact Names intent.');
+      if(result.notBroadcast!==true){
+        if(!Number.isInteger(result.code)||result.code<0)throw Error('Invalid recovery receipt.');
+        this.receipt({...result,code:0});
+      }
+      const failed=result.notBroadcast===true||result.code!==0;
+      if(failed){
+        if(!['prepared','committed','complete'].includes(i.previous_phase))throw Error('Unknown prior intent phase.');
+        i.phase=i.previous_phase;i.last_outcome=result.notBroadcast?'not_broadcast':'failed';
+      }else if(i.phase==='commit_pending'){
+        if((await this.reader.commitment(owner))?.hash!==i.hash)throw Error('Commit receipt is valid but commitment changed; preserve the intent.');
+        i.phase='committed';i.commit_hash=result.transactionHash;
+      }else{i.phase='complete';i.payment_hash=result.transactionHash;delete i.salt;delete i.offer;}
+      i.history=[...(i.history||[]),{request:i.request,result}];delete i.request;
+      this.save(i);return {intent:structuredClone(i),result};
+    });
+  }
+  async cancelRegistration(owner) {
+    return this.withLock(this.key(owner),async()=>{
+      await this.config(owner);const i=this.load(owner);
+      if(!i||!['prepared','committed'].includes(i.phase))throw Error('Reconcile the pending attempt before cancelling.');
+      const commit=await this.reader.commitment(owner);
+      if(i.phase==='prepared'&&commit?.hash!==i.hash){i.phase='complete';i.last_outcome='discarded';delete i.salt;this.save(i);return i;}
+      if(commit?.hash!==i.hash)throw Error('Commitment changed. Preserve this intent for review.');
+      const previous=i.phase;i.phase='write_pending';i.action='cancel-registration';
+      const request=this.stage(i,{owner,contract:this.deployment.registry,msg:{cancel_commit:{hash:i.hash}},memo:'Cancel NETA name commitment'},previous);
+      const receipt=await this.execute(request);this.receipt(receipt);
+      i.phase='complete';i.payment_hash=receipt.transactionHash;delete i.salt;delete i.offer;this.save(i);return i;
+    });
+  }
+  async updateProfile({owner,name,contacts,expectedRevision}) {
+    return this.withLock(this.key(owner),async()=>{
+      await this.config(owner);const pending=this.load(owner);
+      if(pending&&pending.phase!=='complete')throw Error('Finish or reconcile the existing Names intent first.');
+      name=normalizeName(name);contacts=normalizeContacts(contacts);
+      const read=await this.reader.profile(name),profile=read?.profile;
+      if(!read?.active||profile?.identity?.owner!==owner||profile.identity.name!==name||profile.identity.expires_at<=this.now()||profile.revision!==expectedRevision)throw Error('Profile owner, expiry or revision changed. Review again.');
+      const payment={contract:this.deployment.profile_contract,msg:{update_contacts:{name,expected_revision:expectedRevision,contacts}}};
+      const i={schema:1,chain_id:this.deployment.chain_id,registry:this.deployment.registry,owner,name,phase:'write_pending',action:'update-profile',payment,created_at:this.now()};
+      await this.owner(owner);
+      const request=this.stage(i,{owner,...payment,memo:`Update public profile · ${name}`},'complete');
+      const receipt=await this.execute(request);this.receipt(receipt);
+      i.phase='complete';i.payment_hash=receipt.transactionHash;this.save(i);return receipt;
     });
   }
 }

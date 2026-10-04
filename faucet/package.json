@@ -8,7 +8,8 @@
   "scripts": {
     "build": "esbuild src/signing.js --bundle --minify --format=iife --global-name=NetaFaucetSigning --outfile=../assets/faucet-signing.js",
     "test": "node --test test/*.test.mjs",
-    "start": "node service/server.mjs"
+    "start": "node service/server.mjs",
+    "build:names": "esbuild src/names-signing.mjs --bundle --minify --format=iife --global-name=NetaNamesSigning --outfile=../assets/names-signing.js"
   },
   "dependencies": {
     "@cosmjs/stargate": "0.38.1",

@@ -6,6 +6,10 @@ purchase, wallet signature, quote server or hosting resource was created. Both
 form still produces only an unpublished preview. Delegation Programme planning
 remains paused; its accepted decisions are in the profile checkpoint.
 
+The [owner test continuation](NNS_UNI7_OWNER_TEST_2026-10-04.md) supersedes the
+missing adapter/UI/setup items below. It adds a separate mock-token deployment
+and local synthetic test quotes, not a production price service.
+
 ## Implemented source
 
 | Component | Implemented | Still required for live operation |
