@@ -3,7 +3,8 @@
 2026-10-03. This document records the owner's decisions from the Names planning
 session. It supersedes the v1 product choices below, not the current deployment
 inventory. See `NETA_NAMES_DESIGN.md`, `CURRENT_STATE.md` and `HANDOFF.md` for the
-still-disabled production registry. No v2 contract or pricing service is deployed.
+still-disabled production registry. The separate UNI-7 registry/profile deployment
+and wallet lab are live; a production pricing service is not deployed.
 
 ## Current implementation
 
@@ -15,8 +16,10 @@ heading and cards. Entry: `index.html#relay/directory`; Contacts, My profile and
 Directory search, supported DAO details/address copy, browser-local DAO follows
 and the USD fee calculator work. Registration, renewal, transfer, profile writes,
 contact persistence, DAO profile proposals, lifecycle messages and payments remain
-unavailable. The calculator does not check availability or quote NETA. No v2
-contract or quote service is deployed; `names.js` still has `REGISTRY=null`.
+unavailable. The calculator does not check availability or quote NETA. These statements concern the main workspace. The separate UNI-7 lab supports
+mock-NETA registration/renewal/transfer/public contacts and validator proof flows;
+see [current test handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md). The main workspace
+`names.js` still has `REGISTRY=null`; production quotes remain unavailable.
 See [the main-page integration](NAMES_MAIN_PAGE_INTEGRATION.md).
 
 The previous prototype review is historical evidence, not the current production

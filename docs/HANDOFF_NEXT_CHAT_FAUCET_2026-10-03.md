@@ -1,5 +1,9 @@
 # Next chat — Juno testnet faucet — 2026-10-03
 
+> Historical checkpoint. Current continuation: [HANDOFF](../HANDOFF.md);
+> current inventory: [CURRENT_STATE](CURRENT_STATE.md). Older next steps below
+> are evidence of that session, not instructions to repeat completed work.
+
 ## Current continuation — 2026-10-04 final checkpoint
 
 Read [the current faucet handoff](HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md) first.

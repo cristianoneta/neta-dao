@@ -1,27 +1,25 @@
 # NNS v2 registry and purchase protocol — 2026-10-04
 
-Status: source continuation of Draft PR #139. No new contract deployment, live
-purchase, wallet signature, quote server or hosting resource was created. Both
-`NAMES_V2_DEPLOYMENT` and `PROFILE_DEPLOYMENT` remain null. The production profile
-form still produces only an unpublished preview. Delegation Programme planning
-remains paused; its accepted decisions are in the profile checkpoint.
+Updated 2026-10-04 after PR #145. This document owns the registry/quote protocol.
+The isolated UNI-7 mock token, registry and profiles are deployed and verified;
+owner registration, contacts, renewal and transfer have post-state evidence.
+See [current handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md) for identities/receipts.
+Production `NAMES_V2_DEPLOYMENT` and `PROFILE_DEPLOYMENT` remain null; the main
+workspace profile form is an unpublished preview. No production quote service or
+mainnet name sale is enabled. Programme decisions are in the profile document.
 
-The [owner test continuation](NNS_UNI7_OWNER_TEST_2026-10-04.md) supersedes the
-missing adapter/UI/setup items below. It adds a separate mock-token deployment
-and local synthetic test quotes, not a production price service.
+## Implementation and remaining boundaries
 
-## Implemented source
-
-| Component | Implemented | Still required for live operation |
+| Component | Current implementation | Open boundary |
 | --- | --- | --- |
-| `contracts/neta-names-v2` | USD tariff arithmetic, signed quotes, CW20 fee forwarding, registration, renewal, offer/accept/cancel transfer, persistent identity | Verified UNI-7 deployment and owner-signed E2E |
-| `names-v2-core.mjs` | Exact BigInt calculation, shared signing preimage, WebCrypto quote verification, commitment hash, CW20 message | Pinned deployed identities and supported browser path |
-| `names-v2-client.mjs` | Persisted registration secret/intent, wallet rechecks, injected cross-tab lock and transaction journal, explicit quote review, receipt reconciliation, renew/transfer coordination | Concrete verified chain reader, existing journal/signing bridge, failed/unbroadcast intent recovery, UI mounting |
-| `names/quote-policy.mjs` | Fail-closed price policy and quote construction using injected observations/signer | Verified market readers, durable approved baseline, HTTP service, deployment and signer custody |
-| Joint contract tests | Actual CW20 + v2 registry + profile contract in `cw-multi-test` | Real network receipts and consenting validator signatures |
+| `contracts/neta-names-v2` | Deployed on UNI-7; quoted CW20 registration/renewal, transfers, persistent identity | Mainnet deployment and production quote authority |
+| `names-v2-core.mjs` | BigInt tariff/term rules, quote verification, commitments and payment payload | Production pricing inputs |
+| `names-v2-client.mjs` and reader/wallet | Concrete manifest verification, reviewed Keplr writes, journals and receipt recovery; mounted in separate lab | Production workspace activation |
+| Validator UI/proofs | Separate operator signatures, link/unlink/revoke through the same journal | Real consenting-operator E2E |
+| `names/quote-policy.mjs` | Fail-closed policy library using injected observations/signer | Real readers, approved baseline/market policy, HTTP service and custody |
 
-The quote-policy module is a library, not a running service. A test harness reader
-is not a deployed registry. No production feature flag was switched on.
+Local test quotes use fictional USD 2/mock NETA and a browser-local key. They are
+not a production pricing service. No production feature flag was switched on.
 
 ## Rules enforced by the registry
 
@@ -85,7 +83,7 @@ There is no legacy migration/import path in this slice.
 
 ## Transaction adapter obligations
 
-`NamesV2Client` is source coordination, not an enabled wallet service. Its injected
+`NamesV2Client` is connected to the separate UNI-7 wallet lab. Its injected
 `reader.verify` must verify chain, registry code/checksum/admin and current config
 against a reviewed manifest; a matching JSON `chain_id` alone is insufficient.
 The lock must cover the existing origin-wide wallet transaction journal, including
@@ -95,12 +93,15 @@ The execute adapter must preserve exact signed bytes/hash before broadcast and
 return only verified included receipts. The recovery adapter must match the exact
 sender, contract, operation and payload against the preserved intent, not accept
 an unrelated successful hash. Never clear the shared journal on a timeout.
-Unknown/rejected outcomes remain pending in this source coordinator; explicit
-confirmed-failure or proved-never-signed recovery and commitment cancellation
-must be wired before a public UI is mounted. Current reconciliation only finalizes
-successful intent-matching receipts. No automatic retry is implemented.
+Unknown outcomes remain pending. The concrete wallet adapter now supports exact
+included success/failure and proved-unbroadcast recovery; ambiguous signing state
+stays locked. Commitment cancellation does not erase an uncertain transaction.
+No automatic retry is implemented. See the owner test runbook for current behavior.
 
-## UNI-7 runbook — next integration step
+## Fresh deployment recipe — existing owner deployment is complete
+
+Do not repeat these steps for the manifest already in the NNS handoff. This recipe
+is for a deliberately separate test instance, not the next owner task.
 
 1. Build reviewed registry and profile WASM with the pinned toolchain and run
    CosmWasm validation. Record artifact checksum, source commit and code IDs.
@@ -112,7 +113,7 @@ successful intent-matching receipts. No automatic retry is implemented.
    the profile contract with the exact new registry address. Pin addresses,
    checksums, CW20 decimals, admins, treasury and quote public key in a reviewed
    deployment manifest. Record exact hashes and successful inclusion receipts.
-4. Finish the read/transaction/recovery adapters and the explicit review UI.
+4. Use the shipped read/transaction/recovery adapters and explicit review UI.
    Configure test quote issuance separately from production price operation.
    Verify the manifest before unpausing the test registry through its admin.
 5. Owner-sign commit → quoted CW20 send → profile save using test wallets.

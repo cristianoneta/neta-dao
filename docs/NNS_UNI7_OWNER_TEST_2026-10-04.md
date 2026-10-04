@@ -26,25 +26,22 @@ activation are confirmed on UNI-7. See [the next-chat handoff](HANDOFF_NEXT_CHAT
 for all seven receipts and the [public manifest](deployments/nns-uni7-owner-2026-10-04.json).
 The instructions below do not require redeployment of these existing contracts.
 
-The latest owner screen still reports an invalid checksum and pending unpause.
-The checksum normalization fix is live in PR #142, but successful recovery in the
-owner's browser has not yet been reported. Do not assume a hard reload solved it.
+Browser recovery is complete. The owner exported and used the verified manifest;
+registration, public contacts, renewal and accepted transfer have been observed.
+Do not repeat activation or those name operations to recover the interface.
 
-## Resume this existing deployment
+## Resume the existing deployment
 
-1. Hard reload names-v2-setup.html without deleting site data. Prepare the existing
-   test signer, connect the same Keplr wallet, then Check pending transaction.
-2. Recover activation receipt 3A33D74BE3F1F1C059D22FF19D0E3D131F1100EC3CC6A1BEB84D904E03BB9853
-   if its optional exact hash is needed. Never activate/upload/deploy again to
-   repair this UI. If the checksum error persists, inspect actual loaded module
-   versions and endpoint checksum responses; do not disable verification.
-3. Save verified manifest. Open names-v2-lab.html in the same browser, load the
-   manifest, Verify deployment, then Connect Keplr.
-4. Prepare a test name, Reserve name in Keplr, create/review the local quote,
-   then explicitly confirm the mock-NETA payment. Record each exact receipt.
-5. Publish optional public contacts; separately test renewal and a transfer to a
-   second wallet with acceptance, then old-profile invalidation. These live tests
-   remain unrecorded. The final consenting validator/proof UI flow remains open.
+1. Keep the same browser/site data. Open `names-v2-lab.html`, load the saved
+   manifest and Verify deployment. Connect the wallet for the intended action.
+2. For `cristiano.neta` owner actions use the second wallet recorded in the NNS
+   handoff. Read current state before signing; it has empty contacts after transfer.
+3. If a pending transaction exists, use Check pending transaction and its exact
+   receipt. Nothing is automatically resent. Never clear journals to bypass a lock.
+4. Continue the consenting-operator test above. For a remote volunteer, use their
+   own active test name and wallets in their browser; unpublished proofs cannot
+   currently be exchanged between browsers. A new isolated setup, if needed for
+   that volunteer, is separate from the owner's completed deployment.
 
 ## Fresh isolated deployment only
 
@@ -118,7 +115,7 @@ disabled. The normal profile preview links to the separate operator setup.
 
 ## Validation and next evidence
 
-Local checks: 72 root Node tests, 45 faucet-package tests (including real protobuf
+Original setup-slice checks: 72 root Node tests, 45 faucet-package tests (including real protobuf
 setup/receipt tests), the test-token Rust test and strict Clippy, both Chromium
 Names browser suites, actual non-exportable IndexedDB key persistence, valid local
 quote signatures, blocked mainnet quoting, keyboard flow and 320/390/768/1440px
@@ -128,7 +125,8 @@ including a lost upload response and reload recovery. This is not a live E2E.
 CI also validates all seven WASM crates, compares the three shipped artifacts,
 checks dependency audits and verifies signing-bundle reproducibility.
 
-Setup confirmations are now recorded in the next-chat handoff. Next evidence is
-successful browser recovery and the live registration/profile/renewal/transfer tests.
-Then finish operator proof collection/submission with a willing validator. Do not
-resume the delegation dashboard or activate mainnet purchases from these fixtures.
+Setup receipts and completed owner-test post-states are recorded in the NNS
+handoff. PR #145 subsequently passed 84 root Node tests plus browser/operator-flow
+checks; its release evidence is recorded there. Next evidence is live operator
+link/unlink/revocation and exact receipt archival. Do not activate mainnet purchases
+or award delegation points from these fixtures.
