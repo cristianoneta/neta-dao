@@ -5,9 +5,12 @@ Static DAO workspace at <https://dao.netareborn.com>, owned by
 owns <https://netareborn.com>.
 
 Start with [HANDOFF.md](HANDOFF.md), then [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md).
-The latter is the code-backed feature/deployment inventory. Review date: 2026-10-02.
+The latter is the code-backed feature/deployment inventory. Base inventory review: 2026-10-02; NNS continuation updated 2026-10-04.
 Recorded deployments are not a fresh on-chain attestation; recheck identity and
 state before signing. This documentation review changes no application behavior.
+
+For the current owner test, read [the NNS continuation](docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md).
+All seven setup transactions succeeded; owner-browser recovery and live name/profile tests remain open.
 
 For UI work and new pages, follow [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
 The 2026-10-03 selected direction is graphite/mint with restrained voxel accents
@@ -29,6 +32,7 @@ HANDOFF for release evidence and the evening continuation.
 | RELAY Composer | Temporary preview and read-only UNI-7 mailbox identity check | Main application cannot send or save plaintext drafts |
 | RELAY encrypted lab | Separate UNI-7 device registration, ciphertext send/receive and encrypted local history | Mocked two-profile test passed; real two-wallet E2E still unrecorded |
 | Names in RELAY | Directory search, DAO details/copy/follows, USD fee calculator, unpublished contact/validator profile preview | v2 registry, live quotes, profile/contacts persistence and payments are not connected; `REGISTRY=null` |
+| Names v2 UNI-7 lab | Separate Keplr setup/lab with verified deployed mock token, registry and profiles; purchases activated | Owner-browser recovery remains open; live registration/profile/renewal/transfer tests unrecorded; mainnet disabled |
 | Delivery / Contributors | Visual concepts and structured proposal deliverables | No authoritative contributor records, milestone acceptance or payment release |
 
 RELAY directly exposes Inbox, Directory, Contacts, My profile and .neta name.
