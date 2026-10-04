@@ -24,9 +24,9 @@ function harness(){
     const auth=AuthInfo.fromPartial({signerInfos:[{sequence:1n}],fee:{amount:fee.amount,gasLimit:BigInt(fee.gas)+(mode==='fee'?1n:0n)}});
     return {bodyBytes:TxBody.encode(body).finish(),authInfoBytes:AuthInfo.encode(auth).finish(),signatures:[new Uint8Array([1])]};
   },
-  broadcastTx:async bytes=>{broadcasts++;found={hash:hash(bytes),tx:bytes,height:100,code:mode==='failed'?5:0};if(mode==='lost')throw Error('response lost');return {transactionHash:found.hash,height:100,code:found.code};}
+  broadcastTxSync:async bytes=>{broadcasts++;found={hash:hash(bytes),tx:bytes,height:100,code:mode==='failed'?5:0};if(mode.startsWith('lost'))throw Error('response lost');return {transactionHash:found.hash,height:100,code:found.code};}
  };
- const opts={client,storage,locks,lookup:async h=>found?.hash===h?found:null,assertWallet:async expected=>{if(wallet!==expected)throw Error('Wallet changed');},verifyDeployment:async()=>{if(mode==='deployment')throw Error('wrong deployment');}};
+ const opts={client,storage,locks,wait:async()=>{},lookup:async h=>mode!=='lost'&&found?.hash===h?found:null,assertWallet:async expected=>{if(wallet!==expected)throw Error('Wallet changed');},verifyDeployment:async()=>{if(mode==='deployment')throw Error('wrong deployment');}};
  return {map,storage,opts,bridge:()=>createBridge(opts),setMode:v=>mode=v,setChain:v=>chain=v,signs:()=>signs,broadcasts:()=>broadcasts,found:()=>found};
 }
 test('Names bridge persists exact bytes, confirms protobuf intent and shares the origin journal',async()=>{
@@ -43,7 +43,7 @@ test('lost broadcast response stays locked across reload; exact inclusion alone 
  const raw=h.storage.getItem('neta-pending-tx-v1:uni-7:'+owner);assert.ok(raw);
  const reloaded=h.bridge();await assert.rejects(reloaded.execute(r),/already exists/);assert.equal(h.broadcasts(),1);
  await assert.rejects(reloaded.recover(r,'A'.repeat(64)),/saved signed/);assert.equal(h.storage.getItem('neta-pending-tx-v1:uni-7:'+owner),raw);
- const recovered=await reloaded.recover(r);assert.equal(recovered.code,0);assert.equal(h.map.has('neta-pending-tx-v1:uni-7:'+owner),false);assert.equal(h.broadcasts(),1);
+ h.setMode('');const recovered=await reloaded.recover(r);assert.equal(recovered.code,0);assert.equal(h.map.has('neta-pending-tx-v1:uni-7:'+owner),false);assert.equal(h.broadcasts(),1);
 });
 test('wallet rejection, changed payload, fee and wallet never broadcast and have explicit recovery',async()=>{
  for(const mode of ['reject','payload','fee','wallet-change','deployment']){
@@ -68,4 +68,21 @@ test('an interrupted signing record has no automatic reset and storage failure p
  await assert.rejects(h.bridge().recover(r),/Interrupted signing/);assert.equal(h.signs(),0);
  const other=harness();other.opts.storage={...other.storage,setItem:()=>{throw Error('quota exceeded');}};
  await assert.rejects(other.bridge().execute(r),/quota/);assert.equal(other.signs(),0);
+});
+
+test('index-disabled sending RPC and a lost response settle through independent exact inclusion',async()=>{
+ for(const mode of ['', 'lost-indexed']){
+  const h=harness(),r=request();h.setMode(mode);
+  h.opts.client.broadcastTx=async()=>{throw Error('transaction indexing is disabled');};
+  const receipt=await h.bridge().execute(r);
+  assert.equal(receipt.code,0);assert.equal(receipt.intentMatched,true);
+  assert.equal(h.signs(),1);assert.equal(h.broadcasts(),1);
+  assert.equal(h.storage.getItem('neta-pending-tx-v1:uni-7:'+owner),null);
+ }
+});
+test('confirmation can become visible after several reads without a second broadcast',async()=>{
+ const h=harness(),r=request();let reads=0;
+ h.opts.lookup=async()=>++reads<3?null:h.found();
+ assert.equal((await h.bridge().execute(r)).code,0);
+ assert.equal(reads,3);assert.equal(h.signs(),1);assert.equal(h.broadcasts(),1);
 });
