@@ -39,7 +39,7 @@ export function validateManifest(input){
 // this verifies deployment identity, not Tendermint light-client proofs.
 export class NamesV2Reader {
   constructor({deployment=NAMES_V2_DEPLOYMENT,fetcher=globalThis.fetch,now=()=>Math.floor(Date.now()/1000)}={}){
-    this.deployment=validateManifest(deployment);this.fetcher=fetcher;this.now=now;this.base=null;
+    this.deployment=validateManifest(deployment);this.fetcher=fetcher.bind(globalThis);this.now=now;this.base=null;
   }
   async get(base,path){
     const r=await this.fetcher(base+path,{cache:'no-store',signal:AbortSignal.timeout(12000)});

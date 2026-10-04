@@ -15,7 +15,7 @@ function eventValue(receipt,type,key){
 }
 export class NamesSetup {
  constructor({owner,publicKey,client,bundle,assertWallet,storage=localStorage,locks=navigator.locks,fetcher=fetch}){
-  Object.assign(this,{owner,publicKey,client,bundle,assertWallet,storage,locks,fetcher});this.key='neta-nns-uni7-setup-v1:'+owner;
+  Object.assign(this,{owner,publicKey,client,bundle,assertWallet,storage,locks,fetcher:fetcher.bind(globalThis)});this.key='neta-nns-uni7-setup-v1:'+owner;
   this.bridge=bundle.createBridge({client,storage,locks,lookup:hash=>lookupTransaction(hash,fetcher),assertWallet,verifyDeployment:()=>this.verifyPending()});
  }
  state(){const raw=this.storage.getItem(this.key);if(raw===null)return {version:1,owner:this.owner,publicKey:this.publicKey,roles:{},pending:null,history:[]};const s=JSON.parse(raw);if(s.version!==1||s.owner!==this.owner||s.publicKey!==this.publicKey||!s.roles||!Array.isArray(s.history))throw Error('Setup identity or stored authority changed. Preserve the setup journal.');return s;}
