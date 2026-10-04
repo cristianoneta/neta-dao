@@ -1,8 +1,18 @@
 # Deploy the UNI-7 faucet without managing a server
 
-Status: deployment configuration only. No Render service or wallet has been
-created, no hosting purchased, and no live payout verified. The public faucet
-keeps `api: null, address: null` until the checks below are complete.
+Status as of 2026-10-04: the owner created the Render service and provisioned
+its private wallet. The public `/status` endpoint returned UNI-7 and balance 0:
+`https://neta-junox-faucet.onrender.com`,
+`juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`.
+The public faucet keeps `api: null, address: null`; no live payout is verified.
+
+The usage-guard update must be deployed manually and checked for
+`protection: "usage-guards-v1"` in `/status` before public activation.
+It adds durable aggregate request/payout quotas and pauses API work automatically
+when exhausted. It does not suspend the Render host or cap the invoice at USD 10.
+See [the limits and cost boundary](README.md#usage-guards-and-cost-boundary).
+Set the workspace Build Pipeline **additional-spend limit to USD 0** separately;
+that setting covers build minutes only. Auto-deploy stays off.
 
 The root `render.yaml` provisions one Node 24 web service in Frankfurt and a
 1 GB persistent disk. Render handles HTTPS and process restarts. This uses a
@@ -80,7 +90,7 @@ commit and transaction hashes before calling the faucet live end to end.
   Preserve the ledger and inspect the chain; do not delete the SQLite file.
 - SQLite, WAL and payout history live under `/var/data`; only that directory is
   persistent. Follow the backup/recovery rules in the service README.
-- The application's direct-peer limiter is an aggregate backstop behind Render's
+- The application's durable global request limiter is an aggregate backstop behind Render's
   proxy. It does not establish one-person-one-claim or per-client IP limits.
   The existing wallet cooldown remains the payout limit. Add an appropriate
   edge abuse policy before scaling public usage; do not trust arbitrary

@@ -9,7 +9,10 @@ from the chain. Configured reward withdrawal addresses are shown explicitly.
 
 ## Activation status
 
-**The payout service is implemented but NOT deployed or funded.**
+**The first Render deployment is running; public payouts remain disabled.**
+On 2026-10-04, `https://neta-junox-faucet.onrender.com/status` returned UNI-7,
+address `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`, balance `0`, `ready:false`.
+Usage-guard changes require a new manual deployment and verification.
 `juno-faucet-config.mjs` intentionally has `api: null, address: null`. Get 10 JUNOX
 and Donate remain disabled with a visible explanation until a reviewed deployment
 has a dedicated funded UNI-7 address. Validator reads, wallet balances, staking,
@@ -52,7 +55,7 @@ Configuration (no mnemonic value in environment variables):
 
 Terminate TLS at a reverse proxy. Keep the service port private. Enforce request
 size, timeouts and per-client rate limiting at that proxy. The service also caps
-requests per direct peer; behind a proxy that is an aggregate backstop, not an
+requests globally across all direct peers. This is an aggregate backstop, not an
 end-user IP policy. It deliberately does not trust arbitrary forwarded headers.
 Mount `/data` persistently, owned by UID 1000 for the container. Protect and back
 up the SQLite database **with its WAL**, using SQLite's backup API or a clean
@@ -72,6 +75,47 @@ Activation checklist:
    service restart. Test a whole-number donation, staking, unstaking and rewards.
 5. Record chain transaction hashes and exact deployment revision before claiming
    live end-to-end verification. Monitor funding and unresolved transactions.
+
+## Usage guards and cost boundary
+
+The operator accepted Render and requested conservative automatic pauses before
+public activation. Defaults apply without new environment variables:
+
+| Guard | Ceiling |
+| --- | --- |
+| Admitted HTTP requests, all paths/clients combined | 60 per UTC minute, 5,000 per UTC day, 50,000 per UTC month |
+| Concurrent admitted HTTP handlers | 4 |
+| New payout reservations, all wallets combined | 100 per UTC day, 1,000 per UTC month |
+| Per-wallet payout | 10 JUNOX per rolling 24 hours, unchanged |
+| Status RPC refresh | One shared refresh per 30 seconds; failures also cached |
+| POST body | 8 KiB |
+
+Request counters persist in the **same SQLite file** as the payout journal.
+Exhausted requests receive a small HTTP 429 with reset time, before body parsing,
+wallet verification or RPC. Day/month windows reset at UTC boundaries, not the
+Render billing date. Payout caps count every reservation, including failures and
+old claims, and are enforced in the signing-reservation transaction. No refund on
+failure, no resetting usage or deleting journals to restart. A completed/pending
+claim can still return its existing result when the request budget permits it.
+Maximum newly reserved transfers are 1,000 JUNOX/day and 10,000 JUNOX/month;
+confirmed transfers can finish later than their reservation window.
+
+`FAUCET_REQUESTS_PER_MINUTE`, `FAUCET_REQUESTS_PER_DAY`,
+`FAUCET_REQUESTS_PER_MONTH`, `FAUCET_PAYOUTS_PER_DAY`, `FAUCET_PAYOUTS_PER_MONTH`
+may **lower** these ceilings to positive integers. Zero/invalid/above-ceiling
+values fail startup. `FAUCET_PAUSED=true` manually disables HTTP operations after
+startup; use Render Suspend Service for host-level suspension. At a payout cap,
+`/status` reports `ready:false` plus `pause`; `protection:usage-guards-v1` identifies
+the deployed HTTP guard version. Balance readiness may be cached for 30 seconds.
+
+**This is NOT a USD 10 spending cap, a bandwidth meter or a Render suspension.**
+Render still bills the instance/disk; rejection responses, proxy traffic, builds
+and other workspace services can still cost money. No provider API credential is
+stored and no automatic host suspension is installed. Configure the Build
+Pipeline additional-spend limit to USD 0 in Render and monitor workspace usage.
+A guaranteed invoice ceiling requires a provider-enforced billing agreement.
+The public frontend remains disabled until the operator deploys this version,
+funds the account and completes the signed/restart checks.
 
 ## Limits and transaction integrity
 

@@ -11,3 +11,13 @@ test('ADR-36 verifies wallet, exact challenge and signature',async()=>{
 });
 
 test('bech32 decoding remains compatible with pinned transitive dependencies',()=>{assert.equal(validAddress('juno1qurswpc8qurswpc8qurswpc8qurswpc89pyp8a'),true);assert.equal(validAddress('juno1qurswpc8qurswpc8qurswpc8qurswpc89pyp8b'),false);});
+
+test('invalid recovery phrase never appears in startup errors',async()=>{
+ const {mkdtempSync,writeFileSync,rmSync}=await import('node:fs');
+ const {tmpdir}=await import('node:os');const {join}=await import('node:path');
+ const {chainAdapter}=await import('../service/chain.mjs');
+ const dir=mkdtempSync(join(tmpdir(),'faucet-secret-test-')),file=join(dir,'secret');
+ const invalid='synthetic-invalid-input-do-not-echo';writeFileSync(file,invalid);
+ try{await assert.rejects(chainAdapter({rpc:'https://unused.invalid',mnemonicFile:file,expectedAddress:'juno1qurswpc8qurswpc8qurswpc8qurswpc89pyp8a'}),error=>{assert.match(error.message,/Invalid faucet recovery phrase/);assert.doesNotMatch(error.stack,/synthetic-invalid|Allowed:/);return true;});}
+ finally{rmSync(dir,{recursive:true});}
+});

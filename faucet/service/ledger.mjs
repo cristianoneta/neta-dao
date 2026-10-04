@@ -1,13 +1,15 @@
 import {DatabaseSync} from 'node:sqlite';
 import {randomBytes} from 'node:crypto';
+import {UsageGuard,DEFAULT_LIMITS} from './limits.mjs';
 export const DAY=86400000, AMOUNT='10000000';
 export class FaucetLedger {
-  constructor(file,adapter,{now=Date.now,verify,domain}={}) {
+  constructor(file,adapter,{now=Date.now,verify,domain,limits=DEFAULT_LIMITS}={}) {
     this.db=new DatabaseSync(file);this.adapter=adapter;this.now=now;this.verify=verify;this.domain=domain;
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA busy_timeout=5000;
       CREATE TABLE IF NOT EXISTS challenges(id TEXT PRIMARY KEY,address TEXT NOT NULL,message TEXT NOT NULL,expires INTEGER NOT NULL,used INTEGER NOT NULL DEFAULT 0);
       CREATE TABLE IF NOT EXISTS claims(id TEXT PRIMARY KEY,address TEXT NOT NULL,status TEXT NOT NULL,slot INTEGER UNIQUE,hash TEXT,bytes TEXT,confirmed INTEGER,created INTEGER NOT NULL);
       CREATE INDEX IF NOT EXISTS claims_address ON claims(address,confirmed);`);
+    this.guard=new UsageGuard(this,limits);
   }
   transaction(fn) { this.db.exec('BEGIN IMMEDIATE');try{const result=fn();this.db.exec('COMMIT');return result;}catch(e){this.db.exec('ROLLBACK');throw e;} }
   eligibility(address) {
@@ -21,6 +23,7 @@ export class FaucetLedger {
     if(e.nextClaimAt && Date.parse(e.nextClaimAt)>this.now())throw Error('Only 10 JUNOX per wallet every 24 hours. Next payout: '+e.nextClaimAt);
   }
   challenge(address) {
+    this.guard.assertPayoutAllowed();
     this.assertEligible(address);
     return this.transaction(()=>{
       this.db.prepare('DELETE FROM challenges WHERE expires < ?').run(this.now());
@@ -51,6 +54,7 @@ export class FaucetLedger {
     if(challenge.expires<this.now()||challenge.used)throw Error('Wallet signature expired. Request again.');
     await this.reconcile();
     this.transaction(()=>{
+      this.guard.assertPayoutAllowed();
       this.assertEligible(address);
       if(this.db.prepare('SELECT id FROM claims WHERE slot=1').get())throw Error('The faucet is confirming a previous payout. Try again later.');
       if(this.db.prepare('SELECT used FROM challenges WHERE id=?').get(id)?.used)throw Error('This request was already submitted.');
