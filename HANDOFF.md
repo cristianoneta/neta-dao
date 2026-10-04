@@ -1,5 +1,28 @@
 # NETA DAO handoff
 
+## Latest session checkpoint — 2026-10-04, 21:00 Europe/Berlin
+
+Continue with [the NNS next-chat handoff](docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md).
+All seven UNI-7 setup transactions succeeded, including activation. PRs #140–142
+are merged and their application releases were verified. The owner's latest pasted
+screen still shows `Invalid code checksum` and `unpause · registry · confirmation
+pending`; successful recovery in that browser has NOT yet been reported. Next:
+hard reload without clearing site data, prepare the existing signer, reconnect,
+and Check pending transaction. Do not deploy or activate again. No live name
+registration/payment/profile/transfer or operator-proof completion is evidenced.
+
+The Smart Delegation research is retained in docs/SMART_DELEGATION_RESEARCH.md;
+resume it after NNS testing. The approved delegation criteria remain unchanged.
+Older dated sections below are historical checkpoints, not instructions to repeat
+completed deployments. The dedicated next-chat handoff takes precedence for NNS.
+
+## Deferred Smart Delegation research — 2026-10-04
+
+The owner asked to retain the recovered RockawayX/C4E app research and resume
+NNS testing first. Original sources, reuse limits and future ideas are recorded
+in [docs/SMART_DELEGATION_RESEARCH.md](docs/SMART_DELEGATION_RESEARCH.md).
+These are research options, not changes to the approved delegation criteria.
+
 ## NNS UNI-7 deployment verified and activated — 2026-10-04
 
 The owner completed all three test contracts. The corrected NamesV2Reader verified
@@ -28,8 +51,9 @@ are historical checkpoints.
 
 PR #141's independent transaction confirmation fix is merged and published;
 all PR/main workflows and Pages succeeded, and the deployed bundle plus both
-Names HTML pages match the reviewed files. Release evidence for the checksum
-normalization follows in its own PR.
+Names HTML pages match the reviewed files. PR #142 merged as 8b4f450cc6e333341deeb5c3f5a22185bcbb6f8f; its PR/main
+checks and Pages publication passed. All seven changed public assets matched
+the reviewed source after publication. This does not prove browser recovery.
 
 
 ## NNS UNI-7 upload confirmed; independent receipt lookup — 2026-10-04

@@ -1,5 +1,9 @@
 # Next chat — finish the UNI-7 faucet — 2026-10-04
 
+Current session priority moved to [NNS UNI-7 testing](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md).
+The faucet evidence and remaining gates below are retained; do not mistake this
+older faucet continuation for the latest NNS test checkpoint.
+
 ## Faucet platform banner — 2026-10-04
 
 Owner-approved header promotion uses the existing voxel assembly plaza, the

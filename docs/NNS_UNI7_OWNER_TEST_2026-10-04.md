@@ -1,29 +1,38 @@
 # NNS UNI-7 owner test — 2026-10-04
 
-This continuation provides the concrete Keplr deployment and test pages. Website
-publication is tracked in PR #139; successful builds are not proof that the owner
-has deployed contracts or completed a chain transaction. No owner transaction,
-mainnet activation, external hosting or validator outreach was performed here.
+## Current owner checkpoint
 
-## Owner path after website publication
+The isolated deployment is complete: codes 122/123/124, three contracts, and
+activation are confirmed on UNI-7. See [the next-chat handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md)
+for all seven receipts and the [public manifest](deployments/nns-uni7-owner-2026-10-04.json).
+The instructions below do not require redeployment of these existing contracts.
 
-1. Open `names-v2-setup.html` from My profile's **UNI-7 profile test** link. Click
-   **Prepare test signer**, then **Connect Keplr** with a UNI-7 wallet holding JUNOX.
-   The independent faucet remains linked if test gas is needed.
-2. For each card, review and confirm **code upload**, then **deployment**: mock
-   token, registry, profiles. Each button presents the action and contract checksum
-   before the separate Keplr confirmation. No action queues the next transaction.
-3. Review and confirm **test activation**, the seventh setup transaction. Save the
-   **verified manifest**. It contains public addresses, checksums and public key,
-   never a wallet seed or private signing key.
-4. Open `names-v2-lab.html` in the same browser, load that manifest, verify it and
-   connect the same wallet. Prepare a name and reserve it in Keplr. Create/review
-   the local test quote, then explicitly confirm the exact mock-NETA payment.
-5. Review/publish optional public contact fields. Test renewal, transfer to a second
-   wallet and its acceptance separately. Verify that the former owner's profile
-   is no longer returned after transfer. This page does not yet collect live
-   mainnet/testnet validator proofs; the profile contract and ADR-36 collector are
-   present, but a consenting operator and its final UI flow remain to be tested.
+The latest owner screen still reports an invalid checksum and pending unpause.
+The checksum normalization fix is live in PR #142, but successful recovery in the
+owner's browser has not yet been reported. Do not assume a hard reload solved it.
+
+## Resume this existing deployment
+
+1. Hard reload names-v2-setup.html without deleting site data. Prepare the existing
+   test signer, connect the same Keplr wallet, then Check pending transaction.
+2. Recover activation receipt 3A33D74BE3F1F1C059D22FF19D0E3D131F1100EC3CC6A1BEB84D904E03BB9853
+   if its optional exact hash is needed. Never activate/upload/deploy again to
+   repair this UI. If the checksum error persists, inspect actual loaded module
+   versions and endpoint checksum responses; do not disable verification.
+3. Save verified manifest. Open names-v2-lab.html in the same browser, load the
+   manifest, Verify deployment, then Connect Keplr.
+4. Prepare a test name, Reserve name in Keplr, create/review the local quote,
+   then explicitly confirm the mock-NETA payment. Record each exact receipt.
+5. Publish optional public contacts; separately test renewal and a transfer to a
+   second wallet with acceptance, then old-profile invalidation. These live tests
+   remain unrecorded. The final consenting validator/proof UI flow remains open.
+
+## Fresh isolated deployment only
+
+For a deliberately new deployment, use Prepare test signer / Connect Keplr, then
+review and separately confirm upload + instantiate for token, registry and profiles,
+followed by activation and manifest export (seven transactions). This recipe is
+not the next action for the existing owner's deployment.
 
 Keep this browser's site data during the test. The test quote key is a non-exportable
 Ed25519 CryptoKey in an isolated IndexedDB store. It is deliberately separate from
@@ -100,7 +109,7 @@ including a lost upload response and reload recovery. This is not a live E2E.
 CI also validates all seven WASM crates, compares the three shipped artifacts,
 checks dependency audits and verifies signing-bundle reproducibility.
 
-Next evidence must come from the owner's UNI-7 confirmations: record source commit,
-code IDs, addresses, manifest, exact transaction hashes and observed post-state.
+Setup confirmations are now recorded in the next-chat handoff. Next evidence is
+successful browser recovery and the live registration/profile/renewal/transfer tests.
 Then finish operator proof collection/submission with a willing validator. Do not
 resume the delegation dashboard or activate mainnet purchases from these fixtures.
