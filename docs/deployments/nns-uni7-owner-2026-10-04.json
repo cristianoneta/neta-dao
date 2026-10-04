@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "chain_id": "uni-7",
+  "testnet_only": true,
+  "registry": "juno186sudtyc6sfwfhs77uj6dnsmgf7sl9774slycavxmmfakhmhxans6f64x7",
+  "token": "juno1gcpuzmtetez6mf9tnuk3ua7pwe933pzeqr7ac5jl235au8ls38jsuuf2js",
+  "profile_contract": "juno1rch3ut6r5ht3l94nw9yptdv3lg9fjhafnax5udz6dqzxe8lt6u8qhtmjvp",
+  "admin": "juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt",
+  "treasury": "juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt",
+  "quote_public_key": "ykjbKyZDRBtP+xPszShTLhN3LA2wehDyRE7mEgjnyjw=",
+  "signer_version": 1,
+  "contracts": {
+    "token": {
+      "code_id": 122,
+      "sha256": "66d18a996d8dd7bd8dfca480870242141677079a7aac1cfb49427f774d24f4db",
+      "creator": "juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt",
+      "admin": null
+    },
+    "registry": {
+      "code_id": 123,
+      "sha256": "76a8ce6ce72d8ea73116bafad83a770438aa0e3e8f1f87957177d855ddee8b65",
+      "creator": "juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt",
+      "admin": null
+    },
+    "profiles": {
+      "code_id": 124,
+      "sha256": "9d47676d8dd0040b1cea4a39a3e8c95a75ea4841cd5b2eb5feb83c7f4516ceed",
+      "creator": "juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt",
+      "admin": null
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import {NAMES_TEST_ARTIFACTS} from './names-v2-artifacts.mjs';
-import {NamesV2Reader,UNI7_RESTS,UNI7_RPCS,freshUni7Block,uni7Failure} from './names-v2-reader.mjs?v=2';
+import {NamesV2Reader,UNI7_RESTS,UNI7_RPCS,freshUni7Block,uni7Failure} from './names-v2-reader.mjs?v=3';
 import {CHAIN_CONFIG} from './juno-faucet-core.mjs?v=2';
 import {lookupTransaction} from './juno-faucet-transactions.mjs';
 import {getTestAuthority} from './names-v2-test-authority.mjs';
