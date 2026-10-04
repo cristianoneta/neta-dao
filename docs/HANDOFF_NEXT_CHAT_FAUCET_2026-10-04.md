@@ -1,5 +1,31 @@
 # Next chat — finish the UNI-7 faucet — 2026-10-04
 
+## Verified donation — 2026-10-04, 13:55 Berlin
+
+The owner supplied transaction
+`9019CA5CE99FD3B9D31186083EB77856EA034B9A0BF5D7A4C0DAF5BC8658E2DF`.
+Fresh STAVR exact-hash lookup verified SHA-256 of signed bytes, UNI-7 receipt
+height 18530558, code 0. Transfer events show **15 JUNOX**, not 10, from
+`juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57` to the dedicated faucet address
+`juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`. Fee 0.05 JUNOX; gas limit 250000,
+gas used 144384. This confirms the actual donation flow after the gas correction.
+
+Fresh Render `/status`: balance 15000000, ready true, usage-guards-v1 and
+confirmation:uni7-exact-hash-v1. **gasPolicy is absent**, so the newest shared
+bank-send gas correction is not yet deployed to Render. Do not treat ready:true
+as evidence that the payout gas fix or a real payout has been verified.
+Next: owner manually deploys latest main to the existing Render service; verify
+`gasPolicy:bank-send-gas-v1` without replacing the SQLite/WAL/secret file. Then
+pin the public API/CSP for the controlled payout test, verify a 10-JUNOX receipt,
+repeat-request rejection and persistent cooldown after restart. Current 15 JUNOX
+supports one test payout plus fee, then falls below the 12-JUNOX readiness reserve.
+Public payout API remains disabled. No new payout/unstake evidence is claimed.
+
+Gas release PR #135 merged as c1adfd298a8caa6c666165cc28e45b6cfa0c7c88.
+PR checks 37191934429 / 37191934465 / 37191934433 passed. Main checks
+37192015046 / 37192015066 and Pages 37192014821 passed; live HTML, CSS and
+signing bundle matched source. Donation release #134 was also verified live.
+
 ## Donation gas correction — 2026-10-04
 
 The owner attempted a 10-JUNOX donation through the page. Exact signed bytes and
