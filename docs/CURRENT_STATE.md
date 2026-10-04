@@ -1,5 +1,20 @@
 # NETA DAO code-backed current state
 
+## Donations before payout activation — 2026-10-04
+
+The owner requested funding through the existing Donate JUNOX control. Donation
+availability is now independent of the payout API: the public config pins
+`juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt` while `api` remains null.
+After Connect Keplr, a positive whole-number donation opens the transaction review
+and uses the existing UNI-7 signing/confirmation journal. The exact recipient is
+shown before signing; wallet/network, balance/fee room and pinned target are
+rechecked. The faucet account cannot donate to itself. No Render deployment is
+needed for this frontend change. Get 10 JUNOX remains disabled after funding.
+This supersedes older snapshots saying both public values are null and donations
+are unavailable. Payout deployment/activation gates remain in force. No real
+owner-signed donation or payout is claimed by the mocked browser checks.
+
+
 ## Backend confirmation correction — 2026-10-04 continuation
 
 The server now submits signed bytes once with `broadcastTxSync` and confirms
