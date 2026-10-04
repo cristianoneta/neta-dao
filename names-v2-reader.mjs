@@ -16,7 +16,7 @@ export function freshUni7Block(latest,now=Math.floor(Date.now()/1000)){
 }
 export function uni7Failure(base,error){return `${new URL(base).hostname}: ${error?.message||'Request failed'}`;}
 function digest(value){
-  if(hex.test(value||''))return value;
+  if(typeof value==='string'&&/^[a-f0-9]{64}$/i.test(value))return value.toLowerCase();
   const bytes=Uint8Array.from(atob(value||''),c=>c.charCodeAt(0));
   if(bytes.length!==32||btoa(String.fromCharCode(...bytes))!==value)throw Error('Invalid code checksum.');
   return [...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');

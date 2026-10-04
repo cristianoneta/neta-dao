@@ -1,5 +1,37 @@
 # NETA DAO handoff
 
+## NNS UNI-7 deployment verified and activated — 2026-10-04
+
+The owner completed all three test contracts. The corrected NamesV2Reader verified
+the complete manifest against live UNI-7 at height 18539107: code hashes, creators,
+no migration admins, registry token/treasury/admin/test quote key, token decimals,
+and profile registry binding all match. Registry purchases_paused is false:
+activation already succeeded; do not send another activation to repair the UI.
+
+Public manifest: `docs/deployments/nns-uni7-owner-2026-10-04.json`.
+Codes are mock token 122, registry 123, profiles 124. The owner retains the
+browser-local private test quote key; the manifest contains only its public key.
+The mainnet deployment constants remain null. Registration, renewal, profile
+publishing, transfer and real validator proofs still need owner-driven live tests.
+
+The final activation/manifest check failed because the chain serves uppercase
+hex code hashes and NamesV2Reader only accepted lowercase hex or base64. The
+reader now normalizes valid 64-character hex to lowercase before comparing it
+with the pinned digest. Wrong hashes and malformed encodings remain rejected.
+Tests now use actual artifact hashes containing letters, cover uppercase/mixed
+hex and canonical base64, and reproduce the previous live error before the fix.
+All 20 targeted reader/network/v2 tests pass; the full live deployment check passes.
+Reader-dependent module URLs are bumped to version 3. Reload without clearing
+site data, reconnect, check any pending transaction, then save the manifest and
+load it on the Names test workspace. The earlier pending-deployment entries below
+are historical checkpoints.
+
+PR #141's independent transaction confirmation fix is merged and published;
+all PR/main workflows and Pages succeeded, and the deployed bundle plus both
+Names HTML pages match the reviewed files. Release evidence for the checksum
+normalization follows in its own PR.
+
+
 ## NNS UNI-7 upload confirmed; independent receipt lookup — 2026-10-04
 
 The owner's first real NNS transaction is confirmed successful (code 0):
