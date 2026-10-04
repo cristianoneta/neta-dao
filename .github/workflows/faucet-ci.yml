@@ -1,10 +1,10 @@
 name: UNI-7 faucet checks
 on:
   pull_request:
-    paths: ['juno-faucet*', 'faucet/**', 'assets/faucet-signing.js', 'tests/juno-faucet.test.mjs', 'spikes/relay-corecrypto/browser-faucet.mjs', '.github/workflows/faucet-ci.yml']
+    paths: ['juno-faucet*', 'names-v2*', 'assets/names-signing.js', 'faucet/**', 'assets/faucet-signing.js', 'tests/juno-faucet.test.mjs', 'spikes/relay-corecrypto/browser-faucet.mjs', '.github/workflows/faucet-ci.yml']
   push:
     branches: [main]
-    paths: ['juno-faucet*', 'faucet/**', 'assets/faucet-signing.js', 'tests/juno-faucet.test.mjs', 'spikes/relay-corecrypto/browser-faucet.mjs', '.github/workflows/faucet-ci.yml']
+    paths: ['juno-faucet*', 'names-v2*', 'assets/names-signing.js', 'faucet/**', 'assets/faucet-signing.js', 'tests/juno-faucet.test.mjs', 'spikes/relay-corecrypto/browser-faucet.mjs', '.github/workflows/faucet-ci.yml']
 permissions:
   contents: read
 jobs:
@@ -21,6 +21,7 @@ jobs:
       - run: npm ci --prefix faucet --ignore-scripts
       - run: npm audit --prefix faucet --audit-level=high
       - run: npm run build --prefix faucet && git diff --exit-code -- assets/faucet-signing.js
+      - run: npm run build:names --prefix faucet && git diff --exit-code -- assets/names-signing.js
       - run: npm test --prefix faucet
       - run: node --test tests/juno-faucet.test.mjs
       - run: npm ci --prefix spikes/relay-corecrypto

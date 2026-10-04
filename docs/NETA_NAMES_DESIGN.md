@@ -12,7 +12,10 @@ Legacy `#names`, `#relay/names` and `#relay/following` redirect there. There is 
 separate preview experience or nested Names menu.
 
 Directory search, supported DAO details/address copy, browser-local follow controls
-and the USD fee calculator work. Contacts and profile writes are not connected.
+and the USD fee calculator work. Contacts and profile writes are not connected. The 2026-10-04 profile slice adds
+an explicitly unpublished in-memory contact/validator preview; see
+[NNS validator profiles](NNS_VALIDATOR_PROFILES_2026-10-04.md). Its profile contract
+and ADR-36 adapter are tested source, not a configured production service.
 Registration, renewal, transfer, DAO profile proposals, lifecycle notifications and
 payments are unavailable. The fee calculator is neither an availability check nor
 a live NETA quote. See [integration details](NAMES_MAIN_PAGE_INTEGRATION.md).

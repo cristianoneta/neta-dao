@@ -1,5 +1,62 @@
 # NETA DAO code-backed current state
 
+## NNS owner-driven UNI-7 setup and wallet flow — 2026-10-04
+
+Read [the owner test runbook](NNS_UNI7_OWNER_TEST_2026-10-04.md). The separate setup page now prepares
+a browser-local test quote authority and lets the owner upload/instantiate a fresh
+mock CW20, v2 registry and profile contract, then activate test purchases. Every
+transaction needs explicit Keplr confirmation. The lab verifies the exported
+manifest and supports reviewed name purchases, renewals, transfers, public contact
+updates and exact-receipt recovery through the existing shared journal.
+
+Source/UI and local tests are complete for this operator test path; publication
+and CI evidence are on PR #139. No owner-signed deployment or live NNS transaction
+has been performed. The test authority uses a fictional rate, requires this browser's
+site data and is not the production pricing service. Both production deployment
+constants remain null; mainnet purchases/profile publishing stay disabled.
+
+Next user action after publication: open `names-v2-setup.html`, prepare the test
+signer and connect Keplr. Continue one reviewed transaction at a time. After
+deployment, record exact receipts and finish a consenting validator's proof flow.
+The older missing-adapter statements below describe preceding source slices.
+
+
+## NNS v2 registry — 2026-10-04 source continuation
+
+Read [the v2 checkpoint and UNI-7 runbook](NNS_V2_REGISTRY_2026-10-04.md). New source implements
+quoted CW20 registration/renewal, recipient-accepted transfers and persistent identity
+for the profile contract. Fees follow the approved USD tariff and main-DAO recipient.
+Joint CW20/registry/profile tests, shared quote protocol, persisted client intents
+and a fail-closed price-policy library are included. These are not a deployed
+service or wallet UI. Both deployment constants remain null.
+
+The concrete chain/journal/recovery adapters and UNI-7 operator pages now exist
+(see the later checkpoint above). Owner-signed deployment/E2E remain pending. Quote HTTP service, live feeds, custody and production
+market policy remain open. No deployment, purchase, outreach or new hosting took
+place. The earlier “registry missing” note below is superseded for source only.
+
+
+## NNS validator profiles — 2026-10-04 source slice
+
+Read [the profile checkpoint](NNS_VALIDATOR_PROFILES_2026-10-04.md). The owner
+paused Delegation Programme planning to add optional public contacts (Discord,
+Telegram, X, email, homepage) and proof-backed mainnet/testnet operator links.
+A purchased active `.neta` name is required **only for testnet bonus points**,
+not general participation. Active testnet membership earns the bonus without an
+additional uptime requirement. The checkpoint preserves the programme decisions.
+
+Implemented: integrated unpublished profile preview, strict field/address rules,
+ADR-36 proof collector and a separate v2-bound profile contract with two operator
+signatures, exclusive bindings, identity lifecycle invalidation and revocation.
+No profile deployment or live wallet flow is claimed. `PROFILE_DEPLOYMENT=null`.
+The v2 registry now exists as source (checkpoint above); the live quote service
+and deployment are still missing. Legacy v1 cannot substitute for v2. Public profile publishing and purchases stay disabled until
+registry, deployment identities and journaled transaction integration are ready.
+The user does not run a validator: synthetic wallets suffice for development;
+one consenting mainnet/UNI-7 operator is needed for final live E2E. No outreach
+was sent. Next verify/deploy v2 and wire the journaled UNI-7 profile flow.
+
+
 ## Faucet platform banner — 2026-10-04
 
 Owner-approved header promotion uses the existing voxel assembly plaza, the

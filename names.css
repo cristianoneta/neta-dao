@@ -79,3 +79,14 @@
 .member-addresses summary { cursor:pointer; color:var(--neta-text-secondary); padding:8px 0; }
 .member-addresses p { overflow-wrap:anywhere; }
 @media(max-width:640px){.dao-member-row .member-power{text-align:left}.dao-member-row .member-identity{flex-basis:100%}}
+
+/* Public contact editing and explicitly unpublished preview. */
+.names-contact-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 20px; }
+.names-contact-list { margin:20px 0; }
+.names-contact-list dt { margin-top:16px; color:var(--neta-text-secondary); font-size:13px; }
+.names-contact-list dd { margin:4px 0; overflow-wrap:anywhere; }
+.names-contact-list a { color:var(--neta-accent); }
+#names-profile-result { min-height:24px; overflow-wrap:anywhere; }
+#names-profile-preview p { overflow-wrap:anywhere; }
+#names-profile-preview[hidden] { display:none; }
+@media(max-width:640px) { .names-contact-fields { grid-template-columns:1fr; } }

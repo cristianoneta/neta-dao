@@ -7,7 +7,7 @@ const server=http.createServer(async(req,res)=>{
  try {const path=new URL(req.url,'http://localhost').pathname;
   if(path.includes('..')){res.writeHead(400).end();return;}
   const body=await readFile(new URL('.'+path,root));
-  res.writeHead(200,{'content-type':path.endsWith('.js')?'text/javascript':path.endsWith('.css')?'text/css':path.endsWith('.json')?'application/json':'text/html'}).end(body);
+  res.writeHead(200,{'content-type':(path.endsWith('.js')||path.endsWith('.mjs'))?'text/javascript':path.endsWith('.css')?'text/css':path.endsWith('.json')?'application/json':'text/html'}).end(body);
  }catch{res.writeHead(404).end();}
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

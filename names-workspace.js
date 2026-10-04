@@ -23,7 +23,7 @@
     const copy = {
       directory:["Directory","Find a DAO and choose the updates you want to receive."],
       contacts:["Contacts","Keep the people and DAOs you use most in one place."],
-      profile:["My profile","Your name, introduction and preferred receiving network."],
+      profile:["My profile","Your name, public contacts and validator identities."],
       register:["Your .neta name","Choose a name and calculate the planned registration fee."],
       dao:["DAO profile","Identity, address and updates for this DAO."]
     }[name];

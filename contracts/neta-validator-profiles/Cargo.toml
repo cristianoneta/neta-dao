@@ -1,0 +1,20 @@
+[package]
+name = "neta-validator-profiles"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+cosmwasm-std = "1.5.11"
+cw-storage-plus = "1.2.0"
+cw2 = "1.1.2"
+schemars = "0.8.22"
+serde = { version = "1.0", features = ["derive"] }
+sha2 = "0.10"
+ripemd = "0.1"
+bech32 = "0.9.1"
+
+[dev-dependencies]
+k256 = { version = "0.13.3", features = ["ecdsa"] }
