@@ -85,6 +85,7 @@ Open the assigned `https://…onrender.com/status` URL. Verify:
 | `chainId` | `uni-7` |
 | `protection` | `usage-guards-v1` |
 | `confirmation` | `uni7-exact-hash-v1` |
+| `gasPolicy` | `bank-send-gas-v1` |
 | `address` | The exact dedicated wallet address |
 | `amount` | `10000000` (10 JUNOX) |
 | `intervalSeconds` | `86400` |

@@ -1,5 +1,27 @@
 # NETA DAO code-backed current state
 
+## Donation gas correction — 2026-10-04
+
+The owner attempted a 10-JUNOX donation through the page. Exact signed bytes and
+UNI-7 receipt were verified for
+`E4E0C8918FA87CDAFBF2ADDB7E010B9E5F39524CA92ABB3ED9628BE9260331D7`,
+height 18526822, SDK code 11: out of gas at WritePerByte. Gas limit 136997,
+consumed 137382 at failure; fee 27400 ujunox (0.0274 JUNOX). The 10 JUNOX were
+not transferred. This is a confirmed failure, not an ambiguous broadcast.
+
+Browser donations and server payouts now share a bank-send fee policy: simulate,
+require a positive safe estimate <=500000, then use max(250000, ceil(estimate*1.8))
+gas at 0.2 ujunox/gas. At the floor the fee is 0.05 JUNOX. This adds headroom for
+bank writes/new recipients; it is not a proof of a successful new donation.
+Staking/reward gas calculation and shared journal semantics are unchanged. No
+automatic retry occurs. Confirmed bank-send code 11 has a readable explanation;
+long hashes wrap inside the dialog. Browser assets are versioned/rebuilt.
+Backend `/status` adds `gasPolicy:bank-send-gas-v1`; this requires a manual Render
+deploy before payout activation. Public payouts remain off; donations remain on.
+The next step is one fresh owner-confirmed donation after Pages publication,
+then verify its exact hash, amount and receipt. Do not clear browser storage.
+
+
 ## Donations before payout activation — 2026-10-04
 
 The owner requested funding through the existing Donate JUNOX control. Donation
