@@ -12,7 +12,8 @@ from the chain. Configured reward withdrawal addresses are shown explicitly.
 **The first Render deployment is running; public payouts remain disabled.**
 On 2026-10-04, `https://neta-junox-faucet.onrender.com/status` returned UNI-7,
 address `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`, balance `0`, `ready:false`.
-Usage-guard changes require a new manual deployment and verification.
+Usage guards are verified live. The backend confirmation fix requires a manual
+deployment; verify `confirmation: "uni7-exact-hash-v1"` before funding/activation.
 `juno-faucet-config.mjs` intentionally has `api: null, address: null`. Get 10 JUNOX
 and Donate remain disabled with a visible explanation until a reviewed deployment
 has a dedicated funded UNI-7 address. Validator reads, wallet balances, staking,
@@ -50,7 +51,7 @@ Configuration (no mnemonic value in environment variables):
 | `FAUCET_PUBLIC_ORIGIN` | HTTPS service origin, e.g. operator-owned faucet subdomain |
 | `FAUCET_WEB_ORIGIN` | Allowed UI origin; default `https://dao.netareborn.com` |
 | `FAUCET_DB` | Persistent SQLite path; default `/data/faucet.sqlite` |
-| `FAUCET_RPC` | UNI-7 RPC; default NodesHub testnet endpoint |
+| `FAUCET_RPC` | HTTPS UNI-7 signing/balance RPC; default NodesHub. Confirmation checks indexed STAVR and this RPC concurrently. |
 | `HOST`, `PORT` | Default loopback `127.0.0.1:8787`; Docker listens on `0.0.0.0` |
 
 Terminate TLS at a reverse proxy. Keep the service port private. Enforce request
@@ -65,7 +66,8 @@ admin withdrawal endpoint. Donations are ordinary wallet-signed bank transfers.
 Activation checklist:
 
 1. Deploy with the dedicated key and persistent volume; verify `/status` reports
-   `chainId=uni-7`, `amount=10000000`, `intervalSeconds=86400` and expected address.
+   `chainId=uni-7`, `amount=10000000`, `intervalSeconds=86400`, expected address,
+   `protection=usage-guards-v1` and `confirmation=uni7-exact-hash-v1`.
 2. Fund that exact account with JUNOX. A conservative 12-JUNOX reserve is required
    to report ready. The service pays transfer gas; an empty recipient can claim.
 3. Pin the HTTPS API origin and funding address in `juno-faucet-config.mjs`, and
@@ -128,6 +130,13 @@ funds the account and completes the signed/restart checks.
 - SQLite `BEGIN IMMEDIATE` plus a unique active signer slot serializes the payout
   wallet and reserves each claim before signing. Sign-before-broadcast state,
   signed bytes and exact hash persist with WAL + FULL synchronous durability.
+- Broadcast uses `broadcastTxSync` once; mempool acceptance is not confirmation.
+  The backend checks STAVR and the configured HTTPS RPC concurrently. Each lookup checks
+  fresh `uni-7` identity, exact requested hash, SHA-256 of returned signed bytes,
+  positive block height and a nonnegative integer execution code. Each endpoint
+  has a shared 12-second status/receipt deadline, no redirects, and a 512-KiB
+  response cap. Concurrent checks of the same hash share the in-flight lookup.
+  These are trusted RPC receipts, not independently verified light-client proofs.
 - Timeout, restart or missing transaction index never triggers a fresh signature
   or automatic rebroadcast. Inclusion is reconciled by exact hash and code.
   Until it is proven, further payouts pause. Failed included transactions release

@@ -6,8 +6,9 @@ its private wallet. The public `/status` endpoint returned UNI-7 and balance 0:
 `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`.
 The public faucet keeps `api: null, address: null`; no live payout is verified.
 
-The usage-guard update must be deployed manually and checked for
-`protection: "usage-guards-v1"` in `/status` before public activation.
+Usage guards are already verified live. Deploy the backend confirmation update
+manually and check both `protection: "usage-guards-v1"` and
+`confirmation: "uni7-exact-hash-v1"` in `/status` before public activation.
 It adds durable aggregate request/payout quotas and pauses API work automatically
 when exhausted. It does not suspend the Render host or cap the invoice at USD 10.
 See [the limits and cost boundary](README.md#usage-guards-and-cost-boundary).
@@ -18,7 +19,21 @@ The root `render.yaml` provisions one Node 24 web service in Frankfurt and a
 1 GB persistent disk. Render handles HTTPS and process restarts. This uses a
 **paid compute plan plus disk**; review the current price in Render before
 creating the Blueprint. The free web-service plan cannot provide this disk.
-There is no database migration or change to the existing signing logic.
+There is no database migration; existing SQLite/WAL and pending claims must
+remain in place. Confirmation lookup does not sign or repeat a payment.
+
+## Existing service: deploy the confirmation correction
+
+Open **neta-junox-faucet → Manual Deploy → Deploy latest commit** after the
+confirmation PR is merged to `main`. Keep the service, disk, secret file and
+environment group in place. No RPC environment edit is required: NodesHub remains
+the signing/balance endpoint and the source adds indexed STAVR confirmation.
+Verify the new `/status` confirmation marker above; a successful GitHub Pages
+deployment does not update Render because auto-deploy is off.
+
+Then fund the existing dedicated address with an owner-confirmed UNI-7 Keplr
+transfer (100 JUNOX is a useful start). Do not recreate the wallet or database.
+The sections below also document provisioning for a new installation.
 
 ## 1. Prepare the dedicated wallet and private settings
 
@@ -66,6 +81,8 @@ Open the assigned `https://…onrender.com/status` URL. Verify:
 | Field | Expected |
 | --- | --- |
 | `chainId` | `uni-7` |
+| `protection` | `usage-guards-v1` |
+| `confirmation` | `uni7-exact-hash-v1` |
 | `address` | The exact dedicated wallet address |
 | `amount` | `10000000` (10 JUNOX) |
 | `intervalSeconds` | `86400` |
