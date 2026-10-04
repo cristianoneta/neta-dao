@@ -1,5 +1,22 @@
 # NETA DAO code-backed current state
 
+## Current NNS continuation — 2026-10-04, after 21:40 Europe/Berlin
+
+Owner-signed registration, public contacts, one-year renewal and two-wallet transfer
+were checked through live UNI-7 post-state queries. cristiano.neta now belongs to
+`juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`, ownership revision 2, expiry
+2028-10-03T19:15:41Z. Old owner mapping and transfer offer are cleared; the current
+profile exposes empty contacts after transfer. Exact operation receipts remain to
+be archived. Setup recovery and profile-preview bug are resolved (PR #144).
+
+The validator lab continuation adds separate ADR-36 signing steps, contract-matched
+challenge review, journaled UNI-7 link publication, owner unlink and unilateral
+operator revocation. No real validator link/revoke test or active-set eligibility
+claim exists yet. See the dedicated NNS next-chat handoff for evidence, release
+checks and the consenting-operator runbook. Older checkpoints below are historical;
+do not repeat completed setup/registration/profile/renewal/transfer operations.
+
+
 ## NNS continuation — 2026-10-04, 21:17 Europe/Berlin
 
 The owner exported the verified manifest. Live registry `identity` and `name_of`

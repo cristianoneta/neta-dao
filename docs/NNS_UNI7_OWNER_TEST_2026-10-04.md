@@ -1,5 +1,24 @@
 # NNS UNI-7 owner test — 2026-10-04
 
+## Current continuation
+
+Setup and browser recovery, registration, contacts, renewal and transfer are now
+complete as owner-driven flows with post-state checks. The older steps below are
+historical recipes, not instructions to repeat them. See the latest NNS handoff:
+cristiano.neta now belongs to the second wallet and its old contacts are invalidated.
+
+For the new Validator ownership section: connect the name owner, enter the name
+and exact juno-1 / uni-7 junovaloper addresses, then Prepare ownership proofs.
+Review the exact message. Select each corresponding operator account in Keplr and
+click its separate ownership-signing button. Reconnect the name owner, Review
+publication, and separately Confirm in Keplr. Read current link after inclusion.
+Use Review owner unlink for name-owner removal, or Withdraw operator consent to
+prepare and sign a revocation using either operator. A UNI-7 payer then explicitly
+publishes it. No name-owner consent is needed for a valid operator revocation.
+All signatures require review; mainnet ownership signatures send no transaction.
+No consenting operator or real validator-publication evidence is recorded yet.
+
+
 ## Current owner checkpoint
 
 The isolated deployment is complete: codes 122/123/124, three contracts, and

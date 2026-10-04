@@ -1,5 +1,5 @@
-import {NamesV2Reader,UNI7_RPCS} from './names-v2-reader.mjs?v=3';
-import {NamesV2Client} from './names-v2-client.mjs';
+import {NamesV2Reader,UNI7_RPCS} from './names-v2-reader.mjs?v=4';
+import {NamesV2Client} from './names-v2-client.mjs?v=2';
 import {CHAIN_CONFIG} from './juno-faucet-core.mjs?v=2';
 import {lookupTransaction} from './juno-faucet-transactions.mjs';
 

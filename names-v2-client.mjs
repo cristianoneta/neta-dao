@@ -1,3 +1,4 @@
+import {checkValidatorSnapshot,validateOperatorProof,samePair} from './names-v2-validator-proofs.mjs?v=1';
 import {NAMES_V2_DEPLOYMENT,commitmentHash,validateQuote,paymentMessage,renewalExpiry} from './names-v2-core.mjs';
 import {normalizeName,normalizeContacts} from './names-profile-core.mjs';
 
@@ -216,6 +217,47 @@ export class NamesV2Client {
       const request=this.stage(i,{owner,contract:this.deployment.registry,msg:{cancel_commit:{hash:i.hash}},memo:'Cancel NETA name commitment'},previous);
       const receipt=await this.execute(request);this.receipt(receipt);
       i.phase='complete';i.payment_hash=receipt.transactionHash;delete i.salt;delete i.offer;this.save(i);return i;
+    });
+  }
+  async validatorWrite({payer,prepared}) {
+    return this.withLock(this.key(payer),async()=>{
+      const {snapshot,proofs}=structuredClone(prepared);
+      await this.config(payer);
+      const pending=this.load(payer);
+      if(pending&&pending.phase!=='complete')throw Error('Finish or reconcile the existing Names intent first.');
+      const profile=await checkValidatorSnapshot(this.reader,snapshot,this.now());
+      const name=profile.identity.name;let msg,action;
+      if(snapshot.purpose==='link') {
+        if(profile.identity.owner!==payer)throw Error('Reconnect the name owner before publishing the link.');
+        msg={link_validators:{name,expected_revision:profile.revision,pair:snapshot.pair,expires_at:snapshot.expiresAt,
+          mainnet_proof:validateOperatorProof(proofs.mainnet),testnet_proof:validateOperatorProof(proofs.testnet)}};
+        action='link-validators';
+      }else {
+        if(!['mainnet','testnet'].includes(snapshot.role))throw Error('Choose the revoking operator.');
+        msg={revoke_by_operator:{name,expected_revision:profile.revision,expires_at:snapshot.expiresAt,
+          operator:snapshot.pair[snapshot.role],proof:validateOperatorProof(proofs[snapshot.role])}};
+        action='revoke-validator-link';
+      }
+      await this.owner(payer);
+      const payment={contract:this.deployment.profile_contract,msg};
+      const i={schema:1,chain_id:this.deployment.chain_id,registry:this.deployment.registry,owner:payer,name,phase:'write_pending',action,payment,created_at:this.now()};
+      const request=this.stage(i,{owner:payer,...payment,memo:`${action} · ${name}`},'complete');
+      const receipt=await this.execute(request);this.receipt(receipt);
+      i.phase='complete';i.payment_hash=receipt.transactionHash;this.save(i);return receipt;
+    });
+  }
+  async unlinkValidators({owner,name,expectedRevision,expectedPair}) {
+    return this.withLock(this.key(owner),async()=>{
+      await this.config(owner);const pending=this.load(owner);
+      if(pending&&pending.phase!=='complete')throw Error('Finish or reconcile the existing Names intent first.');
+      name=normalizeName(name);const response=await this.reader.profile(name),profile=response?.profile;
+      if(!response?.active||profile?.identity?.name!==name||profile.identity.owner!==owner||profile.identity.expires_at<=this.now()||profile.revision!==expectedRevision||!samePair(profile.validators,expectedPair))throw Error('Name owner or validator link changed. Review again.');
+      await this.owner(owner);
+      const payment={contract:this.deployment.profile_contract,msg:{unlink_validators:{name,expected_revision:expectedRevision}}};
+      const i={schema:1,chain_id:this.deployment.chain_id,registry:this.deployment.registry,owner,name,phase:'write_pending',action:'unlink-validators',payment,created_at:this.now()};
+      const request=this.stage(i,{owner,...payment,memo:`Unlink validators · ${name}`},'complete');
+      const receipt=await this.execute(request);this.receipt(receipt);
+      i.phase='complete';i.payment_hash=receipt.transactionHash;this.save(i);return receipt;
     });
   }
   async updateProfile({owner,name,contacts,expectedRevision}) {
