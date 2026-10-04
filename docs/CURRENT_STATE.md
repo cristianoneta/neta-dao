@@ -1,5 +1,17 @@
 # NETA DAO code-backed current state
 
+## Faucet platform banner — 2026-10-04
+
+Owner-approved header promotion uses the existing voxel assembly plaza, the
+label **dao.netareborn.com**, and “Create · Discover · Govern DAOs”. The label
+promotes the platform for multiple DAOs, not NETA DAO alone. The whole tile
+opens https://dao.netareborn.com/ in a new tab with noopener/noreferrer.
+Desktop places it between Community tools and the UNI-7/wallet controls;
+narrow layouts give it its own row. CSS uses shared theme tokens and the
+existing decorative asset. Payout, wallet and transaction logic is unchanged.
+Release evidence is tracked in the associated PR and Pages workflow. The
+owner-signed payout and restart/cooldown verification below remain pending.
+
 ## Payout integration for first real test — 2026-10-04, 13:58 Berlin
 
 The owner completed the Render manual deployment. Fresh `/status` now reports

@@ -266,3 +266,12 @@ show the shortened address and a separate Disconnect button; retain the full
 address in the title and accessible label. Apply the same behavior on the
 independent faucet. Controls wrap on narrow screens. Disconnect clears the
 active connection, never stored drafts, keys or pending transaction journals.
+
+## Faucet platform promotion — owner update 2026-10-04
+
+The independent faucet header links back to the multi-DAO platform using
+**dao.netareborn.com** and “Create · Discover · Govern DAOs”, never “Explore
+NETA DAO”. Reuse the decorative assembly plaza, a neutral surface, subtle mint
+border and external-link arrow. Keep wallet controls visually distinct and
+available. Move the promotion to a separate row on narrow screens; the full
+keyboard-accessible tile opens the platform in a new tab.
