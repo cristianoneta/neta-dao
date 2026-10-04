@@ -35,11 +35,11 @@ try{
  await context.unroute('https://**/*');let stale=true;
  await context.route('https://**/*',route=>{
   const url=new URL(route.request().url());
-  if(url.hostname.includes('nodeshub'))return route.fulfill({status:503,body:'unavailable'});
+  if(url.hostname.includes('nodeshub'))return route.fulfill({status:503,headers:{'access-control-allow-origin':'*'},body:'unavailable'});
   const body=url.pathname.endsWith('node_info')?{default_node_info:{network:'uni-7'}}:{block:{},sdk_block:{header:{chain_id:'uni-7',height:'100',time:new Date(Date.now()-(stale?300000:0)).toISOString()}}};
-  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
+  return route.fulfill({status:200,headers:{'access-control-allow-origin':'*'},contentType:'application/json',body:JSON.stringify(body)});
  });
- await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('browser time'));
+ await page.locator('#connect').click();await page.waitForFunction(()=>!document.querySelector('#connect').disabled);assert.match(await page.locator('#status').textContent(),/browser time/);
  assert.match(await page.locator('#status').textContent(),/HTTP 503/);
  assert.equal(await page.evaluate(()=>window.testDisconnects),1);
  assert.equal(await page.locator('#connect').isDisabled(),false);
