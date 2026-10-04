@@ -1,0 +1,38 @@
+# Paid managed hosting; creating this Blueprint starts billable resources.
+# First create the private environment group described in faucet/RENDER.md.
+previews:
+  generation: "off"
+services:
+  - type: web
+    name: neta-junox-faucet
+    runtime: node
+    region: frankfurt
+    plan: 0.5c-512mb
+    rootDir: faucet
+    numInstances: 1
+    autoDeployTrigger: "off"
+    buildCommand: npm ci --omit=dev --ignore-scripts
+    startCommand: 'FAUCET_PUBLIC_ORIGIN="${FAUCET_PUBLIC_ORIGIN:-$RENDER_EXTERNAL_URL}" npm start'
+    # Default TCP health checks avoid polling the chain or claim ledger.
+    disk:
+      name: faucet-ledger
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - fromGroup: neta-junox-faucet-private
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: "10000"
+      - key: FAUCET_DB
+        value: /var/data/faucet.sqlite
+      - key: FAUCET_MNEMONIC_FILE
+        value: /etc/secrets/faucet-mnemonic
+      - key: FAUCET_WEB_ORIGIN
+        value: https://dao.netareborn.com
+      - key: FAUCET_RPC
+        value: https://juno.test.rpc.nodeshub.online
