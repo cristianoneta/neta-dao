@@ -34,7 +34,7 @@ export function createFaucetServer({ledger,adapter,origin,paused=false,now=Date.
       if(req.method==='GET'&&url.pathname==='/status'){
         const address=url.searchParams.get('address');if(address&&!validAddress(address))return respond(400,{error:'Invalid Juno wallet address.'});
         const {balance}=await chainStatus(),pause=ledger.guard.payoutPause();
-        return respond(200,{chainId:'uni-7',address:adapter.address,amount:AMOUNT,intervalSeconds:86400,balance,ready:BigInt(balance)>=12000000n&&!ledger.blocked()&&!pause,protection:'usage-guards-v1',confirmation:adapter.confirmation,pause,...(address?ledger.eligibility(address):{})});
+        return respond(200,{chainId:'uni-7',address:adapter.address,amount:AMOUNT,intervalSeconds:86400,balance,ready:BigInt(balance)>=12000000n&&!ledger.blocked()&&!pause,protection:'usage-guards-v1',confirmation:adapter.confirmation,gasPolicy:adapter.gasPolicy,pause,...(address?ledger.eligibility(address):{})});
       }
       if(req.method!=='POST'||!['/challenge','/claim'].includes(url.pathname))return respond(404,{error:'Not found.'});
       if(req.headers.origin!==origin)return respond(403,{error:'Origin not allowed.'});

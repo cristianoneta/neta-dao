@@ -122,6 +122,17 @@ A guaranteed invoice ceiling requires a provider-enforced billing agreement.
 The public frontend remains disabled until the operator deploys this version,
 funds the account and completes the signed/restart checks.
 
+## Transfer gas policy
+
+Donations and payouts share `src/transfer-fee.mjs`: positive integer simulation
+estimates up to 500000, then `max(250000, ceil(estimate * 1.8))` at 0.2 ujunox/gas.
+The minimum fee is 0.05 JUNOX. A real donation exhausted the previous 1.4x limit
+at height 18526822 (code 11); it transferred no donation tokens, but charged the
+0.0274-JUNOX fee. The increased reserve must still be confirmed by a fresh signed
+transfer. No automatic retry or journal reset. Staking/reward fees are unchanged.
+After manually deploying the backend, verify `gasPolicy:bank-send-gas-v1` alongside
+the confirmation marker before payout activation.
+
 ## Limits and transaction integrity
 
 - Exactly 10 JUNOX per connected wallet in a **rolling 24-hour window** after a

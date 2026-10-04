@@ -39,6 +39,7 @@ try{
  assert.match(await page.locator('#faucet-balance').innerText(),new RegExp(faucetAddress));
  assert.match(await page.locator('.validator-name').first().innerText(),/^Alpha/);
  await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#available').textContent==='20',{},{timeout:10000}).catch(async e=>{console.error(await page.locator('#action-status').innerText(), await page.locator('#wallet-help').innerText());throw e;});
+ await page.waitForFunction(()=>!document.querySelector('#refresh').disabled);
  assert.equal(await page.locator('#donate').isDisabled(),false);assert.equal(await page.locator('#request').isDisabled(),true);
  assert.equal(await page.locator('#staked').innerText(),'5');assert.equal(await page.locator('#rewards').innerText(),'1.234567');assert.match(await page.locator('#unstaking-help').innerText(),/28 days/);
  assert.equal(await page.locator('#connect').innerText(),address.slice(0,9)+'…'+address.slice(-6));
@@ -85,7 +86,7 @@ try{
  await context.route(origin+'/challenge',route=>json(route,{id:'nonce',address,chainId:'uni-7',message:'NETA JUNOX faucet\nTest challenge'}));
  await context.route(origin+'/claim',route=>{paid=true;return json(route,{status:'confirmed',hash:'B'.repeat(64)});});
  await page.reload();await page.locator('#connect').click();await page.waitForFunction(()=>!document.querySelector('#request').disabled);
- await page.locator('#request').click();await page.waitForFunction(()=>document.querySelector('#available').textContent==='30');assert.equal(await page.locator('#request').isDisabled(),true);assert.match(await page.locator('#faucet-status').innerText(),/Next payout/);
+ await page.locator('#request').click();await page.waitForFunction(()=>document.querySelector('#available').textContent==='30'&&!document.querySelector('#refresh').disabled);assert.equal(await page.locator('#request').isDisabled(),true);assert.match(await page.locator('#faucet-status').innerText(),/Next payout/);
  await page.waitForFunction(()=>!document.querySelector('#donate').disabled);await page.locator('#donation').fill('1.5');await page.locator('#donate').click();assert.equal(await page.locator('#transaction-dialog').evaluate(x=>x.open),false);
  await page.locator('#donation').fill('17');await page.locator('#donate').click();await page.locator('#transaction-confirm').click();await page.waitForFunction(()=>!document.querySelector('#transaction-dialog').open);assert.equal(broadcasts.at(-1)[0].value.amount[0].amount,'17000000');
  await page.waitForFunction(()=>!document.querySelector('#refresh').disabled);
