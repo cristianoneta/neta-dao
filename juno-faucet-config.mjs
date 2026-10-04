@@ -1,3 +1,3 @@
-// Donations are ordinary wallet-signed UNI-7 transfers to this pinned account.
-// Payout activation is separate: keep api null until backend/funding/E2E gates pass.
-export const FAUCET = Object.freeze({api: null, address: 'juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt'});
+// Verified Render UNI-7 service. Real payout/replay/restart validation is in progress.
+// Keep this exact HTTPS origin pinned in the page CSP. Donations remain independent.
+export const FAUCET = Object.freeze({api: 'https://neta-junox-faucet.onrender.com', address: 'juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt'});

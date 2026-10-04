@@ -1,20 +1,17 @@
 # Deploy the UNI-7 faucet without managing a server
 
-Status as of 2026-10-04: the owner created the Render service and provisioned
-its private wallet. The public `/status` endpoint returned UNI-7 and balance 0:
-`https://neta-junox-faucet.onrender.com`,
-`juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`.
-The public faucet pins the dedicated donation address but keeps `api: null`.
-Donate JUNOX works independently of Render; no live payout is verified.
+Status as of 2026-10-04, approximately 13:58 Berlin: the owner deployed the latest
+backend. `/status` reports UNI-7, the dedicated account, 15 JUNOX, ready true,
+`protection:usage-guards-v1`, `confirmation:uni7-exact-hash-v1` and
+`gasPolicy:bank-send-gas-v1`. Cross-origin POST preflight succeeded. The public
+page pins `https://neta-junox-faucet.onrender.com` for the first owner-driven payout
+test. A real 15-JUNOX donation is verified; payout/replay/restart checks are pending.
+Donation works independently of this service. Auto-deploy stays off.
 
-Usage guards are already verified live. Deploy the backend confirmation update
-manually and check both `protection: "usage-guards-v1"` and
-`confirmation: "uni7-exact-hash-v1"` in `/status` before public activation.
-It adds durable aggregate request/payout quotas and pauses API work automatically
-when exhausted. It does not suspend the Render host or cap the invoice at USD 10.
+Application limits do not suspend the Render host or cap the invoice at USD 10.
 See [the limits and cost boundary](README.md#usage-guards-and-cost-boundary).
-Set the workspace Build Pipeline **additional-spend limit to USD 0** separately;
-that setting covers build minutes only. Auto-deploy stays off.
+Set the workspace Build Pipeline additional-spend limit to USD 0 separately;
+that setting covers build minutes only.
 
 The root `render.yaml` provisions one Node 24 web service in Frankfurt and a
 1 GB persistent disk. Render handles HTTPS and process restarts. This uses a
