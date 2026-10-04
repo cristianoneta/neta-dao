@@ -28,7 +28,7 @@ HANDOFF for release evidence and the evening continuation.
 | RELAY Inbox | Local notifications from Operations and native Juno mainnet proposals | No UNI-7 review polling, push or cross-device sync |
 | RELAY Composer | Temporary preview and read-only UNI-7 mailbox identity check | Main application cannot send or save plaintext drafts |
 | RELAY encrypted lab | Separate UNI-7 device registration, ciphertext send/receive and encrypted local history | Mocked two-profile test passed; real two-wallet E2E still unrecorded |
-| Names in RELAY | Directory search, DAO details/copy/follows, USD fee calculator | v2 registry, live quotes, profile/contacts persistence and payments are not connected; `REGISTRY=null` |
+| Names in RELAY | Directory search, DAO details/copy/follows, USD fee calculator, unpublished contact/validator profile preview | v2 registry, live quotes, profile/contacts persistence and payments are not connected; `REGISTRY=null` |
 | Delivery / Contributors | Visual concepts and structured proposal deliverables | No authoritative contributor records, milestone acceptance or payment release |
 
 RELAY directly exposes Inbox, Directory, Contacts, My profile and .neta name.
@@ -149,3 +149,9 @@ See [main DAO integration evidence](docs/DAO_ONBOARDING_2026-10-03.md) for known
 coverage limits and deployment status. `python scripts/update_main_dao.py` runs
 isolated, bounded main DAO reads; its status file must be checked alongside the
 underlying snapshot timestamps. It does not change Operations exports.
+
+
+NNS validator-profile source slice (2026-10-04): see
+[scope, protocol and next steps](docs/NNS_VALIDATOR_PROFILES_2026-10-04.md).
+The two-operator signature contract is not deployed; v2 paid registration and
+public profile publishing remain unavailable.

@@ -275,3 +275,14 @@ NETA DAO”. Reuse the decorative assembly plaza, a neutral surface, subtle mint
 border and external-link arrow. Keep wallet controls visually distinct and
 available. Move the promotion to a separate row on narrow screens; the full
 keyboard-accessible tile opens the platform in a new tab.
+
+
+## Public profile preview — 2026-10-04
+
+My profile remains inside the shared RELAY shell. Use labelled optional public
+contact inputs, a collapsible validator-address section, and a neutral preview
+card. At <=640 px the contact fields form one column. Render all self-entered
+text via textContent; HTTPS links open with noopener/noreferrer. Distinguish
+“Preview · not published”, self-declared contacts and actual operator ownership
+proofs. Editing clears a stale preview. Never show verified identity or an active
+programme award merely because a syntactically valid address was entered.

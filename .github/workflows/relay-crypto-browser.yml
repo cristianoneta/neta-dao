@@ -14,6 +14,7 @@ on:
       - 'neta-governance.js'
       - 'names.js'
       - 'names-workspace.js'
+      - 'names-profile*.mjs'
       - 'dao-directory.js'
       - 'dao-members.js'
       - 'data/dao-directory.json'
@@ -48,6 +49,7 @@ jobs:
       - run: npm run test:browser
       - run: node browser-uni7-lab.mjs
       - run: node browser-workspace-security.mjs
+      - run: node browser-names-profile.mjs
       - name: Adversarial receive and crash recovery regressions
         run: RELAY_AUDIT_ADVERSARIAL=1 node browser-uni7-lab.mjs
 

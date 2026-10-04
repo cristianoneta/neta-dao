@@ -1,0 +1,51 @@
+{
+  "note": "Synthetic deterministic test keys only. Addresses used as domain fixtures are not profile deployments. Generated with pinned CosmJS 0.38.1 ADR-36 serialization.",
+  "now": 1700000000,
+  "deployment": {
+    "chain_id": "uni-7",
+    "contract": "juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa",
+    "registry": "juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw"
+  },
+  "profile": {
+    "identity": {
+      "name": "alice.neta",
+      "owner": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+      "generation": 1,
+      "ownership_revision": 1,
+      "expires_at": 1700010000
+    },
+    "revision": 0,
+    "contacts": {
+      "description": "",
+      "discord": "",
+      "telegram": "",
+      "twitter": "",
+      "email": "",
+      "website": ""
+    },
+    "validators": null,
+    "updated_at": 0
+  },
+  "pair": {
+    "mainnet": {
+      "chain_id": "juno-1",
+      "address": "junovaloper10xcqpzrky6eff2g52qdye53xkk9jxkvrg00gux"
+    },
+    "testnet": {
+      "chain_id": "uni-7",
+      "address": "junovaloper1a0qwuze2h85zw7nqpsj3ga0z9geyrgwp7sjxxt"
+    }
+  },
+  "expires_at": 1700000300,
+  "text": "NETA validator profile v1\nPurpose: link-validators\nRegistry chain: uni-7\nProfile contract: juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa\nName registry: juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw\nName: alice.neta\nOwner: juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57\nGeneration: 1\nOwnership revision: 1\nProfile revision: 0\nMainnet chain: juno-1\nMainnet operator: junovaloper10xcqpzrky6eff2g52qdye53xkk9jxkvrg00gux\nTestnet chain: uni-7\nTestnet operator: junovaloper1a0qwuze2h85zw7nqpsj3ga0z9geyrgwp7sjxxt\nExpires at (Unix seconds): 1700000300",
+  "proofs": [
+    {
+      "public_key": "AxuExVZ7EmRAmV0+1aq6BWXXHhg0YEgZ/5wX9enV3QeP",
+      "signature": "0TAKAf4RMpXzUwOf8z2Z1uNKz2zB0wLAvK9O1PPrmXUOiBpxNGp39ye28FM+I17+aK74VbczPpgzWOAuGqh5kw=="
+    },
+    {
+      "public_key": "Ak1LbNE2EDLKm9KuudkAqk1F2erYCslCM3TEUaclTQdm",
+      "signature": "/7Dq8SV9remGmcXpP/pvnoc5mAcmfCBGgjuRIVckDAZzVv1ba3LswCUHSfkMKcyOOwJRmuVnyfgAijlLBVtNqw=="
+    }
+  ]
+}

@@ -4,7 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://juno.test.rpc.nodeshub.online https://juno.test.api.nodeshub.online https://juno.rpc.t.stavr.tech https://juno.api.t.stavr.tech https://juno-api.polkachu.com https://juno-api.lavenderfive.com https://juno.api.m.stavr.tech https://juno-rpc.polkachu.com https://rpc-juno.whispernode.com; img-src 'self' data:; font-src 'self'; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>NETA Governance</title>
-  <link rel="stylesheet" href="neta-governance.css?v=20261003-1"><link rel="stylesheet" href="governance-overrides.css?v=20261003-1"><link rel="stylesheet" href="relay.css?v=20261003-3"><link rel="stylesheet" href="names.css?v=20261003-people-1">
+  <link rel="stylesheet" href="neta-governance.css?v=20261003-1"><link rel="stylesheet" href="governance-overrides.css?v=20261003-1"><link rel="stylesheet" href="relay.css?v=20261003-3"><link rel="stylesheet" href="names.css?v=20261004-profile-1">
   <link rel="stylesheet" href="neta-ui.css?v=20261004-wallet-1">
 </head>
 <body class="dao-workspace">
@@ -100,7 +100,39 @@
     </section>
     <section data-name-panel="contacts" aria-label="Your contacts" hidden><div class="names-layout"><div class="names-empty"><h2>Your people, in one place.</h2><p>Save people and DAOs here when wallet-linked contacts become available.</p><button type="button" data-name-view="directory">Find a DAO</button></div><aside class="names-panel"><h3>Private to you</h3><p>Contacts will be stored privately in your browser and linked to your wallet.</p><p class="names-help">DAO memberships will be checked separately. Saving a contact does not make you a DAO member.</p></aside></div></section>
     <section data-name-panel="profile" aria-label="My name and profile" hidden>
-      <div class="names-layout"><section class="names-panel"><h2>Your public profile</h2><p>Your name, a short introduction and the network where you prefer to receive funds.</p><fieldset disabled aria-describedby="names-profile-help"><label for="names-profile-bio">About you</label><textarea id="names-profile-bio" rows="3" placeholder="Tell people a little about yourself"></textarea><label for="names-profile-chain">Preferred chain</label><select id="names-profile-chain"><option>Juno</option></select><p class="names-help">Also your receiving network. Osmosis support is planned.</p><label for="names-profile-web">Website</label><input id="names-profile-web" type="url" placeholder="https://"><button type="button" disabled>Save profile</button></fieldset><p id="names-profile-help" class="names-help">Profile editing opens after name registration and wallet ownership verification are available.</p></section><div class="names-stack"><section class="names-panel"><h3>Your .neta name</h3><p>Choose your name and see the annual fee.</p><div class="names-actions"><button type="button" class="neta-primary" data-name-view="register">Choose a name</button></div><div class="names-actions"><button type="button" disabled>Renew name</button><button type="button" disabled>Transfer name</button></div><p class="names-help">Registration, renewal and transfers are not open yet.</p></section><section class="names-panel"><h3>Linked addresses</h3><p>Once your profile is active, add and verify the addresses you want to use.</p><p class="names-help">Your owning wallet and receiving address can have different roles.</p></section></div></div>
+      <div class="names-layout">
+        <section class="names-panel">
+          <h2>Your public profile</h2>
+          <p>Introduce yourself and choose how people can contact you. All contact fields are optional.</p>
+          <p id="names-profile-help" class="names-help">Preview your profile here. Publishing opens after name registration is available. Published details, including your email, will be public.</p>
+          <form id="names-profile-form" aria-describedby="names-profile-help">
+            <label for="names-profile-name">Your .neta name</label><input id="names-profile-name" name="name" maxlength="37" placeholder="yourname.neta" autocomplete="off" spellcheck="false">
+            <label for="names-profile-bio">About you</label><textarea id="names-profile-bio" name="description" rows="3" maxlength="500" placeholder="Tell people a little about yourself"></textarea>
+            <div class="names-contact-fields">
+              <div><label for="names-profile-discord">Discord username</label><input id="names-profile-discord" name="discord" maxlength="64" autocomplete="off" spellcheck="false" placeholder="your.username"></div>
+              <div><label for="names-profile-telegram">Telegram username</label><input id="names-profile-telegram" name="telegram" maxlength="33" autocomplete="off" spellcheck="false" placeholder="username"></div>
+              <div><label for="names-profile-twitter">X / Twitter username</label><input id="names-profile-twitter" name="twitter" maxlength="16" autocomplete="off" spellcheck="false" placeholder="username"></div>
+              <div><label for="names-profile-email">Public email</label><input id="names-profile-email" name="email" type="email" maxlength="254" autocomplete="off" placeholder="hello@example.org"></div>
+            </div>
+            <label for="names-profile-web">Homepage</label><input id="names-profile-web" name="website" type="url" maxlength="512" placeholder="https://example.org" autocomplete="off">
+            <details class="names-info"><summary>Validator addresses</summary>
+              <p>Only needed for testnet bonus points. An active .neta name is not required for the other delegation criteria.</p>
+              <label for="names-profile-mainnet">Juno mainnet operator · juno-1</label><input id="names-profile-mainnet" name="mainnet" maxlength="60" placeholder="junovaloper1…" autocomplete="off" spellcheck="false">
+              <label for="names-profile-testnet">Juno testnet operator · uni-7</label><input id="names-profile-testnet" name="testnet" maxlength="60" placeholder="junovaloper1…" autocomplete="off" spellcheck="false">
+              <p class="names-help">Both operator wallets must confirm the link. Entering an address alone does not verify ownership. Active testnet membership at the programme snapshot earns the bonus; uptime is not an additional requirement.</p>
+            </details>
+            <div class="names-actions"><button class="neta-primary" type="submit">Preview profile</button><button type="reset">Clear form</button></div>
+            <p id="names-profile-result" class="names-help" role="status" aria-live="polite"></p>
+            <button type="button" disabled aria-describedby="names-profile-publish-help">Publish profile</button>
+            <p id="names-profile-publish-help" class="names-help">Registration and public profile updates are not open yet. This preview does not reserve a name, save your details or request a wallet signature.</p>
+          </form>
+        </section>
+        <div class="names-stack">
+          <section id="names-profile-preview" class="names-panel" aria-label="Profile preview" hidden></section>
+          <section class="names-panel"><h3>Your .neta name</h3><p>Choose your name and see the annual fee.</p><div class="names-actions"><button type="button" data-name-view="register">Choose a name</button></div><p class="names-help">Registration, renewal and transfers are not open yet.</p></section>
+          <section class="names-panel"><h3>Verified validator links</h3><p>Keep your mainnet and testnet identities together in your profile.</p><p class="names-help">Ownership proofs apply to the current name owner. A name transfer requires fresh proofs. Each testnet validator can support only one active link.</p><p class="names-help">Contact information does not receive a verification badge. An operator signature confirms control of that operator address, not a person's identity.</p></section>
+        </div>
+      </div>
     </section>
     <section data-name-panel="register" aria-label="Choose your name" hidden><button type="button" class="names-back" data-name-view="directory">← Back to directory</button>
       <div class="names-layout"><section class="names-panel"><h2>Your .neta name</h2><p>A name people can remember.</p><form id="names-fee-form"><label for="names-fee-label">Choose a name</label><div class="names-label-input"><input id="names-fee-label" autocomplete="off" spellcheck="false" placeholder="yourname" maxlength="37" aria-describedby="names-fee-help names-fee-error"><span aria-hidden="true">.neta</span></div><p id="names-fee-help" class="names-help">3–32 letters, numbers or interior hyphens. Names with 1–2 characters are not allowed.</p><label for="names-fee-years">Registration period</label><select id="names-fee-years"><option value="1">1 year</option><option value="2">2 years</option><option value="3">3 years</option><option value="4">4 years</option><option value="5">5 years</option></select><p id="names-fee-error" class="names-error" role="status"></p><p class="names-help">The fee calculator does not check name availability or reserve a name.</p></form></section><aside class="names-panel"><h3>Registration cost</h3><p id="names-fee-total" class="names-total" aria-live="polite">Choose a name</p><p id="names-fee-annual" class="names-help"></p><div class="names-meta"><span>Pay with</span><strong>NETA on Juno</strong></div><div class="names-meta"><span>NETA amount</span><span>Available at checkout</span></div><p class="names-help">The amount will use a fresh JUNO/NETA pool reference and JUNO/USD quote. Network fees are separate.</p><button type="button" class="names-register-unavailable" disabled aria-describedby="names-registration-gate">REGISTER · COMING SOON</button><p id="names-registration-gate" class="names-help">Registration opens after the new registry, token and price service are verified on Juno.</p></aside></div>
@@ -125,7 +157,7 @@
     </form>
   </section>
 </div>
-<script src="assets/socials-testnet-client.js?v=6"></script><script src="dao-directory.js?v=20261003-people-1"></script><script src="neta-governance.js?v=20261004-wallet-1"></script><script src="ux-draft.js?v=20261003-people-1"></script><script src="treasury.js?v=20261003-onboarding-2"></script><script src="names.js?v=2"></script><script src="dao-members.js?v=20261003-people-1"></script><script src="names-workspace.js?v=20261003-people-1"></script><script src="relay.js?v=20261003-onboarding-2"></script><script src="relay-mailbox-status.js?v=1"></script>
+<script src="assets/socials-testnet-client.js?v=6"></script><script src="dao-directory.js?v=20261003-people-1"></script><script src="neta-governance.js?v=20261004-wallet-1"></script><script src="ux-draft.js?v=20261003-people-1"></script><script src="treasury.js?v=20261003-onboarding-2"></script><script src="names.js?v=2"></script><script src="dao-members.js?v=20261003-people-1"></script><script src="names-workspace.js?v=20261004-profile-1"></script><script type="module" src="names-profile.mjs?v=20261004-1"></script><script src="relay.js?v=20261003-onboarding-2"></script><script src="relay-mailbox-status.js?v=1"></script>
 </body></html>
 
 

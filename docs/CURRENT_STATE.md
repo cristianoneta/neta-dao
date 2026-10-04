@@ -1,5 +1,26 @@
 # NETA DAO code-backed current state
 
+## NNS validator profiles — 2026-10-04 source slice
+
+Read [the profile checkpoint](NNS_VALIDATOR_PROFILES_2026-10-04.md). The owner
+paused Delegation Programme planning to add optional public contacts (Discord,
+Telegram, X, email, homepage) and proof-backed mainnet/testnet operator links.
+A purchased active `.neta` name is required **only for testnet bonus points**,
+not general participation. Active testnet membership earns the bonus without an
+additional uptime requirement. The checkpoint preserves the programme decisions.
+
+Implemented: integrated unpublished profile preview, strict field/address rules,
+ADR-36 proof collector and a separate v2-bound profile contract with two operator
+signatures, exclusive bindings, identity lifecycle invalidation and revocation.
+No profile deployment or live wallet flow is claimed. `PROFILE_DEPLOYMENT=null`.
+The accepted NNS v2 registry/quote service remains missing: legacy v1 cannot
+substitute for it. Public profile publishing and purchases stay disabled until
+registry, deployment identities and journaled transaction integration are ready.
+The user does not run a validator: synthetic wallets suffice for development;
+one consenting mainnet/UNI-7 operator is needed for final live E2E. No outreach
+was sent. Next implement v2 identity/registration, then wire UNI-7 profile writes.
+
+
 ## Faucet platform banner — 2026-10-04
 
 Owner-approved header promotion uses the existing voxel assembly plaza, the

@@ -193,3 +193,20 @@ labels are not on-chain registrations and cannot receive name-based payments.
 No registry, fee collector or profile-governance adapter is activated by this
 integration. Main DAO Treasury displays NNS revenue as inactive, not zero.
 See [the integration record](DAO_ONBOARDING_2026-10-03.md).
+
+
+## Validator profiles — owner update 2026-10-04
+
+The owner prioritised public contacts and mainnet/testnet validator linking as a
+sidequest before continuing Delegation Programme planning. See
+[NNS validator profiles](NNS_VALIDATOR_PROFILES_2026-10-04.md) for the source slice
+and remaining v2/deployment dependencies. Optional public fields are Discord,
+Telegram, X/Twitter, email and homepage. Do not imply verification of contacts.
+Both operator wallets must sign a name/owner/generation-bound link; operator
+addresses include exact chain IDs. An active paid `.neta` name is a requirement
+only for testnet bonus points, never for all delegation candidates. The first
+criterion is active UNI-7 consensus membership at the snapshot, without an uptime
+minimum. Profile transfers do not transfer validator identity or contribution
+credit. Name expiry affects new snapshots, not approved delegation transactions.
+The v2 identity API must provide generation and ownership revision even after
+expiry; both change exactly as specified in the profile checkpoint.
