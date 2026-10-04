@@ -1,5 +1,20 @@
 # Next chat — NNS UNI-7 owner test
 
+## Profile review correction — 2026-10-04 continuation
+
+The owner reached public-profile review, but all six fields appeared empty.
+The lab called run(), which disabled the contact controls before FormData read
+those controls; browsers omit disabled controls. Snapshot the name and form values
+before entering the busy state. Normalization, owner/revision checks, explicit
+Keplr confirmation and edit-to-invalidate behavior remain intact. Lab module URL
+is v4. A real-browser regression fills all six fields, checks the reviewed values,
+changes/reviews again and checks the arguments at the mocked publication boundary;
+it also covers intentional blanks and invalid email. No real profile write is
+claimed. Discard the old empty review; after publication reload without clearing
+site data, verify the same manifest, reconnect, re-enter public fields and review.
+PR #144 carries this correction with the earlier label-entry improvement. Check
+its final CI and deployment before asking the owner to retry.
+
 Checkpoint: 2026-10-04, 21:00 Europe/Berlin. Read AGENTS.md, HANDOFF.md and
 CURRENT_STATE.md; read DESIGN_SYSTEM.md before UI changes. This file records
 session evidence, not a fresh chain attestation at the time of a future read.

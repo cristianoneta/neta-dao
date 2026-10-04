@@ -53,8 +53,11 @@ $('transfer-form').addEventListener('submit',event=>{event.preventDefault();run(
  else {const offer=await current.reader.transferOffer(name);if(!offer)throw Error('No active transfer offer.');args.offerId=offer.id;detail=`Offer ID: ${offer.id}\nCurrent owner: ${offer.owner}\nRecipient: ${offer.recipient}`;}
  showReview(`${action.toUpperCase()} transfer · ${name}\n${detail}\nName expiry is preserved. Old-owner profile and proofs do not transfer.\nNetwork: UNI-7`,async()=>{if(session!==current)throw Error('Wallet connection changed.');await current.client.transfer(args);});
 });});
-$('profile-form').addEventListener('submit',event=>{event.preventDefault();run(async()=>{
- clearReview();const current=session,name=normalizeName($('profile-name').value),contacts=normalizeContacts(Object.fromEntries(new FormData($('profile-form'))));const result=await current.reader.profile(name),p=result?.profile;
+$('profile-form').addEventListener('submit',event=>{event.preventDefault();if(busy)return;
+ // Snapshot before run() disables controls: FormData omits disabled fields.
+ const profileName=$('profile-name').value,profileFields=Object.fromEntries(new FormData(event.currentTarget));
+ run(async()=>{
+ clearReview();const current=session,name=normalizeName(profileName),contacts=normalizeContacts(profileFields);const result=await current.reader.profile(name),p=result?.profile;
  if(!result?.active||p?.identity.owner!==current.owner)throw Error('This wallet must own the active test name.');
  const args={owner:current.owner,name,contacts,expectedRevision:p.revision};showReview(`Publish public contacts · ${name}\nProfile revision: ${p.revision}\n${JSON.stringify(contacts,null,2)}\nThese fields will be public on UNI-7.`,async()=>{if(session!==current)throw Error('Wallet connection changed.');await current.client.updateProfile(args);});
 });});
