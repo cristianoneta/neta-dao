@@ -1,5 +1,12 @@
 # NETA DAO handoff
 
+## Deferred Smart Delegation research — 2026-10-04
+
+The owner asked to retain the recovered RockawayX/C4E app research and resume
+NNS testing first. Original sources, reuse limits and future ideas are recorded
+in [docs/SMART_DELEGATION_RESEARCH.md](docs/SMART_DELEGATION_RESEARCH.md).
+These are research options, not changes to the approved delegation criteria.
+
 ## NNS UNI-7 deployment verified and activated — 2026-10-04
 
 The owner completed all three test contracts. The corrected NamesV2Reader verified
