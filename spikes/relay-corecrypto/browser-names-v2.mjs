@@ -58,5 +58,48 @@ try{
  await page.locator('#manifest').setInputFiles({name:'wrong.json',mimeType:'application/json',buffer:Buffer.from('{"version":1,"chain_id":"juno-1"}')});await page.locator('#verify').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('UNI-7 deployment manifest'));
  assert.equal(await page.locator('#connect').isDisabled(),true);
  await page.locator('#name').focus();await page.keyboard.press('Tab');assert.equal(await page.locator('#years').evaluate(el=>el===document.activeElement),true);
+ // Real browser FormData regression: capture every typed field before busy render
+ // disables controls. Network/wallet adapters are synthetic; no live signing.
+ await context.route('**/names-v2-reader.mjs*',route=>route.fulfill({contentType:'text/javascript',body:`
+ export class NamesV2Reader {
+  constructor({deployment}){this.deployment=deployment;}
+  async verify(){return {purchases_paused:false};}
+ }`}));
+ await context.route('**/names-v2-wallet.mjs*',route=>route.fulfill({contentType:'text/javascript',body:`
+ export async function connectNamesWallet(){
+  window.profileWrites=[];
+  const owner='test-owner';
+  return {owner,disconnect(){},reader:{async profile(name){return {active:true,profile:{identity:{owner,name},revision:0}};}},
+   client:{load(){return null;},async updateProfile(args){window.profileWrites.push(structuredClone(args));}}};
+ }`}));
+ await page.goto(origin+'/names-v2-lab.html');
+ await page.locator('#manifest').setInputFiles({name:'fixture.json',mimeType:'application/json',buffer:Buffer.from('{"registry":"test-registry"}')});
+ await page.locator('#verify').click();await page.locator('#connect').click();
+ await page.locator('#profile-name').fill('cristiano');
+ const typed={description:'A public test profile',discord:'example.1',telegram:'@example_tg',twitter:'@example_x',email:'test@example.org',website:'https://example.org'};
+ const expected={...typed,telegram:'example_tg',twitter:'example_x'};
+ for(const [name,value] of Object.entries(typed))await page.locator(`#profile-form [name="${name}"]`).fill(value);
+ await page.locator('#review-profile').click();
+ await page.waitForFunction(()=>!document.querySelector('#confirm').disabled);
+ const review=await page.locator('#review-text').textContent();
+ assert.match(review,/cristiano\.neta/);
+ for(const [name,value] of Object.entries(expected))assert.ok(review.includes(JSON.stringify(name)+': '+JSON.stringify(value)),name+' absent from review');
+ assert.equal(await page.evaluate(()=>window.profileWrites.length),0,'review must not publish');
+ await page.locator('#profile-form [name="description"]').fill('Updated public test profile');
+ assert.equal(await page.locator('#review').isVisible(),false,'editing invalidates review');
+ assert.equal(await page.locator('#confirm').isDisabled(),true);
+ expected.description='Updated public test profile';
+ await page.locator('#review-profile').click();await page.locator('#confirm').click();
+ await page.waitForFunction(()=>document.querySelector('#status').textContent==='Exact transaction confirmed on UNI-7.');
+ assert.deepEqual(await page.evaluate(()=>window.profileWrites),[{owner:'test-owner',name:'cristiano.neta',contacts:expected,expectedRevision:0}]);
+ // Empty optional fields remain intentional, and invalid values cannot open review.
+ for(const name of Object.keys(typed))await page.locator(`#profile-form [name="${name}"]`).fill('');
+ await page.locator('#review-profile').click();await page.waitForFunction(()=>!document.querySelector('#confirm').disabled);
+ assert.match(await page.locator('#review-text').textContent(),/"email": ""/);
+ await page.locator('#discard-review').click();
+ await page.locator('#profile-form [name="email"]').fill('invalid email');
+ await page.locator('#review-profile').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('valid public email'));
+ assert.equal(await page.locator('#review').isVisible(),false);
+ assert.equal(await page.evaluate(()=>window.profileWrites.length),1);
  assert.deepEqual(errors,[]);console.log('Names UNI-7: setup/lab fail-closed controls, durable non-exportable Ed25519 test key, reload, keyboard and 320–1440px reflow passed.');
 }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}

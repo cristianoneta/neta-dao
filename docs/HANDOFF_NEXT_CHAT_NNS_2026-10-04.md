@@ -1,8 +1,53 @@
 # Next chat — NNS UNI-7 owner test
 
+## Profile review correction — 2026-10-04 continuation
+
+The owner reached public-profile review, but all six fields appeared empty.
+The lab called run(), which disabled the contact controls before FormData read
+those controls; browsers omit disabled controls. Snapshot the name and form values
+before entering the busy state. Normalization, owner/revision checks, explicit
+Keplr confirmation and edit-to-invalidate behavior remain intact. Lab module URL
+is v4. A real-browser regression fills all six fields, checks the reviewed values,
+changes/reviews again and checks the arguments at the mocked publication boundary;
+it also covers intentional blanks and invalid email. No real profile write is
+claimed. Discard the old empty review; after publication reload without clearing
+site data, verify the same manifest, reconnect, re-enter public fields and review.
+PR #144 carries this correction with the earlier label-entry improvement. Check
+its final CI and deployment before asking the owner to retry.
+
 Checkpoint: 2026-10-04, 21:00 Europe/Berlin. Read AGENTS.md, HANDOFF.md and
 CURRENT_STATE.md; read DESIGN_SYSTEM.md before UI changes. This file records
 session evidence, not a fresh chain attestation at the time of a future read.
+
+## Confirmed registration — 2026-10-04, 21:17 Europe/Berlin
+
+Fresh read-only NodesHub queries returned `cristiano.neta` owned by the existing
+owner wallet `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt` in both `identity`
+and `name_of`. Generation=1, ownership_revision=1, expires_at=1822677341.
+The concurrently read UNI-7 latest block was 18540940 at
+2026-10-04T19:17:07.391578106Z; smart queries were latest-state, not height-pinned.
+This verifies current registered ownership through the configured provider, not
+an exact payment receipt. The payment hash/inclusion remains to be recorded.
+The owner previously pasted the confirmed reservation hash
+`A1BBE04F166B3E443BD665A8A82367700950A7F6B3CD489701575C666F3FDC0C`
+and a verified manifest/test-purchases-enabled lab status. The earlier setup
+recovery blocker is superseded by this owner evidence and completed registration.
+Next: optional public contact publication, then renewal and two-wallet transfer/
+acceptance and old-profile invalidation. These later live tests remain unverified.
+Do not repeat setup, reservation or registration. Keep signer and journals intact.
+
+## Owner update — continuation at 21:06–21:11 Europe/Berlin
+
+The owner reports saving the verified manifest, then believes both reservation
+and payment for `cristiano.neta` were completed. Read-only NodesHub queries around UNI-7 height 18540830 subsequently returned:
+`identity(cristiano.neta)` not found; `name_of(owner)` name=null; the owner has
+a commitment at height 18540760, hash
+`aeb505d87f846c786e56196ef5a0ae688865055c4f3597e3b3b6fb0e95346b33`,
+expires_at=1791144568. A commitment does not disclose the reserved name.
+Registration was not complete at this query. Inspect the lab transaction status
+before asking for payment again; any pending payment must be recovered first.
+The name-entry decision is now recorded in DESIGN_SYSTEM.md: label-only entry
+with a fixed suffix; accept full-name paste without displaying a duplicate suffix.
 
 ## Immediate priority and unresolved owner state
 

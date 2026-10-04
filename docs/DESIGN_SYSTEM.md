@@ -296,3 +296,11 @@ queue. Lab reviews exact token debit/owner/recipient and clears stale reviews on
 form edits or wallet changes. Disconnect preserves keys, setup and transaction
 records. Render addresses/hashes with wrapping; all actions remain keyboard
 reachable at 320px. These pages do not enable the production profile button.
+
+## Name entry — owner decision 2026-10-04
+
+Registration takes the label alone (e.g. `cristiano`) with a fixed `.neta` suffix
+outside the editable field. Accept a pasted full name and display its label only;
+never append a second suffix. Preserve validation of malformed/repeated suffixes.
+The main fee calculator follows this pattern; the UNI-7 lab already accepts either
+form through normalizeName but has not adopted the fixed-suffix presentation.

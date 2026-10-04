@@ -1,5 +1,17 @@
 # NETA DAO handoff
 
+## NNS continuation — 2026-10-04, 21:17 Europe/Berlin
+
+The owner exported the verified manifest. Live registry `identity` and `name_of`
+queries now confirm `cristiano.neta` belongs to the owner wallet on UNI-7
+(generation/revision 1, expires_at=1822677341). The latest block read alongside
+those queries was 18540940. Registration is complete; its exact payment receipt
+still needs recording. Do not repeat deployment, activation or registration.
+Continue with the public contact profile test, then renewal and transfer.
+See the latest NNS next-chat handoff for detailed evidence; the older recovery
+blocker below is historical. Mainnet activation remains disabled.
+
+
 ## Latest session checkpoint — 2026-10-04, 21:00 Europe/Berlin
 
 Continue with [the NNS next-chat handoff](docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md).
