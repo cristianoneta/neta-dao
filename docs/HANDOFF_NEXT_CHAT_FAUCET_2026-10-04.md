@@ -1,5 +1,31 @@
 # Next chat — finish the UNI-7 faucet — 2026-10-04
 
+## Payout integration for first real test — 2026-10-04, 13:58 Berlin
+
+The owner completed the Render manual deployment. Fresh `/status` now reports
+UNI-7, expected dedicated address, balance 15000000, ready true,
+`protection:usage-guards-v1`, `confirmation:uni7-exact-hash-v1`, and
+`gasPolicy:bank-send-gas-v1`. Cross-origin POST preflight from
+`https://dao.netareborn.com` returns 204 with the expected origin/method/header.
+The previously verified donation was 15 JUNOX (receipt recorded below).
+
+The page now pins `https://neta-junox-faucet.onrender.com` in its config and CSP.
+Get 10 JUNOX is available after Connect only while validated service status says
+ready and this wallet has no pending payout/cooldown. The frontend requires all
+three deployed protection/confirmation/gas-policy markers; an old or mismatched
+backend disables payouts. Donation availability remains independent. GET status
+requests no longer add an unnecessary JSON content-type/preflight.
+
+This enables the first owner-driven payout test, not a claim that payout E2E is
+complete. Next: click Get 10 JUNOX and confirm the ADR-36 ownership signature in
+Keplr. Verify the resulting transfer hash and exactly 10 JUNOX, repeated-request
+rejection, then the persisted 24h cooldown after an owner-triggered Render restart.
+An empty fresh recipient-wallet test and real unstake still need evidence.
+With 15 JUNOX, one payout plus fee leaves less than the 12-JUNOX ready reserve;
+additional payouts require replenishment. Never clear SQLite/WAL or pending
+browser/backend journals. Hosting protections are still not a dollar invoice cap.
+
+
 ## Verified donation — 2026-10-04, 13:55 Berlin
 
 The owner supplied transaction

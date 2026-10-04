@@ -1,5 +1,5 @@
 import {lookupTransaction, reconcilePendingTransaction} from './juno-faucet-transactions.mjs?v=1';
-import {FAUCET} from './juno-faucet-config.mjs?v=2';
+import {FAUCET} from './juno-faucet-config.mjs?v=3';
 import {CHAIN, DENOM, RPCS, CHAIN_CONFIG, Uni7Reader, amountToMicro, formatMicro, rewardsMicro, messagesFor} from './juno-faucet-core.mjs?v=2';
 const $ = id => document.getElementById(id), reader = new Uni7Reader(), bundle = window.NetaFaucetSigning;
 const state = {address:null, data:null, validators:[], unbonding:null, busy:false, revision:0, service:null, action:null};
@@ -36,7 +36,7 @@ async function run(task) {
 }
 async function api(path, options={}) {
   if(!FAUCET.api || !FAUCET.address) throw Error('Faucet payouts are not active yet.');
-  const response=await fetch(FAUCET.api+path,{...options,headers:{'Content-Type':'application/json'},cache:'no-store',signal:AbortSignal.timeout(75000)});
+  const response=await fetch(FAUCET.api+path,{...options,headers:options.body?{'Content-Type':'application/json'}:{},cache:'no-store',signal:AbortSignal.timeout(75000)});
   const data=await response.json();
   if(!response.ok) throw Error(data.error || 'Faucet service unavailable.');
   return data;
@@ -51,6 +51,7 @@ async function serviceStatus() {
   const address=state.address, revision=state.revision;
   try {
     const data=await api('/status'+(address?'?address='+encodeURIComponent(address):''));
+    if(data.protection!=='usage-guards-v1' || data.confirmation!=='uni7-exact-hash-v1' || data.gasPolicy!=='bank-send-gas-v1') throw Error('Faucet payouts are unavailable until the service update is verified.');
     if(data.chainId!==CHAIN || data.amount!=='10000000' || data.intervalSeconds!==86400 || data.address!==FAUCET.address || !bundle.validAddress(data.address)) throw Error('Faucet configuration mismatch.');
     if(revision!==state.revision)return;
     state.service=data;

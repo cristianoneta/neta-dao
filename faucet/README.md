@@ -9,18 +9,17 @@ from the chain. Configured reward withdrawal addresses are shown explicitly.
 
 ## Activation status
 
-**The first Render deployment is running; public payouts remain disabled.**
-On 2026-10-04, `https://neta-junox-faucet.onrender.com/status` returned UNI-7,
-address `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`, balance `0`, `ready:false`.
-Usage guards are verified live. The backend confirmation fix requires a manual
-deployment; verify `confirmation: "uni7-exact-hash-v1"` before funding/activation.
-`juno-faucet-config.mjs` pins the dedicated UNI-7 funding address, while `api`
-remains null. Donate JUNOX is available after Connect Keplr and sends an ordinary
-wallet-confirmed transfer directly to that address, even with an empty faucet or
-unavailable payout backend. The review shows the full recipient. Get 10 JUNOX
-remains disabled until the separate payout activation gates pass. Validator reads, wallet balances, staking,
-unstaking and claiming existing staking rewards do not depend on this service.
-No real wallet signature or payout was performed by the implementation tests.
+**The funded Render service is connected for the first real payout test.**
+On 2026-10-04 at approximately 13:58 Berlin, `/status` reported UNI-7,
+address `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`, balance 15 JUNOX,
+ready true and all three expected markers: usage-guards-v1,
+uni7-exact-hash-v1, bank-send-gas-v1. POST CORS preflight was verified.
+The page pins the exact Render origin and address and rejects old/mismatched
+service status. Donate JUNOX remains an independent wallet-confirmed transfer;
+a real 15-JUNOX donation succeeded. Payout receipt/replay/restart and fresh empty
+wallet checks remain unverified until the owner completes them; do not claim E2E
+completion from mocked tests. With the present funding, one 10-JUNOX payout plus
+fee brings the service below its 12-JUNOX readiness reserve.
 
 GitHub Pages cannot keep a signing key or execute this server. Required from the
 operator: a persistent server/container host, HTTPS origin, and a **dedicated
