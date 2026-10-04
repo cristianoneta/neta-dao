@@ -17,7 +17,7 @@ full security/performance audit or new live-wallet test is claimed.
   CURRENT_STATE with one current inventory and next action. Preserved the original
   documents and faucet chronology as explicitly superseded archives.
 - Updated README, checkpoint index, Names product boundary/protocol/runbook and
-  faucet handoff. Removed obsolete instructions to deploy/activate again, finish
+  faucet handoff and contract READMEs. Removed obsolete instructions to deploy/activate again, finish
   already-wired adapters, recover the resolved checksum blocker or repeat owner
   name tests. Production null constants are distinguished from the live UNI-7 lab.
 - Recorded final #145 checks, deployed-byte verification and its remaining real
@@ -64,8 +64,9 @@ and focused tests; do not replace safe single-writer publication speculatively.
 ## Verification and continuation
 
 Check relative links in changed Markdown, diff whitespace, and consistency with
-current config/source. Ordinary docs do not trigger application CI; touching the
-faucet README does trigger faucet checks. Inspect actual PR results and Pages after
+current config/source. Ordinary docs do not trigger application CI; faucet docs
+trigger faucet checks and contract READMEs trigger contract/frontend and WASM
+checks. Inspect actual PR results and Pages after
 merge; the final PR description records that release evidence.
 
 Next chat starts at [HANDOFF](../HANDOFF.md). Preserve mainnet-off gates, browser

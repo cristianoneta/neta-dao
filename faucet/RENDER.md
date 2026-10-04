@@ -20,19 +20,21 @@ creating the Blueprint. The free web-service plan cannot provide this disk.
 There is no database migration; existing SQLite/WAL and pending claims must
 remain in place. Confirmation lookup does not sign or repeat a payment.
 
-## Existing service: deploy the confirmation correction
+## Existing service: future backend updates
 
-Open **neta-junox-faucet → Manual Deploy → Deploy latest commit** after the
-confirmation PR is merged to `main`. Keep the service, disk, secret file and
-environment group in place. No RPC environment edit is required: NodesHub remains
-the signing/balance endpoint and the source adds indexed STAVR confirmation.
-Verify the new `/status` confirmation marker above; a successful GitHub Pages
-deployment does not update Render because auto-deploy is off.
+The confirmation and gas corrections are already deployed. Do not recreate the
+service or repeat the initial deployment to close this handoff. Current service
+observations and open live tests are in the [faucet handoff](../docs/HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md).
 
-Fund the existing dedicated address using the public page's Donate JUNOX control
-and confirm the UNI-7 transfer in Keplr (100 JUNOX is a useful start). This funding
-can happen before the Render deployment because donations are direct transfers. Do not recreate the wallet or database.
-The sections below also document provisioning for a new installation.
+For a future reviewed backend change, use **neta-junox-faucet → Manual Deploy →
+Deploy latest commit** after merge. Keep the service, disk, SQLite/WAL, secret file
+and private settings in place. Recheck chain/address and all three expected status
+markers. A GitHub Pages update does not update Render because auto-deploy is off.
+Fund only as needed after checking fresh status, using the public Donate JUNOX
+control and an explicit Keplr transfer. Do not recreate the wallet or database.
+
+The numbered sections below are provisioning instructions for a **new installation**,
+not unfinished steps for the existing service.
 
 ## 1. Prepare the dedicated wallet and private settings
 
