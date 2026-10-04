@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import http from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
 import {chromium} from 'playwright';
@@ -6,6 +7,7 @@ const root=new URL('../../',import.meta.url);
 const server=http.createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;if(path.includes('..'))throw Error();const body=await readFile(new URL('.'+path,root));res.writeHead(200,{'content-type':/\.m?js$/.test(path)?'text/javascript':path.endsWith('.css')?'text/css':'text/html'}).end(body);}catch{res.writeHead(404).end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 const address='juno1qurswpc8qurswpc8qurswpc8qurswpc89pyp8a';
+const recoveryBytes=Buffer.from('synthetic recovery fixture'),recoveryHash=createHash('sha256').update(recoveryBytes).digest('hex').toUpperCase();
 let browser;
 try{
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
@@ -15,6 +17,8 @@ try{
  const validators=[validator('Zulu','q','.1'),validator('Alpha','p','.05')];
  await context.route('https://**/*',route=>{
   const p=new URL(route.request().url()).pathname;
+  if(p==='/status')return json(route,{result:{node_info:{network:'uni-7'}}});
+  if(p==='/tx')return json(route,{result:{hash:recoveryHash,height:'12',index:0,tx:recoveryBytes.toString('base64'),tx_result:{code:0}}});
   if(p.endsWith('node_info'))return json(route,{default_node_info:{network:'uni-7'}});
   if(p.endsWith('/params'))return json(route,{params:{bond_denom:'ujunox',unbonding_time:'2419200s'}});
   if(p.endsWith('/validators'))return json(route,{validators,pagination:{next_key:null}});
@@ -33,7 +37,23 @@ try{
  assert.match(await page.locator('.validator-name').first().innerText(),/^Alpha/);
  await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#available').textContent==='20',{},{timeout:10000}).catch(async e=>{console.error(await page.locator('#action-status').innerText(), await page.locator('#wallet-help').innerText());throw e;});
  assert.equal(await page.locator('#staked').innerText(),'5');assert.equal(await page.locator('#rewards').innerText(),'1.234567');assert.match(await page.locator('#unstaking-help').innerText(),/28 days/);
+ assert.equal(await page.locator('#connect').innerText(),address.slice(0,9)+'…'+address.slice(-6));
+ assert.equal(await page.locator('#connect').getAttribute('title'),address);
+ await page.evaluate(()=>localStorage.setItem('neta-pending-tx-v1:uni-7:disconnect-fixture','preserve'));
+ await page.locator('#disconnect').click();
+ assert.equal(await page.locator('#disconnect').isVisible(),false);
+ assert.equal(await page.locator('#available').innerText(),'—');
+ assert.equal(await page.locator('#claim').isDisabled(),true);
+ assert.equal(await page.locator('[data-action=stake]').first().isDisabled(),true);
+ assert.equal(await page.evaluate(()=>localStorage.getItem('neta-pending-tx-v1:uni-7:disconnect-fixture')),'preserve');
+ await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#available').textContent==='20');
  await page.exposeFunction('recordBroadcast',messages=>broadcasts.push(messages));
+ await page.evaluate(({address,hash,bytes})=>localStorage.setItem('neta-pending-tx-v1:uni-7:'+address,JSON.stringify({version:1,status:'pending',chain:'uni-7',sender:address,hash,bytes})),{address,hash:recoveryHash,bytes:recoveryBytes.toString('base64')});
+ await page.locator('#refresh').click();await page.waitForFunction(()=>!document.querySelector('#refresh').disabled);
+ assert.match(await page.locator('#action-message').innerText(),/Previous transaction confirmed.*No new transaction/);
+ assert.equal(await page.evaluate(address=>localStorage.getItem('neta-pending-tx-v1:uni-7:'+address),address),null);
+ assert.equal(broadcasts.length,0,'refresh recovery must not send another transaction');
+
 
 
  await page.locator('[data-action=stake]').first().click();await page.locator('#transaction-amount').fill('1.25');await page.locator('#transaction-confirm').click();await page.waitForFunction(()=>!document.querySelector('#transaction-dialog').open);

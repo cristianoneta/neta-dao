@@ -5,11 +5,11 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://juno.test.rpc.nodeshub.online https://juno.test.api.nodeshub.online https://juno.rpc.t.stavr.tech https://juno.api.t.stavr.tech; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Juno testnet faucet · NETA Reborn</title>
   <meta name="description" content="Get started on Juno UNI-7. Request JUNOX, support the testnet faucet, explore validators, manage your stake and claim rewards.">
-  <link rel="stylesheet" href="neta-ui.css?v=20261003-3"><link rel="stylesheet" href="juno-faucet.css?v=1">
+  <link rel="stylesheet" href="neta-ui.css?v=20261004-wallet-1"><link rel="stylesheet" href="juno-faucet.css?v=1">
 </head>
 <body>
 <a class="skip-link" href="#faucet-main">Skip to content</a>
-<header class="gov-header faucet-header"><a class="gov-brand" href="index.html">NETA REBORN</a><span class="faucet-header-label">COMMUNITY TOOLS</span><div class="gov-controls"><span class="testnet-pill">UNI-7 TESTNET</span><button id="connect" type="button">Connect Keplr</button></div></header>
+<header class="gov-header faucet-header"><a class="gov-brand" href="index.html">NETA REBORN</a><span class="faucet-header-label">COMMUNITY TOOLS</span><div class="gov-controls"><span class="testnet-pill">UNI-7 TESTNET</span><button id="connect" type="button">Connect Keplr</button><button id="disconnect" type="button" hidden>Disconnect</button></div></header>
 <main id="faucet-main" class="faucet-shell">
   <section class="faucet-intro"><div><span class="eyebrow">JUNO · A PLACE TO BUILD &amp; EXPERIMENT</span><h1>Juno testnet faucet<span>.</span></h1><p>A little JUNOX to get your next idea started. Connect your wallet, try staking and explore Juno on UNI-7.</p></div><div class="network-note"><strong>Test tokens. Real experiments.</strong><span>JUNOX is for the Juno testnet only. It has no monetary value.</span></div></section>
   <p id="wallet" class="wallet-address">Your wallet is not connected.</p>
@@ -29,5 +29,5 @@
   <footer class="faucet-footer"><a href="index.html">← Back to NETA DAO</a><span>A community service by NETA Reborn · Juno UNI-7</span></footer>
 </main>
 <dialog id="transaction-dialog" aria-labelledby="transaction-heading"><form id="transaction-form"><span class="eyebrow">JUNO TESTNET · UNI-7</span><h2 id="transaction-heading">Stake JUNOX</h2><p id="transaction-target"></p><label for="transaction-amount">Amount · JUNOX</label><input id="transaction-amount" inputmode="decimal" pattern="[0-9]+(\.[0-9]{1,6})?" required autocomplete="off"><p id="transaction-help" class="help"></p><p id="transaction-error" role="alert"></p><div class="dialog-actions"><button id="transaction-cancel" type="button">Cancel</button><button id="transaction-confirm" class="neta-primary" type="submit">Review in Keplr</button></div></form></dialog>
-<script src="assets/faucet-signing.js?v=1"></script><script type="module" src="juno-faucet.mjs?v=2"></script>
+<script src="assets/faucet-signing.js?v=1"></script><script type="module" src="juno-faucet.mjs?v=3"></script>
 </body></html>

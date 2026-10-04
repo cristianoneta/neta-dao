@@ -258,3 +258,11 @@ padding and 44 px link target on Home, Proposals, Delivery, People, Treasury and
 all RELAY panels. On short pages the footer rests at the viewport bottom; on long
 pages it follows the content. Never overlay content with a fixed footer.
 The independent faucet opens in a new tab with noopener/noreferrer.
+
+## Shared wallet controls — owner update 2026-10-04
+
+Every workspace route uses the shared header wallet controls. When connected,
+show the shortened address and a separate Disconnect button; retain the full
+address in the title and accessible label. Apply the same behavior on the
+independent faucet. Controls wrap on narrow screens. Disconnect clears the
+active connection, never stored drafts, keys or pending transaction journals.

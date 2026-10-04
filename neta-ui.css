@@ -96,8 +96,9 @@ small { font-size: 12px; }
   background: var(--neta-surface); color: var(--neta-text); font: 500 14px/1.4 var(--neta-font); letter-spacing: 0;
 }
 .chain-select-wrap span, .dao-combobox span { width: 32px; height: 44px; border: 0; color: var(--neta-text-secondary); }
-.gov-header .gov-controls { display: flex; justify-content: flex-end; gap: 12px; }
+.gov-header .gov-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; min-width: 0; }
 .gov-header .gov-controls button { width: auto; max-width: 200px; min-width: 130px; }
+.gov-header #gov-disconnect, .gov-header #disconnect { min-width: 0; }
 .testnet-pill { border: 1px solid var(--neta-warning); border-radius: 999px; color: var(--neta-warning); background: var(--neta-warning-soft); padding: 5px 10px; font-size: 12px; white-space: nowrap; }
 .dao-options { margin-top: 6px; padding: 6px; border-radius: 10px; background: var(--neta-surface-raised); }
 .dao-options button { border: 0; }
