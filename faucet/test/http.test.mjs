@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FaucetLedger} from '../service/ledger.mjs';
 import {createFaucetServer} from '../service/http.mjs';
+import {CONFIRMATION_VERSION} from '../service/confirmation.mjs';
 const origin='https://dao.netareborn.com';
 async function setup(t,{limits,paused=false,balance,clock}={}){
-  let calls=0;const adapter={address:'juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt',balance:async()=>{calls++;return balance?balance():'100000000';},lookup:async()=>null};
+  let calls=0;const adapter={confirmation:CONFIRMATION_VERSION,address:'juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt',balance:async()=>{calls++;return balance?balance():'100000000';},lookup:async()=>null};
   const ledger=new FaucetLedger(':memory:',adapter,{verify:async()=>false,domain:'https://faucet.test',limits,...(clock?{now:clock}:{})});
   const server=createFaucetServer({ledger,adapter,origin,paused,...(clock?{now:clock}:{})});
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -22,7 +23,7 @@ test('concurrent status reads share one RPC refresh and cache it for 30 seconds'
   const s=await setup(t,{clock:()=>now,balance:async()=>{await pending;return '100000000';}});
   const requests=Array.from({length:4},()=>s.get('/status'));await new Promise(r=>setTimeout(r,25));release();
   const results=await Promise.all(requests);assert.ok(results.every(r=>r.status===200));assert.equal(s.calls,1);
-  const status=await (await s.get('/status')).json();assert.equal(status.ready,true);assert.equal(status.protection,'usage-guards-v1');assert.equal(s.calls,1);
+  const status=await (await s.get('/status')).json();assert.equal(status.ready,true);assert.equal(status.protection,'usage-guards-v1');assert.equal(status.confirmation,CONFIRMATION_VERSION);assert.equal(s.calls,1);
   now+=30001;await s.get('/status');assert.equal(s.calls,2);
 });
 test('failed RPC is cached too, without exposing its error',async t=>{

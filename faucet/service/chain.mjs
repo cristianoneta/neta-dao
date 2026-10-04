@@ -6,6 +6,7 @@ import {pubkeyToAddress,serializeSignDoc} from '@cosmjs/amino';
 import {Secp256k1,Secp256k1Signature,sha256} from '@cosmjs/crypto';
 import {TxRaw} from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import {AMOUNT} from './ledger.mjs';
+import {transactionTransport} from './confirmation.mjs';
 export function validAddress(address) {try{const x=fromBech32(address);return x.prefix==='juno'&&x.data.length===20;}catch{return false;}}
 export async function verifyOwnership(address,message,signature) {
   try {
@@ -27,6 +28,7 @@ export async function chainAdapter({rpc,mnemonicFile,expectedAddress}) {
   await identity();
   return {
     address,
+    ...transactionTransport(client,{rpc}),
     async balance(){await identity();return (await client.getBalance(address,'ujunox')).amount;},
     async prepare(recipient){
       await identity();if(!validAddress(recipient)||recipient===address)throw Error('Invalid payout recipient.');
@@ -38,8 +40,6 @@ export async function chainAdapter({rpc,mnemonicFile,expectedAddress}) {
       const signed=await client.sign(address,messages,fee,memo),bytes=TxRaw.encode(signed).finish();
       return {hash:toHex(sha256(bytes)).toUpperCase(),bytes:toBase64(bytes)};
     },
-    async broadcast(bytes){await identity();return client.broadcastTx(fromBase64(bytes));},
-    async lookup(hash){await identity();return client.getTx(hash);},
     close(){client.disconnect();}
   };
 }

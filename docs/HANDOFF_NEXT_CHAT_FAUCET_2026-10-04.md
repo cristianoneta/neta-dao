@@ -3,6 +3,28 @@
 This is the current continuation entry point. It supersedes older hosting-pending
 and untested-rewards snapshots in the 2026-10-03 handoff.
 
+## Backend confirmation correction — 2026-10-04 continuation
+
+The server now submits signed bytes once with `broadcastTxSync` and confirms
+through indexed STAVR and the configured HTTPS RPC concurrently. Fresh UNI-7 identity,
+exact hash, signed-byte SHA-256, height and execution code are checked. Unknown
+outcomes stay pending; no automatic retry or journal deletion. Lookups are bounded
+and concurrent checks of one hash share work. `/status` identifies this adapter as
+`confirmation:uni7-exact-hash-v1`, separately from `protection:usage-guards-v1`.
+Local verification: 30 service tests and 5 frontend tests passed; the signing
+bundle rebuild is unchanged. New tests cover wrong-chain/tampered receipts,
+index outages, one-shot broadcast, persistent pending outcomes, cooldown after
+restart and included failures. A read-only live call of the new backend lookup
+confirmed the owner's reward hash `72AA75539747AE522BBBEF06F6149F08252112CA15948E07F9BAE8F5FC2A8387`
+at UNI-7 height 18525930, code 0. Real payout/stake/unstake E2E remains pending.
+
+Render auto-deploy is off: merge/Pages alone does not deploy the backend fix.
+Use the existing service's Manual Deploy, retain SQLite/WAL and private settings,
+then verify the confirmation marker. Latest read-only status before deployment:
+UNI-7, dedicated address unchanged, balance 0, ready false, usage guards present.
+Public API/address stay null pending deployment, funding and activation tests.
+See `faucet/RENDER.md` and the current faucet handoff for the next operator steps.
+
 ## Release evidence — checked 2026-10-04, approximately 10:48 Berlin
 
 PR #129 merged as 342153f2c312abe1528a02422c1812fa3904da96; Pages run
@@ -67,14 +89,14 @@ Keep SQLite/WAL and pending transaction/crypto journals across every deploy/rest
 ## Immediate next steps (in order)
 1. Verify fresh GitHub main, CI, Pages and live /status. Do not infer current state
    from historical snapshots.
-2. Fix/verify BACKEND confirmation RPC before activation. The blueprint/default
-   FAUCET_RPC is https://juno.test.rpc.nodeshub.online, whose TX index is disabled.
-   faucet/service/chain.mjs still uses its configured client.getTx(hash) with no
-   fallback. The frontend fix does not repair this server adapter. Use an indexed
-   UNI-7 RPC (STAVR https://juno.rpc.t.stavr.tech confirmed the real claim), or add
-   a chain-verified exact-hash fallback with meaningful regression tests.
-   Have the owner apply any necessary Render configuration/deploy, then verify.
-   Never solve this by clearing locks or rebroadcasting unknown payments.
+2. Deploy/verify the BACKEND confirmation correction before activation. The
+   new adapter checks indexed STAVR and the configured HTTPS RPC concurrently; no
+   environment change is required. It uses one-shot broadcast and verifies exact
+   signed-byte hashes on fresh UNI-7 receipts. Regression tests include durable
+   restart/cooldown recovery. See the continuation section above for release state.
+   Have the owner manually deploy latest main to the existing Render service and
+   verify `/status` includes `confirmation:uni7-exact-hash-v1`. Keep the existing
+   SQLite/WAL and private settings. Never clear locks or rebroadcast unknown payments.
 3. Fund the dedicated faucet wallet with JUNOX via an ordinary owner-confirmed
    Keplr transfer (100 JUNOX is a useful start). The user's wallet received rewards.
    Funding through our Donate control is not enabled yet. No mainnet tokens.
@@ -128,7 +150,9 @@ Read AGENTS.md, HANDOFF.md, docs/CURRENT_STATE.md; UI work also DESIGN_SYSTEM.md
 Use isolated worktrees, branch/PR and inspect relevant CI before merging.
 Preserve all existing dirty worktrees and bot treasury data. Local working changes
 may already be published through GitHub Git Data APIs despite local dirty status.
-Current implementation workspace:
+Current continuation workspace:
+ /workspace/scratch/4e363f4326f5/neta-faucet-backend
+Previous implementation workspace:
  /workspace/scratch/653b51d03138/neta-wallet-controls
 Earlier worktrees neta-faucet-guards, neta-faucet-hosting,
 neta-faucet-wallet-fix contain published dirty changes; do not reset them.

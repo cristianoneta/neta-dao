@@ -1,5 +1,28 @@
 # NETA DAO code-backed current state
 
+## Backend confirmation correction — 2026-10-04 continuation
+
+The server now submits signed bytes once with `broadcastTxSync` and confirms
+through indexed STAVR and the configured HTTPS RPC concurrently. Fresh UNI-7 identity,
+exact hash, signed-byte SHA-256, height and execution code are checked. Unknown
+outcomes stay pending; no automatic retry or journal deletion. Lookups are bounded
+and concurrent checks of one hash share work. `/status` identifies this adapter as
+`confirmation:uni7-exact-hash-v1`, separately from `protection:usage-guards-v1`.
+Local verification: 30 service tests and 5 frontend tests passed; the signing
+bundle rebuild is unchanged. New tests cover wrong-chain/tampered receipts,
+index outages, one-shot broadcast, persistent pending outcomes, cooldown after
+restart and included failures. A read-only live call of the new backend lookup
+confirmed the owner's reward hash `72AA75539747AE522BBBEF06F6149F08252112CA15948E07F9BAE8F5FC2A8387`
+at UNI-7 height 18525930, code 0. Real payout/stake/unstake E2E remains pending.
+
+Render auto-deploy is off: merge/Pages alone does not deploy the backend fix.
+Use the existing service's Manual Deploy, retain SQLite/WAL and private settings,
+then verify the confirmation marker. Latest read-only status before deployment:
+UNI-7, dedicated address unchanged, balance 0, ready false, usage guards present.
+Public API/address stay null pending deployment, funding and activation tests.
+See `faucet/RENDER.md` and the current faucet handoff for the next operator steps.
+
+
 ## Current continuation — 2026-10-04 final checkpoint
 
 Read [the current faucet handoff](HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md) first.
