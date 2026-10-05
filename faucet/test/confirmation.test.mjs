@@ -92,7 +92,7 @@ test('unknown payout survives restart, then verified receipt starts durable cool
     assert.equal((await ledger.claim(c)).status,'confirmed');assert.equal(prepares,1);assert.equal(broadcasts,1);
   }finally{ledger.close();}
   ledger=new FaucetLedger(file,adapter,options);
-  try{assert.throws(()=>ledger.challenge('alice'),/Only 10/);now+=DAY-1;assert.throws(()=>ledger.challenge('alice'),/Only 10/);now++;assert.ok(ledger.challenge('alice').id);}
+  try{assert.throws(()=>ledger.challenge('alice'),/Only 25/);now+=DAY-1;assert.throws(()=>ledger.challenge('alice'),/Only 25/);now++;assert.ok(ledger.challenge('alice').id);}
   finally{ledger.close();}
 });
 test('verified included failure releases reservation without a successful-payout cooldown',async()=>{

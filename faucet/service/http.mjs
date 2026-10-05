@@ -34,7 +34,7 @@ export function createFaucetServer({ledger,adapter,origin,paused=false,now=Date.
       if(req.method==='GET'&&url.pathname==='/status'){
         const address=url.searchParams.get('address');if(address&&!validAddress(address))return respond(400,{error:'Invalid Juno wallet address.'});
         const {balance}=await chainStatus(),pause=ledger.guard.payoutPause();
-        return respond(200,{chainId:'uni-7',address:adapter.address,amount:AMOUNT,intervalSeconds:86400,balance,ready:BigInt(balance)>=12000000n&&!ledger.blocked()&&!pause,protection:'usage-guards-v1',confirmation:adapter.confirmation,gasPolicy:adapter.gasPolicy,pause,...(address?ledger.eligibility(address):{})});
+        return respond(200,{chainId:'uni-7',address:adapter.address,amount:AMOUNT,intervalSeconds:86400,balance,ready:BigInt(balance)>=(BigInt(AMOUNT)+2000000n)&&!ledger.blocked()&&!pause,protection:'usage-guards-v1',confirmation:adapter.confirmation,gasPolicy:adapter.gasPolicy,pause,...(address?ledger.eligibility(address):{})});
       }
       if(req.method!=='POST'||!['/challenge','/claim'].includes(url.pathname))return respond(404,{error:'Not found.'});
       if(req.headers.origin!==origin)return respond(403,{error:'Origin not allowed.'});
@@ -50,7 +50,7 @@ export function createFaucetServer({ledger,adapter,origin,paused=false,now=Date.
       return respond(200,result);
     }catch(error){
       // Never return secret-bearing RPC/configuration details or log request bodies.
-      const allowed=/^(Only 10 JUNOX|Your previous payout|Wallet signature|Request a fresh|This request|The faucet is confirming|Please wait|Faucet is busy|Faucet (day|month) payout limit|Invalid payout recipient)/;
+      const allowed=/^(Only 25 JUNOX|Your previous payout|Wallet signature|Request a fresh|This request|The faucet is confirming|Please wait|Faucet is busy|Faucet (day|month) payout limit|Invalid payout recipient)/;
       respond(503,{error:allowed.test(error.message)?error.message:'Faucet temporarily unavailable. Refresh to check your payout status.'});
     }finally{if(admitted)active--;}
   });

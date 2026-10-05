@@ -24,7 +24,7 @@ try{
   if(p.endsWith('node_info'))return json(route,{default_node_info:{network:'uni-7'}});
   if(p.endsWith('/params'))return json(route,{params:{bond_denom:'ujunox',unbonding_time:'2419200s'}});
   if(p.endsWith('/validators'))return json(route,{validators,pagination:{next_key:null}});
-  if(p.endsWith('/by_denom'))return json(route,{balance:{denom:'ujunox',amount:paid?'30000000':'20000000'}});
+  if(p.endsWith('/by_denom'))return json(route,{balance:{denom:'ujunox',amount:paid?'45000000':'20000000'}});
   if(p==='/cosmos/staking/v1beta1/delegations/'+address)return json(route,{delegation_responses:[{delegation:{validator_address:validators[1].operator_address},balance:{denom:'ujunox',amount:'5000000'}}],pagination:{}});
   if(p.endsWith('/unbonding_delegations'))return json(route,{unbonding_responses:[],pagination:{}});
   if(p.endsWith('/withdraw_address'))return json(route,{withdraw_address:address});
@@ -88,21 +88,23 @@ try{
  await context.route(apiOrigin+'/**',route=>{
   if(route.request().method()==='OPTIONS')return json(route,{});
   const path=new URL(route.request().url()).pathname;
-  if(path==='/status')return json(route,{chainId:serviceMode==='wrong-chain'?'juno-1':'uni-7',address:serviceMode==='wrong-address'?address:faucetAddress,amount:'10000000',intervalSeconds:86400,balance:'15000000',ready:serviceMode!=='empty',pending:false,nextClaimAt:paid?new Date(Date.now()+86400000).toISOString():null,protection:'usage-guards-v1',confirmation:'uni7-exact-hash-v1',gasPolicy:serviceMode==='old-version'?undefined:'bank-send-gas-v1'});
-  if(path==='/challenge')return json(route,{id:'nonce',address,chainId:'uni-7',message:'NETA JUNOX faucet\nTest challenge'});
+  if(path==='/status')return json(route,{chainId:serviceMode==='wrong-chain'?'juno-1':'uni-7',address:serviceMode==='wrong-address'?address:faucetAddress,amount:serviceMode==='legacy'?'10000000':serviceMode==='wrong-amount'?'50000000':'25000000',intervalSeconds:86400,balance:'50000000',ready:serviceMode!=='empty',pending:false,nextClaimAt:paid?new Date(Date.now()+86400000).toISOString():null,protection:'usage-guards-v1',confirmation:'uni7-exact-hash-v1',gasPolicy:serviceMode==='old-version'?undefined:'bank-send-gas-v1'});
+  if(path==='/challenge')return json(route,{id:'nonce',address,chainId:'uni-7',message:'NETA JUNOX faucet\nRequest: exactly 25 JUNOX\nTest challenge'});
   if(path==='/claim'){claims++;paid=true;return json(route,{status:'confirmed',hash:'B'.repeat(64)});}
   throw Error('Unexpected faucet API path '+path);
  });
  await page.reload();await page.locator('#connect').click();await page.waitForFunction(()=>!document.querySelector('#request').disabled);
- assert.match(await page.locator('#faucet-balance').innerText(),/15 JUNOX/);
- for(serviceMode of ['old-version','wrong-chain','wrong-address','empty']){
+ assert.match(await page.locator('#faucet-balance').innerText(),/50 JUNOX/);
+ serviceMode='legacy';await page.locator('#refresh').click();await page.waitForFunction(()=>!document.querySelector('#refresh').disabled);assert.equal(await page.locator('#request').innerText(),'Get 10 JUNOX');assert.equal(await page.locator('#request').isDisabled(),false);
+ for(serviceMode of ['wrong-amount','old-version','wrong-chain','wrong-address','empty']){
   await page.locator('#refresh').click();await page.waitForFunction(()=>!document.querySelector('#refresh').disabled);
   assert.equal(await page.locator('#request').isDisabled(),true,serviceMode);
   assert.equal(await page.locator('#donate').isDisabled(),false,serviceMode);
  }
  assert.equal(claims,0);serviceMode='ready';
  await page.reload();await page.locator('#connect').click();await page.waitForFunction(()=>!document.querySelector('#request').disabled);
- await page.locator('#request').click();await page.waitForFunction(()=>document.querySelector('#available').textContent==='30'&&!document.querySelector('#refresh').disabled);assert.equal(await page.locator('#request').isDisabled(),true);assert.match(await page.locator('#faucet-status').innerText(),/Next payout/);assert.equal(claims,1);
+ assert.equal(await page.locator('#request').innerText(),'Get 25 JUNOX');
+ await page.locator('#request').click();await page.waitForFunction(()=>document.querySelector('#available').textContent==='45'&&!document.querySelector('#refresh').disabled);assert.equal(await page.locator('#request').isDisabled(),true);assert.match(await page.locator('#faucet-status').innerText(),/Next payout/);assert.equal(claims,1);
  await page.waitForFunction(()=>!document.querySelector('#donate').disabled);await page.locator('#donation').fill('1.5');await page.locator('#donate').click();assert.equal(await page.locator('#transaction-dialog').evaluate(x=>x.open),false);
  await page.locator('#donation').fill('17');await page.locator('#donate').click();await page.locator('#transaction-confirm').click();await page.waitForFunction(()=>!document.querySelector('#transaction-dialog').open);assert.equal(broadcasts.at(-1)[0].value.amount[0].amount,'17000000');
  await page.waitForFunction(()=>!document.querySelector('#refresh').disabled);

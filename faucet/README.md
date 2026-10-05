@@ -9,6 +9,11 @@ from the chain. Configured reward withdrawal addresses are shown explicitly.
 
 ## Activation status
 
+The 2026-10-05 update raises the fixed payout to 25 JUNOX and readiness threshold
+to 27 JUNOX. Manual Render deployment is required; verify `/status.amount` is
+`25000000` before describing the new amount as live. Historical observations below
+refer to the previous 10-JUNOX release.
+
 **The funded Render service is connected for the first real payout test.**
 On 2026-10-04 at approximately 13:58 Berlin, `/status` reported UNI-7,
 address `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`, balance 15 JUNOX,
@@ -19,7 +24,7 @@ service status. Donate JUNOX remains an independent wallet-confirmed transfer;
 a real 15-JUNOX donation succeeded. Payout receipt/replay/restart and fresh empty
 wallet checks remain unverified until the owner completes them; do not claim E2E
 completion from mocked tests. At that earlier 15-JUNOX balance, one payout plus fee would fall below the
-12-JUNOX readiness reserve. The closing read on 2026-10-04 reported 1,039.974213
+then-current 12-JUNOX readiness reserve. The closing read on 2026-10-04 reported 1,039.974213
 JUNOX and all three expected markers. Always recheck fresh `/status`; balance
 and readiness alone are not payout/restart evidence. Current test steps and
 receipts: [faucet handoff](../docs/HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md).
@@ -70,15 +75,15 @@ admin withdrawal endpoint. Donations are ordinary wallet-signed bank transfers.
 Activation checklist:
 
 1. Deploy with the dedicated key and persistent volume; verify `/status` reports
-   `chainId=uni-7`, `amount=10000000`, `intervalSeconds=86400`, expected address,
+   `chainId=uni-7`, `amount=25000000`, `intervalSeconds=86400`, expected address,
    `protection=usage-guards-v1` and `confirmation=uni7-exact-hash-v1`.
 2. Fund that exact account with JUNOX using Donate JUNOX on the public page.
-   Confirm the transfer in Keplr. A conservative 12-JUNOX reserve is required
+   Confirm the transfer in Keplr. A conservative 27-JUNOX reserve is required
    to report ready. The service pays transfer gas; an empty recipient can claim.
 3. Pin the HTTPS API origin and funding address in `juno-faucet-config.mjs`, and
    add only that origin to the HTML CSP's `connect-src`.
 4. From Keplr, exercise a real fresh-wallet payout and compare chain receipt with
-   the fixed 10 JUNOX. Re-request must fail for the next 24h, including after
+   the fixed 25 JUNOX. Re-request must fail for the next 24h, including after
    service restart. Test a whole-number donation, staking, unstaking and rewards.
 5. Record chain transaction hashes and exact deployment revision before claiming
    live end-to-end verification. Monitor funding and unresolved transactions.
@@ -93,7 +98,7 @@ public activation. Defaults apply without new environment variables:
 | Admitted HTTP requests, all paths/clients combined | 60 per UTC minute, 5,000 per UTC day, 50,000 per UTC month |
 | Concurrent admitted HTTP handlers | 4 |
 | New payout reservations, all wallets combined | 100 per UTC day, 1,000 per UTC month |
-| Per-wallet payout | 10 JUNOX per rolling 24 hours, unchanged |
+| Per-wallet payout | 25 JUNOX per rolling 24 hours |
 | Status RPC refresh | One shared refresh per 30 seconds; failures also cached |
 | POST body | 8 KiB |
 
@@ -139,7 +144,7 @@ future backend deployments.
 
 ## Limits and transaction integrity
 
-- Exactly 10 JUNOX per connected wallet in a **rolling 24-hour window** after a
+- Exactly 25 JUNOX per connected wallet in a **rolling 24-hour window** after a
   confirmed payout. New addresses are separate wallets; this is not a per-human
   identity or anti-Sybil guarantee. Add operator abuse protection before scaling.
 - ADR-36 proves wallet ownership with a random, single-use, 5-minute challenge,

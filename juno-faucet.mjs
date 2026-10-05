@@ -52,10 +52,12 @@ async function serviceStatus() {
   try {
     const data=await api('/status'+(address?'?address='+encodeURIComponent(address):''));
     if(data.protection!=='usage-guards-v1' || data.confirmation!=='uni7-exact-hash-v1' || data.gasPolicy!=='bank-send-gas-v1') throw Error('Faucet payouts are unavailable until the service update is verified.');
-    if(data.chainId!==CHAIN || data.amount!=='10000000' || data.intervalSeconds!==86400 || data.address!==FAUCET.address || !bundle.validAddress(data.address)) throw Error('Faucet configuration mismatch.');
+    if(data.chainId!==CHAIN || !['10000000','25000000'].includes(data.amount) || data.intervalSeconds!==86400 || data.address!==FAUCET.address || !bundle.validAddress(data.address)) throw Error('Faucet configuration mismatch.');
     if(revision!==state.revision)return;
     state.service=data;
-    text('faucet-status', data.pending ? 'Your previous request is pending. Refresh to check its outcome.' : data.nextClaimAt && Date.parse(data.nextClaimAt)>Date.now() ? 'Next payout available '+new Date(data.nextClaimAt).toLocaleString('en-GB')+'.' : data.ready ? address ? 'Ready. Confirm wallet ownership in Keplr to receive 10 JUNOX. No fee is charged to you.' : 'Connect Keplr to receive 10 JUNOX.' : 'Payouts are temporarily paused. Please check back later.');
+    // Keep the existing 10-JUNOX service usable during the manual backend rollout.
+    const payout=formatMicro(data.amount);text('payout-amount',payout);text('request','Get '+payout+' JUNOX');
+    text('faucet-status', data.pending ? 'Your previous request is pending. Refresh to check its outcome.' : data.nextClaimAt && Date.parse(data.nextClaimAt)>Date.now() ? 'Next payout available '+new Date(data.nextClaimAt).toLocaleString('en-GB')+'.' : data.ready ? address ? 'Ready. Confirm wallet ownership in Keplr to receive '+payout+' JUNOX. No fee is charged to you.' : 'Connect Keplr to receive '+payout+' JUNOX.' : 'Payouts are temporarily paused. Please check back later.');
     text('faucet-balance','Faucet balance: '+formatMicro(data.balance)+' JUNOX · '+data.address);
   } catch(error) { if(revision===state.revision) { text('faucet-status',error.message); text('faucet-balance','Faucet balance unavailable.'); } }
   controls();
@@ -142,14 +144,15 @@ $('validator-search').addEventListener('input',renderValidators);$('validator-fi
 window.addEventListener('keplr_keystorechange',()=>{resetAccount();notice('Keplr account changed. Connect again to load the current wallet.');});
 $('request').addEventListener('click',()=>run(async()=>{
   const address=state.address;await assertWallet(address);await serviceStatus();if(!state.service?.ready || state.service.pending || Date.parse(state.service.nextClaimAt)>Date.now())throw Error('A payout is not available for this wallet yet.');
+  const payout=formatMicro(state.service.amount);
   const challenge=await api('/challenge',{method:'POST',body:JSON.stringify({address})});
-  if(challenge.address!==address || challenge.chainId!==CHAIN || typeof challenge.message!=='string' || !challenge.message.startsWith('NETA JUNOX faucet\n'))throw Error('Unexpected faucet challenge.');
+  if(challenge.address!==address || challenge.chainId!==CHAIN || typeof challenge.message!=='string' || !challenge.message.startsWith('NETA JUNOX faucet\n') || !challenge.message.includes('\nRequest: exactly '+payout+' JUNOX\n'))throw Error('Unexpected faucet challenge.');
   const signature=await window.keplr.signArbitrary(CHAIN,address,challenge.message);await assertWallet(address);
-  notice('Requesting 10 JUNOX. Please wait for confirmation.');
+  notice('Requesting '+payout+' JUNOX. Please wait for confirmation.');
   try {
     const result=await api('/claim',{method:'POST',body:JSON.stringify({id:challenge.id,address,signature})});
     if(state.address!==address)return;
-    notice(result.status==='confirmed'?'10 JUNOX received · '+result.hash:result.status==='failed'?'The payout failed. No tokens were transferred; you can request again.':'Payout pending. Refresh to check confirmation; do not submit a second request.',result.status==='failed');
+    notice(result.status==='confirmed'?payout+' JUNOX received · '+result.hash:result.status==='failed'?'The payout failed. No tokens were transferred; you can request again.':'Payout pending. Refresh to check confirmation; do not submit a second request.',result.status==='failed');
   }catch(error){notice(error.message+' Refresh to check whether the payout was received.',true);}
   await refresh();
 }));

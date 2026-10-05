@@ -35,7 +35,7 @@ export async function chainAdapter({rpc,mnemonicFile,expectedAddress}) {
     async prepare(recipient){
       await identity();if(!validAddress(recipient)||recipient===address)throw Error('Invalid payout recipient.');
       const messages=[{typeUrl:'/cosmos.bank.v1beta1.MsgSend',value:{fromAddress:address,toAddress:recipient,amount:[{denom:'ujunox',amount:AMOUNT}]}}];
-      const memo='NETA faucet · 10 JUNOX / 24h';
+      const memo='NETA faucet · 25 JUNOX / 24h';
       const gas=await client.simulate(address,messages,memo);
       const fee=bankSendFee(gas);
       const signed=await client.sign(address,messages,fee,memo),bytes=TxRaw.encode(signed).finish();

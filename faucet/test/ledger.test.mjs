@@ -13,7 +13,7 @@ function setup(options={}){let now=1800000000000, prepares=0,broadcasts=0,includ
 test('exact rolling 24h boundary and same-id replay cannot pay twice',async()=>{
  const s=setup(),c=s.ledger.challenge('alice');const result=await s.ledger.claim({...c,signature:{}});assert.equal(result.status,'confirmed');
  assert.equal((await s.ledger.claim({...c,signature:{}})).hash,HASH);assert.equal(s.broadcasts,1);
- assert.throws(()=>s.ledger.challenge('alice'),/Only 10/);s.setTime(s.now+DAY-1);assert.throws(()=>s.ledger.challenge('alice'),/Only 10/);
+ assert.throws(()=>s.ledger.challenge('alice'),/Only 25/);s.setTime(s.now+DAY-1);assert.throws(()=>s.ledger.challenge('alice'),/Only 25/);
  s.setTime(s.now+1);assert.ok(s.ledger.challenge('alice').id);s.ledger.close();
 });
 test('parallel claims for one account and competing accounts serialize payout signing',async()=>{
@@ -28,7 +28,7 @@ test('ambiguous broadcasts survive restart and never trigger a second payment',a
  const adapter={prepare:async()=>({hash:HASH,bytes:'YWJj'}),broadcast:async()=>{broadcasts++;throw Error('timeout');},lookup:async()=>included};
  let l=new FaucetLedger(file,adapter,{verify:async()=>true,domain:'test'});const c=l.challenge('alice');assert.equal((await l.claim(c)).status,'pending');l.close();
  l=new FaucetLedger(file,adapter,{verify:async()=>true,domain:'test'});await l.reconcile();assert.equal(l.blocked(),true);assert.equal(l.eligibility('alice').pending,true);assert.equal((await l.claim(c)).status,'pending');assert.equal(broadcasts,1);
- included={hash:HASH,height:7,code:0};await l.reconcile();assert.equal(l.blocked(),false);assert.throws(()=>l.challenge('alice'),/Only 10/);l.close();rmSync(dir,{recursive:true});
+ included={hash:HASH,height:7,code:0};await l.reconcile();assert.equal(l.blocked(),false);assert.throws(()=>l.challenge('alice'),/Only 25/);l.close();rmSync(dir,{recursive:true});
 });
 test('invalid and expired signatures never reserve or broadcast',async()=>{
  const s=setup(),c=s.ledger.challenge('alice');s.ledger.verify=async()=>false;await assert.rejects(s.ledger.claim(c),/invalid/);assert.equal(s.prepares,0);
@@ -37,4 +37,12 @@ test('invalid and expired signatures never reserve or broadcast',async()=>{
 test('known on-chain failures release lock, missing or mismatched proof does not',async()=>{
  const s=setup({lookup:async()=>({hash:'B'.repeat(64),height:1,code:0})});const c=s.ledger.challenge('alice');assert.equal((await s.ledger.claim(c)).status,'pending');assert.equal(s.ledger.blocked(),true);
  s.adapter.lookup=async()=>({hash:HASH,height:2,code:5});await s.ledger.reconcile();assert.equal(s.ledger.blocked(),false);assert.equal(s.ledger.eligibility('alice').nextClaimAt,null);s.ledger.close();
+});
+test('upgrade rejects unused old-amount proofs but preserves existing claim replay',async()=>{
+ const s=setup(),c=s.ledger.challenge('alice');assert.match(c.message,/Request: exactly 25 JUNOX/);
+ s.ledger.db.prepare('UPDATE challenges SET message=? WHERE id=?').run(c.message.replace('25 JUNOX','10 JUNOX'),c.id);
+ await assert.rejects(s.ledger.claim(c),/fresh wallet signature/);assert.equal(s.prepares,0);
+ s.ledger.db.prepare("INSERT INTO claims(id,address,status,hash,confirmed,created) VALUES(?,?,'confirmed',?,?,?)").run(c.id,'alice',HASH,s.now,s.now);
+ assert.equal((await s.ledger.claim(c)).hash,HASH);assert.equal(s.prepares,0);
+ assert.throws(()=>s.ledger.challenge('alice'),/Only 25/);s.ledger.close();
 });
