@@ -32,6 +32,11 @@ Updated: **2026-10-05 (Europe/Berlin)**. This is the continuation entry point, n
   receipts exist; payout/replay/restart/fresh-wallet E2E and real stake/unstake
   evidence remain open. See [faucet handoff](docs/HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md).
 
+- Independent validator observations were added on 2026-10-05: check entered
+  operator addresses without a wallet, or read a stored link to check its pair.
+  The panel distinguishes existence, UNI-7 consensus membership and unavailable
+  data; it does not award points or close the real operator test gate.
+
 ## Next task
 
 The next NNS gate needs a **consenting operator who controls both a Juno mainnet

@@ -1,4 +1,4 @@
-import {createValidatorPanel} from './names-v2-validator-ui.mjs?v=1';
+import {createValidatorPanel} from './names-v2-validator-ui.mjs?v=2';
 import {NamesV2Reader} from './names-v2-reader.mjs?v=4';
 import {connectNamesWallet} from './names-v2-wallet.mjs?v=4';
 import {normalizeName,normalizeContacts,validateJunoAddress} from './names-profile-core.mjs';

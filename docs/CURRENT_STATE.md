@@ -43,6 +43,7 @@ See [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
 | Main RELAY Names | Directory, DAO profile reads/copy/follows, USD fee calculator, unpublished contact/validator preview | No public registration/payment/profile-write service; production constants remain null |
 | `names-v2-setup.html` | Explicit Keplr upload/instantiate/activation, local test quote key, manifest export and receipt recovery | Existing owner deployment is already complete; do not repeat setup |
 | `names-v2-lab.html` | Verified manifest, mock-NETA registration/renewal, recipient-accepted transfer and public contacts | UNI-7 only; quote rate is fictional USD 2/mock NETA |
+| Independent validator observation | Wallet-free entered-pair check; stored-link refresh checks both validator records and UNI-7 consensus keys at a displayed block | Public provider observations, latest staking records, no uptime or programme points; unavailable data stay unresolved |
 | Validator ownership section | Exact contract-matched challenge, separate juno-1/uni-7 ADR-36 signatures, reviewed publication, owner unlink, unilateral revocation | Live consenting-validator E2E outstanding; no points or active-set attestation |
 
 `names.js` retains inactive v1 with `REGISTRY=null`; `NAMES_V2_DEPLOYMENT` and
@@ -56,6 +57,12 @@ latest-state reads on 2026-10-04. Current observed owner of `cristiano.neta` is
 expiry 2028-10-03T19:15:41Z. Old owner mapping/offer are cleared; visible contacts
 are empty after transfer. See [NNS handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md) for
 receipt limits, setup receipts and release verification through PR #145.
+
+`names-v2-validator-status.mjs` separately checks fresh `juno-1`/`uni-7` block
+identity, exact operator records, and the full paginated UNI-7 consensus set at
+one recorded height. Latest staking records are not height-pinned; this is a
+read-only diagnostic, not an eligibility snapshot or light-client verification.
+Input/manifest changes cancel observations and prevent late result replacement.
 
 `names-v2-reader.mjs` verifies deployment and fresh UNI-7 data;
 `names-v2-client.mjs` coordinates reviewed intents and exact receipt recovery;

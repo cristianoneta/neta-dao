@@ -33,6 +33,29 @@ hash pasted by owner: `A1BBE04F166B3E443BD665A8A82367700950A7F6B3CD489701575C666
 Exact registration/profile/renewal/offer/accept receipts still need archival; the
 table is post-state evidence, not a claim that their exact bytes were reverified here.
 
+## Independent chain observations — 2026-10-05
+
+The lab now has **Check entered validators**, usable without a manifest or wallet.
+**Read current link** also checks the stored pair after reading its profile. The
+new reader verifies fresh chain headers and exact operator records, then compares
+the UNI-7 consensus public key with every page of the set at the displayed height.
+Mainnet existence does not require active-mainnet membership. Bonded staking status
+is never substituted for actual consensus membership. Failed, stale, malformed or
+incomplete data remain explicitly unavailable; these observations award no points.
+
+Sources are pinned public REST providers (Polkachu/STAVR for mainnet, NodesHub/STAVR
+for UNI-7). Records use latest staking state, while consensus pages share a fixed
+height. This is not a coherent historical programme snapshot or light-client proof.
+Each provider attempt is bounded to 15 seconds and 2 MB per response; no background
+polling or wallet writes are added. Input/manifest changes cancel pending reads.
+Protocol source: Cosmos SDK `proto/cosmos/base/tendermint/v1beta1/query.proto`.
+Local tests: 91 root Node tests passed, including wrong-chain/stale/not-found,
+malformed records, complete consensus pagination, fallback and cancellation.
+Browser CI additionally exercises wallet-free checks, inactive/unavailable states,
+existing ownership writes and responsive layouts. Real operator E2E stays open.
+Live chain requests from the execution environment were blocked with HTTP 403;
+no successful live validator observation is claimed from those attempts.
+
 ## Current implementation and next action
 
 The validator continuation adds a separate section in names-v2-lab.html:
@@ -49,8 +72,9 @@ operator can withdraw consent; any connected UNI-7 wallet can pay that revocatio
 gas. The name owner cannot veto a valid operator revocation. Public-contact data
 and registry ownership are not changed by unlink/revoke.
 
-Read current link queries the profile contract. A stored operator-key link does
+Read current link queries the profile contract. A stored operator-key link alone does
 not prove validator existence or active-set membership and does not award points.
+The separate read-only observation above reports available public-chain evidence.
 No validator has been recruited or contacted. Real validator link/unlink/revoke
 E2E remains outstanding. Tests use synthetic wallets/signatures/adapters; they
 are not evidence of a consenting operator or live validator publication.
