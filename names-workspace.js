@@ -24,7 +24,7 @@
       directory:["Directory","Find a DAO and choose the updates you want to receive."],
       contacts:["Contacts","Keep the people and DAOs you use most in one place."],
       profile:["My profile","Your name, public contacts and validator identities."],
-      register:["Your .neta name","Register, renew and transfer your test name on UNI-7."],
+      register:["Your .neta name","Register, renew and transfer your .neta name on the selected network."],
       dao:["DAO profile","Identity, address and updates for this DAO."]
     }[name];
     find("#names-page-title").textContent = copy[0];

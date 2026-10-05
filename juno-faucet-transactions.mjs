@@ -1,17 +1,19 @@
-import {CHAIN, RPCS} from './juno-faucet-core.mjs?v=2';
+import {namesNetwork} from './names/networks.mjs';
+import {CHAIN} from './juno-faucet-core.mjs?v=2';
 
 const digest = async bytes => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 const decode = value => Uint8Array.from(atob(value),c=>c.charCodeAt(0));
 
 // Only reads chain data. Never signs or rebroadcasts an uncertain transaction.
-export async function lookupTransaction(hash, fetcher=fetch) {
+export async function lookupTransaction(hash, fetcher=fetch, chainId=CHAIN) {
+  const network=namesNetwork(chainId);
   if(!/^[0-9A-F]{64}$/.test(hash))throw Error('Invalid transaction hash');
   const get=async url=>{const r=await fetcher(url,{cache:'no-store',signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('Transaction lookup unavailable');return r.json();};
   // STAVR indexes transactions; NodesHub currently disables its transaction index.
-  for(const rpc of [...RPCS].reverse()){
+  for(const rpc of [...network.rpcs].reverse()){
     try{
       const status=await get(rpc+'/status');
-      if(status.result?.node_info?.network!==CHAIN)continue;
+      if(status.result?.node_info?.network!==chainId)continue;
       const response=await get(rpc+'/tx?hash=0x'+hash),r=response.result;
       if(!r||r.hash?.toUpperCase()!==hash||!r.tx)continue;
       const height=Number(r.height),code=r.tx_result?.code,tx=decode(r.tx);

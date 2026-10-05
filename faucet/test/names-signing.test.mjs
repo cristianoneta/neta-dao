@@ -86,3 +86,15 @@ test('confirmation can become visible after several reads without a second broad
  assert.equal((await h.bridge().execute(r)).code,0);
  assert.equal(reads,3);assert.equal(h.signs(),1);assert.equal(h.broadcasts(),1);
 });
+
+test('mainnet bridge isolates attempts and journals, checks chain on recovery and never clears UNI-7 data',async()=>{
+ const h=harness(),r=request();h.opts.chainId='juno-1';h.setChain('juno-1');h.setMode('lost');
+ const testnetKey='neta-pending-tx-v1:uni-7:'+owner;h.storage.setItem(testnetKey,'preserved-testnet-journal');
+ await assert.rejects(h.bridge().execute(r),/UNKNOWN/);
+ assert.equal(h.signs(),1);assert.equal(h.broadcasts(),1);
+ assert.ok(h.storage.getItem(attemptKey(owner,r.intentId,'juno-1')));assert.equal(h.storage.getItem(attemptKey(owner,r.intentId)),null);
+ const raw=TxRaw.decode(h.found().tx),auth=AuthInfo.decode(raw.authInfoBytes);assert.equal(auth.fee.amount[0].denom,'ujuno');
+ h.setChain('uni-7');await assert.rejects(h.bridge().recover(r),/network mismatch/);
+ h.setChain('juno-1');h.setMode('');const result=await h.bridge().recover(r);assert.equal(result.chainId,'juno-1');
+ assert.equal(h.storage.getItem(testnetKey),'preserved-testnet-journal');assert.equal(h.storage.getItem('neta-pending-tx-v1:juno-1:'+owner),null);assert.equal(h.broadcasts(),1);
+});

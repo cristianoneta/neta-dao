@@ -1,7 +1,7 @@
 # NETA DAO code-backed current state
 
-Updated **2026-10-05** for the Treasury snapshot-price implementation following
-WYND quote-service release #153. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
+Updated **2026-10-05** for mainnet Names adapters and browser price-key setup
+following Treasury snapshot-price PR #155. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
 [HANDOFF](../HANDOFF.md) owns the next action and working rules. Observed chain,
 service and data states are timestamped evidence, not guarantees of future state.
 The previous append-only inventory is retained in the [archive](archive/CURRENT_STATE_BEFORE_CLEANUP_2026-10-04.md).
@@ -11,7 +11,7 @@ The previous append-only inventory is retained in the [archive](archive/CURRENT_
 This repository owns `dao.netareborn.com`; `cristianoneta/neta-website` owns
 `netareborn.com` and legacy Operations workshop source. Do not duplicate the DAO
 frontend there. `index.html` loads governance, Treasury, RELAY notifications, Names workspace/profile
-controls and shared navigation. UNI-7 Names signing loads only on a deliberate
+controls and shared navigation. Names signing loads only on a deliberate
 wallet action; the CoreCrypto runtime and separate wallet lab are not embedded.
 
 The approved graphite/mint design uses shared `neta-ui.css`, the assembly-plaza
@@ -40,7 +40,7 @@ See [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
 
 | Surface | Implemented and connected | Boundary |
 | --- | --- | --- |
-| Main RELAY Names | Directory/DAO reads and follows; pinned UNI-7 lookup, registration, renewal, transfer, public contact reads/updates and validator preview | Test purchases require the original local quote key; production constants remain null |
+| Main RELAY Names | Directory/DAO reads and follows; network-selectable mainnet/UNI-7 lookup, registration, renewal, transfer, public contact reads/updates and validator preview | Mainnet adapters require the verified production manifest, not yet recorded; UNI-7 purchases use the original local key |
 | `names-v2-setup.html` | Explicit Keplr upload/instantiate/activation, local test quote key, manifest export and receipt recovery | Existing owner deployment is already complete; do not repeat setup |
 | `names-v2-lab.html` | Verified manifest, mock-NETA registration/renewal, recipient-accepted transfer and public contacts | UNI-7 only; quote rate is fictional USD 2/mock NETA |
 | Independent validator observation | Wallet-free entered-pair check; stored-link refresh checks both validator records and UNI-7 consensus keys at a displayed block | Public provider observations, latest staking records, no uptime or programme points; unavailable data stay unresolved |
@@ -70,13 +70,13 @@ one recorded height. Latest staking records are not height-pinned; this is a
 read-only diagnostic, not an eligibility snapshot or light-client verification.
 Input/manifest changes cancel observations and prevent late result replacement.
 
-`names-v2-workspace.mjs` integrates existing UNI-7 operations into the main RELAY
-name/profile panels using the shared header wallet, a pinned public manifest,
-explicit reviews and the same persisted transaction journals. It does not deploy
+`names-v2-workspace.mjs` integrates mainnet and existing UNI-7 adapters into the main
+RELAY name/profile panels using the shared header wallet, pinned public manifests,
+explicit reviews and chain-scoped persisted transaction journals. It does not deploy
 new contracts or activate a public/mainnet quote service. Browser quote creation
 still needs the original setup browser. See [integration](NAMES_MAIN_PAGE_INTEGRATION.md).
 
-`names-v2-reader.mjs` verifies deployment and fresh UNI-7 data;
+`names-v2-reader.mjs` verifies deployment and fresh data on the selected chain;
 `names-v2-client.mjs` coordinates reviewed intents and exact receipt recovery;
 `names-v2-wallet.mjs` bridges Keplr and the existing origin transaction journal.
 `names-v2-validator-proofs.mjs` keeps unpublished proofs in tab memory across
@@ -94,10 +94,10 @@ UNI-7 code and historical artifacts are unchanged. `names/publish-snapshot.mjs`
 signs the collector's explicit `nns_price` offline in the main DAO job; no new
 market polling or Render service is needed. `snapshot-client.mjs`, shared core
 validation and `NamesV2Client.snapshotQuote` support reviewed snapshot payments
-and existing recovery. The normal page/reader/wallet remains UNI-7-only and uses
-its old local individual-quote flow. A production price secret, verified version-3
-manifest, mainnet contracts/DAO execution and mainnet UI/wallet integration are
-still absent. The publication step skips while no production manifest exists.
+and existing recovery. The normal page/reader/wallet now supports both chains; UNI-7 retains
+its old local individual-quote flow. Mainnet adapters and browser price-key setup
+are implemented and synthetically tested. A production price secret, verified
+version-3 manifest and mainnet contracts/DAO execution are still absent. The publication step skips while no production manifest exists.
 See [runbook](../names/README.md) and [snapshot evidence](NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 The earlier continuous WYND server is deferred, not hosted. Its stricter policy
 is not the policy of the approved snapshot system.
@@ -317,3 +317,12 @@ suites. Contract Markdown and the RELAY security document do match some filters;
 `faucet/**` also triggers faucet CI. See `.github/workflows/` and actual checks.
 `relay-client-assets.yml` is a branch-specific preparation writer, not a recurring
 main publisher. Follow the local verification commands in [README](../README.md).
+
+## Owner mainnet preparation
+
+`names-mainnet-setup.html` creates/restores an owner-controlled Ed25519 price key
+locally, downloads a private PEM backup and a public deployment plan, and links
+to the repository Actions-secret form. It stores only the public key and has
+`connect-src 'none'`. Private-key export/copy requires an explicit click. It does
+not install the secret, deploy contracts or enable purchases. Public-key continuity
+and matching backup restoration avoid silently replacing an existing authority.

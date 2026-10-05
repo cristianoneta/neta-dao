@@ -2,9 +2,17 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import {readFile, mkdir} from 'node:fs/promises';
 import {chromium} from 'playwright';
+import {createPrivateKey,createPublicKey,sign} from 'node:crypto';
+import {SNAPSHOT_ARTIFACTS} from '../../names/mainnet-artifacts.mjs';
+import {NETA,DAO} from '../../names/service/constants.mjs';
+import {priceSnapshotPreimage} from '../../names-v2-core.mjs';
+const mainnet=process.env.NNS_MAINNET==='1',chainId=mainnet?'juno-1':'uni-7';
+const priceKey=createPrivateKey({key:Buffer.concat([Buffer.from('302e020100300506032b657004220420','hex'),Buffer.alloc(32,7)]),format:'der',type:'pkcs8'});
 const root = new URL('../../', import.meta.url);
 const manifest = JSON.parse(await readFile(new URL('docs/deployments/nns-uni7-owner-2026-10-04.json', root)));
-const owner = manifest.admin, recipient = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
+const owner = manifest.admin;
+if(mainnet){Object.assign(manifest,{version:3,pricing_protocol:'treasury-snapshot-v1',chain_id:'juno-1',testnet_only:false,token:NETA,admin:DAO,treasury:DAO,quote_public_key:createPublicKey(priceKey).export({format:'der',type:'spki'}).subarray(-32).toString('base64')});for(const role of ['registry','profiles'])manifest.contracts[role].sha256=SNAPSHOT_ARTIFACTS[role].sha256;delete manifest.contracts.token;}
+const recipient = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
 const config = {...manifest, purchases_paused: false, tariff_version: 2, tariff: {three_cents: 9900, four_cents: 1900, standard_cents: 500}};
 let record = null, commitment = null, offer = null, revision = 0, lost = false, writes = [], delayedProfile = null, holdProfile = false;
 let contacts = {description: '', discord: '', telegram: '', twitter: '', email: '', website: ''};
@@ -17,11 +25,12 @@ try {
   browser = await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
   const context = await browser.newContext(), page = await context.newPage(), errors=[];
   page.on('pageerror',e=>errors.push(e.message));
-  await context.route('**/docs/deployments/nns-uni7-owner-2026-10-04.json',r=>json(r,manifest));
+  await context.route('**/docs/deployments/'+(mainnet?'nns-mainnet.json':'nns-uni7-owner-2026-10-04.json'),r=>json(r,manifest));
+  if(mainnet)await context.route('**/data/nns/price.json',r=>{const now=Math.floor(Date.now()/1000),snapshot={signer_version:1,usd_per_neta_12:'2000000000000',observed_at:now-60,expires_at:now+86340};return json(r,{schema_version:1,chain_id:chainId,registry:manifest.registry,token:NETA,treasury:DAO,snapshot,signature:sign(null,Buffer.from(priceSnapshotPreimage(manifest,config,snapshot)),priceKey).toString('base64')});});
   await context.route('https://**/*', async route => {
     const p=new URL(route.request().url()).pathname;let data={};
-    if(p.endsWith('/node_info'))data={default_node_info:{network:'uni-7'}};
-    else if(p.endsWith('/blocks/latest'))data={block:{header:{chain_id:'uni-7',height:'100',time:new Date().toISOString()}}};
+    if(p.endsWith('/node_info'))data={default_node_info:{network:chainId}};
+    else if(p.endsWith('/blocks/latest'))data={block:{header:{chain_id:chainId,height:'100',time:new Date().toISOString()}}};
     else if(p.includes('/smart/')) {
       const contract=p.split('/contract/')[1].split('/')[0],q=JSON.parse(Buffer.from(decodeURIComponent(p.split('/smart/')[1]),'base64').toString());
       let value=[];
@@ -44,8 +53,8 @@ try {
     if(msg.commit)commitment={hash:msg.commit.hash};
     else if(msg.send){
       assert.equal(request.contract,manifest.token);assert.equal(msg.send.contract,manifest.registry);
-      const hook=JSON.parse(Buffer.from(msg.send.msg,'base64').toString()),q=(hook.register||hook.renew).offer.quote;
-      if(hook.register){assert.ok(commitment);record={name:q.name,owner:request.owner,generation:1,ownership_revision:1,expires_at:Math.floor(Date.now()/1000)+31536000};commitment=null;}
+      const hook=JSON.parse(Buffer.from(msg.send.msg,'base64').toString()),q=(hook.register||hook.renew||hook.register_snapshot||hook.renew_snapshot).offer.quote;
+      if(hook.register||hook.register_snapshot){assert.ok(commitment);record={name:q.name,owner:request.owner,generation:1,ownership_revision:1,expires_at:Math.floor(Date.now()/1000)+31536000};commitment=null;}
       else record.expires_at+=31536000;
     }else if(msg.update_contacts){assert.equal(msg.update_contacts.expected_revision,revision);contacts=structuredClone(msg.update_contacts.contacts);revision++;}
     else if(msg.offer_transfer){offer={id:1,name:record.name,owner:record.owner,recipient:msg.offer_transfer.recipient,generation:1,ownership_revision:record.ownership_revision,expires_at:msg.offer_transfer.expires_at};}
@@ -53,30 +62,32 @@ try {
     else if(msg.cancel_transfer)offer=null;
     else throw Error('Unexpected write '+JSON.stringify(msg));
     if(lost)throw Error('OUTCOME UNKNOWN: fixture response lost');
-    return {chainId:'uni-7',transactionHash:String(writes.length).padStart(64,'A'),height:100+writes.length,code:0};
+    return {chainId,transactionHash:String(writes.length).padStart(64,'A'),height:100+writes.length,code:0};
   });
   await page.addInitScript(({owner})=>{
-    window.testWallet=owner;window.testDisconnects=0;
-    window.keplr={experimentalSuggestChain:async()=>{},enable:async()=>{},getOfflineSigner:()=>({getAccounts:async()=>[{address:window.testWallet}],signDirect(){throw Error('No real wallet signing in fixture');}})};
+    window.testWallet=owner;window.testDisconnects=0;window.enabledNamesChains=[];
+    window.keplr={experimentalSuggestChain:async()=>{},enable:async chain=>{window.enabledNamesChains.push(chain);},getOfflineSigner:()=>({getAccounts:async()=>[{address:window.testWallet}],signDirect(){throw Error('No real wallet signing in fixture');}})};
     window.NetaNamesSigning={validAddress:()=>true,connect:async()=>{if(window.holdConnection)await new Promise(resolve=>window.releaseConnection=resolve);return {disconnect(){window.testDisconnects++;}};},createBridge:()=>({execute:request=>window.simulateNamesWrite(request)})};
   },{owner});
   const settle=()=>page.waitForFunction(()=>!document.querySelector('#nns-refresh').disabled);
   const click=async id=>{await page.locator('#'+id).click();await settle();};
   await page.goto(origin+'/index.html#relay/register');
-  manifest.quote_public_key=config.quote_public_key=await page.evaluate(async()=>{const {getTestAuthority}=await import('/names-v2-test-authority.mjs');return (await getTestAuthority({create:true})).publicKey;});
+  await page.locator('#nns-network').selectOption(chainId);
+  if(!mainnet)manifest.quote_public_key=config.quote_public_key=await page.evaluate(async()=>{const {getTestAuthority}=await import('/names-v2-test-authority.mjs');return (await getTestAuthority({create:true})).publicKey;});
   assert.equal(await page.locator('#nns-prepare').isDisabled(),true);
   assert.equal(await page.locator('#nns-workspace-session').isVisible(),true);
-  await click('nns-refresh');assert.match(await page.locator('#nns-deployment-status').textContent(),/UNI-7 verified/);
+  await click('nns-refresh');assert.match(await page.locator('#nns-deployment-status').textContent(),mainnet?/Juno mainnet verified/:/UNI-7 verified/);
   await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
+  assert.equal(await page.evaluate(()=>window.enabledNamesChains.at(-1)),chainId);
   await page.locator('#names-fee-label').fill('abcd');
   assert.equal(await page.locator('#names-fee-total').textContent(),'$19 USD');
-  await click('nns-check-name');assert.match(await page.locator('#nns-name-result').textContent(),/available on UNI-7/);assert.equal(writes.length,0);
+  await click('nns-check-name');assert.match(await page.locator('#nns-name-result').textContent(),mainnet?/available on Juno mainnet/:/available on UNI-7/);assert.equal(writes.length,0);
   config.tariff.four_cents=16000;await click('nns-refresh');await click('nns-prepare');assert.match(await page.locator('#nns-status').textContent(),/approved USD 99/);assert.equal(writes.length,0);
   config.tariff.four_cents=1900;await click('nns-refresh');
   await click('nns-prepare');assert.equal(writes.length,0);
   await click('nns-reserve');assert.match(await page.locator('#nns-review-text').textContent(),/Reserve abcd.neta/);assert.equal(writes.length,0);
   await click('nns-confirm');assert.equal(writes.length,1);
-  await click('nns-payment');assert.match(await page.locator('#nns-review-text').textContent(),/9.500000 mock NETA/);assert.equal(writes.length,1);
+  await click('nns-payment');assert.match(await page.locator('#nns-review-text').textContent(),mainnet?/9.500000 NETA/:/9.500000 mock NETA/);assert.equal(writes.length,1);
   await click('nns-confirm');assert.equal(writes.length,2);assert.equal(record.name,'abcd.neta');
   await click('nns-my-name');assert.match(await page.locator('#nns-owned').textContent(),/abcd.neta/);assert.equal(await page.locator('#nns-operation').inputValue(),'renew');
   await click('nns-payment');const expiry=record.expires_at;await click('nns-confirm');assert.equal(record.expires_at,expiry+31536000);
@@ -119,11 +130,11 @@ try {
     for(const panel of ['register','profile']){
       await page.locator(`[data-relay-panel="${panel}"]`).click();
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${panel} overflow ${width}`);
-      if(process.env.NNS_SCREENSHOT_DIR)await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/workspace-${panel}-${width}.png`,fullPage:true});
+      if(process.env.NNS_SCREENSHOT_DIR)await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/workspace-${mainnet?"mainnet":"uni7"}-${panel}-${width}.png`,fullPage:true});
     }
   }
   await page.setViewportSize({width:720,height:500});await page.locator('[data-relay-panel="register"]').click();
   await page.locator('#nns-refresh').focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'nns-refresh');assert.notEqual(await page.locator('#nns-refresh').evaluate(el=>getComputedStyle(el).outlineStyle),'none');
   assert.deepEqual(errors,[]);
-  console.log('Integrated NNS: register, quote, renew, contacts, transfer, stale review, shared wallet, pending journal reload and responsive UI passed.');
+  console.log(chainId+' integrated NNS: register, quote, renew, contacts, transfer, stale review, shared wallet, pending journal reload and responsive UI passed.');
 }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
