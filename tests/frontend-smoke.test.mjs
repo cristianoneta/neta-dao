@@ -243,9 +243,10 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(html, /data-relay-panel-view="names"/);
   assert.match(html, /id="names-view"/);
   assert.match(names, /const REGISTRY=null/);
-  assert.match(html, /Planned annual registration and renewal/);
+  assert.match(html, /Annual registration and renewal/);
   assert.match(html, /USD 5 · 4 characters: USD 19 · 3 characters: USD 99/);
-  assert.match(html, /Mainnet registration is not active yet/);
+  assert.match(html, /Read the selected registry for current purchase availability and pricing/);
+  assert.doesNotMatch(html, /Mainnet registration is not active yet|name registration and lookup are not active yet/);
   assert.doesNotMatch(html, /names-preview-entry|Explore the preview/);
   assert.match(html, /names-workspace\.js\?v=[^"\s]+/);
   assert.match(html, /data-name-panel="directory"/);
@@ -276,5 +277,4 @@ test("Relay reading pane shows the proposal summary and message styling remains 
   assert.match(html, /PREVIEW · SEND DISABLED/);
   assert.match(html, /type="submit" disabled aria-describedby="relay-send-note">SEND MESSAGE/);
 });
-
 
