@@ -22,11 +22,13 @@ The main workspace now also exposes the existing UNI-7 registry through
 `.neta name` and `My profile`: lookup, registration, renewal, recipient-accepted
 transfer and public contact read/update. It uses the shared header wallet and
 existing transaction journals. The pinned public manifest is read automatically
-when the user chooses Read test registry; no setup or file import is required.
+when the user chooses Read registry; no setup or file import is required.
 Purchases require the approved on-chain tariff and the original browser's local
 test quote authority, at fictional USD 2/mock NETA. This is not a public quote
 service. Registry reads/profile/transfer do not need the local price key.
-Mainnet deployment constants remain null. Contact persistence, DAO profile
+Legacy mainnet deployment constants remain null. The mainnet adapter now loads
+a verified version-3 manifest and signed Treasury price after explicit network
+selection; actual deployment/DAO activation and the production secret remain open. Contact persistence, DAO profile
 proposals, lifecycle messages, receiving-address proofs and name-based payments
 remain later work. Validator/admin tools stay in the separate lab while real
 validator E2E is deferred. See [the integration record](NAMES_MAIN_PAGE_INTEGRATION.md).

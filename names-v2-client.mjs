@@ -1,6 +1,7 @@
 import {checkValidatorSnapshot,validateOperatorProof,samePair} from './names-v2-validator-proofs.mjs?v=1';
 import {NAMES_V2_DEPLOYMENT,commitmentHash,validateQuote,paymentMessage,renewalExpiry} from './names-v2-core.mjs';
 import {normalizeName,normalizeContacts} from './names-profile-core.mjs';
+import {validateSnapshotDeployment} from './names/snapshot-deployment.mjs';
 import {fetchSnapshotOffer} from './names/snapshot-client.mjs';
 
 // Transaction coordination only. The host supplies a pinned, verified reader,
@@ -8,7 +9,8 @@ import {fetchSnapshotOffer} from './names/snapshot-client.mjs';
 // No production instance is created while NAMES_V2_DEPLOYMENT is null.
 export class NamesV2Client {
   constructor({deployment=NAMES_V2_DEPLOYMENT, reader, storage, walletAddress, execute, withLock, now=()=>Math.floor(Date.now()/1000), cryptoProvider=globalThis.crypto}) {
-    if(!deployment || deployment.chain_id!=='uni-7') throw Error('UNI-7 Names deployment has not been verified.');
+    if(deployment?.chain_id==='juno-1')validateSnapshotDeployment(deployment);
+    else if(!deployment || deployment.chain_id!=='uni-7') throw Error('Names deployment has not been verified.');
     if(typeof reader?.verify!=='function'||typeof withLock!=='function'||typeof execute!=='function') throw Error('Verified reader, transaction journal and cross-tab lock are required.');
     this.deployment=structuredClone(deployment);this.reader=reader;this.storage=storage;this.walletAddress=walletAddress;
     this.execute=execute;this.withLock=withLock;this.now=now;this.crypto=cryptoProvider;
@@ -36,7 +38,7 @@ export class NamesV2Client {
   async config(owner) {
     await this.owner(owner);
     const config=await this.reader.verify(this.deployment);
-    if(config?.chain_id!==this.deployment.chain_id || config.token!==this.deployment.token || config.treasury!==this.deployment.treasury || config.testnet_only!==true) throw Error('Names deployment identity mismatch.');
+    if(config?.chain_id!==this.deployment.chain_id || config.token!==this.deployment.token || config.treasury!==this.deployment.treasury || config.testnet_only!==(this.deployment.chain_id==='uni-7')) throw Error('Names deployment identity mismatch.');
     await this.owner(owner);return config;
   }
   async prepareRegistration({owner,name,years}) {

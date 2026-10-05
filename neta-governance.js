@@ -13,9 +13,11 @@
   const short=a=>a?`${a.slice(0,9)}…${a.slice(-6)}`:"—",when=t=>new Date(Number(t)*1000).toLocaleString(),deadline=(p,ms,label)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error(`${label} TIMED OUT`)),ms))]);
   const encode=q=>encodeURIComponent(btoa(JSON.stringify(q))),indexingDisabled=e=>/transaction indexing is disabled/i.test([e?.message,e?.data,(()=>{try{return JSON.stringify(e)}catch{return""}})(),String(e)].filter(Boolean).join(" "));
   function status(text,error=false){$("#gov-status").textContent=text;$("#gov-status").dataset.state=error?"error":"ready"}
-  function renderNetwork(){const relay=document.body.dataset.workspaceView==="relay";$(".testnet-pill").textContent=relay?"UNI-7 TESTNET":state.dao.mode==="dao-readonly"?"JUNO MAINNET · READ ONLY":state.dao.mode==="native-gov"?"MAINNET DATA · UNI-7 REVIEW":"UNI-7 TESTNET"}
+  function namesChain(){return document.body.dataset.workspaceView==="relay"&&["register","profile"].includes(document.body.dataset.relayPanel)?($("#nns-network")?.value||"juno-1"):null}
+  function renderNetwork(){const relay=document.body.dataset.workspaceView==="relay";$(".testnet-pill").textContent=relay?(namesChain()==="juno-1"?"JUNO MAINNET · NAMES":"UNI-7 TESTNET"):state.dao.mode==="dao-readonly"?"JUNO MAINNET · READ ONLY":state.dao.mode==="native-gov"?"MAINNET DATA · UNI-7 REVIEW":"UNI-7 TESTNET"}
   window.addEventListener("hashchange",renderNetwork);
   window.addEventListener("neta:relay-panel",renderNetwork);
+  window.addEventListener("neta:nns-network",()=>{clearWallet();renderNetwork()});
   let announcedWallet=null;
   window.NetaWorkspaceWallet=Object.freeze({getAddress:()=>state.address});
   function renderWallet(){renderNetwork();const button=$("#gov-connect");button.textContent=state.connecting?"Connecting…":state.address?short(state.address):"Connect Keplr";button.disabled=state.busy||state.connecting;if(state.address){button.title=state.address;button.setAttribute("aria-label",`Connected wallet ${state.address}. Reconnect Keplr`)}else{button.removeAttribute("title");button.removeAttribute("aria-label")}$("#gov-disconnect").hidden=!state.address;$("#gov-disconnect").disabled=state.busy;if(announcedWallet!==state.address){announcedWallet=state.address;window.dispatchEvent(new CustomEvent("neta:wallet-change",{detail:{address:state.address}}))}}
@@ -75,24 +77,23 @@
   async function connect(){
     if(state.busy||state.connecting)return;
     if(state.dao.mode==="dao-readonly"&&document.body.dataset.workspaceView!=="relay"){status("This DAO is read-only. Explore active members under People; wallet connection is not required.");return}
-    const epoch=++state.walletEpoch,dao=state.dao,contract=CONTRACT;
-    const current=()=>epoch===state.walletEpoch&&dao===state.dao;
+    const epoch=++state.walletEpoch,dao=state.dao,contract=CONTRACT,requestedChain=namesChain()||CHAIN_ID;
+    const current=()=>epoch===state.walletEpoch&&dao===state.dao&&requestedChain===(namesChain()||CHAIN_ID);
     state.connecting=true;renderWallet();status("CONNECTING · CHECK KEPLR");
     try{
       if(!window.keplr)throw new Error("KEPLR NOT FOUND");
-      if(!window.keplr.experimentalSuggestChain)throw new Error("KEPLR CHAIN SUGGESTION UNAVAILABLE");
-      await deadline(window.keplr.experimentalSuggestChain(CHAIN),45000,"CHAIN SUGGESTION");if(!current())return;
-      await deadline(window.keplr.enable(CHAIN_ID),15000,"KEPLR ACCESS");if(!current())return;
-      const base=window.keplr.getOfflineSigner?.(CHAIN_ID)||window.getOfflineSigner?.(CHAIN_ID),account=(await base.getAccounts())[0];if(!current())return;
+      if(requestedChain===CHAIN_ID){if(!window.keplr.experimentalSuggestChain)throw new Error("KEPLR CHAIN SUGGESTION UNAVAILABLE");await deadline(window.keplr.experimentalSuggestChain(CHAIN),45000,"CHAIN SUGGESTION");if(!current())return;}
+      await deadline(window.keplr.enable(requestedChain),15000,"KEPLR ACCESS");if(!current())return;
+      const base=window.keplr.getOfflineSigner?.(requestedChain)||window.getOfflineSigner?.(requestedChain),account=(await base.getAccounts())[0];if(!current())return;
       if(!account?.address)throw new Error("NO KEPLR ACCOUNT AVAILABLE");
       state.client?.disconnect?.();state.mainnetClient?.disconnect?.();state.client=null;state.mainnetClient=null;
       state.address=account.address;state.access=null;renderWallet();renderActions();renderComments();
-      const access=contract?await query({access:{address:account.address}}):null;if(!current())return;
+      const access=contract&&requestedChain===CHAIN_ID?await query({access:{address:account.address}}):null;if(!current())return;
       state.access=access;
       if(dao.mode==="native-gov"){const neta=Number(access?.active_neta_stake||0)/1e6,junox=Number(access?.active_native_stake||0)/1e6;status(contract?`${access?.can_publish?"REVIEW ELIGIBLE":"CONNECTED"} · ${junox} JUNOX + ${neta} TEST NETA STAKED`:"CONNECTED · DEPLOY THE JUNO REVIEW CONTRACT")}
       else status(`${access?.can_publish?"DAO MEMBER":"CONNECTED"} · ${Number(access?.staked_neta||0)/1e6} NETA STAKED`);
     }catch(e){if(current())status(e.message||String(e),true)}
-    finally{if(current()){state.connecting=false;renderWallet();renderActions();renderComments()}}
+    finally{if(epoch===state.walletEpoch){state.connecting=false;renderWallet();renderActions();renderComments()}}
   }
   $("#chain-select").onchange=e=>selectGovernanceChain(e.currentTarget.value);$("#dao-search").onfocus=e=>{e.currentTarget.select();renderDaoOptions("")};$("#dao-search").oninput=e=>renderDaoOptions(e.currentTarget.value);$("#dao-search").onkeydown=e=>{if(e.key==="Escape")closeDaoOptions();if(e.key==="ArrowDown"){e.preventDefault();if($("#dao-options").hidden)renderDaoOptions(e.currentTarget.value);$("#dao-options button")?.focus()}};$("#dao-search").onblur=()=>setTimeout(()=>{if(!$(".dao-picker").contains(document.activeElement))closeDaoOptions()},0);$("#gov-connect").onclick=connect;$("#gov-disconnect").onclick=disconnectWallet;$("#new-draft").onclick=newDraft;$("#save-local").onclick=saveLocal;$("#proposal-details-toggle").onclick=()=>setDetails($("#proposal-details").hidden);$("#cancel-reply").onclick=resetCommentForm;$("#add-action").onclick=()=>{const a=$("#proposal-actions");if(a.value.trim()==="[]")a.value='[{"type":"wasm_execute","contract":"","msg":{}}]';a.focus()};$("#add-deliverable").onclick=()=>{state.deliverables.push({title:"",due_date:"",owner:state.address||"",verifier:"",evidence:""});renderDeliverables();setEditable(!state.selected||state.selected.status==="discussion"&&!!state.access?.can_publish);$("[data-deliverable-field]")?.focus()};
   $("#primary-action").onclick=e=>run(e.currentTarget,async()=>{const native=state.dao.mode==="native-gov";if(!state.selected){const v=values();validate(v);if(native&&!CONTRACT)await deployNativeReview();if(native)await execute({publish_proposal:{content:v}},"Juno Governance publish review",async()=>{const rows=await queryAll(startAfter=>({proposals:{start_after:startAfter,limit:100}}),item=>item.id);return rows.find(p=>p.author===state.address)});else await execute({publish_draft:v},"NETA Governance publish draft",async()=>{const rows=await queryAll(startAfter=>({proposals:{start_after:startAfter,limit:100}}),item=>item.id);return rows.find(p=>p.author===state.address&&p.title===v.title)});localStorage.removeItem(draftKey());if(!native)localStorage.removeItem("neta-governance-local-draft");await load();const hit=state.proposals.slice().reverse().find(p=>p.author===state.address&&p.title===v.title);if(hit)await select(hit.id)}else{const id=state.selected.id;if(native)await execute({finalize:{proposal_id:id,version:state.selected.current_revision}},"Juno Governance finalize review",async()=>{const p=await query({proposal:{proposal_id:id}});return p.finalized_version!==null&&/^[0-9a-f]{64}$/.test(p.finalized_hash||"")});else await execute({finalize_and_submit:{proposal_id:id}},"NETA Governance finalize proposal",async()=>{const p=await query({proposal:{proposal_id:id}});return p.status==="voting"});await load();await select(id)}});

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>NNS mainnet preparation · NETA DAO</title><link rel="stylesheet" href="neta-ui.css"><link rel="stylesheet" href="names-mainnet-setup.css">
+<script type="module" src="names/mainnet-setup.mjs?v=1"></script></head>
+<body><main>
+<a href="index.html#relay/register">← Back to Names</a>
+<header><p class="eyebrow">OWNER SETUP · JUNO MAINNET</p><h1>Prepare the price key.</h1><p>The Treasury job signs NETA prices with a dedicated key. Create it here, save a private backup, then install it in GitHub. No wallet connection or transaction is needed for this step.</p></header>
+<section aria-labelledby="key-heading"><h2 id="key-heading">1. Create or restore the key</h2><p>This page handles the key locally. Only the public key is remembered in this browser. Keep the private backup; a reload removes the private key from this page.</p>
+<button id="create-key" type="button">Create price key</button><label for="restore-key">Already created a key? Restore your private PEM backup</label><input id="restore-key" type="file" accept=".pem">
+<p id="key-status" role="status" aria-live="polite">No price key loaded.</p><label for="public-key">Public price key · safe to share</label><textarea id="public-key" rows="2" readonly spellcheck="false"></textarea><button id="copy-public" type="button" disabled>Copy public key</button>
+</section>
+<section aria-labelledby="secret-heading"><h2 id="secret-heading">2. Save the backup and GitHub secret</h2><p>Download the private backup and keep it somewhere safe. Do not send the PEM file or private key in chat, and do not add it to the repository.</p><button id="download-private" type="button" disabled>Download private backup (.pem)</button>
+<p>Open <a href="https://github.com/cristianoneta/neta-dao/settings/secrets/actions/new" target="_blank" rel="noopener noreferrer">GitHub → New repository secret</a>. Use the name <strong>NNS_PRICE_SIGNING_KEY</strong>. Copy the private key below, paste it into GitHub’s Secret field and save.</p>
+<button id="copy-private" type="button" disabled>Copy private key for GitHub</button><p class="muted">The private key is copied only when you click. Keep it out of screenshots and messages. Once saved in GitHub, copy the public key to replace it in your clipboard.</p>
+</section>
+<section aria-labelledby="plan-heading"><h2 id="plan-heading">3. Prepare contract deployment</h2><p>Download the public plan or share the public key above. It pins the registry and profile artifacts, the real NETA token and the main NETA DAO as fee recipient and administrator. New purchases start paused.</p><button id="download-plan" type="button" disabled>Download public deployment plan</button><p>Next: review and sign the contract deployment in Keplr, verify its receipts, then set the tariff and activate purchases through the DAO. This page does not deploy or activate contracts.</p></section>
+<p id="status" role="status" aria-live="polite"></p>
+</main></body></html>

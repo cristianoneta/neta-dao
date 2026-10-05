@@ -326,9 +326,18 @@ operator withdrawal have explicit separate reviews. No new graphics or wizard.
 ## Integrated Names operations — 2026-10-05
 
 Keep Names inside the existing RELAY shell and shared wallet header. Use a compact
-UNI-7 session panel above the name/profile content and an inline, focusable review
+network selector/session panel above the name/profile content and an inline, focusable review
 panel with exact name, payer/owner, recipient, amount, expiry and network. Do not
 embed the lab or show its setup/admin steps as the normal purchase flow. Use the
 existing contact form; keep preview distinct from explicitly reviewed publication.
 Show testnet/mock-token/local-price limits and preserve transaction recovery across
-wallet changes. Mainnet registration and messaging remain unavailable.
+wallet changes. The mainnet adapter is gated by its verified deployment and DAO activation;
+mainnet messaging remains unavailable.
+
+## Mainnet Names preparation — 2026-10-05
+
+The Names selector explicitly distinguishes Juno mainnet/NETA from UNI-7/mock NETA.
+Reviews repeat network, debit, recipient and the snapshot observation/expiry.
+The separate owner price-key page reuses graphite/mint tokens and labelled controls;
+private PEM contents are never rendered. Show public key, backup/download and
+GitHub-secret instructions separately from unsigned deployment-plan download.

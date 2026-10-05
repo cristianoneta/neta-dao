@@ -17,9 +17,10 @@ The v0.3.0 code also retains the original individual-quote hooks for compatibili
 The snapshot publisher and shared browser/client purchase path are implemented.
 They do **not** imply a mainnet deployment or live purchase: no production price
 secret, reviewed mainnet manifest, new contract addresses or wallet receipts are
-recorded. The normal website reader/wallet remains UNI-7-only; its test purchases
-continue using the original local key. Mainnet reader/wallet and page wiring are
-still a separate launch dependency. Never point the new snapshot client at the
+recorded. The main website now selects Juno mainnet or UNI-7. Mainnet reader/wallet and
+page wiring are implemented and tested with synthetic chain data. Without a
+verified production manifest, mainnet operations stay unavailable. UNI-7 test
+purchases continue using the original local key. Never point the new snapshot client at the
 old UNI-7 registry and claim it supports the new hooks.
 
 ## How it works
@@ -67,8 +68,12 @@ GitHub Actions usage quotas/billing still apply.
 
 ## One-time setup and mainnet sequence
 
-1. Create a dedicated **Ed25519 price key**, not a wallet key, on the owner's
-   trusted machine with Node:
+1. Open [the owner setup page](https://dao.netareborn.com/names-mainnet-setup.html)
+   on the owner's trusted machine. Click **Create price key**, download the private
+   PEM backup, and follow the GitHub-secret instructions there. Only the public
+   key is remembered in browser storage; restore the matching backup after reload.
+   The page downloads the public deployment plan and sends no key over the network.
+   This is a dedicated **Ed25519 price key**, not a wallet key. CLI alternative:
    `node names/create-price-key.mjs /private/path/nns-price-key.pem`.
    The script refuses overwrites and files inside this repository; it prints only
    the public key. Keep a private backup. Never paste the PEM into chat, commit it
@@ -95,7 +100,7 @@ GitHub Actions usage quotas/billing still apply.
    message. This keeps purchases paused; chat approval is not DAO execution.
 6. Verify a successful main DAO workflow, the public signed file, its original
    observation/expiry and browser verification against the actual deployment.
-   Finish mainnet reader/wallet/page integration and recovery review. No secret
+   Verify the implemented mainnet reader/wallet/page with the real manifest and signed price. No secret
    or production manifest is currently installed by this change.
 7. Only after those dependencies, use a **separate DAO unpause** proposal and
    verify one explicitly reviewed owner-signed purchase, exact NETA debit/DAO

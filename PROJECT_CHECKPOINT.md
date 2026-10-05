@@ -6,7 +6,8 @@ release evidence belongs to the linked runbooks, not another duplicate chronolog
 
 1. **NNS pricing / deferred validator test:** follow the approved shared Treasury
    snapshot-price path in [names/README](names/README.md), with 24-hour validity
-   and no separate Render service. Production key/manifest/deployment remain open.
+   and no separate Render service. Production key/manifest/deployment remain open; browser key setup and mainnet
+   reader/wallet/page adapters are implemented.
    Independently, apply the approved 99/19/5 USD
    annual tariff through the existing UNI-7 admin action and verify its receipt.
    Validator live tests are paused at the owner’s request (2026-10-05).

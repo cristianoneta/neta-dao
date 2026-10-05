@@ -52,10 +52,13 @@ local authority and transaction journals remain unchanged. Source and synthetic
 tests are not a deployed mainnet or owner-wallet purchase. See [the owning runbook](names/README.md)
 and [snapshot release checkpoint](docs/NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 
-**Next external dependency:** create the dedicated price key on the owner's
-trusted machine and store its PEM privately as Actions secret
+**Next owner action:** open `https://dao.netareborn.com/names-mainnet-setup.html`,
+click Create price key, download the private PEM backup and store it privately as
+the GitHub Actions secret
 `NNS_PRICE_SIGNING_KEY`; only its public key belongs in the deployment plan.
-No secret was created or installed in this session. No service URL is needed.
+No production secret was created or installed in this session. Only the public
+key or public plan should be shared in chat. The browser page needs no Node install.
+No service URL is needed.
 `names/mainnet-plan.mjs` verifies the new artifact and prepares unsigned material.
 Prepare and owner-sign mainnet registry/profile deployment, record exact receipts
 and a verified version-3 `docs/deployments/nns-mainnet.json`, then execute the
@@ -67,12 +70,16 @@ not re-dated; missing or expired prices stop purchase preparation. Authentic old
 snapshots can remain usable until expiry; no on-chain price-update transaction is
 introduced. See the runbook for this accepted approximation and key custody.
 
-Mainnet reader/wallet/page integration still requires completion and review; the
-existing website is UNI-7-only. The new core/client can prepare, validate, submit
-and recover snapshot-form payments against a capable verified test deployment,
-but no real new test deployment or mainnet adapter is claimed. After publication
-and mainnet integration, activate purchases through a separate DAO proposal and
-verify an owner-signed purchase. No mainnet address or wallet/DAO receipt is recorded.
+Mainnet reader/wallet/page integration is implemented. The Names network selector
+chooses `juno-1` or the preserved UNI-7 deployment; the shared header requests the
+selected chain. Mainnet checks both registry/profile artifact pins, real NETA,
+DAO/key/config and fresh chain data; it uses the public signed Treasury snapshot.
+Purchase/profile/transfer reviews and journals remain scoped by chain/registry.
+Absent or unverified production manifests keep mainnet operations unavailable.
+Browser suites exercise both networks with synthetic adapters, not live receipts.
+After owner-signed deployment, verify the public price and real mainnet UI, activate
+purchases through a separate DAO proposal and verify an owner-signed purchase.
+No mainnet address or wallet/DAO receipt is recorded.
 
 The main `.neta name` and `My profile` pages already reuse the existing UNI-7
 manifest, shared header wallet and journals for registration/renewal/transfers and

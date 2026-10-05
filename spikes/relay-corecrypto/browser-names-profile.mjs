@@ -54,7 +54,7 @@ try {
   assert.equal(await preview.locator('img,script').count(),0);
   assert.equal(await preview.locator('a[href="https://t.me/operator"]').count(),1);
   assert.equal(await preview.locator('a[href="https://example.org"]').getAttribute('rel'),'noopener noreferrer');
-  assert.equal(await page.getByRole('button',{name:'Review public profile · UNI-7',exact:true}).isDisabled(),true);
+  assert.equal(await page.getByRole('button',{name:'Review public profile',exact:true}).isDisabled(),true);
   assert.equal(await page.evaluate(()=>Object.keys(localStorage).some(k=>/names-profile/.test(k))),false);
   if(process.env.NNS_SCREENSHOT_DIR) await mkdir(process.env.NNS_SCREENSHOT_DIR,{recursive:true});
   for (const width of [1440,768,390,320]) {

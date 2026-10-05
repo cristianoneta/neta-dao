@@ -73,7 +73,7 @@ try{
    client:{load(){return null;},async updateProfile(args){window.profileWrites.push(structuredClone(args));}}};
  }`}));
  await page.goto(origin+'/names-v2-lab.html');
- await page.locator('#manifest').setInputFiles({name:'fixture.json',mimeType:'application/json',buffer:Buffer.from('{"registry":"test-registry"}')});
+ await page.locator('#manifest').setInputFiles({name:'fixture.json',mimeType:'application/json',buffer:Buffer.from('{"registry":"test-registry","chain_id":"uni-7","testnet_only":true,"version":1}')});
  await page.locator('#verify').click();await page.locator('#connect').click();
  await page.locator('#profile-name').fill('cristiano');
  const typed={description:'A public test profile',discord:'example.1',telegram:'@example_tg',twitter:'@example_x',email:'test@example.org',website:'https://example.org'};

@@ -1,9 +1,11 @@
-# Next chat — NNS WYND service and mainnet preparation
+# Next chat — NNS Treasury prices and mainnet preparation
 
 Checkpoint updated: 2026-10-05 after the owner **replaced the Render price-service
 plan with Treasury price snapshots**. Source v0.3.0 and an offline Actions publisher
 are prepared; no mainnet deployment/secret exists. Next: owner-controlled price
-key and mainnet preparation, not Render. See [root HANDOFF](../HANDOFF.md),
+key at `names-mainnet-setup.html`, then mainnet deployment, not Render.
+Mainnet reader/wallet/page adapters and a network selector are implemented and
+synthetically tested. Missing production manifest/DAO activation keeps writes off. See [root HANDOFF](../HANDOFF.md),
 [snapshot checkpoint](NNS_SNAPSHOT_RELEASE_2026-10-05.md) and [runbook](../names/README.md).
 The earlier UNI-7 lifecycle/validator evidence below remains valid as dated evidence.
 Read AGENTS.md, HANDOFF.md and CURRENT_STATE.md; read DESIGN_SYSTEM.md before
@@ -38,12 +40,12 @@ open, and direct live REST calls from the execution environment returned 403.
 The normal RELAY name/profile pages reuse the existing UNI-7 deployment, shared
 header wallet, reader/client and persistent journals. Registration, renewal,
 transfer and public contacts have main-page controls and explicit reviews. Start
-with Read test registry and Load my name; do not repeat setup or the completed
+with UNI-7 selected and Read registry and Load my name; do not repeat setup or the completed
 purchases/transfer. Test quotes still use the original browser's saved authority.
 The integration tests simulate chain/wallet adapters; an owner check of this new
 UI is pending. Real validator testing remains deferred. The owner subsequently
 selected WYND for NETA pricing, reconfirmed the tariff and requested moving to
-mainnet. The server/Render preparation is in [names/README](../names/README.md).
+mainnet. The current browser key and deployment runbook is [names/README](../names/README.md).
 The later owner decision replaces that service with shared signed Treasury prices;
 see the root handoff for the current key/deployment sequence. No mainnet contract
 address or activation is recorded.
