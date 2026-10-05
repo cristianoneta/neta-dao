@@ -108,18 +108,15 @@ The owner completed four mainnet transactions and exported matching two-provider
 paused observations at 13:54 Berlin. Registry code 5168 and profile code 5169 are
 recorded in `deployments/nns-mainnet.json`; exact receipts and verification procedure
 are in [deployment evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md). PR #161 is merged with
-all four checks passed, including live verification run `37307194424`. The first
-Main DAO snapshots run `37307454347` found an Actions secret but failed to publish
-the price; its public source and manifest validate. Fixed diagnostic labels now
-distinguish key parsing/type/mismatch, source and signing errors without exposing
-private material. Run `37308389038` at 12:16:44 UTC diagnosed **invalid PEM private-key format**.
-The owner must privately replace the secret with the complete existing PEM backup;
-no new key or deployment. A matching valid public signed price and backup custody
-remain launch gates. Evening runs `37343822798` / `37347330414` still fail at
-PEM parsing while Treasury collection and publication both pass. Latest inspected
-source: 17:17:41 UTC (19:17:41 Berlin), portfolio PARTIAL; no `data/nns/price.json`.
-The half-hour schedule explains the recurring failure emails. These are off-chain
-collection/signing jobs, not wallet transactions or contract redeployments.
+all four checks passed, including live verification run `37307194424`. The owner corrected the PEM delimiters in the existing Actions secret at 19:38 Berlin.
+Fresh Main DAO run `37350238171` published the first signed price; Pages run
+`37350292762` passed and the served file matched. Signature, deployment binding,
+source rate and 24-hour observation-based validity were independently verified.
+The two-provider check passed via GitHub Actions at 19:49:53 (run `37307194424`,
+job `111902537250`): Polkachu and STAVR agreed on code/config and paused state.
+Use that read-only workflow if direct assistant requests are blocked; normal
+page reads use one verified provider with fallback. See the recovery section in
+[deployment evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
 PR [#158](https://github.com/cristianoneta/neta-dao/pull/158), merge
 `62f12f1a0c672a776a5f3500ab4e8e8a09b93e42`, passed all 11 final PR checks,
 three main checks and Pages `37302003843`; 15 served assets matched SHA-256.

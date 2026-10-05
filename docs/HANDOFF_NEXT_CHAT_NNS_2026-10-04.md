@@ -1,6 +1,6 @@
 # Next chat — NNS Treasury prices and mainnet preparation
 
-Checkpoint updated: **2026-10-05, evening failure-email investigation**.
+Checkpoint updated: **2026-10-05, 19:50 price recovery and runner-based verification**.
 The date in this filename preserves existing links. Earlier UNI-7 sections are
 dated evidence; the current mainnet checkpoint below takes precedence.
 Read [AGENTS](../AGENTS.md), [root HANDOFF](../HANDOFF.md) and
@@ -20,33 +20,22 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
 - Both exported provider observations agree: purchases paused, tariff version 1,
   annual USD **99 / 19 / 5**, signer version 1 and the approved public price key.
 - Public key: `XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=`.
-  Never regenerate it or request its private backup. The Actions secret is present,
-  but latest inspected runs `37343822798` and `37347330414` (18:50 / 19:18 Berlin)
-  still fail to parse it as an unencrypted PEM private key.
-  Owner must replace its value with the complete existing `nns-price-key.pem`,
-  including BEGIN/END lines and real line breaks. Never send it in chat or create
-  a replacement key. Backup custody and matching public-key validation remain open.
-- PR #161 is merged (`7bdcb47e140c0efda768b5cae5fcd828a4526dc4`); all four checks
-  passed, including exact chain payloads and two independent provider observations
-  in run `37307194424`. See [deployment evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
-- **Evening screenshot explained:** the recurring failure emails are the same
-  NNS signing error on the existing `7,37 * * * *` schedule, not repeated deployments.
-  Both latest inspected runs successfully collected and published Treasury data;
-  only the price-signing step failed, making the overall job red. The latest
-  inspected Treasury observation is 19:17:41 Berlin; `data/nns/price.json` is absent.
-  See the evening evidence in the deployment document. No workflow suppression,
-  schedule change, secret edit or chain transaction was performed for this review.
-- **Next chat:** help the owner privately correct `NNS_PRICE_SIGNING_KEY` using
-  the complete existing PEM backup. Do not ask for the key/file in chat, print it,
-  regenerate it, or redeploy. The parse error alone does not establish whether the
-  cause is incomplete contents, wrong contents, line breaks or encryption. Once
-  saved, inspect a fresh Main DAO snapshots run, verify the public signed price
-  against the pinned public key and original observation/expiry, then refresh
-  both providers before preparing owner activation. No separate Render service.
-- Only after a valid public price and verified live config: prepare a separate
-  owner-wallet unpause review and a real owner purchase. There is no dedicated
-  mainnet tariff/unpause panel yet; do not substitute the deployment helper or a
-  DAO proposal. Neither activation nor a mainnet purchase is recorded.
+  The owner corrected the existing PEM secret at 19:38 Berlin; never regenerate
+  the key or request its private backup. Fresh Main DAO run `37350238171` and
+  Pages `37350292762` succeeded. The first served signed price matched its source
+  and passed independent signature validation (19:41:02 Berlin, 24-hour validity).
+- Fresh two-provider verification succeeded **via GitHub Actions** at 19:49:53
+  Berlin: run `37307194424`, job `111902537250`; Polkachu and STAVR agree on the
+  reviewed deployment, owner administrators, key, USD 99/19/5 and purchases paused.
+  Direct assistant-environment 403/502 errors are not proof of provider outages.
+  Reuse the read-only workflow when direct access fails. Two-provider checks are
+  a launch/deployment gate, not required for every normal read or price refresh.
+- After a secret correction, start a fresh Main DAO snapshots workflow on main:
+  repeating an old run can conflict with newer generated data. Never hand-edit
+  collector output to resolve this. See [recovery evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
+- **Next:** build the missing dedicated mainnet owner unpause review/Keplr action,
+  verify the normal page with a fresh signed price, then obtain explicit wallet
+  confirmation and verify one real purchase. No activation or purchase is recorded.
 
 Upgrade transfer (`MsgUpdateAdmin` on each contract) and registry `set_admin`
 are separate future owner actions. No transfer or removal of authority is authorized.
