@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  // Directory and local follow preferences; registry writes remain inactive.
+  // Directory and local follows; UNI-7 wallet actions live in names-v2-workspace.mjs.
   const root = document.querySelector("#names-view");
   if (!root) return;
   const find = selector => root.querySelector(selector);
@@ -24,7 +24,7 @@
       directory:["Directory","Find a DAO and choose the updates you want to receive."],
       contacts:["Contacts","Keep the people and DAOs you use most in one place."],
       profile:["My profile","Your name, public contacts and validator identities."],
-      register:["Your .neta name","Choose a name and calculate the planned registration fee."],
+      register:["Your .neta name","Register, renew and transfer your test name on UNI-7."],
       dao:["DAO profile","Identity, address and updates for this DAO."]
     }[name];
     find("#names-page-title").textContent = copy[0];

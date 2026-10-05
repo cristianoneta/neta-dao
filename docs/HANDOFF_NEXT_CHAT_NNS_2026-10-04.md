@@ -28,6 +28,17 @@ checks passed; Pages 37277629958 succeeded, and all four public HTML/module file
 matched. Screenshots at 320/390/768/1440 px were inspected. Real operator E2E remains
 open, and direct live REST calls from the execution environment returned 403.
 
+## Main-page continuation — 2026-10-05
+
+The normal RELAY name/profile pages reuse the existing UNI-7 deployment, shared
+header wallet, reader/client and persistent journals. Registration, renewal,
+transfer and public contacts have main-page controls and explicit reviews. Start
+with Read test registry and Load my name; do not repeat setup or the completed
+purchases/transfer. Test quotes still use the original browser's saved authority.
+The integration tests simulate chain/wallet adapters; an owner check of this new
+UI is pending. Real validator testing remains deferred. Mainnet needs a production
+quote service, price/key policy and its own verified deployment before launch.
+
 ## Current owner state and completed tests
 
 The setup recovery is resolved: the owner exported and used the verified manifest.

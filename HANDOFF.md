@@ -49,6 +49,16 @@ pricing section. Check current config/version before claiming activation; no
 admin receipt has been recorded for this change yet. Use the original manifest
 and admin `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`. Do not redeploy.
 
+The normal `.neta name` and `My profile` pages now expose the existing UNI-7
+registration, renewal, transfer and public contacts through the shared header
+wallet. Choose Read test registry, connect Keplr, then Load my name. This reuses
+the existing deployment, test quote key and journals; do not set up another one.
+Browser tests are synthetic; the integrated owner-wallet journey is the next UX
+check after the tariff update. Test purchases still require the original setup
+browser's local quote key. A production quote service, key custody, real price
+sources/policy and mainnet deployment remain prerequisites for public purchases.
+See [main-page integration](docs/NAMES_MAIN_PAGE_INTEGRATION.md).
+
 When validator testing resumes, use the existing manifest and lab with a consenting
 operator controlling both a Juno mainnet and UNI-7 validator, using their own
 active test name and wallets. No operator has been contacted. Proofs live in one

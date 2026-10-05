@@ -17,14 +17,19 @@ main application, #115 flattened RELAY navigation, and #116 unified its persiste
 heading and cards. Entry: `index.html#relay/directory`; Contacts, My profile and
 .neta name are direct RELAY sections. The old prototype redirects into this UI.
 
-Directory search, supported DAO details/address copy, browser-local DAO follows
-and the USD fee calculator work. Registration, renewal, transfer, profile writes,
-contact persistence, DAO profile proposals, lifecycle messages and payments remain
-unavailable. The calculator does not check availability or quote NETA. These statements concern the main workspace. The separate UNI-7 lab supports
-mock-NETA registration/renewal/transfer/public contacts and validator proof flows;
-see [current test handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md). The main workspace
-`names.js` still has `REGISTRY=null`; production quotes remain unavailable.
-See [the main-page integration](NAMES_MAIN_PAGE_INTEGRATION.md).
+Directory search, DAO details/address copy and browser-local DAO follows work.
+The main workspace now also exposes the existing UNI-7 registry through
+`.neta name` and `My profile`: lookup, registration, renewal, recipient-accepted
+transfer and public contact read/update. It uses the shared header wallet and
+existing transaction journals. The pinned public manifest is read automatically
+when the user chooses Read test registry; no setup or file import is required.
+Purchases require the approved on-chain tariff and the original browser's local
+test quote authority, at fictional USD 2/mock NETA. This is not a public quote
+service. Registry reads/profile/transfer do not need the local price key.
+Mainnet deployment constants remain null. Contact persistence, DAO profile
+proposals, lifecycle messages, receiving-address proofs and name-based payments
+remain later work. Validator/admin tools stay in the separate lab while real
+validator E2E is deferred. See [the integration record](NAMES_MAIN_PAGE_INTEGRATION.md).
 
 The previous prototype review is historical evidence, not the current production
 capability inventory. The accepted decisions below remain the implementation target.
@@ -35,7 +40,7 @@ capability inventory. The accepted decisions below remain the implementation tar
 
 - Allowed label length: 3–32 ASCII characters, with lower-case letters, digits and
   interior hyphens. Normalize case. Block 1–2 characters and reserved system labels.
-- Prices per year for registration AND renewal: USD 99 / 160 / 5 for labels of
+- Prices per year for registration AND renewal: USD 99 / 19 / 5 for labels of
   3 / 4 / 5+ characters. Eliminate v1's fixed initial 5-NETA charge.
 - Settle in NETA; all name fees go to the configured NETA DAO treasury, distinct
   from the Operations DAO. Gas is additional and must be displayed separately.

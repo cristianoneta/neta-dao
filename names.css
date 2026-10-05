@@ -90,3 +90,12 @@
 #names-profile-preview p { overflow-wrap:anywhere; }
 #names-profile-preview[hidden] { display:none; }
 @media(max-width:640px) { .names-contact-fields { grid-template-columns:1fr; } }
+
+/* Integrated UNI-7 Names; shared controls and the existing RELAY shell. */
+.nns-session,.nns-review { margin-bottom:24px; }
+.nns-transfer { margin-top:24px; }
+.nns-review { border-color:var(--neta-accent); }
+.nns-review pre { white-space:pre-wrap; overflow-wrap:anywhere; font:14px/1.7 ui-monospace,monospace; }
+.nns-session p,#nns-name-result { overflow-wrap:anywhere; }
+#nns-workspace-session[hidden],#nns-review[hidden],#nns-recovery[hidden],#nns-offer-fields[hidden] { display:none; }
+#nns-review-heading { scroll-margin-top:180px; }
