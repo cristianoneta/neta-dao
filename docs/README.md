@@ -13,6 +13,8 @@ provenance. Do not read every historical handoff as an independent to-do list.
 | NNS live evidence and next operator test | [NNS handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md) |
 | Existing/fresh UNI-7 test procedure | [Owner runbook](NNS_UNI7_OWNER_TEST_2026-10-04.md) |
 | WYND price service, Render setup and mainnet preparation | [Quote service runbook](../names/README.md) |
+| Quote-service release evidence and restart point | [WYND release](NNS_WYND_RELEASE_2026-10-05.md) |
+| Informal project time estimate | [Time estimate](WORK_TIME_ESTIMATE_2026-10-05.md) |
 | Accepted Names product rules | [v2 plan](NETA_NAMES_V2_PLAN.md) |
 | Registry/quote and profile/operator protocols | [Registry](NNS_V2_REGISTRY_2026-10-04.md), [Profiles/programme decisions](NNS_VALIDATOR_PROFILES_2026-10-04.md) |
 | Faucet live evidence and remaining tests | [Faucet handoff](HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md), [service operation](../faucet/README.md) |

@@ -1,6 +1,10 @@
-# Next chat — NNS UNI-7 validator ownership
+# Next chat — NNS WYND service and mainnet preparation
 
-Checkpoint: 2026-10-04, end of session; validator UI #145 is merged and live.
+Checkpoint updated: 2026-10-05 after quote-service PR #153. The service is merged,
+not hosted; mainnet deployment and frontend adapters remain open. First action:
+separate Render Blueprint `names/render.yaml` in observe mode. See
+[release evidence](NNS_WYND_RELEASE_2026-10-05.md) and [service runbook](../names/README.md).
+The earlier UNI-7 lifecycle/validator evidence below remains valid as dated evidence.
 Read AGENTS.md, HANDOFF.md and CURRENT_STATE.md; read DESIGN_SYSTEM.md before
 UI edits. This records observed session state, not a future chain attestation.
 
