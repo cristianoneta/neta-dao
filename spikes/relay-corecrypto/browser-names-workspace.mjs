@@ -18,7 +18,7 @@ const recipient = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
 const config = {...manifest, purchases_paused: false, tariff_version: 2, tariff: {three_cents: 9900, four_cents: 1900, standard_cents: 500}};
 let record = null, commitment = null, offer = null, revision = 0, lost = false, writes = [], delayedProfile = null, holdProfile = false;
 let contacts = {description: '', discord: '', telegram: '', twitter: '', email: '', website: ''};
-let priceUnavailable=false;
+let priceUnavailable=false, registryUnavailable=false;
 if(adminMode){assert.equal(mainnet,true);config.purchases_paused=true;for(const pin of Object.values(manifest.contracts))pin.creator=owner;}
 const json = (route, data) => route.fulfill({status: 200, contentType: 'application/json', headers: {'access-control-allow-origin': '*'}, body: JSON.stringify(data)});
 const server = http.createServer(async (req,res) => {try {const p=new URL(req.url,'http://localhost').pathname;const b=await readFile(new URL('.'+p,root));res.writeHead(200,{'content-type':/\.m?js$/.test(p)?'text/javascript':p.endsWith('.css')?'text/css':p.endsWith('.json')?'application/json':'text/html'}).end(b);}catch {res.writeHead(404).end();}});
@@ -32,6 +32,7 @@ try {
   await context.route('**/docs/deployments/'+(mainnet?'nns-mainnet.json':'nns-uni7-owner-2026-10-04.json'),r=>json(r,manifest));
   if(mainnet)await context.route('**/data/nns/price.json',r=>{if(priceUnavailable)return r.fulfill({status:404,body:''});const now=Math.floor(Date.now()/1000),snapshot={signer_version:1,usd_per_neta_12:'2000000000000',observed_at:now-60,expires_at:now+86340};return json(r,{schema_version:1,chain_id:chainId,registry:manifest.registry,token:NETA,treasury:DAO,snapshot,signature:sign(null,Buffer.from(priceSnapshotPreimage(manifest,config,snapshot)),priceKey).toString('base64')});});
   await context.route('https://**/*', async route => {
+    if(registryUnavailable)return route.fulfill({status:503,body:'Registry unavailable fixture'});
     const p=new URL(route.request().url()).pathname;let data={};
     if(p.endsWith('/node_info'))data={default_node_info:{network:chainId}};
     else if(p.endsWith('/blocks/latest'))data={block:{header:{chain_id:chainId,height:'100',time:new Date().toISOString()}}};
@@ -54,7 +55,7 @@ try {
   });
   await page.exposeFunction('simulateNamesWrite',request=>{
     writes.push(request);const msg=request.msg;
-    if(msg.commit)commitment={hash:msg.commit.hash};
+    if(msg.commit)commitment={hash:msg.commit.hash,expires_at:Math.floor(Date.now()/1000)+3600};
     else if(msg.send){
       assert.equal(request.contract,manifest.token);assert.equal(msg.send.contract,manifest.registry);
       const hook=JSON.parse(Buffer.from(msg.send.msg,'base64').toString()),q=(hook.register||hook.renew||hook.register_snapshot||hook.renew_snapshot).offer.quote;
@@ -80,9 +81,16 @@ try {
   await page.goto(origin+'/index.html#relay/register');
   await page.locator('#nns-network').selectOption(chainId);
   if(!mainnet)manifest.quote_public_key=config.quote_public_key=await page.evaluate(async()=>{const {getTestAuthority}=await import('/names-v2-test-authority.mjs');return (await getTestAuthority({create:true})).publicKey;});
-  assert.equal(await page.locator('#nns-prepare').isDisabled(),true);
+  assert.equal(await page.locator('#nns-reserve').isDisabled(),true);
   assert.equal(await page.locator('#nns-workspace-session').isVisible(),true);
-  await click('nns-refresh');assert.match(await page.locator('#nns-deployment-status').textContent(),mainnet?/Juno mainnet verified/:/UNI-7 verified/);
+  // Availability performs the registry check without any prior refresh or wallet prompt.
+  assert.equal(await page.locator('#nns-prepare').count(),0);
+  assert.equal(await page.locator('#nns-check-name').isEnabled(),true);
+  await page.locator('#names-fee-label').fill('abcd');
+  registryUnavailable=true;await click('nns-check-name');assert.equal(await page.locator('#nns-reserve').isDisabled(),true);assert.equal(writes.length,0);
+  registryUnavailable=false;await click('nns-check-name');assert.match(await page.locator('#nns-deployment-status').textContent(),mainnet?/Juno mainnet verified/:/UNI-7 verified/);
+  assert.match(await page.locator('#nns-name-result').textContent(),/available/);
+  assert.equal(await page.evaluate(()=>window.enabledNamesChains.length),0);
   assert.equal(await page.locator('#nns-admin').isVisible(),false);
   await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
   assert.equal(await page.evaluate(()=>window.enabledNamesChains.at(-1)),chainId);
@@ -99,7 +107,7 @@ try {
       await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`admin overflow ${width}`);
       if(process.env.NNS_SCREENSHOT_DIR)await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/workspace-mainnet-admin-${width}.png`,fullPage:true});
     }
-    await click('nns-confirm');assert.equal(writes.length,1);assert.equal(config.purchases_paused,false);assert.match(await page.locator('#nns-status').textContent(),/Purchases enabled/);assert.equal(await page.locator('#nns-prepare').isDisabled(),false);
+    await click('nns-confirm');assert.equal(writes.length,1);assert.equal(config.purchases_paused,false);assert.match(await page.locator('#nns-status').textContent(),/Purchases enabled/);assert.equal(await page.locator('#nns-reserve').isDisabled(),false);
     priceUnavailable=true;await click('nns-admin-review');assert.match(await page.locator('#nns-review-text').textContent(),/Pause NNS purchases/);
     lost=true;await click('nns-confirm');assert.match(await page.locator('#nns-status').textContent(),/OUTCOME UNKNOWN/);assert.equal(writes.length,2);
     await page.reload();await click('nns-refresh');await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);await click('nns-my-name');
@@ -113,16 +121,50 @@ try {
   await page.locator('#names-fee-label').fill('abcd');
   assert.equal(await page.locator('#names-fee-total').textContent(),'$19 USD');
   await click('nns-check-name');assert.match(await page.locator('#nns-name-result').textContent(),mainnet?/available on Juno mainnet/:/available on UNI-7/);assert.equal(writes.length,0);
-  config.tariff.four_cents=16000;await click('nns-refresh');await click('nns-prepare');if(mainnet){assert.match(await page.locator('#nns-status').textContent(),/prepared locally/);assert.equal(await page.locator('#names-fee-total').textContent(),'$160 USD');}else assert.match(await page.locator('#nns-status').textContent(),/approved USD 99/);assert.equal(writes.length,0);
+  config.tariff.four_cents=16000;await click('nns-check-name');await click('nns-reserve');if(mainnet){assert.match(await page.locator('#nns-review-text').textContent(),/Start registration/);assert.equal(await page.locator('#names-fee-total').textContent(),'$160 USD');}else assert.match(await page.locator('#nns-status').textContent(),/approved USD 99/);assert.equal(writes.length,0);
   config.tariff.four_cents=1900;await click('nns-refresh');
-  if(!mainnet)await click('nns-prepare');assert.equal(writes.length,0);
-  await click('nns-reserve');assert.match(await page.locator('#nns-review-text').textContent(),/Reserve abcd.neta/);assert.equal(writes.length,0);
+  await click('nns-reserve');assert.match(await page.locator('#nns-review-text').textContent(),/Start registration · abcd.neta/);assert.equal(writes.length,0);
+  assert.match(await page.locator('#nns-review-text').textContent(),/within 1 hour/);
+  assert.match(await page.locator('#nns-review-text').textContent(),/does not exclusively reserve/);
+  assert.equal(await page.locator('#nns-confirm').textContent(),'Start registration in Keplr');
+  const prepared=await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage).filter(([k])=>k.startsWith('neta-nns-v2-intent:'))));
+  await click('nns-discard');assert.equal(writes.length,0);
+  await page.reload();await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
+  // Continue a saved preparation directly; no standalone refresh/preparation click.
+  await click('nns-reserve');assert.equal(writes.length,0);
+  assert.deepEqual(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage).filter(([k])=>k.startsWith('neta-nns-v2-intent:')))),prepared);
   await click('nns-confirm');assert.equal(writes.length,1);
-  await click('nns-payment');assert.match(await page.locator('#nns-review-text').textContent(),mainnet?/9.500000 NETA/:/9.500000 mock NETA/);assert.equal(writes.length,1);
+  assert.match(await page.locator('#nns-status').textContent(),/complete the purchase by/);
+  const commitmentExpiry=commitment.expires_at;commitment.expires_at=Math.floor(Date.now()/1000)-1;
+  await click('nns-payment');assert.match(await page.locator('#nns-status').textContent(),/1-hour registration window expired/);assert.equal(writes.length,1);assert.equal(await page.locator('#nns-review').isVisible(),false);
+  commitment.expires_at=commitmentExpiry;
+  await click('nns-payment');assert.match(await page.locator('#nns-review-text').textContent(),mainnet?/9.500000 NETA/:/9.500000 mock NETA/);assert.equal(writes.length,1);assert.equal(await page.locator('#nns-confirm').textContent(),'Buy and confirm in Keplr');
   await click('nns-confirm');assert.equal(writes.length,2);assert.equal(record.name,'abcd.neta');
+  // Verified ownership produces one local system notice, separate from encrypted DMs.
+  await page.waitForFunction(()=>window.NetaNameNotifications?.events().some(e=>e.type==='WELCOME'));
+  await page.evaluate(()=>window.NetaNameNotifications.refresh());
+  assert.equal(await page.evaluate(()=>window.NetaNameNotifications.events().filter(e=>e.type==='WELCOME').length),1);
+  await page.locator('[data-relay-panel="inbox"]').click();await page.locator('[data-relay-filter="names"]').click();
+  await page.locator('#relay-feed .relay-event').click();
+  assert.match(await page.locator('#relay-reader').textContent(),/Congratulations/);
+  assert.match(await page.locator('#relay-reader').textContent(),/compatible applications/);
+  const renewalLink=await page.locator('#relay-reader a').filter({hasText:'Manage name'}).getAttribute('href');
+  assert.match(renewalLink,/nns-action=renew#relay\/register/);
+  assert.equal(await page.evaluate(()=>window.NetaNameNotifications.events().every(e=>e.read)),true);
+  if(process.env.NNS_SCREENSHOT_DIR){
+    await mkdir(process.env.NNS_SCREENSHOT_DIR,{recursive:true});
+    for(const width of [1440,390,320]){
+      await page.setViewportSize({width,height:1000});
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`name inbox overflow ${width}`);
+      await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/workspace-${chainId}-name-inbox-${width}.png`,fullPage:true});
+    }
+    await page.setViewportSize({width:1280,height:720});
+  }
+  await page.locator('[data-relay-panel="register"]').click();
   await click('nns-my-name');assert.match(await page.locator('#nns-owned').textContent(),/abcd.neta/);assert.equal(await page.locator('#nns-operation').inputValue(),'renew');
   if(mainnet){config.tariff.four_cents=2400;config.tariff_version++;await click('nns-refresh');}
-  await click('nns-payment');if(mainnet)assert.match(await page.locator('#nns-review-text').textContent(),/12.000000 NETA/);const expiry=record.expires_at;await click('nns-confirm');assert.equal(record.expires_at,expiry+31536000);
+  await click('nns-payment');assert.equal(await page.locator('#nns-payment').textContent(),'Renew name');assert.equal(await page.locator('#nns-confirm').textContent(),'Renew and confirm in Keplr');if(mainnet)assert.match(await page.locator('#nns-review-text').textContent(),/12.000000 NETA/);const expiry=record.expires_at;await click('nns-confirm');assert.equal(record.expires_at,expiry+31536000);
+  await page.waitForFunction(()=>window.NetaNameNotifications.events().some(e=>e.type==='RENEWAL CONFIRMED'));
   // Profile editing reuses the main form and snapshots FormData before disabling it.
   await page.locator('[data-relay-panel="profile"]').click();
   await page.locator('#names-profile-bio').fill('Public biography');
@@ -140,8 +182,16 @@ try {
   await click('nns-transfer');assert.match(await page.locator('#nns-review-text').textContent(),new RegExp(recipient));await click('nns-confirm');assert.equal(record.owner,owner);
   await page.evaluate(address=>{window.testWallet=address;window.dispatchEvent(new Event('keplr_keystorechange'));},recipient);
   assert.equal(await page.locator('#gov-disconnect').isVisible(),false);
+  assert.deepEqual(await page.evaluate(()=>window.NetaNameNotifications.events()),[]);
   await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
   await page.locator('#nns-transfer-action').selectOption('accept');await click('nns-transfer');await click('nns-confirm');assert.equal(record.owner,recipient);assert.equal(contacts.description,'');
+  await page.waitForFunction(()=>window.NetaNameNotifications.events().some(e=>e.type==='WELCOME'));
+  assert.ok((await page.evaluate(()=>window.NetaNameNotifications.events())).every(e=>e.identity.owner===recipient));
+  // Provider failure cannot invent an expiry or change the last verified notices.
+  const verifiedNotices=await page.evaluate(()=>window.NetaNameNotifications.events());
+  registryUnavailable=true;await page.evaluate(()=>window.NetaNameNotifications.refresh());registryUnavailable=false;
+  assert.match(await page.locator('#relay-nns-status').textContent(),/unavailable/);
+  assert.deepEqual(await page.evaluate(()=>window.NetaNameNotifications.events()),verifiedNotices);
   await click('nns-my-name');await page.locator('[data-relay-panel="profile"]').click();await click('nns-load-profile');assert.equal(await page.locator('#names-profile-bio').inputValue(),'');
   // Lost outcomes stay journaled after reload. Never silently sign or retry.
   lost=true;await page.locator('#names-profile-bio').fill('Receipt recovery fixture');await click('nns-publish-profile');await click('nns-confirm');assert.match(await page.locator('#nns-status').textContent(),/OUTCOME UNKNOWN/);
@@ -151,6 +201,7 @@ try {
   assert.equal(writes.length,count);assert.equal(await page.locator('#nns-publish-profile').isDisabled(),true);assert.equal(await page.locator('#nns-recover').isDisabled(),false);
   const saved=await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage).filter(([k])=>k.startsWith('neta-nns-v2-intent:'))));
   await page.locator('#gov-disconnect').click();
+  assert.deepEqual(await page.evaluate(()=>window.NetaNameNotifications.events()),[]);
   assert.deepEqual(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage).filter(([k])=>k.startsWith('neta-nns-v2-intent:')))),saved);
   // Late NNS connection cannot survive disconnect from the shared header.
   await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
@@ -167,6 +218,15 @@ try {
   }
   await page.setViewportSize({width:720,height:500});await page.locator('[data-relay-panel="register"]').click();
   await page.locator('#nns-refresh').focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'nns-refresh');assert.notEqual(await page.locator('#nns-refresh').evaluate(el=>getComputedStyle(el).outlineStyle),'none');
+  // Direct renewal links select the network and form without a wallet prompt or payment.
+  const writesBeforeLink=writes.length;
+  await page.goto(origin+renewalLink);await settle();
+  assert.equal(await page.locator('#nns-network').inputValue(),chainId);
+  assert.equal(await page.locator('#names-fee-label').inputValue(),'abcd');
+  assert.equal(await page.locator('#nns-operation').inputValue(),'renew');
+  assert.equal(await page.evaluate(()=>window.enabledNamesChains.length),0);
+  assert.equal(writes.length,writesBeforeLink);
+  assert.deepEqual(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage).filter(([k])=>k.startsWith('neta-nns-v2-intent:')))),saved);
   assert.deepEqual(errors,[]);
   console.log(chainId+' integrated NNS: register, quote, renew, contacts, transfer, stale review, shared wallet, pending journal reload and responsive UI passed.');
   }

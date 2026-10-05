@@ -1,6 +1,21 @@
 # NETA DAO handoff
 
-Updated: **2026-10-05, 20:20 mainnet activation and first purchase checkpoint (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
+Updated: **2026-10-05, NNS purchase UX and Inbox implementation checkpoint (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
+
+## Current unshipped work
+
+Branch `feat/nns-purchase-flow-20261005` simplifies purchase clicks and adds local
+NNS system notices to the RELAY Inbox. Mainnet/UNI-7/admin browser flows and 134
+root/pricing Node tests passed locally. Hosted CI, merge and served-file checks
+are still required; do not describe these new UI changes as live yet.
+See [NNS notice behavior](names/README.md#nns-inbox-notices) for the agreed reminder
+schedule, links and browser-local delivery boundary.
+
+The failed snapshot runs inspected on 2026-10-05 had **no runner and no steps**;
+GitHub reports a hosted-runner assignment incident. This is not evidence of RPC
+rate limiting. See [incident and infrastructure assessment](docs/ACTIONS_RUNNER_INCIDENT_2026-10-05.md).
+No workflow consolidation or private server has been deployed. Treasury remains
+deferred. Resume with the branch's CI/PR and publish only after applicable checks.
 
 ## Start here
 
@@ -92,6 +107,10 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   records **4.755098 NETA** from owner to registry and onward to the main NETA DAO.
   See [launch evidence](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md) for all three hashes
   and the single-provider verification boundary. Do not repeat activation or payment.
+- **Purchase UX (branch; not yet live):** Check availability includes registry verification. Start
+  registration combines local preparation with the commitment review; Buy name
+  opens the explicitly labelled payment confirmation. Commitments last one hour
+  and do not reserve a name exclusively. Saved secrets and pending journals remain.
 - **Next:** load the existing mainnet name and continue ordinary profile use if
   requested. Mainnet renewal/transfer and live validator E2E are not claimed tested.
   Treasury stays deferred. The initial paused-state workflow must not be rerun

@@ -84,6 +84,11 @@ still needs the original setup browser. See [integration](NAMES_MAIN_PAGE_INTEGR
 deliberate wallet switches, with expiry/revision/identity checks;
 `names-v2-validator-ui.mjs` handles the distinct signature/publication reviews.
 Lost/unknown submissions stay locked until reconciled; no automatic resend occurs.
+The pending `feat/nns-purchase-flow-20261005` update combines registry verification with Check availability,
+and local preparation with Start registration. Buy name / Buy and confirm in Keplr
+explicitly label payment; renewals use corresponding renewal labels. Load my name
+verifies the registry on demand. Commitments are non-exclusive and valid for one
+hour; the matching on-chain deadline is displayed and checked before purchase.
 
 The accepted annual tariff is USD 99/19/5 for 3/4/5–32 characters, for both
 registration and renewal, 1–5-year terms, 365-day years and 30-day grace. Mainnet
@@ -146,8 +151,10 @@ separately recorded in the production manifest and receipt bundle.
 Original WASM/bootstrap tariff and signed historical fixtures remain unchanged;
 new installations also apply the approved tariff before purchasing. Quotes read
 the current on-chain tariff/version.
-Free DAO namespaces, verified receiving addresses, private contacts, lifecycle
-notifications and DAO-authorized profile proposals remain later work.
+Free DAO namespaces, verified receiving addresses, private contacts and
+DAO-authorized profile proposals remain later work. Local lifecycle notices are
+implemented in the pending purchase-UX branch, as described below; hosted release
+verification remains open.
 
 ## UNI-7 faucet
 
@@ -290,6 +297,21 @@ key, with synchronized follow controls in the Operations profile. There is **no
 watchlist sidebar** in `index.html`. Zero unread badges
 are hidden. Composer input lives temporarily in DOM; submit only prevents default,
 Discard clears/closes, and SEND is disabled. Main UI contains no private messages.
+
+**Pending NNS Inbox update (not yet deployed):** chain-verified ownership creates
+a welcome with usage explanation, profile and management links. Calendar-month
+reminders at 6/3/1 months, then 14/7/1 days, expiry and the end of the 30-day grace
+period include a direct renewal route where renewal remains possible. Expiry,
+identity and deduplication are scoped to chain/registry/wallet/name/generation/
+ownership revision; renewal supersedes previous-term notices and transfer stops
+future notices to the former owner. The Names filter and shared unread indicators
+include these system notices separately from disabled encrypted DMs. Checks run
+on wallet/network changes, successful writes, foreground restoration and every
+15 minutes while visible. Storage is browser-local, bounded to 200 events, with
+no push, cross-device delivery or guarantee while the page is closed. A later
+visit catches up with the current relevant reminder. Provider failures preserve
+the last verified state and display an unavailable status. See the
+[runbook](../names/README.md#nns-inbox-notices).
 
 Recorded mailbox identity: UNI-7,
 `juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa`,

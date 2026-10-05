@@ -1,6 +1,11 @@
 # Next chat — NNS Treasury prices and mainnet preparation
 
 Checkpoint updated: **2026-10-05, 20:20 mainnet activation and first purchase**.
+Later same-day work: `feat/nns-purchase-flow-20261005` contains tested purchase UX
+and local NNS Inbox notifications, still awaiting hosted CI and deployment. The
+root HANDOFF owns this newer release checkpoint. See the
+[notice runbook](../names/README.md#nns-inbox-notices) and
+[GitHub runner incident](ACTIONS_RUNNER_INCIDENT_2026-10-05.md).
 The date in this filename preserves existing links. Earlier UNI-7 sections are
 dated evidence; the current mainnet checkpoint below takes precedence.
 Read [AGENTS](../AGENTS.md), [root HANDOFF](../HANDOFF.md) and
@@ -40,6 +45,11 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   records **4.755098 NETA** from owner to registry and onward to the main NETA DAO.
   See [launch evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) for all three hashes
   and the single-provider verification boundary. Do not repeat activation or payment.
+- **Purchase UX (pending branch):** Check availability includes registry verification; Start
+  registration prepares locally and opens the commitment review in one action.
+  Buy name opens payment review with an explicit purchase confirmation. The
+  one-hour commitment is not exclusive; expiry is checked and shown before payment.
+  See [normal purchase flow](../names/README.md#normal-name-purchase-flow).
 - **Next:** load the existing mainnet name and continue ordinary profile use if
   requested. Mainnet renewal/transfer and live validator E2E are not claimed tested.
   Treasury stays deferred. The initial paused-state workflow must not be rerun
@@ -81,7 +91,7 @@ open, and direct live REST calls from the execution environment returned 403.
 The normal RELAY name/profile pages reuse the existing UNI-7 deployment, shared
 header wallet, reader/client and persistent journals. Registration, renewal,
 transfer and public contacts have main-page controls and explicit reviews. Start
-with UNI-7 selected and Read registry and Load my name; do not repeat setup or the completed
+with UNI-7 selected and Load my name; do not repeat setup or the completed
 purchases/transfer. Test quotes still use the original browser's saved authority.
 The integration tests simulate chain/wallet adapters; an owner check of this new
 UI is pending. Real validator testing remains deferred. The owner subsequently

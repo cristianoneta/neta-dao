@@ -250,7 +250,7 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.doesNotMatch(html, /names-preview-entry|Explore the preview/);
   assert.match(html, /names-workspace\.js\?v=[^"\s]+/);
   assert.match(html, /data-name-panel="directory"/);
-  assert.match(html, /id="nns-prepare" type="button" disabled/);
+  assert.match(html, /id="nns-reserve" type="button" disabled/);
   assert.match(html, /names-v2-workspace\.mjs\?v=/);
   assert.match(names, /neta-names-v1:/);
   assert.match(names, /config.treasury!==DAO_TREASURY/);

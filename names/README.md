@@ -209,7 +209,7 @@ is no extra tariff-setting transaction required before launch.
 ## Owner purchase availability controls
 
 Open [the main Names page](https://dao.netareborn.com/#relay/register), select
-**Juno mainnet**, click **Read registry**, and connect the approved admin wallet
+**Juno mainnet**, click **Refresh pricing**, and connect the approved admin wallet
 using the shared header. Expand **Registry administration · owner wallet**.
 The panel is hidden for other wallets and UNI-7; contract admin checks remain
 independent of UI visibility. Tariff editing is not added by this panel.
@@ -221,9 +221,9 @@ independent of UI visibility. Tariff editing is not added by this panel.
    are shown by Keplr. This enables registration and renewal for everyone; it
    does not register a name. The UI checks the confirmed transaction and fresh
    configuration before showing purchases enabled.
-3. Register one name through the normal page: prepare locally, separately review
-   and confirm its reservation, then review the exact NETA payment and confirm.
-   Verify receipts, DAO credit, resulting owner and expiry before declaring launch.
+3. The owner completed activation and the first real purchase on 2026-10-05; see
+   [launch evidence](../docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md). Do not repeat it.
+   New registrations use the normal purchase flow below.
 
 **Review pausing purchases** remains available without a working price feed.
 Each change has a separate five-minute review. Opening additionally requires a
@@ -247,3 +247,68 @@ Admin UI screenshots at 320/390/768/1440 px were inspected. Tests cover missing 
 forged prices, wrong wallet, config/expiry changes, pause without price, lost
 responses, reload and exact recovery. No owner mainnet activation or purchase
 was performed by these tests. See the release PR for hosted CI/deployment status.
+
+## Normal name purchase flow
+
+Release status: implemented and locally tested on `feat/nns-purchase-flow-20261005`;
+hosted CI and deployed asset verification are pending.
+
+**Check availability** verifies the selected registry and resolves the name in one
+action, without a wallet. No separate registry-read click is needed. **Refresh
+pricing** remains an optional manual read. **Load my name** verifies the registry
+on demand when needed after connecting through the shared header.
+
+**Start registration** prepares and persists the secret locally, then immediately
+shows the first transaction review. **Start registration in Keplr** submits only
+the commitment and network fee. Discarding that review or reloading preserves the
+preparation; **Continue registration** reuses it without replacing its secret.
+
+The commitment lasts **3,600 seconds from its inclusion time**; payment must be
+in a later block and strictly before expiry. It does **not** exclusively reserve
+the name. Only the successful payment secures ownership. The purchase review reads
+the matching commitment and shows its on-chain deadline; an already expired
+commitment is rejected before a purchase review or confirmation can proceed.
+
+**Buy name** presents exact debit, term, recipient, network, price and quote expiry.
+**Buy and confirm in Keplr** authorizes payment; renewal uses **Renew name** and
+**Renew and confirm in Keplr**. Quotes still expire after at most five minutes,
+independently of the one-hour commitment. No automatic signatures, resends or
+journal deletion are introduced.
+
+## NNS Inbox notices
+
+Implemented in the same pending branch. `names-v2-notifications-core.mjs` owns
+the lifecycle rules; `names-v2-notifications.mjs` verifies the selected deployment
+and current ownership before generating local system events. `relay.js` displays
+them under All/Names/Unread with read state and a per-identity activity history.
+These are not encrypted person-to-person messages and do not enable mainnet DMs.
+
+- Welcome: congratulations, network, wallet, expiry, compatible-app name use,
+  public profile/contact explanation, My profile and Manage name links. Existing
+  owners receive it on the first successful check in this browser too.
+- Reminders: 6, 3 and 1 calendar month before expiry (UTC month ends clamp), then
+  14, 7 and 1 day, at expiry, and at expiry plus the contract's 30-day grace period.
+  Reminders and expiry notices link directly to the selected network/name's renewal
+  menu. Release notices offer no renewal action for the previous registration.
+- Only the latest due reminder is caught up after absence. Stable event IDs avoid
+  duplicates. Renewal creates a confirmation and recomputes thresholds; previous
+  term notices are marked read/superseded. Transfer stops new old-owner reminders;
+  the recipient receives their own welcome after verification.
+- Links use fixed same-origin paths and validated name/network parameters. They
+  fill the form and load registry data, never connect a wallet or sign. Existing
+  transaction journals remain authoritative and are never cleared by navigation.
+- Checks occur after connection/network changes and successful UI writes, on
+  foreground restoration and at 15-minute visible-page intervals. RPC failure
+  displays unavailable; it cannot invent expiration, renewal or transfer events.
+- History/read state use `neta-nns-notifications:v1:<chain>:<registry>:<wallet>`
+  local storage. Disconnect/wallet/network changes immediately hide prior account
+  events. At most 200 events remain. Clearing storage can recreate the welcome;
+  this is not global exactly-once delivery or cross-device synchronization.
+- There is **no background delivery while the app is closed**. Known expired names
+  are checked from retained identities or a completed Names journal; a fresh
+  browser cannot discover every expired name from the active `name_of` query.
+
+Local validation: 134 root/pricing tests, including seven lifecycle/route tests;
+mainnet, UNI-7 and mainnet-admin browser flows. Browser assertions cover welcome,
+deduplication, read state, renewal, recipient isolation, provider failure, direct
+renewal links without wallet prompts and preserved pending journals.
