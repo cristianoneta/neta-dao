@@ -106,9 +106,14 @@ test('publisher CLI retains the exact last good file on collection/key errors an
     assert.equal(run(pem).status,0);const before=readFileSync(output,'utf8');
     assert.equal(run(pem).status,0);assert.equal(readFileSync(output,'utf8'),before);
     const bad=run('SECRET_NOT_TO_LEAK');assert.equal(bad.status,1);assert.ok(!bad.stderr.includes('SECRET_NOT_TO_LEAK'));
+    assert.match(bad.stderr,/valid unencrypted PEM private key/);
     assert.equal(readFileSync(output,'utf8'),before);
+    const otherKey=createPrivateKey({key:Buffer.concat([Buffer.from('302e020100300506032b657004220420','hex'),Buffer.alloc(32,8)]),format:'der',type:'pkcs8'});
+    const wrong=run(otherKey.export({format:'pem',type:'pkcs8'}));
+    assert.equal(wrong.status,1);assert.match(wrong.stderr,/does not match the reviewed public key/);
+    assert.ok(!wrong.stderr.includes('PRIVATE KEY'));assert.equal(readFileSync(output,'utf8'),before);
     t.nns_price.observed_at=new Date(Date.now()-86401000).toISOString();writeFileSync(input,JSON.stringify(t));
-    assert.equal(run(pem).status,1);assert.equal(readFileSync(output,'utf8'),before);
+    const stale=run(pem);assert.equal(stale.status,1);assert.match(stale.stderr,/freshness invalid/);assert.equal(readFileSync(output,'utf8'),before);
   } finally {rmSync(dir,{recursive:true,force:true});}
 });
 
