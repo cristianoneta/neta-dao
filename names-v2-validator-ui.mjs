@@ -1,17 +1,26 @@
+import {ValidatorStatusReader,validatorStatusText} from './names-v2-validator-status.mjs?v=1';
 import {NamesV2Reader} from './names-v2-reader.mjs?v=4';
 import {NamesValidatorProofs} from './names-v2-validator-proofs.mjs?v=1';
 import {normalizeName,operatorAccount} from './names-profile-core.mjs';
 
 export function createValidatorPanel({getSession,getDeployment,isBusy,run,showReview,clearReview,status}) {
- const $=id=>document.getElementById(id);let flow=null;
+ const $=id=>document.getElementById(id);let flow=null,observationEpoch=0,observationController=null;
  const pairInput=()=>({mainnet:{chain_id:'juno-1',address:$('validator-mainnet').value.trim()},testnet:{chain_id:'uni-7',address:$('validator-testnet').value.trim()}});
- function reset(){flow?.reset();flow=null;$('validator-challenge').textContent='';$('validator-proof-details').hidden=true;clearReview();render();}
+ function clearObservation(){observationEpoch++;observationController?.abort();observationController=null;$('validator-observation').textContent='No independent chain check yet.';}
+ async function checkPair(pair,label){
+  clearObservation();const epoch=observationEpoch,controller=new AbortController();observationController=controller;
+  $('validator-observation').textContent='Checking '+label+'…';
+  try{const result=await new ValidatorStatusReader().pair(pair,{signal:controller.signal});if(epoch===observationEpoch)$('validator-observation').textContent=label+'\n\n'+validatorStatusText(result);}
+  catch(error){if(epoch===observationEpoch)$('validator-observation').textContent='Check unavailable · '+error.message;}
+ }
+ function reset(){clearObservation();$('validator-current').textContent='No validator link queried.';flow?.reset();flow=null;$('validator-challenge').textContent='';$('validator-proof-details').hidden=true;clearReview();render();}
  function blocked(){const session=getSession();if(!session)return true;try{const i=session.client.load(session.owner);return !!i&&i.phase!=='complete';}catch{return true;}}
  function render(){
   const busy=isBusy(),deployment=getDeployment(),session=getSession(),prepared=flow?.snapshot,mode=$('validator-action').value;
   for(const id of ['validator-name','validator-action','validator-mainnet','validator-testnet'])$(id).disabled=busy;
   for(const id of ['validator-mainnet','validator-testnet'])$(id).disabled=busy||mode!=='link';
   $('validator-pair-fields').hidden=mode!=='link';
+  $('validator-check').disabled=busy; $('validator-check').hidden=mode!=='link';
   $('validator-prepare').disabled=busy||!deployment||(mode==='link'&&blocked());
   $('validator-refresh').disabled=busy||!deployment;
   $('validator-unlink').disabled=busy||!deployment||blocked();
@@ -27,7 +36,7 @@ export function createValidatorPanel({getSession,getDeployment,isBusy,run,showRe
   const reader=new NamesV2Reader({deployment:getDeployment()});await reader.verify();
   const response=await reader.profile(normalizeName(name)),p=response?.profile;
   if(!response?.active||!p)throw Error('No active profile for this name.');
-  const lines=[`${p.identity.name} · current owner ${p.identity.owner}`,`Profile revision: ${p.revision}`,p.validators?'Operator ownership link stored on UNI-7. Validator existence, active set and programme eligibility are not checked here.':'No current validator link.'];
+  const lines=[`${p.identity.name} · current owner ${p.identity.owner}`,`Profile revision: ${p.revision}`,p.validators?'Operator ownership link stored on UNI-7. Use the separate chain observation below for validator existence and UNI-7 consensus membership. Programme eligibility is not decided here.':'No current validator link.'];
   if(p.validators)for(const role of ['mainnet','testnet'])lines.push(`${role}: ${p.validators[role].chain_id} · ${p.validators[role].address}`);
   $('validator-current').textContent=lines.join('\n');return p;
  }
@@ -64,12 +73,13 @@ export function createValidatorPanel({getSession,getDeployment,isBusy,run,showRe
    if(getSession()!==current)throw Error('Wallet connection changed. Review again.');await current.client.unlinkValidators(args);reset();
   });
  }));
- $('validator-refresh').addEventListener('click',()=>run(async()=>{await readCurrent($('validator-name').value);status('Current profile read from UNI-7. No transaction sent.');}));
+ $('validator-check').addEventListener('click',()=>run(async()=>{await checkPair(pairInput(),'Entered operator addresses · ownership not checked');status('Read-only chain check completed. No wallet signature or transaction.');}));
+ $('validator-refresh').addEventListener('click',()=>run(async()=>{clearObservation();const p=await readCurrent($('validator-name').value);if(p.validators)await checkPair(p.validators,'Stored ownership link · '+p.identity.name);status('Current profile and available chain observations read. No transaction sent.');}));
  $('validator-discard').addEventListener('click',()=>{reset();status('Unpublished ownership proofs discarded from this tab. Pending transaction records are preserved.');});
  $('validator-form').addEventListener('input',reset);
  $('validator-action').addEventListener('change',reset);
  // Only update the small local expiry display; no background network polling.
  const timer=setInterval(()=>{if(flow?.snapshot&&!document.hidden)render();},1000);
- window.addEventListener('pagehide',()=>clearInterval(timer),{once:true});
+ window.addEventListener('pagehide',()=>{clearInterval(timer);observationController?.abort();},{once:true});
  render();return {render,reset};
 }
