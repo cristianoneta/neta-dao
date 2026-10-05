@@ -73,10 +73,3 @@ owner-signed purchase with exact debit/treasury credit and identity verification
 The existing UNI-7 tariff update is independently still unverified. Its admin is
 the original setup wallet; a future mainnet registry's admin/treasury is the main
 NETA DAO. The chat's tariff approval is not either on-chain transaction.
-
-## Side question preserved
-
-The owner requested an English estimate of time spent across the projects. The
-informal estimate and methodology are saved in
-[WORK_TIME_ESTIMATE_2026-10-05](WORK_TIME_ESTIMATE_2026-10-05.md): about 90–95 hours,
-plausible 80–105, faucet separated from DAO work. This is not tracked/billable time.
