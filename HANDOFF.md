@@ -39,37 +39,45 @@ Updated: **2026-10-05 (Europe/Berlin)**. This is the continuation entry point, n
 
 ## Next task
 
-Owner update on 2026-10-05: **pause live validator tests until later**. The next
-immediate wallet step is the NNS tariff update, if not yet confirmed on-chain.
-Approved annual registration AND renewal: 3 characters USD 99, 4 characters USD 19,
-5–32 characters USD 5, paid in NETA. Mainnet pricing remains unlaunched; UNI-7 uses
-mock NETA. Main UI/calculator/default quote arithmetic are updated. The existing
-registry requires its admin to review and sign `set_tariff` in the lab's Annual
-pricing section. Check current config/version before claiming activation; no
-admin receipt has been recorded for this change yet. Use the original manifest
-and admin `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`. Do not redeploy.
+Owner's latest direction on 2026-10-05: use **WYND JUNO/NETA** for NNS pricing,
+annual USD **99 / 19 / 5** for 3 / 4 / 5–32 characters, then move toward mainnet.
+Live validator tests stay deferred. The price service is merged in PR #153
+(`837fa7942bec3e849a85fbb9863afbbbddb95395`); it is **not hosted or activated**.
 
-The normal `.neta name` and `My profile` pages now expose the existing UNI-7
-registration, renewal, transfer and public contacts through the shared header
-wallet. Choose Read test registry, connect Keplr, then Load my name. This reuses
-the existing deployment, test quote key and journals; do not set up another one.
-Browser tests are synthetic; the integrated owner-wallet journey is the next UX
-check after the tariff update. Test purchases still require the original setup
-browser's local quote key. The owner selected WYND, confirmed 99/19/5 and requested
-moving toward mainnet on 2026-10-05. A WYND quote service and separate Render
-Blueprint are implemented in `names/` but not hosted yet. They use a 30-minute
-WYND JUNO/NETA cumulative average, timestamped CoinGecko JUNO/USD, two providers
-agreeing at one height, persistent server-only Ed25519 custody and usage limits.
-Next: create the **separate** Render service using `names/render.yaml` in observe
-mode, retain its disk, record the public key and verify live averaging/restart.
-See [quote service runbook](names/README.md) for the proposed limits and launch steps.
-Then prepare reviewed mainnet uploads/instantiations and the DAO tariff proposal.
-Mainnet admin and treasury are the main NETA DAO, not the UNI-7 personal admin.
-`names/mainnet-plan.mjs` generates unsigned deployment material and a version-bound
-tariff message; it does not broadcast or bundle purchase activation. Mainnet
-frontend/wallet integration, actual deployment receipts and separate DAO unpause
-remain open. The new server is not a live mainnet launch.
-See [main-page integration](docs/NAMES_MAIN_PAGE_INTEGRATION.md).
+**First action in the next chat:** help the owner create the separate Render
+Blueprint for `cristianoneta/neta-dao`, branch `main`, path **`names/render.yaml`**.
+Keep the faucet service and its disk intact. Start in observe mode, retain the new
+persistent disk, then verify its public `/status`, quote public key, uninterrupted
+30-minute average and restart behavior. See [service runbook](names/README.md) and
+[release evidence](docs/NNS_WYND_RELEASE_2026-10-05.md). No service URL is known yet.
+
+The service uses a 30-minute WYND cumulative average, timestamped CoinGecko
+JUNO/USD, two providers agreeing at one height, server-only Ed25519 custody,
+persisted limits and fail-closed checks. Operational thresholds are an initial
+proposal to review against live observations before enabling paid issuance.
+Observed pool liquidity was about USD 1,838 on 2026-10-05; averaging does not
+eliminate manipulation risk in a thin market. Never use Treasury JSON as the feed.
+
+Next dependencies: obtain the production public key, prepare and owner-sign the
+mainnet registry/profile deployment, record and verify its manifest/receipts,
+then execute the approved tariff through the **main NETA DAO**. The DAO is both
+registry admin and treasury; the uploader's personal wallet is not the mainnet
+admin. `names/mainnet-plan.mjs` prepares unsigned deployment material and an exact
+version-bound tariff message. It does not broadcast or bundle purchase activation.
+Mainnet frontend/wallet/quote integration still needs implementation and review;
+the existing adapters are UNI-7-only. Activate purchases through a separate DAO
+proposal only after those dependencies, then verify an owner-signed mainnet purchase.
+No mainnet registry/profile address or wallet/DAO receipt has been recorded.
+
+The main `.neta name` and `My profile` pages already reuse the existing UNI-7
+manifest, shared header wallet and journals for registration/renewal/transfers and
+public contacts. Browser tests are synthetic; integrated owner-wallet UX remains
+open. Do not redeploy or repeat the completed owner lifecycle tests. Test quotes
+need the original setup browser's local key. The separate UNI-7 tariff update is
+still unverified: use the lab Annual pricing section and original admin
+`juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt` if completing that test gate. Chat
+approval/source changes are not an on-chain tariff receipt. See
+[main-page integration](docs/NAMES_MAIN_PAGE_INTEGRATION.md).
 
 When validator testing resumes, use the existing manifest and lab with a consenting
 operator controlling both a Juno mainnet and UNI-7 validator, using their own

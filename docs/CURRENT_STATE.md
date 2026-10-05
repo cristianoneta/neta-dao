@@ -1,7 +1,7 @@
 # NETA DAO code-backed current state
 
-Updated **2026-10-04, end of session** against main
-`50c5814e048230507a1d03c3e7c8c03f97b537ee`. This file owns the feature inventory;
+Updated **2026-10-05** against application release
+`837fa7942bec3e849a85fbb9863afbbbddb95395` (WYND quote service #153). This file owns the feature inventory;
 [HANDOFF](../HANDOFF.md) owns the next action and working rules. Observed chain,
 service and data states are timestamped evidence, not guarantees of future state.
 The previous append-only inventory is retained in the [archive](archive/CURRENT_STATE_BEFORE_CLEANUP_2026-10-04.md).

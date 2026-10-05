@@ -68,6 +68,10 @@ The Blueprint runs Node 24.19.0, `node names/service/server.mjs`, with durable
 `/var/data/nns/quotes.sqlite`. Supply a CoinGecko Demo API key in the private Render
 environment (`COINGECKO_DEMO_API_KEY`). The reader also works without a key where
 CoinGecko permits public access; a denied/rate-limited response stops readiness.
+The polling loop waits 30 seconds after each completed observation, so provision
+the upstream request budget for up to 2,880 CoinGecko reads/day (actual frequency
+is lower due to request duration). Check the selected account's monthly allowance
+before using its key; the service does not upgrade or purchase an API plan.
 No wallet mnemonic, private wallet key or faucet secret is needed.
 
 First boot creates an Ed25519 quote key **inside the private SQLite database**.
