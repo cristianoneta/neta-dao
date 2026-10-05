@@ -1,0 +1,150 @@
+<div id="neta-treasury-pnl-draft">
+<style>
+#neta-treasury-pnl-draft{--nt-bg:#101216;--nt-surface:#191d24;--nt-raised:#222832;--nt-border:#303641;--nt-text:#f2f4f7;--nt-muted:#a6adbb;--nt-mint:#6ee7b7;--nt-red:#ff8fa3;--nt-amber:#f4c76b;--nt-blue:#9dbbff;color:var(--nt-text);background:var(--nt-bg);font:14px/1.5 Inter,ui-sans-serif,system-ui,sans-serif;color-scheme:dark;border-radius:12px;overflow:hidden}
+#neta-treasury-pnl-draft *{box-sizing:border-box}
+/* Local foreground inheritance prevents host light-theme text rules from leaking into the dark product surface. */
+#neta-treasury-pnl-draft :where(*){color:inherit}
+#neta-treasury-pnl-draft option{color:var(--nt-text);background:var(--nt-bg)}
+#neta-treasury-pnl-draft button,#neta-treasury-pnl-draft select{font:inherit;color:inherit}
+#neta-treasury-pnl-draft button:focus-visible,#neta-treasury-pnl-draft select:focus-visible,#neta-treasury-pnl-draft summary:focus-visible{outline:2px solid var(--nt-blue);outline-offset:3px}
+#neta-treasury-pnl-draft .nt-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 32px 16px;border-bottom:1px solid var(--nt-border);padding-right:108px}
+#neta-treasury-pnl-draft .nt-brand{font-size:16px;font-weight:700;letter-spacing:.045em}
+#neta-treasury-pnl-draft .nt-context{display:flex;gap:12px;align-items:center;color:var(--nt-muted);font-size:12px}
+#neta-treasury-pnl-draft .nt-context b{font-weight:500;color:var(--nt-mint)}
+#neta-treasury-pnl-draft .nt-nav{display:flex;gap:26px;padding:0 32px;border-bottom:1px solid var(--nt-border);flex-wrap:wrap;color:var(--nt-muted)}
+#neta-treasury-pnl-draft .nt-nav span{padding:14px 0}
+#neta-treasury-pnl-draft .nt-nav .nt-active{color:var(--nt-mint);border-bottom:2px solid var(--nt-mint)}
+#neta-treasury-pnl-draft .nt-main{padding:28px 32px 34px}
+#neta-treasury-pnl-draft .nt-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}
+#neta-treasury-pnl-draft h1{font-size:32px;line-height:1.2;letter-spacing:-.025em;margin:0 0 6px;font-weight:650}
+#neta-treasury-pnl-draft h2{font-size:21px;letter-spacing:-.02em;line-height:1.3;margin:0;font-weight:600}
+#neta-treasury-pnl-draft h3{font-size:16px;margin:0;font-weight:600}
+#neta-treasury-pnl-draft p{margin:0}
+#neta-treasury-pnl-draft .nt-sub{color:var(--nt-muted);font-size:13px}
+#neta-treasury-pnl-draft .nt-pill{display:inline-flex;gap:6px;align-items:center;padding:4px 9px;border-radius:6px;font-size:11px;font-weight:600;letter-spacing:.035em;white-space:nowrap;background:var(--nt-raised);color:var(--nt-muted)}
+#neta-treasury-pnl-draft .nt-draft{color:var(--nt-amber);background:#302b20;white-space:normal;max-width:180px}
+#neta-treasury-pnl-draft .nt-assets{border:1px solid var(--nt-border);border-radius:12px;background:var(--nt-surface);margin-bottom:20px}
+#neta-treasury-pnl-draft .nt-assets summary{list-style:none;display:flex;align-items:center;gap:10px;padding:17px 20px;flex-wrap:wrap}
+#neta-treasury-pnl-draft .nt-assets summary::-webkit-details-marker{display:none}
+#neta-treasury-pnl-draft .nt-assets summary::before{content:'›';font-size:23px;color:var(--nt-muted);transform:rotate(0deg)}
+#neta-treasury-pnl-draft .nt-assets[open] summary::before{transform:rotate(90deg)}
+#neta-treasury-pnl-draft .nt-assets summary strong{font-size:15px;font-weight:600}
+#neta-treasury-pnl-draft .nt-spacer{flex:1}
+#neta-treasury-pnl-draft .nt-assets-total{font-variant-numeric:tabular-nums;font-size:19px;font-weight:550}
+#neta-treasury-pnl-draft .nt-asset-body{border-top:1px solid var(--nt-border);padding:14px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+#neta-treasury-pnl-draft .nt-asset-body div{display:flex;justify-content:space-between;gap:12px}
+#neta-treasury-pnl-draft .nt-panel{border:1px solid var(--nt-border);border-radius:12px;background:var(--nt-surface);overflow:hidden}
+#neta-treasury-pnl-draft .nt-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:22px 24px 18px;flex-wrap:wrap}
+#neta-treasury-pnl-draft .nt-panel-head .nt-sub{margin-top:6px}
+#neta-treasury-pnl-draft .nt-filters{display:flex;gap:10px}
+#neta-treasury-pnl-draft .nt-filters label{font-size:11px;letter-spacing:.04em;color:var(--nt-muted);display:grid;gap:5px}
+#neta-treasury-pnl-draft select{padding:8px 28px 8px 10px;border:1px solid #566173;border-radius:7px;background:var(--nt-bg);min-height:39px;font-size:13px;max-width:100%}
+#neta-treasury-pnl-draft .nt-period{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 24px 18px;font-size:12px;color:var(--nt-muted)}
+#neta-treasury-pnl-draft .nt-period .nt-pill{background:#1c302b;color:var(--nt-mint)}
+#neta-treasury-pnl-draft .nt-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--nt-border);border-bottom:1px solid var(--nt-border);margin:0 24px;padding:18px 0}
+#neta-treasury-pnl-draft .nt-kpi{padding:0 18px;border-left:1px solid var(--nt-border)}
+#neta-treasury-pnl-draft .nt-kpi:first-child{padding-left:0;border-left:0}
+#neta-treasury-pnl-draft .nt-kpi>span{display:block;font-size:12px;color:var(--nt-muted);margin-bottom:5px}
+#neta-treasury-pnl-draft .nt-kpi strong{font-size:28px;line-height:1.2;font-weight:550;letter-spacing:-.03em;font-variant-numeric:tabular-nums;display:block}
+#neta-treasury-pnl-draft .nt-kpi small{display:block;color:var(--nt-muted);margin-top:7px;font-size:11px}
+#neta-treasury-pnl-draft .nt-positive{color:var(--nt-mint)}
+#neta-treasury-pnl-draft .nt-negative{color:var(--nt-red)}
+#neta-treasury-pnl-draft .nt-content{display:grid;grid-template-columns:minmax(0,1fr) 278px;align-items:start}
+#neta-treasury-pnl-draft .nt-statement{padding:8px 24px 20px;min-width:0}
+#neta-treasury-pnl-draft .nt-table-wrap{overflow-x:auto}
+#neta-treasury-pnl-draft table{border-collapse:collapse;width:100%;font-size:13px}
+#neta-treasury-pnl-draft th{color:var(--nt-muted);font-size:11px;font-weight:500;text-align:right;padding:12px 8px;vertical-align:bottom;white-space:nowrap}
+#neta-treasury-pnl-draft th:first-child{text-align:left;padding-left:0}
+#neta-treasury-pnl-draft td{padding:10px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;border-bottom:1px solid #272e38}
+#neta-treasury-pnl-draft td:first-child{text-align:left;padding-left:0;white-space:normal;min-width:145px}
+#neta-treasury-pnl-draft td:last-child,#neta-treasury-pnl-draft th:last-child{padding-right:0}
+#neta-treasury-pnl-draft .nt-group td{padding-top:20px;padding-bottom:10px;border-bottom:1px solid var(--nt-border);font-weight:600}
+#neta-treasury-pnl-draft .nt-group td:first-child{color:var(--nt-muted);text-transform:uppercase;font-size:11px;letter-spacing:.09em}
+#neta-treasury-pnl-draft .nt-line{border:0;background:transparent;padding:1px 0;text-align:left;font-size:13px;display:inline-flex;align-items:center;gap:6px;min-height:30px;white-space:normal}
+#neta-treasury-pnl-draft .nt-line:hover{color:var(--nt-mint)}
+#neta-treasury-pnl-draft .nt-line[aria-pressed=true]{color:var(--nt-mint)}
+#neta-treasury-pnl-draft .nt-line .nt-arrow{font-size:17px;line-height:1;color:var(--nt-muted)}
+#neta-treasury-pnl-draft .nt-child td:first-child{padding-left:20px;color:var(--nt-muted)}
+#neta-treasury-pnl-draft .nt-child td{font-size:12px;padding-top:5px;padding-bottom:5px;border-bottom:0;color:var(--nt-muted)}
+#neta-treasury-pnl-draft .nt-result td{border-bottom:0;border-top:1px solid #54675f;padding:18px 8px;font-weight:600;font-size:15px;background:#1b2925}
+#neta-treasury-pnl-draft .nt-result td:first-child{padding-left:12px}
+#neta-treasury-pnl-draft .nt-result td:last-child{padding-right:10px}
+#neta-treasury-pnl-draft .nt-note{margin-top:12px;font-size:11px;color:var(--nt-muted)}
+#neta-treasury-pnl-draft .nt-side{border-left:1px solid var(--nt-border);margin:20px 0;padding:0 20px;min-width:0}
+#neta-treasury-pnl-draft .nt-eyebrow{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--nt-muted);margin-bottom:8px}
+#neta-treasury-pnl-draft .nt-detail-value{font-size:26px;font-weight:550;margin:7px 0 3px;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+#neta-treasury-pnl-draft .nt-detail-items{margin:16px 0 12px}
+#neta-treasury-pnl-draft .nt-detail-item{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--nt-border);font-size:12px}
+#neta-treasury-pnl-draft .nt-detail-item span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+#neta-treasury-pnl-draft .nt-detail-item small{display:block;font-size:11px;color:var(--nt-muted);margin-top:2px}
+#neta-treasury-pnl-draft .nt-link{border:1px solid #586374;background:transparent;color:var(--nt-text);border-radius:7px;padding:8px 11px;font-size:12px;min-height:38px;width:100%;text-align:left;display:flex;justify-content:space-between;gap:8px}
+#neta-treasury-pnl-draft .nt-side-foot{margin-top:12px;color:var(--nt-muted);font-size:11px}
+#neta-treasury-pnl-draft .nt-reconcile{border-top:1px solid var(--nt-border);padding:18px 24px;background:#171b21}
+#neta-treasury-pnl-draft .nt-reconcile summary{font-size:13px;font-weight:500;display:flex;gap:8px;flex-wrap:wrap;align-items:center;list-style:none}
+#neta-treasury-pnl-draft .nt-reconcile summary::before{content:'›';font-size:19px;color:var(--nt-muted)}
+#neta-treasury-pnl-draft .nt-reconcile[open] summary::before{transform:rotate(90deg)}
+#neta-treasury-pnl-draft .nt-bridge{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:20px}
+#neta-treasury-pnl-draft .nt-bridge span{font-size:12px;color:var(--nt-muted);display:block}
+#neta-treasury-pnl-draft .nt-bridge strong{font-size:18px;display:block;margin:4px 0;font-variant-numeric:tabular-nums;font-weight:500}
+#neta-treasury-pnl-draft .nt-bridge small{font-size:11px;color:var(--nt-muted)}
+#neta-treasury-pnl-draft .nt-bridge-total{display:flex;justify-content:space-between;gap:14px;padding-top:15px;margin-top:16px;border-top:1px solid var(--nt-border);font-size:12px}
+#neta-treasury-pnl-draft .nt-future{margin-top:20px;display:flex;align-items:center;gap:18px;padding:16px 20px;border:1px solid var(--nt-border);border-radius:10px;flex-wrap:wrap}
+#neta-treasury-pnl-draft .nt-future .nt-sub{font-size:12px}
+#neta-treasury-pnl-draft .nt-future strong{font-size:16px;font-weight:500}
+#neta-treasury-pnl-draft .nt-future .nt-link{width:auto;margin-left:auto}
+#neta-treasury-pnl-draft .nt-events{margin-top:24px;padding:20px;border:1px solid var(--nt-border);border-radius:12px;background:var(--nt-surface)}
+#neta-treasury-pnl-draft .nt-events-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px}
+#neta-treasury-pnl-draft .nt-events-head button{background:none;border:0;color:var(--nt-mint);font-size:12px;padding:8px}
+#neta-treasury-pnl-draft .nt-event{display:grid;grid-template-columns:55px minmax(0,1fr) auto;align-items:start;gap:12px;border-top:1px solid var(--nt-border);padding:12px 0;font-size:12px}
+#neta-treasury-pnl-draft .nt-event small{color:var(--nt-muted);display:block;font-size:11px;margin-top:2px}
+#neta-treasury-pnl-draft .nt-event time{color:var(--nt-muted)}
+#neta-treasury-pnl-draft .nt-event strong{font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+#neta-treasury-pnl-draft .nt-empty{padding:38px 20px;text-align:center;color:var(--nt-muted);font-size:13px}
+#neta-treasury-pnl-draft [hidden]{display:none!important}
+@media(max-width:780px){#neta-treasury-pnl-draft .nt-content{grid-template-columns:1fr}#neta-treasury-pnl-draft .nt-side{margin:0 24px 24px;border-left:0;border-top:1px solid var(--nt-border);padding:18px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:0 24px}#neta-treasury-pnl-draft .nt-detail-intro{grid-column:1}#neta-treasury-pnl-draft .nt-detail-items{grid-row:1/4;grid-column:2;margin:0}#neta-treasury-pnl-draft .nt-nav{gap:20px}#neta-treasury-pnl-draft .nt-main{padding:24px}#neta-treasury-pnl-draft .nt-top{padding-left:24px}#neta-treasury-pnl-draft .nt-nav{padding-left:24px}}
+@media(max-width:520px){#neta-treasury-pnl-draft .nt-top{align-items:flex-start;flex-direction:column;padding:18px 18px 12px;padding-right:100px;gap:8px}#neta-treasury-pnl-draft .nt-context{font-size:11px;gap:8px;flex-wrap:wrap}#neta-treasury-pnl-draft .nt-nav{padding:0 18px;gap:16px;font-size:12px}#neta-treasury-pnl-draft .nt-nav span{padding:10px 0}#neta-treasury-pnl-draft .nt-main{padding:22px 14px}#neta-treasury-pnl-draft .nt-heading{align-items:flex-start;flex-direction:column;gap:10px}#neta-treasury-pnl-draft h1{font-size:28px}#neta-treasury-pnl-draft .nt-draft{max-width:none}#neta-treasury-pnl-draft .nt-panel-head{padding:18px 14px;gap:14px}#neta-treasury-pnl-draft .nt-filters{width:100%}#neta-treasury-pnl-draft .nt-filters label{flex:1;min-width:0}#neta-treasury-pnl-draft select{font-size:16px;min-height:44px;width:100%;padding-right:10px}#neta-treasury-pnl-draft .nt-period{margin:0 14px 16px}#neta-treasury-pnl-draft .nt-kpis{margin:0 14px;grid-template-columns:1fr;gap:14px}#neta-treasury-pnl-draft .nt-kpi{border-left:0;padding:0;display:grid;grid-template-columns:1fr auto;align-items:center;gap:0 10px}#neta-treasury-pnl-draft .nt-kpi strong{font-size:24px;text-align:right;grid-row:1/3;grid-column:2}#neta-treasury-pnl-draft .nt-kpi small{margin:0}#neta-treasury-pnl-draft .nt-statement{padding:8px 14px 18px}#neta-treasury-pnl-draft .nt-statement table{min-width:430px}#neta-treasury-pnl-draft .nt-side{display:block;margin:0 14px 18px}#neta-treasury-pnl-draft .nt-detail-items{margin:12px 0}#neta-treasury-pnl-draft .nt-reconcile{padding:16px 14px}#neta-treasury-pnl-draft .nt-bridge{grid-template-columns:1fr;gap:13px}#neta-treasury-pnl-draft .nt-bridge-total{flex-direction:column;gap:6px}#neta-treasury-pnl-draft .nt-asset-body{grid-template-columns:1fr}#neta-treasury-pnl-draft .nt-assets summary{padding:14px}#neta-treasury-pnl-draft .nt-assets summary .nt-sub{display:none}#neta-treasury-pnl-draft .nt-future{padding:16px 14px;gap:10px}#neta-treasury-pnl-draft .nt-future .nt-link{width:100%}#neta-treasury-pnl-draft .nt-events{padding:16px 14px}#neta-treasury-pnl-draft .nt-line{min-height:44px}#neta-treasury-pnl-draft .nt-event{grid-template-columns:40px minmax(0,1fr);gap:6px 10px}#neta-treasury-pnl-draft .nt-event strong{grid-column:2}}
+</style>
+<header class="nt-top"><div class="nt-brand">NETA REBORN</div><div class="nt-context"><b>NETA DAO</b><span>Juno mainnet</span></div></header>
+<nav class="nt-nav" aria-label="Application preview"><span>Home</span><span>Proposals</span><span>Delivery</span><span>People</span><span class="nt-active" aria-current="page">Treasury</span><span>RELAY</span></nav>
+<div class="nt-main">
+<div class="nt-heading"><div><h1>Treasury</h1><p class="nt-sub">Assets, income and the cost of building together.</p></div><span class="nt-pill nt-draft">DESIGN DRAFT · EXAMPLE DATA</span></div>
+<details class="nt-assets"><summary class="cursor-interaction"><strong>Assets</strong><span class="nt-sub">Current holdings · 5 Oct</span><span class="nt-spacer"></span><span class="nt-assets-total">$24,150.00</span></summary><div class="nt-asset-body"><div><span>NETA</span><span>$13,200.00</span></div><div><span>JUNO</span><span>$6,450.00</span></div><div><span>USDC</span><span>$4,500.00</span></div></div></details>
+<section class="nt-panel" aria-labelledby="nt-pnl-title">
+<header class="nt-panel-head"><div><h2 id="nt-pnl-title">Income &amp; expenses</h2><p class="nt-sub">Cash-based P&amp;L · USD at payment time</p></div><div class="nt-filters"><label>YEAR<select id="nt-year" aria-label="Year"><option value="2026">2026</option><option value="2027">2027</option></select></label><label>PERIOD<select id="nt-month" aria-label="Period"><option value="all">Full year</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10" selected>October</option><option value="11">November</option><option value="12">December</option></select></label></div></header>
+<div class="nt-period"><span class="nt-pill" id="nt-period-tag">MONTH TO DATE</span><span id="nt-period-label">1–5 October 2026</span><span>·</span><span id="nt-compare-label">vs. 1–5 September</span></div>
+<div class="nt-kpis" aria-live="polite"><div class="nt-kpi"><span>Income</span><strong id="nt-income">$1,240.00</strong><small id="nt-income-sub">+$540.00 vs. previous period</small></div><div class="nt-kpi"><span>Expenses</span><strong id="nt-expenses">$840.00</strong><small id="nt-expenses-sub">+$100.00 vs. previous period</small></div><div class="nt-kpi"><span id="nt-net-label">Operating surplus</span><strong id="nt-net" class="nt-positive">+$400.00</strong><small id="nt-net-sub">Income less paid expenses</small></div></div>
+<div class="nt-content" id="nt-content"><div class="nt-statement"><div class="nt-table-wrap"><table aria-label="Income and expenses in USD"><thead><tr><th scope="col">Category</th><th scope="col" id="nt-current-col">1–5 Oct</th><th scope="col" id="nt-previous-col">1–5 Sep</th><th scope="col">Change</th></tr></thead><tbody id="nt-rows"></tbody></table></div><p class="nt-note">USD values stay fixed at the transaction-time valuation.</p></div>
+<aside class="nt-side" aria-label="Selected category details"><div class="nt-detail-intro"><p class="nt-eyebrow">SELECTED CATEGORY</p><h3 id="nt-detail-title">NETA Naming Service</h3><p class="nt-detail-value" id="nt-detail-value">$840.00</p><p class="nt-sub" id="nt-detail-sub">38 registrations · 10 renewals</p></div><div class="nt-detail-items" id="nt-detail-items"></div><button type="button" id="nt-detail-events" class="nt-link cursor-interaction">View related events <span aria-hidden="true">↓</span></button><p class="nt-side-foot" id="nt-detail-foot">Matched registration and renewal fees only.</p></aside></div>
+<div class="nt-empty" id="nt-no-data" hidden>No verified data is available for this period.</div>
+<details class="nt-reconcile" id="nt-reconcile"><summary class="cursor-interaction"><span>Why the treasury value changed</span><span class="nt-spacer"></span><span class="nt-sub" id="nt-bridge-preview">Operating +$400 · Market −$1,850</span></summary><div class="nt-bridge"><div><span>Operating result</span><strong id="nt-bridge-ops">+$400.00</strong><small>Included in the P&amp;L above</small></div><div><span>Funding &amp; capital contributions</span><strong id="nt-bridge-funding">+$600.00</strong><small>Separate from operating income</small></div><div><span>Market / valuation effect</span><strong id="nt-bridge-market">−$1,850.00</strong><small>Separate from cash-based P&amp;L</small></div></div><div class="nt-bridge-total"><span id="nt-bridge-opening">Opening value $25,000.00</span><span id="nt-bridge-closing">Closing value $24,150.00 · change −$850.00</span></div><p class="nt-note">Own-wallet transfers and swaps are excluded from revenue. Coverage gaps remain unavailable.</p></details>
+</section>
+<section class="nt-future" aria-label="Upcoming payments"><div><h3>Upcoming payments</h3><p class="nt-sub">Approved commitments · excluded from paid expenses</p></div><strong>$680.00</strong><button class="nt-link cursor-interaction" id="nt-upcoming" type="button" aria-expanded="false">2 milestones <span aria-hidden="true">↓</span></button><div id="nt-upcoming-items" hidden style="width:100%"><div class="nt-detail-item"><span>Profile release · development<small>12 Oct · conditional on milestone approval · example proposal</small></span><span>$500.00</span></div><div class="nt-detail-item"><span>Community documentation<small>20 Oct · approved payment · example proposal</small></span><span>$180.00</span></div></div></section>
+<section class="nt-events" id="nt-events" aria-labelledby="nt-events-title"><div class="nt-events-head"><h3 id="nt-events-title">Treasury events</h3><button id="nt-events-clear" class="cursor-interaction" type="button" hidden>Show all</button></div><p class="nt-sub" id="nt-event-filter">Selected period · illustrative activity</p><div id="nt-event-list"></div></section>
+</div>
+<script>
+(()=>{
+const root=document.getElementById('neta-treasury-pnl-draft');
+const el=id=>root.querySelector('#'+id);
+const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(Math.abs(n));
+const signed=n=>(n<0?'−':n>0?'+':'')+money(n);
+const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const models={
+'2026-10':{tag:'MONTH TO DATE',period:'1–5 October 2026',compare:'vs. 1–5 September',columns:['1–5 Oct','1–5 Sep'],income:[640,200,400],expenses:[520,180,120,14,6],prevIncome:[350,100,250],prevExpenses:[440,160,120,15,5],funding:600,market:-1850,opening:25000},
+'2026-09':{tag:'FULL MONTH',period:'1–30 September 2026',compare:'vs. August 2026',columns:['September','August'],income:[1850,450,750],expenses:[2200,600,450,44,16],prevIncome:[1440,380,750],prevExpenses:[2000,500,350,48,12],funding:0,market:1460,opening:23800},
+'2026-all':{tag:'YEAR TO DATE',period:'1 January–5 October 2026',compare:'Prior-year coverage unavailable',columns:['2026 YTD','2025 YTD'],income:[9000,2400,8200],expenses:[32000,4500,2500,700,150],prevIncome:null,prevExpenses:null,funding:40000,market:-5100,opening:9500}
+};
+let selected='nns',eventFilter=null,model=models['2026-10'];
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const categoryNames={nns:'NETA Naming Service',other:'Other operating income',dev:'Development & operations',community:'Marketing & community',grants:'Grants',misc:'Other expenses',gas:'Network fees'};
+function line(id,label,amount,prior,{expense=false,child=false}={}){const tr=document.createElement('tr');if(child)tr.className='nt-child';const td=document.createElement('td');if(id){const b=document.createElement('button');b.type='button';b.className='nt-line cursor-interaction';b.setAttribute('aria-pressed',String(id===selected));b.dataset.category=id;const arrow=document.createElement('span');arrow.className='nt-arrow';arrow.textContent='›';arrow.setAttribute('aria-hidden','true');b.append(arrow,document.createTextNode(label));b.onclick=()=>{selected=id;renderTable();renderDetail();};td.append(b);}else td.textContent=label;tr.append(td);for(const val of [amount,prior,prior===null?null:amount-prior]){const c=document.createElement('td');c.textContent=val===null?'—':money(val);tr.append(c);}tr.children[1].textContent=(expense?'−':'')+money(amount);if(prior!==null)tr.children[2].textContent=(expense?'−':'')+money(prior);const d=prior===null?null:amount-prior;tr.children[3].textContent=d===null?'—':signed(d);if(d!==null&&d!==0)tr.children[3].className=(expense?d<0:d>0)?'nt-positive':'nt-negative';return tr;}
+function group(label,current,previous,expense=false){const tr=line(null,label,current,previous,{expense});tr.className='nt-group';return tr;}
+function renderTable(){const rows=el('nt-rows');rows.replaceChildren();if(!model)return;const pI=model.prevIncome,pE=model.prevExpenses;rows.append(group('Income',sum(model.income),pI?sum(pI):null));rows.append(line('nns','NETA Naming Service',model.income[0]+model.income[1],pI?pI[0]+pI[1]:null));rows.append(line(null,'Registrations',model.income[0],pI?pI[0]:null,{child:true}),line(null,'Renewals',model.income[1],pI?pI[1]:null,{child:true}),line('other','Other operating income',model.income[2],pI?pI[2]:null));rows.append(group('Expenses',sum(model.expenses),pE?sum(pE):null,true));['dev','community','grants','misc','gas'].forEach((id,i)=>rows.append(line(id,categoryNames[id],model.expenses[i],pE?pE[i]:null,{expense:true})));const net=sum(model.income)-sum(model.expenses),prev=pI&&pE?sum(pI)-sum(pE):null;const total=line(null,net>=0?'Operating surplus':'Operating deficit',net,prev);total.className='nt-result';total.children[1].textContent=signed(net);total.children[1].className=net>=0?'nt-positive':'nt-negative';total.children[2].textContent=prev===null?'—':signed(prev);rows.append(total);}
+function categoryAmount(id){if(id==='nns')return model.income[0]+model.income[1];if(id==='other')return model.income[2];return model.expenses[['dev','community','grants','misc','gas'].indexOf(id)];}
+function detailParts(id){if(id==='nns')return [['Registrations','Registration fees',model.income[0]],['Renewals','Term extension fees',model.income[1]]];if(id==='other')return [['Services & partnerships','Operating receipts · sample classification',model.income[2]]];const descriptions={dev:['Development','Approved contributor payment'],community:['Community programme','Campaign & documentation'],grants:['Ecosystem grant','Approved milestone payment'],misc:['Other operating costs','Classified payments'],gas:['Juno & Osmosis fees','Network costs']};const d=descriptions[id];return [[d[0],d[1],categoryAmount(id)]];}
+function renderDetail(){if(!model)return;el('nt-detail-title').textContent=categoryNames[selected];el('nt-detail-value').textContent=(['nns','other'].includes(selected)?'':'−')+money(categoryAmount(selected));el('nt-detail-sub').textContent=selected==='nns'&&el('nt-month').value==='10'?'38 registrations · 10 renewals':model.period;const list=el('nt-detail-items');list.replaceChildren();for(const [title,note,value]of detailParts(selected)){const row=document.createElement('div');row.className='nt-detail-item';const label=document.createElement('span');label.textContent=title;const sub=document.createElement('small');sub.textContent=note;label.append(sub);const num=document.createElement('span');num.textContent=money(value);row.append(label,num);list.append(row);}el('nt-detail-foot').textContent=selected==='nns'?'Matched registration and renewal fees only.':'Each classified payment links to its transaction and, where available, its proposal.';}
+function renderEvents(){const list=el('nt-event-list');list.replaceChildren();el('nt-events-clear').hidden=!eventFilter;el('nt-event-filter').textContent=eventFilter?categoryNames[eventFilter]+' · illustrative activity':'Selected period · illustrative activity';if(!model){const p=document.createElement('p');p.className='nt-empty';p.textContent='Not available — no verified events for this period.';list.append(p);return;}const ids=eventFilter?[eventFilter]:['nns','dev','community'];for(const id of ids){const parts=detailParts(id);for(const [title,note,amount]of parts){const row=document.createElement('div');row.className='nt-event';const time=document.createElement('time');time.textContent=el('nt-month').value==='09'?'30 Sep':'5 Oct';const label=document.createElement('div');label.textContent=title;const sub=document.createElement('small');sub.textContent=note+' · example activity';label.append(sub);const val=document.createElement('strong');val.className=['nns','other'].includes(id)?'nt-positive':'';val.textContent=(['nns','other'].includes(id)?'+':'−')+money(amount);row.append(time,label,val);list.append(row);}}}
+function update(){const year=el('nt-year').value,month=el('nt-month').value;model=models[year+'-'+month]||null;eventFilter=null;el('nt-content').hidden=!model;el('nt-no-data').hidden=!!model;el('nt-reconcile').hidden=!model;if(!model){const label=month==='all'?'Full year '+year:months[Number(month)-1]+' '+year;el('nt-period-label').textContent=label;el('nt-period-tag').textContent='NOT AVAILABLE';el('nt-compare-label').textContent='Missing data is not zero';for(const id of ['nt-income','nt-expenses','nt-net']){el(id).textContent='—';el(id).className='';}for(const id of ['nt-income-sub','nt-expenses-sub','nt-net-sub'])el(id).textContent='No verified data';el('nt-net-label').textContent='Operating result';renderEvents();return;}const income=sum(model.income),expenses=sum(model.expenses),net=income-expenses;el('nt-period-tag').textContent=model.tag;el('nt-period-label').textContent=model.period;el('nt-compare-label').textContent=model.compare;el('nt-current-col').textContent=model.columns[0];el('nt-previous-col').textContent=model.columns[1];el('nt-income').textContent=money(income);el('nt-expenses').textContent=money(expenses);el('nt-net').textContent=signed(net);el('nt-net').className=net>=0?'nt-positive':'nt-negative';el('nt-net-label').textContent=net>=0?'Operating surplus':'Operating deficit';el('nt-income-sub').textContent=model.prevIncome?signed(income-sum(model.prevIncome))+' vs. previous period':'Previous period not available';el('nt-expenses-sub').textContent=model.prevExpenses?signed(expenses-sum(model.prevExpenses))+' vs. previous period':'Previous period not available';el('nt-net-sub').textContent='Income less paid expenses';el('nt-bridge-ops').textContent=signed(net);el('nt-bridge-funding').textContent=signed(model.funding);el('nt-bridge-market').textContent=signed(model.market);el('nt-bridge-preview').textContent='Operating '+signed(net)+' · Market '+signed(model.market);el('nt-bridge-opening').textContent='Opening value '+money(model.opening);const delta=net+model.funding+model.market;el('nt-bridge-closing').textContent='Closing value '+money(model.opening+delta)+' · change '+signed(delta);renderTable();renderDetail();renderEvents();}
+el('nt-year').addEventListener('change',update);el('nt-month').addEventListener('change',update);el('nt-detail-events').onclick=()=>{eventFilter=selected;renderEvents();el('nt-events').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest'});};el('nt-events-clear').onclick=()=>{eventFilter=null;renderEvents();};el('nt-upcoming').onclick=()=>{const open=el('nt-upcoming-items').hidden;el('nt-upcoming-items').hidden=!open;el('nt-upcoming').setAttribute('aria-expanded',String(open));};update();
+})();
+</script>
+</div>

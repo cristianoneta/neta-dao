@@ -1,6 +1,6 @@
 # NETA DAO handoff
 
-Updated: **2026-10-05, 22:06 continuation checkpoint (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
+Updated: **2026-10-05, 22:28 Treasury design checkpoint (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
 
 
 ## Resume on 2026-10-06 — finish the NNS release
@@ -41,7 +41,32 @@ credentials. The initial uploaded tree matched local tests exactly. Working copy
 `/workspace/scratch/281a81c91ea5/neta-dao`; GitHub is the durable continuation source.
 No private RPC/server was purchased; [the sourced assessment](docs/JUNO_RPC_OPTIONS_2026-10-05.md)
 and [prior incident evidence](docs/ACTIONS_RUNNER_INCIDENT_2026-10-05.md) are saved.
-Treasury accounting and live validator E2E remain deferred.
+Treasury production accounting and live validator E2E remain deferred. The owner
+approved a Treasury P&L design draft afterward; its corrected reference is saved below.
+
+## Treasury P&L draft — owner accepted direction, 2026-10-05
+
+The owner said the draft looks good and requested fixing black text on dark
+backgrounds, then saving it for continuation. **Design only, not live accounting.**
+The corrected [interactive preview](docs/design/treasury-pnl-draft.html),
+[editable source](docs/design/treasury-pnl-draft.fragment.html) and
+[requirements / validation / next steps](docs/TREASURY_PNL_DRAFT_2026-10-05.md)
+are preserved in this branch.
+
+Keep the P&L between Assets and Treasury events; default current month, with
+month/year/full-year selection. Separate NNS registration/renewal income and
+expense categories; show operating surplus/deficit and category/event details.
+Transaction-time USD valuation is fixed. Own-wallet transfers, swaps and market
+movements are not revenue; funding and valuation effects have a separate bridge.
+Upcoming commitments remain outside paid expenses. Unavailable data is not zero.
+No Reserve Policy. All preview figures and activity are fictional examples.
+
+Scoped light foregrounds and dropdown colors now protect the dark draft from host
+text-style leakage. Local light/dark checks (including black host-style injection)
+measured at least 6.98:1 for visible text; period/category interactions and
+1024/768/390/320 px reflow passed. Apply shared production tokens when implementing.
+Continue with the NNS release first, then source-backed Treasury accounting using
+this design. Approval of the mockup does not mean the P&L is implemented or deployed.
 
 ## Start here
 
@@ -150,8 +175,8 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
 Upgrade transfer (`MsgUpdateAdmin` on each contract) and registry `set_admin`
 are separate future owner actions. No transfer or removal of authority is authorized.
 UNI-7 contracts, completed lifecycle, local key and journals are preserved.
-Validator live tests stay deferred. Treasury P&L work is explicitly deferred until
-NNS is finished; the shared collapsed-warning fix is already published in PR #160.
+Validator live tests stay deferred. Treasury P&L production implementation stays deferred until
+NNS is finished; the accepted design draft above is saved for that work; the shared collapsed-warning fix is already published in PR #160.
 
 The main `.neta name` and `My profile` pages already reuse the existing UNI-7
 manifest, shared header wallet and journals for registration/renewal/transfers and
