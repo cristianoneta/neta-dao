@@ -3,21 +3,21 @@
     "chains": [
       {
         "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-        "anchor_hash": "DE785B34EA2B2A25A8D3EA3C1B94D5DAED4ADD16E7D9914D6B8FA2509595D051",
+        "anchor_hash": "A4CF57B896F9187912E2459CAF2A488FC09E6A657AC8D31344AABF91DB0D571A",
         "chain_id": "juno-1",
         "contract_creation_height": 4322988,
         "historical_missing_transactions": 0,
         "historical_missing_tx_hashes": [],
         "incremental": false,
         "indexed_transactions": 47,
-        "last_scanned_height": 42408028,
+        "last_scanned_height": 42408303,
         "range_capable": false,
         "scan_start_height": 4322988,
         "source": "https://juno-rpc.publicnode.com"
       },
       {
         "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-        "anchor_hash": "A6F6C6D9272079A6D98E514A58BDDFE1C8F2EF6647F0E8CEBEE9BC8160AB91AB",
+        "anchor_hash": "B08B1EDA65B036A48BEE260AB65CED6FD8DE455415AD3EF8CAC53E3C57B8353C",
         "chain_id": "osmosis-1",
         "contract_creation_height": 15838602,
         "historical_missing_transactions": 3,
@@ -28,7 +28,7 @@
         ],
         "incremental": false,
         "indexed_transactions": 0,
-        "last_scanned_height": 71978919,
+        "last_scanned_height": 71979429,
         "range_capable": false,
         "scan_start_height": 15838602,
         "source": "https://osmosis-rpc.publicnode.com"
@@ -1692,27 +1692,27 @@
       "type": "inflow"
     }
   ],
-  "generated_at": "2026-10-05T23:45:02.043630Z",
+  "generated_at": "2026-10-05T23:56:47.160521Z",
   "schema_version": 2,
   "scope": "neta-operations-cross-chain",
   "sources": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-      "anchor_hash": "DE785B34EA2B2A25A8D3EA3C1B94D5DAED4ADD16E7D9914D6B8FA2509595D051",
+      "anchor_hash": "A4CF57B896F9187912E2459CAF2A488FC09E6A657AC8D31344AABF91DB0D571A",
       "chain_id": "juno-1",
       "contract_creation_height": 4322988,
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
       "incremental": false,
       "indexed_transactions": 47,
-      "last_scanned_height": 42408028,
+      "last_scanned_height": 42408303,
       "range_capable": false,
       "scan_start_height": 4322988,
       "source": "https://juno-rpc.publicnode.com"
     },
     {
       "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-      "anchor_hash": "A6F6C6D9272079A6D98E514A58BDDFE1C8F2EF6647F0E8CEBEE9BC8160AB91AB",
+      "anchor_hash": "B08B1EDA65B036A48BEE260AB65CED6FD8DE455415AD3EF8CAC53E3C57B8353C",
       "chain_id": "osmosis-1",
       "contract_creation_height": 15838602,
       "historical_missing_transactions": 3,
@@ -1723,7 +1723,7 @@
       ],
       "incremental": false,
       "indexed_transactions": 0,
-      "last_scanned_height": 71978919,
+      "last_scanned_height": 71979429,
       "range_capable": false,
       "scan_start_height": 15838602,
       "source": "https://osmosis-rpc.publicnode.com"
