@@ -107,9 +107,13 @@ migration test verifies authority, state preservation and subsequent DAO transfe
 The owner completed four mainnet transactions and exported matching two-provider
 paused observations at 13:54 Berlin. Registry code 5168 and profile code 5169 are
 recorded in `deployments/nns-mainnet.json`; exact receipts and verification procedure
-are in [deployment evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md). Private backup
-custody and the production Actions secret are unconfirmed. Manifest publication
-triggers the existing price publisher; a valid signed price is still a launch gate.
+are in [deployment evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md). PR #161 is merged with
+all four checks passed, including live verification run `37307194424`. The first
+Main DAO snapshots run `37307454347` found an Actions secret but failed to publish
+the price; its public source and manifest validate. Fixed diagnostic labels now
+distinguish key parsing/type/mismatch, source and signing errors without exposing
+private material. Inspect the latest job before asking the owner for correction;
+a valid public signed price and private backup custody remain launch gates.
 PR [#158](https://github.com/cristianoneta/neta-dao/pull/158), merge
 `62f12f1a0c672a776a5f3500ab4e8e8a09b93e42`, passed all 11 final PR checks,
 three main checks and Pages `37302003843`; 15 served assets matched SHA-256.

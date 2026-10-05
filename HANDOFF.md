@@ -73,14 +73,17 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
 - Both exported provider observations agree: purchases paused, tariff version 1,
   annual USD **99 / 19 / 5**, signer version 1 and the approved public price key.
 - Public key: `XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=`.
-  Never regenerate it or request its private backup. Backup custody and installation
-  of Actions secret `NNS_PRICE_SIGNING_KEY` are still unconfirmed.
-- Before merging the manifest, require the dedicated read-only deployment workflow:
-  all four exact chain transaction payloads and two independent current provider
-  observations must pass. See [deployment evidence](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
-- Next: publish the manifest, check the existing Main DAO snapshots job and verify
-  `data/nns/price.json` signature, original observation and expiry. Then check the
-  normal Mainnet Names UI while paused. No separate Render NNS service.
+  Never regenerate it or request its private backup. The Actions secret is present,
+  but the first publication failed. Backup custody and a matching usable PEM remain
+  unconfirmed; inspect the latest Main DAO snapshots diagnostic before asking the owner.
+- PR #161 is merged (`7bdcb47e140c0efda768b5cae5fcd828a4526dc4`); all four checks
+  passed, including exact chain payloads and two independent provider observations
+  in run `37307194424`. See [deployment evidence](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
+- Next: resolve price publication. Run `37307454347` found the secret but signing
+  failed; its public Treasury observation at 12:08:23 UTC and manifest validate.
+  The publisher now reports fixed diagnostic labels without logging key material.
+  After the error is resolved, verify `data/nns/price.json` signature and original
+  observation/expiry. No separate Render NNS service. Purchases remain paused.
 - Only after a valid public price and verified live config: prepare a separate
   owner-wallet unpause review and a real owner purchase. There is no dedicated
   mainnet tariff/unpause panel yet; do not substitute the deployment helper or a

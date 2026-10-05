@@ -34,7 +34,9 @@ SHA-256 against raw transaction bytes, reuses the signing bridge's exact protobu
 intent matcher, checks actual deployment events, then verifies the full current
 manifest/config independently through both pinned REST providers. It has read-only
 permissions, no wallet, no price secret and no broadcast. The JSON report is a
-workflow artifact. Record its successful run in the PR before merging.
+workflow artifact. PR #161 passed all four final checks and merged as
+`7bdcb47e140c0efda768b5cae5fcd828a4526dc4`; final live verification run
+[37307194424](https://github.com/cristianoneta/neta-dao/actions/runs/37307194424) passed.
 
 Re-run before activation with dependencies installed via `npm ci --prefix faucet --ignore-scripts`:
 
@@ -46,10 +48,19 @@ This is a paused initial-deployment check, deliberately failing after activation
 a tariff change or authority transfer. It is not a scheduled service or a new
 price poller. Provider observations are not Tendermint light-client proofs.
 
+The published normal Names page was read in the browser after deployment:
+**Juno mainnet verified · purchases paused · annual USD 99 / 19 / 5**.
+Reservation/payment controls remained disabled.
+
 ## Remaining launch gates
 
-1. Publish the manifest only after independent read-only verification succeeds.
-2. Check the existing Main DAO snapshots job. Missing/mismatched signing authority
+1. Manifest published through PR #161 after independent verification succeeded.
+2. Resolve the existing Main DAO snapshots publication error. Initial run
+   [37307454347](https://github.com/cristianoneta/neta-dao/actions/runs/37307454347)
+   found a secret but signing failed. Its Treasury observation (12:08:23 UTC) and
+   manifest validate. The publisher now emits only fixed diagnostic labels; inspect
+   the latest job to distinguish malformed/wrong key from other failures.
+   Missing/mismatched signing authority
    must retain any previous public price and fail visibly. Never request a private
    price key in chat; do not generate a replacement.
 3. Verify the public price signature, deployment binding and original observation/

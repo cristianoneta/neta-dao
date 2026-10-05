@@ -20,8 +20,10 @@ version-3 [production manifest](../docs/deployments/nns-mainnet.json) and
 [four receipts](../docs/deployments/nns-mainnet-receipts-2026-10-05.json) are recorded.
 Both exported provider observations show **purchases paused**, USD 99/19/5 and
 owner-wallet administration. See [verification evidence](../docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
-No unpause or mainnet purchase is recorded. Private backup custody, Actions secret
-installation and the first valid public signed price still need confirmation.
+No unpause or mainnet purchase is recorded. PR #161 published the independently
+verified manifest. The Actions secret exists, but publication run `37307454347`
+failed despite a valid fresh Treasury source. Inspect the latest fixed publisher
+diagnostic; private backup custody and the first valid signed price remain open.
 Do not repeat key creation or deployment. UNI-7 keeps its existing manifest,
 original local key and old quote flow; never direct snapshot payments to UNI-7.
 

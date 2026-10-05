@@ -7,6 +7,20 @@ import {priceSnapshotPreimage,PRICE_SNAPSHOT_TTL} from '../names-v2-core.mjs';
 import {CHAIN,NETA,DAO,POOL} from './service/constants.mjs';
 import {validateSnapshotDeployment} from './snapshot-deployment.mjs';
 
+// Fixed labels only: never log parser errors, key input, or environment values.
+const diagnostics=Object.freeze({
+  manifest:'Reviewed deployment manifest invalid.',
+  key_format:'Price key must be a valid unencrypted PEM private key.',
+  key_type:'Price key must use Ed25519.',
+  key_mismatch:'Price key does not match the reviewed public key.',
+  source:'Treasury price identity, value or freshness invalid.',
+  signing:'Price signature could not be created.',
+});
+class PublicationError extends Error {
+  constructor(code){super(diagnostics[code]);this.code=code;}
+}
+function checked(code,fn){try{return fn();}catch{throw new PublicationError(code);}}
+
 export function priceFromTreasury(treasury,now) {
   const p=treasury?.nns_price;
   if(treasury?.chain_id!==CHAIN || treasury.treasury_address!==DAO || p?.token!==NETA || p.pool!==POOL || p.source!=='treasury-wynd-juno-usd') throw Error('Treasury price identity unavailable.');
@@ -21,13 +35,13 @@ export function priceFromTreasury(treasury,now) {
 }
 
 export function signTreasuryPrice({treasury,deployment,privateKeyPem,now=Math.floor(Date.now()/1000)}) {
-  validateSnapshotDeployment(deployment);
-  const privateKey=createPrivateKey(privateKeyPem);
-  if(privateKey.asymmetricKeyType!=='ed25519') throw Error('Ed25519 price key required.');
-  const pub=createPublicKey(privateKey).export({format:'der',type:'spki'}).subarray(-32).toString('base64');
-  if(pub!==deployment.quote_public_key) throw Error('Price key does not match the reviewed manifest.');
-  const snapshot={signer_version:deployment.signer_version,...priceFromTreasury(treasury,now)};
-  const signature=sign(null,Buffer.from(priceSnapshotPreimage(deployment,deployment,snapshot)),privateKey).toString('base64');
+  checked('manifest',()=>validateSnapshotDeployment(deployment));
+  const privateKey=checked('key_format',()=>createPrivateKey(privateKeyPem));
+  if(privateKey.asymmetricKeyType!=='ed25519') throw new PublicationError('key_type');
+  const pub=checked('key_format',()=>createPublicKey(privateKey).export({format:'der',type:'spki'}).subarray(-32).toString('base64'));
+  if(pub!==deployment.quote_public_key) throw new PublicationError('key_mismatch');
+  const snapshot={signer_version:deployment.signer_version,...checked('source',()=>priceFromTreasury(treasury,now))};
+  const signature=checked('signing',()=>sign(null,Buffer.from(priceSnapshotPreimage(deployment,deployment,snapshot)),privateKey).toString('base64'));
   return {schema_version:1,chain_id:CHAIN,registry:deployment.registry,token:NETA,treasury:DAO,snapshot,signature};
 }
 
@@ -43,8 +57,9 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href) {
     mkdirSync(dirname(output),{recursive:true});
     writeFileSync(output+'.tmp',JSON.stringify(signed,null,2)+'\n');renameSync(output+'.tmp',output);
     console.log('Published signed NNS price; validity is anchored to the original treasury observation.');
-  } catch {
+  } catch (error) {
     // Never echo key material, parser input or environment in Actions logs.
-    console.error('NNS price publication failed; retained previous price. Check source freshness and manifest/key configuration privately.');process.exitCode=1;
+    const detail=error instanceof PublicationError?diagnostics[error.code]:'Check public input/output files and price timestamp rollback.';
+    console.error('NNS price publication failed; retained previous price. '+detail);process.exitCode=1;
   }
 }
