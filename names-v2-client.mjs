@@ -2,7 +2,7 @@ import {checkValidatorSnapshot,validateOperatorProof,samePair} from './names-v2-
 import {NAMES_V2_DEPLOYMENT,commitmentHash,validateQuote,paymentMessage,renewalExpiry} from './names-v2-core.mjs';
 import {normalizeName,normalizeContacts} from './names-profile-core.mjs';
 import {validateSnapshotDeployment} from './names/snapshot-deployment.mjs';
-import {fetchSnapshotOffer} from './names/snapshot-client.mjs';
+import {fetchSnapshotOffer,fetchSignedPrice,validatePublishedPrice} from './names/snapshot-client.mjs?v=2';
 
 // Transaction coordination only. The host supplies a pinned, verified reader,
 // the existing journaled exact-hash signer, and an origin-wide Web Lock.
@@ -236,6 +236,44 @@ export class NamesV2Client {
       const request=this.stage(i,{owner,contract:this.deployment.registry,msg:{cancel_commit:{hash:i.hash}},memo:'Cancel NETA name commitment'},previous);
       const receipt=await this.execute(request);this.receipt(receipt);
       i.phase='complete';i.payment_hash=receipt.transactionHash;delete i.salt;delete i.offer;this.save(i);return i;
+    });
+  }
+  async purchasePauseReview({owner,paused}) {
+    if(this.execute.adminReviewGuard===false)throw Error('Reload this page to load the updated administration signer.');
+    if(this.deployment.chain_id!=='juno-1'||typeof paused!=='boolean')throw Error('Choose a mainnet purchase state.');
+    const config=await this.config(owner),pending=this.load(owner);
+    if(config.admin!==owner)throw Error('Only the registry admin can change purchase availability.');
+    if(pending&&pending.phase!=='complete')throw Error('Reconcile the pending Names transaction first.');
+    if(config.purchases_paused===paused)throw Error('This purchase state is already active.');
+    const signedPrice=paused?null:await fetchSignedPrice({deployment:this.deployment,config,fetcher:this.reader.fetcher,now:this.now(),cryptoProvider:this.crypto});
+    await this.owner(owner);
+    const issuedAt=this.now();
+    return {kind:'mainnet-purchase-pause',chain_id:this.deployment.chain_id,registry:this.deployment.registry,owner,paused,
+      config:structuredClone(config),signedPrice,issued_at:issuedAt,expires_at:Math.min(issuedAt+300,signedPrice?.snapshot.expires_at??issuedAt+300)};
+  }
+  async setPurchasesPaused({owner,reviewed}) {
+    if(this.execute.adminReviewGuard===false)throw Error('Reload this page to load the updated administration signer.');
+    const r=structuredClone(reviewed);
+    return this.withLock(this.key(owner),async()=>{
+      if(this.deployment.chain_id!=='juno-1'||r?.kind!=='mainnet-purchase-pause'||r.chain_id!==this.deployment.chain_id||r.registry!==this.deployment.registry||r.owner!==owner||typeof r.paused!=='boolean')throw Error('Review the mainnet purchase state first.');
+      const validTime=()=>{const now=this.now();if(!Number.isSafeInteger(r.issued_at)||!Number.isSafeInteger(r.expires_at)||r.issued_at>now||r.expires_at<=now||r.expires_at<=r.issued_at||r.expires_at>r.issued_at+300)throw Error('Purchase availability review expired. Review again.');};
+      const pending=this.load(owner);
+      if(pending&&pending.phase!=='complete')throw Error('Reconcile the pending Names transaction first.');
+      const beforeSign=async()=>{
+        validTime();const config=await this.config(owner);
+        if(config.admin!==owner)throw Error('Only the registry admin can change purchase availability.');
+        for(const field of ['chain_id','token','treasury','admin','quote_public_key','signer_version','tariff_version','purchases_paused','testnet_only'])if(config[field]!==r.config?.[field])throw Error('Registry configuration changed. Review again.');
+        for(const field of ['three_cents','four_cents','standard_cents'])if(config.tariff?.[field]!==r.config?.tariff?.[field])throw Error('Registry tariff changed. Review again.');
+        if(config.purchases_paused===r.paused)throw Error('This purchase state is already active.');
+        if(!r.paused)await validatePublishedPrice({deployment:this.deployment,config,signedPrice:r.signedPrice,now:this.now(),cryptoProvider:this.crypto});
+        await this.owner(owner);validTime();
+      };
+      await beforeSign();
+      const payment={contract:this.deployment.registry,msg:{set_purchases_paused:{paused:r.paused}}};
+      const i={schema:1,chain_id:this.deployment.chain_id,registry:this.deployment.registry,owner,name:'Registry purchases',phase:'write_pending',action:'set-purchases-paused',payment,created_at:this.now()};
+      const request=this.stage(i,{owner,...payment,memo:r.paused?'Pause NNS purchases':'Enable NNS purchases'},'complete');
+      const receipt=await this.execute(request,{beforeSign});this.receipt(receipt);
+      i.phase='complete';i.payment_hash=receipt.transactionHash;this.save(i);return receipt;
     });
   }
   async setTariff({owner,tariff,expectedVersion}) {

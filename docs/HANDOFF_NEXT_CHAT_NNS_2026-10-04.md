@@ -33,9 +33,12 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
 - After a secret correction, start a fresh Main DAO snapshots workflow on main:
   repeating an old run can conflict with newer generated data. Never hand-edit
   collector output to resolve this. See [recovery evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
-- **Next:** build the missing dedicated mainnet owner unpause review/Keplr action,
-  verify the normal page with a fresh signed price, then obtain explicit wallet
-  confirmation and verify one real purchase. No activation or purchase is recorded.
+- **Next:** open `/#relay/register`, select Juno mainnet, read the registry and
+  connect the approved admin wallet. The owner-only **Registry administration**
+  panel now provides reviewed opening/pausing through Keplr. Opening requires a
+  valid signed price; pausing does not. Confirm opening separately, then verify
+  one real purchase. No activation or purchase is recorded. See
+  [admin runbook](../names/README.md#owner-purchase-availability-controls).
 
 Upgrade transfer (`MsgUpdateAdmin` on each contract) and registry `set_admin`
 are separate future owner actions. No transfer or removal of authority is authorized.

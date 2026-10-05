@@ -31,8 +31,8 @@ so it is not a generic post-activation monitor. Normal reads use a verified
 provider with fallback; price files require signature/binding/expiry checks.
 After secret corrections start a fresh Main DAO job on main, because repeating
 old jobs can conflict with newer collector data. Do not generate a new key,
-repeat deployment or request the private backup. Next is the missing dedicated
-owner unpause review/UI and a separately confirmed purchase. UNI-7 is unchanged.
+repeat deployment or request the private backup. Next is owner confirmation in the main-page administration panel
+and a separately confirmed purchase. UNI-7 is unchanged.
 
 ## How it works
 
@@ -205,3 +205,45 @@ change contract behavior, so upgrade-wallet custody is a deliberate trust bounda
 The owner confirmed no prior mainnet upload/signature at 12:54. Start with v0.3.1,
 not the historical v0.3.0 artifact. Initial tariff already matches 99/19/5, so there
 is no extra tariff-setting transaction required before launch.
+
+## Owner purchase availability controls
+
+Open [the main Names page](https://dao.netareborn.com/#relay/register), select
+**Juno mainnet**, click **Read registry**, and connect the approved admin wallet
+using the shared header. Expand **Registry administration · owner wallet**.
+The panel is hidden for other wallets and UNI-7; contract admin checks remain
+independent of UI visibility. Tariff editing is not added by this panel.
+
+1. Click **Review opening purchases**. The review displays the chain, exact
+   registry/admin, annual tariff, DAO fee recipient, verified price and its dates,
+   review expiry, zero NETA debit and the decoded `set_purchases_paused` message.
+2. Only after reading that review, click **Confirm in Keplr**. JUNO network fees
+   are shown by Keplr. This enables registration and renewal for everyone; it
+   does not register a name. The UI checks the confirmed transaction and fresh
+   configuration before showing purchases enabled.
+3. Register one name through the normal page: prepare locally, separately review
+   and confirm its reservation, then review the exact NETA payment and confirm.
+   Verify receipts, DAO credit, resulting owner and expiry before declaring launch.
+
+**Review pausing purchases** remains available without a working price feed.
+Each change has a separate five-minute review. Opening additionally requires a
+valid signed published price; config, wallet and expiry are rechecked before
+signing and after the wallet returns, before broadcast. These are client checks,
+not an on-chain compare-and-swap or a guarantee against later admin changes.
+The signed execute contains only `set_purchases_paused: {paused: <boolean>}`,
+no payment, admin transfer, tariff change or deployment.
+
+Unknown outcomes preserve the chain-scoped Names intent and exact signing journal.
+After reload, reconnect the same wallet, read the registry, click **Load my name**
+to restore the Names session (it is fine to have no name), expand **Saved transaction**
+and **Check pending transaction**. Recovery checks exact inclusion without signing
+or resending. A proven unbroadcast or failed attempt can be reviewed separately.
+Never delete storage to unblock the panel. An outdated cached signer fails before
+creating a new admin intent; reload to use the current signer.
+
+Validation is synthetic: 127 root/pricing Node tests and 58 wallet/backend tests;
+mainnet administration and both existing mainnet/UNI-7 lifecycle browser flows.
+Admin UI screenshots at 320/390/768/1440 px were inspected. Tests cover missing or
+forged prices, wrong wallet, config/expiry changes, pause without price, lost
+responses, reload and exact recovery. No owner mainnet activation or purchase
+was performed by these tests. See the release PR for hosted CI/deployment status.

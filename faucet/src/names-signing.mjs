@@ -77,7 +77,7 @@ export function createBridge({chainId='uni-7',client,lookup,assertWallet,verifyD
     matchTransaction(found.tx,r);
     return {transactionHash:hashValue,chainId,height:found.height,code:found.code,intentMatched:true,events:found.events||[]};
   }
-  async function execute(request){
+  async function execute(request,{beforeSign=async()=>{}}={}){
     const r=structuredClone(request);requestValid(r);
     // Legacy no-admin requests remain readable by recover(), never signable on mainnet.
     if(r.kind==='instantiate'&&(chainId==='juno-1'?r.migrationAdmin!==MAINNET_UPGRADE_ADMIN:r.migrationAdmin!==undefined))throw Error('Review the required chain-specific migration administrator.');
@@ -92,6 +92,7 @@ export function createBridge({chainId='uni-7',client,lookup,assertWallet,verifyD
       sign:async(sender,messages,fee,memo)=>{
         await verifyDeployment();await assertWallet(r.owner);
       if(await client.getChainId()!==chainId)throw Error('Names network mismatch.');
+        await beforeSign();
         row.status='signing';save(storage,key,row);enteredSign=true;
         let signed;
         try {
@@ -99,6 +100,7 @@ export function createBridge({chainId='uni-7',client,lookup,assertWallet,verifyD
           const bytes=TxRaw.encode(signed).finish();matchTransaction(bytes,r);feeMatches(signed,fee);
           // Account changes while the wallet popup is open must not broadcast.
           await assertWallet(r.owner);
+          await beforeSign();
           row={...row,status:'signed',hash:hash(bytes),bytes:toBase64(bytes)};save(storage,key,row);
         }catch(error){row.status='not_broadcast';save(storage,key,row);throw error;}
         return signed;
@@ -163,5 +165,5 @@ export function createBridge({chainId='uni-7',client,lookup,assertWallet,verifyD
       return receipt;
     });
   }
-  return {execute,recover};
+  return {execute,recover,adminReviewGuard:true};
 }

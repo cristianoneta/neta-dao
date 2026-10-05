@@ -1,6 +1,6 @@
 import {namesNetwork} from './names/networks.mjs';
 import {NamesV2Reader} from './names-v2-reader.mjs?v=5';
-import {NamesV2Client} from './names-v2-client.mjs?v=4';
+import {NamesV2Client} from './names-v2-client.mjs?v=5';
 import {CHAIN_CONFIG} from './juno-faucet-core.mjs?v=2';
 import {lookupTransaction} from './juno-faucet-transactions.mjs';
 
@@ -24,7 +24,12 @@ export async function connectNamesWallet({deployment,keplr=globalThis.keplr,bund
   for(const rpc of network.rpcs){try{signing=await bundle.connect(rpc,wrapped,chainId);break;}catch{/* No signatures during RPC connection. */}}
   if(!signing)throw Error('Names signing connection unavailable.');
   const bridge=bundle.createBridge({chainId,client:signing,storage,locks,lookup:hash=>lookupTransaction(hash,fetcher,chainId),assertWallet,verifyDeployment:()=>reader.verify()});
-  const client=new NamesV2Client({deployment:reader.deployment,reader,storage,walletAddress,execute:bridge.execute,
+  const execute=(request,options)=>{
+    if(options?.beforeSign&&bridge.adminReviewGuard!==true)throw Error('Reload this page to load the updated administration signer.');
+    return bridge.execute(request,options);
+  };
+  execute.adminReviewGuard=bridge.adminReviewGuard===true;
+  const client=new NamesV2Client({deployment:reader.deployment,reader,storage,walletAddress,execute,
     withLock:(key,callback)=>locks.request(key,{mode:'exclusive',ifAvailable:true},lock=>{if(!lock)throw Error('Another tab is working on this Names intent.');return callback();})});
   return {owner,reader,client,recover:hash=>client.recoverPending(owner,bridge.recover,hash||null),disconnect(){connected=false;signing.disconnect();}};
 }

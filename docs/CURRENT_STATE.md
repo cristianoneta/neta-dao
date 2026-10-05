@@ -122,9 +122,11 @@ PR [#158](https://github.com/cristianoneta/neta-dao/pull/158), merge
 three main checks and Pages `37302003843`; 15 served assets matched SHA-256.
 The [targeted review](NNS_SECURITY_REVIEW_2026-10-05.md) records 210 passing
 Rust/Node tests and browser evidence, with remaining trust/launch gates.
-There is no dedicated mainnet owner tariff/unpause panel yet; contract authority
-and unsigned message preparation exist. A future owner-confirmed activation
-still needs a concrete reviewed action after manifest and price verification.
+The main Names page now provides owner-only reviewed purchase opening/pausing
+using the existing exact-transaction journal and Keplr bridge. Opening requires
+a valid signed price; review/config/wallet are rechecked before signing and after
+wallet return before broadcast. Tariff editing has no dedicated mainnet panel yet.
+No owner-confirmed activation or mainnet purchase is recorded.
 See [runbook](../names/README.md) and [historical snapshot evidence](NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 The earlier continuous WYND server is deferred, not hosted. Its stricter policy
 is not the policy of the approved snapshot system.

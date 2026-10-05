@@ -56,6 +56,14 @@ test('included failures are recoverable receipts, not repeat payments',async()=>
  const h=harness(),r=request();h.setMode('failed');await assert.rejects(h.bridge().execute(r),/FAILED/);
  assert.equal((await h.bridge().recover(r)).code,5);assert.equal(h.broadcasts(),1);
 });
+test('admin review guard runs before signing and after wallet return; rejection never broadcasts',async()=>{
+ for(const failAt of [1,2]){
+  const h=harness(),r=request();let checks=0;
+  await assert.rejects(h.bridge().execute(r,{beforeSign:async()=>{if(++checks===failAt)throw Error('Admin review expired');}}),/expired/);
+  assert.equal(h.signs(),failAt-1);assert.equal(h.broadcasts(),0);
+  assert.equal((await h.bridge().recover(r)).notBroadcast,true);
+ }
+});
 test('malformed receipts and unrelated shared pending transactions are not cleared',async()=>{
  const h=harness(),r=request();h.setMode('lost');await assert.rejects(h.bridge().execute(r));
  const key='neta-pending-tx-v1:uni-7:'+owner,raw=h.storage.getItem(key);
