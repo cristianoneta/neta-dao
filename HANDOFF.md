@@ -74,14 +74,17 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   annual USD **99 / 19 / 5**, signer version 1 and the approved public price key.
 - Public key: `XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=`.
   Never regenerate it or request its private backup. The Actions secret is present,
-  but the first publication failed. Backup custody and a matching usable PEM remain
-  unconfirmed; inspect the latest Main DAO snapshots diagnostic before asking the owner.
+  but run `37308389038` (12:16:44 UTC) confirmed an invalid PEM private-key format.
+  Owner must replace its value with the complete existing `nns-price-key.pem`,
+  including BEGIN/END lines and real line breaks. Never send it in chat or create
+  a replacement key. Backup custody and matching public-key validation remain open.
 - PR #161 is merged (`7bdcb47e140c0efda768b5cae5fcd828a4526dc4`); all four checks
   passed, including exact chain payloads and two independent provider observations
   in run `37307194424`. See [deployment evidence](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
 - Next: resolve price publication. Run `37307454347` found the secret but signing
   failed; its public Treasury observation at 12:08:23 UTC and manifest validate.
-  The publisher now reports fixed diagnostic labels without logging key material.
+  The publisher reports fixed diagnostic labels without logging key material;
+  the current error is **valid unencrypted PEM private key required**.
   After the error is resolved, verify `data/nns/price.json` signature and original
   observation/expiry. No separate Render NNS service. Purchases remain paused.
 - Only after a valid public price and verified live config: prepare a separate

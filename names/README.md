@@ -22,8 +22,10 @@ Both exported provider observations show **purchases paused**, USD 99/19/5 and
 owner-wallet administration. See [verification evidence](../docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
 No unpause or mainnet purchase is recorded. PR #161 published the independently
 verified manifest. The Actions secret exists, but publication run `37307454347`
-failed despite a valid fresh Treasury source. Inspect the latest fixed publisher
-diagnostic; private backup custody and the first valid signed price remain open.
+failed despite a valid fresh Treasury source. Run `37308389038` at 12:16:44 UTC diagnosed invalid PEM private-key format.
+The owner must replace `NNS_PRICE_SIGNING_KEY` with the full existing PEM backup,
+including BEGIN/END lines and real line breaks. Do not generate a new key or send
+it in chat. Matching-key verification and the first signed price remain open.
 Do not repeat key creation or deployment. UNI-7 keeps its existing manifest,
 original local key and old quote flow; never direct snapshot payments to UNI-7.
 

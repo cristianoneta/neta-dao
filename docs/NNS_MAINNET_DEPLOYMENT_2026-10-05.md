@@ -60,6 +60,11 @@ Reservation/payment controls remained disabled.
    found a secret but signing failed. Its Treasury observation (12:08:23 UTC) and
    manifest validate. The publisher now emits only fixed diagnostic labels; inspect
    the latest job to distinguish malformed/wrong key from other failures.
+   Follow-up run [37308389038](https://github.com/cristianoneta/neta-dao/actions/runs/37308389038)
+   at 12:16:44 UTC identified **invalid PEM private-key format**. The owner must
+   privately replace the secret with the complete existing PEM backup (BEGIN/END
+   lines and real line breaks). No new key or deployment is needed; matching-key
+   and signature validation can resume only after the PEM parses successfully.
    Missing/mismatched signing authority
    must retain any previous public price and fail visibly. Never request a private
    price key in chat; do not generate a replacement.
