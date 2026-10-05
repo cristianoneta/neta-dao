@@ -27,13 +27,13 @@ function intent() { return session?.client.load(session.owner) || null; }
 function fee() {
   try {
     const name = normalizeName($('names-fee-label').value), length = name.length - 5;
-    if (!config) throw Error('Read the registry');
+    if (!config) throw Error('Check availability to load pricing');
     const cents = length === 3 ? config.tariff.three_cents : length === 4 ? config.tariff.four_cents : config.tariff.standard_cents;
     const years = Number($('names-fee-years').value);
     $('names-fee-total').textContent = `$${(cents * years / 100).toLocaleString('en-US')} USD`;
     $('names-fee-annual').textContent = `$${cents / 100} per year · on-chain tariff v${config.tariff_version} · ${tokenLabel()}`;
   } catch (error) {
-    $('names-fee-total').textContent = config ? 'Choose a valid name' : 'Read registry';
+    $('names-fee-total').textContent = config ? 'Choose a valid name' : 'Check availability';
     $('names-fee-annual').textContent = '';
   }
 }
@@ -50,10 +50,12 @@ function render() {
   $('nns-admin-status').textContent = admin ? `Juno mainnet · purchases ${config.purchases_paused?'paused':'enabled'} · admin ${config.admin}` : '';
   $('nns-refresh').disabled = busy;
   $('nns-network').disabled = busy;
-  $('nns-my-name').disabled = busy || !connected || !ready;
-  $('nns-check-name').disabled = busy || !ready;
-  $('nns-prepare').disabled = busy || !connected || !ready || config.purchases_paused || !!open || !registration;
-  $('nns-reserve').disabled = busy || !session || config?.purchases_paused!==false || i?.phase !== 'prepared';
+  $('nns-my-name').disabled = busy || !connected;
+  $('nns-check-name').disabled = busy;
+  $('nns-reserve').disabled = busy || !connected || config?.purchases_paused === true || broken || (open && i?.phase !== 'prepared') || !registration;
+  $('nns-reserve').hidden = !registration;
+  $('nns-reserve').textContent = i?.phase === 'prepared' ? 'Continue registration' : 'Start registration';
+  $('nns-payment').textContent = registration ? 'Buy name' : 'Renew name';
   $('nns-payment').disabled = busy || !connected || !ready || config.purchases_paused || (registration ? i?.phase !== 'committed' : !!open);
   for (const id of ['nns-publish-profile', 'nns-transfer']) $(id).disabled = busy || !connected || !ready || !!open;
   $('nns-load-profile').disabled = busy || !ready;
@@ -110,7 +112,7 @@ async function loadSigning() {
 async function connected(check) {
   const address = wallet();
   if (!address) throw Error('Connect Keplr using the shared header first.');
-  if (!reader || !config) throw Error('Read the selected registry first.');
+  if (!reader || !config) { await verify(); check(); }
   if (session?.owner === address) return session;
   await loadSigning(); check();
   const next = await connectNamesWallet({deployment: reader.deployment});
@@ -124,7 +126,7 @@ async function connected(check) {
   }
   return session;
 }
-function showReview(text, action, check) {
+function showReview(text, action, check, confirmLabel = 'Confirm in Keplr') {
   check();
   const current = session, startEpoch = epoch, startVersion = formVersion;
   review = {action: async () => {
@@ -133,6 +135,7 @@ function showReview(text, action, check) {
     return action();
   }};
   $('nns-review-text').textContent = text;
+  $('nns-confirm').textContent = confirmLabel;
   $('nns-review').hidden = false; $('nns-review-heading').focus();
 }
 function resetConnection() {
@@ -190,24 +193,38 @@ $('nns-my-name').onclick = () => run(async check => {
 });
 $('nns-check-name').onclick = () => run(async check => {
   clearReview(); const name = normalizeName($('names-fee-label').value);
+  await verify(); check();
   const result = await reader.resolve(name); check();
   if (result?.name !== name || typeof result.available !== 'boolean' || typeof result.active !== 'boolean' || typeof result.in_grace !== 'boolean') throw Error('Name availability is unavailable.');
   $('nns-name-result').textContent = result.available ? `${name} is available on ${networkLabel()}. It is not reserved yet.` : result.active ? `${name} is registered on ${networkLabel()} · expires ${new Date(result.expires_at * 1000).toLocaleString()}.` : `${name} is in its renewal grace period.`;
 });
-$('nns-prepare').onclick = () => run(async check => {
-  clearReview(); const args = {name: $('names-fee-label').value, years: Number($('names-fee-years').value)};
-  const current = await connected(check); approvedTariff(await verify()); check();
-  await current.client.prepareRegistration({owner: current.owner, ...args}); check();
-  message('Registration prepared locally. Review the reservation, then review payment separately.');
-});
 $('nns-reserve').onclick = () => run(async check => {
-  clearReview(); const current = await connected(check), saved = intent();
-  if (saved?.phase !== 'prepared') throw Error('Prepare the registration first.');
-  showReview(`Reserve ${saved.name}\nOwner: ${current.owner}\nTerm: ${saved.years} year(s)\n${networkLabel()} network fee only; no ${tokenLabel()} payment yet.\nThe reservation secret stays in this browser.`, async () => { await current.client.commit(current.owner); }, check);
+  clearReview(); const current = await connected(check);
+  approvedTariff(await verify()); check();
+  let saved = intent();
+  if (!saved || saved.phase === 'complete') {
+    saved = await current.client.prepareRegistration({owner: current.owner, name: $('names-fee-label').value, years: Number($('names-fee-years').value)}); check();
+  }
+  if (saved.phase !== 'prepared') throw Error('Finish or reconcile the saved registration first.');
+  message('Check the registration details below. No transaction has been sent.');
+  showReview(`Start registration · ${saved.name}\nOwner: ${current.owner}\nTerm: ${saved.years} year(s)\n${networkLabel()} network fee only; no ${tokenLabel()} payment yet.\nAfter confirmation, complete the purchase within 1 hour. This step does not exclusively reserve the name. Only a successful purchase secures it.\nKeep this browser for the purchase; it stores your registration secret.`, async () => {
+    await current.client.commit(current.owner);
+    const commitment = await current.reader.commitment(current.owner);
+    const deadline = commitment?.hash === saved.hash && Number.isSafeInteger(commitment.expires_at) ? ` by ${new Date(commitment.expires_at * 1000).toLocaleString()}` : ' within 1 hour of confirmation';
+    return `Registration started for ${saved.name}. Choose Buy name and complete the purchase${deadline}. The name is not exclusively reserved.`;
+  }, check, 'Start registration in Keplr');
 });
 $('nns-payment').onclick = () => run(async check => {
   clearReview(); const operation = $('nns-operation').value, name = normalizeName($('names-fee-label').value), years = Number($('names-fee-years').value);
   const current = await connected(check); const checked = await verify(); approvedTariff(checked); check();
+  let deadline = '', purchaseDeadline = null;
+  if (operation === 'register') {
+    const saved = intent(), commitment = await current.reader.commitment(current.owner); check();
+    if (saved?.phase !== 'committed' || commitment?.hash !== saved.hash || !Number.isSafeInteger(commitment.expires_at)) throw Error('Registration confirmation is unavailable. Check the saved transaction before purchasing.');
+    if (now() >= commitment.expires_at) throw Error('The 1-hour registration window expired. Cancel the saved registration before starting again.');
+    purchaseDeadline = commitment.expires_at;
+    deadline = `\nComplete purchase before: ${new Date(commitment.expires_at * 1000).toLocaleString()}\nThe name is not exclusively reserved.`;
+  }
   const offer = mainnet() ? await current.client.snapshotQuote({operation,payer:current.owner,name,years}) : await createTestQuote({reader: current.reader, request: {operation, payer: current.owner, name, years}}); check();
   if (operation === 'register') await current.client.registrationQuote(current.owner, async () => offer);
   else {
@@ -215,10 +232,14 @@ $('nns-payment').onclick = () => run(async check => {
     await validateQuote({deployment: reader.deployment, config: checked, offer, expected: {operation, payer: current.owner, owner: record.owner, name, generation: record.generation, ownership_revision: record.ownership_revision, expected_expires_at: record.expires_at, years}, now: now()});
   }
   const q = offer.quote;
-  showReview(`${operation === 'register' ? 'Register' : 'Renew'} ${q.name}\nTerm: ${q.years} year(s)\nPayer: ${q.payer}\nOwner: ${q.owner}\n${mainnet()?snapshotReview(offer):`Exact debit: ${micro(q.amount)} mock NETA\nQuote expires: ${new Date(q.expires_at * 1000).toLocaleString()}\nFictional USD 2 per mock NETA`}\nTreasury: ${reader.deployment.treasury}\nNetwork: ${networkLabel()}`, async () => {
-    if (operation === 'register') await current.client.register(current.owner, offer);
+  showReview(`${operation === 'register' ? 'Buy' : 'Renew'} ${q.name}\nTerm: ${q.years} year(s)\nPayer: ${q.payer}\nOwner: ${q.owner}\n${mainnet()?snapshotReview(offer):`Exact debit: ${micro(q.amount)} mock NETA\nQuote expires: ${new Date(q.expires_at * 1000).toLocaleString()}\nFictional USD 2 per mock NETA`}\nTreasury: ${reader.deployment.treasury}\nNetwork: ${networkLabel()}${deadline}\nConfirming in Keplr authorizes this ${tokenLabel()} payment.`, async () => {
+    if (operation === 'register') {
+      if (now() >= purchaseDeadline) throw Error('The 1-hour registration window expired. Cancel the saved registration before starting again.');
+      await current.client.register(current.owner, offer);
+    }
     else await current.client.renew({payer: current.owner, name, years, reviewedOffer: offer});
-  }, check);
+    return `${operation === 'register' ? 'Purchase' : 'Renewal'} confirmed · ${q.name} · ${micro(q.amount)} ${tokenLabel()} · ${q.years} year(s). Use Load my name to see the current expiry.`;
+  }, check, operation === 'register' ? 'Buy and confirm in Keplr' : 'Renew and confirm in Keplr');
 });
 $('nns-transfer-form').onsubmit = event => {
   event.preventDefault();
@@ -278,6 +299,7 @@ $('nns-confirm').onclick = () => run(async () => {
   const accepted = review; clearReview();
   if (!accepted) throw Error('Review an action first.');
   const result=await accepted.action();
+  window.dispatchEvent(new Event('neta:nns-updated'));
   message(typeof result==='string'?result:`Action completed on ${networkLabel()}. Use Load my name or Load current profile to refresh the result.`);
 });
 $('nns-discard').onclick = () => { clearReview(); render(); };
@@ -293,7 +315,7 @@ function networkCopy() {
   $('nns-price-help').textContent=mainnet()?'Paid in NETA using the Treasury price, updated about every 30 minutes. Prices may differ from the market. The exact amount and price timestamp appear before payment. Network fees are separate.':'Test quotes use a fictional USD 2 per mock NETA. Payment quotes require the original setup browser. Network fees are separate.';
   $('nns-operation').options[0].textContent=mainnet()?'Register a name':'Register a test name';
   $('nns-operation').options[1].textContent=mainnet()?'Renew a name':'Renew a test name';
-  $('nns-deployment-status').textContent='Read the selected registry to check availability and activation.';
+  $('nns-deployment-status').textContent='Check availability to load current pricing and purchase status.';
 }
 $('nns-network').onchange=()=>{
   if(busy){$('nns-network').value=chainId;return;}
@@ -304,3 +326,19 @@ $('nns-network').onchange=()=>{
   window.dispatchEvent(new Event('neta:nns-network'));
 };
 networkCopy();route();
+
+// Notification links select a network/name/menu only. They never connect or sign.
+const nameLink = new URLSearchParams(location.search);
+if (nameLink.has('nns-name')) {
+  try {
+    const name = normalizeName(nameLink.get('nns-name')), selected = nameLink.get('nns-network');
+    if (!Object.hasOwn(manifests, selected)) throw Error('Unknown name-link network.');
+    chainId = selected; $('nns-network').value = selected;
+    config = null; reader = null; resetConnection(); networkCopy();
+    $('names-fee-label').value = name.replace(/\.neta$/, '');
+    $('names-profile-name').value = name;
+    if (nameLink.get('nns-action') === 'renew') $('nns-operation').value = 'renew';
+    window.dispatchEvent(new Event('neta:nns-network'));
+    run(async check => { await verify(); check(); message('Name details loaded. Connect Keplr to manage this name.'); });
+  } catch(error) { message(error.message); }
+}

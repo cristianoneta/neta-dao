@@ -84,6 +84,11 @@ still needs the original setup browser. See [integration](NAMES_MAIN_PAGE_INTEGR
 deliberate wallet switches, with expiry/revision/identity checks;
 `names-v2-validator-ui.mjs` handles the distinct signature/publication reviews.
 Lost/unknown submissions stay locked until reconciled; no automatic resend occurs.
+The normal purchase UI combines registry verification with Check availability,
+and local preparation with Start registration. Buy name / Buy and confirm in Keplr
+explicitly label payment; renewals use corresponding renewal labels. Load my name
+verifies the registry on demand. Commitments are non-exclusive and valid for one
+hour; the matching on-chain deadline is displayed and checked before purchase.
 
 The accepted annual tariff is USD 99/19/5 for 3/4/5–32 characters, for both
 registration and renewal, 1–5-year terms, 365-day years and 30-day grace. Mainnet
@@ -273,8 +278,21 @@ observed data lag and successful latest collector runs without claiming live dat
 
 ## RELAY: main inbox versus encrypted lab
 
+NNS system notices now have a Names filter, unread state and identity-scoped
+history: first-registration welcome, renewal confirmation, outgoing and incoming
+transfer notices, 6/3/1 calendar-month and 14/7/1-day reminders, expiry and grace-end
+notices. Links open the correct profile/renewal menu without signing. Each observation
+verifies registry/name identity; renewal supersedes previous expiry reminders and
+transfer stops the old owner's reminders. Browser-local storage is scoped to
+wallet, chain and registry. Updates occur with a connected wallet, on confirmed
+actions and every 15 visible minutes; there is no offline push/email delivery.
+Missed reminders catch up to the current stage. See [release evidence](NNS_FLOW_NOTIFICATIONS_2026-10-05.md)
+for tested behavior and publication status. This is separate from private messaging.
+
+
 Main `relay.js` polls followed, configured DAO proposal modules (at most 4 × 30 records each) and
-native Juno proposals (latest 100) every 60 seconds and on visibility restoration.
+native Juno proposals (latest 100) at most every 60 seconds while visible.
+Visibility restoration respects that interval; fetch timeouts now abort the request.
 It does **not** poll the UNI-7 workshops. Change detection can report new/status/
 content updates from those sources; a `NEW REVISION` branch is not proof of a
 connected workshop revision feed. First load seeds up to eight already-read

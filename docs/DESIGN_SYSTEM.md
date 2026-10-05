@@ -357,3 +357,22 @@ fee recipient, tariff, signed price dates and network fee before confirmation.
 Opening and pausing are separate explicit actions; ordinary users never see the
 admin controls. Pending receipt recovery stays in the existing Saved transaction
 section. No new wizard, separate wallet connection or deployment page is needed.
+
+## Names purchase simplification — owner update 2026-10-05
+
+Use three plain actions: Check availability, Start registration, Buy name. Registry
+verification is part of availability checking; local secret preparation is part
+of opening the first transaction review. Keep both explicit wallet confirmations
+and the existing inline review panel. Label the payment confirmation Buy and
+confirm in Keplr (Renew and confirm in Keplr for renewal). Explain the one-hour
+non-exclusive commitment and show its actual deadline before payment. Never
+present commitment as guaranteed name ownership. Refresh pricing is optional.
+
+## Name lifecycle messages — owner update 2026-10-05
+
+Reuse Inbox feed/reader, unread badges and a peer Names filter. Show separate
+welcome, renewal-confirmed, name-transferred and name-received copy, plus expiry
+reminders. Profile and renewal links must retain name/network context; expired
+ownership must not advertise renewal after grace/transfer. Explain that these
+are system notices checked while the page is open, with browser-local history.
+Do not activate the private-message composer or imply email/push delivery.

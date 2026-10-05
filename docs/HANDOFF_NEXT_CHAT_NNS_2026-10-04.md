@@ -40,6 +40,16 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   records **4.755098 NETA** from owner to registry and onward to the main NETA DAO.
   See [launch evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) for all three hashes
   and the single-provider verification boundary. Do not repeat activation or payment.
+- **Purchase UX:** Check availability includes registry verification; Start
+  registration prepares locally and opens the commitment review in one action.
+  Buy name opens payment review with an explicit purchase confirmation. The
+  one-hour commitment is not exclusive; expiry is checked and shown before payment.
+  See [normal purchase flow](../names/README.md#normal-name-purchase-flow).
+- **Inbox update:** welcome, renewal confirmation, transfer sent/received and
+  renewal/expiry reminders are implemented with profile/renewal deep links. Local
+  system notices remain distinct from disabled private messaging. See
+  [implementation and release evidence](NNS_FLOW_NOTIFICATIONS_2026-10-05.md).
+  RPC/run assessment: [options](JUNO_RPC_OPTIONS_2026-10-05.md).
 - **Next:** load the existing mainnet name and continue ordinary profile use if
   requested. Mainnet renewal/transfer and live validator E2E are not claimed tested.
   Treasury stays deferred. The initial paused-state workflow must not be rerun
@@ -81,7 +91,7 @@ open, and direct live REST calls from the execution environment returned 403.
 The normal RELAY name/profile pages reuse the existing UNI-7 deployment, shared
 header wallet, reader/client and persistent journals. Registration, renewal,
 transfer and public contacts have main-page controls and explicit reviews. Start
-with UNI-7 selected and Read registry and Load my name; do not repeat setup or the completed
+with UNI-7 selected and Load my name; do not repeat setup or the completed
 purchases/transfer. Test quotes still use the original browser's saved authority.
 The integration tests simulate chain/wallet adapters; an owner check of this new
 UI is pending. Real validator testing remains deferred. The owner subsequently

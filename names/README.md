@@ -20,8 +20,10 @@ version-3 [production manifest](../docs/deployments/nns-mainnet.json) and
 [four receipts](../docs/deployments/nns-mainnet-receipts-2026-10-05.json) are recorded.
 Both exported provider observations show **purchases paused**, USD 99/19/5 and
 owner-wallet administration. See [verification evidence](../docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
-No unpause or mainnet purchase is recorded. PR #161 published the independently
-verified manifest. The owner corrected omitted PEM delimiters in the existing Actions secret at
+The owner subsequently activated purchases and completed the first mainnet
+registration on 2026-10-05. `cristiano.neta` expires 2027-10-05T18:20:13Z; its
+verified fee was 4.755098 NETA. Do not repeat activation or purchase. PR #161
+published the independently verified initial manifest. The owner corrected omitted PEM delimiters in the existing Actions secret at
 19:38 Berlin. Fresh run `37350238171` and Pages `37350292762` succeeded; the
 served signed price matched the source and passed public-key signature checks.
 Two-provider deployment verification also passed via GitHub Actions at 19:49:53
@@ -31,8 +33,8 @@ so it is not a generic post-activation monitor. Normal reads use a verified
 provider with fallback; price files require signature/binding/expiry checks.
 After secret corrections start a fresh Main DAO job on main, because repeating
 old jobs can conflict with newer collector data. Do not generate a new key,
-repeat deployment or request the private backup. Next is owner confirmation in the main-page administration panel
-and a separately confirmed purchase. UNI-7 is unchanged.
+repeat deployment or request the private backup. Ordinary name management now
+uses the main-page controls. UNI-7 is unchanged.
 
 ## How it works
 
@@ -79,8 +81,9 @@ GitHub Actions usage quotas/billing still apply.
 
 ## One-time setup and mainnet sequence
 
-Current owner checkpoint: key creation and steps 3–5 are complete; do not repeat
-them. The matching secret and public signed price are verified; finish the real normal-page check in step 6, then prepare step 7.
+Current owner checkpoint: key setup, deployment, activation and the first real
+purchase are complete; do not repeat them. The numbered sequence below is the
+historical deployment procedure, not a new instruction to execute transactions.
 
 1. Open [the owner setup page](https://dao.netareborn.com/names-mainnet-setup.html)
    on the owner's trusted machine. Click **Create price key**, download the private
@@ -209,7 +212,7 @@ is no extra tariff-setting transaction required before launch.
 ## Owner purchase availability controls
 
 Open [the main Names page](https://dao.netareborn.com/#relay/register), select
-**Juno mainnet**, click **Read registry**, and connect the approved admin wallet
+**Juno mainnet**, click **Refresh pricing**, and connect the approved admin wallet
 using the shared header. Expand **Registry administration · owner wallet**.
 The panel is hidden for other wallets and UNI-7; contract admin checks remain
 independent of UI visibility. Tariff editing is not added by this panel.
@@ -221,9 +224,9 @@ independent of UI visibility. Tariff editing is not added by this panel.
    are shown by Keplr. This enables registration and renewal for everyone; it
    does not register a name. The UI checks the confirmed transaction and fresh
    configuration before showing purchases enabled.
-3. Register one name through the normal page: prepare locally, separately review
-   and confirm its reservation, then review the exact NETA payment and confirm.
-   Verify receipts, DAO credit, resulting owner and expiry before declaring launch.
+3. The owner completed activation and the first real purchase on 2026-10-05; see
+   [launch evidence](../docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md). Do not repeat it.
+   New registrations use the normal purchase flow below.
 
 **Review pausing purchases** remains available without a working price feed.
 Each change has a separate five-minute review. Opening additionally requires a
@@ -247,3 +250,54 @@ Admin UI screenshots at 320/390/768/1440 px were inspected. Tests cover missing 
 forged prices, wrong wallet, config/expiry changes, pause without price, lost
 responses, reload and exact recovery. No owner mainnet activation or purchase
 was performed by these tests. See the release PR for hosted CI/deployment status.
+
+## Normal name purchase flow
+
+**Check availability** verifies the selected registry and resolves the name in one
+action, without a wallet. No separate registry-read click is needed. **Refresh
+pricing** remains an optional manual read. **Load my name** verifies the registry
+on demand when needed after connecting through the shared header.
+
+**Start registration** prepares and persists the secret locally, then immediately
+shows the first transaction review. **Start registration in Keplr** submits only
+the commitment and network fee. Discarding that review or reloading preserves the
+preparation; **Continue registration** reuses it without replacing its secret.
+
+The commitment lasts **3,600 seconds from its inclusion time**; payment must be
+in a later block and strictly before expiry. It does **not** exclusively reserve
+the name. Only the successful payment secures ownership. The purchase review reads
+the matching commitment and shows its on-chain deadline; an already expired
+commitment is rejected before a purchase review or confirmation can proceed.
+
+**Buy name** presents exact debit, term, recipient, network, price and quote expiry.
+**Buy and confirm in Keplr** authorizes payment; renewal uses **Renew name** and
+**Renew and confirm in Keplr**. Quotes still expire after at most five minutes,
+independently of the one-hour commitment. No automatic signatures, resends or
+journal deletion are introduced.
+
+## Name lifecycle notices
+
+The RELAY Inbox has a Names filter and wallet/network/registry-scoped system
+notices: welcome on first observed registration, renewal confirmation with old and
+new expiry, transfer sent to the previous owner, and transfer received to the new
+owner. Accepted transfers preserve expiry and invalidate the previous profile;
+an offer alone never produces a completed-transfer notice. A later generation is
+not mistaken for a transfer. Old owners stop receiving reminders.
+
+Reminders use calendar months (6/3/1), then 14/7/1 days, expiry and the end of the
+30-day grace period. My profile and Manage/Renew name links select the correct
+name/network/menu without requesting a signature. Renewed terms supersede old
+reminders; released/transferred notices do not offer renewal for old ownership.
+
+These are browser-local system notices derived from verified registry reads,
+not private on-chain messages or background email/push. A connected wallet is
+checked on page load/account switch, after a confirmed action and every 15 minutes
+while visible. Missed reminders catch up with the latest applicable stage rather
+than flooding the inbox. The block time anchors expiry decisions. History is
+retained in this browser; clearing it loses old notices. An expired name may be
+recovered from retained notification identity or a completed transaction journal;
+a fresh browser without either cannot discover expired names via `name_of` alone.
+No private messaging, additional workflow, seed access or automated write is added.
+
+See [release evidence](../docs/NNS_FLOW_NOTIFICATIONS_2026-10-05.md) and
+[RPC assessment](../docs/JUNO_RPC_OPTIONS_2026-10-05.md).

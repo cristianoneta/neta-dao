@@ -92,6 +92,15 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   records **4.755098 NETA** from owner to registry and onward to the main NETA DAO.
   See [launch evidence](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md) for all three hashes
   and the single-provider verification boundary. Do not repeat activation or payment.
+- **Purchase UX:** Check availability now includes registry verification. Start
+  registration combines local preparation with the commitment review; Buy name
+  opens the explicitly labelled payment confirmation. Commitments last one hour
+  and do not reserve a name exclusively. Saved secrets and pending journals remain.
+- **Inbox update:** welcome, renewal confirmation, transfer sent/received and
+  renewal/expiry reminders are implemented with profile/renewal deep links. Local
+  system notices remain distinct from disabled private messaging. See
+  [implementation and release evidence](docs/NNS_FLOW_NOTIFICATIONS_2026-10-05.md).
+  RPC/run assessment: [options](docs/JUNO_RPC_OPTIONS_2026-10-05.md).
 - **Next:** load the existing mainnet name and continue ordinary profile use if
   requested. Mainnet renewal/transfer and live validator E2E are not claimed tested.
   Treasury stays deferred. The initial paused-state workflow must not be rerun
