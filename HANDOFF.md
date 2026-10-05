@@ -55,8 +55,20 @@ wallet. Choose Read test registry, connect Keplr, then Load my name. This reuses
 the existing deployment, test quote key and journals; do not set up another one.
 Browser tests are synthetic; the integrated owner-wallet journey is the next UX
 check after the tariff update. Test purchases still require the original setup
-browser's local quote key. A production quote service, key custody, real price
-sources/policy and mainnet deployment remain prerequisites for public purchases.
+browser's local quote key. The owner selected WYND, confirmed 99/19/5 and requested
+moving toward mainnet on 2026-10-05. A WYND quote service and separate Render
+Blueprint are implemented in `names/` but not hosted yet. They use a 30-minute
+WYND JUNO/NETA cumulative average, timestamped CoinGecko JUNO/USD, two providers
+agreeing at one height, persistent server-only Ed25519 custody and usage limits.
+Next: create the **separate** Render service using `names/render.yaml` in observe
+mode, retain its disk, record the public key and verify live averaging/restart.
+See [quote service runbook](names/README.md) for the proposed limits and launch steps.
+Then prepare reviewed mainnet uploads/instantiations and the DAO tariff proposal.
+Mainnet admin and treasury are the main NETA DAO, not the UNI-7 personal admin.
+`names/mainnet-plan.mjs` generates unsigned deployment material and a version-bound
+tariff message; it does not broadcast or bundle purchase activation. Mainnet
+frontend/wallet integration, actual deployment receipts and separate DAO unpause
+remain open. The new server is not a live mainnet launch.
 See [main-page integration](docs/NAMES_MAIN_PAGE_INTEGRATION.md).
 
 When validator testing resumes, use the existing manifest and lab with a consenting

@@ -10,3 +10,8 @@ faucet/.env*
 faucet/secrets/
 
 artifacts/faucet-*.png
+
+# NNS signing state is private server data, never a Pages asset.
+names/.env*
+names/secrets/
+names/runtime/

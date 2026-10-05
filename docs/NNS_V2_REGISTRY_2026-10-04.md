@@ -9,8 +9,10 @@ The isolated UNI-7 mock token, registry and profiles are deployed and verified;
 owner registration, contacts, renewal and transfer have post-state evidence.
 See [current handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md) for identities/receipts.
 Production `NAMES_V2_DEPLOYMENT` and `PROFILE_DEPLOYMENT` remain null; the main
-workspace profile form is an unpublished preview. No production quote service or
-mainnet name sale is enabled. Programme decisions are in the profile document.
+workspace now integrates the existing UNI-7 operations. The WYND quote server is
+implemented but not hosted/activated; no mainnet name sale is enabled. Its current
+policy, live source observations and launch sequence are in [names/README](../names/README.md).
+Programme decisions are in the profile document.
 
 ## Implementation and remaining boundaries
 
@@ -18,9 +20,9 @@ mainnet name sale is enabled. Programme decisions are in the profile document.
 | --- | --- | --- |
 | `contracts/neta-names-v2` | Deployed on UNI-7; quoted CW20 registration/renewal, transfers, persistent identity | Mainnet deployment and production quote authority |
 | `names-v2-core.mjs` | BigInt tariff/term rules, quote verification, commitments and payment payload | Production pricing inputs |
-| `names-v2-client.mjs` and reader/wallet | Concrete manifest verification, reviewed Keplr writes, journals and receipt recovery; mounted in separate lab | Production workspace activation |
+| `names-v2-client.mjs` and reader/wallet | Concrete manifest verification, reviewed Keplr writes, journals and receipt recovery; mounted in lab and main UNI-7 workspace | Mainnet adapters and activation |
 | Validator UI/proofs | Separate operator signatures, link/unlink/revoke through the same journal | Real consenting-operator E2E |
-| `names/quote-policy.mjs` | Fail-closed policy library using injected observations/signer | Real readers, approved baseline/market policy, HTTP service and custody |
+| `names/quote-policy.mjs` and `names/service/` | Fail-closed policy, WYND average/CoinGecko readers, dual-provider snapshots, HTTP service and durable server key | Hosting, live observation/restart verification, initial baseline and mainnet manifest |
 
 Local test quotes use fictional USD 2/mock NETA and a browser-local key. They are
 not a production pricing service. No production feature flag was switched on.
@@ -73,11 +75,12 @@ The authority's conversion rate is trusted: the contract does not prove external
 market data. The service policy requires a pinned mainnet JUNO/NETA pool, fresh
 JUNO/USD source, six-decimal reserves, positive block height, minimum liquidity,
 maximum observation ages, approved price baseline and a configured jump limit.
-Missing/stale/unknown inputs fail closed. Tests use synthetic policy values;
-no production thresholds, pool or USD provider were silently selected. A reserve
-spot price can be manipulated even with these checks; settle the averaging and
-manipulation policy before allowing paid mainnet quotes. Never use Treasury JSON
-as a quote feed. No private signing key belongs in browser code or repository.
+Missing/stale/unknown inputs fail closed. The owner selected WYND on 2026-10-05;
+the production adapter now proposes a 30-minute cumulative average, CoinGecko
+JUNO/USD and concrete conservative limits documented in the service runbook.
+Review live behavior before allowing paid mainnet quotes. Averaging does not
+eliminate sustained manipulation of a thin pool. Never use Treasury JSON as a
+quote feed. No private signing key belongs in browser code or repository.
 
 Only registry governance can pause purchases/renewals, rotate the quote key or
 change tariffs. The registry starts paused; transfers remain possible while
