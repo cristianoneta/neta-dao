@@ -1,6 +1,9 @@
 # Next chat — NNS Treasury prices and mainnet preparation
 
-Checkpoint updated: **2026-10-05, 20:20 mainnet activation and first purchase**.
+Checkpoint updated: **2026-10-05, 22:06 release continuation**.
+Resume with PR #169 and the ordered next steps at the top of root HANDOFF.
+Purchase UX and distinct name lifecycle messages are locally tested but not live;
+hosted checks remain queued during the Actions incident. PR #168 is superseded.
 The date in this filename preserves existing links. Earlier UNI-7 sections are
 dated evidence; the current mainnet checkpoint below takes precedence.
 Read [AGENTS](../AGENTS.md), [root HANDOFF](../HANDOFF.md) and
@@ -40,7 +43,7 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   records **4.755098 NETA** from owner to registry and onward to the main NETA DAO.
   See [launch evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) for all three hashes
   and the single-provider verification boundary. Do not repeat activation or payment.
-- **Purchase UX:** Check availability includes registry verification; Start
+- **Purchase UX (PR #169; not live):** Check availability includes registry verification; Start
   registration prepares locally and opens the commitment review in one action.
   Buy name opens payment review with an explicit purchase confirmation. The
   one-hour commitment is not exclusive; expiry is checked and shown before payment.

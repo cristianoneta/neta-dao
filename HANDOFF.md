@@ -1,6 +1,47 @@
 # NETA DAO handoff
 
-Updated: **2026-10-05, 20:20 mainnet activation and first purchase checkpoint (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
+Updated: **2026-10-05, 22:06 continuation checkpoint (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
+
+
+## Resume on 2026-10-06 — finish the NNS release
+
+Owner asked to save all work and continue tomorrow. The canonical continuation is
+[PR #169](https://github.com/cristianoneta/neta-dao/pull/169), branch
+`feat/nns-flow-inbox-20261005`. It incorporates the earlier PR #168 implementation
+and incident evidence, plus the later explicit requirement for separate renewal,
+outgoing-transfer and incoming-transfer messages. #168 is superseded; do not
+merge it independently. Its branch/worktree is retained.
+
+**Implemented and locally tested, not live:** simplified buying, non-exclusive
+one-hour commitment disclosure, welcome/profile/renewal links, renewal confirmation,
+transfer sent/received, 6/3/1-month and 14/7/1-day reminders plus expiry/grace end,
+wallet isolation, and reduced background polling. 135 Node tests and mainnet,
+UNI-7 and admin browser regressions passed. Desktop/mobile screenshots were checked.
+These are browser-local system notices, not email/push or private mainnet messages.
+Read [release evidence](docs/NNS_FLOW_NOTIFICATIONS_2026-10-05.md).
+
+Next steps, in order:
+1. Fetch current main and PR #169; preserve newer bot output. Inspect its current
+   head and four checks: Contract/frontend, RELAY browser, NNS pricing and faucet.
+   All four were queued during GitHub's runner-assignment incident at this checkpoint.
+2. Once GitHub recovers, retry only failed checks of the latest PR head as needed;
+   do not bypass release checks or repeatedly rerun old snapshot jobs.
+3. After applicable checks pass, merge #169; verify main CI, Pages deployment and
+   served hashes for index, shared CSS, workspace, RELAY and both notice modules.
+   Then record live evidence here/in the release note. It is not deployed yet.
+4. Inspect fresh scheduled snapshots/price timestamps after recovery; use a fresh
+   main-branch run if needed. The signed NNS price lasts at most 24 hours, so
+   prolonged scheduling failure can eventually block new quotes. Never edit bot data.
+5. The existing owner can connect and see the welcome/profile link without making
+   another purchase. Mainnet renewal/transfer remains untested with real wallets;
+   any real transaction needs the owner's deliberate Keplr confirmation.
+
+The source tree was saved through the connected GitHub API after CLI push lacked
+credentials. The initial uploaded tree matched local tests exactly. Working copy:
+`/workspace/scratch/281a81c91ea5/neta-dao`; GitHub is the durable continuation source.
+No private RPC/server was purchased; [the sourced assessment](docs/JUNO_RPC_OPTIONS_2026-10-05.md)
+and [prior incident evidence](docs/ACTIONS_RUNNER_INCIDENT_2026-10-05.md) are saved.
+Treasury accounting and live validator E2E remain deferred.
 
 ## Start here
 
@@ -92,11 +133,11 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   records **4.755098 NETA** from owner to registry and onward to the main NETA DAO.
   See [launch evidence](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md) for all three hashes
   and the single-provider verification boundary. Do not repeat activation or payment.
-- **Purchase UX:** Check availability now includes registry verification. Start
+- **Purchase UX (PR #169; not yet live):** Check availability now includes registry verification. Start
   registration combines local preparation with the commitment review; Buy name
   opens the explicitly labelled payment confirmation. Commitments last one hour
   and do not reserve a name exclusively. Saved secrets and pending journals remain.
-- **Inbox update:** welcome, renewal confirmation, transfer sent/received and
+- **Inbox update (PR #169; not yet live):** welcome, renewal confirmation, transfer sent/received and
   renewal/expiry reminders are implemented with profile/renewal deep links. Local
   system notices remain distinct from disabled private messaging. See
   [implementation and release evidence](docs/NNS_FLOW_NOTIFICATIONS_2026-10-05.md).

@@ -51,6 +51,20 @@ retains the name. No real mainnet payment or transfer was performed in this chan
 
 ## Publication
 
-Pending branch/PR integration and served-asset verification. GitHub runner
-assignment was disrupted when this work began. Local test success is not evidence
-of a completed hosted deployment.
+Canonical release: [PR #169](https://github.com/cristianoneta/neta-dao/pull/169),
+`feat/nns-flow-inbox-20261005`. Earlier PR #168's implementation was compared file
+by file; its incident document and governance-specific error wording are retained.
+The continuation adds the owner's specific transfer/renewal notices and polling
+improvements. #168 is superseded and must not be merged independently.
+
+The first remote commit is `3233326d2112d80841ffbc00d56fac0b27ec3fc9`; its tree
+`340014b811cb9727b9eb82e90524f34c3ec20190` exactly matched the local tested tree.
+A follow-up checkpoint consolidates both histories and records the next steps.
+The initial PR checks were all queued: RELAY 37367523820, contract/frontend
+37367523919, pricing 37367523764, faucet 37367523813. Check the current PR head
+rather than assuming these run IDs cover later commits.
+
+**Not merged or live.** GitHub runner assignment was disrupted. Owner requested
+saving the work and continuing 2026-10-06. Finish applicable hosted checks, merge,
+then verify Pages and served assets. Do not bypass checks. Root HANDOFF owns the
+ordered continuation. No live mainnet transaction occurred in this work.

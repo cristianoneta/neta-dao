@@ -84,7 +84,7 @@ still needs the original setup browser. See [integration](NAMES_MAIN_PAGE_INTEGR
 deliberate wallet switches, with expiry/revision/identity checks;
 `names-v2-validator-ui.mjs` handles the distinct signature/publication reviews.
 Lost/unknown submissions stay locked until reconciled; no automatic resend occurs.
-The normal purchase UI combines registry verification with Check availability,
+The pending PR #169 purchase UI combines registry verification with Check availability,
 and local preparation with Start registration. Buy name / Buy and confirm in Keplr
 explicitly label payment; renewals use corresponding renewal labels. Load my name
 verifies the registry on demand. Commitments are non-exclusive and valid for one
@@ -151,8 +151,9 @@ separately recorded in the production manifest and receipt bundle.
 Original WASM/bootstrap tariff and signed historical fixtures remain unchanged;
 new installations also apply the approved tariff before purchasing. Quotes read
 the current on-chain tariff/version.
-Free DAO namespaces, verified receiving addresses, private contacts, lifecycle
-notifications and DAO-authorized profile proposals remain later work.
+Free DAO namespaces, verified receiving addresses, private contacts and
+DAO-authorized profile proposals remain later work. Browser-local lifecycle
+notifications are implemented in pending PR #169; hosted publication is outstanding.
 
 ## UNI-7 faucet
 
@@ -278,7 +279,7 @@ observed data lag and successful latest collector runs without claiming live dat
 
 ## RELAY: main inbox versus encrypted lab
 
-NNS system notices now have a Names filter, unread state and identity-scoped
+Pending PR #169 (locally tested, not yet live) gives NNS system notices a Names filter, unread state and identity-scoped
 history: first-registration welcome, renewal confirmation, outgoing and incoming
 transfer notices, 6/3/1 calendar-month and 14/7/1-day reminders, expiry and grace-end
 notices. Links open the correct profile/renewal menu without signing. Each observation

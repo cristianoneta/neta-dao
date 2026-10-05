@@ -253,6 +253,8 @@ was performed by these tests. See the release PR for hosted CI/deployment status
 
 ## Normal name purchase flow
 
+Release status: PR #169, locally tested; hosted CI and deployed asset checks pending.
+
 **Check availability** verifies the selected registry and resolves the name in one
 action, without a wallet. No separate registry-read click is needed. **Refresh
 pricing** remains an optional manual read. **Load my name** verifies the registry
@@ -275,7 +277,7 @@ commitment is rejected before a purchase review or confirmation can proceed.
 independently of the one-hour commitment. No automatic signatures, resends or
 journal deletion are introduced.
 
-## Name lifecycle notices
+## NNS Inbox notices
 
 The RELAY Inbox has a Names filter and wallet/network/registry-scoped system
 notices: welcome on first observed registration, renewal confirmation with old and
