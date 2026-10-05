@@ -287,6 +287,13 @@ text via textContent; HTTPS links open with noopener/noreferrer. Distinguish
 proofs. Editing clears a stale preview. Never show verified identity or an active
 programme award merely because a syntactically valid address was entered.
 
+Owner update 2026-10-05: place a labelled **Network** select above the mainnet and
+testnet validator addresses. Offer only supported networks (currently Juno), keep
+both chain IDs visible in the address labels, and show the network in the preview.
+Reuse the shared native select style. Changing networks invalidates the preview
+and clears old operator addresses; it never requests signatures or switches the
+global governance/wallet network.
+
 ## Names UNI-7 operator pages — 2026-10-04
 
 Setup and lab reuse graphite/mint foundations and conventional labelled forms.

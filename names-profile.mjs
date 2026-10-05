@@ -4,6 +4,15 @@ const form = document.querySelector('#names-profile-form');
 const preview = document.querySelector('#names-profile-preview');
 const status = document.querySelector('#names-profile-result');
 
+// Each future network needs its own supported chain pair and address validator.
+// This preview registry does not change the wallet lab or the proof protocol.
+const validatorNetworks = new Map([['juno', {
+  label: 'Juno',
+  mainnet: {chainId: 'juno-1', prefix: 'junovaloper'},
+  testnet: {chainId: 'uni-7', prefix: 'junovaloper'},
+  validate: validatePair,
+}]]);
+
 function element(tag, text, className) {
   const node = document.createElement(tag);
   if (text !== undefined) node.textContent = text;
@@ -12,17 +21,44 @@ function element(tag, text, className) {
 }
 
 if (form) {
+  const networkSelect = form.elements.network;
+  let selectedNetwork = networkSelect.value;
+  networkSelect.replaceChildren(...Array.from(validatorNetworks, ([id, network]) => {
+    const option = element('option', network.label);
+    option.value = id;
+    option.defaultSelected = id === 'juno';
+    return option;
+  }));
+  function updateNetwork() {
+    const network = validatorNetworks.get(networkSelect.value);
+    preview.hidden = true;
+    status.textContent = '';
+    if (!network) {
+      status.textContent = 'This validator network is not supported yet.';
+      return;
+    }
+    for (const role of ['mainnet', 'testnet']) {
+      if (selectedNetwork !== networkSelect.value) form.elements[role].value = '';
+      form.querySelector(`label[for="names-profile-${role}"]`).textContent = `${network.label} ${role} operator · ${network[role].chainId}`;
+      form.elements[role].placeholder = `${network[role].prefix}1…`;
+    }
+    selectedNetwork = networkSelect.value;
+  }
+  networkSelect.addEventListener('change', updateNetwork);
+  updateNetwork();
   form.addEventListener('submit', event => {
     event.preventDefault();
     status.textContent = '';
     try {
       const fields = Object.fromEntries(new FormData(form));
+      const network = validatorNetworks.get(fields.network);
+      if (!network) throw Error('This validator network is not supported yet.');
       const name = fields.name.trim() ? normalizeName(fields.name) : 'Your .neta name';
       const contacts = normalizeContacts(fields);
       let pair = null;
-      if (fields.mainnet.trim() || fields.testnet.trim()) pair = validatePair({
-        mainnet: {chain_id: 'juno-1', address: fields.mainnet.trim()},
-        testnet: {chain_id: 'uni-7', address: fields.testnet.trim()},
+      if (fields.mainnet.trim() || fields.testnet.trim()) pair = network.validate({
+        mainnet: {chain_id: network.mainnet.chainId, address: fields.mainnet.trim()},
+        testnet: {chain_id: network.testnet.chainId, address: fields.testnet.trim()},
       });
       const title = element('h3', name);
       preview.replaceChildren(element('span', 'Preview · not published', 'names-badge'), title);
@@ -41,6 +77,7 @@ if (form) {
       preview.append(list);
       if (pair) {
         preview.append(element('h4', 'Validator addresses · unverified'));
+        preview.append(element('p', `Network: ${network.label}`, 'names-help'));
         for (const op of [pair.mainnet, pair.testnet]) preview.append(element('p', `${op.chain_id} · ${op.address}`, 'names-address'));
       }
       if (!list.children.length && !contacts.description && !pair) preview.append(element('p', 'Your profile is empty. All contact fields are optional.'));
@@ -55,5 +92,5 @@ if (form) {
   // Editing invalidates the old preview immediately; stale information must not
   // appear to be the result of the currently visible form.
   form.addEventListener('input', () => { preview.hidden = true; status.textContent = ''; });
-  form.addEventListener('reset', () => { preview.hidden = true; status.textContent = ''; });
+  form.addEventListener('reset', () => { networkSelect.value = 'juno'; updateNetwork(); });
 }

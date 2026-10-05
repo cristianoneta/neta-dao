@@ -62,6 +62,11 @@ colours for users and verified active validators. Light blue for users and laven
 for validators were proposed, not yet approved or implemented. The validator colour
 and label require verified address control AND chain-specific active-set evidence.
 
+My profile's Validator addresses section now has an explicit Network selector,
+currently Juno only (`juno-1` / `uni-7`). The preview uses the selected network's
+chain pair and validator. Adding a network requires its own validation and proof
+support; this selector does not expand the UNI-7 lab or deployed contract protocol.
+
 Keep programme criteria and deferred Smart Delegation research unchanged. See
 [NNS handoff](docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md) and
 [PROJECT_CHECKPOINT](PROJECT_CHECKPOINT.md) for other open work.

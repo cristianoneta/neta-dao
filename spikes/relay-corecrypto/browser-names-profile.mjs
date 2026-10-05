@@ -31,6 +31,15 @@ try {
   await page.locator('#names-profile-email').fill('hello@example.org');
   await page.locator('#names-profile-web').fill('https://example.org');
   await page.locator('#names-profile-form summary').click();
+  const network = page.getByRole('combobox', {name: 'Network', exact: true});
+  assert.equal(await network.inputValue(), 'juno');
+  assert.deepEqual(await network.locator('option').allTextContents(), ['Juno']);
+  assert.match(await page.locator('label[for="names-profile-mainnet"]').textContent(), /Juno mainnet operator · juno-1/);
+  assert.match(await page.locator('label[for="names-profile-testnet"]').textContent(), /Juno testnet operator · uni-7/);
+  await network.focus();
+  assert.notEqual(await network.evaluate(el=>getComputedStyle(el).outlineStyle), 'none');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.locator('#names-profile-mainnet').evaluate(el=>el===document.activeElement), true);
   await page.locator('#names-profile-mainnet').fill('junovaloper1my0kxfxzxvmgg0tj0gx63lzp6zrj5vjwcsutpe');
   await page.locator('#names-profile-testnet').fill('junovaloper1a2m9f5u4qrnr45euqqwwuv8kvadv7twptqm02y');
   await page.locator('#names-profile-form [type=submit]').click();
@@ -39,6 +48,9 @@ try {
   assert.match(await preview.textContent(),/operator.neta/);
   assert.match(await preview.textContent(),/Preview · not published/);
   assert.match(await preview.textContent(),/Validator addresses · unverified/);
+  assert.match(await preview.textContent(),/Network: Juno/);
+  assert.match(await preview.textContent(),/juno-1 · junovaloper/);
+  assert.match(await preview.textContent(),/uni-7 · junovaloper/);
   assert.equal(await preview.locator('img,script').count(),0);
   assert.equal(await preview.locator('a[href="https://t.me/operator"]').count(),1);
   assert.equal(await preview.locator('a[href="https://example.org"]').getAttribute('rel'),'noopener noreferrer');
@@ -49,8 +61,23 @@ try {
     await page.setViewportSize({width,height:1000});
     await page.evaluate(()=>window.scrollTo(0,0));
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`overflow at ${width}`);
-    if(process.env.NNS_SCREENSHOT_DIR) await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/profile-${width}.png`,fullPage:true});
+    if(process.env.NNS_SCREENSHOT_DIR) {
+      await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/profile-${width}.png`,fullPage:true});
+      await page.locator('#names-profile-form details').screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/profile-network-${width}.png`});
+    }
   }
+  // A network change invalidates the preview; unsupported IDs cannot fall back to Juno.
+  await network.selectOption('juno');
+  assert.equal(await preview.isVisible(), false);
+  assert.match(await page.locator('#names-profile-mainnet').inputValue(), /^junovaloper/);
+  await network.evaluate(el=>{el.add(new Option('Unsupported fixture', 'unknown'));el.value='unknown';el.dispatchEvent(new Event('change',{bubbles:true}));});
+  await page.locator('#names-profile-form [type=submit]').click();
+  assert.equal(await preview.isVisible(), false);
+  assert.match(await page.locator('#names-profile-result').textContent(), /not supported/);
+  await network.selectOption('juno');
+  await network.locator('option[value="unknown"]').evaluate(el=>el.remove());
+  await page.locator('#names-profile-form [type=submit]').click();
+  assert.equal(await preview.isVisible(), true);
   await page.setViewportSize({width:1440,height:1000});
   // 200% equivalent reflow and keyboard focus through actual editable fields.
   await page.setViewportSize({width:720,height:500});
@@ -65,6 +92,8 @@ try {
   assert.equal(await preview.isVisible(),false);
   await page.locator('#names-profile-form [type=reset]').click();
   assert.equal(await page.locator('#names-profile-email').inputValue(),'');
+  assert.equal(await network.inputValue(), 'juno');
+  assert.equal(await preview.isVisible(), false);
   // Real Chromium WebCrypto verification, shared with Rust and Node fixtures.
   const quoteProtocol=await page.evaluate(async()=>{
     const {validateQuote,commitmentHash}=await import('/names-v2-core.mjs');
