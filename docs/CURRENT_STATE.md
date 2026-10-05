@@ -41,7 +41,7 @@ See [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
 | Surface | Implemented and connected | Boundary |
 | --- | --- | --- |
 | Main RELAY Names | Directory/DAO reads and follows; network-selectable mainnet/UNI-7 lookup, registration, renewal, transfer, public contact reads/updates and validator preview | Mainnet adapters require the verified production manifest, not yet recorded; UNI-7 purchases use the original local key |
-| `names-mainnet-deploy.html` | Four owner-confirmed mainnet upload/instantiate actions with pinned public key, persisted recovery and two-provider receipt export | Purchases remain paused; no mainnet wallet receipt is recorded |
+| `names-mainnet-deploy.html` | Four owner-confirmed mainnet upload/instantiate actions with pinned public key and owner-wallet upgrade admin, persisted recovery and two-provider receipt export | Purchases remain paused; no mainnet wallet receipt is recorded |
 | `names-v2-setup.html` | Explicit Keplr upload/instantiate/activation, local test quote key, manifest export and receipt recovery | Existing owner deployment is already complete; do not repeat setup |
 | `names-v2-lab.html` | Verified manifest, mock-NETA registration/renewal, recipient-accepted transfer and public contacts | UNI-7 only; quote rate is fictional USD 2/mock NETA |
 | Independent validator observation | Wallet-free entered-pair check; stored-link refresh checks both validator records and UNI-7 consensus keys at a displayed block | Public provider observations, latest staking records, no uptime or programme points; unavailable data stay unresolved |
@@ -89,7 +89,7 @@ The accepted annual tariff is USD 99/19/5 for 3/4/5–32 characters, for both
 registration and renewal, 1–5-year terms, 365-day years and 30-day grace. Mainnet
 fees target the main NETA DAO, not Operations. The owner subsequently approved reusing the existing Treasury WYND NETA price,
 with scheduled 30-minute refresh and up to 24 hours of signed validity. Registry
-source v0.3.0 accepts shared-price hooks in addition to legacy individual quotes;
+source v0.3.1 accepts shared-price hooks in addition to legacy individual quotes;
 its new WASM is pinned separately under `assets/names-mainnet/`. Existing deployed
 UNI-7 code and historical artifacts are unchanged. `names/publish-snapshot.mjs`
 signs the collector's explicit `nns_price` offline in the main DAO job; no new
@@ -98,16 +98,24 @@ validation and `NamesV2Client.snapshotQuote` support reviewed snapshot payments
 and existing recovery. The normal page/reader/wallet now supports both chains; UNI-7 retains
 its old local individual-quote flow. Mainnet adapters and browser price-key setup
 are implemented and synthetically tested. The owner supplied the public price key, now pinned in the separate deployment page.
+Owner decision: registry/profile upgrade rights initially belong to
+`juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`, transferable to the DAO later.
+The owner wallet also controls tariffs, purchase pause and price-key rotation;
+the main DAO is the fee recipient. Registry v0.3.1 makes application admin
+independent of that recipient and starts with USD 99/19/5 while paused. Upgrade
+authority is set separately in the outer instantiate message. A synthetic
+migration test verifies authority, state preservation and subsequent DAO transfer.
 Private backup custody and the production Actions secret are unconfirmed; a verified
-version-3 production manifest and mainnet contracts/DAO execution remain unrecorded. The publication step skips while no production manifest exists.
+version-3 production manifest and mainnet contracts/admin-wallet execution remain unrecorded. The owner confirmed
+no transaction had been signed or uploaded at 12:54 Berlin. The publication step skips while no production manifest exists.
 See [runbook](../names/README.md) and [snapshot evidence](NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 The earlier continuous WYND server is deferred, not hosted. Its stricter policy
 is not the policy of the approved snapshot system.
 The existing UNI-7 registry needs an explicit admin `set_tariff` transaction via
 the lab Annual pricing section; source/UI changes do not alter deployed config.
 Its activation remains unverified until that wallet receipt/config is checked.
-`names/mainnet-plan.mjs` prepares unsigned mainnet deployment and DAO tariff
-review material. Only the DAO can set the mainnet tariff or unpause; no live
+`names/mainnet-plan.mjs` prepares unsigned mainnet deployment and admin-wallet tariff
+review material. The approved owner wallet can set the mainnet tariff or unpause; no live
 mainnet transaction, deployed address or receipt is claimed by this slice.
 Original WASM/bootstrap tariff and signed historical fixtures remain unchanged;
 new installations also apply the approved tariff before purchasing. Quotes read

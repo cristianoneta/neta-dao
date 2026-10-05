@@ -1,3 +1,4 @@
+import {MAINNET_UPGRADE_ADMIN} from '../../names/mainnet-config.mjs';
 import {namesNetwork} from '../../names/networks.mjs';
 // Chain-scoped Names execution bridge. Uses the same lock/journal as Faucet, Governance and RELAY.
 import {SigningStargateClient,GasPrice,defaultRegistryTypes,calculateFee} from '@cosmjs/stargate';
@@ -28,13 +29,14 @@ function requestValid(r){
   }else{
     if(!r.msg||typeof r.msg!=='object'||Array.isArray(r.msg))throw Error('Invalid contract message.');
     if(r.kind==='instantiate'){
+      if(r.migrationAdmin!==undefined&&r.migrationAdmin!==MAINNET_UPGRADE_ADMIN)throw Error('Invalid migration administrator.');
       if(!Number.isSafeInteger(r.codeId)||r.codeId<1||typeof r.label!=='string'||r.label.length<1||encoder.encode(r.label).length>128)throw Error('Invalid instantiate request.');
     }else if((r.kind&&r.kind!=='execute')||!validAddress(r.contract)||Object.keys(r.msg).length!==1)throw Error('Invalid Names execute request.');
   }
 }
 function message(r){
   if(r.kind==='store')return {typeUrl:STORE,value:MsgStoreCode.fromPartial({sender:r.owner,wasmByteCode:fromBase64(r.wasm)})};
-  if(r.kind==='instantiate')return {typeUrl:INSTANTIATE,value:MsgInstantiateContract.fromPartial({sender:r.owner,admin:'',codeId:BigInt(r.codeId),label:r.label,msg:encoder.encode(JSON.stringify(r.msg)),funds:[]})};
+  if(r.kind==='instantiate')return {typeUrl:INSTANTIATE,value:MsgInstantiateContract.fromPartial({sender:r.owner,admin:r.migrationAdmin||'',codeId:BigInt(r.codeId),label:r.label,msg:encoder.encode(JSON.stringify(r.msg)),funds:[]})};
   return {typeUrl:TYPE,value:MsgExecuteContract.fromPartial({sender:r.owner,contract:r.contract,msg:encoder.encode(JSON.stringify(r.msg)),funds:[]})};
 }
 function save(storage,key,row){const raw=JSON.stringify(row);storage.setItem(key,raw);if(storage.getItem(key)!==raw)throw Error('Names transaction record could not be verified.');}
@@ -77,6 +79,8 @@ export function createBridge({chainId='uni-7',client,lookup,assertWallet,verifyD
   }
   async function execute(request){
     const r=structuredClone(request);requestValid(r);
+    // Legacy no-admin requests remain readable by recover(), never signable on mainnet.
+    if(r.kind==='instantiate'&&(chainId==='juno-1'?r.migrationAdmin!==MAINNET_UPGRADE_ADMIN:r.migrationAdmin!==undefined))throw Error('Review the required chain-specific migration administrator.');
     if(rowFor(storage,r,chainId))throw Error('This attempt already exists. Reconcile it before any new signature.');
     const key=attemptKey(r.owner,r.intentId,chainId);
     let row={version:1,request:recordedRequest(r),status:'preparing'};save(storage,key,row);

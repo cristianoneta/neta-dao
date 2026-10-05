@@ -8,11 +8,11 @@ its persistent disk are unaffected. This supersedes the earlier Render plan.
 
 ## Current implementation and boundary
 
-Registry source `contracts/neta-names-v2` **v0.3.0** accepts shared signed prices.
-The reviewed new artifact is `assets/names-mainnet/neta_names_v2.wasm`, pinned
+Registry source `contracts/neta-names-v2` **v0.3.1** accepts shared signed prices.
+The reviewed new artifact is `assets/names-mainnet/neta_names_v2_v031.wasm`, pinned
 in `mainnet-artifacts.mjs`. The old `assets/names-testnet/` registry, deployed
 UNI-7 contracts, original quote fixtures, keys and journals remain unchanged.
-The v0.3.0 code also retains the original individual-quote hooks for compatibility.
+The v0.3.1 code also retains the original individual-quote hooks for compatibility.
 
 The snapshot publisher and shared browser/client purchase path are implemented.
 They do **not** imply a mainnet deployment or live purchase: no production price
@@ -56,7 +56,7 @@ There is intentionally no on-chain price-update transaction or latest-price
 sequence counter. The owner accepts approximate pricing; limiting old-price
 selection further would require a different protocol. A five-minute *purchase
 review* remains separate from the 24-hour price lifetime: an expired review is
-never silently repriced. Price/key/tariff/purchase pause controls remain with the DAO.
+never silently repriced. The approved owner wallet controls tariffs, price-key rotation and purchase pause.
 
 The signed time records when the collector observed the source, not a guaranteed
 last market trade time. This is a trusted scheduled price, not an on-chain oracle
@@ -87,22 +87,26 @@ GitHub Actions usage quotas/billing still apply.
 3. `node names/mainnet-plan.mjs '<PUBLIC_KEY>' /tmp/nns-mainnet-plan.json` prepares
    unsigned deployment material and verifies local artifact hashes. No broadcast.
    Owner-sign the reviewed mainnet registry/profile upload and instantiation.
-   Registry admin AND treasury are the main NETA DAO; migration admins are null.
-   The registry starts paused. Never upload the mock token or reuse UNI-7 addresses.
+   Registry application admin is the approved owner wallet; treasury is the main NETA DAO. Both migration
+   admins are the owner-approved wallet `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.
+   These are separate rights; do not substitute the deployer or DAO automatically.
+   The registry starts paused with annual USD 99/19/5. Never upload the mock token or reuse UNI-7 addresses.
 4. Verify and record exact receipts, code IDs/checksums, creator and addresses in
    **`docs/deployments/nns-mainnet.json`**. Use manifest `version:3`,
    `pricing_protocol:"treasury-snapshot-v1"`, `chain_id:"juno-1"`,
    `testnet_only:false`, real NETA/main DAO and the public price key/version.
    `validateSnapshotDeployment` checks identity and the new artifact pins.
-5. Through the actual main NETA DAO proposal module, execute the approved
-   **99 / 19 / 5 USD** annual tariff for 3 / 4 / 5–32-character names. Use
-   `tariffProposal(manifest, freshlyReadConfig)` for the exact version-bound
-   message. This keeps purchases paused; chat approval is not DAO execution.
+5. Verify the initial **99 / 19 / 5 USD** annual tariff for 3 / 4 / 5–32-character
+   names. Later changes are authorized by the owner's admin wallet, not the DAO.
+   `tariffUpdate(manifest, freshlyReadConfig, tariff)` prepares a version-bound
+   unsigned message using positive integer USD cents. It works while purchases
+   are paused or open and does not change that pause. The compatibility export
+   `tariffProposal` prepares the same wallet review, not a DAO proposal.
 6. Verify a successful main DAO workflow, the public signed file, its original
    observation/expiry and browser verification against the actual deployment.
    Verify the implemented mainnet reader/wallet/page with the real manifest and signed price. No secret
    or production manifest is currently installed by this change.
-7. Only after those dependencies, use a **separate DAO unpause** proposal and
+7. Only after those dependencies, use a **separate admin-wallet unpause** transaction and
    verify one explicitly reviewed owner-signed purchase, exact NETA debit/DAO
    credit and resulting identity/expiry. Record evidence before calling NNS live.
 
@@ -139,16 +143,52 @@ are not verified by sharing the public key. Do not generate a replacement.
 
 Review registry upload/creation, then profile upload/creation: four explicit
 mainnet transactions, no token deployment. Keplr displays real JUNO gas fees.
-The registry uses real NETA, the main DAO as logical admin and fee recipient,
-and starts paused. Both contract migration admins are empty. The helper has
+The registry uses real NETA, the approved owner wallet as logical admin and the main DAO as fee recipient,
+and starts paused. Both contract migration admins are the approved owner wallet. The helper has
 no tariff/unpause action. Its state and signing journals are separate from UNI-7.
 
 For unknown results, reconnect the same account in the same browser and choose
 Check pending transaction; never delete site data or repeat an upload to recover.
-Download public receipts after both providers verify immutable code, creator,
+Download public receipts after both providers verify pinned code, upgrade administrator, creator,
 addresses, price key and paused configuration. This contains a version-3 manifest,
 exact matched receipts and provider observations. Only after receiving/verifying
 that output should `docs/deployments/nns-mainnet.json` be committed. The dated
 `nns-mainnet-plan-2026-10-05.json` is unsigned preparation, not that live manifest.
-Then follow the DAO tariff, price verification, separate activation and purchase
+Then follow tariff/price verification, separate owner-wallet activation and purchase
 checks above. No live wallet transaction or private secret is claimed by UI tests.
+
+### Upgrade authority and later DAO transfer
+
+Owner decision 2026-10-05: retain upgradeability, initially controlled by
+`juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`. A later handover to the main NETA DAO
+uses `MsgUpdateAdmin` for **each** contract, signed by its current upgrade admin.
+It does not require changing the code or contract address. After transfer, the
+former wallet loses upgrade/admin-transfer authority; DAO execution is required.
+Do not use `MsgClearAdmin`, which would permanently remove upgradeability. No
+transfer is performed by the deployment helper. Update and verify the pinned
+admin policy/production manifest with the reviewed handover receipts at that time.
+
+Future upgrades upload a reviewed new WASM and use `MsgMigrateContract`, authorized
+by the then-current admin. The **target** code needs a suitable `migrate` entrypoint
+that validates old contract identity/version and preserves or explicitly converts
+storage. The current source need not have a migrate entrypoint to be migrated away
+from, so the existing pinned uploads remain usable. The synthetic cw-multi-test
+checks owner-only migration, later DAO transfer, rejection of former/unauthorized
+admins and preservation of registry configuration, name ownership/expiry and profile
+contacts. Every actual future schema migration still needs its own tests and
+reviewed code/receipt checks. Frontend code pins must be updated deliberately too.
+
+The helper preserves existing upload journals. An old no-admin creation is only
+recoverable as the exact original transaction; it cannot be rewritten to the new
+admin. A recovered immutable instance blocks further setup and needs an explicit
+owner decision. Do not clear browser storage or automatically deploy a replacement.
+
+Owner correction at 12:53 Berlin: the wallet also holds application administration.
+Registry v0.3.1 exposes admin-only `set_admin: {admin: <new address>}` for a future
+explicit application-authority transfer, independently of each Wasm upgrade admin.
+The immutable fee-recipient field stays the main DAO in this reviewed code; no
+ordinary admin action redirects fees. An authorized future code upgrade could
+change contract behavior, so upgrade-wallet custody is a deliberate trust boundary.
+The owner confirmed no prior mainnet upload/signature at 12:54. Start with v0.3.1,
+not the historical v0.3.0 artifact. Initial tariff already matches 99/19/5, so there
+is no extra tariff-setting transaction required before launch.

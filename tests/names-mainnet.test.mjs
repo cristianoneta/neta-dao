@@ -1,3 +1,4 @@
+import {MAINNET_UPGRADE_ADMIN,MAINNET_REGISTRY_ADMIN} from '../names/mainnet-config.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -11,16 +12,16 @@ import {priceSnapshotPreimage} from '../names-v2-core.mjs';
 const f=JSON.parse(readFileSync(new URL('./fixtures/nns-adr36.json',import.meta.url)));
 const owner=f.profile.identity.owner;
 const privateKey=createPrivateKey({key:Buffer.concat([Buffer.from('302e020100300506032b657004220420','hex'),Buffer.alloc(32,7)]),type:'pkcs8',format:'der'});
-export const mainnetManifest={version:3,pricing_protocol:'treasury-snapshot-v1',chain_id:'juno-1',testnet_only:false,registry:f.deployment.registry,profile_contract:f.deployment.contract,token:NETA,treasury:DAO,admin:DAO,signer_version:1,quote_public_key:createPublicKey(privateKey).export({type:'spki',format:'der'}).subarray(-32).toString('base64'),contracts:Object.fromEntries(['registry','profiles'].map((role,i)=>[role,{code_id:i+100,sha256:SNAPSHOT_ARTIFACTS[role].sha256,creator:owner,admin:null}]))};
+export const mainnetManifest={version:3,pricing_protocol:'treasury-snapshot-v1',chain_id:'juno-1',testnet_only:false,registry:f.deployment.registry,profile_contract:f.deployment.contract,token:NETA,treasury:DAO,admin:MAINNET_REGISTRY_ADMIN,signer_version:1,quote_public_key:createPublicKey(privateKey).export({type:'spki',format:'der'}).subarray(-32).toString('base64'),contracts:Object.fromEntries(['registry','profiles'].map((role,i)=>[role,{code_id:i+100,sha256:SNAPSHOT_ARTIFACTS[role].sha256,creator:owner,admin:MAINNET_UPGRADE_ADMIN}]))};
 const now=1791190800, config={...mainnetManifest,tariff_version:2,tariff:{three_cents:9900,four_cents:1900,standard_cents:500},purchases_paused:false};
-test('mainnet reader verifies real NETA, both immutable contract pins and chain; wrong identities fail closed',async()=>{
-  for(const mode of ['ok','chain','key','checksum','decimals','admin']){
+test('mainnet reader verifies real NETA, both contract pins and owner-wallet upgrade administrators and chain; wrong identities fail closed',async()=>{
+  for(const mode of ['ok','chain','key','checksum','decimals','admin','no-admin']){
     const fetcher=async url=>{const p=new URL(url).pathname;let data;
       if(p.endsWith('node_info'))data={default_node_info:{network:mode==='chain'?'uni-7':'juno-1'}};
       else if(p.endsWith('blocks/latest'))data={block:{header:{chain_id:'juno-1',height:'100',time:new Date(now*1000).toISOString()}}};
       else if(p.includes('/smart/')){const c=p.split('/contract/')[1].split('/')[0];data={data:c===NETA?{decimals:mode==='decimals'?8:6}:c===mainnetManifest.registry?{...config,quote_public_key:mode==='key'?'bad':config.quote_public_key}:{registry:mainnetManifest.registry}};}
       else if(p.includes('/code/'))data={code_info:{data_hash:mode==='checksum'?'00'.repeat(32):Object.values(mainnetManifest.contracts).find(c=>c.code_id===Number(p.split('/').pop())).sha256}};
-      else {const c=p.split('/').pop(),pin=mainnetManifest.contracts[c===mainnetManifest.registry?'registry':'profiles'];data={contract_info:{code_id:pin.code_id,creator:owner,admin:mode==='admin'?owner:''}};}
+      else {const c=p.split('/').pop(),pin=mainnetManifest.contracts[c===mainnetManifest.registry?'registry':'profiles'];data={contract_info:{code_id:pin.code_id,creator:owner,admin:mode==='admin'?DAO:mode==='no-admin'?'':MAINNET_UPGRADE_ADMIN}};}
       return {ok:true,json:async()=>data};
     };
     const reader=new NamesV2Reader({deployment:mainnetManifest,fetcher,now:()=>now});

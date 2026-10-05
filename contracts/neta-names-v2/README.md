@@ -32,8 +32,12 @@ Synthetic test keys in fixtures are public and must never be used for deployment
 `msg.rs` defines the complete JSON interface. Instantiate with `token`, `treasury`,
 `admin`, `quote_public_key` (base64 Ed25519 public key), and `testnet_only`.
 Purchases and renewals start paused. UNI-7 test mode requires a six-decimal CW20.
-Mainnet mode pins the real NETA token and main NETA DAO as treasury and governance.
-There is no migration entrypoint or admin name-transfer method.
+Mainnet v0.3.1 pins the real NETA token and main NETA DAO as fee recipient.
+The reviewed deployment uses the owner wallet as application administrator and
+starts paused with USD 99/19/5. Admin-only `set_admin` can later transfer application
+control. Wasm upgrade authority is a separate outer instantiate parameter.
+The source has no migration entrypoint; a future migration target must provide one.
+An upgrade admin is retained at creation. There is no admin name-transfer method.
 
 Registration is an owner-signed `commit` transaction, then in a later block a
 CW20 `send` carrying `register: {offer, salt}`. Never reveal the name in the commit

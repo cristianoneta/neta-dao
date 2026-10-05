@@ -4,8 +4,8 @@
   "pricing_protocol": "treasury-snapshot-v1",
   "artifacts": {
     "registry": {
-      "path": "assets/names-mainnet/neta_names_v2.wasm",
-      "sha256": "821f85a345adf68e3323315a0220286046c88d30c92c4e296afcfe7414bdea71"
+      "path": "assets/names-mainnet/neta_names_v2_v031.wasm",
+      "sha256": "f25c982db217363c395a1c09c3028988cff390323b0aa852249016bbebe974fc"
     },
     "profiles": {
       "path": "assets/names-testnet/neta_validator_profiles.wasm",
@@ -15,11 +15,11 @@
   "registry_instantiate": {
     "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
     "treasury": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
-    "admin": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
+    "admin": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
     "quote_public_key": "XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=",
     "testnet_only": false
   },
-  "wasm_migration_admin": null,
+  "wasm_migration_admin": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
   "starts_paused": true,
   "approved_tariff": {
     "three_cents": 9900,
@@ -34,9 +34,9 @@
   "profiles_instantiate": "Fill {registry: <verified new mainnet registry address>} after registry receipt.",
   "next": [
     "Record upload and instantiate hashes, heights, code IDs and creator.",
-    "Verify both contracts, immutable code hashes, treasury, quote key and paused config with two providers.",
-    "Prepare the DAO tariff proposal; apply 99/19/5 while purchases remain paused.",
+    "Verify both contracts, pinned code hashes, owner-wallet upgrade administrators, treasury, quote key and paused config with two providers.",
+    "Verify the initial USD 99/19/5 tariff and owner-wallet admin while purchases remain paused.",
     "Configure the Actions price secret and verified manifest; verify the published signed snapshot and mainnet UI.",
-    "Only then prepare a separate DAO unpause proposal and owner-signed purchase check."
+    "Only then prepare a separate owner-wallet activation and purchase check."
   ]
 }

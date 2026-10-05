@@ -1,12 +1,19 @@
 # Next chat — NNS Treasury prices and mainnet preparation
 
 Checkpoint updated: 2026-10-05 after the owner **replaced the Render price-service
-plan with Treasury price snapshots**. Source v0.3.0 and an offline Actions publisher
+plan with Treasury price snapshots**. Source v0.3.1 and an offline Actions publisher
 are prepared; no mainnet deployment receipt exists and secret installation is
 unconfirmed. The public key is now pinned; next use `names-mainnet-deploy.html`
-for four individually reviewed owner transactions and export the public receipts.
+for remaining individually reviewed owner transactions and export public receipts.
+The chosen deployment wallet and initial upgrade administrator are
+`juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57` (owner correction 12:50 Berlin).
+A later transfer of both upgrade rights to the DAO is possible but not authorized
+for execution now. The same wallet also controls tariffs and activation; the DAO only receives fees.
+The owner confirmed at 12:54 Berlin that nothing was uploaded or signed. The new
+registry v0.3.1 WASM is needed for the independent application administrator;
+historical WASMs and any journals remain intact.
 Mainnet reader/wallet/page adapters and a network selector are implemented and
-synthetically tested. Missing production manifest/DAO activation keeps writes off. See [root HANDOFF](../HANDOFF.md),
+synthetically tested. Missing production manifest/admin activation keeps writes off. See [root HANDOFF](../HANDOFF.md),
 [snapshot checkpoint](NNS_SNAPSHOT_RELEASE_2026-10-05.md) and [runbook](../names/README.md).
 The earlier UNI-7 lifecycle/validator evidence below remains valid as dated evidence.
 Read AGENTS.md, HANDOFF.md and CURRENT_STATE.md; read DESIGN_SYSTEM.md before

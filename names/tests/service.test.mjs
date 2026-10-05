@@ -1,3 +1,4 @@
+import {MAINNET_UPGRADE_ADMIN,MAINNET_REGISTRY_ADMIN} from '../mainnet-config.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync, rmSync, statSync} from 'node:fs';
@@ -166,12 +167,16 @@ test('price history and warm-up survive restart, but an unsuccessful new observa
 test('mainnet plan pins actual NETA and DAO, starts paused and never bundles unpause with tariff approval', () => {
   const store = new Store(':memory:');
   try {
-    const p = deploymentPlan(store.publicKey); assert.equal(p.registry_instantiate.admin, DAO); assert.equal(p.registry_instantiate.token, NETA); assert.equal(p.starts_paused, true);
-    const m = {...manifest(store.publicKey),version:3,pricing_protocol:'treasury-snapshot-v1'};
-    for (const role of ['registry','profiles']) m.contracts[role].sha256=SNAPSHOT_ARTIFACTS[role].sha256;
+    const p = deploymentPlan(store.publicKey); assert.equal(p.registry_instantiate.admin, MAINNET_REGISTRY_ADMIN); assert.equal(p.registry_instantiate.token, NETA); assert.equal(p.starts_paused, true); assert.equal(p.wasm_migration_admin, MAINNET_UPGRADE_ADMIN);
+    const m = {...manifest(store.publicKey),admin:MAINNET_REGISTRY_ADMIN,version:3,pricing_protocol:'treasury-snapshot-v1'};
+    for (const role of ['registry','profiles']) Object.assign(m.contracts[role],{sha256:SNAPSHOT_ARTIFACTS[role].sha256,admin:MAINNET_UPGRADE_ADMIN});
     const proposal = tariffProposal(m, {...m, tariff_version: 1, purchases_paused: true});
     assert.deepEqual(JSON.parse(Buffer.from(proposal.msgs[0].wasm.execute.msg, 'base64')), {set_tariff: {tariff: TARIFF, expected_version: 1}});
     assert.equal(proposal.msgs.length, 1);
+    const custom=tariffProposal(m,{...m,tariff_version:8,purchases_paused:false},{three_cents:12000,four_cents:2400,standard_cents:700});
+    assert.equal(custom.signing_wallet,MAINNET_REGISTRY_ADMIN);
+    assert.deepEqual(custom.decoded_execute,{set_tariff:{tariff:{three_cents:12000,four_cents:2400,standard_cents:700},expected_version:8}});
+    assert.throws(()=>tariffProposal(m,{...m,tariff_version:8,purchases_paused:false},{three_cents:0,four_cents:2400,standard_cents:700}),/positive integer/);
     assert.throws(() => validateDeployment({...m, admin: OWNER}, store.publicKey), /mismatch/);
     assert.throws(() => settings({signing_enabled: true}, store.publicKey), /reviewed/);
     assert.throws(() => settings({usd_source: 'another-source'}, store.publicKey), /Unknown/);

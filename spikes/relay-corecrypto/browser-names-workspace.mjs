@@ -1,3 +1,4 @@
+import {MAINNET_UPGRADE_ADMIN,MAINNET_REGISTRY_ADMIN} from '../../names/mainnet-config.mjs';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {readFile, mkdir} from 'node:fs/promises';
@@ -11,7 +12,7 @@ const priceKey=createPrivateKey({key:Buffer.concat([Buffer.from('302e02010030050
 const root = new URL('../../', import.meta.url);
 const manifest = JSON.parse(await readFile(new URL('docs/deployments/nns-uni7-owner-2026-10-04.json', root)));
 const owner = manifest.admin;
-if(mainnet){Object.assign(manifest,{version:3,pricing_protocol:'treasury-snapshot-v1',chain_id:'juno-1',testnet_only:false,token:NETA,admin:DAO,treasury:DAO,quote_public_key:createPublicKey(priceKey).export({format:'der',type:'spki'}).subarray(-32).toString('base64')});for(const role of ['registry','profiles'])manifest.contracts[role].sha256=SNAPSHOT_ARTIFACTS[role].sha256;delete manifest.contracts.token;}
+if(mainnet){Object.assign(manifest,{version:3,pricing_protocol:'treasury-snapshot-v1',chain_id:'juno-1',testnet_only:false,token:NETA,admin:MAINNET_REGISTRY_ADMIN,treasury:DAO,quote_public_key:createPublicKey(priceKey).export({format:'der',type:'spki'}).subarray(-32).toString('base64')});for(const role of ['registry','profiles'])Object.assign(manifest.contracts[role],{sha256:SNAPSHOT_ARTIFACTS[role].sha256,admin:MAINNET_UPGRADE_ADMIN});delete manifest.contracts.token;}
 const recipient = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
 const config = {...manifest, purchases_paused: false, tariff_version: 2, tariff: {three_cents: 9900, four_cents: 1900, standard_cents: 500}};
 let record = null, commitment = null, offer = null, revision = 0, lost = false, writes = [], delayedProfile = null, holdProfile = false;
@@ -45,7 +46,7 @@ try {
       else if(q.access)value={can_publish:false,can_comment:false};
       data={data:value};
     } else if(p.includes('/code/'))data={code_info:{data_hash:Object.values(manifest.contracts).find(c=>String(c.code_id)===p.split('/code/')[1])?.sha256}};
-    else if(p.includes('/contract/')){const contract=p.split('/contract/')[1],role=contract===manifest.registry?'registry':contract===manifest.token?'token':'profiles';data={contract_info:{code_id:String(manifest.contracts[role].code_id),creator:owner,admin:''}};}
+    else if(p.includes('/contract/')){const contract=p.split('/contract/')[1],role=contract===manifest.registry?'registry':contract===manifest.token?'token':'profiles';data={contract_info:{code_id:String(manifest.contracts[role].code_id),creator:owner,admin:mainnet?MAINNET_UPGRADE_ADMIN:''}};}
     return json(route,data);
   });
   await page.exposeFunction('simulateNamesWrite',request=>{
@@ -82,15 +83,16 @@ try {
   await page.locator('#names-fee-label').fill('abcd');
   assert.equal(await page.locator('#names-fee-total').textContent(),'$19 USD');
   await click('nns-check-name');assert.match(await page.locator('#nns-name-result').textContent(),mainnet?/available on Juno mainnet/:/available on UNI-7/);assert.equal(writes.length,0);
-  config.tariff.four_cents=16000;await click('nns-refresh');await click('nns-prepare');assert.match(await page.locator('#nns-status').textContent(),/approved USD 99/);assert.equal(writes.length,0);
+  config.tariff.four_cents=16000;await click('nns-refresh');await click('nns-prepare');if(mainnet){assert.match(await page.locator('#nns-status').textContent(),/prepared locally/);assert.equal(await page.locator('#names-fee-total').textContent(),'$160 USD');}else assert.match(await page.locator('#nns-status').textContent(),/approved USD 99/);assert.equal(writes.length,0);
   config.tariff.four_cents=1900;await click('nns-refresh');
-  await click('nns-prepare');assert.equal(writes.length,0);
+  if(!mainnet)await click('nns-prepare');assert.equal(writes.length,0);
   await click('nns-reserve');assert.match(await page.locator('#nns-review-text').textContent(),/Reserve abcd.neta/);assert.equal(writes.length,0);
   await click('nns-confirm');assert.equal(writes.length,1);
   await click('nns-payment');assert.match(await page.locator('#nns-review-text').textContent(),mainnet?/9.500000 NETA/:/9.500000 mock NETA/);assert.equal(writes.length,1);
   await click('nns-confirm');assert.equal(writes.length,2);assert.equal(record.name,'abcd.neta');
   await click('nns-my-name');assert.match(await page.locator('#nns-owned').textContent(),/abcd.neta/);assert.equal(await page.locator('#nns-operation').inputValue(),'renew');
-  await click('nns-payment');const expiry=record.expires_at;await click('nns-confirm');assert.equal(record.expires_at,expiry+31536000);
+  if(mainnet){config.tariff.four_cents=2400;config.tariff_version++;await click('nns-refresh');}
+  await click('nns-payment');if(mainnet)assert.match(await page.locator('#nns-review-text').textContent(),/12.000000 NETA/);const expiry=record.expires_at;await click('nns-confirm');assert.equal(record.expires_at,expiry+31536000);
   // Profile editing reuses the main form and snapshots FormData before disabling it.
   await page.locator('[data-relay-panel="profile"]').click();
   await page.locator('#names-profile-bio').fill('Public biography');

@@ -123,6 +123,9 @@ pub enum ExecuteMsg {
         name: String,
         offer_id: u64,
     },
+    SetAdmin {
+        admin: String,
+    },
     SetPurchasesPaused {
         paused: bool,
     },

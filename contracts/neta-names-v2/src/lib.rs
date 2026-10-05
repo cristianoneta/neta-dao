@@ -109,10 +109,9 @@ pub fn instantiate(
     } else if env.block.chain_id != "juno-1"
         || msg.token != MAINNET_TOKEN
         || msg.treasury != MAINNET_TREASURY
-        || msg.admin != MAINNET_TREASURY
     {
         return Err(fail(
-            "mainnet requires the pinned NETA token and NETA DAO treasury/governance",
+            "mainnet requires the pinned NETA token and NETA DAO treasury",
         ));
     }
     for address in [&msg.token, &msg.treasury, &msg.admin] {
@@ -133,10 +132,18 @@ pub fn instantiate(
             admin: msg.admin,
             quote_public_key: msg.quote_public_key,
             signer_version: 1,
-            tariff: Tariff {
-                three_cents: 64_000,
-                four_cents: 16_000,
-                standard_cents: 500,
+            tariff: if msg.testnet_only {
+                Tariff {
+                    three_cents: 64_000,
+                    four_cents: 16_000,
+                    standard_cents: 500,
+                }
+            } else {
+                Tariff {
+                    three_cents: 9_900,
+                    four_cents: 1_900,
+                    standard_cents: 500,
+                }
             },
             tariff_version: 1,
             purchases_paused: true,
@@ -495,6 +502,17 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             Ok(Response::new()
                 .add_attribute("action", "cancel_name_transfer")
                 .add_attribute("name", n))
+        }
+        ExecuteMsg::SetAdmin { admin: next_admin } => {
+            admin(&config, info.sender.as_str())?;
+            let next = deps.api.addr_validate(&next_admin)?;
+            CONFIG.update(deps.storage, |mut c| -> StdResult<_> {
+                c.admin = next.to_string();
+                Ok(c)
+            })?;
+            Ok(Response::new()
+                .add_attribute("action", "set_admin")
+                .add_attribute("admin", next))
         }
         ExecuteMsg::SetPurchasesPaused { paused } => {
             admin(&config, info.sender.as_str())?;
