@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "chain_id": "juno-1",
+  "registry": "juno1pc8wrq89ljuhu2qt6rtk5lkkrptxajtf3un5llu8prg7r4z50vlszfhhza",
+  "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
+  "treasury": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
+  "snapshot": {
+    "signer_version": 1,
+    "usd_per_neta_12": "1051527774123",
+    "observed_at": 1791222062,
+    "expires_at": 1791308462
+  },
+  "signature": "1SOUCS9pf0pSy4WSNdN25OFw/7Ve2mOfm+rU3JgwWbrAKO2dVwQIhj1diD5/Ny8sILUq/UwV3OD9arDS8651BQ=="
+}
