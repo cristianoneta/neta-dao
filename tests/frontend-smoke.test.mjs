@@ -244,11 +244,12 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(names, /const REGISTRY=null/);
   assert.match(html, /Planned annual registration and renewal/);
   assert.match(html, /USD 5 · 4 characters: USD 19 · 3 characters: USD 99/);
-  assert.match(html, /This pricing requires the new registry and is not active yet/);
+  assert.match(html, /Mainnet registration is not active yet/);
   assert.doesNotMatch(html, /names-preview-entry|Explore the preview/);
   assert.match(html, /names-workspace\.js\?v=[^"\s]+/);
   assert.match(html, /data-name-panel="directory"/);
-  assert.match(html, /REGISTER · COMING SOON/);
+  assert.match(html, /id="nns-prepare" type="button" disabled/);
+  assert.match(html, /names-v2-workspace\.mjs\?v=/);
   assert.match(names, /neta-names-v1:/);
   assert.match(names, /config.treasury!==DAO_TREASURY/);
   assert.match(names, /amount:INITIAL_FEE/);

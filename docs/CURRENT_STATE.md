@@ -10,9 +10,9 @@ The previous append-only inventory is retained in the [archive](archive/CURRENT_
 
 This repository owns `dao.netareborn.com`; `cristianoneta/neta-website` owns
 `netareborn.com` and legacy Operations workshop source. Do not duplicate the DAO
-frontend there. `index.html` loads governance, Treasury, RELAY notifications,
-Names workspace/profile preview and shared navigation; it does not load the
-CoreCrypto runtime or the separate Names wallet lab.
+frontend there. `index.html` loads governance, Treasury, RELAY notifications, Names workspace/profile
+controls and shared navigation. UNI-7 Names signing loads only on a deliberate
+wallet action; the CoreCrypto runtime and separate wallet lab are not embedded.
 
 The approved graphite/mint design uses shared `neta-ui.css`, the assembly-plaza
 Home hero and existing voxel module artwork. Follow [DESIGN_SYSTEM](DESIGN_SYSTEM.md).
@@ -40,7 +40,7 @@ See [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
 
 | Surface | Implemented and connected | Boundary |
 | --- | --- | --- |
-| Main RELAY Names | Directory, DAO profile reads/copy/follows, USD fee calculator, unpublished contact/validator preview | No public registration/payment/profile-write service; production constants remain null |
+| Main RELAY Names | Directory/DAO reads and follows; pinned UNI-7 lookup, registration, renewal, transfer, public contact reads/updates and validator preview | Test purchases require the original local quote key; production constants remain null |
 | `names-v2-setup.html` | Explicit Keplr upload/instantiate/activation, local test quote key, manifest export and receipt recovery | Existing owner deployment is already complete; do not repeat setup |
 | `names-v2-lab.html` | Verified manifest, mock-NETA registration/renewal, recipient-accepted transfer and public contacts | UNI-7 only; quote rate is fictional USD 2/mock NETA |
 | Independent validator observation | Wallet-free entered-pair check; stored-link refresh checks both validator records and UNI-7 consensus keys at a displayed block | Public provider observations, latest staking records, no uptime or programme points; unavailable data stay unresolved |
@@ -69,6 +69,12 @@ identity, exact operator records, and the full paginated UNI-7 consensus set at
 one recorded height. Latest staking records are not height-pinned; this is a
 read-only diagnostic, not an eligibility snapshot or light-client verification.
 Input/manifest changes cancel observations and prevent late result replacement.
+
+`names-v2-workspace.mjs` integrates existing UNI-7 operations into the main RELAY
+name/profile panels using the shared header wallet, a pinned public manifest,
+explicit reviews and the same persisted transaction journals. It does not deploy
+new contracts or activate a public/mainnet quote service. Browser quote creation
+still needs the original setup browser. See [integration](NAMES_MAIN_PAGE_INTEGRATION.md).
 
 `names-v2-reader.mjs` verifies deployment and fresh UNI-7 data;
 `names-v2-client.mjs` coordinates reviewed intents and exact receipt recovery;

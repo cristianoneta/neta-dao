@@ -1,39 +1,60 @@
-# Names inside the main workspace — 2026-10-03
+# Names inside the main workspace — 2026-10-05
 
-The owner rejected a separate preview mode and requested direct integration before
-further polish. The directory is now `index.html#relay/directory`; `#relay/names` remains a legacy alias.
-The 2026-10-03 navigation follow-up promotes Directory, Contacts, My profile and
-.neta name into the RELAY navigation, alongside Inbox. Following becomes directory
-controls with the same saved subscriptions. There is no nested Names tab bar.
+The normal RELAY `.neta name` and `My profile` pages now connect to the existing
+UNI-7 registry and profiles contract. The owner asked to turn the tested lab flows
+into usable main-page functionality; this does not launch mainnet registration.
 
-- Reuse the actual sticky workspace header, navigation, RELAY tabs and shared
-  graphite/mint tokens. Keep one common RELAY masthead above the section navigation
-  on every destination. Section headings sit inside the shared content-card surface.
-- Integrate Directory, Contacts, My profile, DAO detail and name fee calculation.
-  No iframe, second app shell, preview banner or separate preview launch remains.
-- Directory search uses the real Operations DAO and Juno Governance entries.
-  The exact core address can be copied. Its proposed .dao.neta name is explicitly
-  unregistered and does not imply on-chain identity verification or DAO endorsement.
-- Do not present sample people, pretend registrations, fake quotes, fake wallet
-  connections or synthetic RELAY confirmations as live user data.
-- The USD fee calculator validates 3–32-character labels and applies $99/$19/$5
-  per year for 3/4/5+ characters, 1–5 years. It does not check availability, reserve
-  a name, determine the current NETA amount or accept payments.
-- Contacts, profile editing, renewals/transfers, DAO profile proposals and payments
-  stay locally disabled with explanations until ownership/registry adapters exist.
-  No new wallet prompts or governance submission are added. Follow controls reuse
-  relay.js and its existing local storage and governance reads.
-- Existing names.js remains inactive (`REGISTRY=null`), available for existing
-  RELAY resolver usage. Its old fixed-fee handlers are not connected to the new
-  fee form. Existing pending transaction/crypto/name journals are untouched.
-- The old prototype URL redirects to the integrated route. Its CSS/JS are no
-  longer loaded by that URL or the main application.
+## Implemented user flow
 
-Validation: syntax and local DOM checks; existing browser CI now exercises the
-actual main-page Names navigation, fee tiers, invalid labels, HTML injection
-resistance, unavailable registration/payments, primary text color and reflow at
-320/390/768/1440 px. Both existing frontend/contract and RELAY browser workflows
-include names-workspace.js in their path filters. Inspect final run results and
-the deployed main route; source tests alone do not establish production activation.
+- Read test registry loads the pinned `nns-uni7-owner-2026-10-04.json` manifest and
+  verifies chain freshness, contract identity/code and configuration with the
+  existing reader. No new deployment or manual manifest import is needed.
+- Connect/disconnect uses the shared header. Its wallet state is observable by
+  Names; DAO read-only views do not block a UNI-7 wallet connection within RELAY.
+  Names signing is lazy-loaded for a deliberate wallet action. Each session checks
+  the exact wallet again and drops late connections after disconnect/switch.
+- Load my name queries the connected wallet's active name, displays its expiry
+  and offers renewal. A saved registration restores its fields instead; recovery
+  always uses the same registry/wallet intent and exact-hash transaction journal.
+- Name availability is a read, not a reservation. Registration separately prepares
+  its local secret, reviews/confirms a reservation, then reviews/confirms the exact
+  mock-NETA payment. Renewal uses the same signed quote and payment path.
+- The fee display reads the actual on-chain tariff. Purchases block until the
+  approved annual USD 99/19/5 tariff has been activated by the admin. Test quotes
+  still require the original setup browser's non-exportable local key and use
+  fictional USD 2/mock NETA. Other browsers can read and manage owned profiles or
+  transfers, but cannot create a purchase quote without that existing authority.
+- Offer/accept/cancel transfers have separate reviews. The recipient must accept;
+  paid expiry is preserved and the previous profile/proofs are invalidated.
+- My profile explicitly loads current contacts before editing when requested.
+  Publication snapshots all optional fields before disabling controls, checks
+  active owner/revision and shows a separate review. Validator address inputs
+  remain preview-only and are not included in contact publication.
 
-Native browser zoom and full assistive-technology coverage remain separate QA.
+## Safety and scope
+
+Form edits, routes and wallet changes invalidate reviews, including late read
+responses. Unknown transaction outcomes block additional writes and survive
+reloads/disconnects. No automatic resend, journal clearing, key replacement,
+registration, renewal, profile publication or wallet signature happens on load.
+Failed deployment reads disable writes and never substitute sample data.
+
+Mainnet constants remain null; v1 Names handlers remain inactive. The normal
+page explicitly labels UNI-7, mock NETA and the local synthetic quote. The lab
+remains available for tariff administration and validator verification. Real
+validator tests are deferred by the owner.
+
+Directory and follow features remain separate: the three DAO profiles use their
+reviewed directory records, and `.dao.neta` labels remain unregistered. No fake
+personal directory entries, receiving-address verification, payments, private
+contact storage or encrypted messaging are enabled by this integration.
+
+## Validation
+
+The browser integration suite exercises registration, real Ed25519 test quotes,
+renewal, public contacts, recipient acceptance, route races, shared-wallet changes,
+unknown outcomes surviving reload and 320/390/768/1440 layouts with screenshots.
+Wallet execution and chain responses in that suite are synthetic. Existing live
+UNI-7 operation evidence is recorded in the NNS handoff; integrated owner-wallet
+E2E has not yet been performed. PR/CI/deployment evidence belongs in the release PR.
+Native zoom and full assistive-technology coverage remain separate QA.

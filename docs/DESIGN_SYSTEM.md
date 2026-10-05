@@ -322,3 +322,13 @@ publication review is a separate UNI-7 transaction. Label collected signatures a
 unpublished, and a stored link as operator ownership only, never active-validator
 eligibility. Keep long addresses/challenges wrapped at 320px. Owner unlink and
 operator withdrawal have explicit separate reviews. No new graphics or wizard.
+
+## Integrated Names operations — 2026-10-05
+
+Keep Names inside the existing RELAY shell and shared wallet header. Use a compact
+UNI-7 session panel above the name/profile content and an inline, focusable review
+panel with exact name, payer/owner, recipient, amount, expiry and network. Do not
+embed the lab or show its setup/admin steps as the normal purchase flow. Use the
+existing contact form; keep preview distinct from explicitly reviewed publication.
+Show testnet/mock-token/local-price limits and preserve transaction recovery across
+wallet changes. Mainnet registration and messaging remain unavailable.
