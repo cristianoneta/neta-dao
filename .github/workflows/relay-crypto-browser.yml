@@ -54,7 +54,7 @@ jobs:
       - run: npm run test:browser
       - run: node browser-uni7-lab.mjs
       - run: node browser-workspace-security.mjs
-      - run: node browser-names-profile.mjs
+      - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-profile.mjs
       - run: node browser-names-v2.mjs
       - name: Validator proof browser flow
         run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-validators.mjs

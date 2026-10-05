@@ -51,6 +51,12 @@ See [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
 separate manifest-driven UNI-7 deployment is absent. Codes 122/123/124 and the
 registry/profile/token identities are in the [public manifest](deployments/nns-uni7-owner-2026-10-04.json).
 
+My profile's validator preview has a labelled Network selector, currently Juno
+only. Its network entry supplies the mainnet/testnet labels, chain IDs, address
+prefix and validation. Unknown networks are rejected; selection edits invalidate
+the preview. Future networks need their own verified adapters and contract support.
+The current lab and ownership proof protocol remain pinned to `juno-1` / `uni-7`.
+
 Owner-signed registration, contacts, renewal and transfer were checked through
 latest-state reads on 2026-10-04. Current observed owner of `cristiano.neta` is
 `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`, generation 1, ownership revision 2,
@@ -72,7 +78,7 @@ deliberate wallet switches, with expiry/revision/identity checks;
 `names-v2-validator-ui.mjs` handles the distinct signature/publication reviews.
 Lost/unknown submissions stay locked until reconciled; no automatic resend occurs.
 
-The accepted annual tariff is USD 99/160/5 for 3/4/5–32 characters, for both
+The accepted annual tariff is USD 99/19/5 for 3/4/5–32 characters, for both
 registration and renewal, 1–5-year terms, 365-day years and 30-day grace. Mainnet
 fees target the main NETA DAO, not Operations. Production quote feeds, policy,
 HTTP service, signer custody and mainnet deployment are still open. See
