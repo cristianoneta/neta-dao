@@ -112,8 +112,10 @@ all four checks passed, including live verification run `37307194424`. The first
 Main DAO snapshots run `37307454347` found an Actions secret but failed to publish
 the price; its public source and manifest validate. Fixed diagnostic labels now
 distinguish key parsing/type/mismatch, source and signing errors without exposing
-private material. Inspect the latest job before asking the owner for correction;
-a valid public signed price and private backup custody remain launch gates.
+private material. Run `37308389038` at 12:16:44 UTC diagnosed **invalid PEM private-key format**.
+The owner must privately replace the secret with the complete existing PEM backup;
+no new key or deployment. A matching valid public signed price and backup custody
+remain launch gates.
 PR [#158](https://github.com/cristianoneta/neta-dao/pull/158), merge
 `62f12f1a0c672a776a5f3500ab4e8e8a09b93e42`, passed all 11 final PR checks,
 three main checks and Pages `37302003843`; 15 served assets matched SHA-256.
