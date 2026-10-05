@@ -15,7 +15,7 @@ export function deploymentPlan(key) {
     next: ['Record upload and instantiate hashes, heights, code IDs and creator.',
       'Verify both contracts, immutable code hashes, treasury, quote key and paused config with two providers.',
       'Prepare the DAO tariff proposal; apply 99/19/5 while purchases remain paused.',
-      'Finish mainnet frontend/wallet integration and configure the Actions price secret plus verified manifest; verify the published signed snapshot.',
+      'Configure the Actions price secret and verified manifest; verify the published signed snapshot and mainnet UI.',
       'Only then prepare a separate DAO unpause proposal and owner-signed purchase check.'],
   };
 }

@@ -41,6 +41,7 @@ See [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
 | Surface | Implemented and connected | Boundary |
 | --- | --- | --- |
 | Main RELAY Names | Directory/DAO reads and follows; network-selectable mainnet/UNI-7 lookup, registration, renewal, transfer, public contact reads/updates and validator preview | Mainnet adapters require the verified production manifest, not yet recorded; UNI-7 purchases use the original local key |
+| `names-mainnet-deploy.html` | Four owner-confirmed mainnet upload/instantiate actions with pinned public key, persisted recovery and two-provider receipt export | Purchases remain paused; no mainnet wallet receipt is recorded |
 | `names-v2-setup.html` | Explicit Keplr upload/instantiate/activation, local test quote key, manifest export and receipt recovery | Existing owner deployment is already complete; do not repeat setup |
 | `names-v2-lab.html` | Verified manifest, mock-NETA registration/renewal, recipient-accepted transfer and public contacts | UNI-7 only; quote rate is fictional USD 2/mock NETA |
 | Independent validator observation | Wallet-free entered-pair check; stored-link refresh checks both validator records and UNI-7 consensus keys at a displayed block | Public provider observations, latest staking records, no uptime or programme points; unavailable data stay unresolved |
@@ -96,8 +97,9 @@ market polling or Render service is needed. `snapshot-client.mjs`, shared core
 validation and `NamesV2Client.snapshotQuote` support reviewed snapshot payments
 and existing recovery. The normal page/reader/wallet now supports both chains; UNI-7 retains
 its old local individual-quote flow. Mainnet adapters and browser price-key setup
-are implemented and synthetically tested. A production price secret, verified
-version-3 manifest and mainnet contracts/DAO execution are still absent. The publication step skips while no production manifest exists.
+are implemented and synthetically tested. The owner supplied the public price key, now pinned in the separate deployment page.
+Private backup custody and the production Actions secret are unconfirmed; a verified
+version-3 production manifest and mainnet contracts/DAO execution remain unrecorded. The publication step skips while no production manifest exists.
 See [runbook](../names/README.md) and [snapshot evidence](NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 The earlier continuous WYND server is deferred, not hosted. Its stricter policy
 is not the policy of the approved snapshot system.

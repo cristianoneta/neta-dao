@@ -1,0 +1,42 @@
+{
+  "kind": "unsigned-nns-mainnet-deployment-plan",
+  "chain_id": "juno-1",
+  "pricing_protocol": "treasury-snapshot-v1",
+  "artifacts": {
+    "registry": {
+      "path": "assets/names-mainnet/neta_names_v2.wasm",
+      "sha256": "821f85a345adf68e3323315a0220286046c88d30c92c4e296afcfe7414bdea71"
+    },
+    "profiles": {
+      "path": "assets/names-testnet/neta_validator_profiles.wasm",
+      "sha256": "9d47676d8dd0040b1cea4a39a3e8c95a75ea4841cd5b2eb5feb83c7f4516ceed"
+    }
+  },
+  "registry_instantiate": {
+    "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
+    "treasury": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
+    "admin": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
+    "quote_public_key": "XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=",
+    "testnet_only": false
+  },
+  "wasm_migration_admin": null,
+  "starts_paused": true,
+  "approved_tariff": {
+    "three_cents": 9900,
+    "four_cents": 1900,
+    "standard_cents": 500
+  },
+  "price_policy": {
+    "source": "existing Treasury WYND price",
+    "scheduled_minutes": 30,
+    "maximum_age_seconds": 86400
+  },
+  "profiles_instantiate": "Fill {registry: <verified new mainnet registry address>} after registry receipt.",
+  "next": [
+    "Record upload and instantiate hashes, heights, code IDs and creator.",
+    "Verify both contracts, immutable code hashes, treasury, quote key and paused config with two providers.",
+    "Prepare the DAO tariff proposal; apply 99/19/5 while purchases remain paused.",
+    "Configure the Actions price secret and verified manifest; verify the published signed snapshot and mainnet UI.",
+    "Only then prepare a separate DAO unpause proposal and owner-signed purchase check."
+  ]
+}
