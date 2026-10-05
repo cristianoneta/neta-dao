@@ -3,32 +3,28 @@
     "chains": [
       {
         "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-        "anchor_hash": "0F5ACB47B989DE6BC15F86651363AC0D4BCBA36304438C96E253261C29A95531",
+        "anchor_hash": "4931B120E088E4DBC7952D2EE92DDAAD5B766BA2A0BCD318652F6B408F9CE81D",
         "chain_id": "juno-1",
         "contract_creation_height": 4322988,
         "historical_missing_transactions": 0,
         "historical_missing_tx_hashes": [],
         "incremental": false,
         "indexed_transactions": 47,
-        "last_scanned_height": 42385614,
+        "last_scanned_height": 42386323,
         "range_capable": false,
         "scan_start_height": 4322988,
         "source": "https://juno-rpc.publicnode.com"
       },
       {
         "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-        "anchor_hash": "4D6A5DEDC2DABC54FDFB1528F8EAEB27CEE790DFB7FF039D9C8381BF490E375C",
+        "anchor_hash": "B7EF72E1476D1CECF05615AD9F3F281BC8A5399F1B943E5E12F85F6ACC972447",
         "chain_id": "osmosis-1",
         "contract_creation_height": 15838602,
-        "historical_missing_transactions": 3,
-        "historical_missing_tx_hashes": [
-          "D0D5EF884C0C978F69A0519189D0532B3E978836CE83E0BFA6CD41C2646F8295",
-          "EAE0D9E688B7280DCD039593C06D0702D5F33F02F05609136D0E8F207AD8D491",
-          "F93104E8558FB65D105154B2945741DF27652EDF6A870BAA4AB153DE6EB449C0"
-        ],
+        "historical_missing_transactions": 0,
+        "historical_missing_tx_hashes": [],
         "incremental": false,
         "indexed_transactions": 0,
-        "last_scanned_height": 71937329,
+        "last_scanned_height": 71938646,
         "range_capable": false,
         "scan_start_height": 15838602,
         "source": "https://osmosis-rpc.publicnode.com"
@@ -1692,38 +1688,34 @@
       "type": "inflow"
     }
   ],
-  "generated_at": "2026-10-05T07:47:10.505194Z",
+  "generated_at": "2026-10-05T08:17:13.301242Z",
   "schema_version": 2,
   "scope": "neta-operations-cross-chain",
   "sources": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-      "anchor_hash": "0F5ACB47B989DE6BC15F86651363AC0D4BCBA36304438C96E253261C29A95531",
+      "anchor_hash": "4931B120E088E4DBC7952D2EE92DDAAD5B766BA2A0BCD318652F6B408F9CE81D",
       "chain_id": "juno-1",
       "contract_creation_height": 4322988,
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
       "incremental": false,
       "indexed_transactions": 47,
-      "last_scanned_height": 42385614,
+      "last_scanned_height": 42386323,
       "range_capable": false,
       "scan_start_height": 4322988,
       "source": "https://juno-rpc.publicnode.com"
     },
     {
       "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-      "anchor_hash": "4D6A5DEDC2DABC54FDFB1528F8EAEB27CEE790DFB7FF039D9C8381BF490E375C",
+      "anchor_hash": "B7EF72E1476D1CECF05615AD9F3F281BC8A5399F1B943E5E12F85F6ACC972447",
       "chain_id": "osmosis-1",
       "contract_creation_height": 15838602,
-      "historical_missing_transactions": 3,
-      "historical_missing_tx_hashes": [
-        "D0D5EF884C0C978F69A0519189D0532B3E978836CE83E0BFA6CD41C2646F8295",
-        "EAE0D9E688B7280DCD039593C06D0702D5F33F02F05609136D0E8F207AD8D491",
-        "F93104E8558FB65D105154B2945741DF27652EDF6A870BAA4AB153DE6EB449C0"
-      ],
+      "historical_missing_transactions": 0,
+      "historical_missing_tx_hashes": [],
       "incremental": false,
       "indexed_transactions": 0,
-      "last_scanned_height": 71937329,
+      "last_scanned_height": 71938646,
       "range_capable": false,
       "scan_start_height": 15838602,
       "source": "https://osmosis-rpc.publicnode.com"
@@ -1740,7 +1732,6 @@
     }
   ],
   "warnings": [
-    "Exact block timestamp unavailable from public RPC archives for 57 historical events.",
-    "osmosis-1: 3 cached historical transactions are currently absent from the public index; records retained."
+    "Exact block timestamp unavailable from public RPC archives for 57 historical events."
   ]
 }
