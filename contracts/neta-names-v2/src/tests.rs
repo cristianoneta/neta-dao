@@ -84,6 +84,9 @@ struct Suite {
 }
 impl Suite {
     fn new(fail_forward: bool) -> Self {
+        Self::with_upgrade_admin(fail_forward, None)
+    }
+    fn with_upgrade_admin(fail_forward: bool, migration_admin: Option<String>) -> Self {
         let mut app = App::default();
         app.update_block(|b| {
             b.chain_id = "uni-7".into();
@@ -127,7 +130,7 @@ impl Suite {
                 },
                 &[],
                 "NNS v2 test",
-                None,
+                migration_admin.clone(),
             )
             .unwrap();
         app.execute_contract(
@@ -147,7 +150,7 @@ impl Suite {
                 },
                 &[],
                 "profiles",
-                None,
+                migration_admin,
             )
             .unwrap();
         Self {
@@ -1046,4 +1049,242 @@ fn snapshot_payment_failure_rolls_back_commitment_and_balances() {
         )
         .unwrap();
     assert!(c.is_some());
+}
+
+// A future target supplies its migrate entrypoint; the existing uploaded source
+// need not have one. These synthetic targets preserve the current storage schema.
+fn fixture_registry_upgrade(deps: DepsMut, _env: Env, _msg: Empty) -> StdResult<Response> {
+    let old = cw2::get_contract_version(deps.storage)?;
+    if old.contract != "crates.io:neta-names-v2" || old.version != "0.3.1" {
+        return Err(fail("unsupported migration source"));
+    }
+    cw2::set_contract_version(deps.storage, &old.contract, "0.3.2-test")?;
+    Ok(Response::new())
+}
+fn fixture_profile_upgrade(deps: DepsMut, _env: Env, _msg: Empty) -> StdResult<Response> {
+    let old = cw2::get_contract_version(deps.storage)?;
+    if old.contract != "crates.io:neta-validator-profiles" {
+        return Err(fail("unsupported migration source"));
+    }
+    cw2::set_contract_version(deps.storage, &old.contract, "0.1.1-test")?;
+    Ok(Response::new())
+}
+#[test]
+fn wallet_upgrades_and_later_dao_admin_transfer_preserve_names_and_profiles() {
+    use neta_validator_profiles::msg::{
+        Contacts, ExecuteMsg as PExec, ProfileResponse, QueryMsg as PQuery,
+    };
+    let initial_admin = "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57";
+    for transfer_first in [false, true] {
+        let mut s = Suite::with_upgrade_admin(false, Some(initial_admin.into()));
+        s.register("alice", "alice", 2);
+        s.app
+            .execute_contract(
+                Addr::unchecked("alice"),
+                s.profiles.clone(),
+                &PExec::UpdateContacts {
+                    name: "alice.neta".into(),
+                    expected_revision: 0,
+                    contacts: Contacts {
+                        email: "alice@example.org".into(),
+                        ..Contacts::default()
+                    },
+                },
+                &[],
+            )
+            .unwrap();
+        let config = s.config();
+        let identity = s.identity("alice");
+        let query_profile = PQuery::Profile {
+            name: "alice.neta".into(),
+        };
+        let before: ProfileResponse = s
+            .app
+            .wrap()
+            .query_wasm_smart(&s.profiles, &query_profile)
+            .unwrap();
+        let new_registry = s.app.store_code(Box::new(
+            ContractWrapper::new(execute, instantiate, query)
+                .with_migrate(fixture_registry_upgrade),
+        ));
+        let new_profiles = s.app.store_code(Box::new(
+            ContractWrapper::new(
+                neta_validator_profiles::execute,
+                neta_validator_profiles::instantiate,
+                neta_validator_profiles::query,
+            )
+            .with_migrate(fixture_profile_upgrade),
+        ));
+        for (address, target) in [
+            (s.registry.clone(), new_registry),
+            (s.profiles.clone(), new_profiles),
+        ] {
+            let old = s.app.wrap().query_wasm_contract_info(&address).unwrap();
+            assert_eq!(old.admin.as_deref(), Some(initial_admin));
+            for sender in ["deployer", "alice", "admin", MAINNET_TREASURY] {
+                assert!(s
+                    .app
+                    .migrate_contract(Addr::unchecked(sender), address.clone(), &Empty {}, target)
+                    .is_err());
+                assert_eq!(
+                    s.app
+                        .wrap()
+                        .query_wasm_contract_info(&address)
+                        .unwrap()
+                        .code_id,
+                    old.code_id
+                );
+            }
+            let transfer = cosmwasm_std::WasmMsg::UpdateAdmin {
+                contract_addr: address.to_string(),
+                admin: MAINNET_TREASURY.into(),
+            };
+            assert!(s
+                .app
+                .execute(Addr::unchecked("deployer"), transfer.clone().into())
+                .is_err());
+            let effective_admin = if transfer_first {
+                s.app
+                    .execute(Addr::unchecked(initial_admin), transfer.into())
+                    .unwrap();
+                assert!(s
+                    .app
+                    .migrate_contract(
+                        Addr::unchecked(initial_admin),
+                        address.clone(),
+                        &Empty {},
+                        target
+                    )
+                    .is_err());
+                MAINNET_TREASURY
+            } else {
+                initial_admin
+            };
+            s.app
+                .migrate_contract(
+                    Addr::unchecked(effective_admin),
+                    address.clone(),
+                    &Empty {},
+                    target,
+                )
+                .unwrap();
+            let after = s.app.wrap().query_wasm_contract_info(&address).unwrap();
+            assert_eq!(after.code_id, target);
+            assert_eq!(after.admin.as_deref(), Some(effective_admin));
+        }
+        assert_eq!(s.config(), config);
+        assert_eq!(s.identity("alice"), identity);
+        let after: ProfileResponse = s
+            .app
+            .wrap()
+            .query_wasm_smart(&s.profiles, &query_profile)
+            .unwrap();
+        assert_eq!(after, before);
+    }
+}
+
+#[test]
+fn mainnet_owner_controls_tariffs_but_fees_remain_with_dao() {
+    use cosmwasm_std::testing::{mock_dependencies, mock_info};
+    use cosmwasm_std::{ContractResult, SystemResult};
+    let owner = "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57";
+    let mut deps = mock_dependencies();
+    // The token query has an explicit decimals field, never an admin/treasury override.
+    deps.querier.update_wasm(|_| {
+        SystemResult::Ok(ContractResult::Ok(Binary::from(
+            br#"{"decimals":6}"#.as_slice(),
+        )))
+    });
+    let mut env = mock_env();
+    env.block.chain_id = "juno-1".into();
+    instantiate(
+        deps.as_mut(),
+        env.clone(),
+        mock_info("deployer", &[]),
+        InstantiateMsg {
+            token: MAINNET_TOKEN.into(),
+            treasury: MAINNET_TREASURY.into(),
+            admin: owner.into(),
+            quote_public_key: public_key(&signer()),
+            testnet_only: false,
+        },
+    )
+    .unwrap();
+    let initial = CONFIG.load(&deps.storage).unwrap();
+    assert_eq!(
+        initial.tariff,
+        Tariff {
+            three_cents: 9_900,
+            four_cents: 1_900,
+            standard_cents: 500
+        }
+    );
+    let tariff = ExecuteMsg::SetTariff {
+        tariff: Tariff {
+            three_cents: 9_900,
+            four_cents: 1_900,
+            standard_cents: 600,
+        },
+        expected_version: 1,
+    };
+    for unauthorized in ["deployer", MAINNET_TREASURY] {
+        assert!(execute(
+            deps.as_mut(),
+            env.clone(),
+            mock_info(unauthorized, &[]),
+            tariff.clone()
+        )
+        .is_err());
+        assert!(execute(
+            deps.as_mut(),
+            env.clone(),
+            mock_info(unauthorized, &[]),
+            ExecuteMsg::SetAdmin {
+                admin: unauthorized.into()
+            }
+        )
+        .is_err());
+    }
+    execute(
+        deps.as_mut(),
+        env.clone(),
+        mock_info(owner, &[]),
+        tariff.clone(),
+    )
+    .unwrap();
+    assert!(execute(deps.as_mut(), env.clone(), mock_info(owner, &[]), tariff).is_err());
+    let before = CONFIG.load(&deps.storage).unwrap();
+    assert_eq!(before.admin, owner);
+    assert_eq!(before.treasury, MAINNET_TREASURY);
+    assert_eq!(before.tariff.standard_cents, 600);
+    assert_eq!(before.tariff_version, 2);
+    assert!(before.purchases_paused);
+    // Application admin can also be handed over later, separately from Wasm upgrade rights.
+    execute(
+        deps.as_mut(),
+        env.clone(),
+        mock_info(owner, &[]),
+        ExecuteMsg::SetAdmin {
+            admin: MAINNET_TREASURY.into(),
+        },
+    )
+    .unwrap();
+    assert!(execute(
+        deps.as_mut(),
+        env.clone(),
+        mock_info(owner, &[]),
+        ExecuteMsg::SetPurchasesPaused { paused: false }
+    )
+    .is_err());
+    execute(
+        deps.as_mut(),
+        env,
+        mock_info(MAINNET_TREASURY, &[]),
+        ExecuteMsg::SetPurchasesPaused { paused: false },
+    )
+    .unwrap();
+    let after = CONFIG.load(&deps.storage).unwrap();
+    assert_eq!(after.treasury, before.treasury);
+    assert_eq!(after.tariff, before.tariff);
+    assert_eq!(after.admin, MAINNET_TREASURY);
 }

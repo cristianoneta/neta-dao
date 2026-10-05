@@ -159,6 +159,10 @@ jobs:
           cargo clippy --locked --all-targets --manifest-path contracts/neta-names-v2/Cargo.toml -- -D warnings
           cargo clippy --locked --all-targets --manifest-path contracts/neta-names-test-token/Cargo.toml -- -D warnings
           cargo clippy --locked --all-targets --manifest-path contracts/neta-relay-mailbox/Cargo.toml -- -D warnings
+      - name: Reproduce reviewed mainnet Names artifact
+        run: |
+          bash scripts/build-wasm.sh neta-names-v2
+          cmp contracts/neta-names-v2/target/wasm32-unknown-unknown/release/neta_names_v2.wasm assets/names-mainnet/neta_names_v2_v031.wasm
       - name: Frontend syntax and invariants
         run: |
           python scripts/build_dao_directory.py --check

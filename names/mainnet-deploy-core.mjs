@@ -1,5 +1,5 @@
 import {SNAPSHOT_ARTIFACTS as ARTIFACTS} from './mainnet-artifacts.mjs';
-import {MAINNET_PRICE_KEY} from './mainnet-config.mjs';
+import {MAINNET_PRICE_KEY,MAINNET_UPGRADE_ADMIN,MAINNET_REGISTRY_ADMIN} from './mainnet-config.mjs';
 import {DAO,NETA} from './service/constants.mjs';
 import {namesNetwork} from './networks.mjs';
 const NETWORK=namesNetwork('juno-1');
@@ -37,10 +37,10 @@ export class MainnetSetup {
   const c=(await this.get(this.base,'/cosmwasm/wasm/v1/code/'+id)).code_info;
   if(c?.creator!==this.owner||codeHash(c.data_hash)!==ARTIFACTS[role].sha256)throw Error('Uploaded code identity mismatch.');
  }
- async contract(role,address,codeId){
+ async contract(role,address,codeId,migrationAdmin=MAINNET_UPGRADE_ADMIN){
   if(!this.bundle.validAddress(address))throw Error('Invalid deployed contract address.');
   const c=(await this.get(this.base,'/cosmwasm/wasm/v1/contract/'+address)).contract_info;
-  if(Number(c?.code_id)!==codeId||c.creator!==this.owner||c.admin)throw Error('Deployed contract identity mismatch.');
+  if(Number(c?.code_id)!==codeId||c.creator!==this.owner||(c.admin||'')!==migrationAdmin)throw Error('Deployed contract identity or approved upgrade administrator mismatch. Preserve receipts; do not redeploy automatically.');
   await this.code(role,codeId);
  }
  async artifact(role){
@@ -54,19 +54,24 @@ export class MainnetSetup {
   if(kind==='store'){if(target.codeId)throw Error('This role already has an uploaded code.');return {owner:this.owner,kind,role,checksum:spec.sha256,memo:'Upload NNS '+role+' on Juno mainnet'};}
   if(kind==='instantiate'){
    if(!Number.isSafeInteger(target.codeId)||target.codeId<1||target.address)throw Error('Upload this role first or use its existing instance.');let msg;
-   if(role==='registry'){msg={token:NETA,treasury:DAO,admin:DAO,quote_public_key:this.publicKey,testnet_only:false};}
+   if(role==='registry'){msg={token:NETA,treasury:DAO,admin:MAINNET_REGISTRY_ADMIN,quote_public_key:this.publicKey,testnet_only:false};}
    if(role==='profiles'){if(!s.roles.registry?.address)throw Error('Instantiate the registry first.');msg={registry:s.roles.registry.address};}
-   return {owner:this.owner,kind,role,codeId:target.codeId,label:role==='registry'?'NETA Names v0.3.0':'NETA Validator Profiles v0.1.0',msg,memo:'Instantiate NNS '+role+' on Juno mainnet'};
+   return {owner:this.owner,kind,role,migrationAdmin:MAINNET_UPGRADE_ADMIN,codeId:target.codeId,label:role==='registry'?'NETA Names v0.3.1':'NETA Validator Profiles v0.1.0',msg,memo:'Instantiate NNS '+role+' on Juno mainnet'};
   }
   throw Error('Unknown setup action.');
  }
- async prepare(kind,role){return this.lock(async()=>{await this.assertWallet(this.owner);const s=this.state();if(s.pending)throw Error('Reconcile the pending setup transaction first.');const request=this.recipe(kind,role,s);if(kind==='store')await this.artifact(role);await this.network();return {kind,role,request};});}
+ async prepare(kind,role){return this.lock(async()=>{await this.assertWallet(this.owner);const s=this.state();if(s.pending)throw Error('Reconcile the pending setup transaction first.');const request=this.recipe(kind,role,s);if(kind==='store')await this.artifact(role);await this.network();await this.verifyRoles(s);return {kind,role,request};});}
  async verifyPending(){
   await this.assertWallet(this.owner);await this.network();const s=this.state(),pending=s.pending;if(!pending)throw Error('No persisted setup intent.');
   const expected=this.recipe(pending.kind,pending.role,s);
+  // An old pending no-admin creation can only be reconciled as originally signed.
+  if(this.recovering&&pending.kind==='instantiate'&&!Object.hasOwn(pending.request,'migrationAdmin'))delete expected.migrationAdmin;
   const request={...pending.request};delete request.intentId;
   if(stable(expected)!==stable(request))throw Error('Setup request changed.');
-  for(const [role,r] of Object.entries(s.roles))if(r.address)await this.contract(role,r.address,r.codeId);else if(r.codeId)await this.code(role,r.codeId);
+  await this.verifyRoles(s,{recovering:this.recovering});
+ }
+ async verifyRoles(s,{recovering=false}={}){
+  for(const [role,r] of Object.entries(s.roles))if(r.address)await this.contract(role,r.address,r.codeId,recovering?(r.migrationAdmin||''):MAINNET_UPGRADE_ADMIN);else if(r.codeId)await this.code(role,r.codeId);
  }
  async execute(reviewed){return this.lock(async()=>{
   const s=this.state();if(s.pending)throw Error('Reconcile the pending setup first.');const request=this.recipe(reviewed.kind,reviewed.role,s);
@@ -84,17 +89,17 @@ export class MainnetSetup {
    if(p.kind==='store'){
     const id=Number(eventValue(receipt,'store_code','code_id'));if(!Number.isSafeInteger(id)||id<1)throw Error('Invalid stored code ID.');await this.code(role,id);s.roles[role]={codeId:id};
    }else if(p.kind==='instantiate'){
-    const address=eventValue(receipt,'instantiate','_contract_address');await this.contract(role,address,p.request.codeId);s.roles[role]={codeId:p.request.codeId,address};
+    const address=eventValue(receipt,'instantiate','_contract_address');const migrationAdmin=p.request.migrationAdmin||'';await this.contract(role,address,p.request.codeId,migrationAdmin);s.roles[role]={codeId:p.request.codeId,address,migrationAdmin};
    }
   }
   s.history.push({request:p.request,receipt});s.pending=null;this.save(s);return receipt;
  }
- async recover(hash=null){return this.lock(async()=>{const p=this.state().pending;if(!p)throw Error('No pending setup transaction.');const full={...p.request};if(p.kind==='store')full.wasm=await this.artifact(p.role);const receipt=await this.bridge.recover(full,hash||null);return this.settle(receipt);});}
+ async recover(hash=null){return this.lock(async()=>{const p=this.state().pending;if(!p)throw Error('No pending setup transaction.');const full={...p.request};if(p.kind==='store')full.wasm=await this.artifact(p.role);this.recovering=true;try{const receipt=await this.bridge.recover(full,hash||null);return await this.settle(receipt);}finally{this.recovering=false;}});}
  async manifest(){
   const s=this.state();if(s.pending)throw Error('Reconcile the pending transaction first.');
   for(const role of ['registry','profiles'])if(!s.roles[role]?.address)throw Error('Finish both contract instances first.');
-  const m={version:3,pricing_protocol:'treasury-snapshot-v1',chain_id:'juno-1',testnet_only:false,registry:s.roles.registry.address,token:NETA,profile_contract:s.roles.profiles.address,admin:DAO,treasury:DAO,quote_public_key:this.publicKey,signer_version:1,
-   contracts:Object.fromEntries(['registry','profiles'].map(role=>[role,{code_id:s.roles[role].codeId,sha256:ARTIFACTS[role].sha256,creator:this.owner,admin:null}]))};
+  const m={version:3,pricing_protocol:'treasury-snapshot-v1',chain_id:'juno-1',testnet_only:false,registry:s.roles.registry.address,token:NETA,profile_contract:s.roles.profiles.address,admin:MAINNET_REGISTRY_ADMIN,treasury:DAO,quote_public_key:this.publicKey,signer_version:1,
+   contracts:Object.fromEntries(['registry','profiles'].map(role=>[role,{code_id:s.roles[role].codeId,sha256:ARTIFACTS[role].sha256,creator:this.owner,admin:MAINNET_UPGRADE_ADMIN}]))};
   const observations=[];
   for(const base of NETWORK.rests){
    const reader=new NamesV2Reader({deployment:m,fetcher:this.fetcher});

@@ -37,6 +37,7 @@ function fee() {
     $('names-fee-annual').textContent = '';
   }
 }
+window.addEventListener("neta:names-fee-refresh",fee);
 function render() {
   let i = null, broken = false;
   try { i = intent(); } catch (error) { broken = true; message(error.message); }
@@ -89,12 +90,13 @@ async function verify() {
   return checked;
 }
 function approvedTariff(checked) {
-  if (!Object.keys(DEFAULT_TARIFF).every(key => checked.tariff[key] === DEFAULT_TARIFF[key])) throw Error(mainnet()?'The approved USD 99 / 19 / 5 tariff is not active yet. DAO activation is still pending.':'The approved USD 99 / 19 / 5 tariff is not active in this test registry yet. The admin must confirm it in the Names lab, then read the registry again.');
+  if(mainnet())return; // Verified current on-chain tariffs are adjustable by the registry admin.
+  if (!Object.keys(DEFAULT_TARIFF).every(key => checked.tariff[key] === DEFAULT_TARIFF[key])) throw Error('The approved USD 99 / 19 / 5 tariff is not active in this test registry yet. The admin must confirm it in the Names lab, then read the registry again.');
 }
 async function loadSigning() {
   if (window.NetaNamesSigning) return;
   if (!signingReady) signingReady = new Promise((resolve, reject) => {
-    const script = document.createElement('script'); script.src = 'assets/names-signing.js?v=3';
+    const script = document.createElement('script'); script.src = 'assets/names-signing.js?v=4';
     script.onload = resolve; script.onerror = () => { script.remove(); signingReady = null; reject(Error('Names signing could not load. Try again.')); };
     document.head.append(script);
   });

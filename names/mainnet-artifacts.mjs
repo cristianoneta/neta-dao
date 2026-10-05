@@ -1,8 +1,8 @@
-// Registry v0.3.0; the existing UNI-7 v0.2.0 artifact stays pinned separately.
+// Registry v0.3.1; the existing UNI-7 v0.2.0 artifact stays pinned separately.
 export const SNAPSHOT_ARTIFACTS = Object.freeze({
   "registry": {
-    "path": "assets/names-mainnet/neta_names_v2.wasm",
-    "sha256": "821f85a345adf68e3323315a0220286046c88d30c92c4e296afcfe7414bdea71"
+    "path": "assets/names-mainnet/neta_names_v2_v031.wasm",
+    "sha256": "f25c982db217363c395a1c09c3028988cff390323b0aa852249016bbebe974fc"
   },
   "profiles": {
     "path": "assets/names-testnet/neta_validator_profiles.wasm",

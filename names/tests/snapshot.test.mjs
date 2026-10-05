@@ -1,3 +1,4 @@
+import {MAINNET_UPGRADE_ADMIN,MAINNET_REGISTRY_ADMIN} from '../mainnet-config.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createPrivateKey,createPublicKey,sign} from 'node:crypto';
@@ -59,9 +60,9 @@ test('snapshot age is independent from five-minute payment review; amount and re
   const renewal=await snapshotOffer({deployment,config,signedPrice:price(),expected:e,now});
   assert.ok(JSON.parse(atob(paymentMessage(deployment,config,renewal).msg.send.msg)).renew_snapshot);
 });
-const prod={...deployment,version:3,chain_id:CHAIN,registry:'juno186sudtyc6sfwfhs77uj6dnsmgf7sl9774slycavxmmfakhmhxans6f64x7',token:NETA,treasury:DAO,admin:DAO,testnet_only:false,signer_version:1,quote_public_key:publicKey};
+const prod={...deployment,version:3,chain_id:CHAIN,registry:'juno186sudtyc6sfwfhs77uj6dnsmgf7sl9774slycavxmmfakhmhxans6f64x7',token:NETA,treasury:DAO,admin:MAINNET_REGISTRY_ADMIN,testnet_only:false,signer_version:1,quote_public_key:publicKey};
 prod.profile_contract='juno1rch3ut6r5ht3l94nw9yptdv3lg9fjhafnax5udz6dqzxe8lt6u8qhtmjvp';
-prod.contracts=Object.fromEntries(['registry','profiles'].map((role,i)=>[role,{code_id:100+i,sha256:SNAPSHOT_ARTIFACTS[role].sha256,admin:null,creator:'juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt'}]));
+prod.contracts=Object.fromEntries(['registry','profiles'].map((role,i)=>[role,{code_id:100+i,sha256:SNAPSHOT_ARTIFACTS[role].sha256,admin:MAINNET_UPGRADE_ADMIN,creator:'juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt'}]));
 function treasury(){return {chain_id:CHAIN,treasury_address:DAO,status:'PARTIAL',assets:[],nns_price:{token:NETA,pool:POOL,source:'treasury-wynd-juno-usd',observed_at:new Date((now-3600)*1000).toISOString(),usd_price:'1.039521280267436517629374242'}};}
 test('publisher reuses treasury prices with exact decimal arithmetic and original expiry, even with zero holdings',async()=>{
   const t=treasury(), p=priceFromTreasury(t,now);
@@ -88,6 +89,7 @@ test('release artifacts preserve the existing UNI-7 registry and pin the new sna
   for(const a of Object.values(SNAPSHOT_ARTIFACTS)) assert.equal(createHash('sha256').update(readFileSync(new URL('../../'+a.path,import.meta.url))).digest('hex'),a.sha256);
   const old=readFileSync(new URL('../../assets/names-testnet/neta_names_v2.wasm',import.meta.url));
   assert.equal(createHash('sha256').update(old).digest('hex'),'76a8ce6ce72d8ea73116bafad83a770438aa0e3e8f1f87957177d855ddee8b65');
+  assert.equal(createHash('sha256').update(readFileSync(new URL('../../assets/names-mainnet/neta_names_v2.wasm',import.meta.url))).digest('hex'),'821f85a345adf68e3323315a0220286046c88d30c92c4e296afcfe7414bdea71');
   assert.notEqual(SNAPSHOT_ARTIFACTS.registry.sha256,createHash('sha256').update(old).digest('hex'));
 });
 

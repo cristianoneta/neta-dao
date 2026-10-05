@@ -45,29 +45,48 @@ updates target the existing 30-minute main DAO job; a signed observation remains
 valid for at most 24 hours. **Do not create a separate Render NNS service.**
 Live validator tests stay deferred. Annual USD **99 / 19 / 5** is unchanged.
 
-The snapshot implementation adds registry v0.3.0, a separate pinned mainnet WASM,
+The snapshot implementation adds registry v0.3.1, a separate pinned mainnet WASM,
 shared signed-price verification/payment hooks, offline Actions publication and
 the browser/client purchase preparation path. Existing UNI-7 contracts and WASMs,
 local authority and transaction journals remain unchanged. Source and synthetic
 tests are not a deployed mainnet or owner-wallet purchase. See [the owning runbook](names/README.md)
 and [snapshot release checkpoint](docs/NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 
-**Next owner action:** open `https://dao.netareborn.com/names-mainnet-deploy.html`,
-connect the funded Juno wallet, review and confirm the two uploads and two contract
-creations individually in Keplr, then download the verified public receipt bundle.
+**Next owner action:** reload `https://dao.netareborn.com/names-mainnet-deploy.html`
+and connect `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`. Review registry v0.3.1
+upload/creation and profile upload/creation separately, then export the receipt bundle.
+At 12:54 Berlin the owner explicitly confirmed **nothing has been uploaded or
+signed**: only the old registry upload review was displayed. No chain recovery or
+replacement deployment is needed. Do not treat the old review as a receipt.
+
+Owner corrections on 2026-10-05: the wallet above initially holds **both contract
+upgrade rights and registry administration** (tariffs, purchase pause and price-key
+rotation). **Only name fees go to the main NETA DAO.** No current DAO proposal is
+required for pricing or activation. Future transfers are possible and separate:
+`MsgUpdateAdmin` for each contract's upgrade right; registry `set_admin` for its
+application authority. Do not transfer or clear rights without a later instruction.
+New production contracts require an explicitly agreed upgrade authority.
+
+Registry v0.3.1 removes the old forced DAO application-admin condition while still
+pinning the real NETA token and DAO fee destination. It starts paused with the
+approved initial USD **99 / 19 / 5** tariff. The owner can change current prices;
+mainnet purchase preparation follows the verified on-chain tariff. The new WASM
+is `assets/names-mainnet/neta_names_v2_v031.wasm`, hash
+`f25c982db217363c395a1c09c3028988cff390323b0aa852249016bbebe974fc`.
+Historical mainnet v0.3.0/UNI-7 artifacts and journals remain intact.
+See [targeted security review](docs/NNS_SECURITY_REVIEW_2026-10-05.md).
 The owner supplied public price key
 `XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=` on 2026-10-05;
 it is pinned in `names/mainnet-config.mjs` and the dated unsigned deployment plan.
 Do not recreate it. Private backup custody and installation of the Actions secret
 `NNS_PRICE_SIGNING_KEY` have **not been confirmed**. Never request the private key.
 The deploy page needs no private price key and exports a version-3 manifest,
-exact transaction receipts and two-provider paused-config observations. Reloads
+exact transaction receipts and two-provider paused-config and upgrade-admin observations. Reloads
 preserve pending intents; recovery never automatically resends a transaction.
 The page does not submit DAO proposals or activate purchases. No mainnet deployment
 receipt has yet been received from the owner.
 Prepare and owner-sign mainnet registry/profile deployment, record exact receipts
-and a verified version-3 `docs/deployments/nns-mainnet.json`, then execute the
-approved tariff through the **main NETA DAO** while purchases stay paused.
+and a verified version-3 `docs/deployments/nns-mainnet.json`, then verify the initial tariff and public signed price while purchases stay paused.
 
 The existing Treasury job signs only once the production manifest is present.
 It reuses the collected WYND NETA price without new API polling. Old prices are
@@ -83,7 +102,7 @@ Purchase/profile/transfer reviews and journals remain scoped by chain/registry.
 Absent or unverified production manifests keep mainnet operations unavailable.
 Browser suites exercise both networks with synthetic adapters, not live receipts.
 After owner-signed deployment, verify the public price and real mainnet UI, activate
-purchases through a separate DAO proposal and verify an owner-signed purchase.
+purchases through a separate admin-wallet transaction and verify an owner-signed purchase.
 No mainnet address or wallet/DAO receipt is recorded.
 
 The main `.neta name` and `My profile` pages already reuse the existing UNI-7
