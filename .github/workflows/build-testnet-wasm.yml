@@ -36,7 +36,7 @@ jobs:
           artifact="${{ matrix.contract }}"
           file="${artifact//-/_}.wasm"
           shipped="assets/names-testnet/${file}"
-          if [ "$artifact" = neta-names-v2 ]; then shipped="assets/names-mainnet/${file}"; fi
+          if [ "$artifact" = neta-names-v2 ]; then shipped="assets/names-mainnet/neta_names_v2_v031.wasm"; fi
           cmp "contracts/${artifact}/target/wasm32-unknown-unknown/release/${file}" "$shipped"
       - name: Stage artifact
         run: |
