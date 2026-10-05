@@ -1,5 +1,9 @@
 # NETA Names — implementation boundary
 
+Pricing amended by the owner on 2026-10-05: annual USD 99 / 19 / 5 for 3 / 4 /
+5–32 characters. Existing registries require an explicit admin tariff update;
+the deployed bootstrap code and historical signed fixtures are unchanged.
+
 Updated 2026-10-04. The authoritative product specification is
 [NETA_NAMES_V2_PLAN.md](NETA_NAMES_V2_PLAN.md). The earlier v1 pricing and ownership
 model is superseded. Do not activate v1 as if it implements the accepted v2 plan.
@@ -39,7 +43,7 @@ activate production constants or the main workspace's write controls.
 
 ## Accepted product scope
 
-- Register AND renew: USD 640 for 3 characters, USD 160 for 4, USD 5 for 5+;
+- Register AND renew: USD 99 for 3 characters, USD 19 for 4, USD 5 for 5+;
   settle in NETA from a fresh quote using the existing JUNO/NETA reference pool.
   Labels have 3–32 characters; 1–2 are unavailable. Fees go to the NETA DAO treasury.
 - Explicit ownership transfers, 1–5-year terms, maximum five years remaining,

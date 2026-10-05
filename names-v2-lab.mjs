@@ -1,9 +1,9 @@
 import {createValidatorPanel} from './names-v2-validator-ui.mjs?v=2';
 import {NamesV2Reader} from './names-v2-reader.mjs?v=4';
-import {connectNamesWallet} from './names-v2-wallet.mjs?v=4';
+import {connectNamesWallet} from './names-v2-wallet.mjs?v=5';
 import {normalizeName,normalizeContacts,validateJunoAddress} from './names-profile-core.mjs';
 import {createTestQuote} from './names-v2-test-authority.mjs';
-import {validateQuote} from './names-v2-core.mjs';
+import {validateQuote,DEFAULT_TARIFF} from './names-v2-core.mjs?v=20261005-pricing-1';
 const $=id=>document.getElementById(id);
 let deployment=null,session=null,busy=false,review=null,validators=null,connectionEpoch=0;
 const now=()=>Math.floor(Date.now()/1000);
@@ -16,6 +16,7 @@ function render(){
  $('connect').disabled=busy||!deployment||connected;$('disconnect').hidden=!connected;$('disconnect').disabled=busy;$('verify').disabled=busy||connected;
  $('wallet').textContent=connected?session.owner:'Wallet not connected.';
  $('intent').textContent=intent?`${intent.name} · ${intent.phase}${intent.payment_hash||intent.commit_hash?' · TX '+(intent.payment_hash||intent.commit_hash):''}`:connected?'No saved Names transaction.':'No wallet connected.';
+ $('read-tariff').disabled=busy||!deployment;$('review-tariff').disabled=busy||!connected||!!open;
  $('recover').disabled=busy||!pending;$('cancel-registration').disabled=busy||!['prepared','committed'].includes(intent?.phase);
  $('prepare').disabled=busy||!connected||open||$('operation').value!=='register';$('commit').disabled=busy||!connected||intent?.phase!=='prepared';
  $('review-quote').disabled=busy||!connected||pending||($('operation').value==='register'?intent?.phase!=='committed':!!open);
@@ -32,9 +33,9 @@ async function run(fn){if(busy)return;busy=true;render();try{await fn();}catch(e
 async function jsonFile(id){const file=$(id).files[0];if(!file||file.size>30000)throw Error('Choose a JSON file smaller than 30 KB.');return JSON.parse(await file.text());}
 function showReview(text,action){review={action};$('review-text').textContent=text;$('review').hidden=false;render();$('review-heading').focus();}
 function disconnect(){connectionEpoch++;session?.disconnect();session=null;clearReview();status('Disconnected. Saved intents and transaction journals are preserved.');render();}
-$('verify').addEventListener('click',()=>run(async()=>{deployment=null;clearReview();const reader=new NamesV2Reader({deployment:await jsonFile('manifest')});const config=await reader.verify();validators?.reset();deployment=reader.deployment;$('deployment-status').textContent=`UNI-7 manifest matches chain · registry ${deployment.registry} · ${config.purchases_paused?'purchases paused':'test purchases enabled'}`;status('Deployment verified. Connect Keplr to continue.');}));
+$('verify').addEventListener('click',()=>run(async()=>{deployment=null;clearReview();const reader=new NamesV2Reader({deployment:await jsonFile('manifest')});const config=await reader.verify();validators?.reset();deployment=reader.deployment;displayTariff(config);$('deployment-status').textContent=`UNI-7 manifest matches chain · registry ${deployment.registry} · ${config.purchases_paused?'purchases paused':'test purchases enabled'}`;status('Deployment verified. Connect Keplr to continue.');}));
 $('manifest').addEventListener('change',()=>{if(!session){deployment=null;validators?.reset();$('deployment-status').textContent='Manifest changed. Verify again.';render();}});
-$('connect').addEventListener('click',()=>run(async()=>{const epoch=connectionEpoch,next=await connectNamesWallet({deployment});if(epoch!==connectionEpoch){next.disconnect();throw Error('Wallet changed during connection. Reconnect.');}session=next;const i=session.client.load(session.owner);if(i&&i.phase!=='complete'){ $('name').value=i.name;$('years').value=String(i.years||1);$('operation').value='register';}status('Connected to UNI-7. No transaction has been sent.');}));
+$('connect').addEventListener('click',()=>run(async()=>{const epoch=connectionEpoch,next=await connectNamesWallet({deployment});if(epoch!==connectionEpoch){next.disconnect();throw Error('Wallet changed during connection. Reconnect.');}session=next;const i=session.client.load(session.owner);if(i&&i.phase!=='complete'&&i.action!=='set-tariff'){ $('name').value=i.name;$('years').value=String(i.years||1);$('operation').value='register';}status('Connected to UNI-7. No transaction has been sent.');}));
 $('disconnect').addEventListener('click',disconnect);
 window.addEventListener('keplr_keystorechange',disconnect);
 $('name-form').addEventListener('submit',event=>{event.preventDefault();run(async()=>{clearReview();const i=await session.client.prepareRegistration({owner:session.owner,name:$('name').value,years:Number($('years').value)});$('name').value=i.name;status('Reservation secret saved. Click Reserve name to review the first transaction in Keplr.');});});
@@ -63,6 +64,23 @@ $('profile-form').addEventListener('submit',event=>{event.preventDefault();if(bu
  if(!result?.active||p?.identity.owner!==current.owner)throw Error('This wallet must own the active test name.');
  const args={owner:current.owner,name,contacts,expectedRevision:p.revision};showReview(`Publish public contacts · ${name}\nProfile revision: ${p.revision}\n${JSON.stringify(contacts,null,2)}\nThese fields will be public on UNI-7.`,async()=>{if(session!==current)throw Error('Wallet connection changed.');await current.client.updateProfile(args);});
 });});
+function tariffText(t){return `3 characters: USD ${(t.three_cents/100).toFixed(2)} · 4 characters: USD ${(t.four_cents/100).toFixed(2)} · 5–32 characters: USD ${(t.standard_cents/100).toFixed(2)} per year`;}
+function displayTariff(config){
+ if(!config?.tariff){$('tariff-status').textContent='Current tariff unavailable. Read the verified registry configuration.';return;}
+ $('tariff-status').textContent=`Current on-chain tariff · version ${config.tariff_version}\n${tariffText(config.tariff)}\nAdmin: ${config.admin}`;
+}
+$('read-tariff').addEventListener('click',()=>run(async()=>{clearReview();displayTariff(await new NamesV2Reader({deployment}).verify());}));
+$('review-tariff').addEventListener('click',()=>run(async()=>{
+ clearReview();const current=session,config=await current.reader.verify();displayTariff(config);
+ if(config.admin!==current.owner)throw Error('Connect the registry admin wallet: '+config.admin);
+ if(Object.keys(DEFAULT_TARIFF).every(k=>config.tariff[k]===DEFAULT_TARIFF[k]))throw Error('The 99 / 19 / 5 USD annual tariff is already active.');
+ const args={owner:current.owner,tariff:structuredClone(DEFAULT_TARIFF),expectedVersion:config.tariff_version};
+ showReview(`Update annual NNS tariff · UNI-7\nRegistry: ${deployment.registry}\nAdmin: ${current.owner}\nCurrent version: ${config.tariff_version}\nCurrent: ${tariffText(config.tariff)}\nNew: ${tariffText(args.tariff)}\nApplies to registration and renewal. Payment remains in mock NETA at the signed test quote.\nExisting name expiry and ownership are unchanged. Previously issued quotes become invalid.\nNo mainnet action or NETA transfer; only the JUNOX network fee.`,async()=>{
+  if(session!==current)throw Error('Wallet connection changed. Review again.');
+  await current.client.setTariff(args);
+  try{displayTariff(await current.reader.verify());}catch{$('tariff-status').textContent='Transaction confirmed. Read current tariff to verify the latest configuration.';}
+ });
+}));
 $('confirm').addEventListener('click',()=>run(async()=>{const current=review;if(!current)throw Error('Review an action first.');clearReview();await current.action();status('Exact transaction confirmed on UNI-7.');}));
 $('discard-review').addEventListener('click',()=>{clearReview();render();});
 for(const id of ['name-form','transfer-form','profile-form','quote'])$(id).addEventListener('input',()=>{clearReview();render();});

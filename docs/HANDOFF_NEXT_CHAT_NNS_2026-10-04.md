@@ -4,6 +4,30 @@ Checkpoint: 2026-10-04, end of session; validator UI #145 is merged and live.
 Read AGENTS.md, HANDOFF.md and CURRENT_STATE.md; read DESIGN_SYSTEM.md before
 UI edits. This records observed session state, not a future chain attestation.
 
+## Owner update — 2026-10-05
+
+Live validator testing is paused until later at the owner's request.
+Approved annual registration AND renewal tariffs are now **USD 99 / 19 / 5** for
+3 / 4 / 5–32 characters, paid in NETA. The lab's Annual pricing section reads the
+actual config and provides an admin-only reviewed `set_tariff` action with the
+current expected version, durable intent journal and exact-receipt recovery.
+Use the existing manifest and setup admin `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`,
+not the second wallet that owns cristiano.neta. One explicit UNI-7 Keplr transaction
+is needed; the public source/UI change alone does not change the deployed tariff.
+No receipt for that update has been recorded yet. Verify config before continuing.
+
+The existing source/WASM bootstrap tariff and signed historical fixtures retain
+640/160/5 for reproducibility. Do not replace deployed code, artifact hashes or
+old receipts. New installations must apply the approved tariff via the same admin
+action before testing purchases. Test quotes always use the **on-chain** tariff
+and version, never a UI override. A tariff version change invalidates old quotes;
+existing name ownership/expiry and standard-name pricing remain unchanged.
+
+PR #149 read-only validator diagnostic is live: all three PR checks and both main
+checks passed; Pages 37277629958 succeeded, and all four public HTML/module files
+matched. Screenshots at 320/390/768/1440 px were inspected. Real operator E2E remains
+open, and direct live REST calls from the execution environment returned 403.
+
 ## Current owner state and completed tests
 
 The setup recovery is resolved: the owner exported and used the verified manifest.

@@ -39,24 +39,32 @@ Updated: **2026-10-05 (Europe/Berlin)**. This is the continuation entry point, n
 
 ## Next task
 
-The next NNS gate needs a **consenting operator who controls both a Juno mainnet
-and UNI-7 validator**. The user does not run a validator; no operator has been
-contacted. Do not send outreach without the owner's instruction.
+Owner update on 2026-10-05: **pause live validator tests until later**. The next
+immediate wallet step is the NNS tariff update, if not yet confirmed on-chain.
+Approved annual registration AND renewal: 3 characters USD 99, 4 characters USD 19,
+5–32 characters USD 5, paid in NETA. Mainnet pricing remains unlaunched; UNI-7 uses
+mock NETA. Main UI/calculator/default quote arithmetic are updated. The existing
+registry requires its admin to review and sign `set_tariff` in the lab's Annual
+pricing section. Check current config/version before claiming activation; no
+admin receipt has been recorded for this change yet. Use the original manifest
+and admin `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`. Do not redeploy.
 
-Use the existing manifest and lab. The operator signs in their own Keplr;
-publication needs the current name owner. For an independent operator test, use
-an active test name they control; the current UI keeps unpublished proofs in one
-tab and is not a remote signature-exchange tool. Never share wallets or keys.
-Verify link, both bindings, owner unlink and unilateral revocation with exact
-receipts and post-state. A stored link proves operator-key control only; validator
-existence and active UNI-7 consensus membership need separate snapshot evidence.
+When validator testing resumes, use the existing manifest and lab with a consenting
+operator controlling both a Juno mainnet and UNI-7 validator, using their own
+active test name and wallets. No operator has been contacted. Proofs live in one
+tab, without remote signature exchange. Verify link, both bindings, owner unlink
+and unilateral revocation with exact receipts and post-state. The independent
+read-only chain check in PR #149 is published; all PR/main checks and Pages passed,
+and all four public files matched. It does not close the live operator E2E gate.
 
-Until an operator is available, retain this as an explicit external dependency.
-Do not enable mainnet or describe synthetic tests as live validator completion.
-The agreed delegation programme and deferred Smart Delegation research are in
-[NNS_VALIDATOR_PROFILES](docs/NNS_VALIDATOR_PROFILES_2026-10-04.md) and
-[SMART_DELEGATION_RESEARCH](docs/SMART_DELEGATION_RESEARCH.md); do not change their
-criteria while cleaning documentation. Other open work is in [PROJECT_CHECKPOINT](PROJECT_CHECKPOINT.md).
+The owner likes the directory's mint DAO initials and wants separate identity
+colours for users and verified active validators. Light blue for users and lavender
+for validators were proposed, not yet approved or implemented. The validator colour
+and label require verified address control AND chain-specific active-set evidence.
+
+Keep programme criteria and deferred Smart Delegation research unchanged. See
+[NNS handoff](docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md) and
+[PROJECT_CHECKPOINT](PROJECT_CHECKPOINT.md) for other open work.
 
 ## Working rules
 

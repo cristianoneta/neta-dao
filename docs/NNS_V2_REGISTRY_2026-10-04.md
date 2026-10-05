@@ -1,5 +1,9 @@
 # NNS v2 registry and purchase protocol — 2026-10-04
 
+Pricing amended by the owner on 2026-10-05: annual USD 99 / 19 / 5 for 3 / 4 /
+5–32 characters. Existing registries require an explicit admin tariff update;
+the deployed bootstrap code and historical signed fixtures are unchanged.
+
 Updated 2026-10-04 after PR #145. This document owns the registry/quote protocol.
 The isolated UNI-7 mock token, registry and profiles are deployed and verified;
 owner registration, contacts, renewal and transfer have post-state evidence.
@@ -23,7 +27,7 @@ not a production pricing service. No production feature flag was switched on.
 
 ## Rules enforced by the registry
 
-- Annual prices: 3 characters USD 640, 4 characters USD 160, 5–32 characters USD 5.
+- Annual prices: 3 characters USD 99, 4 characters USD 19, 5–32 characters USD 5.
   Registration and renewal use the same versioned tariff. Terms are 1–5 years;
   a year is 365 days. Fees settle in six-decimal NETA, rounded **up** to a microNETA.
 - The whole fee is forwarded to the main NETA DAO on mainnet. Mainnet instantiate

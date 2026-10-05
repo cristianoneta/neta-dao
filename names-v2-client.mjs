@@ -219,6 +219,23 @@ export class NamesV2Client {
       i.phase='complete';i.payment_hash=receipt.transactionHash;delete i.salt;delete i.offer;this.save(i);return i;
     });
   }
+  async setTariff({owner,tariff,expectedVersion}) {
+    const reviewed=structuredClone(tariff);
+    if(!reviewed||Object.keys(reviewed).sort().join(',')!=='four_cents,standard_cents,three_cents'||Object.values(reviewed).some(n=>!Number.isSafeInteger(n)||n<1)||!Number.isSafeInteger(expectedVersion)||expectedVersion<1)throw Error('Invalid reviewed tariff.');
+    return this.withLock(this.key(owner),async()=>{
+      const config=await this.config(owner),pending=this.load(owner);
+      if(config.admin!==owner)throw Error('Only the registry admin can change the tariff.');
+      if(config.tariff_version!==expectedVersion)throw Error('Tariff changed. Read and review it again.');
+      if(pending&&pending.phase!=='complete')throw Error('Reconcile the pending Names transaction first.');
+      if(Object.keys(reviewed).every(k=>reviewed[k]===config.tariff[k]))throw Error('This tariff is already active.');
+      await this.owner(owner);
+      const payment={contract:this.deployment.registry,msg:{set_tariff:{tariff:reviewed,expected_version:expectedVersion}}};
+      const i={schema:1,chain_id:this.deployment.chain_id,registry:this.deployment.registry,owner,name:'Registry tariff',phase:'write_pending',action:'set-tariff',payment,created_at:this.now()};
+      const request=this.stage(i,{owner,...payment,memo:'Update NNS annual tariff'},'complete');
+      const receipt=await this.execute(request);this.receipt(receipt);
+      i.phase='complete';i.payment_hash=receipt.transactionHash;this.save(i);return receipt;
+    });
+  }
   async validatorWrite({payer,prepared}) {
     return this.withLock(this.key(payer),async()=>{
       const {snapshot,proofs}=structuredClone(prepared);

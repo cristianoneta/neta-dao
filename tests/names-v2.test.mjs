@@ -12,8 +12,8 @@ const privateKey=createPrivateKey({key:Buffer.concat([Buffer.from('302e020100300
 function signed(q,c=config){return {quote:q,signature:sign(null,Buffer.from(quotePreimage(deployment,c,q)),privateKey).toString('base64')};}
 const fresh=()=>structuredClone(fixture.offer);
 test('USD tariffs, micro-token rounding and lifetime boundaries are exact',()=>{
-  assert.equal(feeAmount('abc',1,'2000000000000'),'320000000');
-  assert.equal(feeAmount('abcd',1,'2000000000000'),'80000000');
+  assert.equal(feeAmount('abc',1,'2000000000000'),'49500000');
+  assert.equal(feeAmount('abcd',1,'2000000000000'),'9500000');
   assert.equal(feeAmount('alice',1,'3000000000000'),'1666667');
   assert.equal(feeAmount('alice',5,'2000000000000'),'12500000');
   for(const years of [0,6,1.2])assert.throws(()=>feeAmount('alice',years,'2000000000000'));
@@ -140,4 +140,33 @@ test('public profile writes bind current owner and reviewed profile revision',as
  const c=h.client();await assert.rejects(c.updateProfile({owner:'alice',name:'alice',contacts:{},expectedRevision:1}),/revision/);assert.equal(h.writes(),0);
  await c.updateProfile({owner:'alice',name:'alice',contacts:{discord:'operator'},expectedRevision:2});assert.equal(h.writes(),1);
  assert.equal(c.load('alice').request.contract,'profile-contract');assert.equal(c.load('alice').phase,'complete');
+});
+
+test('admin tariff update preserves version, wallet and pending-intent guards',async()=>{
+ const tariff={three_cents:9900,four_cents:1900,standard_cents:500};
+ const h=harness(),c=h.client();
+ await assert.rejects(c.setTariff({owner:'alice',tariff,expectedVersion:1}),/registry admin/);assert.equal(h.writes(),0);
+ h.setWallet('admin');
+ await assert.rejects(c.setTariff({owner:'admin',tariff,expectedVersion:2}),/Tariff changed/);
+ await assert.rejects(c.setTariff({owner:'admin',tariff:{...tariff,extra:1},expectedVersion:1}),/Invalid reviewed/);
+ await c.setTariff({owner:'admin',tariff,expectedVersion:1});
+ const done=c.load('admin');assert.equal(h.writes(),1);assert.equal(done.phase,'complete');assert.deepEqual(done.request.msg,{set_tariff:{tariff,expected_version:1}});assert.equal(done.request.contract,deployment.registry);
+ h.reader.verify=async()=>({...config,tariff,tariff_version:2});
+ await assert.rejects(c.setTariff({owner:'admin',tariff,expectedVersion:2}),/already active/);assert.equal(h.writes(),1);
+});
+test('unknown tariff update survives reload and reconciles without repeating the write',async()=>{
+ const h=harness(),tariff={three_cents:9900,four_cents:1900,standard_cents:500};h.setWallet('admin');h.setFail(true);
+ await assert.rejects(h.client().setTariff({owner:'admin',tariff,expectedVersion:1}),/Unknown broadcast/);
+ const c=h.client();assert.equal(c.load('admin').phase,'write_pending');
+ await assert.rejects(c.setTariff({owner:'admin',tariff,expectedVersion:1}),/pending Names/);assert.equal(h.writes(),1);
+ await c.recoverPending('admin',async request=>{assert.deepEqual(request.msg.set_tariff.tariff,tariff);return {transactionHash:'A'.repeat(64),chainId:'uni-7',height:100,code:0,intentMatched:true};});
+ assert.equal(c.load('admin').phase,'complete');assert.equal(h.writes(),1);
+});
+test('approved tariff prices registration and renewal quotes and invalidates prior versions',async()=>{
+ const updated={...config,tariff:{three_cents:9900,four_cents:1900,standard_cents:500},tariff_version:2};
+ for(const [name,amount] of [['abc.neta','49500000'],['abcd.neta','9500000'],['alice.neta','2500000']])for(const operation of ['register','renew']){
+  const q={...fixture.offer.quote,name,operation,tariff_version:2,amount,expected_expires_at:operation==='renew'?now+YEAR:0};
+  const offer=signed(q,updated);assert.equal((await validateQuote({deployment,config:updated,offer,expected:q,now})).amount,amount);
+ }
+ await assert.rejects(validateQuote({deployment,config:updated,offer:fresh(),expected:fixture.offer.quote,now}),/policy changed/);
 });

@@ -243,7 +243,7 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(html, /id="names-view"/);
   assert.match(names, /const REGISTRY=null/);
   assert.match(html, /Planned annual registration and renewal/);
-  assert.match(html, /USD 5 · 4 characters: USD 160 · 3 characters: USD 640/);
+  assert.match(html, /USD 5 · 4 characters: USD 19 · 3 characters: USD 99/);
   assert.match(html, /This pricing requires the new registry and is not active yet/);
   assert.doesNotMatch(html, /names-preview-entry|Explore the preview/);
   assert.match(html, /names-workspace\.js\?v=[^"\s]+/);
