@@ -21,13 +21,18 @@ version-3 [production manifest](../docs/deployments/nns-mainnet.json) and
 Both exported provider observations show **purchases paused**, USD 99/19/5 and
 owner-wallet administration. See [verification evidence](../docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
 No unpause or mainnet purchase is recorded. PR #161 published the independently
-verified manifest. The Actions secret exists, but publication run `37307454347`
-failed despite a valid fresh Treasury source. Run `37308389038` at 12:16:44 UTC diagnosed invalid PEM private-key format.
-The owner must replace `NNS_PRICE_SIGNING_KEY` with the full existing PEM backup,
-including BEGIN/END lines and real line breaks. Do not generate a new key or send
-it in chat. Matching-key verification and the first signed price remain open.
-Do not repeat key creation or deployment. UNI-7 keeps its existing manifest,
-original local key and old quote flow; never direct snapshot payments to UNI-7.
+verified manifest. The owner corrected omitted PEM delimiters in the existing Actions secret at
+19:38 Berlin. Fresh run `37350238171` and Pages `37350292762` succeeded; the
+served signed price matched the source and passed public-key signature checks.
+Two-provider deployment verification also passed via GitHub Actions at 19:49:53
+(run `37307194424`, job `111902537250`). For direct-environment access failures,
+reuse that read-only verification workflow. It requires the initial paused state,
+so it is not a generic post-activation monitor. Normal reads use a verified
+provider with fallback; price files require signature/binding/expiry checks.
+After secret corrections start a fresh Main DAO job on main, because repeating
+old jobs can conflict with newer collector data. Do not generate a new key,
+repeat deployment or request the private backup. Next is the missing dedicated
+owner unpause review/UI and a separately confirmed purchase. UNI-7 is unchanged.
 
 ## How it works
 
@@ -75,7 +80,7 @@ GitHub Actions usage quotas/billing still apply.
 ## One-time setup and mainnet sequence
 
 Current owner checkpoint: key creation and steps 3–5 are complete; do not repeat
-them. Confirm the matching Actions secret, then continue with step 6.
+them. The matching secret and public signed price are verified; finish the real normal-page check in step 6, then prepare step 7.
 
 1. Open [the owner setup page](https://dao.netareborn.com/names-mainnet-setup.html)
    on the owner's trusted machine. Click **Create price key**, download the private
@@ -113,8 +118,7 @@ them. Confirm the matching Actions secret, then continue with step 6.
    `tariffProposal` prepares the same wallet review, not a DAO proposal.
 6. Verify a successful main DAO workflow, the public signed file, its original
    observation/expiry and browser verification against the actual deployment.
-   Verify the implemented mainnet reader/wallet/page with the real manifest and signed price. The production manifest is recorded; secret installation and a successful signed
-   publication are still unconfirmed.
+   Verify the implemented mainnet reader/wallet/page with the real manifest and signed price. Secret installation and signed publication were verified on 2026-10-05 at 19:41 Berlin.
 7. Only after those dependencies, use a **separate admin-wallet unpause** transaction and
    verify one explicitly reviewed owner-signed purchase, exact NETA debit/DAO
    credit and resulting identity/expiry. Record evidence before calling NNS live.
@@ -147,8 +151,8 @@ Do not create a Render NNS service as the next step.
 
 Open `/names-mainnet-deploy.html` with Keplr and a funded Juno account. The pinned
 public price key is `XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=`.
-Private backup and `NNS_PRICE_SIGNING_KEY` installation remain owner tasks and
-are not verified by sharing the public key. Do not generate a replacement.
+The corrected `NNS_PRICE_SIGNING_KEY` passed signing and public-key verification
+on 2026-10-05. Private backup custody remains with the owner. Do not generate a replacement.
 
 Review registry upload/creation, then profile upload/creation: four explicit
 mainnet transactions, no token deployment. Keplr displays real JUNO gas fees.

@@ -72,35 +72,58 @@ signing step every half hour, so GitHub repeats failure notifications. The final
 publication step deliberately runs after a signing error. Latest inspected bot
 commit `c285eaf` publishes the 17:17:41 UTC Treasury observation; portfolio status
 remains PARTIAL, not a claim of full coverage. At inspected main `22a5706`,
-`data/nns/price.json` is absent. There is still no usable public NNS price.
+`data/nns/price.json` is absent. At that checkpoint there was no usable public NNS price; see the recovery below.
 
 These jobs do not upload or instantiate contracts, use a Keplr wallet, or spend
 JUNO gas. No workflows, notifications or schedules were disabled to conceal the
-error. This evening review changed documentation only. The next chat must help
-the owner correct the existing Actions secret privately, then inspect a fresh
-run and verify the published signature before any activation review.
+error. This evening review changed documentation only. The secret was subsequently corrected and independently verified as recorded below.
+
+## Price-key recovery and access-path verification — 19:50 Berlin
+
+The owner confirmed at 19:37 that the PEM BEGIN/END delimiters had been omitted,
+then privately corrected the existing Actions secret at 19:38. No replacement
+key, deployment or chain write was made. Retrying old run 37347330414 proved key
+parsing, public-key matching and signing succeeded, but publication conflicted
+with newer generated data. Use a fresh **Main DAO snapshots** workflow on main
+after secret changes; rerunning old snapshot jobs can rebase stale generated data.
+
+Fresh run [37350238171](https://github.com/cristianoneta/neta-dao/actions/runs/37350238171)
+succeeded and committed the first price as `5f2790701ef827f2e7ac7f6f11fe13f86fc905db`.
+Pages run 37350292762 succeeded. The served `data/nns/price.json` matched the committed
+file byte-for-byte. WebCrypto and Node Ed25519 verification passed against the
+pinned public key; deployment fields and original collector price matched.
+Observation: **2026-10-05T17:41:02Z**; expiry: **2026-10-06T17:41:02Z**;
+rate: **1.051527774123 USD/NETA**, signer version 1. These are dated observations,
+not a permanently current quote. Preserve source timestamps and the 24-hour cap.
+
+Direct assistant access encountered Cloudflare 1010 at Polkachu, proxy-generated
+502 responses at some other providers, and timeouts. These do not establish
+general provider outages. The existing read-only **NNS mainnet deployment
+verification** workflow successfully ran again via GitHub Actions:
+run **37307194424**, new job **111902537250**, verified at **17:49:53 UTC**.
+Polkachu (height 42399738) and STAVR (42399739) independently matched code identity,
+owner administrators, pinned public key, tariff version 1 / USD 99/19/5, and
+purchases paused. All four original transaction payloads were reverified.
+Use this established runner-based check when direct environment access fails.
+
+Two-provider comparison is the launch/deployment review gate, not a requirement
+for every ordinary page read or price refresh. `NamesV2Reader.verify` uses one
+verified provider with fallback; normal price use verifies signature, deployment
+binding and expiry. The deployment workflow is read-only and has no wallet,
+price secret or broadcasts. It deliberately expects the initial paused state;
+after activation or a tariff/admin change it must not be reused as a generic
+health check without a reviewed update to expected state.
+
+Next: implement the dedicated mainnet owner unpause review/Keplr action, verify
+the normal page with a fresh signed price, then obtain explicit owner confirmation
+and check one real purchase (exact debit, DAO credit, identity and expiry).
+No activation or mainnet purchase is recorded. Treasury and validator E2E remain deferred.
 
 ## Remaining launch gates
 
-1. Manifest published through PR #161 after independent verification succeeded.
-2. Resolve the existing Main DAO snapshots publication error. Initial run
-   [37307454347](https://github.com/cristianoneta/neta-dao/actions/runs/37307454347)
-   found a secret but signing failed. Its Treasury observation (12:08:23 UTC) and
-   manifest validate. The publisher now emits only fixed diagnostic labels; inspect
-   the latest job to distinguish malformed/wrong key from other failures.
-   Follow-up run [37308389038](https://github.com/cristianoneta/neta-dao/actions/runs/37308389038)
-   at 12:16:44 UTC identified **invalid PEM private-key format**. The owner must
-   privately replace the secret with the complete existing PEM backup (BEGIN/END
-   lines and real line breaks). No new key or deployment is needed; matching-key
-   and signature validation can resume only after the PEM parses successfully.
-   Missing/mismatched signing authority
-   must retain any previous public price and fail visibly. Never request a private
-   price key in chat; do not generate a replacement.
-3. Verify the public price signature, deployment binding and original observation/
-   expiry, and the normal Mainnet Names UI while purchases remain paused.
-4. Prepare a separate reviewed owner-wallet unpause, then verify one real purchase,
-   exact NETA debit/DAO credit and name identity/expiry. No activation/purchase is
-   recorded at this checkpoint. The dedicated owner tariff/unpause UI remains open.
+1. Finish the normal mainnet Names page check with a current valid signed price.
+2. Implement and review a separate owner-wallet unpause action; no mainnet tariff/unpause panel exists yet.
+3. Obtain explicit owner-wallet confirmation, verify unpaused state, then verify one real purchase, exact NETA debit/DAO credit and name identity/expiry.
 
 Keep UNI-7 artifacts, completed tests, browser key and pending journals intact.
-Treasury P&L work and validator E2E are deferred by the owner until NNS is finished.
+Treasury P&L work and validator E2E remain deferred.
