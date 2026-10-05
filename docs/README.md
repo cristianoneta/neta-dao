@@ -1,6 +1,6 @@
 # Documentation map
 
-Updated 2026-10-04. Use current documents for decisions and dated evidence for
+Updated 2026-10-05. Use current documents for decisions and dated evidence for
 provenance. Do not read every historical handoff as an independent to-do list.
 
 | Purpose | Owning document |
@@ -10,10 +10,11 @@ provenance. Do not read every historical handoff as an independent to-do list.
 | Open work across modules | [PROJECT_CHECKPOINT](../PROJECT_CHECKPOINT.md) |
 | Verification commands and repository overview | [Root README](../README.md) |
 | Latest maintenance scope and findings | [2026-10-04 review](MAINTENANCE_CHECKPOINT_2026-10-04.md) |
-| NNS live evidence and next operator test | [NNS handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md) |
+| NNS mainnet continuation and preserved UNI-7 evidence | [NNS handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md) |
 | Existing/fresh UNI-7 test procedure | [Owner runbook](NNS_UNI7_OWNER_TEST_2026-10-04.md) |
 | Shared Treasury price snapshots and mainnet preparation | [NNS pricing runbook](../names/README.md) |
-| Snapshot protocol/source verification | [Snapshot checkpoint](NNS_SNAPSHOT_RELEASE_2026-10-05.md) |
+| NNS internal security review and latest release verification | [2026-10-05 review](NNS_SECURITY_REVIEW_2026-10-05.md) |
+| Historical snapshot protocol/source verification | [Snapshot checkpoint](NNS_SNAPSHOT_RELEASE_2026-10-05.md) |
 | Historical continuous quote-service release evidence | [WYND release](NNS_WYND_RELEASE_2026-10-05.md) |
 | Accepted Names product rules | [v2 plan](NETA_NAMES_V2_PLAN.md) |
 | Registry/quote and profile/operator protocols | [Registry](NNS_V2_REGISTRY_2026-10-04.md), [Profiles/programme decisions](NNS_VALIDATOR_PROFILES_2026-10-04.md) |

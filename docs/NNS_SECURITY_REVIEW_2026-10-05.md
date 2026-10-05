@@ -100,5 +100,10 @@ claim of unlimited capacity is made.
 - New artifact: `assets/names-mainnet/neta_names_v2_v031.wasm`, SHA-256
   `f25c982db217363c395a1c09c3028988cff390323b0aa852249016bbebe974fc`.
   Historical v0.3.0 and UNI-7 registry/profile artifacts remain unchanged.
-- CI, merge and served-file verification are recorded in the release PR after
-  integration. Source/test evidence is not a live chain receipt.
+- Release [PR #158](https://github.com/cristianoneta/neta-dao/pull/158) final head
+  `25d732e5f90a773f0342023063ceff9c7c7ad3cd` passed all 11 PR checks. Merge
+  `62f12f1a0c672a776a5f3500ab4e8e8a09b93e42` passed all three main checks;
+  [Pages run 37302003843](https://github.com/cristianoneta/neta-dao/actions/runs/37302003843)
+  succeeded. Fifteen served HTML/JS/module/plan/report/WASM files matched local
+  SHA-256 after publication. Verification completed on 2026-10-05 by 11:23 UTC.
+  Source/test/publication evidence is not a live chain receipt.
