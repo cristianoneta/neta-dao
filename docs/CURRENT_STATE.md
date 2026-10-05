@@ -210,7 +210,8 @@ including direct/staked/claim shares. LP USD value is counted once via underlyin
 reserves. Unpriced assets and sub-USD-50 assets/warnings remain inspectable.
 Core balance failures fail collection; unresolved asset prices can yield a
 `PARTIAL` snapshot and are excluded from the USD total. The UI labels this a
-priced-assets subtotal and shows warnings outside the collapsed asset details.
+priced-assets subtotal and groups valuation warnings inside the collapsed small/unpriced
+asset details (owner UI decision, 2026-10-05).
 
 History market effect revalues opening quantities at closing implied prices;
 the remainder is labeled net flow. `economicAssets` groups by **symbol**, not a

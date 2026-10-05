@@ -149,7 +149,12 @@ reserve dimensions to avoid layout shifts. No runtime 3D engine is needed.
 | Lab/readiness/setup | Shared foundations where practical but unmistakable test/admin context; visual changes never remove security controls or enable writes |
 
 Treasury charts may use mint, blue and amber with labels/line styles to distinguish
-series. Red/green performance also needs signs and text. Do not recalculate values,
+series. Red/green performance also needs signs and text.
+Owner update 2026-10-05: place asset valuation/source warnings inside the default-closed
+small/unpriced-assets details, alongside its asset rows and coverage explanation.
+Apply this shared Treasury pattern to existing and future DAO entries. Keep the
+PARTIAL status and priced-assets subtotal label visible; whole-snapshot failures
+and transaction-history availability belong to their own sections. Do not recalculate values,
 change classification, replace bot snapshots or conceal source/date/coverage during
 restyling. Do not use wallet connection as the primary action on read-only pages.
 
