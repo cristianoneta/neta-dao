@@ -114,16 +114,49 @@ price secret or broadcasts. It deliberately expects the initial paused state;
 after activation or a tariff/admin change it must not be reused as a generic
 health check without a reviewed update to expected state.
 
-The dedicated main-page owner opening/pausing review is now implemented. Next: verify
-the normal page with a fresh signed price, then obtain explicit owner confirmation
-and check one real purchase (exact debit, DAO credit, identity and expiry).
-No activation or mainnet purchase is recorded. Treasury and validator E2E remain deferred.
+## Owner activation and first mainnet purchase — 20:20 Berlin
 
-## Remaining launch gates
+PR #166 shipped the owner-only opening/pausing review. All four PR checks, three
+main checks and Pages run `37354104975` passed; all six changed served application
+files matched their local SHA-256. The owner reviewed and confirmed opening in
+Keplr, then confirmed reservation and payment through the normal Names page.
 
-1. Finish the normal mainnet Names page check with a current valid signed price.
-2. Review opening purchases in the main-page owner administration panel; see [admin runbook](../names/README.md#owner-purchase-availability-controls).
-3. Obtain explicit owner-wallet confirmation, verify unpaused state, then verify one real purchase, exact NETA debit/DAO credit and name identity/expiry.
+| Action | UTC time | Height | Transaction |
+| --- | --- | --- | --- |
+| Open purchases | 18:17:20 | 42400382 | `4937E8F871C5C0970960BF65AADFA88D7DD6DDB100B8B3B7EEE7D8D011867EEB` |
+| Reserve name | 18:19:50 | 42400441 | `BA0F52C93627A99BA15FE087F68C2AFB5CA483A5BD09293F56A9D713CBF25001` |
+| Pay and register | 18:20:13 | 42400450 | `85689A2C75DE86829D4116FA0AABBA5062D269679CA139984E169E8E2ACF8DC1` |
+
+All three decoded REST receipts report code 0 and the approved owner sender.
+Activation executes exactly `set_purchases_paused: {paused: false}` against the
+manifest registry. The payment executes CW20 `send` through the pinned NETA token,
+with a one-year `register_snapshot` hook for `cristiano.neta`, tariff/signer version 1,
+price **1.051503244853 USD/NETA** and amount **4,755,098 base units = 4.755098 NETA**.
+The token's successful `send` event records owner → registry, and its `transfer`
+event records registry → approved main NETA DAO for that same amount. Payment gas
+fee: **0.037164 JUNO**; reservation gas fee: **0.019377 JUNO**.
+
+Fresh config observed at 18:18:22 UTC shows purchases open with unchanged admin,
+key and tariff. Fresh identity/name_of/resolve reads at 18:20:48 UTC agree:
+`cristiano.neta` is active, owned by `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`,
+generation **1**, ownership revision **1**, expiry **2027-10-05T18:20:13Z**.
+A subsequent correctly formed `commitment: {address: owner}` query returned null.
+This is a distinct mainnet registration, not the earlier UNI-7 identity/revision.
+
+[Public launch receipts](deployments/nns-mainnet-launch-receipts-2026-10-05.json)
+archive the three relevant decoded transaction responses, wasm events and successful
+post-state queries from **STAVR REST**. This follow-up is a single-provider observation;
+it does not claim a new two-provider comparison, raw-protobuf hash verification or
+Tendermint light-client proof. The earlier independent two-provider deployment
+review remains the pre-activation evidence. No transaction was resent by the assistant.
+
+## Continuation
+
+Activation and first real purchase are complete. Load the existing mainnet name
+for profile work if requested; do not repeat activation, reservation or payment.
+Mainnet renewal/transfer and real validator E2E remain unverified. The initial
+paused-state workflow intentionally no longer matches live state and must not be
+rerun unchanged as a generic health check.
 
 Keep UNI-7 artifacts, completed tests, browser key and pending journals intact.
 Treasury P&L work and validator E2E remain deferred.

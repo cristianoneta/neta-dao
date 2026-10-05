@@ -1,6 +1,6 @@
 # NETA DAO handoff
 
-Updated: **2026-10-05, 19:50 price recovery checkpoint (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
+Updated: **2026-10-05, 20:20 mainnet activation and first purchase checkpoint (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
 
 ## Start here
 
@@ -15,20 +15,20 @@ Updated: **2026-10-05, 19:50 price recovery checkpoint (Europe/Berlin)**. This i
 
 The NNS PEM-secret error is resolved. The first signed price was published and
 verified on 2026-10-05 at 19:41 Berlin; the independent two-provider deployment
-check passed via GitHub Actions at 19:49:53. Continue with the owner activation review on the main Names page, not key replacement or deployment. Treasury stays deferred.
+check passed via GitHub Actions at 19:49:53. The owner subsequently activated purchases and completed the first mainnet registration; see the receipts below. Treasury stays deferred.
 
 Mainnet manifest/receipts were published in PR #161 after independent chain
 verification; fixed secret-safe diagnostics and the correction gate shipped in
 PRs #162/#163. The earlier security release #158 and its test evidence remain
 recorded in [review and release evidence](docs/NNS_SECURITY_REVIEW_2026-10-05.md).
-All four owner deployment transactions are complete; no activation or mainnet
-purchase is recorded. The last verified live UI showed purchases paused.
+All four deployment transactions, purchase activation and the first mainnet
+registration are complete. Fresh chain reads confirm purchases open and the name active.
 
 ## Completed today
 
 - NNS UNI-7 setup/recovery, registration, public contacts, one-year renewal and
   accepted two-wallet transfer. Do not repeat deployment, activation or purchase.
-- `cristiano.neta` now belongs to `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`;
+- On **UNI-7**, `cristiano.neta` now belongs to `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`;
   ownership revision 2; expiry **2028-10-03T19:15:41Z**. Previous contacts are
   invalidated in current reads. These are observed post-states; exact operation
   receipts beyond setup still need archival. Historical chain data are not erased.
@@ -69,7 +69,7 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   [four public receipts](docs/deployments/nns-mainnet-receipts-2026-10-05.json).
 - Both upgrade administrators and the registry application administrator are
   `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`. The main NETA DAO receives fees.
-- Both exported provider observations agree: purchases paused, tariff version 1,
+- Both initial exported provider observations agreed: purchases paused, tariff version 1,
   annual USD **99 / 19 / 5**, signer version 1 and the approved public price key.
 - Public key: `XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=`.
   The owner corrected the existing PEM secret at 19:38 Berlin; never regenerate
@@ -80,17 +80,22 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   Berlin: run `37307194424`, job `111902537250`; Polkachu and STAVR agree on the
   reviewed deployment, owner administrators, key, USD 99/19/5 and purchases paused.
   Direct assistant-environment 403/502 errors are not proof of provider outages.
-  Reuse the read-only workflow when direct access fails. Two-provider checks are
+  Use runner-based read-only verification when direct access fails; the original
+  paused-state workflow now needs reviewed expectations before reuse. Two-provider checks are
   a launch/deployment gate, not required for every normal read or price refresh.
 - After a secret correction, start a fresh Main DAO snapshots workflow on main:
   repeating an old run can conflict with newer generated data. Never hand-edit
   collector output to resolve this. See [recovery evidence](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
-- **Next:** open `/#relay/register`, select Juno mainnet, read the registry and
-  connect the approved admin wallet. The owner-only **Registry administration**
-  panel now provides reviewed opening/pausing through Keplr. Opening requires a
-  valid signed price; pausing does not. Confirm opening separately, then verify
-  one real purchase. No activation or purchase is recorded. See
-  [admin runbook](names/README.md#owner-purchase-availability-controls).
+- **Completed:** owner-confirmed activation at 18:17:20 UTC and first mainnet
+  purchase at 18:20:13 UTC. `cristiano.neta` belongs to the approved owner wallet,
+  generation/revision 1, expiry **2027-10-05T18:20:13Z**. The successful receipt
+  records **4.755098 NETA** from owner to registry and onward to the main NETA DAO.
+  See [launch evidence](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md) for all three hashes
+  and the single-provider verification boundary. Do not repeat activation or payment.
+- **Next:** load the existing mainnet name and continue ordinary profile use if
+  requested. Mainnet renewal/transfer and live validator E2E are not claimed tested.
+  Treasury stays deferred. The initial paused-state workflow must not be rerun
+  unchanged against the now-active registry.
 
 Upgrade transfer (`MsgUpdateAdmin` on each contract) and registry `set_admin`
 are separate future owner actions. No transfer or removal of authority is authorized.
@@ -138,7 +143,7 @@ Keep programme criteria and deferred Smart Delegation research unchanged. See
   automatically or cleared to unblock the UI. Keep Render SQLite/WAL across deploys.
 - Never request seeds/private keys. All live writes need the user's explicit wallet
   confirmation. Test operator proofs are off-chain; publication consumes UNI-7 gas.
-- Mainnet Names purchases remain paused and mainnet messaging remains disabled. Operations review finalization is
+- Mainnet Names purchases were opened by the owner; mainnet messaging remains disabled. Operations review finalization is
   not submission of a mainnet proposal. Native Juno submission/voting remains absent.
 - Generated Treasury/member files belong to their collectors; never hand-edit them.
 - This repository owns `dao.netareborn.com`; `neta-website` owns `netareborn.com`.
