@@ -13,8 +13,15 @@ unchanged. Existing unused 10-JUNOX proofs require a fresh signature; already
 submitted claims still reconcile/replay by their original ID and hash.
 The frontend accepts the old 10-JUNOX service during rollout and displays/signs
 its actual amount, so Pages-first deployment does not interrupt existing claims.
-Manual Render deployment is required after merge. Confirm `/status.amount` is
-`25000000` before calling the increase live. The earlier observations below remain
+PR #147 merged as `54041987d6ad1f216c968dd5acf7b9c380c67f80`; both PR checks
+and the main faucet check passed. Pages run 37275042175 succeeded on the later
+bot commit `2b7ed66cf257a2e4e3789a98f683a3f1348e7a49`; HTML/module bytes matched.
+The owner manually deployed that later commit to the existing Render service.
+Read-only `/status` verification on 2026-10-05 at approximately 09:00 Berlin:
+amount `25000000`, interval `86400`, balance `1000127655` ujunox, ready `true`,
+pause `null`, expected UNI-7 address and all three protection markers present.
+The 25-JUNOX increase is live. No new wallet payout was signed in this session;
+the real payout/restart E2E gates remain open. Earlier observations below remain
 historical evidence.
 
 ## Current implementation and observed service state

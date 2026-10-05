@@ -78,7 +78,7 @@ notifications and DAO-authorized profile proposals remain later work.
 
 `juno-faucet.html` is a separate tool linked from the common footer. It supports
 Keplr, validators/commission, balances/delegations/unbonding/rewards, reviewed
-stake/unstake/reward transactions, whole-JUNOX donations and 25-JUNOX requests (2026-10-05 source update; manual Render deploy required).
+stake/unstake/reward transactions, whole-JUNOX donations and 25-JUNOX requests (PR #147; Pages assets and Render `/status` verified 2026-10-05).
 The public API/address are pinned in `juno-faucet-config.mjs` and the HTML CSP.
 
 Render uses durable SQLite, ADR-36 ownership proofs, rolling 24-hour per-wallet

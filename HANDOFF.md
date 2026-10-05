@@ -24,8 +24,9 @@ Updated: **2026-10-05 (Europe/Berlin)**. This is the continuation entry point, n
   owner unlink and unilateral revocation are implemented. Latest release: merge
   `50c5814e048230507a1d03c3e7c8c03f97b537ee`; all applicable checks and Pages passed;
   all eight changed public assets matched. Detailed evidence is in the NNS handoff.
-- Owner requested 25 JUNOX per rolling 24 hours on 2026-10-05. Source/UI updated;
-  manual Render deploy and fresh status verification are required to activate it.
+- Owner requested 25 JUNOX per rolling 24 hours on 2026-10-05. PR #147 is merged;
+  Pages assets matched and the owner's Render deployment was verified on 2026-10-05:
+  `/status.amount=25000000`, `intervalSeconds=86400`, `ready=true`.
   See the faucet handoff for the 27-JUNOX readiness threshold and preserved guards.
 - Faucet frontend is connected to the funded Render service. Donation and reward
   receipts exist; payout/replay/restart/fresh-wallet E2E and real stake/unstake
