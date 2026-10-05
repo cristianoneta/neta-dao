@@ -1,6 +1,6 @@
 # NETA DAO code-backed current state
 
-Updated **2026-10-05** after owner-signed mainnet deployment and receipt export. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
+Updated **2026-10-05** after the evening recurring-workflow-failure investigation. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
 [HANDOFF](../HANDOFF.md) owns the next action and working rules. Observed chain,
 service and data states are timestamped evidence, not guarantees of future state.
 The previous append-only inventory is retained in the [archive](archive/CURRENT_STATE_BEFORE_CLEANUP_2026-10-04.md).
@@ -115,7 +115,11 @@ distinguish key parsing/type/mismatch, source and signing errors without exposin
 private material. Run `37308389038` at 12:16:44 UTC diagnosed **invalid PEM private-key format**.
 The owner must privately replace the secret with the complete existing PEM backup;
 no new key or deployment. A matching valid public signed price and backup custody
-remain launch gates.
+remain launch gates. Evening runs `37343822798` / `37347330414` still fail at
+PEM parsing while Treasury collection and publication both pass. Latest inspected
+source: 17:17:41 UTC (19:17:41 Berlin), portfolio PARTIAL; no `data/nns/price.json`.
+The half-hour schedule explains the recurring failure emails. These are off-chain
+collection/signing jobs, not wallet transactions or contract redeployments.
 PR [#158](https://github.com/cristianoneta/neta-dao/pull/158), merge
 `62f12f1a0c672a776a5f3500ab4e8e8a09b93e42`, passed all 11 final PR checks,
 three main checks and Pages `37302003843`; 15 served assets matched SHA-256.

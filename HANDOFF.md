@@ -1,6 +1,6 @@
 # NETA DAO handoff
 
-Updated: **2026-10-05 (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
+Updated: **2026-10-05, evening checkpoint (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
 
 ## Start here
 
@@ -13,17 +13,18 @@ Updated: **2026-10-05 (Europe/Berlin)**. This is the continuation entry point, n
 
 ## Verified continuation checkpoint — 2026-10-05
 
-The owner requested this handoff before continuing in a new chat. Implementation
-PR [#158](https://github.com/cristianoneta/neta-dao/pull/158) is merged as
-`62f12f1a0c672a776a5f3500ab4e8e8a09b93e42` and published. All 11 final PR checks,
-all three main checks and Pages run `37302003843` succeeded; 15 served files
-matched local SHA-256. The targeted internal security review records 210 passing
-Rust/Node tests plus browser flows; it is not an independent external audit.
-See [review and release evidence](docs/NNS_SECURITY_REVIEW_2026-10-05.md).
+The owner requested a new-chat handoff after showing repeated GitHub failure
+emails on the evening of 2026-10-05. Their cause is verified below: unreadable
+NNS price-key PEM; Treasury collection/publication still succeeds. The user has
+not yet confirmed a corrected secret. Resume with that correction, then price
+verification; do not repeat deployment or completed UNI-7 tests.
 
-**The owner completed all four mainnet deployment transactions at 13:54 Berlin.**
-The production manifest and public receipts are now recorded. Resume signed-price
-verification and activation preparation; do not repeat deployment or UNI-7 tests.
+Mainnet manifest/receipts were published in PR #161 after independent chain
+verification; fixed secret-safe diagnostics and the correction gate shipped in
+PRs #162/#163. The earlier security release #158 and its test evidence remain
+recorded in [review and release evidence](docs/NNS_SECURITY_REVIEW_2026-10-05.md).
+All four owner deployment transactions are complete; no activation or mainnet
+purchase is recorded. The last verified live UI showed purchases paused.
 
 ## Completed today
 
@@ -74,19 +75,28 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   annual USD **99 / 19 / 5**, signer version 1 and the approved public price key.
 - Public key: `XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=`.
   Never regenerate it or request its private backup. The Actions secret is present,
-  but run `37308389038` (12:16:44 UTC) confirmed an invalid PEM private-key format.
+  but latest inspected runs `37343822798` and `37347330414` (18:50 / 19:18 Berlin)
+  still fail to parse it as an unencrypted PEM private key.
   Owner must replace its value with the complete existing `nns-price-key.pem`,
   including BEGIN/END lines and real line breaks. Never send it in chat or create
   a replacement key. Backup custody and matching public-key validation remain open.
 - PR #161 is merged (`7bdcb47e140c0efda768b5cae5fcd828a4526dc4`); all four checks
   passed, including exact chain payloads and two independent provider observations
   in run `37307194424`. See [deployment evidence](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
-- Next: resolve price publication. Run `37307454347` found the secret but signing
-  failed; its public Treasury observation at 12:08:23 UTC and manifest validate.
-  The publisher reports fixed diagnostic labels without logging key material;
-  the current error is **valid unencrypted PEM private key required**.
-  After the error is resolved, verify `data/nns/price.json` signature and original
-  observation/expiry. No separate Render NNS service. Purchases remain paused.
+- **Evening screenshot explained:** the recurring failure emails are the same
+  NNS signing error on the existing `7,37 * * * *` schedule, not repeated deployments.
+  Both latest inspected runs successfully collected and published Treasury data;
+  only the price-signing step failed, making the overall job red. The latest
+  inspected Treasury observation is 19:17:41 Berlin; `data/nns/price.json` is absent.
+  See the evening evidence in the deployment document. No workflow suppression,
+  schedule change, secret edit or chain transaction was performed for this review.
+- **Next chat:** help the owner privately correct `NNS_PRICE_SIGNING_KEY` using
+  the complete existing PEM backup. Do not ask for the key/file in chat, print it,
+  regenerate it, or redeploy. The parse error alone does not establish whether the
+  cause is incomplete contents, wrong contents, line breaks or encryption. Once
+  saved, inspect a fresh Main DAO snapshots run, verify the public signed price
+  against the pinned public key and original observation/expiry, then refresh
+  both providers before preparing owner activation. No separate Render service.
 - Only after a valid public price and verified live config: prepare a separate
   owner-wallet unpause review and a real owner purchase. There is no dedicated
   mainnet tariff/unpause panel yet; do not substitute the deployment helper or a
