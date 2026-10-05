@@ -4,25 +4,26 @@ Pricing amended by the owner on 2026-10-05: annual USD 99 / 19 / 5 for 3 / 4 /
 5–32 characters. Existing registries require an explicit admin tariff update;
 the deployed bootstrap code and historical signed fixtures are unchanged.
 
-Updated 2026-10-04 after PR #145. This document owns the registry/quote protocol.
+Updated 2026-10-05 for registry source v0.3.0; deployed UNI-7 is still v0.2.0. This document owns the registry/quote protocol.
 The isolated UNI-7 mock token, registry and profiles are deployed and verified;
 owner registration, contacts, renewal and transfer have post-state evidence.
 See [current handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md) for identities/receipts.
 Production `NAMES_V2_DEPLOYMENT` and `PROFILE_DEPLOYMENT` remain null; the main
-workspace now integrates the existing UNI-7 operations. The WYND quote server is
-implemented but not hosted/activated; no mainnet name sale is enabled. Its current
-policy, live source observations and launch sequence are in [names/README](../names/README.md).
+workspace now integrates the existing UNI-7 operations. The approved production path uses
+shared signed Treasury prices; the earlier WYND server is deferred. No mainnet
+name sale is enabled. Current policy and launch sequence are in [names/README](../names/README.md).
 Programme decisions are in the profile document.
 
 ## Implementation and remaining boundaries
 
 | Component | Current implementation | Open boundary |
 | --- | --- | --- |
-| `contracts/neta-names-v2` | Deployed on UNI-7; quoted CW20 registration/renewal, transfers, persistent identity | Mainnet deployment and production quote authority |
+| `contracts/neta-names-v2` | v0.2.0 deployed on UNI-7; v0.3.0 source/artifact adds shared snapshot payments | New deployment and production price authority |
 | `names-v2-core.mjs` | BigInt tariff/term rules, quote verification, commitments and payment payload | Production pricing inputs |
 | `names-v2-client.mjs` and reader/wallet | Concrete manifest verification, reviewed Keplr writes, journals and receipt recovery; mounted in lab and main UNI-7 workspace | Mainnet adapters and activation |
 | Validator UI/proofs | Separate operator signatures, link/unlink/revoke through the same journal | Real consenting-operator E2E |
-| `names/quote-policy.mjs` and `names/service/` | Fail-closed policy, WYND average/CoinGecko readers, dual-provider snapshots, HTTP service and durable server key | Hosting, live observation/restart verification, initial baseline and mainnet manifest |
+| `names/publish-snapshot.mjs` and `names/snapshot-client.mjs` | Offline Treasury-price publication and browser purchase preparation | Production key/manifest, mainnet deployment and page/wallet adapter |
+| `names/quote-policy.mjs` and `names/service/` | Original continuous-price service retained as deferred alternative | Not hosted; superseded for initial launch |
 
 Local test quotes use fictional USD 2/mock NETA and a browser-local key. They are
 not a production pricing service. No production feature flag was switched on.
@@ -75,12 +76,33 @@ The authority's conversion rate is trusted: the contract does not prove external
 market data. The service policy requires a pinned mainnet JUNO/NETA pool, fresh
 JUNO/USD source, six-decimal reserves, positive block height, minimum liquidity,
 maximum observation ages, approved price baseline and a configured jump limit.
-Missing/stale/unknown inputs fail closed. The owner selected WYND on 2026-10-05;
-the production adapter now proposes a 30-minute cumulative average, CoinGecko
-JUNO/USD and concrete conservative limits documented in the service runbook.
-Review live behavior before allowing paid mainnet quotes. Averaging does not
-eliminate sustained manipulation of a thin pool. Never use Treasury JSON as a
-quote feed. No private signing key belongs in browser code or repository.
+Missing/stale/unknown inputs fail closed. The owner replaced the separate server on 2026-10-05 with shared signed Treasury
+prices. The preceding individual-quote policy is retained only as the legacy
+protocol; its market limits do not govern new snapshot pricing. See [runbook](../names/README.md).
+No private signing key belongs in browser code or repository.
+
+### Shared snapshot extension — source v0.3.0
+
+New `register_snapshot` / `renew_snapshot` CW20 hooks carry a `SnapshotOffer`:
+`{quote, snapshot, signature}`. The quote retains the exact reviewed intent fields
+above, but the Ed25519 signature signs `NETA names price snapshot v1` followed by
+chain, registry, token, treasury, signer version, rate, observation and expiration.
+It intentionally does not sign the buyer/name/term: the authenticated CW20 sender,
+commitment, current identity, versioned tariff, exact fee and nonce checks validate
+those. One price signature can be reused for different buyers and renewals.
+The quote's five-minute review must also end no later than the price expiration.
+
+Snapshot validity is at most 86,400 seconds from observation. Future, expired,
+zero-rate, mismatched-rate/key or wrong-context snapshots fail. Snapshot nonces
+are not consumed globally; existing **purchase** nonces stay payer-scoped. Current
+identity/expected expiry prevents replayed renewal extending twice. A failed fee
+forwarding transaction rolls back both payment and state as before.
+
+The source retains original individual-quote hooks and historical tests. The old
+UNI-7 WASM does **not** have these snapshot hooks and is never replaced in place.
+Use the new separately pinned registry artifact for a new reviewed deployment.
+Older authentic prices remain acceptable until expiration even if a newer file
+exists. That approximation is deliberate; there is no on-chain latest-price feed.
 
 Only registry governance can pause purchases/renewals, rotate the quote key or
 change tariffs. The registry starts paused; transfers remain possible while

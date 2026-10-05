@@ -4,6 +4,7 @@ export const NAMES_V2_DEPLOYMENT = null;
 export const YEAR = 365 * 24 * 60 * 60;
 export const GRACE = 30 * 24 * 60 * 60;
 export const QUOTE_TTL = 300;
+export const PRICE_SNAPSHOT_TTL = 86400;
 const encoder = new TextEncoder();
 const MAX128 = (1n << 128n) - 1n;
 export const DEFAULT_TARIFF = Object.freeze({three_cents:9900, four_cents:1900, standard_cents:500});
@@ -60,6 +61,23 @@ function decodeBase64(value, size) {
   if(bytes.length!==size || btoa(String.fromCharCode(...bytes))!==value) throw Error('Invalid signature length or encoding.');
   return bytes;
 }
+export function priceSnapshotPreimage(deployment, config, p) {
+  for (const value of [deployment.chain_id, deployment.registry, config.token, config.treasury]) atom(value);
+  if (!['juno-1','uni-7'].includes(deployment.chain_id) || config.chain_id !== deployment.chain_id) throw Error('Registry chain mismatch.');
+  for (const field of ['signer_version','observed_at','expires_at']) integer(p[field],1);
+  decimal(p.usd_per_neta_12);
+  return ['NETA names price snapshot v1', `Registry chain: ${deployment.chain_id}`, `Registry: ${deployment.registry}`,
+    `Token: ${config.token}`, `Treasury: ${config.treasury}`, `Signer version: ${p.signer_version}`,
+    `USD per NETA (12 decimals): ${p.usd_per_neta_12}`, `Observed at: ${p.observed_at}`, `Expires at: ${p.expires_at}`].join('\n');
+}
+export async function validatePriceSnapshot({deployment,config,snapshot,signature,now,cryptoProvider=globalThis.crypto}) {
+  const text=priceSnapshotPreimage(deployment,config,snapshot); integer(now,1);
+  if(snapshot.signer_version!==config.signer_version) throw Error('Price signer changed.');
+  if(snapshot.observed_at>now || snapshot.expires_at<=now || snapshot.expires_at<=snapshot.observed_at || snapshot.expires_at-snapshot.observed_at>PRICE_SNAPSHOT_TTL) throw Error('Price snapshot expired or outside its validity window.');
+  const key=await cryptoProvider.subtle.importKey('raw',decodeBase64(config.quote_public_key,32),{name:'Ed25519'},false,['verify']);
+  if(!await cryptoProvider.subtle.verify('Ed25519',key,decodeBase64(signature,64),encoder.encode(text))) throw Error('Invalid price snapshot signature.');
+  return structuredClone(snapshot);
+}
 export async function validateQuote({deployment, config, offer, expected, now, cryptoProvider=globalThis.crypto}) {
   if (config.purchases_paused !== false) throw Error('Name purchases are paused.');
   const q = offer.quote;
@@ -72,8 +90,14 @@ export async function validateQuote({deployment, config, offer, expected, now, c
   if(q.operation==='register' && (q.payer!==q.owner || q.ownership_revision!==1 || q.expected_expires_at!==0)) throw Error('Registration must be paid by its owner.');
   if(q.operation==='renew') renewalExpiry({expires_at:q.expected_expires_at},q.years,now);
   if(q.amount!==feeAmount(q.name,q.years,q.usd_per_neta_12,config.tariff)) throw Error('Incorrect quote fee.');
-  const key=await cryptoProvider.subtle.importKey('raw',decodeBase64(config.quote_public_key,32),{name:'Ed25519'},false,['verify']);
-  if(!await cryptoProvider.subtle.verify('Ed25519',key,decodeBase64(offer.signature,64),encoder.encode(text))) throw Error('Invalid quote authority signature.');
+  if(Object.hasOwn(offer,'snapshot')) {
+    if(deployment.pricing_protocol!=='treasury-snapshot-v1') throw Error('This deployment does not support price snapshots.');
+    const p=await validatePriceSnapshot({deployment,config,...offer,now,cryptoProvider});
+    if(p.usd_per_neta_12!==q.usd_per_neta_12 || q.expires_at>p.expires_at) throw Error('Quote does not match its price snapshot.');
+  } else {
+    const key=await cryptoProvider.subtle.importKey('raw',decodeBase64(config.quote_public_key,32),{name:'Ed25519'},false,['verify']);
+    if(!await cryptoProvider.subtle.verify('Ed25519',key,decodeBase64(offer.signature,64),encoder.encode(text))) throw Error('Invalid quote authority signature.');
+  }
   return structuredClone(q);
 }
 export async function commitmentHash(deployment, owner, name, salt, cryptoProvider=globalThis.crypto) {
@@ -84,7 +108,9 @@ export async function commitmentHash(deployment, owner, name, salt, cryptoProvid
 }
 export function paymentMessage(deployment, config, offer, salt) {
   // Call only after validateQuote and a fresh identity/wallet check.
-  const hook=offer.quote.operation==='register'?{register:{offer,salt}}:{renew:{offer}};
+  const register=offer.quote.operation==='register';
+  const key=register?(offer.snapshot?'register_snapshot':'register'):(offer.snapshot?'renew_snapshot':'renew');
+  const hook={[key]:register?{offer,salt}:{offer}};
   if(offer.quote.operation==='register' && !/^[a-f0-9]{64}$/.test(salt)) throw Error('Missing registration commitment secret.');
   const msg=btoa(String.fromCharCode(...encoder.encode(JSON.stringify(hook))));
   return {contract:config.token,msg:{send:{contract:deployment.registry,amount:offer.quote.amount,msg}}};

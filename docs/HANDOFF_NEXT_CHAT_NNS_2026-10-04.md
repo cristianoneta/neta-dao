@@ -1,9 +1,10 @@
 # Next chat — NNS WYND service and mainnet preparation
 
-Checkpoint updated: 2026-10-05 after quote-service PR #153. The service is merged,
-not hosted; mainnet deployment and frontend adapters remain open. First action:
-separate Render Blueprint `names/render.yaml` in observe mode. See
-[release evidence](NNS_WYND_RELEASE_2026-10-05.md) and [service runbook](../names/README.md).
+Checkpoint updated: 2026-10-05 after the owner **replaced the Render price-service
+plan with Treasury price snapshots**. Source v0.3.0 and an offline Actions publisher
+are prepared; no mainnet deployment/secret exists. Next: owner-controlled price
+key and mainnet preparation, not Render. See [root HANDOFF](../HANDOFF.md),
+[snapshot checkpoint](NNS_SNAPSHOT_RELEASE_2026-10-05.md) and [runbook](../names/README.md).
 The earlier UNI-7 lifecycle/validator evidence below remains valid as dated evidence.
 Read AGENTS.md, HANDOFF.md and CURRENT_STATE.md; read DESIGN_SYSTEM.md before
 UI edits. This records observed session state, not a future chain attestation.
@@ -43,10 +44,9 @@ The integration tests simulate chain/wallet adapters; an owner check of this new
 UI is pending. Real validator testing remains deferred. The owner subsequently
 selected WYND for NETA pricing, reconfirmed the tariff and requested moving to
 mainnet. The server/Render preparation is in [names/README](../names/README.md).
-It is implemented, not yet hosted. Next is the separate Render Blueprint in
-observe mode, followed by verified key/market/restart behavior, mainnet deployment
-and DAO tariff proposal. The mainnet frontend/wallet integration and separate DAO
-unpause remain open. No mainnet contract address or activation is recorded.
+The later owner decision replaces that service with shared signed Treasury prices;
+see the root handoff for the current key/deployment sequence. No mainnet contract
+address or activation is recorded.
 
 ## Current owner state and completed tests
 
@@ -247,10 +247,9 @@ keys, erase pending journals or enable mainnet messaging while fixing testnet UI
 
 Suggested next-chat prompt:
 
-> Continue NNS validator ownership testing from current GitHub main. Read AGENTS,
-> HANDOFF, CURRENT_STATE and the NNS next-chat handoff. Registration, contacts,
-> renewal and two-wallet transfer were checked on UNI-7. cristiano.neta now belongs
-> to juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57 and has an empty current profile.
-> Do not repeat those transactions. Validator UI #145 is published and verified.
-> The next gate is consenting-operator link/unlink/revocation E2E; do not claim it
-> complete without real evidence. Keep mainnet purchases disabled.
+> Continue NNS from current main. Read AGENTS, HANDOFF, CURRENT_STATE and
+> names/README.md. The owner approved Treasury-based shared signed price snapshots
+> with 24-hour validity, no separate Render service. Preserve the existing UNI-7
+> contracts and completed lifecycle tests. Check current PR/CI and the snapshot
+> checkpoint, then continue key setup and reviewed mainnet preparation. Validator
+> tests remain deferred; no purchase activation without the wallet/DAO receipts.

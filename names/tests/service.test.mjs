@@ -13,6 +13,7 @@ import {POLICY, POOL, NETA, DAO, LP, TARIFF, ARTIFACTS, ORIGIN} from '../service
 import {marketPrice} from '../quote-policy.mjs';
 import {validateQuote} from '../../names-v2-core.mjs';
 import {deploymentPlan, tariffProposal} from '../mainnet-plan.mjs';
+import {SNAPSHOT_ARTIFACTS} from '../mainnet-artifacts.mjs';
 
 // Synthetic mainnet-shaped manifest: these test addresses are NOT a deployment.
 const OWNER = 'juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt';
@@ -166,7 +167,9 @@ test('mainnet plan pins actual NETA and DAO, starts paused and never bundles unp
   const store = new Store(':memory:');
   try {
     const p = deploymentPlan(store.publicKey); assert.equal(p.registry_instantiate.admin, DAO); assert.equal(p.registry_instantiate.token, NETA); assert.equal(p.starts_paused, true);
-    const m = manifest(store.publicKey), proposal = tariffProposal(m, {...m, tariff_version: 1, purchases_paused: true});
+    const m = {...manifest(store.publicKey),version:3,pricing_protocol:'treasury-snapshot-v1'};
+    for (const role of ['registry','profiles']) m.contracts[role].sha256=SNAPSHOT_ARTIFACTS[role].sha256;
+    const proposal = tariffProposal(m, {...m, tariff_version: 1, purchases_paused: true});
     assert.deepEqual(JSON.parse(Buffer.from(proposal.msgs[0].wasm.execute.msg, 'base64')), {set_tariff: {tariff: TARIFF, expected_version: 1}});
     assert.equal(proposal.msgs.length, 1);
     assert.throws(() => validateDeployment({...m, admin: OWNER}, store.publicKey), /mismatch/);

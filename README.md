@@ -12,7 +12,9 @@ state before signing. This documentation review changes no application behavior.
 
 For the current owner test, read [the NNS continuation](docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md).
 Setup recovery, registration, public contacts, renewal and two-wallet transfer are confirmed on UNI-7.
-The validator ownership UI is the next live test; a consenting operator is still needed.
+Validator live tests are deferred. Next is the approved Treasury-based NNS price
+snapshot setup and mainnet preparation; see [names/README.md](names/README.md).
+No separate Render NNS service is needed.
 
 For UI work and new pages, follow [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
 The 2026-10-03 selected direction is graphite/mint with restrained voxel accents
@@ -33,7 +35,7 @@ HANDOFF for the current continuation.
 | RELAY Inbox | Local notifications from Operations and native Juno mainnet proposals | No UNI-7 review polling, push or cross-device sync |
 | RELAY Composer | Temporary preview and read-only UNI-7 mailbox identity check | Main application cannot send or save plaintext drafts |
 | RELAY encrypted lab | Separate UNI-7 device registration, ciphertext send/receive and encrypted local history | Mocked two-profile test passed; real two-wallet E2E still unrecorded |
-| Names in RELAY | Directory search, DAO details/copy/follows, USD fee calculator, unpublished contact/validator profile preview | v2 registry, live quotes, profile/contacts persistence and payments are not connected; `REGISTRY=null` |
+| Names in RELAY | Directory and shared-wallet UNI-7 registration/renewal/transfers/public contacts | Mainnet disabled; production uses the prepared shared Treasury-price protocol after deployment and adapter work |
 | Names v2 UNI-7 lab | Separate Keplr setup/lab with verified deployed mock token, registry and profiles; purchases activated | Registration/profile/renewal/transfer post-state checked; separate operator-proof UI, live validator E2E outstanding; mainnet disabled |
 | People / Delivery | Chain-backed Members adapters, planned Contributors and structured proposal deliverables | No authoritative contributor assignments, milestone acceptance or payment release |
 | UNI-7 faucet | Connected funded Render service, Keplr, donations, staking/rewards and guarded payout requests | Reward/donation receipts verified; payout/restart and stake/unstake E2E evidence remains open |
