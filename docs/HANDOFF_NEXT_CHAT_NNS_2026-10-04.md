@@ -36,8 +36,13 @@ transfer and public contacts have main-page controls and explicit reviews. Start
 with Read test registry and Load my name; do not repeat setup or the completed
 purchases/transfer. Test quotes still use the original browser's saved authority.
 The integration tests simulate chain/wallet adapters; an owner check of this new
-UI is pending. Real validator testing remains deferred. Mainnet needs a production
-quote service, price/key policy and its own verified deployment before launch.
+UI is pending. Real validator testing remains deferred. The owner subsequently
+selected WYND for NETA pricing, reconfirmed the tariff and requested moving to
+mainnet. The server/Render preparation is in [names/README](../names/README.md).
+It is implemented, not yet hosted. Next is the separate Render Blueprint in
+observe mode, followed by verified key/market/restart behavior, mainnet deployment
+and DAO tariff proposal. The mainnet frontend/wallet integration and separate DAO
+unpause remain open. No mainnet contract address or activation is recorded.
 
 ## Current owner state and completed tests
 

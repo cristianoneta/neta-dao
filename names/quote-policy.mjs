@@ -1,5 +1,5 @@
 // Server-side quote construction, with injected custody and market readers.
-// No HTTP service, private key or live market source is activated by this module.
+// The production adapter lives in service/; this module also retains test fixtures.
 import {feeAmount,quotePreimage,QUOTE_TTL,renewalExpiry} from '../names-v2-core.mjs';
 import {normalizeName} from '../names-profile-core.mjs';
 import {randomBytes} from 'node:crypto';
@@ -22,7 +22,11 @@ export function marketPrice({pool, usd, previous, policy, now}) {
   if(!Number.isSafeInteger(pool.height)||pool.height<=0) throw Error('Missing pool observation height.');
   const juno=positive(pool.juno_reserve), neta=positive(pool.neta_reserve), junoUsd=positive(usd.usd_per_juno_12);
   if(juno<positive(policy.min_juno_reserve)||neta<positive(policy.min_neta_reserve)) throw Error('Pool reserves below the approved minimum.');
-  const price=juno*junoUsd/neta;
+  let price=juno*junoUsd/neta;
+  if(policy.twap_seconds!==undefined){
+    if(!Number.isSafeInteger(policy.twap_seconds)||policy.twap_seconds<1800||!Number.isSafeInteger(pool.twap_start)||pool.observed_at-pool.twap_start<policy.twap_seconds) throw Error('Verified pool average unavailable.');
+    price=positive(pool.twap_price_6)*junoUsd/1000000n;
+  }
   if(price<=0n || price>((1n<<128n)-1n)) throw Error('Invalid derived NETA price.');
   if(!previous || !Number.isSafeInteger(previous.observed_at)||previous.observed_at>now||now-previous.observed_at>policy.max_baseline_age) throw Error('Reviewed price baseline unavailable.');
   const old=positive(previous.usd_per_neta_12), difference=price>old?price-old:old-price;

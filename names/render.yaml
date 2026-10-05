@@ -1,0 +1,29 @@
+# Separate Blueprint: do not replace the root faucet Blueprint.
+previews:
+  generation: off
+services:
+  - type: web
+    name: neta-nns-quotes
+    runtime: node
+    region: frankfurt
+    plan: 0.5c-512mb
+    numInstances: 1
+    autoDeployTrigger: off
+    buildCommand: node --version
+    startCommand: node names/service/server.mjs
+    healthCheckPath: /healthz
+    disk:
+      name: nns-quote-state
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
+      - key: NNS_DB_PATH
+        value: /var/data/nns/quotes.sqlite
+      - key: NNS_CONFIG_JSON
+        value: '{"signing_enabled":false}'
+      - key: COINGECKO_DEMO_API_KEY
+        sync: false

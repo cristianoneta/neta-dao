@@ -1,0 +1,22 @@
+name: NNS quote service CI
+on:
+  pull_request:
+    paths: ["names/**", "names-v2-core.mjs", "names-profile-core.mjs", ".github/workflows/nns-quote-ci.yml"]
+  push:
+    branches: [main]
+    paths: ["names/**", "names-v2-core.mjs", "names-profile-core.mjs", ".github/workflows/nns-quote-ci.yml"]
+permissions:
+  contents: read
+concurrency:
+  group: nns-quotes-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.19.0
+      - run: node --test names/tests/*.test.mjs

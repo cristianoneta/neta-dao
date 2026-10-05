@@ -86,13 +86,21 @@ Lost/unknown submissions stay locked until reconciled; no automatic resend occur
 
 The accepted annual tariff is USD 99/19/5 for 3/4/5–32 characters, for both
 registration and renewal, 1–5-year terms, 365-day years and 30-day grace. Mainnet
-fees target the main NETA DAO, not Operations. Production quote feeds, policy,
-HTTP service, signer custody and mainnet deployment are still open. See
+fees target the main NETA DAO, not Operations. The server in `names/service/` now
+implements WYND cumulative-price averaging, CoinGecko JUNO/USD, coherent dual-node
+reads, persistent Ed25519 custody, signed offers and usage guards. The separate
+`names/render.yaml` starts in observe mode. It has **not** been hosted, given a
+production deployment manifest or activated for purchases. Live window/restart
+verification, review of operational limits, mainnet contracts/DAO execution and
+the mainnet frontend/wallet adapter remain open. See [service runbook](../names/README.md),
 [product plan](NETA_NAMES_V2_PLAN.md), [registry protocol](NNS_V2_REGISTRY_2026-10-04.md)
 and [profile protocol/programme decisions](NNS_VALIDATOR_PROFILES_2026-10-04.md).
 The existing UNI-7 registry needs an explicit admin `set_tariff` transaction via
 the lab Annual pricing section; source/UI changes do not alter deployed config.
 Its activation remains unverified until that wallet receipt/config is checked.
+`names/mainnet-plan.mjs` prepares unsigned mainnet deployment and DAO tariff
+review material. Only the DAO can set the mainnet tariff or unpause; no live
+mainnet transaction, deployed address or receipt is claimed by this slice.
 Original WASM/bootstrap tariff and signed historical fixtures remain unchanged;
 new installations also apply the approved tariff before purchasing. Quotes read
 the current on-chain tariff/version.
