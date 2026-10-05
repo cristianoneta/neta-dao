@@ -71,6 +71,8 @@ try {
   await page.locator('#names-fee-label').fill('abcd');
   assert.equal(await page.locator('#names-fee-total').textContent(),'$19 USD');
   await click('nns-check-name');assert.match(await page.locator('#nns-name-result').textContent(),/available on UNI-7/);assert.equal(writes.length,0);
+  config.tariff.four_cents=16000;await click('nns-refresh');await click('nns-prepare');assert.match(await page.locator('#nns-status').textContent(),/approved USD 99/);assert.equal(writes.length,0);
+  config.tariff.four_cents=1900;await click('nns-refresh');
   await click('nns-prepare');assert.equal(writes.length,0);
   await click('nns-reserve');assert.match(await page.locator('#nns-review-text').textContent(),/Reserve abcd.neta/);assert.equal(writes.length,0);
   await click('nns-confirm');assert.equal(writes.length,1);
@@ -121,7 +123,7 @@ try {
     }
   }
   await page.setViewportSize({width:720,height:500});await page.locator('[data-relay-panel="register"]').click();
-  await page.locator('#nns-refresh').focus();assert.notEqual(await page.locator('#nns-refresh').evaluate(el=>getComputedStyle(el).outlineStyle),'none');
+  await page.locator('#nns-refresh').focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'nns-refresh');assert.notEqual(await page.locator('#nns-refresh').evaluate(el=>getComputedStyle(el).outlineStyle),'none');
   assert.deepEqual(errors,[]);
   console.log('Integrated NNS: register, quote, renew, contacts, transfer, stale review, shared wallet, pending journal reload and responsive UI passed.');
 }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}

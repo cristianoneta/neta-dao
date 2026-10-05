@@ -98,3 +98,4 @@
 .nns-review pre { white-space:pre-wrap; overflow-wrap:anywhere; font:14px/1.7 ui-monospace,monospace; }
 .nns-session p,#nns-name-result { overflow-wrap:anywhere; }
 #nns-workspace-session[hidden],#nns-review[hidden],#nns-recovery[hidden],#nns-offer-fields[hidden] { display:none; }
+#nns-review-heading { scroll-margin-top:180px; }
