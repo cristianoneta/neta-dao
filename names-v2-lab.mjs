@@ -3,7 +3,7 @@ import {NamesV2Reader} from './names-v2-reader.mjs?v=4';
 import {connectNamesWallet} from './names-v2-wallet.mjs?v=5';
 import {normalizeName,normalizeContacts,validateJunoAddress} from './names-profile-core.mjs';
 import {createTestQuote} from './names-v2-test-authority.mjs';
-import {validateQuote,DEFAULT_TARIFF} from './names-v2-core.mjs';
+import {validateQuote,DEFAULT_TARIFF} from './names-v2-core.mjs?v=20261005-pricing-1';
 const $=id=>document.getElementById(id);
 let deployment=null,session=null,busy=false,review=null,validators=null,connectionEpoch=0;
 const now=()=>Math.floor(Date.now()/1000);
