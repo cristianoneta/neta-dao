@@ -1,25 +1,68 @@
 # Next chat — NNS Treasury prices and mainnet preparation
 
-Checkpoint updated: 2026-10-05 after the owner **replaced the Render price-service
-plan with Treasury price snapshots**. Source v0.3.1 and an offline Actions publisher
-are prepared; no mainnet deployment receipt exists and secret installation is
-unconfirmed. The public key is now pinned; next use `names-mainnet-deploy.html`
-for remaining individually reviewed owner transactions and export public receipts.
-The chosen deployment wallet and initial upgrade administrator are
-`juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57` (owner correction 12:50 Berlin).
-A later transfer of both upgrade rights to the DAO is possible but not authorized
-for execution now. The same wallet also controls tariffs and activation; the DAO only receives fees.
-The owner confirmed at 12:54 Berlin that nothing was uploaded or signed. The new
-registry v0.3.1 WASM is needed for the independent application administrator;
-historical WASMs and any journals remain intact.
-Mainnet reader/wallet/page adapters and a network selector are implemented and
-synthetically tested. Missing production manifest/admin activation keeps writes off. See [root HANDOFF](../HANDOFF.md),
-[snapshot checkpoint](NNS_SNAPSHOT_RELEASE_2026-10-05.md) and [runbook](../names/README.md).
-The earlier UNI-7 lifecycle/validator evidence below remains valid as dated evidence.
-Read AGENTS.md, HANDOFF.md and CURRENT_STATE.md; read DESIGN_SYSTEM.md before
-UI edits. This records observed session state, not a future chain attestation.
+Checkpoint updated: **2026-10-05 after PR #158 publication and the internal
+security review**. The date in this filename preserves existing links. The owner
+requested a new-chat handoff before any deployment transaction.
+Read [AGENTS](../AGENTS.md), [root HANDOFF](../HANDOFF.md) and
+[CURRENT_STATE](CURRENT_STATE.md); read DESIGN_SYSTEM.md before UI edits.
 
-## Owner update — 2026-10-05
+## Resume here: mainnet deployment, still unsigned
+
+- PR [#158](https://github.com/cristianoneta/neta-dao/pull/158) is merged as
+  `62f12f1a0c672a776a5f3500ab4e8e8a09b93e42` and live. All 11 final PR checks,
+  three main checks and Pages `37302003843` passed; 15 served files matched.
+  [Review evidence](NNS_SECURITY_REVIEW_2026-10-05.md) records 210 passing
+  Rust/Node tests and browser flows. This is a targeted internal review, not an
+  independent audit. Do not repeat this work just to reconstruct chat context.
+- At 12:54 Berlin the owner confirmed **nothing had been uploaded or signed**;
+  only the old registry-upload review was displayed. No recovery/redeployment is
+  needed. No production contract/code IDs or wallet receipts have been recorded.
+- Selected wallet: `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.
+  It initially holds **both Wasm upgrade rights and registry administration**
+  (tariffs, pause, price-key rotation). The main NETA DAO only receives name fees.
+  Later transfers require separate `MsgUpdateAdmin` actions for each contract
+  and registry `set_admin` for application authority, plus updated verified pins.
+  No transfer or removal of upgrade authority is authorized now.
+- Force-reload (Ctrl+F5) [the deployment page](https://dao.netareborn.com/names-mainnet-deploy.html),
+  discard the old unsent review, connect wallet …57, then individually review and
+  confirm registry upload → registry creation → profile upload → profile creation.
+  Each action uses real JUNO gas shown in Keplr; deployment sends no NETA.
+  Use **Verify and download public receipts** and provide the public
+  `nns-mainnet-deployment-receipts.json`. Preserve site data and journals.
+- Registry **v0.3.1**: `assets/names-mainnet/neta_names_v2_v031.wasm`, SHA-256
+  `f25c982db217363c395a1c09c3028988cff390323b0aa852249016bbebe974fc`.
+  The old review hash `821f85a345adf68e3323315a0220286046c88d30c92c4e296afcfe7414bdea71`
+  belongs to preserved v0.3.0, not the new deployment target. Profiles stay at
+  `assets/names-testnet/neta_validator_profiles.wasm`, SHA-256
+  `9d47676d8dd0040b1cea4a39a3e8c95a75ea4841cd5b2eb5feb83c7f4516ceed`.
+- Registry starts **paused**, initially USD **99 / 19 / 5** annually for
+  3 / 4 / 5–32 characters. Mainnet purchases follow the verified current tariff,
+  so the owner can adjust prices later. Historical UNI-7 code stays unchanged.
+- Public price key is already pinned:
+  `XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=`. Do not regenerate it.
+  Private backup custody and owner installation of `NNS_PRICE_SIGNING_KEY` in
+  GitHub Actions remain **unconfirmed**. Never request the private key in chat.
+- Reuse existing Treasury WYND prices: the existing job targets minutes 7/37;
+  signed observations expire within 24 hours of the original observation.
+  Ordinary deviations and authentic older prices until expiry are accepted.
+  **No new Render NNS service**, price polling or on-chain price-update job.
+- After receiving receipts, independently verify chain/code/config/admins and
+  publish `docs/deployments/nns-mainnet.json` (version 3). It does not yet exist;
+  the dated unsigned plan is not a deployment receipt or production manifest.
+  Confirm secret installation, verify the public signed price and mainnet UI
+  while paused, then prepare a separate owner-reviewed unpause and real purchase.
+  There is **no dedicated mainnet owner tariff/unpause panel yet**: contract
+  authority and unsigned helpers exist. Do not claim the deployment page activates
+  purchases or that a DAO proposal is needed for current owner administration.
+
+The owning procedure is [names/README](../names/README.md). Missing production
+manifest or failed verification keeps mainnet operations unavailable. Real mainnet
+purchase and consenting-validator E2E remain open; validator testing is deferred.
+The existing UNI-7 deployment, completed lifecycle and original local authority
+must be preserved. The sections below are dated UNI-7 evidence, not another
+mainnet setup sequence; its original admin wallet differs from mainnet wallet …57.
+
+## UNI-7 owner update — 2026-10-05
 
 Live validator testing is paused until later at the owner's request.
 Approved annual registration AND renewal tariffs are now **USD 99 / 19 / 5** for
@@ -33,8 +76,9 @@ No receipt for that update has been recorded yet. Verify config before continuin
 
 The existing source/WASM bootstrap tariff and signed historical fixtures retain
 640/160/5 for reproducibility. Do not replace deployed code, artifact hashes or
-old receipts. New installations must apply the approved tariff via the same admin
-action before testing purchases. Test quotes always use the **on-chain** tariff
+old receipts. New UNI-7 installations using the historical artifact must apply the approved
+tariff via the same admin action before testing purchases. Mainnet v0.3.1 already
+starts with 99/19/5 while paused. Test quotes always use the **on-chain** tariff
 and version, never a UI override. A tariff version change invalidates old quotes;
 existing name ownership/expiry and standard-name pricing remain unchanged.
 

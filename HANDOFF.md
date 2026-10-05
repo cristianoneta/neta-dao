@@ -11,6 +11,20 @@ Updated: **2026-10-05 (Europe/Berlin)**. This is the continuation entry point, n
 4. Use [the documentation index](docs/README.md) to find the owning runbook.
    Dated evidence and archives do not override the current state.
 
+## Verified continuation checkpoint — 2026-10-05
+
+The owner requested this handoff before continuing in a new chat. Implementation
+PR [#158](https://github.com/cristianoneta/neta-dao/pull/158) is merged as
+`62f12f1a0c672a776a5f3500ab4e8e8a09b93e42` and published. All 11 final PR checks,
+all three main checks and Pages run `37302003843` succeeded; 15 served files
+matched local SHA-256. The targeted internal security review records 210 passing
+Rust/Node tests plus browser flows; it is not an independent external audit.
+See [review and release evidence](docs/NNS_SECURITY_REVIEW_2026-10-05.md).
+
+**No mainnet upload/signature has occurred according to the owner's last report.**
+No production contract addresses or receipts are recorded. The next chat should
+resume the reviewed deployment below, not repeat the audit or UNI-7 lifecycle.
+
 ## Completed today
 
 - NNS UNI-7 setup/recovery, registration, public contacts, one-year renewal and
@@ -52,9 +66,11 @@ local authority and transaction journals remain unchanged. Source and synthetic
 tests are not a deployed mainnet or owner-wallet purchase. See [the owning runbook](names/README.md)
 and [snapshot release checkpoint](docs/NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 
-**Next owner action:** reload `https://dao.netareborn.com/names-mainnet-deploy.html`
+**Next owner action:** force-reload (Ctrl+F5; discard the old unsent review) `https://dao.netareborn.com/names-mainnet-deploy.html`
 and connect `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`. Review registry v0.3.1
-upload/creation and profile upload/creation separately, then export the receipt bundle.
+upload/creation and profile upload/creation separately, then use **Verify and download public receipts** and share the public
+`nns-mainnet-deployment-receipts.json` in the next chat. Each of the four actions
+requires its own Keplr review/confirmation and real JUNO gas; deployment sends no NETA.
 At 12:54 Berlin the owner explicitly confirmed **nothing has been uploaded or
 signed**: only the old registry upload review was displayed. No chain recovery or
 replacement deployment is needed. Do not treat the old review as a receipt.
@@ -103,6 +119,9 @@ Absent or unverified production manifests keep mainnet operations unavailable.
 Browser suites exercise both networks with synthetic adapters, not live receipts.
 After owner-signed deployment, verify the public price and real mainnet UI, activate
 purchases through a separate admin-wallet transaction and verify an owner-signed purchase.
+A dedicated mainnet owner panel for tariff changes/unpause is not yet implemented.
+The contract authority and unsigned preparation helper exist; prepare the concrete
+owner review only after the verified manifest and price are available.
 No mainnet address or wallet/DAO receipt is recorded.
 
 The main `.neta name` and `My profile` pages already reuse the existing UNI-7

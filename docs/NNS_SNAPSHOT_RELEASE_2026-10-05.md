@@ -1,5 +1,13 @@
 # Treasury price snapshot checkpoint — 2026-10-05
 
+**Historical PR #155 checkpoint.** The implementation and remaining steps below
+record that earlier release, not the current continuation plan. PR #158 subsequently
+published registry v0.3.1, mainnet integration and owner-wallet upgrade/tariff rights.
+The public key now exists; installation of the private Actions secret is still
+unconfirmed. The initial tariff is configured at creation; owner-wallet activation
+replaces the earlier DAO proposal sequence. See the [current handoff](../HANDOFF.md)
+and [latest security/release evidence](NNS_SECURITY_REVIEW_2026-10-05.md).
+
 Owner accepted approximate periodic pricing and reuse of existing Treasury data.
 This replaces the separate Render/WYND continuous-service deployment plan.
 Current operation and setup are owned by [names/README](../names/README.md).

@@ -1,7 +1,7 @@
 # NETA DAO code-backed current state
 
-Updated **2026-10-05** for mainnet Names adapters and browser price-key setup
-following Treasury snapshot-price PR #155. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
+Updated **2026-10-05** after owner-authority/security PR #158 was merged and
+published. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
 [HANDOFF](../HANDOFF.md) owns the next action and working rules. Observed chain,
 service and data states are timestamped evidence, not guarantees of future state.
 The previous append-only inventory is retained in the [archive](archive/CURRENT_STATE_BEFORE_CLEANUP_2026-10-04.md).
@@ -108,7 +108,15 @@ migration test verifies authority, state preservation and subsequent DAO transfe
 Private backup custody and the production Actions secret are unconfirmed; a verified
 version-3 production manifest and mainnet contracts/admin-wallet execution remain unrecorded. The owner confirmed
 no transaction had been signed or uploaded at 12:54 Berlin. The publication step skips while no production manifest exists.
-See [runbook](../names/README.md) and [snapshot evidence](NNS_SNAPSHOT_RELEASE_2026-10-05.md).
+PR [#158](https://github.com/cristianoneta/neta-dao/pull/158), merge
+`62f12f1a0c672a776a5f3500ab4e8e8a09b93e42`, passed all 11 final PR checks,
+three main checks and Pages `37302003843`; 15 served assets matched SHA-256.
+The [targeted review](NNS_SECURITY_REVIEW_2026-10-05.md) records 210 passing
+Rust/Node tests and browser evidence, with remaining trust/launch gates.
+There is no dedicated mainnet owner tariff/unpause panel yet; contract authority
+and unsigned message preparation exist. A future owner-confirmed activation
+still needs a concrete reviewed action after manifest and price verification.
+See [runbook](../names/README.md) and [historical snapshot evidence](NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 The earlier continuous WYND server is deferred, not hosted. Its stricter policy
 is not the policy of the approved snapshot system.
 The existing UNI-7 registry needs an explicit admin `set_tariff` transaction via
