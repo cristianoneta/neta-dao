@@ -92,7 +92,7 @@ export async function validateQuote({deployment, config, offer, expected, now, c
   if(q.amount!==feeAmount(q.name,q.years,q.usd_per_neta_12,config.tariff)) throw Error('Incorrect quote fee.');
   if(Object.hasOwn(offer,'snapshot')) {
     if(deployment.pricing_protocol!=='treasury-snapshot-v1') throw Error('This deployment does not support price snapshots.');
-    const p=await validatePriceSnapshot({deployment,config,...offer,now,cryptoProvider});
+    const p=await validatePriceSnapshot({deployment,config,snapshot:offer.snapshot,signature:offer.signature,now,cryptoProvider});
     if(p.usd_per_neta_12!==q.usd_per_neta_12 || q.expires_at>p.expires_at) throw Error('Quote does not match its price snapshot.');
   } else {
     const key=await cryptoProvider.subtle.importKey('raw',decodeBase64(config.quote_public_key,32),{name:'Ed25519'},false,['verify']);

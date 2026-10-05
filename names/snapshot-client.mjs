@@ -4,7 +4,7 @@ import {feeAmount, validatePriceSnapshot, validateQuote, QUOTE_TTL} from '../nam
 
 export async function snapshotOffer({deployment,config,signedPrice,expected,now=Math.floor(Date.now()/1000),cryptoProvider=globalThis.crypto}) {
   if(deployment.pricing_protocol!=='treasury-snapshot-v1') throw Error('A reviewed snapshot-capable deployment is required.');
-  const snapshot=await validatePriceSnapshot({deployment,config,...signedPrice,now,cryptoProvider});
+  const snapshot=await validatePriceSnapshot({deployment,config,snapshot:signedPrice.snapshot,signature:signedPrice.signature,now,cryptoProvider});
   const quote={...expected,tariff_version:config.tariff_version,signer_version:config.signer_version,
     usd_per_neta_12:snapshot.usd_per_neta_12,
     amount:feeAmount(expected.name,expected.years,snapshot.usd_per_neta_12,config.tariff),

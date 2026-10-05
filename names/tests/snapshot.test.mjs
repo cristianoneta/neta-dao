@@ -109,3 +109,15 @@ test('publisher CLI retains the exact last good file on collection/key errors an
     assert.equal(run(pem).status,1);assert.equal(readFileSync(output,'utf8'),before);
   } finally {rmSync(dir,{recursive:true,force:true});}
 });
+
+
+test('untrusted price envelope cannot replace the verified deployment or authority config',async()=>{
+  const otherKey=createPrivateKey({key:Buffer.concat([Buffer.from('302e020100300506032b657004220420','hex'),Buffer.alloc(32,8)]),format:'der',type:'pkcs8'});
+  const signedPrice=price();
+  signedPrice.config={...config,quote_public_key:createPublicKey(otherKey).export({format:'der',type:'spki'}).subarray(-32).toString('base64')};
+  signedPrice.signature=sign(null,Buffer.from(priceSnapshotPreimage(deployment,signedPrice.config,signedPrice.snapshot)),otherKey).toString('base64');
+  await assert.rejects(snapshotOffer({deployment,config,signedPrice,expected,now}),/signature/);
+  const offer=await snapshotOffer({deployment,config,signedPrice:price(),expected,now});
+  offer.config=signedPrice.config;offer.signature=signedPrice.signature;
+  await assert.rejects(validateQuote({deployment,config,offer,expected,now}),/signature/);
+});

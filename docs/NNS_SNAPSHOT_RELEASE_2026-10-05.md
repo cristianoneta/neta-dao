@@ -27,7 +27,7 @@ Current operation and setup are owned by [names/README](../names/README.md).
 - Registry: 21 Rust tests passed, including five new shared-price tests with
   Node/Rust signature fixture, actual CW20 fee forwarding, rollback, multiple
   buyers, renewal/replay, wrong authority/domain, expiry and altered amounts.
-- Root + Names Node suites: 114 tests passed.
+- Root + Names Node suites: 115 tests passed.
 - Python Treasury/history, DAO onboarding, events and member suites: 31 passed.
 - Rust format and Clippy with warnings denied passed. Release WASM built using
   pinned Rust 1.81.0 and the repository reproducible-build script. A transient
