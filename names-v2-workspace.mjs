@@ -1,6 +1,6 @@
-import {snapshotReview} from './names/snapshot-client.mjs';
+import {snapshotReview} from './names/snapshot-client.mjs?v=2';
 import {NamesV2Reader} from './names-v2-reader.mjs?v=5';
-import {connectNamesWallet} from './names-v2-wallet.mjs?v=6';
+import {connectNamesWallet} from './names-v2-wallet.mjs?v=7';
 import {normalizeName, normalizeContacts, validateJunoAddress, CONTACT_FIELDS} from './names-profile-core.mjs';
 import {createTestQuote} from './names-v2-test-authority.mjs';
 import {validateQuote, DEFAULT_TARIFF} from './names-v2-core.mjs?v=20261005-pricing-1';
@@ -43,6 +43,11 @@ function render() {
   try { i = intent(); } catch (error) { broken = true; message(error.message); }
   const open = broken || (i && i.phase !== 'complete'), pending = pendingPhases.includes(i?.phase);
   const connected = !!wallet(), ready = !!config, registration = $('nns-operation').value === 'register';
+  const admin = mainnet() && ready && connected && config.admin === wallet();
+  $('nns-admin').hidden = !admin;
+  $('nns-admin-review').disabled = busy || !admin || !!open;
+  $('nns-admin-review').textContent = config?.purchases_paused ? 'Review opening purchases' : 'Review pausing purchases';
+  $('nns-admin-status').textContent = admin ? `Juno mainnet · purchases ${config.purchases_paused?'paused':'enabled'} · admin ${config.admin}` : '';
   $('nns-refresh').disabled = busy;
   $('nns-network').disabled = busy;
   $('nns-my-name').disabled = busy || !connected || !ready;
@@ -96,7 +101,7 @@ function approvedTariff(checked) {
 async function loadSigning() {
   if (window.NetaNamesSigning) return;
   if (!signingReady) signingReady = new Promise((resolve, reject) => {
-    const script = document.createElement('script'); script.src = 'assets/names-signing.js?v=4';
+    const script = document.createElement('script'); script.src = 'assets/names-signing.js?v=5';
     script.onload = resolve; script.onerror = () => { script.remove(); signingReady = null; reject(Error('Names signing could not load. Try again.')); };
     document.head.append(script);
   });
@@ -125,7 +130,7 @@ function showReview(text, action, check) {
   review = {action: async () => {
     guard(startEpoch, startVersion);
     if (session !== current || wallet() !== current.owner) throw Error('Wallet changed. Review again.');
-    await action();
+    return action();
   }};
   $('nns-review-text').textContent = text;
   $('nns-review').hidden = false; $('nns-review-heading').focus();
@@ -150,6 +155,24 @@ window.addEventListener('neta:relay-panel', route);
 window.addEventListener('hashchange', route);
 $('nns-refresh').onclick = () => run(async check => {
   clearReview(); await verify(); check(); message(`${networkLabel()} registry ready. Use the shared header to connect Keplr.`);
+});
+$('nns-admin-review').onclick = () => run(async check => {
+  clearReview();
+  if(!mainnet())throw Error('Registry administration is available on Juno mainnet.');
+  const current=await connected(check);
+  const checked=await verify();check();
+  const paused=!checked.purchases_paused;
+  const prepared=await current.client.purchasePauseReview({owner:current.owner,paused});check();
+  message('Review purchase availability below. No transaction has been sent.');
+  const c=prepared.config,p=prepared.signedPrice?.snapshot;
+  const rate=p?BigInt(p.usd_per_neta_12):0n;
+  const price=p?`Verified price: USD ${rate/1000000000000n}.${(rate%1000000000000n).toString().padStart(12,'0')} per NETA\nObserved: ${new Date(p.observed_at*1000).toISOString()}\nPrice valid until: ${new Date(p.expires_at*1000).toISOString()}`:'Pausing does not require an available price feed.';
+  showReview(`${paused?'Pause':'Open'} NNS purchases · Juno mainnet (juno-1)\nAdmin wallet: ${current.owner}\nRegistry: ${reader.deployment.registry}\nEffect: ${paused?'Disable':'Enable'} registrations and renewals for everyone.\nAnnual USD: ${c.tariff.three_cents/100} / ${c.tariff.four_cents/100} / ${c.tariff.standard_cents/100} · tariff version ${c.tariff_version}\nFee recipient: ${c.treasury}\n${price}\nReview expires: ${new Date(prepared.expires_at*1000).toISOString()}\nNETA debit: 0. Network fee only, shown in Keplr in JUNO.\n${JSON.stringify({set_purchases_paused:{paused}},null,2)}`,async()=>{
+    const receipt=await current.client.setPurchasesPaused({owner:current.owner,reviewed:prepared});
+    const observed=await verify();check();
+    if(observed.purchases_paused!==paused)throw Error(`Transaction ${receipt.transactionHash} confirmed, but current purchase availability differs. Read the registry again; do not resend automatically.`);
+    return `Purchases ${paused?'paused':'enabled'} on Juno mainnet · confirmed transaction ${receipt.transactionHash}. ${paused?'Registrations and renewals are paused.':'You can now register a name below.'}`;
+  },check);
 });
 $('nns-my-name').onclick = () => run(async check => {
   clearReview(); const current = await connected(check);
@@ -239,6 +262,11 @@ $('nns-publish-profile').onclick = () => {
 };
 $('nns-recover').onclick = () => run(async check => {
   clearReview(); const current = await connected(check), result = await current.recover($('nns-recovery-hash').value.trim().toUpperCase()); check();
+  if(result.intent.action==='set-purchases-paused'&&result.result.notBroadcast!==true&&result.result.code===0){
+    const observed=await verify();check();
+    const expected=result.intent.payment.msg.set_purchases_paused.paused;
+    message(`Exact administration transaction confirmed. Current purchases: ${observed.purchases_paused?'paused':'enabled'}.${observed.purchases_paused!==expected?' State differs from that transaction; review current configuration.':''} Nothing was resent.`);return;
+  }
   message(result.result.notBroadcast ? 'No broadcast was made. Review another attempt separately.' : result.result.code === 0 ? 'Exact transaction confirmed. Nothing was resent.' : `Transaction failed on-chain (${result.result.code}). Nothing was resent; network fees may have been charged.`);
 });
 $('nns-cancel').onclick = () => run(async check => {
@@ -249,8 +277,8 @@ $('nns-cancel').onclick = () => run(async check => {
 $('nns-confirm').onclick = () => run(async () => {
   const accepted = review; clearReview();
   if (!accepted) throw Error('Review an action first.');
-  await accepted.action();
-  message(`Action completed on ${networkLabel()}. Use Load my name or Load current profile to refresh the result.`);
+  const result=await accepted.action();
+  message(typeof result==='string'?result:`Action completed on ${networkLabel()}. Use Load my name or Load current profile to refresh the result.`);
 });
 $('nns-discard').onclick = () => { clearReview(); render(); };
 for (const id of ['names-fee-form', 'names-profile-form', 'nns-transfer-form']) {
@@ -258,7 +286,7 @@ for (const id of ['names-fee-form', 'names-profile-form', 'nns-transfer-form']) 
 }
 function networkCopy() {
   $('nns-network-badge').textContent=mainnet()?'JUNO MAINNET · NETA':'UNI-7 · TEST NAMES';
-  $('nns-network-help').textContent=mainnet()?'Register and manage a name on Juno. Purchases open after contract and DAO activation.':'Register and manage a test name with mock NETA.';
+  $('nns-network-help').textContent=mainnet()?'Register and manage a name on Juno. Purchase availability is controlled by the registry administrator.':'Register and manage a test name with mock NETA.';
   $('nns-review-network').textContent=`${networkLabel()}. Network fees are shown in Keplr in ${mainnet()?'JUNO':'JUNOX'}.`;
   $('nns-cost-title').textContent=mainnet()?'Registration cost':'Test registration cost';
   $('nns-payment-token').textContent=`${tokenLabel()} · ${networkLabel()}`;

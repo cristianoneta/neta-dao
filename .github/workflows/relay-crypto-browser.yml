@@ -61,6 +61,7 @@ jobs:
       - run: node browser-names-v2.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-workspace.mjs
       - run: NNS_MAINNET=1 NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-workspace.mjs
+      - run: NNS_MAINNET=1 NNS_ADMIN=1 NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-workspace.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-mainnet-setup.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-mainnet-deploy.mjs
       - name: Validator proof browser flow
@@ -72,5 +73,4 @@ jobs:
           if-no-files-found: error
       - name: Adversarial receive and crash recovery regressions
         run: RELAY_AUDIT_ADVERSARIAL=1 node browser-uni7-lab.mjs
-
 

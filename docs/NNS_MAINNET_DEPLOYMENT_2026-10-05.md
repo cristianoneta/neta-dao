@@ -114,7 +114,7 @@ price secret or broadcasts. It deliberately expects the initial paused state;
 after activation or a tariff/admin change it must not be reused as a generic
 health check without a reviewed update to expected state.
 
-Next: implement the dedicated mainnet owner unpause review/Keplr action, verify
+The dedicated main-page owner opening/pausing review is now implemented. Next: verify
 the normal page with a fresh signed price, then obtain explicit owner confirmation
 and check one real purchase (exact debit, DAO credit, identity and expiry).
 No activation or mainnet purchase is recorded. Treasury and validator E2E remain deferred.
@@ -122,7 +122,7 @@ No activation or mainnet purchase is recorded. Treasury and validator E2E remain
 ## Remaining launch gates
 
 1. Finish the normal mainnet Names page check with a current valid signed price.
-2. Implement and review a separate owner-wallet unpause action; no mainnet tariff/unpause panel exists yet.
+2. Review opening purchases in the main-page owner administration panel; see [admin runbook](../names/README.md#owner-purchase-availability-controls).
 3. Obtain explicit owner-wallet confirmation, verify unpaused state, then verify one real purchase, exact NETA debit/DAO credit and name identity/expiry.
 
 Keep UNI-7 artifacts, completed tests, browser key and pending journals intact.

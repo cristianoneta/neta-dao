@@ -346,3 +346,14 @@ Reviews repeat network, debit, recipient and the snapshot observation/expiry.
 The separate owner price-key page reuses graphite/mint tokens and labelled controls;
 private PEM contents are never rendered. Show public key, backup/download and
 GitHub-secret instructions separately from unsigned deployment-plan download.
+
+
+## Names owner availability control — 2026-10-05
+
+Keep administration inside the existing Names session panel, in an owner-only
+collapsed details section after the status. Reuse the shared wallet and inline
+review/confirmation panel. Show network, global effect, exact registry, admin,
+fee recipient, tariff, signed price dates and network fee before confirmation.
+Opening and pausing are separate explicit actions; ordinary users never see the
+admin controls. Pending receipt recovery stays in the existing Saved transaction
+section. No new wizard, separate wallet connection or deployment page is needed.
