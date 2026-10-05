@@ -159,7 +159,7 @@ try{
  assert.equal(await page.locator('#names-directory-list img').count(),0);
  await page.locator('#names-directory-query').fill('cristiano');
  await page.getByRole('button',{name:'Calculate name fee',exact:true}).click();
- for(const [label,total] of [['abc','$640 USD'],['abcd','$160 USD'],['cristiano','$5 USD']]){
+ for(const [label,total] of [['abc','$99 USD'],['abcd','$19 USD'],['cristiano','$5 USD']]){
   await page.locator('#names-fee-label').fill(label);
   assert.equal(await page.locator('#names-fee-total').textContent(),total);
  }

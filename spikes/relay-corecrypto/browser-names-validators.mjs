@@ -39,6 +39,7 @@ try{
   writes.push(request);const msg=request.msg;
   if(msg.link_validators){assert.equal(request.owner,owner);assert.equal(msg.link_validators.expected_revision,profile.revision);profile.validators=structuredClone(msg.link_validators.pair);}
   else if(msg.unlink_validators){assert.equal(request.owner,owner);assert.equal(msg.unlink_validators.expected_revision,profile.revision);profile.validators=null;}
+  else if(msg.set_tariff){assert.equal(request.owner,config.admin);assert.equal(msg.set_tariff.expected_version,config.tariff_version);config.tariff=structuredClone(msg.set_tariff.tariff);config.tariff_version++;}
   else if(msg.revoke_by_operator){assert.equal(msg.revoke_by_operator.expected_revision,profile.revision);assert.notEqual(request.owner,owner);profile.validators=null;}
   else throw Error('Unexpected validator write');
   profile.revision++;return {chainId:'uni-7',transactionHash:String(writes.length).padStart(64,'A'),code:0,height:101+writes.length};
@@ -105,5 +106,14 @@ try{
  await page.waitForFunction(()=>!document.querySelector('#connect').disabled);
  assert.equal(await page.locator('#wallet').textContent(),'Wallet not connected.');
  assert.match(await page.locator('#status').textContent(),/Wallet changed during connection/);
+ // Admin pricing is a distinct reviewed transaction, never an automatic update.
+ await switchWallet(operators.testnet);await page.locator('#connect').click();await page.locator('#review-tariff').click();await page.waitForFunction(()=>!document.querySelector('#review-tariff').disabled);
+ assert.match(await page.locator('#status').textContent(),/registry admin wallet/);assert.equal(writes.length,3);
+ await switchWallet(owner);await page.locator('#connect').click();await page.locator('#review-tariff').click();await page.waitForFunction(()=>!document.querySelector('#confirm').disabled);
+ assert.match(await page.locator('#review-text').textContent(),/New: 3 characters: USD 99.00 · 4 characters: USD 19.00/);assert.equal(writes.length,3);
+ if(process.env.NNS_SCREENSHOT_DIR)for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.locator('section[aria-labelledby="tariff-heading"]').screenshot({path:process.env.NNS_SCREENSHOT_DIR+`/pricing-${width}.png`});}
+ await page.locator('#confirm').click();await page.waitForFunction(()=>!document.querySelector('#review-tariff').disabled);assert.equal(writes.length,4);assert.deepEqual(writes[3].msg,{set_tariff:{tariff:{three_cents:9900,four_cents:1900,standard_cents:500},expected_version:1}});
+ assert.match(await page.locator('#tariff-status').textContent(),/version 2/);assert.match(await page.locator('#tariff-status').textContent(),/USD 99.00/);
+ await page.locator('#review-tariff').click();await page.waitForFunction(()=>!document.querySelector('#review-tariff').disabled);assert.match(await page.locator('#status').textContent(),/already active/);assert.equal(writes.length,4);
  assert.deepEqual(errors,[]);console.log('Validator UI: real reader/client, separate mocked ADR-36 signatures, wallet switches, owner publication, unlink, operator revocation, keyboard and 320–1440px reflow passed. No real operator or on-chain write.');
 }finally{await browser?.close();await new Promise(r=>server.close(r));}

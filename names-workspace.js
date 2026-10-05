@@ -92,7 +92,7 @@
     const valid = /^(?=.{3,32}$)[a-z0-9]+(?:-[a-z0-9]+)*$/.test(label) && !reserved.has(label);
     // Keep the fixed .neta suffix outside the editable label, including pasted names.
     if (valid && /\.neta$/i.test(input.value.trim())) input.value = label;
-    const annual = label.length === 3 ? 640 : label.length === 4 ? 160 : 5;
+    const annual = label.length === 3 ? 99 : label.length === 4 ? 19 : 5;
     input.setAttribute("aria-invalid", String(Boolean(label) && !valid));
     find("#names-fee-error").textContent = !label || valid ? "" : "Use 3–32 letters, numbers or interior hyphens. System names are reserved.";
     find("#names-fee-total").textContent = valid ? `$${annual * years} USD` : "Choose a valid name";

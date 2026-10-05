@@ -810,3 +810,40 @@ fn deployment_rejects_wrong_chain_and_mainnet_destination() {
             .contains("pinned NETA token")
     );
 }
+
+#[test]
+fn approved_short_name_tariff_applies_to_registration_and_renewal() {
+    let mut s = Suite::new(false);
+    let tariff = Tariff {
+        three_cents: 9_900,
+        four_cents: 1_900,
+        standard_cents: 500,
+    };
+    s.app
+        .execute_contract(
+            Addr::unchecked("admin"),
+            s.registry.clone(),
+            &ExecuteMsg::SetTariff {
+                tariff,
+                expected_version: 1,
+            },
+            &[],
+        )
+        .unwrap();
+    assert_eq!(s.config().tariff_version, 2);
+    for (who, n, fee) in [
+        ("alice", "abc", 49_500_000u128),
+        ("bob", "abcd", 9_500_000),
+        ("charlie", "alice", 2_500_000),
+    ] {
+        let before = s.balance("treasury");
+        s.register(who, n, 1);
+        assert_eq!(s.balance("treasury") - before, Uint128::new(fee));
+        let identity = s.identity(n);
+        let quote = s.offer("sponsor", n, 1, Operation::Renew);
+        assert!(s.send("sponsor", quote, None));
+        assert_eq!(s.balance("treasury") - before, Uint128::new(fee * 2));
+        assert_eq!(s.identity(n).owner, identity.owner);
+        assert_eq!(s.identity(n).expires_at, identity.expires_at + YEAR);
+    }
+}

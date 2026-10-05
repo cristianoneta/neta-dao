@@ -1,5 +1,9 @@
 # NETA Names v2 — decisions and first implementation slice
 
+Pricing amended by the owner on 2026-10-05: annual USD 99 / 19 / 5 for 3 / 4 /
+5–32 characters. Existing registries require an explicit admin tariff update;
+the deployed bootstrap code and historical signed fixtures are unchanged.
+
 2026-10-03. This document records the owner's decisions from the Names planning
 session. It supersedes the v1 product choices below, not the current deployment
 inventory. See `NETA_NAMES_DESIGN.md`, `CURRENT_STATE.md` and `HANDOFF.md` for the
@@ -31,7 +35,7 @@ capability inventory. The accepted decisions below remain the implementation tar
 
 - Allowed label length: 3–32 ASCII characters, with lower-case letters, digits and
   interior hyphens. Normalize case. Block 1–2 characters and reserved system labels.
-- Prices per year for registration AND renewal: USD 640 / 160 / 5 for labels of
+- Prices per year for registration AND renewal: USD 99 / 160 / 5 for labels of
   3 / 4 / 5+ characters. Eliminate v1's fixed initial 5-NETA charge.
 - Settle in NETA; all name fees go to the configured NETA DAO treasury, distinct
   from the Operations DAO. Gas is additional and must be displayed separately.

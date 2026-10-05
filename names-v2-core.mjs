@@ -6,7 +6,7 @@ export const GRACE = 30 * 24 * 60 * 60;
 export const QUOTE_TTL = 300;
 const encoder = new TextEncoder();
 const MAX128 = (1n << 128n) - 1n;
-export const DEFAULT_TARIFF = Object.freeze({three_cents:64000, four_cents:16000, standard_cents:500});
+export const DEFAULT_TARIFF = Object.freeze({three_cents:9900, four_cents:1900, standard_cents:500});
 
 function integer(value, min=0) {
   if (!Number.isSafeInteger(value) || value < min) throw Error('Invalid integer or timestamp.');

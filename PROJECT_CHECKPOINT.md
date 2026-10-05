@@ -4,7 +4,10 @@ Updated **2026-10-04, end of session**. Start with [HANDOFF](HANDOFF.md), then
 [CURRENT_STATE](docs/CURRENT_STATE.md). This file lists open priorities; detailed
 release evidence belongs to the linked runbooks, not another duplicate chronology.
 
-1. **NNS live validator test:** registration/profile/renewal/transfer and the
+1. **NNS pricing / deferred validator test:** apply the approved 99/19/5 USD
+   annual tariff through the existing UNI-7 admin action and verify its receipt.
+   Validator live tests are paused at the owner’s request (2026-10-05).
+   Existing validator scope: registration/profile/renewal/transfer and the
    validator UI are delivered. A consenting operator is the external dependency.
    Verify link, exclusive bindings, unlink/revoke and exact receipts. Preserve the
    current deployment and browser data. [NNS handoff](docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md).

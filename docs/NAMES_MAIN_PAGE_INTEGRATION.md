@@ -16,7 +16,7 @@ controls with the same saved subscriptions. There is no nested Names tab bar.
   unregistered and does not imply on-chain identity verification or DAO endorsement.
 - Do not present sample people, pretend registrations, fake quotes, fake wallet
   connections or synthetic RELAY confirmations as live user data.
-- The USD fee calculator validates 3–32-character labels and applies $640/$160/$5
+- The USD fee calculator validates 3–32-character labels and applies $99/$19/$5
   per year for 3/4/5+ characters, 1–5 years. It does not check availability, reserve
   a name, determine the current NETA amount or accept payments.
 - Contacts, profile editing, renewals/transfers, DAO profile proposals and payments

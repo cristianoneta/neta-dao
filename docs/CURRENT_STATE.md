@@ -72,12 +72,18 @@ deliberate wallet switches, with expiry/revision/identity checks;
 `names-v2-validator-ui.mjs` handles the distinct signature/publication reviews.
 Lost/unknown submissions stay locked until reconciled; no automatic resend occurs.
 
-The accepted annual tariff is USD 640/160/5 for 3/4/5–32 characters, for both
+The accepted annual tariff is USD 99/160/5 for 3/4/5–32 characters, for both
 registration and renewal, 1–5-year terms, 365-day years and 30-day grace. Mainnet
 fees target the main NETA DAO, not Operations. Production quote feeds, policy,
 HTTP service, signer custody and mainnet deployment are still open. See
 [product plan](NETA_NAMES_V2_PLAN.md), [registry protocol](NNS_V2_REGISTRY_2026-10-04.md)
 and [profile protocol/programme decisions](NNS_VALIDATOR_PROFILES_2026-10-04.md).
+The existing UNI-7 registry needs an explicit admin `set_tariff` transaction via
+the lab Annual pricing section; source/UI changes do not alter deployed config.
+Its activation remains unverified until that wallet receipt/config is checked.
+Original WASM/bootstrap tariff and signed historical fixtures remain unchanged;
+new installations also apply the approved tariff before purchasing. Quotes read
+the current on-chain tariff/version.
 Free DAO namespaces, verified receiving addresses, private contacts, lifecycle
 notifications and DAO-authorized profile proposals remain later work.
 
