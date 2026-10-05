@@ -1,12 +1,12 @@
 # Next chat — NNS Treasury prices and mainnet preparation
 
-Checkpoint updated: **2026-10-05, 19:50 price recovery and runner-based verification**.
+Checkpoint updated: **2026-10-05, 20:20 mainnet activation and first purchase**.
 The date in this filename preserves existing links. Earlier UNI-7 sections are
 dated evidence; the current mainnet checkpoint below takes precedence.
 Read [AGENTS](../AGENTS.md), [root HANDOFF](../HANDOFF.md) and
 [CURRENT_STATE](CURRENT_STATE.md); read DESIGN_SYSTEM.md before UI edits.
 
-## Resume here: mainnet contracts created, purchases paused
+## Resume here: mainnet purchases open, first registration confirmed
 
 The owner signed all four mainnet deployment transactions and supplied the public
 receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creation.
@@ -17,7 +17,7 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   [four public receipts](deployments/nns-mainnet-receipts-2026-10-05.json).
 - Both upgrade administrators and the registry application administrator are
   `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`. The main NETA DAO receives fees.
-- Both exported provider observations agree: purchases paused, tariff version 1,
+- Both initial exported provider observations agreed: purchases paused, tariff version 1,
   annual USD **99 / 19 / 5**, signer version 1 and the approved public price key.
 - Public key: `XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=`.
   The owner corrected the existing PEM secret at 19:38 Berlin; never regenerate
@@ -28,17 +28,22 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   Berlin: run `37307194424`, job `111902537250`; Polkachu and STAVR agree on the
   reviewed deployment, owner administrators, key, USD 99/19/5 and purchases paused.
   Direct assistant-environment 403/502 errors are not proof of provider outages.
-  Reuse the read-only workflow when direct access fails. Two-provider checks are
+  Use runner-based read-only verification when direct access fails; the original
+  paused-state workflow now needs reviewed expectations before reuse. Two-provider checks are
   a launch/deployment gate, not required for every normal read or price refresh.
 - After a secret correction, start a fresh Main DAO snapshots workflow on main:
   repeating an old run can conflict with newer generated data. Never hand-edit
   collector output to resolve this. See [recovery evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
-- **Next:** open `/#relay/register`, select Juno mainnet, read the registry and
-  connect the approved admin wallet. The owner-only **Registry administration**
-  panel now provides reviewed opening/pausing through Keplr. Opening requires a
-  valid signed price; pausing does not. Confirm opening separately, then verify
-  one real purchase. No activation or purchase is recorded. See
-  [admin runbook](../names/README.md#owner-purchase-availability-controls).
+- **Completed:** owner-confirmed activation at 18:17:20 UTC and first mainnet
+  purchase at 18:20:13 UTC. `cristiano.neta` belongs to the approved owner wallet,
+  generation/revision 1, expiry **2027-10-05T18:20:13Z**. The successful receipt
+  records **4.755098 NETA** from owner to registry and onward to the main NETA DAO.
+  See [launch evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) for all three hashes
+  and the single-provider verification boundary. Do not repeat activation or payment.
+- **Next:** load the existing mainnet name and continue ordinary profile use if
+  requested. Mainnet renewal/transfer and live validator E2E are not claimed tested.
+  Treasury stays deferred. The initial paused-state workflow must not be rerun
+  unchanged against the now-active registry.
 
 Upgrade transfer (`MsgUpdateAdmin` on each contract) and registry `set_admin`
 are separate future owner actions. No transfer or removal of authority is authorized.
@@ -83,8 +88,8 @@ UI is pending. Real validator testing remains deferred. The owner subsequently
 selected WYND for NETA pricing, reconfirmed the tariff and requested moving to
 mainnet. The current browser key and deployment runbook is [names/README](../names/README.md).
 The later owner decision replaces that service with shared signed Treasury prices;
-see the root handoff for the current key/deployment sequence. No mainnet contract
-address or activation is recorded.
+see the current checkpoint above for the completed mainnet deployment, activation
+and first purchase. This section describes the earlier integration stage.
 
 ## Current owner state and completed tests
 

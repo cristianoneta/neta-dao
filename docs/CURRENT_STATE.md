@@ -1,6 +1,6 @@
 # NETA DAO code-backed current state
 
-Updated **2026-10-05** after the evening recurring-workflow-failure investigation. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
+Updated **2026-10-05** after owner activation and the first mainnet NNS purchase. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
 [HANDOFF](../HANDOFF.md) owns the next action and working rules. Observed chain,
 service and data states are timestamped evidence, not guarantees of future state.
 The previous append-only inventory is retained in the [archive](archive/CURRENT_STATE_BEFORE_CLEANUP_2026-10-04.md).
@@ -27,7 +27,8 @@ preserves drafts, keys and transaction journals. Tests cover late connection rep
 Use [DAO_ONBOARDING_CHECKLIST](DAO_ONBOARDING_CHECKLIST.md) for additions.
 The main DAO has read-only proposals, Treasury, staking participants and following;
 its writes remain disabled. `.dao.neta` directory labels are not registered names.
-Main DAO historical events are UNAVAILABLE, not zero; NNS revenue is null/inactive.
+Main DAO historical events are UNAVAILABLE, not zero; its NNS revenue display is
+not yet connected to the verified mainnet name-payment receipts.
 
 People/Members uses Operations cw4 membership, main DAO staked NETA and the native
 Juno bonded-delegation adapter. Native Juno participation is explained rather than
@@ -39,8 +40,8 @@ See [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
 
 | Surface | Implemented and connected | Boundary |
 | --- | --- | --- |
-| Main RELAY Names | Directory/DAO reads and follows; network-selectable mainnet/UNI-7 lookup, registration, renewal, transfer, public contact reads/updates and validator preview | Mainnet registry/profile manifest is recorded; purchases remain paused; UNI-7 purchases use the original local key |
-| `names-mainnet-deploy.html` | Four owner-confirmed mainnet upload/instantiate actions with pinned public key and owner-wallet upgrade admin, persisted recovery and two-provider receipt export | Four owner-signed deployment receipts recorded; purchases remain paused |
+| Main RELAY Names | Directory/DAO reads and follows; network-selectable mainnet/UNI-7 lookup, registration, renewal, transfer, public contact reads/updates and validator preview | Mainnet purchases opened and first registration verified on 2026-10-05; UNI-7 purchases use the original local key |
+| `names-mainnet-deploy.html` | Four owner-confirmed mainnet upload/instantiate actions with pinned public key and owner-wallet upgrade admin, persisted recovery and two-provider receipt export | Four deployment receipts recorded; subsequent activation and first purchase recorded separately |
 | `names-v2-setup.html` | Explicit Keplr upload/instantiate/activation, local test quote key, manifest export and receipt recovery | Existing owner deployment is already complete; do not repeat setup |
 | `names-v2-lab.html` | Verified manifest, mock-NETA registration/renewal, recipient-accepted transfer and public contacts | UNI-7 only; quote rate is fictional USD 2/mock NETA |
 | Independent validator observation | Wallet-free entered-pair check; stored-link refresh checks both validator records and UNI-7 consensus keys at a displayed block | Public provider observations, latest staking records, no uptime or programme points; unavailable data stay unresolved |
@@ -57,7 +58,7 @@ prefix and validation. Unknown networks are rejected; selection edits invalidate
 the preview. Future networks need their own verified adapters and contract support.
 The current lab and ownership proof protocol remain pinned to `juno-1` / `uni-7`.
 
-Owner-signed registration, contacts, renewal and transfer were checked through
+**UNI-7** owner-signed registration, contacts, renewal and transfer were checked through
 latest-state reads on 2026-10-04. Current observed owner of `cristiano.neta` is
 `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`, generation 1, ownership revision 2,
 expiry 2028-10-03T19:15:41Z. Old owner mapping/offer are cleared; visible contacts
@@ -126,7 +127,13 @@ The main Names page now provides owner-only reviewed purchase opening/pausing
 using the existing exact-transaction journal and Keplr bridge. Opening requires
 a valid signed price; review/config/wallet are rechecked before signing and after
 wallet return before broadcast. Tariff editing has no dedicated mainnet panel yet.
-No owner-confirmed activation or mainnet purchase is recorded.
+Owner-confirmed activation (18:17:20 UTC) and first mainnet registration
+(18:20:13 UTC) are now recorded. `cristiano.neta` belongs to the approved owner,
+generation/revision 1, expiry 2027-10-05T18:20:13Z. Successful STAVR REST receipts
+show 4.755098 NETA debited to the registry and forwarded to the main NETA DAO;
+fresh identity/resolve reads agree. See [launch evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md)
+for hashes and the single-provider verification boundary. Mainnet renewal/transfer
+and validator E2E are still unverified; Treasury remains deferred.
 See [runbook](../names/README.md) and [historical snapshot evidence](NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 The earlier continuous WYND server is deferred, not hosted. Its stricter policy
 is not the policy of the approved snapshot system.
@@ -134,7 +141,7 @@ The existing UNI-7 registry needs an explicit admin `set_tariff` transaction via
 the lab Annual pricing section; source/UI changes do not alter deployed config.
 Its activation remains unverified until that wallet receipt/config is checked.
 `names/mainnet-plan.mjs` prepares unsigned mainnet deployment and admin-wallet tariff
-review material. The approved owner wallet can set the mainnet tariff or unpause; no mainnet activation or purchase is recorded. Deployment transactions are
+review material. The approved owner wallet can set the mainnet tariff or purchase availability. Deployment transactions are
 separately recorded in the production manifest and receipt bundle.
 Original WASM/bootstrap tariff and signed historical fixtures remain unchanged;
 new installations also apply the approved tariff before purchasing. Quotes read
