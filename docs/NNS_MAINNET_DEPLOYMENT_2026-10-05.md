@@ -52,6 +52,34 @@ The published normal Names page was read in the browser after deployment:
 **Juno mainnet verified · purchases paused · annual USD 99 / 19 / 5**.
 Reservation/payment controls remained disabled.
 
+## Evening investigation: recurring failure emails
+
+The owner's 19:30 Berlin screenshot shows Main DAO snapshots failure emails.
+The two latest corresponding runs were read directly:
+
+| Run | Screenshot time (Berlin) | Collection | NNS signing | Treasury publication |
+| --- | --- | --- | --- | --- |
+| [37343822798](https://github.com/cristianoneta/neta-dao/actions/runs/37343822798) | 18:50 | success | failed | success |
+| [37347330414](https://github.com/cristianoneta/neta-dao/actions/runs/37347330414) | 19:18 | success | failed | success |
+
+Both report the fixed diagnostic: **Price key must be a valid unencrypted PEM
+private key.** The exact private input and underlying parser errors were not
+inspected or logged. This cannot distinguish missing PEM delimiters, wrong file
+contents, broken line breaks or an encrypted key; do not invent a specific cause.
+
+The existing cron (`7,37 * * * *`, starts can be delayed) repeats the failing
+signing step every half hour, so GitHub repeats failure notifications. The final
+publication step deliberately runs after a signing error. Latest inspected bot
+commit `c285eaf` publishes the 17:17:41 UTC Treasury observation; portfolio status
+remains PARTIAL, not a claim of full coverage. At inspected main `22a5706`,
+`data/nns/price.json` is absent. There is still no usable public NNS price.
+
+These jobs do not upload or instantiate contracts, use a Keplr wallet, or spend
+JUNO gas. No workflows, notifications or schedules were disabled to conceal the
+error. This evening review changed documentation only. The next chat must help
+the owner correct the existing Actions secret privately, then inspect a fresh
+run and verify the published signature before any activation review.
+
 ## Remaining launch gates
 
 1. Manifest published through PR #161 after independent verification succeeded.
