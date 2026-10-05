@@ -52,14 +52,19 @@ local authority and transaction journals remain unchanged. Source and synthetic
 tests are not a deployed mainnet or owner-wallet purchase. See [the owning runbook](names/README.md)
 and [snapshot release checkpoint](docs/NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 
-**Next owner action:** open `https://dao.netareborn.com/names-mainnet-setup.html`,
-click Create price key, download the private PEM backup and store it privately as
-the GitHub Actions secret
-`NNS_PRICE_SIGNING_KEY`; only its public key belongs in the deployment plan.
-No production secret was created or installed in this session. Only the public
-key or public plan should be shared in chat. The browser page needs no Node install.
-No service URL is needed.
-`names/mainnet-plan.mjs` verifies the new artifact and prepares unsigned material.
+**Next owner action:** open `https://dao.netareborn.com/names-mainnet-deploy.html`,
+connect the funded Juno wallet, review and confirm the two uploads and two contract
+creations individually in Keplr, then download the verified public receipt bundle.
+The owner supplied public price key
+`XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=` on 2026-10-05;
+it is pinned in `names/mainnet-config.mjs` and the dated unsigned deployment plan.
+Do not recreate it. Private backup custody and installation of the Actions secret
+`NNS_PRICE_SIGNING_KEY` have **not been confirmed**. Never request the private key.
+The deploy page needs no private price key and exports a version-3 manifest,
+exact transaction receipts and two-provider paused-config observations. Reloads
+preserve pending intents; recovery never automatically resends a transaction.
+The page does not submit DAO proposals or activate purchases. No mainnet deployment
+receipt has yet been received from the owner.
 Prepare and owner-sign mainnet registry/profile deployment, record exact receipts
 and a verified version-3 `docs/deployments/nns-mainnet.json`, then execute the
 approved tariff through the **main NETA DAO** while purchases stay paused.

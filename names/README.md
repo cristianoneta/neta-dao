@@ -129,3 +129,26 @@ a deferred alternative, with its own tests and original artifact assumptions.
 Its old operational instructions are [archived](../docs/archive/NNS_WYND_SERVICE_BEFORE_SNAPSHOTS_2026-10-05.md)
 and its unused Blueprint is [archived](../docs/archive/nns-render-observe.yaml).
 Do not create a Render NNS service as the next step.
+
+## Owner mainnet deployment page · 2026-10-05
+
+Open `/names-mainnet-deploy.html` with Keplr and a funded Juno account. The pinned
+public price key is `XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=`.
+Private backup and `NNS_PRICE_SIGNING_KEY` installation remain owner tasks and
+are not verified by sharing the public key. Do not generate a replacement.
+
+Review registry upload/creation, then profile upload/creation: four explicit
+mainnet transactions, no token deployment. Keplr displays real JUNO gas fees.
+The registry uses real NETA, the main DAO as logical admin and fee recipient,
+and starts paused. Both contract migration admins are empty. The helper has
+no tariff/unpause action. Its state and signing journals are separate from UNI-7.
+
+For unknown results, reconnect the same account in the same browser and choose
+Check pending transaction; never delete site data or repeat an upload to recover.
+Download public receipts after both providers verify immutable code, creator,
+addresses, price key and paused configuration. This contains a version-3 manifest,
+exact matched receipts and provider observations. Only after receiving/verifying
+that output should `docs/deployments/nns-mainnet.json` be committed. The dated
+`nns-mainnet-plan-2026-10-05.json` is unsigned preparation, not that live manifest.
+Then follow the DAO tariff, price verification, separate activation and purchase
+checks above. No live wallet transaction or private secret is claimed by UI tests.

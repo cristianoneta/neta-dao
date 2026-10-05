@@ -1,0 +1,1 @@
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}code,#wallet,#registry-state,#profiles-state,#pending{overflow-wrap:anywhere}#review{border-color:var(--neta-accent)}#review-heading:focus-visible{outline:3px solid var(--neta-focus);outline-offset:3px}button:hover:not(:disabled){background:var(--neta-accent-hover)}

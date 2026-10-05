@@ -2,8 +2,9 @@
 
 Checkpoint updated: 2026-10-05 after the owner **replaced the Render price-service
 plan with Treasury price snapshots**. Source v0.3.0 and an offline Actions publisher
-are prepared; no mainnet deployment/secret exists. Next: owner-controlled price
-key at `names-mainnet-setup.html`, then mainnet deployment, not Render.
+are prepared; no mainnet deployment receipt exists and secret installation is
+unconfirmed. The public key is now pinned; next use `names-mainnet-deploy.html`
+for four individually reviewed owner transactions and export the public receipts.
 Mainnet reader/wallet/page adapters and a network selector are implemented and
 synthetically tested. Missing production manifest/DAO activation keeps writes off. See [root HANDOFF](../HANDOFF.md),
 [snapshot checkpoint](NNS_SNAPSHOT_RELEASE_2026-10-05.md) and [runbook](../names/README.md).
