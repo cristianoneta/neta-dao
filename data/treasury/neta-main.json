@@ -35,7 +35,7 @@
     {
       "amount": "1402.010133",
       "base_denom": "ujuno",
-      "change_24h": 2.6063418667065275,
+      "change_24h": 2.3650134695470717,
       "custody_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
       "decimals": 6,
       "ibc_path": null,
@@ -45,8 +45,8 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00923282",
-      "usd_value": "12.94450719616506"
+      "usd_price": "0.00921123",
+      "usd_value": "12.91423779739359"
     },
     {
       "amount": "7.32641",
@@ -56,26 +56,26 @@
       "source_chain": "juno",
       "symbol": "NETA",
       "type": "token",
-      "usd_price": "1.078449232475663739031618351",
-      "usd_value": "7.901161241302027574278639003"
+      "usd_price": "1.075927389861040083406826289",
+      "usd_value": "7.882685188351822677472606192"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-10-05T23:16:13.881069Z",
-  "height": 42407378,
+  "generated_at": "2026-10-05T23:43:30.625570Z",
+  "height": 42408013,
   "nns_price": {
-    "observed_at": "2026-10-05T23:16:13.881069Z",
+    "observed_at": "2026-10-05T23:43:30.625570Z",
     "pool": "juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra",
     "source": "treasury-wynd-juno-usd",
     "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
-    "usd_price": "1.078449232475663739031618351",
+    "usd_price": "1.075927389861040083406826289",
     "usd_source": "CoinGecko"
   },
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "20.84566843746708757427863900",
+  "total_usd": "20.79692298574541267747260619",
   "treasury_accounts": [
     {
       "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
