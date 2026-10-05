@@ -11,10 +11,17 @@ try{
  const context=await browser.newContext({acceptDownloads:true}),page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  await context.route('https://**/*',r=>r.fulfill({status:503,body:'Unavailable in local fixture'}));
+ // Exercise the absent-manifest gate explicitly even after production deployment.
+ await page.route('**/docs/deployments/nns-mainnet.json',r=>r.fulfill({status:404,body:'No deployment in this fixture'}));
  await page.goto(origin+'/index.html#relay/register');
  assert.equal(await page.locator('#nns-network').inputValue(),'juno-1');
  await page.locator('#nns-refresh').click();await page.waitForFunction(()=>!document.querySelector('#nns-refresh').disabled);
  assert.match(await page.locator('#nns-status').textContent(),/not open yet/);
+ for(const id of ['nns-prepare','nns-payment','nns-check-name'])assert.equal(await page.locator('#'+id).isDisabled(),true);
+ await page.unroute('**/docs/deployments/nns-mainnet.json');
+ await page.reload();
+ await page.locator('#nns-refresh').click();await page.waitForFunction(()=>!document.querySelector('#nns-refresh').disabled);
+ assert.match(await page.locator('#nns-status').textContent(),/Verified Juno mainnet deployment unavailable/);
  for(const id of ['nns-prepare','nns-payment','nns-check-name'])assert.equal(await page.locator('#'+id).isDisabled(),true);
  await page.goto(origin+'/names-mainnet-setup.html');
  assert.equal(await page.locator('#copy-private').isDisabled(),true);
@@ -33,5 +40,5 @@ try{
  if(process.env.NNS_SCREENSHOT_DIR)await mkdir(process.env.NNS_SCREENSHOT_DIR,{recursive:true});
  for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);if(process.env.NNS_SCREENSHOT_DIR)await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/price-key-${width}.png`,fullPage:true});}
  await page.locator('#copy-public').focus();assert.notEqual(await page.locator('#copy-public').evaluate(el=>getComputedStyle(el).outlineStyle),'none');
- assert.deepEqual(errors,[]);console.log('Mainnet absent-deployment gate, local key backup/restore, public plan, tab preservation and responsive setup passed.');
+ assert.deepEqual(errors,[]);console.log('Mainnet absent-deployment and unavailable-provider gates, local key backup/restore, public plan, tab preservation and responsive setup passed.');
 }finally{await browser?.close();await new Promise(r=>server.close(r));}

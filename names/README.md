@@ -15,13 +15,15 @@ UNI-7 contracts, original quote fixtures, keys and journals remain unchanged.
 The v0.3.1 code also retains the original individual-quote hooks for compatibility.
 
 The snapshot publisher and shared browser/client purchase path are implemented.
-They do **not** imply a mainnet deployment or live purchase: no production price
-secret, reviewed mainnet manifest, new contract addresses or wallet receipts are
-recorded. The main website now selects Juno mainnet or UNI-7. Mainnet reader/wallet and
-page wiring are implemented and tested with synthetic chain data. Without a
-verified production manifest, mainnet operations stay unavailable. UNI-7 test
-purchases continue using the original local key. Never point the new snapshot client at the
-old UNI-7 registry and claim it supports the new hooks.
+The owner completed mainnet registry/profile deployment on 2026-10-05. The
+version-3 [production manifest](../docs/deployments/nns-mainnet.json) and
+[four receipts](../docs/deployments/nns-mainnet-receipts-2026-10-05.json) are recorded.
+Both exported provider observations show **purchases paused**, USD 99/19/5 and
+owner-wallet administration. See [verification evidence](../docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
+No unpause or mainnet purchase is recorded. Private backup custody, Actions secret
+installation and the first valid public signed price still need confirmation.
+Do not repeat key creation or deployment. UNI-7 keeps its existing manifest,
+original local key and old quote flow; never direct snapshot payments to UNI-7.
 
 ## How it works
 
@@ -68,6 +70,9 @@ GitHub Actions usage quotas/billing still apply.
 
 ## One-time setup and mainnet sequence
 
+Current owner checkpoint: key creation and steps 3–5 are complete; do not repeat
+them. Confirm the matching Actions secret, then continue with step 6.
+
 1. Open [the owner setup page](https://dao.netareborn.com/names-mainnet-setup.html)
    on the owner's trusted machine. Click **Create price key**, download the private
    PEM backup, and follow the GitHub-secret instructions there. Only the public
@@ -82,7 +87,7 @@ GitHub Actions usage quotas/billing still apply.
 2. Store the PEM as the repository Actions secret **`NNS_PRICE_SIGNING_KEY`** in
    GitHub Settings → Secrets and variables → Actions. The scheduled main job
    receives it only in the signing step, never in a PR run. Do not generate or
-   rotate a production key automatically. Loss/rotation requires DAO key rotation
+   rotate a production key automatically. Loss/rotation requires registry-admin key rotation
    and a matching reviewed manifest before further publication.
 3. `node names/mainnet-plan.mjs '<PUBLIC_KEY>' /tmp/nns-mainnet-plan.json` prepares
    unsigned deployment material and verifies local artifact hashes. No broadcast.
@@ -104,8 +109,8 @@ GitHub Actions usage quotas/billing still apply.
    `tariffProposal` prepares the same wallet review, not a DAO proposal.
 6. Verify a successful main DAO workflow, the public signed file, its original
    observation/expiry and browser verification against the actual deployment.
-   Verify the implemented mainnet reader/wallet/page with the real manifest and signed price. No secret
-   or production manifest is currently installed by this change.
+   Verify the implemented mainnet reader/wallet/page with the real manifest and signed price. The production manifest is recorded; secret installation and a successful signed
+   publication are still unconfirmed.
 7. Only after those dependencies, use a **separate admin-wallet unpause** transaction and
    verify one explicitly reviewed owner-signed purchase, exact NETA debit/DAO
    credit and resulting identity/expiry. Record evidence before calling NNS live.

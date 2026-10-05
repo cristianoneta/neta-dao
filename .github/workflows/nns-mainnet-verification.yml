@@ -1,0 +1,32 @@
+name: NNS mainnet deployment verification
+on:
+  pull_request:
+    paths:
+      - 'docs/deployments/nns-mainnet.json'
+      - 'docs/deployments/nns-mainnet-receipts-*.json'
+      - 'names/verify-mainnet-deployment.mjs'
+      - '.github/workflows/nns-mainnet-verification.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.19.0
+          cache: npm
+          cache-dependency-path: faucet/package-lock.json
+      - run: npm ci --prefix faucet --ignore-scripts
+      - name: Verify recorded deployment invariants
+        run: node --test names/tests/mainnet-deployment-receipts.test.mjs
+      - name: Independently verify four exact transactions and both paused providers
+        run: node names/verify-mainnet-deployment.mjs docs/deployments/nns-mainnet-receipts-2026-10-05.json docs/deployments/nns-mainnet.json "$RUNNER_TEMP/nns-mainnet-verification.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: nns-mainnet-verification
+          path: ${{ runner.temp }}/nns-mainnet-verification.json
+          if-no-files-found: error

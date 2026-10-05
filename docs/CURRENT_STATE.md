@@ -1,7 +1,6 @@
 # NETA DAO code-backed current state
 
-Updated **2026-10-05** after owner-authority/security PR #158 was merged and
-published. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
+Updated **2026-10-05** after owner-signed mainnet deployment and receipt export. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
 [HANDOFF](../HANDOFF.md) owns the next action and working rules. Observed chain,
 service and data states are timestamped evidence, not guarantees of future state.
 The previous append-only inventory is retained in the [archive](archive/CURRENT_STATE_BEFORE_CLEANUP_2026-10-04.md).
@@ -40,16 +39,16 @@ See [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
 
 | Surface | Implemented and connected | Boundary |
 | --- | --- | --- |
-| Main RELAY Names | Directory/DAO reads and follows; network-selectable mainnet/UNI-7 lookup, registration, renewal, transfer, public contact reads/updates and validator preview | Mainnet adapters require the verified production manifest, not yet recorded; UNI-7 purchases use the original local key |
-| `names-mainnet-deploy.html` | Four owner-confirmed mainnet upload/instantiate actions with pinned public key and owner-wallet upgrade admin, persisted recovery and two-provider receipt export | Purchases remain paused; no mainnet wallet receipt is recorded |
+| Main RELAY Names | Directory/DAO reads and follows; network-selectable mainnet/UNI-7 lookup, registration, renewal, transfer, public contact reads/updates and validator preview | Mainnet registry/profile manifest is recorded; purchases remain paused; UNI-7 purchases use the original local key |
+| `names-mainnet-deploy.html` | Four owner-confirmed mainnet upload/instantiate actions with pinned public key and owner-wallet upgrade admin, persisted recovery and two-provider receipt export | Four owner-signed deployment receipts recorded; purchases remain paused |
 | `names-v2-setup.html` | Explicit Keplr upload/instantiate/activation, local test quote key, manifest export and receipt recovery | Existing owner deployment is already complete; do not repeat setup |
 | `names-v2-lab.html` | Verified manifest, mock-NETA registration/renewal, recipient-accepted transfer and public contacts | UNI-7 only; quote rate is fictional USD 2/mock NETA |
 | Independent validator observation | Wallet-free entered-pair check; stored-link refresh checks both validator records and UNI-7 consensus keys at a displayed block | Public provider observations, latest staking records, no uptime or programme points; unavailable data stay unresolved |
 | Validator ownership section | Exact contract-matched challenge, separate juno-1/uni-7 ADR-36 signatures, reviewed publication, owner unlink, unilateral revocation | Live consenting-validator E2E outstanding; no points or active-set attestation |
 
 `names.js` retains inactive v1 with `REGISTRY=null`; `NAMES_V2_DEPLOYMENT` and
-`PROFILE_DEPLOYMENT` are also null for production. This does **not** mean the
-separate manifest-driven UNI-7 deployment is absent. Codes 122/123/124 and the
+`PROFILE_DEPLOYMENT` are also null for production. These legacy constants do **not** disable or identify the manifest-driven deployments.
+Mainnet uses `docs/deployments/nns-mainnet.json`; UNI-7 retains its own manifest. Codes 122/123/124 and the
 registry/profile/token identities are in the [public manifest](deployments/nns-uni7-owner-2026-10-04.json).
 
 My profile's validator preview has a labelled Network selector, currently Juno
@@ -105,9 +104,12 @@ the main DAO is the fee recipient. Registry v0.3.1 makes application admin
 independent of that recipient and starts with USD 99/19/5 while paused. Upgrade
 authority is set separately in the outer instantiate message. A synthetic
 migration test verifies authority, state preservation and subsequent DAO transfer.
-Private backup custody and the production Actions secret are unconfirmed; a verified
-version-3 production manifest and mainnet contracts/admin-wallet execution remain unrecorded. The owner confirmed
-no transaction had been signed or uploaded at 12:54 Berlin. The publication step skips while no production manifest exists.
+The owner completed four mainnet transactions and exported matching two-provider
+paused observations at 13:54 Berlin. Registry code 5168 and profile code 5169 are
+recorded in `deployments/nns-mainnet.json`; exact receipts and verification procedure
+are in [deployment evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md). Private backup
+custody and the production Actions secret are unconfirmed. Manifest publication
+triggers the existing price publisher; a valid signed price is still a launch gate.
 PR [#158](https://github.com/cristianoneta/neta-dao/pull/158), merge
 `62f12f1a0c672a776a5f3500ab4e8e8a09b93e42`, passed all 11 final PR checks,
 three main checks and Pages `37302003843`; 15 served assets matched SHA-256.
@@ -123,8 +125,8 @@ The existing UNI-7 registry needs an explicit admin `set_tariff` transaction via
 the lab Annual pricing section; source/UI changes do not alter deployed config.
 Its activation remains unverified until that wallet receipt/config is checked.
 `names/mainnet-plan.mjs` prepares unsigned mainnet deployment and admin-wallet tariff
-review material. The approved owner wallet can set the mainnet tariff or unpause; no live
-mainnet transaction, deployed address or receipt is claimed by this slice.
+review material. The approved owner wallet can set the mainnet tariff or unpause; no mainnet activation or purchase is recorded. Deployment transactions are
+separately recorded in the production manifest and receipt bundle.
 Original WASM/bootstrap tariff and signed historical fixtures remain unchanged;
 new installations also apply the approved tariff before purchasing. Quotes read
 the current on-chain tariff/version.
