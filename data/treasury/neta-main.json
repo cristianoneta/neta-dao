@@ -35,7 +35,7 @@
     {
       "amount": "1402.010133",
       "base_denom": "ujuno",
-      "change_24h": -2.3425495737986517,
+      "change_24h": -1.6303486861003278,
       "custody_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
       "decimals": 6,
       "ibc_path": null,
@@ -45,37 +45,37 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00900213",
-      "usd_value": "12.62107747858329"
+      "usd_price": "0.00903627",
+      "usd_value": "12.66894210452391"
     },
     {
-      "amount": "2.571312",
+      "amount": "7.32641",
       "change_24h": null,
       "custody_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
       "key": "cw20:juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
       "source_chain": "juno",
       "symbol": "NETA",
       "type": "token",
-      "usd_price": "1.051503244853267670662777191",
-      "usd_value": "2.703742911530145400787246945"
+      "usd_price": "1.055491003392556767607214475",
+      "usd_value": "7.732959842165261827765172202"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-10-05T17:48:09.551720Z",
-  "height": 42399700,
+  "generated_at": "2026-10-05T18:23:43.306651Z",
+  "height": 42400531,
   "nns_price": {
-    "observed_at": "2026-10-05T17:48:09.551720Z",
+    "observed_at": "2026-10-05T18:23:43.306651Z",
     "pool": "juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra",
     "source": "treasury-wynd-juno-usd",
     "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
-    "usd_price": "1.051503244853267670662777191",
+    "usd_price": "1.055491003392556767607214475",
     "usd_source": "CoinGecko"
   },
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "15.32482039011343540078724694",
+  "total_usd": "20.40190194668917182776517220",
   "treasury_accounts": [
     {
       "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
