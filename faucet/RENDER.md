@@ -41,7 +41,7 @@ not unfinished steps for the existing service.
 Create a separate wallet in Keplr solely for the UNI-7 faucet. Use its default
 first account (Cosmos derivation path `m/44'/118'/0'/0/0`), not a Ledger-only
 account or an additional account index. Copy its public `juno1...` address.
-Fund it with JUNOX on UNI-7. At least 12 JUNOX are needed for the service to report
+Fund it with JUNOX on UNI-7. At least 27 JUNOX are needed for the service to report
 ready; 100 JUNOX is a practical initial test balance. These are testnet tokens.
 
 Do not send the recovery phrase in chat or commit it to Git. The operator enters
@@ -86,7 +86,7 @@ Open the assigned `https://…onrender.com/status` URL. Verify:
 | `confirmation` | `uni7-exact-hash-v1` |
 | `gasPolicy` | `bank-send-gas-v1` |
 | `address` | The exact dedicated wallet address |
-| `amount` | `10000000` (10 JUNOX) |
+| `amount` | `25000000` (25 JUNOX) |
 | `intervalSeconds` | `86400` |
 | `ready` | `true` after funding and with no unresolved payout |
 
@@ -95,7 +95,7 @@ Those two public values are sufficient to pin `juno-faucet-config.mjs` and add
 the exact API origin to the HTML CSP. Do not activate a placeholder URL.
 
 Complete the [activation checklist](README.md#run-the-service): one real
-fresh-wallet claim, on-chain receipt for exactly 10 JUNOX, a rejected repeated
+fresh-wallet claim, on-chain receipt for exactly 25 JUNOX, a rejected repeated
 claim, and the same cooldown after a service restart. Also verify donation,
 staking, unstaking and reward flows with operator signatures. Record the deployed
 commit and transaction hashes before calling the faucet live end to end.

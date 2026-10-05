@@ -4,6 +4,19 @@ Updated at end of session. Overall continuation: [HANDOFF](../HANDOFF.md).
 NNS is the current product priority; this file owns remaining faucet evidence.
 The superseded step-by-step chronology is in the [archive](archive/FAUCET_CHRONOLOGY_2026-10-04.md).
 
+## 2026-10-05 payout update
+
+Owner requested 25 JUNOX per rolling 24 hours. Source, UI and ownership challenge
+now use 25 JUNOX; readiness requires 27 JUNOX (payout plus the existing 2-JUNOX
+buffer). Cooldowns, persistent history and request/reservation count caps remain
+unchanged. Existing unused 10-JUNOX proofs require a fresh signature; already
+submitted claims still reconcile/replay by their original ID and hash.
+The frontend accepts the old 10-JUNOX service during rollout and displays/signs
+its actual amount, so Pages-first deployment does not interrupt existing claims.
+Manual Render deployment is required after merge. Confirm `/status.amount` is
+`25000000` before calling the increase live. The earlier observations below remain
+historical evidence.
+
 ## Current implementation and observed service state
 
 - Live page: <https://dao.netareborn.com/juno-faucet.html>.
@@ -44,7 +57,7 @@ is archived here. Earlier PR/Pages evidence is retained in the chronology archiv
 
 1. Recheck fresh service status, current GitHub/frontend release and the browser's
    pending journal. Preserve all site data; reconcile known hashes before new writes.
-2. Owner requests **10 JUNOX**, confirms the ADR-36 ownership message in Keplr,
+2. Owner requests **25 JUNOX**, confirms the ADR-36 ownership message in Keplr,
    and supplies the resulting receipt. Verify exact amount, recipient and success.
 3. Verify repeat-request rejection and the persisted 24-hour cooldown after an
    owner-triggered restart of the same Render service. Preserve SQLite/WAL.
@@ -64,7 +77,7 @@ See [Render guide](../faucet/RENDER.md) and [service README](../faucet/README.md
 Application guards: <=60 admitted requests/minute, 5,000/UTC day, 50,000/UTC month;
 <=100 new payout reservations/day and 1,000/month (failed reservations count);
 4 concurrent handlers; 30-second status cache; 8-KiB bodies; persistent counters;
-fixed 10 JUNOX per wallet per rolling 24 hours. Environment overrides can lower
+fixed 25 JUNOX per wallet per rolling 24 hours. Environment overrides can lower
 limits only. `FAUCET_PAUSED=true` provides a manual pause.
 
 These limits are **not a hard dollar invoice cap**; rejected traffic, disk and
@@ -72,7 +85,7 @@ instance costs can remain billable. A Render build-spend limit of USD 0 was
 recommended but not confirmed. Do not overstate platform billing protection.
 Bank sends simulate, cap the estimate at 500000, and use
 `max(250000, ceil(estimate * 1.8))` at 0.2 ujunox/gas; minimum fee is 0.05 JUNOX.
-The service retains a 12-JUNOX readiness reserve. No automatic retry follows an
+The service retains a 27-JUNOX readiness reserve. No automatic retry follows an
 included failure or unknown broadcast.
 
 ## Deferred research

@@ -39,3 +39,10 @@ test('status reports not ready when global payout budget is exhausted',async t=>
   s.ledger.db.prepare("INSERT INTO claims(id,address,status,created) VALUES('old','alice','failed',?)").run(Date.now());
   const status=await (await s.get('/status')).json();assert.equal(status.ready,false);assert.match(status.pause.reason,/day payout limit/);
 });
+test('readiness covers the 25 JUNOX payout plus 2 JUNOX buffer',async t=>{
+  let now=1800000000000,balance='26999999';
+  const s=await setup(t,{clock:()=>now,balance:()=>balance});
+  let status=await (await s.get('/status')).json();
+  assert.equal(status.amount,'25000000');assert.equal(status.intervalSeconds,86400);assert.equal(status.ready,false);
+  balance='27000000';now+=30001;status=await (await s.get('/status')).json();assert.equal(status.ready,true);
+});

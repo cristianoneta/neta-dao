@@ -1,7 +1,7 @@
 import {DatabaseSync} from 'node:sqlite';
 import {randomBytes} from 'node:crypto';
 import {UsageGuard,DEFAULT_LIMITS} from './limits.mjs';
-export const DAY=86400000, AMOUNT='10000000';
+export const DAY=86400000, AMOUNT='25000000';
 export class FaucetLedger {
   constructor(file,adapter,{now=Date.now,verify,domain,limits=DEFAULT_LIMITS}={}) {
     this.db=new DatabaseSync(file);this.adapter=adapter;this.now=now;this.verify=verify;this.domain=domain;
@@ -20,7 +20,7 @@ export class FaucetLedger {
   assertEligible(address) {
     const e=this.eligibility(address);
     if(e.pending)throw Error('Your previous payout is pending. Refresh to check its outcome.');
-    if(e.nextClaimAt && Date.parse(e.nextClaimAt)>this.now())throw Error('Only 10 JUNOX per wallet every 24 hours. Next payout: '+e.nextClaimAt);
+    if(e.nextClaimAt && Date.parse(e.nextClaimAt)>this.now())throw Error('Only 25 JUNOX per wallet every 24 hours. Next payout: '+e.nextClaimAt);
   }
   challenge(address) {
     this.guard.assertPayoutAllowed();
@@ -31,7 +31,7 @@ export class FaucetLedger {
       const recent=this.db.prepare('SELECT id FROM challenges WHERE address=? AND expires>?').get(address,this.now()+240000);
       if(recent)throw Error('Please wait a minute before requesting another wallet signature.');
       const id=randomBytes(24).toString('hex'),expires=this.now()+300000;
-      const message=`NETA JUNOX faucet\nService: ${this.domain}\nNetwork: uni-7\nWallet: ${address}\nRequest: exactly 10 JUNOX\nLimit: once per 24 hours per wallet\nNonce: ${id}\nExpires: ${new Date(expires).toISOString()}\nThis signature proves wallet ownership. It does not authorize spending.`;
+      const message=`NETA JUNOX faucet\nService: ${this.domain}\nNetwork: uni-7\nWallet: ${address}\nRequest: exactly 25 JUNOX\nLimit: once per 24 hours per wallet\nNonce: ${id}\nExpires: ${new Date(expires).toISOString()}\nThis signature proves wallet ownership. It does not authorize spending.`;
       this.db.prepare('INSERT INTO challenges(id,address,message,expires) VALUES(?,?,?,?)').run(id,address,message,expires);
       return {id,address,chainId:'uni-7',message};
     });
@@ -51,6 +51,8 @@ export class FaucetLedger {
     if(!await this.verify(address,challenge.message,signature))throw Error('Wallet signature is invalid.');
     const previous=this.db.prepare('SELECT status,hash FROM claims WHERE id=?').get(id);
     if(previous)return previous;
+    // A pre-upgrade ownership proof must not authorize a different payout amount.
+    if(!challenge.message.includes('\nRequest: exactly 25 JUNOX\n'))throw Error('Request a fresh wallet signature.');
     if(challenge.expires<this.now()||challenge.used)throw Error('Wallet signature expired. Request again.');
     await this.reconcile();
     this.transaction(()=>{

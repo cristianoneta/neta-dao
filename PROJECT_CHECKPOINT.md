@@ -8,7 +8,7 @@ release evidence belongs to the linked runbooks, not another duplicate chronolog
    validator UI are delivered. A consenting operator is the external dependency.
    Verify link, exclusive bindings, unlink/revoke and exact receipts. Preserve the
    current deployment and browser data. [NNS handoff](docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md).
-2. **Faucet evidence:** verify a real 10-JUNOX payout, repeat rejection, persistent
+2. **Faucet evidence:** verify a real 25-JUNOX payout, repeat rejection, persistent
    cooldown after restart, empty-recipient behavior and stake/unstake receipts.
    Service funding/integration and reward/donation evidence already exist.
    [Faucet handoff](docs/HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md).

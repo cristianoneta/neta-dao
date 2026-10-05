@@ -1,7 +1,6 @@
 # NETA DAO handoff
 
-Updated: **2026-10-04, end of session (Europe/Berlin)**. The owner has stopped for
-today. This is the continuation entry point, not an append-only session log.
+Updated: **2026-10-05 (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
 
 ## Start here
 
@@ -25,6 +24,9 @@ today. This is the continuation entry point, not an append-only session log.
   owner unlink and unilateral revocation are implemented. Latest release: merge
   `50c5814e048230507a1d03c3e7c8c03f97b537ee`; all applicable checks and Pages passed;
   all eight changed public assets matched. Detailed evidence is in the NNS handoff.
+- Owner requested 25 JUNOX per rolling 24 hours on 2026-10-05. Source/UI updated;
+  manual Render deploy and fresh status verification are required to activate it.
+  See the faucet handoff for the 27-JUNOX readiness threshold and preserved guards.
 - Faucet frontend is connected to the funded Render service. Donation and reward
   receipts exist; payout/replay/restart/fresh-wallet E2E and real stake/unstake
   evidence remain open. See [faucet handoff](docs/HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md).
