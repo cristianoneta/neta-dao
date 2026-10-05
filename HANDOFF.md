@@ -21,9 +21,9 @@ matched local SHA-256. The targeted internal security review records 210 passing
 Rust/Node tests plus browser flows; it is not an independent external audit.
 See [review and release evidence](docs/NNS_SECURITY_REVIEW_2026-10-05.md).
 
-**No mainnet upload/signature has occurred according to the owner's last report.**
-No production contract addresses or receipts are recorded. The next chat should
-resume the reviewed deployment below, not repeat the audit or UNI-7 lifecycle.
+**The owner completed all four mainnet deployment transactions at 13:54 Berlin.**
+The production manifest and public receipts are now recorded. Resume signed-price
+verification and activation preparation; do not repeat deployment or UNI-7 tests.
 
 ## Completed today
 
@@ -59,70 +59,38 @@ updates target the existing 30-minute main DAO job; a signed observation remains
 valid for at most 24 hours. **Do not create a separate Render NNS service.**
 Live validator tests stay deferred. Annual USD **99 / 19 / 5** is unchanged.
 
-The snapshot implementation adds registry v0.3.1, a separate pinned mainnet WASM,
-shared signed-price verification/payment hooks, offline Actions publication and
-the browser/client purchase preparation path. Existing UNI-7 contracts and WASMs,
-local authority and transaction journals remain unchanged. Source and synthetic
-tests are not a deployed mainnet or owner-wallet purchase. See [the owning runbook](names/README.md)
-and [snapshot release checkpoint](docs/NNS_SNAPSHOT_RELEASE_2026-10-05.md).
+### Mainnet checkpoint
 
-**Next owner action:** force-reload (Ctrl+F5; discard the old unsent review) `https://dao.netareborn.com/names-mainnet-deploy.html`
-and connect `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`. Review registry v0.3.1
-upload/creation and profile upload/creation separately, then use **Verify and download public receipts** and share the public
-`nns-mainnet-deployment-receipts.json` in the next chat. Each of the four actions
-requires its own Keplr review/confirmation and real JUNO gas; deployment sends no NETA.
-At 12:54 Berlin the owner explicitly confirmed **nothing has been uploaded or
-signed**: only the old registry upload review was displayed. No chain recovery or
-replacement deployment is needed. Do not treat the old review as a receipt.
+The owner signed all four mainnet deployment transactions and supplied the public
+receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creation.
 
-Owner corrections on 2026-10-05: the wallet above initially holds **both contract
-upgrade rights and registry administration** (tariffs, purchase pause and price-key
-rotation). **Only name fees go to the main NETA DAO.** No current DAO proposal is
-required for pricing or activation. Future transfers are possible and separate:
-`MsgUpdateAdmin` for each contract's upgrade right; registry `set_admin` for its
-application authority. Do not transfer or clear rights without a later instruction.
-New production contracts require an explicitly agreed upgrade authority.
+- Registry code **5168**: `juno1pc8wrq89ljuhu2qt6rtk5lkkrptxajtf3un5llu8prg7r4z50vlszfhhza`.
+- Profiles code **5169**: `juno1y2yu66meq6p6wm0ur6wfwjr60ugaakjmefgjxqkw30l35kl45yhsywple6`.
+- [Production manifest](docs/deployments/nns-mainnet.json) and
+  [four public receipts](docs/deployments/nns-mainnet-receipts-2026-10-05.json).
+- Both upgrade administrators and the registry application administrator are
+  `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`. The main NETA DAO receives fees.
+- Both exported provider observations agree: purchases paused, tariff version 1,
+  annual USD **99 / 19 / 5**, signer version 1 and the approved public price key.
+- Public key: `XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=`.
+  Never regenerate it or request its private backup. Backup custody and installation
+  of Actions secret `NNS_PRICE_SIGNING_KEY` are still unconfirmed.
+- Before merging the manifest, require the dedicated read-only deployment workflow:
+  all four exact chain transaction payloads and two independent current provider
+  observations must pass. See [deployment evidence](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md).
+- Next: publish the manifest, check the existing Main DAO snapshots job and verify
+  `data/nns/price.json` signature, original observation and expiry. Then check the
+  normal Mainnet Names UI while paused. No separate Render NNS service.
+- Only after a valid public price and verified live config: prepare a separate
+  owner-wallet unpause review and a real owner purchase. There is no dedicated
+  mainnet tariff/unpause panel yet; do not substitute the deployment helper or a
+  DAO proposal. Neither activation nor a mainnet purchase is recorded.
 
-Registry v0.3.1 removes the old forced DAO application-admin condition while still
-pinning the real NETA token and DAO fee destination. It starts paused with the
-approved initial USD **99 / 19 / 5** tariff. The owner can change current prices;
-mainnet purchase preparation follows the verified on-chain tariff. The new WASM
-is `assets/names-mainnet/neta_names_v2_v031.wasm`, hash
-`f25c982db217363c395a1c09c3028988cff390323b0aa852249016bbebe974fc`.
-Historical mainnet v0.3.0/UNI-7 artifacts and journals remain intact.
-See [targeted security review](docs/NNS_SECURITY_REVIEW_2026-10-05.md).
-The owner supplied public price key
-`XfqS2XMXgZKJ5fiU721D3XsuhPas+4U1idUujcintdU=` on 2026-10-05;
-it is pinned in `names/mainnet-config.mjs` and the dated unsigned deployment plan.
-Do not recreate it. Private backup custody and installation of the Actions secret
-`NNS_PRICE_SIGNING_KEY` have **not been confirmed**. Never request the private key.
-The deploy page needs no private price key and exports a version-3 manifest,
-exact transaction receipts and two-provider paused-config and upgrade-admin observations. Reloads
-preserve pending intents; recovery never automatically resends a transaction.
-The page does not submit DAO proposals or activate purchases. No mainnet deployment
-receipt has yet been received from the owner.
-Prepare and owner-sign mainnet registry/profile deployment, record exact receipts
-and a verified version-3 `docs/deployments/nns-mainnet.json`, then verify the initial tariff and public signed price while purchases stay paused.
-
-The existing Treasury job signs only once the production manifest is present.
-It reuses the collected WYND NETA price without new API polling. Old prices are
-not re-dated; missing or expired prices stop purchase preparation. Authentic older
-snapshots can remain usable until expiry; no on-chain price-update transaction is
-introduced. See the runbook for this accepted approximation and key custody.
-
-Mainnet reader/wallet/page integration is implemented. The Names network selector
-chooses `juno-1` or the preserved UNI-7 deployment; the shared header requests the
-selected chain. Mainnet checks both registry/profile artifact pins, real NETA,
-DAO/key/config and fresh chain data; it uses the public signed Treasury snapshot.
-Purchase/profile/transfer reviews and journals remain scoped by chain/registry.
-Absent or unverified production manifests keep mainnet operations unavailable.
-Browser suites exercise both networks with synthetic adapters, not live receipts.
-After owner-signed deployment, verify the public price and real mainnet UI, activate
-purchases through a separate admin-wallet transaction and verify an owner-signed purchase.
-A dedicated mainnet owner panel for tariff changes/unpause is not yet implemented.
-The contract authority and unsigned preparation helper exist; prepare the concrete
-owner review only after the verified manifest and price are available.
-No mainnet address or wallet/DAO receipt is recorded.
+Upgrade transfer (`MsgUpdateAdmin` on each contract) and registry `set_admin`
+are separate future owner actions. No transfer or removal of authority is authorized.
+UNI-7 contracts, completed lifecycle, local key and journals are preserved.
+Validator live tests stay deferred. Treasury P&L work is explicitly deferred until
+NNS is finished; the shared collapsed-warning fix is already published in PR #160.
 
 The main `.neta name` and `My profile` pages already reuse the existing UNI-7
 manifest, shared header wallet and journals for registration/renewal/transfers and
@@ -164,7 +132,7 @@ Keep programme criteria and deferred Smart Delegation research unchanged. See
   automatically or cleared to unblock the UI. Keep Render SQLite/WAL across deploys.
 - Never request seeds/private keys. All live writes need the user's explicit wallet
   confirmation. Test operator proofs are off-chain; publication consumes UNI-7 gas.
-- Mainnet Names and messaging remain disabled. Operations review finalization is
+- Mainnet Names purchases remain paused and mainnet messaging remains disabled. Operations review finalization is
   not submission of a mainnet proposal. Native Juno submission/voting remains absent.
 - Generated Treasury/member files belong to their collectors; never hand-edit them.
 - This repository owns `dao.netareborn.com`; `neta-website` owns `netareborn.com`.
