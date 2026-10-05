@@ -160,6 +160,7 @@ fn verify_quote(
     receive: &Cw20ReceiveMsg,
     offer: &SignedQuote,
     operation: Operation,
+    snapshot: Option<&PriceSnapshot>,
 ) -> StdResult<()> {
     let q = &offer.quote;
     let now = env.block.time.seconds();
@@ -200,11 +201,28 @@ fn verify_quote(
     {
         return Err(fail("quote already used"));
     }
+    let preimage = if let Some(p) = snapshot {
+        if p.signer_version != config.signer_version
+            || p.usd_per_neta_12.is_zero()
+            || p.usd_per_neta_12 != q.usd_per_neta_12
+            || p.observed_at == 0
+            || p.observed_at > now
+            || p.expires_at <= now
+            || p.expires_at <= p.observed_at
+            || p.expires_at > add(p.observed_at, PRICE_SNAPSHOT_TTL)?
+            || q.expires_at > p.expires_at
+        {
+            return Err(fail("invalid or expired price snapshot"));
+        }
+        price_snapshot_preimage(env, config, p)
+    } else {
+        quote_preimage(env, config, q)
+    };
     if offer.signature.len() != 64
         || !deps
             .api
             .ed25519_verify(
-                quote_preimage(env, config, q).as_bytes(),
+                preimage.as_bytes(),
                 offer.signature.as_slice(),
                 config.quote_public_key.as_slice(),
             )
@@ -221,9 +239,27 @@ fn pay(deps: DepsMut, env: Env, info: MessageInfo, receive: Cw20ReceiveMsg) -> S
         return Err(fail("wrong payment token"));
     }
     let hook: HookMsg = from_json(&receive.msg)?;
-    let (offer, salt, operation) = match hook {
-        HookMsg::Register { offer, salt } => (offer, Some(salt), Operation::Register),
-        HookMsg::Renew { offer } => (offer, None, Operation::Renew),
+    let (offer, salt, operation, snapshot) = match hook {
+        HookMsg::Register { offer, salt } => (offer, Some(salt), Operation::Register, None),
+        HookMsg::Renew { offer } => (offer, None, Operation::Renew, None),
+        HookMsg::RegisterSnapshot { offer, salt } => (
+            SignedQuote {
+                quote: offer.quote,
+                signature: offer.signature,
+            },
+            Some(salt),
+            Operation::Register,
+            Some(offer.snapshot),
+        ),
+        HookMsg::RenewSnapshot { offer } => (
+            SignedQuote {
+                quote: offer.quote,
+                signature: offer.signature,
+            },
+            None,
+            Operation::Renew,
+            Some(offer.snapshot),
+        ),
     };
     verify_quote(
         deps.as_ref(),
@@ -232,6 +268,7 @@ fn pay(deps: DepsMut, env: Env, info: MessageInfo, receive: Cw20ReceiveMsg) -> S
         &receive,
         &offer,
         operation.clone(),
+        snapshot.as_ref(),
     )?;
     let q = &offer.quote;
     let now = env.block.time.seconds();
@@ -529,6 +566,11 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QuotePreimage { quote } => {
             to_json_binary(&quote_preimage(&env, &CONFIG.load(deps.storage)?, &quote))
         }
+        QueryMsg::PriceSnapshotPreimage { snapshot } => to_json_binary(&price_snapshot_preimage(
+            &env,
+            &CONFIG.load(deps.storage)?,
+            &snapshot,
+        )),
         QueryMsg::Resolve { name: input } => {
             let n = name(&input)?;
             let r = NAMES.may_load(deps.storage, &n)?;

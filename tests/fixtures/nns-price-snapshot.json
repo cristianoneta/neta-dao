@@ -1,0 +1,30 @@
+{
+  "note": "Synthetic fixture, never a production key or deployment.",
+  "text": "NETA names price snapshot v1\nRegistry chain: uni-7\nRegistry: contract1\nToken: contract0\nTreasury: treasury\nSigner version: 1\nUSD per NETA (12 decimals): 2000000000000\nObserved at: 1699996400\nExpires at: 1700082800",
+  "offer": {
+    "quote": {
+      "operation": "register",
+      "payer": "alice",
+      "owner": "alice",
+      "name": "alice.neta",
+      "generation": 1,
+      "ownership_revision": 1,
+      "expected_expires_at": 0,
+      "years": 1,
+      "tariff_version": 1,
+      "signer_version": 1,
+      "usd_per_neta_12": "2000000000000",
+      "amount": "2500000",
+      "nonce": "0101010101010101010101010101010101010101010101010101010101010101",
+      "issued_at": 1700000000,
+      "expires_at": 1700000300
+    },
+    "snapshot": {
+      "signer_version": 1,
+      "usd_per_neta_12": "2000000000000",
+      "observed_at": 1699996400,
+      "expires_at": 1700082800
+    },
+    "signature": "AQSUIHxWcdvrDZ3Vn1ANg3GzInn/cB1WYAUOyhn3SFzQ+L7GD6tr8P5E8scmn8+VMb5FaS62nafQlAjIpPpTDg=="
+  }
+}

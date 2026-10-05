@@ -1,6 +1,7 @@
 import {checkValidatorSnapshot,validateOperatorProof,samePair} from './names-v2-validator-proofs.mjs?v=1';
 import {NAMES_V2_DEPLOYMENT,commitmentHash,validateQuote,paymentMessage,renewalExpiry} from './names-v2-core.mjs';
 import {normalizeName,normalizeContacts} from './names-profile-core.mjs';
+import {fetchSnapshotOffer} from './names/snapshot-client.mjs';
 
 // Transaction coordination only. The host supplies a pinned, verified reader,
 // the existing journaled exact-hash signer, and an origin-wide Web Lock.
@@ -89,6 +90,22 @@ export class NamesV2Client {
     const offer=await getQuote(expected);
     await validateQuote({deployment:this.deployment,config,offer,expected,now:this.now(),cryptoProvider:this.crypto});
     await this.owner(owner);return structuredClone(offer);
+  }
+  async snapshotQuote({payer,name,years,operation,fetcher=globalThis.fetch}) {
+    const config=await this.config(payer);
+    let expected;
+    if(operation==='register') {
+      const i=await this.checkedIntent(payer,'committed');
+      if(normalizeName(name)!==i.name || years!==i.years) throw Error('Registration intent changed.');
+      expected=this.expectedRegistration(i);
+    } else if(operation==='renew') {
+      name=normalizeName(name);
+      const r=await this.reader.identity(name);renewalExpiry(r,years,this.now());
+      expected={operation,payer,owner:r.owner,name,generation:r.generation,ownership_revision:r.ownership_revision,expected_expires_at:r.expires_at,years};
+    } else throw Error('Unknown purchase operation.');
+    const offer=await fetchSnapshotOffer({deployment:this.deployment,config,expected,fetcher,now:this.now(),cryptoProvider:this.crypto});
+    await this.owner(payer);
+    return offer; // Host must show snapshotReview plus identity/network before register/renew.
   }
   async register(owner,reviewedOffer) {
     // Caller explicitly presents the exact debit and receives a separate click

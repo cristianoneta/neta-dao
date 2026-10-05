@@ -71,7 +71,7 @@ function harness(){
       commitment={hash:request.msg.commit.hash,height:100,expires_at:clock+3600};
     }
     if(request.msg.send){const hook=JSON.parse(Buffer.from(request.msg.send.msg,'base64').toString());
-      const q=(hook.register||hook.renew).offer.quote;record={name:q.name,owner:q.owner,generation:q.generation,ownership_revision:q.ownership_revision,expires_at:(hook.renew?Math.max(clock,q.expected_expires_at):clock)+q.years*YEAR};}
+      const q=(hook.register||hook.renew||hook.register_snapshot||hook.renew_snapshot).offer.quote;record={name:q.name,owner:q.owner,generation:q.generation,ownership_revision:q.ownership_revision,expires_at:((hook.renew||hook.renew_snapshot)?Math.max(clock,q.expected_expires_at):clock)+q.years*YEAR};}
     return {transactionHash:'A'.repeat(64),chainId:'uni-7',code:0,height:101};
   }};
   return {opts,client:()=>new NamesV2Client(opts),storage,reader,writes:()=>writes,setWallet:w=>wallet=w,setClock:t=>clock=t,setFail:f=>fail=f,setRecord:r=>record=r,setOffer:o=>offer=o};
@@ -169,4 +169,21 @@ test('approved tariff prices registration and renewal quotes and invalidates pri
   const offer=signed(q,updated);assert.equal((await validateQuote({deployment,config:updated,offer,expected:q,now})).amount,amount);
  }
  await assert.rejects(validateQuote({deployment,config:updated,offer:fresh(),expected:fixture.offer.quote,now}),/policy changed/);
+});
+
+
+test('shared snapshot purchase uses the existing durable commit/payment/recovery coordinator',async()=>{
+  const shared=JSON.parse(readFileSync(new URL('./fixtures/nns-price-snapshot.json',import.meta.url)));
+  const h=harness();h.opts.deployment={...deployment,pricing_protocol:'treasury-snapshot-v1'};
+  const c=h.client();await c.prepareRegistration({owner:'alice',name:'alice',years:1});await c.commit('alice');
+  const published={schema_version:1,chain_id:deployment.chain_id,registry:deployment.registry,token:config.token,treasury:config.treasury,snapshot:shared.offer.snapshot,signature:shared.offer.signature};
+  const reviewed=await c.snapshotQuote({payer:'alice',name:'alice',years:1,operation:'register',fetcher:async()=>new Response(JSON.stringify(published))});
+  assert.equal(h.writes(),1);
+  h.setFail(true);await assert.rejects(c.register('alice',reviewed),/Unknown broadcast/);
+  const reloaded=h.client();assert.equal(reloaded.load('alice').phase,'payment_pending');
+  assert.ok(JSON.parse(atob(reloaded.load('alice').request.msg.send.msg)).register_snapshot);
+  await assert.rejects(reloaded.register('alice',reviewed),/reconciliation/);
+  await reloaded.recoverPending('alice',async()=>({notBroadcast:true,intentMatched:true}));
+  h.setFail(false);await reloaded.register('alice',reviewed);
+  assert.equal(reloaded.load('alice').phase,'complete');assert.equal((await h.reader.identity()).owner,'alice');
 });

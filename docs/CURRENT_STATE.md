@@ -1,7 +1,7 @@
 # NETA DAO code-backed current state
 
-Updated **2026-10-05** against application release
-`837fa7942bec3e849a85fbb9863afbbbddb95395` (WYND quote service #153). This file owns the feature inventory;
+Updated **2026-10-05** for the Treasury snapshot-price implementation following
+WYND quote-service release #153. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
 [HANDOFF](../HANDOFF.md) owns the next action and working rules. Observed chain,
 service and data states are timestamped evidence, not guarantees of future state.
 The previous append-only inventory is retained in the [archive](archive/CURRENT_STATE_BEFORE_CLEANUP_2026-10-04.md).
@@ -86,15 +86,21 @@ Lost/unknown submissions stay locked until reconciled; no automatic resend occur
 
 The accepted annual tariff is USD 99/19/5 for 3/4/5–32 characters, for both
 registration and renewal, 1–5-year terms, 365-day years and 30-day grace. Mainnet
-fees target the main NETA DAO, not Operations. The server in `names/service/` now
-implements WYND cumulative-price averaging, CoinGecko JUNO/USD, coherent dual-node
-reads, persistent Ed25519 custody, signed offers and usage guards. The separate
-`names/render.yaml` starts in observe mode. It has **not** been hosted, given a
-production deployment manifest or activated for purchases. Live window/restart
-verification, review of operational limits, mainnet contracts/DAO execution and
-the mainnet frontend/wallet adapter remain open. See [service runbook](../names/README.md),
-[product plan](NETA_NAMES_V2_PLAN.md), [registry protocol](NNS_V2_REGISTRY_2026-10-04.md)
-and [profile protocol/programme decisions](NNS_VALIDATOR_PROFILES_2026-10-04.md).
+fees target the main NETA DAO, not Operations. The owner subsequently approved reusing the existing Treasury WYND NETA price,
+with scheduled 30-minute refresh and up to 24 hours of signed validity. Registry
+source v0.3.0 accepts shared-price hooks in addition to legacy individual quotes;
+its new WASM is pinned separately under `assets/names-mainnet/`. Existing deployed
+UNI-7 code and historical artifacts are unchanged. `names/publish-snapshot.mjs`
+signs the collector's explicit `nns_price` offline in the main DAO job; no new
+market polling or Render service is needed. `snapshot-client.mjs`, shared core
+validation and `NamesV2Client.snapshotQuote` support reviewed snapshot payments
+and existing recovery. The normal page/reader/wallet remains UNI-7-only and uses
+its old local individual-quote flow. A production price secret, verified version-3
+manifest, mainnet contracts/DAO execution and mainnet UI/wallet integration are
+still absent. The publication step skips while no production manifest exists.
+See [runbook](../names/README.md) and [snapshot evidence](NNS_SNAPSHOT_RELEASE_2026-10-05.md).
+The earlier continuous WYND server is deferred, not hosted. Its stricter policy
+is not the policy of the approved snapshot system.
 The existing UNI-7 registry needs an explicit admin `set_tariff` transaction via
 the lab Annual pricing section; source/UI changes do not alter deployed config.
 Its activation remains unverified until that wallet receipt/config is checked.

@@ -86,5 +86,30 @@ class TreasuryPartialValuationTests(unittest.TestCase):
         self.assertIn('UNKNOWN', result['warnings'][0])
 
 
+class NnsPriceReuseTests(unittest.TestCase):
+    def test_shared_price_exists_without_holdings_and_reuses_reads(self):
+        neta_pair = next(p for p in treasury.POOLS if p[0] == 'JUNO / NETA')[2]
+        reads = []
+        def smart(contract, msg):
+            reads.append((contract, msg))
+            if msg == {'pool': {}}:
+                return {'assets': [{'info': {'native': 'ujuno'}, 'amount': '100000000'},
+                                   {'info': {'token': treasury.NETA}, 'amount': '1000000'}]}, 'mock'
+            return {}, 'mock'
+        stamp = '2026-10-05T08:50:00Z'
+        with patch.object(treasury, 'rest', return_value=({'balances': []}, 'mock')), patch.object(treasury, 'smart', side_effect=smart):
+            result = treasury.build_operations({'juno-network': {'usd': treasury.Decimal('0.01')}}, 'CoinGecko', stamp, 123, cross_chain=False)
+        self.assertEqual(result['assets'], [])
+        self.assertEqual(treasury.Decimal(result['nns_price']['usd_price']), treasury.Decimal('1'))
+        self.assertEqual(result['nns_price']['observed_at'], stamp)
+        self.assertEqual(result['nns_price']['token'], treasury.NETA)
+        self.assertEqual(reads.count((neta_pair, {'pool': {}})), 1)
+
+    def test_missing_usd_does_not_create_zero_or_fake_price(self):
+        with patch.object(treasury, 'rest', return_value=({'balances': []}, 'mock')), patch.object(treasury, 'smart', return_value=({}, 'mock')):
+            result = treasury.build_operations({}, 'unavailable', '2026-10-05T08:50:00Z', 123, cross_chain=False)
+        self.assertIsNone(result['nns_price'])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,8 @@
 # NNS WYND quote-service checkpoint — 5 October 2026
 
+> Superseded launch direction: the owner subsequently approved Treasury price snapshots
+> without Render. See [current runbook](../names/README.md). Evidence below is historical.
+
 Owner requested completion and an updated handoff before moving to a new chat.
 The next actionable dependency is Render hosting in observe mode, not another
 UNI-7 deployment. Live validator testing remains deferred.

@@ -9,6 +9,8 @@ on:
       - 'data/dao-directory.json'
       - 'data/treasury/token-registry.json'
       - '.github/workflows/main-dao-snapshot.yml'
+      - 'names/publish-snapshot.mjs'
+      - 'docs/deployments/nns-mainnet.json'
   schedule:
     - cron: '7,37 * * * *'
   workflow_dispatch:
@@ -30,11 +32,31 @@ jobs:
         env:
           TREASURY_DAILY_SNAPSHOT: auto
         run: python scripts/update_main_dao.py
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.19.0
+      - name: Publish shared NNS price when configured
+        # Only the trusted main workflow receives the price authority; never PRs.
+        if: github.ref == 'refs/heads/main'
+        env:
+          NNS_PRICE_SIGNING_KEY: ${{ secrets.NNS_PRICE_SIGNING_KEY }}
+        shell: bash
+        run: |
+          if [ ! -f docs/deployments/nns-mainnet.json ]; then
+            echo 'NNS mainnet not configured; retaining any previous price.'
+          elif [ -z "$NNS_PRICE_SIGNING_KEY" ]; then
+            echo '::error::NNS price secret missing; retaining any previous price.'
+            exit 1
+          else
+            node names/publish-snapshot.mjs data/treasury/neta-main.json docs/deployments/nns-mainnet.json data/nns/price.json
+          fi
       - name: Publish main DAO snapshots and source status
+        if: ${{ !cancelled() }}
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add data/daos/neta-status.json data/treasury/neta-main*.json
+          if [ -f data/nns/price.json ]; then git add data/nns/price.json; fi
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Update main DAO snapshots"
           for attempt in 1 2 3; do

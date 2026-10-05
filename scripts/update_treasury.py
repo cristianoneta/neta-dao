@@ -229,6 +229,7 @@ def build_operations(market, price_source, stamp, height, address=TREASURY, cros
         value = sum((Decimal(item["usd_value"]) for item in underlyings if item["usd_value"] is not None), Decimal(0))
         free.append({"type": "lp", "key": "cw20:" + lp, "symbol": name + " LP", "amount": str(decimal(lp_raw, int(token_info.get("decimals", 6)))), "source_chain": "juno", "custody_address": address, "usd_price": None, "usd_value": str(value), "change_24h": None, "pair": pair, "custody": {"direct_raw": str(direct_raw), "staked_raw": str(active_raw), "claims_raw": str(claims_raw)}, "underlyings": underlyings})
 
+    nns_price = None
     derived_pairs = ((NETA, "JUNO / NETA", "native:ujuno"), (WYND, "WYND / USDC", "native:ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034"))
     for contract, pool_name, anchor_key in derived_pairs:
         configured_pool = next((item for item in POOLS if item[0] == pool_name), None)
@@ -242,6 +243,11 @@ def build_operations(market, price_source, stamp, height, address=TREASURY, cros
         anchor_price = market.get(anchor_meta.get("coingecko"), {}).get("usd")
         if anchor_raw and token_raw and anchor_price:
             token_price = (anchor_raw / token_raw) * anchor_price
+            if contract == NETA and token_price.is_finite() and token_price > 0:
+                # A price observation exists even when the DAO owns zero NETA.
+                # Reuse these exact reads; no extra market requests for Names.
+                nns_price = {"token": NETA, "pool": pair, "source": "treasury-wynd-juno-usd",
+                             "usd_source": price_source, "observed_at": stamp, "usd_price": str(token_price)}
             for item in free:
                 if item["key"] == "cw20:" + contract:
                     item["usd_price"] = str(token_price)
@@ -257,6 +263,7 @@ def build_operations(market, price_source, stamp, height, address=TREASURY, cros
             warnings.append(f"{CW20[contract]['symbol']} price unavailable: {pool_name} pool or USD anchor missing")
 
     result = snapshot_result(stamp, height, endpoint, price_source, free, warnings, "dao-and-cross-chain" if cross_chain else "dao-core", address)
+    result["nns_price"] = nns_price
     result["treasury_accounts"] = [{"chain_id": "juno-1", "address": address, "control": "dao-core", "balance_source": endpoint}] + ([{"chain_id": "osmosis-1", "address": OSMOSIS_TREASURY, "control": "polytone-proxy", "balance_source": osmosis_endpoint}] if cross_chain else [])
     return result
 

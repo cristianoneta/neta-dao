@@ -1,10 +1,13 @@
 # NETA DAO checkpoint index
 
-Updated **2026-10-04, end of session**. Start with [HANDOFF](HANDOFF.md), then
+Updated **2026-10-05**. Start with [HANDOFF](HANDOFF.md), then
 [CURRENT_STATE](docs/CURRENT_STATE.md). This file lists open priorities; detailed
 release evidence belongs to the linked runbooks, not another duplicate chronology.
 
-1. **NNS pricing / deferred validator test:** apply the approved 99/19/5 USD
+1. **NNS pricing / deferred validator test:** follow the approved shared Treasury
+   snapshot-price path in [names/README](names/README.md), with 24-hour validity
+   and no separate Render service. Production key/manifest/deployment remain open.
+   Independently, apply the approved 99/19/5 USD
    annual tariff through the existing UNI-7 admin action and verify its receipt.
    Validator live tests are paused at the owner’s request (2026-10-05).
    Existing validator scope: registration/profile/renewal/transfer and the
@@ -19,8 +22,8 @@ release evidence belongs to the linked runbooks, not another duplicate chronolog
    links plus independent validator and active-consensus snapshots. No automatic
    points from a stored link. Smart Delegation research stays deferred until the
    NNS gate is resolved. [Decisions](docs/NNS_VALIDATOR_PROFILES_2026-10-04.md).
-4. **Names production gates:** real quote feeds/policy, signer custody/service,
-   reviewed mainnet governance/deployment and wallet E2E. Main workspace writes
+4. **Names production gates:** Actions price key custody, signed snapshot publication,
+   reviewed mainnet governance/deployment and wallet E2E. Mainnet workspace writes
    remain disabled; separate UNI-7 tests are not a mainnet release.
 5. **Messaging release gates:** generation-aware sessions and consent/prekey refill
    against isolated v0.2 fixtures; full rotate/revoke/exhaustion/history tests;

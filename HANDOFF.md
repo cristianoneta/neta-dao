@@ -39,35 +39,40 @@ Updated: **2026-10-05 (Europe/Berlin)**. This is the continuation entry point, n
 
 ## Next task
 
-Owner's latest direction on 2026-10-05: use **WYND JUNO/NETA** for NNS pricing,
-annual USD **99 / 19 / 5** for 3 / 4 / 5–32 characters, then move toward mainnet.
-Live validator tests stay deferred. The price service is merged in PR #153
-(`837fa7942bec3e849a85fbb9863afbbbddb95395`); it is **not hosted or activated**.
+Owner's latest direction on 2026-10-05 **supersedes the WYND Render plan**:
+reuse the existing Treasury NETA price; ordinary deviations are acceptable. Price
+updates target the existing 30-minute main DAO job; a signed observation remains
+valid for at most 24 hours. **Do not create a separate Render NNS service.**
+Live validator tests stay deferred. Annual USD **99 / 19 / 5** is unchanged.
 
-**First action in the next chat:** help the owner create the separate Render
-Blueprint for `cristianoneta/neta-dao`, branch `main`, path **`names/render.yaml`**.
-Keep the faucet service and its disk intact. Start in observe mode, retain the new
-persistent disk, then verify its public `/status`, quote public key, uninterrupted
-30-minute average and restart behavior. See [service runbook](names/README.md) and
-[release evidence](docs/NNS_WYND_RELEASE_2026-10-05.md). No service URL is known yet.
+The snapshot implementation adds registry v0.3.0, a separate pinned mainnet WASM,
+shared signed-price verification/payment hooks, offline Actions publication and
+the browser/client purchase preparation path. Existing UNI-7 contracts and WASMs,
+local authority and transaction journals remain unchanged. Source and synthetic
+tests are not a deployed mainnet or owner-wallet purchase. See [the owning runbook](names/README.md)
+and [snapshot release checkpoint](docs/NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 
-The service uses a 30-minute WYND cumulative average, timestamped CoinGecko
-JUNO/USD, two providers agreeing at one height, server-only Ed25519 custody,
-persisted limits and fail-closed checks. Operational thresholds are an initial
-proposal to review against live observations before enabling paid issuance.
-Observed pool liquidity was about USD 1,838 on 2026-10-05; averaging does not
-eliminate manipulation risk in a thin market. Never use Treasury JSON as the feed.
+**Next external dependency:** create the dedicated price key on the owner's
+trusted machine and store its PEM privately as Actions secret
+`NNS_PRICE_SIGNING_KEY`; only its public key belongs in the deployment plan.
+No secret was created or installed in this session. No service URL is needed.
+`names/mainnet-plan.mjs` verifies the new artifact and prepares unsigned material.
+Prepare and owner-sign mainnet registry/profile deployment, record exact receipts
+and a verified version-3 `docs/deployments/nns-mainnet.json`, then execute the
+approved tariff through the **main NETA DAO** while purchases stay paused.
 
-Next dependencies: obtain the production public key, prepare and owner-sign the
-mainnet registry/profile deployment, record and verify its manifest/receipts,
-then execute the approved tariff through the **main NETA DAO**. The DAO is both
-registry admin and treasury; the uploader's personal wallet is not the mainnet
-admin. `names/mainnet-plan.mjs` prepares unsigned deployment material and an exact
-version-bound tariff message. It does not broadcast or bundle purchase activation.
-Mainnet frontend/wallet/quote integration still needs implementation and review;
-the existing adapters are UNI-7-only. Activate purchases through a separate DAO
-proposal only after those dependencies, then verify an owner-signed mainnet purchase.
-No mainnet registry/profile address or wallet/DAO receipt has been recorded.
+The existing Treasury job signs only once the production manifest is present.
+It reuses the collected WYND NETA price without new API polling. Old prices are
+not re-dated; missing or expired prices stop purchase preparation. Authentic older
+snapshots can remain usable until expiry; no on-chain price-update transaction is
+introduced. See the runbook for this accepted approximation and key custody.
+
+Mainnet reader/wallet/page integration still requires completion and review; the
+existing website is UNI-7-only. The new core/client can prepare, validate, submit
+and recover snapshot-form payments against a capable verified test deployment,
+but no real new test deployment or mainnet adapter is claimed. After publication
+and mainnet integration, activate purchases through a separate DAO proposal and
+verify an owner-signed purchase. No mainnet address or wallet/DAO receipt is recorded.
 
 The main `.neta name` and `My profile` pages already reuse the existing UNI-7
 manifest, shared header wallet and journals for registration/renewal/transfers and

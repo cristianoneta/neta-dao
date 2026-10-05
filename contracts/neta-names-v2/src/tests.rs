@@ -847,3 +847,203 @@ fn approved_short_name_tariff_applies_to_registration_and_renewal() {
         assert_eq!(s.identity(n).expires_at, identity.expires_at + YEAR);
     }
 }
+
+#[derive(Deserialize)]
+struct SnapshotFixture {
+    offer: SnapshotOffer,
+    text: String,
+}
+impl Suite {
+    fn snapshot_offer(&mut self, payer: &str, n: &str, operation: Operation) -> SnapshotOffer {
+        let quote = self.offer(payer, n, 1, operation).quote;
+        let snapshot = PriceSnapshot {
+            signer_version: self.config().signer_version,
+            usd_per_neta_12: quote.usd_per_neta_12,
+            observed_at: self.env().block.time.seconds() - 3600,
+            expires_at: self.env().block.time.seconds() - 3600 + PRICE_SNAPSHOT_TTL,
+        };
+        let signature: [u8; 64] = signer()
+            .sign(price_snapshot_preimage(&self.env(), &self.config(), &snapshot).as_bytes())
+            .into();
+        SnapshotOffer {
+            quote,
+            snapshot,
+            signature: signature.to_vec().into(),
+        }
+    }
+    fn send_snapshot(&mut self, payer: &str, offer: SnapshotOffer, salt: Option<String>) -> bool {
+        let value = offer.quote.amount;
+        let hook = if let Some(salt) = salt {
+            HookMsg::RegisterSnapshot { offer, salt }
+        } else {
+            HookMsg::RenewSnapshot { offer }
+        };
+        self.app
+            .execute_contract(
+                Addr::unchecked(payer),
+                self.token.clone(),
+                &cw20::Cw20ExecuteMsg::Send {
+                    contract: self.registry.to_string(),
+                    amount: value,
+                    msg: to_json_binary(&hook).unwrap(),
+                },
+                &[],
+            )
+            .is_ok()
+    }
+    fn resign_snapshot(&self, offer: &mut SnapshotOffer) {
+        let signature: [u8; 64] = signer()
+            .sign(price_snapshot_preimage(&self.env(), &self.config(), &offer.snapshot).as_bytes())
+            .into();
+        offer.signature = signature.to_vec().into();
+    }
+}
+#[test]
+fn shared_price_signature_matches_node_and_pays_dao_exactly() {
+    let mut s = Suite::new(false);
+    let fixture: SnapshotFixture = from_json(include_bytes!(
+        "../../../tests/fixtures/nns-price-snapshot.json"
+    ))
+    .unwrap();
+    assert_eq!(
+        price_snapshot_preimage(&s.env(), &s.config(), &fixture.offer.snapshot),
+        fixture.text
+    );
+    let salt = s.commit("alice", "alice");
+    let before = s.balance("alice");
+    let fee = fixture.offer.quote.amount;
+    assert!(s.send_snapshot("alice", fixture.offer.clone(), Some(salt.clone())));
+    assert_eq!(s.balance("alice"), before - fee);
+    assert_eq!(s.balance("treasury"), fee);
+    assert!(!s.send_snapshot("alice", fixture.offer.clone(), Some(salt)));
+    // The same price/signature intentionally prices another buyer and name.
+    let salt = s.commit("bob", "bobby");
+    let mut b = s.snapshot_offer("bob", "bobby", Operation::Register);
+    b.snapshot = fixture.offer.snapshot;
+    b.signature = fixture.offer.signature;
+    assert!(s.send_snapshot("bob", b, Some(salt)));
+    let renewal = s.snapshot_offer("sponsor", "alice", Operation::Renew);
+    assert!(s.send_snapshot("sponsor", renewal.clone(), None));
+    assert_eq!(s.identity("alice.neta").owner, "alice");
+    assert!(!s.send_snapshot("sponsor", renewal, None));
+}
+#[test]
+fn snapshot_rejects_forged_rates_underpayment_wrong_sender_and_identity() {
+    let mut s = Suite::new(false);
+    let salt = s.commit("alice", "alice");
+    let original = s.snapshot_offer("alice", "alice", Operation::Register);
+    for case in 0..7 {
+        let mut o = original.clone();
+        match case {
+            0 => o.quote.amount = Uint128::one(),
+            1 => o.quote.usd_per_neta_12 = Uint128::new(4_000_000_000_000),
+            2 => {
+                o.snapshot.usd_per_neta_12 = Uint128::new(4_000_000_000_000);
+                o.quote.usd_per_neta_12 = o.snapshot.usd_per_neta_12;
+                o.quote.amount = amount(
+                    &s.config().tariff,
+                    &o.quote.name,
+                    1,
+                    o.snapshot.usd_per_neta_12,
+                )
+                .unwrap();
+            }
+            3 => o.quote.owner = "bob".into(),
+            4 => o.quote.payer = "bob".into(),
+            5 => o.quote.generation = 2,
+            _ => o.signature = Binary::from(vec![0u8; 64]),
+        }
+        assert!(!s.send_snapshot("alice", o, Some(salt.clone())));
+    }
+    assert!(s.send_snapshot("alice", original, Some(salt)));
+}
+#[test]
+fn signed_but_invalid_snapshot_windows_and_changed_policy_are_rejected() {
+    let mut s = Suite::new(false);
+    let salt = s.commit("alice", "alice");
+    let original = s.snapshot_offer("alice", "alice", Operation::Register);
+    let now = s.env().block.time.seconds();
+    for case in 0..5 {
+        let mut o = original.clone();
+        match case {
+            0 => o.snapshot.observed_at = now + 1,
+            1 => o.snapshot.expires_at = now,
+            2 => o.snapshot.expires_at = o.snapshot.observed_at + PRICE_SNAPSHOT_TTL + 1,
+            3 => o.snapshot.signer_version += 1,
+            _ => o.snapshot.expires_at = now + 1, // review cannot outlive its price
+        }
+        s.resign_snapshot(&mut o);
+        assert!(!s.send_snapshot("alice", o, Some(salt.clone())));
+    }
+    s.app
+        .execute_contract(
+            Addr::unchecked("admin"),
+            s.registry.clone(),
+            &ExecuteMsg::SetTariff {
+                tariff: Tariff {
+                    three_cents: 9900,
+                    four_cents: 1900,
+                    standard_cents: 500,
+                },
+                expected_version: 1,
+            },
+            &[],
+        )
+        .unwrap();
+    assert!(!s.send_snapshot("alice", original, Some(salt.clone())));
+    let fresh = s.snapshot_offer("alice", "alice", Operation::Register);
+    s.app
+        .execute_contract(
+            Addr::unchecked("admin"),
+            s.registry.clone(),
+            &ExecuteMsg::RotateQuoteKey {
+                public_key: public_key(&signer()),
+                expected_version: 1,
+            },
+            &[],
+        )
+        .unwrap();
+    assert!(!s.send_snapshot("alice", fresh, Some(salt)));
+}
+#[test]
+fn snapshot_signature_is_bound_to_registry_chain_token_and_treasury() {
+    let mut s = Suite::new(false);
+    let salt = s.commit("alice", "alice");
+    for case in 0..4 {
+        let mut o = s.snapshot_offer("alice", "alice", Operation::Register);
+        let mut env = s.env();
+        let mut config = s.config();
+        match case {
+            0 => env.block.chain_id = "juno-1".into(),
+            1 => env.contract.address = Addr::unchecked("other-registry"),
+            2 => config.token = "other-token".into(),
+            _ => config.treasury = "other-treasury".into(),
+        }
+        let signature: [u8; 64] = signer()
+            .sign(price_snapshot_preimage(&env, &config, &o.snapshot).as_bytes())
+            .into();
+        o.signature = signature.to_vec().into();
+        assert!(!s.send_snapshot("alice", o, Some(salt.clone())));
+    }
+}
+#[test]
+fn snapshot_payment_failure_rolls_back_commitment_and_balances() {
+    let mut s = Suite::new(true);
+    let salt = s.commit("alice", "alice");
+    let o = s.snapshot_offer("alice", "alice", Operation::Register);
+    let before = s.balance("alice");
+    assert!(!s.send_snapshot("alice", o, Some(salt)));
+    assert_eq!(s.balance("alice"), before);
+    assert!(s.resolve("alice").available);
+    let c: Option<Commitment> = s
+        .app
+        .wrap()
+        .query_wasm_smart(
+            &s.registry,
+            &QueryMsg::Commitment {
+                address: "alice".into(),
+            },
+        )
+        .unwrap();
+    assert!(c.is_some());
+}

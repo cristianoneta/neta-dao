@@ -52,25 +52,26 @@ capability inventory. The accepted decisions below remain the implementation tar
   remains during grace, and re-registration afterward creates a new generation.
 - Allow third-party renewal payment without changing ownership or profile.
 
-### Price quote integrity
+### Price quote integrity — owner update 2026-10-05
 
-- The owner explicitly chose the existing JUNO/NETA pool as the initial sole
-  NETA reference. Do not require another NETA market or change the source silently.
-- Derive NETA/USD using that pool and a fresh JUNO/USD reference. Verify exact pool
-  and token identities, decimals, positive reserves, timestamps and rate units.
-- Fresh data are required when purchasing/renewing; Treasury JSON is not a
-  transaction oracle. Determine freshness and jump thresholds before activation.
-- Proposed mechanism: an automated service signs a short-lived quote (initial
-  design target five minutes), verified by the registry. Bind registry, chain,
-  operation, payer, owner, label, registration generation, term, tariff version,
-  integer amount, nonce and validity. Prevent replay and cross-operation reuse.
-- Price signing is a declared trust component. DAO-controlled signer rotation,
-  key custody, availability, observations retention and failure response must be
-  designed before deployment. A price key must never authorize profile transfers.
-- Enforce tariff arithmetic and rounding in integer/fixed-point units. Display
-  the exact NETA debit. Requote on expiry, not silently after wallet approval.
-- Unknown broadcast results require reconciliation; preserve transaction intents
-  and commitment secrets before sending and across reloads.
+- Reuse the existing Treasury WYND JUNO/NETA price and its JUNO/USD reference.
+  Ordinary price differences are acceptable; no dedicated Render service or
+  continuous average/jump guard is required. Existing main DAO updates target
+  30 minutes and publish a signed snapshot valid for at most 24 hours.
+- Shared price signatures bind chain, registry, token, treasury, signer version,
+  USD/NETA and original observation/expiration. The contract independently
+  validates the payer's CW20 transaction, name/identity/term, current tariff and
+  exact integer amount. Purchase replay and commit/reveal checks remain.
+- Browser displays the latest published rate/time and exact NETA debit. Older
+  authentic rates can remain usable until expiry; this is accepted approximate
+  pricing. Failed updates never re-date an old observation. Missing/expired
+  prices stop new purchase preparation. See [pricing runbook](../names/README.md).
+- Price-key custody is a dedicated GitHub Actions secret; only the public key
+  enters the deployment manifest. DAO governance retains rotation/pause/tariffs.
+  The price authority cannot transfer names or change profiles.
+- A five-minute payment review is separate from the price lifetime. Re-review
+  expiry explicitly, never silently reprice after wallet approval. Preserve
+  unknown broadcasts, transaction intents and commitment secrets across reloads.
 
 ### Names, profiles and receiving chains
 
@@ -191,8 +192,8 @@ capability inventory. The accepted decisions below remain the implementation tar
    wallet flows before activation. Add Osmosis payments as a separate release.
 
 No additional product decision blocks the prototype. Before live operation we
-must concretely choose service hosting/storage and signing-key custody, pin the
-USD reference and quote thresholds, and verify DAO identity/recipient coverage.
+must configure the approved Actions signing-key custody and verified production
+manifest, complete mainnet adapters and verify DAO identity/recipient coverage.
 Names v1 signing remains inactive. The site links to the preview and displays the
 planned v2 tariff; contracts, production data and crypto journals are unchanged.
 

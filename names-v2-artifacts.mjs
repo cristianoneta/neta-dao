@@ -1,4 +1,4 @@
-// Reviewed local builds; CI compares every shipped artifact to the pinned-toolchain build.
+// Historical UNI-7 builds. Registry v0.2.0 stays immutable; v0.3.0 is in names/mainnet-artifacts.mjs.
 export const NAMES_TEST_ARTIFACTS=Object.freeze({
   "token": {
     "path": "assets/names-testnet/neta_names_test_token.wasm",

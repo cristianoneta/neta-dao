@@ -1,10 +1,11 @@
-use crate::msg::{Config, Operation, Quote, Tariff};
+use crate::msg::{Config, Operation, PriceSnapshot, Quote, Tariff};
 use cosmwasm_std::{Env, StdError, StdResult, Uint128, Uint256};
 use sha2::{Digest, Sha256};
 
 pub const YEAR: u64 = 365 * 24 * 60 * 60;
 pub const GRACE: u64 = 30 * 24 * 60 * 60;
 pub const QUOTE_TTL: u64 = 300;
+pub const PRICE_SNAPSHOT_TTL: u64 = 86400;
 pub const COMMIT_TTL: u64 = 3600;
 pub const MAINNET_TOKEN: &str = "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr";
 pub const MAINNET_TREASURY: &str =
@@ -91,5 +92,13 @@ pub fn quote_preimage(env: &Env, config: &Config, q: &Quote) -> String {
         if q.operation == Operation::Register { "register" } else { "renew" }, q.payer, q.owner, q.name,
         q.generation, q.ownership_revision, q.expected_expires_at, q.years, q.tariff_version, q.signer_version,
         q.usd_per_neta_12, q.amount, q.nonce, q.issued_at, q.expires_at,
+    )
+}
+
+pub fn price_snapshot_preimage(env: &Env, config: &Config, p: &PriceSnapshot) -> String {
+    format!(
+        "NETA names price snapshot v1\nRegistry chain: {}\nRegistry: {}\nToken: {}\nTreasury: {}\nSigner version: {}\nUSD per NETA (12 decimals): {}\nObserved at: {}\nExpires at: {}",
+        env.block.chain_id, env.contract.address, config.token, config.treasury,
+        p.signer_version, p.usd_per_neta_12, p.observed_at, p.expires_at,
     )
 }

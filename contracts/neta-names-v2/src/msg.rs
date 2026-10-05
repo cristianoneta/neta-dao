@@ -65,6 +65,23 @@ pub struct SignedQuote {
     pub signature: Binary,
 }
 
+// One authority signature can price many independently authorized purchases.
+// Chain/registry/token/treasury are bound by the signature preimage.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct PriceSnapshot {
+    pub signer_version: u64,
+    pub usd_per_neta_12: Uint128,
+    pub observed_at: u64,
+    pub expires_at: u64,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct SnapshotOffer {
+    pub quote: Quote,
+    pub snapshot: PriceSnapshot,
+    pub signature: Binary,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Cw20ReceiveMsg {
     pub sender: String,
@@ -77,6 +94,8 @@ pub struct Cw20ReceiveMsg {
 pub enum HookMsg {
     Register { offer: SignedQuote, salt: String },
     Renew { offer: SignedQuote },
+    RegisterSnapshot { offer: SnapshotOffer, salt: String },
+    RenewSnapshot { offer: SnapshotOffer },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -171,4 +190,5 @@ pub enum QueryMsg {
     Commitment { address: String },
     TransferOffer { name: String },
     QuotePreimage { quote: Quote },
+    PriceSnapshotPreimage { snapshot: PriceSnapshot },
 }
