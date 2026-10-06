@@ -3,6 +3,23 @@
 Updated: **2026-10-06, Treasury receipt-accounting continuation**. This is the continuation entry point, not an append-only session log.
 
 
+## Standard Treasury statement — owner revision, 2026-10-06
+
+The owner rejected the duplicate observed-income card and fixed receipt sidebar.
+This follow-up replaces them with one compact shared statement: collapsible Income,
+Expenses and an operating result. `treasury-accounting-config.mjs` owns account
+mapping; the renderer contains no DAO-specific rows. Only NETA has NNS registration
+and renewal accounts. Other DAOs retain the generic schema with unconnected data.
+Year choices start at 2026 and include 2027/2028. NNS account links open
+`nns-transactions.html` with the selected year, period and payment type. Its register
+lists all matched income receipts, keeps immutable payment-time conversions and
+links to the original transactions; it does not claim an exhaustive registry log.
+The return link preserves the reporting period. Coverage remains partial.
+
+See [standard statement implementation](docs/TREASURY_STATEMENT_2026-10-06.md)
+for sources, extension contract and release evidence. This supersedes the earlier
+P&L composition below, while preserving its accounting and receipt-validation rules.
+
 ## Names UX optimization — 2026-10-06
 
 Owner approved implementing the critical Names review. This revision adds:

@@ -5,6 +5,8 @@ Status: source implemented and validated locally and through hosted browser test
 publication evidence. This is partial accounting,
 not a claim of a complete P&L or a financial-reporting standard.
 
+Presentation superseded by the [standard statement revision](TREASURY_STATEMENT_2026-10-06.md). Collector and evidence rules below remain unchanged.
+
 ## Implemented
 
 - Income & expenses between Assets and Treasury events, current-month default,

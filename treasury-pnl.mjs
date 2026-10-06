@@ -1,10 +1,7 @@
 // Cash-basis reporting over explicitly classified receipts. No balance-derived income.
-export const categories = [
-  ['nns_registration', 'NNS registrations'], ['nns_renewal', 'NNS renewals'],
-  ['other_income', 'Other operating income'], ['development', 'Development & operations'],
-  ['marketing', 'Marketing & community'], ['grants', 'Grants'],
-  ['other_expenses', 'Other expenses'], ['network_fees', 'Network fees'],
-];
+import { accountsFor } from './treasury-accounting-config.mjs?v=20261006-2';
+export { accountsFor };
+export const categories = accountsFor({ id: 'neta' }).map(a => [a.id, a.label]);
 const known = new Set(categories.map(([id]) => id));
 const scale = 10n ** 18n;
 export function usdUnits(value) {
@@ -43,15 +40,15 @@ export function validateLedger(data, dao) {
   }
   return [...entries.values()];
 }
-export function summarize(entries, range) {
+export function summarize(entries, range, accounts = accountsFor({ id: 'neta' })) {
   const selected = entries.filter(row => Date.parse(row.timestamp) >= range.start && Date.parse(row.timestamp) < range.end);
   const previous = entries.filter(row => Date.parse(row.timestamp) >= range.previousStart && Date.parse(row.timestamp) < range.previousEnd);
   const subtotal = rows => rows.length ? rows.reduce((sum, row) => sum + usdUnits(row.usd_value), 0n) : null;
-  return { rows: selected, observedIncome: subtotal(selected),
+  return { rows: selected, observedIncome: subtotal(selected.filter(row => accounts.some(a => a.id === row.category && a.section === 'income'))),
     // Receipt coverage does not establish a complete period, even when the scan succeeds.
     income: null, expenses: null, result: null,
-    categories: categories.map(([id, label]) => ({ id, label,
-      rows: selected.filter(row => row.category === id),
-      observed: subtotal(selected.filter(row => row.category === id)),
-      previousObserved: subtotal(previous.filter(row => row.category === id)), change: null })) };
+    categories: accounts.map(account => ({ ...account,
+      rows: selected.filter(row => row.category === account.id),
+      observed: subtotal(selected.filter(row => row.category === account.id)),
+      previousObserved: subtotal(previous.filter(row => row.category === account.id)), change: null })) };
 }

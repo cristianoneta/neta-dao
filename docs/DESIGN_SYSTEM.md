@@ -409,13 +409,19 @@ price dates and deadlines; collapse full technical details. Derive tariffs from
 verified registry state. Retain shared semantic contrast tokens and stack/wrap
 reviews and controls at 320 px; no extra Names navigation or wizard.
 
-## Treasury income and expenses — 2026-10-06
+## Treasury income and expenses — owner revision 2026-10-06
 
-Place the cash-based P&L after Assets and before Treasury events. Reuse shared
-foreground/control tokens, month/year controls, a contained scrolling category
-table and receipt details. Show observed NNS subtotals separately from unavailable
-whole-period income, expenses and result. Preserve explicit UTC half-open periods,
-source freshness and transaction-time conversion provenance. Missing categories
-are never zero and incomplete periods have no percentage/difference claim.
-No illustrative Treasury allocation, forecast, risk or payment rows belong in
-this source-backed view. The original design preview remains a separate artifact.
+Use one compact financial statement after Assets, before Treasury events. The
+shared rows are Income, Expenses and Operating surplus / deficit, with account
+children revealed by accessible disclosure buttons. Account mappings supply
+DAO-specific sources; never impose NNS rows on every DAO. Right-align monetary
+columns, use restrained neutral section surfaces and tabular figures. Keep a
+compact partial-coverage label visible; place detailed methodology in a disclosure.
+No repeated income tile, unavailable KPI strip or permanent receipt sidebar.
+
+Years start at 2026 and include 2027/2028; future periods are explicitly empty.
+NETA NNS rows and amounts link to a separate receipt register with year/month/type
+filters, original transaction links and payment-time conversion details. Preserve
+filter state on the return link. Match shared graphite/mint tokens and provide a
+contained horizontal scroll region on mobile. No balance-derived income, assumed
+zero, fabricated comparison or current-price revaluation.

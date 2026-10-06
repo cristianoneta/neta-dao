@@ -1,5 +1,15 @@
 # NETA DAO code-backed current state
 
+## Treasury statement revision — 2026-10-06
+
+Source implementation now uses shared Income / Expenses / Operating result rows
+with configured child accounts. NNS appears only for NETA, and its filtered payment
+register is a separate page. Removed the repeated observed-income card, fixed
+receipt sidebar and redundant unavailable KPI cards. Years begin at 2026 with
+2027/2028 available. Full DAO accounting remains unavailable; receipt subtotals
+are explicitly partial. [Implementation and release tracking](TREASURY_STATEMENT_2026-10-06.md).
+
+
 Updated **2026-10-06** after publishing and verifying the NNS purchase/inbox release (#169). Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
 [HANDOFF](../HANDOFF.md) owns the next action and working rules. Observed chain,
 service and data states are timestamped evidence, not guarantees of future state.
