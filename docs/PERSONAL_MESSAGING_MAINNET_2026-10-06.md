@@ -1,5 +1,59 @@
 # Personal messaging first — owner continuation, 6 October 2026
 
+## Continuation — 6 October 2026, personal messaging recovery candidates
+
+Continue **draft PR #195**, branch `codex/personal-messaging-recovery-mainnet`.
+The former failing browser regression is fixed: its sender recipient field was
+empty after the deliberately exercised reload. The adversarial branch now selects
+the recipient again. All three checks passed at `3e678e1`; no test was skipped or
+weakened. This supersedes the preceding checkpoint's still-running CI wording.
+
+Additional implemented candidates (not mounted in the production Inbox):
+- `relay-personal-transport.mjs`: reviewed exact-ciphertext attempts through the
+  existing exact-byte signing bridge, durable attempt binding, origin lock,
+  generation/consent/block/prekey checks and evidence-only reconciliation. A
+  proven rejected signature or included failure allows a separately reviewed
+  retry of identical ciphertext; RPC errors/null receipts do not. No automatic
+  resend, ratchet rewind after ready, or disposal of an unresolved intent.
+- `relay-personal-lifecycle.mjs` and `relay-personal-protocol.mjs`: reviewed
+  consent/block/refill/rotation adapters, monotonic prekey checks, immutable
+  historical sender identity and generation/mailbox-separated Proteus sessions.
+  Local crypto preparation is required through a host callback. The complete
+  browser host and rotation activation are still open, not implied by these APIs.
+- `relay-backup/` plus `relay-personal-backup.mjs`: isolated provider/codec/client
+  candidate, real ADR-36 authentication, client AES-GCM encryption, revision CAS,
+  identical-write recovery, quotas and a separate optional Render Blueprint.
+  Pilot wallet allowlist required; no faucet environment or signing key is used.
+  Provider/cost approval is still outstanding. No service or upload was created.
+
+Validation: 166 root Node tests and five backup integration tests pass locally.
+The lifecycle/protocol application head `188fbe8` passed all three hosted checks;
+its new real-CoreCrypto browser test covers generation isolation, delayed old-device
+reads, new-device reply, replay rejection and historical identity. Backup candidate
+head `772dd77` passed hosted backup CI 37516185694 and frontend/contract CI
+37516185612; check all final-head runs before integration. Local Chromium download
+failed, so browser evidence comes from hosted CI, not a claimed local browser run.
+
+**Still not mainnet-test-ready.** The next implementation is to connect these
+modules to one recovery-aware personal controller and its existing signed-byte
+journal bridge, capture actual quiescent browser stores automatically, and prove
+coherent fresh-profile restoration with real ratchet/archive/outbox/cursor state,
+rotation and concurrent profiles. The backup tests use synthetic complete snapshot
+objects; they do not prove real-profile restore. Returned restore snapshots are
+read-only by default, and that restriction still needs controller enforcement.
+A fresh profile has no trusted prior revision watermark; provider CAS alone does
+not solve malicious/stale-server rollback. Production runtime/UI review, owner-
+reviewed deployment and consenting two-wallet mainnet evidence remain open.
+
+The separate Render proposal is **USD 7.25/month base** (USD 7 compute + USD 0.25
+for a 1-GB disk, before tax/possible workspace charges/transfer overages), not a
+billing cap. Its README records exact settings and boundaries. Approval does not
+make the client release-ready. No mainnet contract, wallet write, remote backup,
+hosting cost or authority change occurred. Mainnet deployment pin is still null.
+Owner upgrade admin, active owned .neta sender rule and DAO-write lock are retained.
+After personal messaging: shared DAO inbox recovery/direct mainnet testing, compact
+selector/handling states, then project/milestone payment requests and Treasury links.
+
 ## Owner decision, 20:20–20:22 Europe/Berlin
 
 Prepare and test **personal messaging on Juno mainnet first**. Only afterwards

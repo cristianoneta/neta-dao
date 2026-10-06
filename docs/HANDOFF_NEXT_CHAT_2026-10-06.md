@@ -1,5 +1,116 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Continuation — 6 October 2026, personal messaging recovery candidates
+
+Continue **draft PR #195**, branch `codex/personal-messaging-recovery-mainnet`.
+The former failing browser regression is fixed: its sender recipient field was
+empty after the deliberately exercised reload. The adversarial branch now selects
+the recipient again. All three checks passed at `3e678e1`; no test was skipped or
+weakened. This supersedes the preceding checkpoint's still-running CI wording.
+
+Additional implemented candidates (not mounted in the production Inbox):
+- `relay-personal-transport.mjs`: reviewed exact-ciphertext attempts through the
+  existing exact-byte signing bridge, durable attempt binding, origin lock,
+  generation/consent/block/prekey checks and evidence-only reconciliation. A
+  proven rejected signature or included failure allows a separately reviewed
+  retry of identical ciphertext; RPC errors/null receipts do not. No automatic
+  resend, ratchet rewind after ready, or disposal of an unresolved intent.
+- `relay-personal-lifecycle.mjs` and `relay-personal-protocol.mjs`: reviewed
+  consent/block/refill/rotation adapters, monotonic prekey checks, immutable
+  historical sender identity and generation/mailbox-separated Proteus sessions.
+  Local crypto preparation is required through a host callback. The complete
+  browser host and rotation activation are still open, not implied by these APIs.
+- `relay-backup/` plus `relay-personal-backup.mjs`: isolated provider/codec/client
+  candidate, real ADR-36 authentication, client AES-GCM encryption, revision CAS,
+  identical-write recovery, quotas and a separate optional Render Blueprint.
+  Pilot wallet allowlist required; no faucet environment or signing key is used.
+  Provider/cost approval is still outstanding. No service or upload was created.
+
+Validation: 166 root Node tests and five backup integration tests pass locally.
+The lifecycle/protocol application head `188fbe8` passed all three hosted checks;
+its new real-CoreCrypto browser test covers generation isolation, delayed old-device
+reads, new-device reply, replay rejection and historical identity. Backup candidate
+head `772dd77` passed hosted backup CI 37516185694 and frontend/contract CI
+37516185612; check all final-head runs before integration. Local Chromium download
+failed, so browser evidence comes from hosted CI, not a claimed local browser run.
+
+**Still not mainnet-test-ready.** The next implementation is to connect these
+modules to one recovery-aware personal controller and its existing signed-byte
+journal bridge, capture actual quiescent browser stores automatically, and prove
+coherent fresh-profile restoration with real ratchet/archive/outbox/cursor state,
+rotation and concurrent profiles. The backup tests use synthetic complete snapshot
+objects; they do not prove real-profile restore. Returned restore snapshots are
+read-only by default, and that restriction still needs controller enforcement.
+A fresh profile has no trusted prior revision watermark; provider CAS alone does
+not solve malicious/stale-server rollback. Production runtime/UI review, owner-
+reviewed deployment and consenting two-wallet mainnet evidence remain open.
+
+The separate Render proposal is **USD 7.25/month base** (USD 7 compute + USD 0.25
+for a 1-GB disk, before tax/possible workspace charges/transfer overages), not a
+billing cap. Its README records exact settings and boundaries. Approval does not
+make the client release-ready. No mainnet contract, wallet write, remote backup,
+hosting cost or authority change occurred. Mainnet deployment pin is still null.
+Owner upgrade admin, active owned .neta sender rule and DAO-write lock are retained.
+After personal messaging: shared DAO inbox recovery/direct mainnet testing, compact
+selector/handling states, then project/milestone payment requests and Treasury links.
+
+## Continuation checkpoint — 6 October 2026, personal messaging first
+
+**Owner decisions supersede older next-step wording below:**
+1. Prepare/test personal messaging on **Juno mainnet first**.
+2. Afterwards finish shared DAO inbox recovery, test directly on mainnet, integrate
+   the Inbox selector/shared handling states, then implement payment requests.
+3. **Remove the 5-NETA staking prerequisite from messaging contracts.** Sending
+   requires an active, currently sender-owned .neta name. Recipient consent,
+   blocking and existing protocol payload/cooldown bounds remain.
+
+### Saved code — draft PR #195, not deployed
+[PR #195](https://github.com/cristianoneta/neta-dao/pull/195) holds the current work
+on `codex/personal-messaging-recovery-mainnet`, current head `33aaae1e7c47e025a4503a00eeca3f2388458c56`.
+**Continue that branch/PR; do not rebuild from main or treat its code as live.**
+Its [implementation note](https://github.com/cristianoneta/neta-dao/blob/codex/personal-messaging-recovery-mainnet/docs/PERSONAL_MESSAGING_MAINNET_2026-10-06.md)
+describes the implementation and exact open gates.
+
+Implemented candidate: authenticated encrypted pre-send journal/checkpoint,
+pre-ready crash rollback with retained intent, exact-receipt recovery after ready
+ciphertext without automatic resend, interrupted-registration reconciliation,
+immediate plaintext clearing on wallet switch, separated network identity checks,
+and v0.4 explicit mainnet contract configuration with current NNS ownership checks
+and **no staking query**. Mainnet DAO execute routes remain disabled.
+The owner wallet remains the intended upgrade administrator.
+
+Candidate WASM SHA-256:
+`ec8650278f5ce4dd3c587154581caeec20f7ff9e0d6d6d5903f4cb2712720c45`.
+Local: 155 Node tests, 20 mailbox Rust tests, format/Clippy and WASM build passed.
+Hosted CI status must be checked on the latest PR head. An initial added browser
+assertion observed stale UI status before rendering completed; the follow-up waits
+for the actual recovered message. That updated personal browser exchange/recovery
+step has now passed in run 37513496120; the complete workflow and other latest-head
+checks were still running at this checkpoint. Check their final results before
+integration. Do not describe the earlier failed run as passing.
+
+**Still not mainnet-test-ready:** consent/refill/rotation and generation-aware
+crypto-controller integration, ready-but-unconfirmed transaction reconciliation,
+automatic off-device backup/provider and coherent fresh-profile restore, production
+runtime/security review, and owner-reviewed deployment/two-wallet evidence remain.
+The client deployment pin is null, main Inbox SEND is disabled, and no new contract,
+mainnet transaction, hosting service or remote backup has been created. Existing
+v0.1 deployment, keys and unresolved transaction/crypto journals are preserved.
+
+### Sidequest — published
+[PR #194](https://github.com/cristianoneta/neta-dao/pull/194) merged as
+`15d2c836a65297c77d91ba5f8e455573c9e9d261`. It hides only the exact Juno UNI-7
+workshop #1 “Make Cristiano the new Senator” and #2 “Testing 1” by default.
+“Show test reviews” reveals them. No on-chain record was deleted; mainnet proposals
+are unaffected. Both applicable PR checks passed. The served HTML, controller and
+CSS were verified byte-for-byte against the reviewed source.
+
+Payment requests/invoices remain explicitly next after DAO inboxes: project and
+milestone, evidence, fixed payee/amount/token/accounting category, accepted request
+to prefilled proposal, distinct governance approval/execution/payment confirmation,
+duplicate-payment prevention and Treasury linkage. No automatic payout or new fee.
+
+
 ## Verified checkpoint — 6 October 2026, 20:16 Europe/Berlin
 
 [PR #192](https://github.com/cristianoneta/neta-dao/pull/192) is merged as
