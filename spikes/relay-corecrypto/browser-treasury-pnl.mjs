@@ -31,6 +31,7 @@ try {
   assert.equal(await page.locator('.pnl-kpis strong').allTextContents().then(v => v.every(x => x === 'Unavailable')), true);
   await page.getByRole('button', { name: 'NNS renewals', exact: true }).click();
   assert.match(await page.locator('#pnl-detail').innerText(), /not verified as zero/);
+  assert.equal(await page.locator('[data-category="nns_renewal"]').evaluate(e => e === document.activeElement), true);
   await page.locator('#pnl-month').selectOption('9');
   assert.equal(await page.locator('#pnl-observed').textContent(), 'Unavailable');
   await page.locator('#pnl-month').selectOption('all');
