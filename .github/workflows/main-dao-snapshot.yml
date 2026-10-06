@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/update_main_dao.py'
+      - 'scripts/update_treasury_accounting.py'
       - 'scripts/update_treasury.py'
       - 'scripts/update_treasury_events.py'
       - 'data/dao-directory.json'

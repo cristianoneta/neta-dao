@@ -41,18 +41,20 @@
     const policyText=community?"Juno Community Pool balances from the native distribution module; IBC assets remain separate positions.":mainDao?"NETA main DAO core holdings on Juno. Member staking is excluded. Coverage includes native coins, configured CW20 tokens and eight configured WYND LPs; other contracts are not automatically discovered.":"Consolidated Juno DAO core and DAO-controlled Osmosis Polytone proxy. Focus an asset to inspect custody; LPs are valued once from underlying reserves.";
     $(".treasury-events-note").textContent=community?"Native Juno Community Pool · transaction feed not connected":mainDao?"NETA DAO core · supported native and verified NETA CW20 transfers · historical coverage is incomplete":"Juno Operations core + Osmosis Polytone proxy · confirmed native movements · technical unpriced tokens excluded from latest view";
     $("#treasury-history-method").textContent="METHOD: Price effect revalues opening quantities at closing prices. The remainder is estimated holdings flow, not transaction-derived cash flow."+(dao.id==="neta-operations"?" Juno core and Osmosis proxy holdings are consolidated.":" Only the selected treasury is included.");
-    let revenue=$("#treasury-nns");if(!revenue){revenue=node("section","treasury-card");revenue.id="treasury-nns";$("#treasury-view .concept-hero").after(revenue)}
-    revenue.hidden=!mainDao;if(mainDao)revenue.replaceChildren(node("h2",null,"NNS revenue"),node("p",null,"Not active yet · the naming registry and verified fee source are not deployed. A NETA transfer alone is not evidence of naming revenue."));
+    const accounting=(data=null,error="",loading=false)=>{const detail={dao,data,error,loading};window.NetaTreasuryAccounting=detail;window.dispatchEvent(new CustomEvent("neta:treasury-accounting",{detail}))};
+    accounting(null,"",true);
     refresh.disabled=true;status.textContent=`REFRESHING ${dao.name.toUpperCase()} SNAPSHOT`;
     total.textContent="—";assets.replaceChildren(node("div","treasury-loading","LOADING SELECTED TREASURY…"));warning.hidden=true;policy.hidden=true;
     historyRows=[];treasuryEvents=[];eventsWarning="Loading transaction coverage…";renderHistory();renderEvents();
     const get=async file=>{const response=await fetch(`data/treasury/${file}?t=${Date.now()}`,{cache:"no-store",signal:controller.signal});if(!response.ok)throw Error(`HTTP ${response.status}`);return response.json()};
     try{
-      const [data,history,eventData]=await Promise.all([
+      const [data,history,eventData,accountingData]=await Promise.all([
         get(dao.snapshot),get(dao.history).catch(()=>({snapshots:[]})),
-        dao.events?get(dao.events).catch(()=>({status:"UNAVAILABLE",events:[],warnings:["Transaction source could not be loaded. This does not mean there were no transfers."]})):Promise.resolve({events:[]})
+        dao.events?get(dao.events).catch(()=>({status:"UNAVAILABLE",events:[],warnings:["Transaction source could not be loaded. This does not mean there were no transfers."]})):Promise.resolve({events:[]}),
+        mainDao?get("neta-main-accounting.json").catch(()=>null):Promise.resolve(null)
       ]);
       if(epoch!==loadEpoch)return;
+      accounting(accountingData);
       if(!Array.isArray(data.assets))throw Error("No verified treasury assets");
       if(mainDao&&(data.chain_id!==dao.network||data.treasury_address!==dao.core||data.treasury_type!=="dao-core"))throw Error("Treasury identity mismatch");
       historyRows=Array.isArray(history.snapshots)&&(!mainDao||history.chain_id===dao.network&&history.treasury_address===dao.core)?history.snapshots.slice():[];
@@ -68,6 +70,7 @@
       renderHistory();renderEvents();
     }catch(error){
       if(epoch!==loadEpoch)return;
+      accounting(null,"Accounting refresh unavailable; no complete period totals can be inferred.");
       assets.replaceChildren(node("div","treasury-loading error",`TREASURY DATA UNAVAILABLE · ${error.message}`));total.textContent="—";status.textContent="LIVE DATA UNAVAILABLE";updated.textContent="LAST VERIFIED SNAPSHOT COULD NOT BE LOADED";warning.hidden=true;policy.hidden=true;historyRows=[];treasuryEvents=[];eventsWarning="Transaction history unavailable";renderHistory();renderEvents();
     }finally{clearTimeout(timer);if(epoch===loadEpoch){refresh.disabled=false;loadController=null}}
   }

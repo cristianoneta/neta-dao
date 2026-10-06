@@ -1,20 +1,15 @@
 # NETA DAO checkpoint index
 
-Updated **2026-10-05**. Start with [HANDOFF](HANDOFF.md), then
+Updated **2026-10-06**. Start with [HANDOFF](HANDOFF.md), then
 [CURRENT_STATE](docs/CURRENT_STATE.md). This file lists open priorities; detailed
 release evidence belongs to the linked runbooks, not another duplicate chronology.
 
-1. **NNS pricing / deferred validator test:** follow the approved shared Treasury
-   snapshot-price path in [names/README](names/README.md), with 24-hour validity
-   and no separate Render service. Mainnet contracts and version-3 manifest are recorded; signed-price publication,
-   private backup confirmation and owner activation/purchase checks remain open.
-   Independently, apply the approved 99/19/5 USD
-   annual tariff through the existing UNI-7 admin action and verify its receipt.
-   Validator live tests are paused at the owner’s request (2026-10-05).
-   Existing validator scope: registration/profile/renewal/transfer and the
-   validator UI are delivered. A consenting operator is the external dependency.
-   Verify link, exclusive bindings, unlink/revoke and exact receipts. Preserve the
-   current deployment and browser data. [NNS handoff](docs/HANDOFF_NEXT_CHAT_NNS_2026-10-04.md).
+1. **Treasury accounting:** finish the receipt-backed P&L release in
+   [accounting continuation](docs/TREASURY_ACCOUNTING_2026-10-06.md), then extend
+   historical coverage, expense/funding classification and payment-time prices.
+   NNS first purchase and UI release are complete; do not repeat deployment or payment.
+   Validator live tests remain deferred. The separate UNI-7 tariff receipt is still
+   outstanding; it is not a prerequisite for read-only Treasury work.
 2. **Faucet evidence:** verify a real 25-JUNOX payout, repeat rejection, persistent
    cooldown after restart, empty-recipient behavior and stake/unstake receipts.
    Service funding/integration and reward/donation evidence already exist.
@@ -23,9 +18,9 @@ release evidence belongs to the linked runbooks, not another duplicate chronolog
    links plus independent validator and active-consensus snapshots. No automatic
    points from a stored link. Smart Delegation research stays deferred until the
    NNS gate is resolved. [Decisions](docs/NNS_VALIDATOR_PROFILES_2026-10-04.md).
-4. **Names production gates:** Actions price key custody, signed snapshot publication,
-   separate owner-wallet activation and purchase E2E. Mainnet purchases
-   remain paused; separate UNI-7 tests are not a mainnet release.
+4. **Names remaining evidence:** mainnet renewal/transfer and a consenting live
+   validator E2E remain unverified. Preserve owner administration, the existing
+   signed-price key, 24-hour validity and browser journals.
 5. **Messaging release gates:** generation-aware sessions and consent/prekey refill
    against isolated v0.2 fixtures; full rotate/revoke/exhaustion/history tests;
    authenticated coherent backup and anti-rollback; wrong-code/corruption/stale/
@@ -40,4 +35,4 @@ release evidence belongs to the linked runbooks, not another duplicate chronolog
 Mainnet messaging, native Juno proposal submission/voting, Treasury execution,
 contributor-role/payment services and automatic remote recovery remain unfinished.
 Do not repeat the completed mainnet deployment. Preserve journals and verify
-existing receipts before the remaining owner-wallet activation and purchase.
+existing receipts before any further owner-wallet action.

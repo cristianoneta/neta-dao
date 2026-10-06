@@ -408,3 +408,14 @@ Use readable definition rows for reviews, preserving debit, term, destination,
 price dates and deadlines; collapse full technical details. Derive tariffs from
 verified registry state. Retain shared semantic contrast tokens and stack/wrap
 reviews and controls at 320 px; no extra Names navigation or wizard.
+
+## Treasury income and expenses — 2026-10-06
+
+Place the cash-based P&L after Assets and before Treasury events. Reuse shared
+foreground/control tokens, month/year controls, a contained scrolling category
+table and receipt details. Show observed NNS subtotals separately from unavailable
+whole-period income, expenses and result. Preserve explicit UTC half-open periods,
+source freshness and transaction-time conversion provenance. Missing categories
+are never zero and incomplete periods have no percentage/difference claim.
+No illustrative Treasury allocation, forecast, risk or payment rows belong in
+this source-backed view. The original design preview remains a separate artifact.

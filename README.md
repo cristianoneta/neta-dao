@@ -14,8 +14,8 @@ For the current owner test, read [the NNS continuation](docs/HANDOFF_NEXT_CHAT_N
 Setup recovery, registration, public contacts, renewal and two-wallet transfer are confirmed on UNI-7.
 Validator live tests are deferred. The owner has deployed the mainnet registry and
 profiles; [manifest and receipts](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md) are recorded.
-Next: verify the signed Treasury price, then prepare separate owner-wallet activation
-and purchase checks. Purchases remain paused; see [names/README.md](names/README.md).
+Mainnet purchases are open and the first registration is recorded. Do not repeat
+activation or purchase; see [names/README.md](names/README.md).
 No separate Render NNS service is needed.
 
 For UI work and new pages, follow [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
@@ -37,7 +37,7 @@ HANDOFF for the current continuation.
 | RELAY Inbox | Local notifications from Operations and native Juno mainnet proposals | No UNI-7 review polling, push or cross-device sync |
 | RELAY Composer | Temporary preview and read-only UNI-7 mailbox identity check | Main application cannot send or save plaintext drafts |
 | RELAY encrypted lab | Separate UNI-7 device registration, ciphertext send/receive and encrypted local history | Mocked two-profile test passed; real two-wallet E2E still unrecorded |
-| Names in RELAY | Directory and network-selectable mainnet/UNI-7 adapters for registration/renewal/transfers/public contacts | Mainnet contracts deployed, purchases paused; signed Treasury price and owner-wallet activation pending |
+| Names in RELAY | Directory and network-selectable mainnet/UNI-7 adapters for registration/renewal/transfers/public contacts | Mainnet purchases open; first registration recorded; renewal/transfer E2E remains open |
 | Names v2 UNI-7 lab | Separate Keplr setup/lab with verified deployed mock token, registry and profiles; purchases activated | Registration/profile/renewal/transfer post-state checked; separate operator-proof UI, live validator E2E outstanding; mainnet disabled |
 | People / Delivery | Chain-backed Members adapters, planned Contributors and structured proposal deliverables | No authoritative contributor assignments, milestone acceptance or payment release |
 | UNI-7 faucet | Connected funded Render service, Keplr, donations, staking/rewards and guarded payout requests | Reward/donation receipts verified; payout/restart and stake/unstake E2E evidence remains open |
@@ -155,5 +155,4 @@ underlying snapshot timestamps. It does not change Operations exports.
 
 NNS validator-profile protocol and programme decisions: see
 [scope and remaining gates](docs/NNS_VALIDATOR_PROFILES_2026-10-04.md).
-The separate UNI-7 deployment and validator UI are live through PR #145. Mainnet
-purchases and main-workspace profile publishing remain disabled.
+The separate UNI-7 deployment and validator UI are live through PR #145. Mainnet purchases and main-workspace profile publishing are connected. Real validator E2E remains deferred.

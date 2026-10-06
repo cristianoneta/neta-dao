@@ -338,8 +338,9 @@ def collect_main(dao, output):
                 "last_success_at": previous.get("last_success_at"), "sources": previous.get("sources", []),
                 "warnings": ["Historical transaction source unavailable; retained records are not a complete history.", str(error)]}
     data["checked_at"] = now()
-    data["nns"] = {"status": "not_active", "registry": dao["nnsRegistry"], "revenue_raw": None,
-                   "note": "No verified NNS fee source is configured. Incoming NETA alone does not establish naming revenue."}
+    data["nns"] = {"status": "separate_receipt_ledger", "revenue_raw": None,
+                   "accounting_file": "neta-main-accounting.json",
+                   "note": "Matched NNS receipts are collected separately; historical events alone do not establish complete naming revenue."}
     return data
 
 

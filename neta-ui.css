@@ -414,3 +414,34 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
   .nns-network-picker { flex-basis: 100%; }
   #nns-owned-actions { flex-wrap: wrap; }
 }
+:root .pnl-card { color: var(--neta-text); }
+.pnl-card .pnl-filters { display:flex; gap:16px; flex-wrap:wrap; }
+.pnl-filters label { display:grid; gap:6px; color:var(--neta-text-secondary); }
+.pnl-filters select { min-height:44px; background:var(--neta-surface-raised); color:var(--neta-text); border:1px solid var(--neta-control-border); border-radius:8px; padding:8px 12px; }
+.pnl-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin:24px 0; }
+.pnl-kpis article { display:grid; gap:8px; }
+.pnl-kpis strong { font-size:clamp(18px,2vw,26px); font-variant-numeric:tabular-nums; }
+.pnl-kpis small,.pnl-note,.pnl-receipt small { color:var(--neta-text-secondary); font-size:13px; line-height:1.6; }
+.pnl-observed { display:flex; align-items:center; flex-wrap:wrap; gap:16px 32px; padding:20px; background:var(--neta-surface-raised); border-radius:8px; }
+.pnl-observed div { display:grid; gap:6px; }
+.pnl-observed strong { color:var(--neta-success); font-size:26px; font-variant-numeric:tabular-nums; }
+.pnl-observed p { flex:1; min-width:180px; }
+.pnl-content { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:24px; margin:24px 0; }
+.pnl-table-wrap { overflow-x:auto; min-width:0; }
+.pnl-card table { width:100%; border-collapse:collapse; min-width:520px; color:var(--neta-text); font-size:14px; }
+.pnl-card caption { text-align:left; color:var(--neta-text-secondary); padding-bottom:12px; }
+.pnl-card th,.pnl-card td { border-bottom:1px solid var(--neta-border); padding:12px 8px; text-align:right; font-variant-numeric:tabular-nums; }
+.pnl-card th:first-child { text-align:left; }
+.pnl-card th button { background:transparent; color:var(--neta-text); border:1px solid transparent; border-radius:8px; min-height:44px; text-align:left; padding:8px; font:inherit; cursor:pointer; }
+.pnl-card th button[aria-pressed="true"] { color:var(--neta-accent); border-color:var(--neta-accent); background:var(--neta-surface-raised); }
+#pnl-detail { border-left:1px solid var(--neta-border); padding-left:24px; min-width:0; overflow-wrap:anywhere; }
+.pnl-receipt { border-top:1px solid var(--neta-border); padding:16px 0; }
+.pnl-receipt p { font-size:14px; line-height:1.6; }
+.pnl-receipt a { display:block; color:var(--neta-accent); min-height:44px; padding:10px 0; text-decoration:underline; }
+.pnl-receipt small { display:block; }
+.pnl-bridge { border-top:1px solid var(--neta-border); padding:16px 0; }
+.pnl-bridge summary { cursor:pointer; min-height:44px; padding:10px 0; }
+.pnl-bridge p { color:var(--neta-text-secondary); line-height:1.6; }
+#treasury-view .treasury-main-grid { grid-template-columns:minmax(0,1fr); }
+@media(max-width:960px) { .pnl-content { grid-template-columns:minmax(0,1fr); } #pnl-detail { border-left:0; border-top:1px solid var(--neta-border); padding:20px 0 0; } }
+@media(max-width:640px) { .pnl-kpis { grid-template-columns:minmax(0,1fr); } .pnl-card>header { flex-direction:column; align-items:stretch; } .pnl-filters label { flex:1; min-width:0; } .pnl-filters select { width:100%; font-size:16px; } .pnl-observed { padding:16px; } }
