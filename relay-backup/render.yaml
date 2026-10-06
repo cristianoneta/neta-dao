@@ -1,0 +1,31 @@
+# Separate optional service. Not referenced by the faucet Blueprint.
+# Do not deploy until budget/provider approval and the reviewed mailbox exists.
+previews:
+  generation: "off"
+services:
+  - type: web
+    name: neta-relay-backup
+    runtime: node
+    region: frankfurt
+    plan: 0.5c-512mb
+    rootDir: relay-backup
+    numInstances: 1
+    autoDeployTrigger: "off"
+    buildCommand: npm ci --omit=dev --ignore-scripts
+    startCommand: npm start
+    healthCheckPath: /health
+    disk:
+      name: relay-backup-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: RELAY_BACKUP_DB
+        value: /var/data/relay-backup.sqlite
+      - key: RELAY_WEB_ORIGIN
+        value: https://dao.netareborn.com
+      - key: RELAY_MAILBOX_CONTRACT
+        sync: false
+      - key: RELAY_BACKUP_WALLETS
+        sync: false
