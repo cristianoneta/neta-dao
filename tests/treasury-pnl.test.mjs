@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { period, validateLedger, summarize, usdUnits } from '../treasury-pnl.mjs';
+import { period, validateLedger, summarize, usdUnits, accountsFor } from '../treasury-pnl.mjs';
 const manifest = JSON.parse(readFileSync(new URL('../docs/deployments/nns-mainnet.json', import.meta.url)));
 const dao = { id: 'neta', network: manifest.chain_id, core: manifest.treasury, tokenContract: manifest.token };
 const row = { id: `juno-1:${'A'.repeat(64)}:0`, chain_id: 'juno-1', tx_hash: 'A'.repeat(64), message_index: 0,
@@ -34,4 +34,17 @@ test('UTC half-open periods, future/empty periods and equal elapsed comparison',
   const leap = period(2024, 2, new Date('2026-10-06T09:00:00Z'));
   assert.equal((leap.end - leap.start) / 86400000, 29);
   assert.equal(summarize([row], period(2026, 'all', new Date('2026-10-06T09:00:00Z'))).rows.length, 1);
+});
+
+test('shared statement config isolates DAO income sources and supports other account mappings', () => {
+  assert.equal(accountsFor({id:'neta'}).filter(a=>a.id.startsWith('nns_')).length,2);
+  assert.equal(accountsFor({id:'juno'}).some(a=>a.id.startsWith('nns_')),false);
+  const accounts = accountsFor({id:'example'}, { example:{accounts:[{id:'service_fees',label:'Service fees',section:'income'}]} });
+  const s = summarize([{...row,category:'service_fees'}],period(2026,10,new Date('2026-10-06')),accounts);
+  assert.equal(s.categories.find(a=>a.id==='service_fees').observed,usdUnits(row.usd_value));
+  assert.equal(s.observedIncome,usdUnits(row.usd_value));
+  assert.equal(s.categories.some(a=>a.id.startsWith('nns_')),false);
+  const expense = summarize([{...row,category:'grants'}],period(2026,10,new Date('2026-10-06')),accounts);
+  assert.equal(expense.observedIncome,null);
+  assert.throws(()=>validateLedger(ledger,{...dao,id:'juno'}));
 });

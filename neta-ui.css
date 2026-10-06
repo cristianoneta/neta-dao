@@ -414,39 +414,60 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
   .nns-network-picker { flex-basis: 100%; }
   #nns-owned-actions { flex-wrap: wrap; }
 }
-:root .pnl-card { color: var(--neta-text); }
+:root .pnl-card { color:var(--neta-text); }
 .pnl-card .pnl-filters { display:flex; gap:16px; flex-wrap:wrap; }
-.pnl-filters label { display:grid; gap:6px; color:var(--neta-text-secondary); }
-.pnl-filters select { min-height:44px; background:var(--neta-surface-raised); color:var(--neta-text); border:1px solid var(--neta-control-border); border-radius:8px; padding:8px 12px; }
-.pnl-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin:24px 0; }
-.pnl-kpis article { display:grid; gap:8px; }
-.pnl-kpis strong { font-size:clamp(18px,2vw,26px); font-variant-numeric:tabular-nums; }
-.pnl-kpis small,.pnl-note,.pnl-receipt small { color:var(--neta-text-secondary); font-size:13px; line-height:1.6; }
-.pnl-observed { display:flex; align-items:center; flex-wrap:wrap; gap:16px 32px; padding:20px; background:var(--neta-surface-raised); border-radius:8px; }
-.pnl-observed div { display:grid; gap:6px; }
-.pnl-observed strong { color:var(--neta-success); font-size:26px; font-variant-numeric:tabular-nums; }
-.pnl-observed p { flex:1; min-width:180px; }
-.pnl-content { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:24px; margin:24px 0; }
-.pnl-table-wrap { overflow-x:auto; min-width:0; }
-.pnl-card table { width:100%; border-collapse:collapse; min-width:520px; color:var(--neta-text); font-size:14px; }
-.pnl-card caption { text-align:left; color:var(--neta-text-secondary); padding-bottom:12px; }
-.pnl-card th,.pnl-card td { border-bottom:1px solid var(--neta-border); padding:12px 8px; text-align:right; font-variant-numeric:tabular-nums; }
-.pnl-card th:first-child { text-align:left; }
-.pnl-card th button { background:transparent; color:var(--neta-text); border:1px solid transparent; border-radius:8px; min-height:44px; text-align:left; padding:8px; font:inherit; cursor:pointer; }
-.pnl-card th button[aria-pressed="true"] { color:var(--neta-accent); border-color:var(--neta-accent); background:var(--neta-surface-raised); }
-#pnl-detail { border-left:1px solid var(--neta-border); padding-left:24px; min-width:0; overflow-wrap:anywhere; }
-.pnl-receipt { border-top:1px solid var(--neta-border); padding:16px 0; }
-.pnl-receipt p { font-size:14px; line-height:1.6; }
-.pnl-receipt a { display:block; color:var(--neta-accent); min-height:44px; padding:10px 0; text-decoration:underline; }
-.pnl-receipt small { display:block; }
-.pnl-bridge { border-top:1px solid var(--neta-border); padding:16px 0; }
-.pnl-bridge summary { cursor:pointer; min-height:44px; padding:10px 0; }
-.pnl-bridge p { color:var(--neta-text-secondary); line-height:1.6; }
-#treasury-view .treasury-main-grid { grid-template-columns:minmax(0,1fr); }
-@media(max-width:960px) { .pnl-content { grid-template-columns:minmax(0,1fr); } #pnl-detail { border-left:0; border-top:1px solid var(--neta-border); padding:20px 0 0; } }
-@media(max-width:640px) { .pnl-kpis { grid-template-columns:minmax(0,1fr); } .pnl-card>header { flex-direction:column; align-items:stretch; } .pnl-filters label { flex:1; min-width:0; } .pnl-filters select { width:100%; font-size:16px; } .pnl-observed { padding:16px; } }
-
+.pnl-filters label { display:grid; gap:6px; color:var(--neta-text-secondary); font-size:13px; }
+.pnl-filters select { min-height:44px; background:var(--neta-surface-raised); color:var(--neta-text); border:1px solid var(--neta-control-border); border-radius:8px; padding:8px 12px; font:inherit; }
 .pnl-body { padding:20px 24px; }
-.pnl-body>#pnl-period { margin-top:0; }
-.pnl-table-hint { display:none; color:var(--neta-text-secondary); font-size:13px; }
-@media(max-width:640px) { .pnl-body { padding:16px; } .pnl-table-hint { display:block; margin-bottom:-12px; } }
+.pnl-statusline { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px 24px; margin-bottom:16px; }
+.pnl-statusline p { margin:0; }
+.pnl-note { color:var(--neta-text-secondary); font-size:13px; line-height:1.6; }
+.pnl-table-wrap { overflow-x:auto; min-width:0; }
+.pnl-card table { width:100%; border-collapse:collapse; min-width:440px; color:var(--neta-text); font-size:14px; }
+.pnl-card caption { text-align:left; padding-bottom:12px; }
+.pnl-card th,.pnl-card td { border-bottom:1px solid var(--neta-border); padding:16px; text-align:right; font-variant-numeric:tabular-nums; vertical-align:top; }
+.pnl-card th:first-child { text-align:left; }
+.pnl-card thead th { color:var(--neta-text-secondary); font-size:12px; font-weight:500; }
+.pnl-group { background:var(--neta-surface-raised); }
+.pnl-group th { padding:6px 8px; }
+.pnl-group td { font-weight:600; }
+.pnl-card th button { display:flex; gap:12px; align-items:center; background:transparent; color:var(--neta-text); border:0; border-radius:8px; min-height:44px; text-align:left; padding:8px; font:inherit; font-weight:600; cursor:pointer; }
+.pnl-disclosure { color:var(--neta-accent); width:16px; font-size:20px; }
+.pnl-account th { padding-left:44px; font-weight:400; }
+.pnl-card a { color:var(--neta-accent); text-underline-offset:4px; }
+.pnl-account a { display:inline-block; padding:4px 0; min-height:24px; }
+.pnl-partial { display:block; color:var(--neta-text-secondary); font-size:12px; font-weight:400; margin-top:4px; }
+.pnl-result th,.pnl-result td { border-top:2px solid var(--neta-control-border); border-bottom:0; font-weight:600; padding-top:24px; }
+.pnl-method { margin-top:20px; border-top:1px solid var(--neta-border); padding-top:8px; }
+.pnl-method summary { cursor:pointer; min-height:44px; padding:12px 0; font-size:13px; color:var(--neta-text-secondary); }
+#treasury-view .treasury-main-grid { grid-template-columns:minmax(0,1fr); }
+.nns-register-page { margin:0; background:var(--neta-bg); color:var(--neta-text); font-family:Inter,system-ui,sans-serif; }
+.nns-register-masthead { display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px; padding:24px max(24px,calc((100% - 1232px)/2)); border-bottom:1px solid var(--neta-border); }
+.nns-register-masthead a,.pnl-back { color:var(--neta-accent); }
+.nns-register-masthead span { color:var(--neta-text-secondary); }
+.nns-register-main { max-width:1280px; margin:0 auto; padding:32px 24px; }
+.pnl-back { display:inline-block; min-height:44px; }
+.nns-register-card { border:1px solid var(--neta-border); border-radius:12px; background:var(--neta-surface); }
+.nns-register-card>header { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:24px; border-bottom:1px solid var(--neta-border); }
+.nns-register-card h1 { margin:8px 0; font-size:32px; }
+.nns-register-card header p { margin-bottom:0; }
+#nns-refresh { min-height:44px; padding:8px 16px; border:1px solid var(--neta-control-border); border-radius:8px; color:var(--neta-text); background:var(--neta-surface-raised); cursor:pointer; }
+#nns-refresh:disabled { opacity:.6; cursor:wait; }
+.nns-register-card .pnl-statusline { margin-top:24px; }
+.nns-transactions-table { min-width:850px!important; }
+.nns-transactions-table th small,.nns-transactions-table th a { display:block; margin-top:8px; font-weight:400; }
+.nns-transactions-table td { white-space:nowrap; }
+.nns-transactions-table details { margin-top:8px; color:var(--neta-text-secondary); font-size:12px; max-width:220px; white-space:normal; }
+.nns-transactions-table summary { cursor:pointer; padding:6px 0; }
+#nns-source { overflow-wrap:anywhere; }
+@media(max-width:640px) {
+  .pnl-body { padding:16px; }
+  .pnl-card>header { flex-direction:column; align-items:stretch; }
+  .pnl-filters label { flex:1; min-width:0; }
+  .pnl-filters select { width:100%; font-size:16px; }
+  .pnl-card th,.pnl-card td { padding:12px; }
+  .pnl-account th { padding-left:32px; }
+  .pnl-group th { padding:2px 4px; }
+  .nns-register-main { padding:24px 16px; }
+  .nns-register-card>header { padding:16px; }
+}

@@ -1,48 +1,48 @@
-import { categories, period, validateLedger, summarize, usdNumber } from './treasury-pnl.mjs?v=20261006-1';
-
+import { accountsFor, period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-2';
+import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-2';
 const root = document.querySelector('#treasury-pnl');
-const el = (tag, text, cls) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (cls) n.className = cls; return n; };
-const dollars = value => value === null ? 'Unavailable' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(usdNumber(value));
-const tokenAmount = raw => { const n = BigInt(raw); return `${n / 1000000n}.${String(n % 1000000n).padStart(6, '0')}`; };
-const date = value => new Date(value).toLocaleString('en-GB', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });
-let state = window.NetaTreasuryAccounting || {}, selected = 'nns_registration';
-const today = new Date();
+let state = window.NetaTreasuryAccounting || {};
+const expanded = new Set();
 const year = root.querySelector('#pnl-year'), month = root.querySelector('#pnl-month');
-for (let y = today.getUTCFullYear(); y >= 2022; y--) { const o = el('option', String(y)); o.value = String(y); year.append(o); }
-[['all', 'Full year'], ...Array.from({ length: 12 }, (_, i) => [String(i + 1), new Date(Date.UTC(2026, i, 1)).toLocaleString('en', { month: 'long', timeZone: 'UTC' })])].forEach(([value, label]) => { const o = el('option', label); o.value = value; month.append(o); });
-month.value = String(today.getUTCMonth() + 1);
-
+setupPeriods(year, month, new URLSearchParams(location.search));
 function render() {
   let entries = [], error = state.error || '';
   if (state.data) { try { entries = validateLedger(state.data, state.dao); } catch (e) { error = e.message; } }
   const range = period(Number(year.value), month.value === 'all' ? 'all' : Number(month.value));
-  const summary = summarize(entries, range);
-  root.querySelector('#pnl-period').textContent = `${range.annual ? (range.toDate ? 'Year to date' : 'Full year') : (range.toDate ? 'Month to date' : 'Month')} · UTC · ${date(range.start)} – ${date(range.end)} (end exclusive). Comparison: ${date(range.previousStart)} – ${date(range.previousEnd)}.`;
-  root.querySelector('#pnl-coverage').textContent = state.loading ? 'Loading accounting evidence…' : error || (state.data ? 'Partial coverage · NNS figures are matched-receipt subtotals. Full income, expenses and operating result are unavailable; missing history is not zero.' : state.dao?.id === 'neta' ? 'Accounting receipt source could not be loaded. This does not establish zero revenue.' : 'Accounting history is not connected for this DAO. No income or expense total can be inferred from balances.');
-  root.querySelector('#pnl-observed').textContent = dollars(summary.observedIncome);
-  root.querySelector('#pnl-observed-note').textContent = summary.rows.length ? `${summary.rows.length} matched payment${summary.rows.length === 1 ? '' : 's'} · included in income, not added twice` : 'No matched receipts available in this period; this does not establish zero revenue.';
+  const summary = summarize(entries, range, accountsFor(state.dao));
+  const future = range.start > Date.now();
+  root.querySelector('#pnl-period').textContent = `${month.selectedOptions[0].textContent} ${year.value}${range.toDate ? ' · to date' : ''} · UTC`;
+  root.querySelector('#pnl-coverage').textContent = state.loading ? 'Loading accounting evidence…' : error || (future ? 'Future period · no actuals yet' : state.data ? 'Partial coverage · totals incomplete' : 'Accounting history is not connected for this DAO.');
   const tbody = root.querySelector('#pnl-rows'); tbody.replaceChildren();
-  for (const category of summary.categories) {
-    const tr = el('tr'); const cell = el('th'); cell.scope = 'row';
-    const button = el('button', category.label); button.type = 'button'; button.dataset.category = category.id; button.setAttribute('aria-pressed', String(selected === category.id));
-    button.addEventListener('click', () => { selected = category.id; render(); root.querySelector(`[data-category="${selected}"]`).focus({ preventScroll: true }); }); cell.append(button);
-    tr.append(cell, el('td', dollars(category.observed)), el('td', dollars(category.previousObserved)), el('td', 'Unavailable'));
-    tbody.append(tr);
+  function amount(value, detail) {
+    const td = el('td');
+    const node = el(detail ? 'a' : 'span', value === null ? '—' : dollars(value));
+    if (value === null) node.setAttribute('aria-label', 'Unavailable');
+    if (detail) { const q = new URLSearchParams({ year: year.value, month: month.value, type: detail.filter }); node.href = `${detail.detail}?${q}`; node.setAttribute('aria-label', `${detail.label}: ${value === null ? 'amount unavailable' : dollars(value)}. View transactions`); }
+    td.append(node); if (value !== null) td.append(el('small', 'Partial', 'pnl-partial')); return td;
   }
-  const detail = root.querySelector('#pnl-detail'); detail.replaceChildren();
-  const category = summary.categories.find(c => c.id === selected);
-  detail.append(el('h3', category.label), el('p', category.observed === null ? 'No classified receipts available. This category is not verified as zero.' : `${dollars(category.observed)} · observed subtotal`, 'pnl-detail-total'));
-  for (const row of category.rows) {
-    const item = el('article', undefined, 'pnl-receipt');
-    item.append(el('strong', `${row.name} · ${row.years} year${row.years === 1 ? '' : 's'}`),
-      el('p', `${tokenAmount(row.raw_amount)} NETA · $${Number(row.usd_value).toFixed(6)} · ${date(row.timestamp)} UTC`),
-      el('p', `Payment conversion: $${Number(row.valuation.usd_per_neta_12) / 1e12} / NETA. Price observed ${date(row.valuation.observed_at * 1000)} UTC. Historical amount stays fixed.`));
-    const tx = el('a', `View transaction · block ${row.height} ↗`); tx.href = `https://atomscan.com/juno/transactions/${row.tx_hash}`; tx.target = '_blank'; tx.rel = 'noopener noreferrer'; item.append(tx);
-    const evidence = el('small', row.evidence?.kind === 'archived-provider-receipt' ? 'Archived provider receipt · not a new live verification' : 'Matched provider receipt · not a light-client proof'); item.append(evidence); detail.append(item);
+  for (const [section, label] of [['income', 'Income'], ['expenses', 'Expenses']]) {
+    const accounts = summary.categories.filter(a => a.section === section);
+    const tr = el('tr', undefined, 'pnl-group');
+    const th = el('th'); th.scope = 'row';
+    const button = el('button'); button.type = 'button'; button.dataset.section = section;
+    button.setAttribute('aria-expanded', String(expanded.has(section))); button.setAttribute('aria-controls', accounts.map(a => `pnl-account-${a.id}`).join(' '));
+    button.append(el('span', expanded.has(section) ? '−' : '+', 'pnl-disclosure'), el('span', label));
+    button.addEventListener('click', () => { expanded.has(section) ? expanded.delete(section) : expanded.add(section); render(); root.querySelector(`[data-section="${section}"]`).focus({ preventScroll: true }); });
+    th.append(button);
+    const subtotal = (key) => { const values = accounts.map(a => a[key]).filter(v => v !== null); return values.length ? values.reduce((a,b) => a+b, 0n) : null; };
+    tr.append(th, amount(subtotal('observed')), amount(subtotal('previousObserved'))); tbody.append(tr);
+    for (const account of accounts) {
+      const row = el('tr', undefined, 'pnl-account'); row.id = `pnl-account-${account.id}`; row.hidden = !expanded.has(section);
+      const title = el('th'); title.scope = 'row';
+      if (account.detail) { const link = el('a', `${account.label} ↗`); link.href = `${account.detail}?${new URLSearchParams({ year: year.value, month: month.value, type: account.filter })}`; title.append(link); }
+      else title.textContent = account.label;
+      row.append(title, amount(account.observed, account.detail ? account : null), amount(account.previousObserved)); tbody.append(row);
+    }
   }
-  const source = root.querySelector('#pnl-source');
-  source.textContent = state.data && !error ? `Last successful receipt refresh: ${state.data.last_success_at ? date(state.data.last_success_at) + ' UTC' : 'unavailable'}. Latest attempt: ${state.data.refresh_status}. Buyer-paid gas is not a DAO expense. Conversion uses the registry-accepted snapshot, not today’s market price.` : 'Payment-time prices and source evidence are required before a receipt can enter the statement.';
+  const result = el('tr', undefined, 'pnl-result'), title = el('th', 'Operating surplus / deficit'); title.scope = 'row'; result.append(title, amount(null), amount(null)); tbody.append(result);
+  root.querySelector('#pnl-source').textContent = state.data && !error ? `Last successful receipt refresh: ${state.data.last_success_at ? date(state.data.last_success_at) + ' UTC' : 'unavailable'}. Latest attempt: ${state.data.refresh_status}. Conversion is fixed at the accepted payment rate. Buyer-paid gas is not a DAO expense. Selected interval: ${date(range.start)} – ${date(range.end)} (end exclusive). Comparison: ${date(range.previousStart)} – ${date(range.previousEnd)}.` : 'Classified receipts with payment-time prices are required. Treasury balances alone do not establish income or expenses.';
 }
 year.addEventListener('change', render); month.addEventListener('change', render);
-window.addEventListener('neta:treasury-accounting', event => { state = event.detail; render(); });
+window.addEventListener('neta:treasury-accounting', event => { const changed = state.dao?.id !== event.detail.dao?.id; state = event.detail; if (changed) expanded.clear(); render(); });
 render();
