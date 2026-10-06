@@ -13,8 +13,8 @@
   "adapter": "treasury-receipts",
   "status": "PARTIAL",
   "refresh_status": "completed",
-  "checked_at": "2026-10-06T20:35:56.727854Z",
-  "last_success_at": "2026-10-06T20:35:56.702915Z",
+  "checked_at": "2026-10-06T20:56:27.624597Z",
+  "last_success_at": "2026-10-06T20:56:27.605236Z",
   "sources": [
     {
       "adapter": "cosmos-rest-receipts",
@@ -29,9 +29,9 @@
         "timestamp": "2026-09-30T11:15:50.297962745Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42436787,
-      "last_scanned_height": 42437400,
-      "anchor_hash": "7913C84FCE4F4CEDD8B3339D60F57F7FDB767CAB50F5EF5969513CEEADF3F599",
+      "scan_start_height": 42437300,
+      "last_scanned_height": 42437882,
+      "anchor_hash": "8B972327EAFD62F51E6F4AB508FB77B2B8D25DC49711B8F707D9EFEA0B4514CE",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
