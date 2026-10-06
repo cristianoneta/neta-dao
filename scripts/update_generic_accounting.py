@@ -29,7 +29,7 @@ def build(dao, events, previous=None):
     accounts = {(t['chain_id'], t['address']) for t in config['treasuries']}
     if len(accounts) != len(config['treasuries']): raise ValueError('Duplicate treasury account')
     movements, entries, seen, event_ids = [], [], set(), set()
-    settlements = []
+    settlements, reward_gaps = [], []
     for event in events.get('events', []):
         if (event.get('chain_id'), event.get('treasury_address')) not in accounts:
             raise ValueError('Foreign treasury event')
@@ -52,6 +52,8 @@ def build(dao, events, previous=None):
         if dao['id'] == 'juno-delegation':
             from staking_accrual import DISTRIBUTION
             for reward in event.get('reward_withdrawals', []):
+                if reward.get('recipient') != dao['core']:
+                    reward_gaps.append(event['id'])
                 for denom, raw in reward['amounts'].items():
                     if not raw.isdigit(): raise ValueError('Invalid reward withdrawal')
                     reward_coins[denom] = reward_coins.get(denom, 0) + int(raw)
@@ -110,7 +112,7 @@ def build(dao, events, previous=None):
             'execution_candidates': events.get('execution_candidates', []),
             **({'community_tax': events['community_tax']} if dao['id'] == 'juno' and 'community_tax' in events else {}),
             'warnings': events.get('warnings', []), 'entries': entries,
-            **({'reward_settlements': settlements} if dao['id'] == 'juno-delegation' else {}),
+            **({'reward_settlements': settlements, 'reward_withdrawal_gaps': sorted(set(reward_gaps))} if dao['id'] == 'juno-delegation' else {}),
             'movement_review': {'accounting_start': ACCOUNTING_START, 'status': 'PARTIAL',
                 'event_refresh_status': events.get('status'), 'matched_receipts': len(entries),
                 'unmatched_receipt_ids': [], 'unreviewed_movements': unresolved, 'movements': movements,

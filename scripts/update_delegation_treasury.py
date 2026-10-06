@@ -145,6 +145,10 @@ def run():
                   'checked_at': now(), 'events': previous.get('events', []), 'sources': previous.get('sources', []),
                   'warnings': ['Receipt refresh unavailable; previous evidence retained.', str(error)]}
     events['coverage_gaps'] = GAPS
+    # Keep published accrual visible until its replacement projection succeeds.
+    if not any(e.get('evidence', {}).get('kind') == 'staking-accrual' for e in events['events']):
+        events['events'] += [e for e in previous.get('events', []) if e.get('evidence', {}).get('kind') == 'staking-accrual']
+    if 'accrual_coverage' in previous: events['accrual_coverage'] = previous['accrual_coverage']
     atomic(path, events)
     ledger_path = OUT / dao['accountingSource']['file']
     prior = json.loads(ledger_path.read_text()) if ledger_path.exists() else None

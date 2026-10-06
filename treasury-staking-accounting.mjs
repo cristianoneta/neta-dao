@@ -47,7 +47,7 @@ export function validateStakingLedger(data,dao){
 }
 export function reviewedStakingPeriod(entries,data,from,to,now){
  const c=data.accrual_coverage;
- if(!c||c.status!=='CURRENT'||!Number.isFinite(Date.parse(c.from_time))||!Number.isFinite(Date.parse(c.through_time))
+ if(data.reward_withdrawal_gaps?.length||!c||c.status!=='CURRENT'||!Number.isFinite(Date.parse(c.from_time))||!Number.isFinite(Date.parse(c.through_time))
   ||from>=Date.parse(c.through_time)||to<=Date.parse(c.from_time)||now-Date.parse(c.through_time)>172800000
   ||entries.some(r=>r.usd_value===null&&r.category!=='funding'))return false;
  return reviewedGenericPeriod(entries.filter(r=>r.evidence?.kind!=='staking-accrual'),{...data,coverage_gaps:[]},from,to,now);

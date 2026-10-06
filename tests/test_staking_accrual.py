@@ -33,7 +33,7 @@ class Accrual(unittest.TestCase):
   self.assertEqual(withdrawals(rows,ADDRESS)[0]['amounts'],{'ujuno':'5'})
   self.assertEqual(len(withdrawals(rows,ADDRESS)),1)
  def test_matching_claim_is_settlement_not_operating_income(self):
-  f=feed(DAO);r=event(DAO);r['reward_withdrawals']=[{'event_index':1,'validator':'junovaloper1x','amounts':{'ujuno':'1000000'}}]
+  f=feed(DAO);r=event(DAO);r['reward_withdrawals']=[{'event_index':1,'validator':'junovaloper1x','recipient':ADDRESS,'amounts':{'ujuno':'1000000'}}]
   r['evidence']={'kind':'provider-receipt'};r['movements'][0].update(direction='in',counterparty=DISTRIBUTION);f['events']=[r]
   result=build(DAO,f);self.assertEqual(result['entries'],[]);self.assertEqual(result['movement_review']['unreviewed_movements'],0);self.assertEqual(len(result['reward_settlements']),1)
   r['reward_withdrawals'][0]['amounts']['ujuno']='999999'

@@ -25,7 +25,14 @@ def withdrawals(events, address):
         amounts = coins(a.get('amount', ''))
         if any(v != int(v) or v < 0 for v in amounts.values()):
             raise ValueError('Invalid claimed reward')
+        transfers = [attributes(e) for e in events[:i] if e['type'] == 'transfer'
+                     and attributes(e).get('sender') == DISTRIBUTION
+                     and attributes(e).get('msg_index') == a.get('msg_index')]
+        transfer = transfers[-1] if transfers else None
+        paid = {d:v for d,v in amounts.items() if v}
+        recipient = address if not paid else transfer.get('recipient') if transfer and coins(transfer.get('amount', '')) == paid else None
         result.append({'event_index': i, 'validator': a['validator'],
+                       'recipient': recipient,
                        'amounts': {d:str(int(v)) for d,v in amounts.items() if v}})
     return result
 
