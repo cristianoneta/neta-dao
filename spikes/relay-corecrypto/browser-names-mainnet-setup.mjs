@@ -15,7 +15,7 @@ try{
  await page.route('**/docs/deployments/nns-mainnet.json',r=>r.fulfill({status:404,body:'No deployment in this fixture'}));
  await page.goto(origin+'/index.html#relay/register');
  assert.equal(await page.locator('#nns-network').inputValue(),'juno-1');
- await page.locator('#nns-refresh').click();await page.waitForFunction(()=>!document.querySelector('#nns-refresh').disabled);
+ await page.locator('#nns-technical summary').click();await page.locator('#nns-refresh').click();await page.waitForFunction(()=>!document.querySelector('#nns-refresh').disabled);
  assert.match(await page.locator('#nns-status').textContent(),/not open yet/);
  for(const id of ['nns-reserve','nns-payment'])assert.equal(await page.locator('#'+id).isDisabled(),true);
  // Availability now performs verification on demand; reads stay available, writes stay gated.
@@ -27,7 +27,7 @@ try{
  for(const id of ['nns-reserve','nns-payment','nns-confirm'])assert.equal(await page.locator('#'+id).isDisabled(),true);
  await page.unroute('**/docs/deployments/nns-mainnet.json');
  await page.reload();
- await page.locator('#nns-refresh').click();await page.waitForFunction(()=>!document.querySelector('#nns-refresh').disabled);
+ await page.locator('#nns-technical summary').click();await page.locator('#nns-refresh').click();await page.waitForFunction(()=>!document.querySelector('#nns-refresh').disabled);
  assert.match(await page.locator('#nns-status').textContent(),/Verified Juno mainnet deployment unavailable/);
  for(const id of ['nns-reserve','nns-payment'])assert.equal(await page.locator('#'+id).isDisabled(),true);
  // Availability now performs verification on demand; reads stay available, writes stay gated.

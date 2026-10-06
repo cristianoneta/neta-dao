@@ -376,3 +376,15 @@ reminders. Profile and renewal links must retain name/network context; expired
 ownership must not advertise renewal after grace/transfer. Explain that these
 are system notices checked while the page is open, with browser-local history.
 Do not activate the private-message composer or imply email/push delivery.
+
+## Compact Names account panel — owner update 2026-10-06
+
+Show the connected name and expiry automatically, with Edit profile and Renew name
+shortcuts to the existing forms. Label the compact selector **Name registration**
+with explicit Juno mainnet / UNI-7 testnet options; this is the registry environment,
+not a separate blockchain from the profile's Network field. Keep this selector visible;
+collapse technical pricing/registry information and retain owner-only collapsed
+administration. Use the shared foreground tokens, wrapping actions and a stacked
+network selector on small screens. Loading, no active name and failed lookup are
+distinct states; failed reads expose Retry name lookup. Automatic reads never
+request wallet permission, submit transactions or overwrite unfinished forms.

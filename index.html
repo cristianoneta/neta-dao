@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://juno.test.rpc.nodeshub.online https://juno.test.api.nodeshub.online https://juno.rpc.t.stavr.tech https://juno.api.t.stavr.tech https://juno-api.polkachu.com https://juno-api.lavenderfive.com https://juno.api.m.stavr.tech https://juno-rpc.polkachu.com https://rpc-juno.whispernode.com; img-src 'self' data:; font-src 'self'; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>NETA Governance</title>
   <link rel="stylesheet" href="neta-governance.css?v=20261003-1"><link rel="stylesheet" href="governance-overrides.css?v=20261003-1"><link rel="stylesheet" href="relay.css?v=20261003-3"><link rel="stylesheet" href="names.css?v=20261005-nns-1">
-  <link rel="stylesheet" href="neta-ui.css?v=20261005-nns-1">
+  <link rel="stylesheet" href="neta-ui.css?v=20261006-account-1">
 </head>
 <body class="dao-workspace">
 <header class="gov-header"><a href="index.html" class="gov-brand">NETA REBORN</a><div class="governance-selectors"><div class="chain-picker"><label for="chain-select">SELECT CHAIN</label><div class="chain-select-wrap"><select id="chain-select" aria-label="Select governance chain"><option value="juno">Juno</option></select><span aria-hidden="true">⌄</span></div></div><div class="dao-picker"><label for="dao-search">SELECT DAO</label><div class="dao-combobox"><input id="dao-search" role="combobox" aria-expanded="false" aria-controls="dao-options" aria-autocomplete="list" autocomplete="off" value="NETA Operations DAO"><span aria-hidden="true">⌄</span></div><div id="dao-options" class="dao-options" role="listbox" hidden></div></div></div><div class="relay-global-scope">YOUR RELAY</div><div class="gov-controls"><span class="testnet-pill">UNI-7 TESTNET</span><button id="gov-connect" type="button">Connect Keplr</button><button id="gov-disconnect" type="button" hidden>Disconnect</button></div></header>
@@ -93,10 +93,12 @@
   <section id="names-view" class="relay-subpage names-page treasury-card relay-section-card" data-relay-panel-view="names" hidden>
     <header class="names-heading"><div><h2 id="names-page-title">Directory</h2><p id="names-page-description" class="relay-section-description">Find a DAO and choose the updates you want to receive.</p></div></header>
     <section id="nns-workspace-session" class="names-panel nns-session" hidden aria-label="Names network">
-      <label for="nns-network">Names network</label><select id="nns-network"><option value="juno-1">Juno mainnet · NETA</option><option value="uni-7">UNI-7 testnet · mock NETA</option></select><span id="nns-network-badge" class="names-badge">JUNO MAINNET · NETA</span><p id="nns-network-help">Mainnet names are being prepared.</p>
-      <p id="nns-deployment-status" class="names-help">Check availability to load current pricing and purchase status.</p>
-      <div class="names-actions"><button id="nns-refresh" type="button">Refresh pricing</button><button id="nns-my-name" type="button" disabled>Load my name</button></div>
-      <p id="nns-owned" class="names-help"></p><p id="nns-status" class="names-help" role="status" aria-live="polite"></p>
+      <div class="nns-account-row">
+        <div class="nns-account-copy"><p id="nns-owned" role="status" aria-live="polite">Connect your wallet to see your name.</p><div id="nns-owned-actions" class="names-actions" hidden><button id="nns-edit-owned" type="button">Edit profile</button><button id="nns-renew-owned" type="button">Renew name</button></div><button id="nns-owned-retry" type="button" hidden>Retry name lookup</button></div>
+        <div class="nns-network-picker"><label for="nns-network">Name registration</label><select id="nns-network"><option value="juno-1">Juno mainnet · NETA</option><option value="uni-7">UNI-7 testnet · mock NETA</option></select></div>
+      </div>
+      <p id="nns-status" class="names-help" role="status" aria-live="polite"></p>
+      <details id="nns-technical" class="names-info"><summary>Network &amp; pricing details</summary><span id="nns-network-badge" class="names-badge">JUNO MAINNET · NETA</span><p id="nns-network-help"></p><p id="nns-deployment-status" class="names-help">Pricing is checked automatically with name availability and before payment.</p><p id="nns-owned-error" class="names-help"></p><div class="names-actions"><button id="nns-refresh" type="button">Refresh pricing</button><button id="nns-my-name" type="button" disabled>Refresh my name</button></div></details>
       <details id="nns-admin" class="names-info" hidden><summary>Registry administration · owner wallet</summary><p id="nns-admin-status" class="names-help"></p><p class="names-help">Opening purchases enables registration and renewal for everyone. Each change needs a separate review and Keplr confirmation. Pausing remains available if the price feed is unavailable.</p><div class="names-actions"><button id="nns-admin-review" type="button" disabled>Review purchase availability</button></div></details>
       <details id="nns-recovery" class="names-info" hidden><summary>Saved transaction</summary><p id="nns-intent" class="names-help"></p><p class="names-help">Pending transactions are preserved across reloads. Check the outcome before trying again.</p><label for="nns-recovery-hash">Transaction hash · only if missing from saved data</label><input id="nns-recovery-hash" maxlength="64" autocomplete="off"><div class="names-actions"><button id="nns-recover" type="button" disabled>Check pending transaction</button><button id="nns-cancel" type="button" disabled>Review cancellation</button></div></details>
     </section>
@@ -171,7 +173,7 @@
   </section>
 </div>
 <script src="assets/socials-testnet-client.js?v=6"></script><script src="dao-directory.js?v=20261003-people-1"></script><script src="neta-governance.js?v=20261005-mainnet-1"></script><script src="ux-draft.js?v=20261003-people-1"></script><script src="treasury.js?v=20261005-details-1"></script><script src="names.js?v=2"></script><script src="dao-members.js?v=20261003-people-1"></script><script src="names-workspace.js?v=20261005-owner-1"></script><script type="module" src="names-profile.mjs?v=20261005-network-1"></script><script src="relay.js?v=20261005-nns-2"></script><script src="relay-mailbox-status.js?v=1"></script>
-<script type="module" src="names-v2-workspace.mjs?v=6"></script><script type="module" src="names-v2-notifications.mjs?v=1"></script>
+<script type="module" src="names-v2-workspace.mjs?v=7"></script><script type="module" src="names-v2-account.mjs?v=1"></script><script type="module" src="names-v2-notifications.mjs?v=1"></script>
 </body></html>
 
 
