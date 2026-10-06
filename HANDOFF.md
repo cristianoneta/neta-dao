@@ -13,8 +13,9 @@ reads do not enable Keplr, sign or overwrite drafts. Wallet/network changes abor
 old reads; provider failure has an explicit retry state. Saved transaction
 recovery remains separate and takes priority over switching forms.
 
-This follow-up is implemented on the feature branch; hosted browser checks and
-publication verification are pending. Do not infer deployment from this entry.
+Implementation, hosted checks and publication evidence are tracked in
+[PR #171](https://github.com/cristianoneta/neta-dao/pull/171). The account summary
+is a frontend change; no new registration or contract deployment is needed.
 The P&L scope and earlier release evidence below remain unchanged.
 
 ## Current checkpoint — yesterday's NNS updates are live

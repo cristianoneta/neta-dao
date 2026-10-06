@@ -38,7 +38,8 @@ See [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
 
 ## Compact Names panel — 2026-10-06 follow-up
 
-Feature-branch implementation, pending hosted checks and deployment: an automatic,
+Implemented in [PR #171](https://github.com/cristianoneta/neta-dao/pull/171)
+(see its checks and release evidence for publication status): an automatic,
 read-only summary shows the connected wallet's name and expiry. Edit profile and
 Renew name fill the existing forms after rechecking ownership; confirmations stay
 explicit. A compact network selector stays visible. Optional refresh controls and
