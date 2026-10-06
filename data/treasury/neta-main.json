@@ -2,32 +2,32 @@
   "assets": [
     {
       "amount": null,
-      "base_denom": "ibc/1D9E14A1F00613ED39E4B8A8763A20C9BE5B5EA0198F2FE47EAE43CD91A0137B",
+      "base_denom": "unois",
       "change_24h": null,
       "custody_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
       "decimals": null,
-      "ibc_path": null,
+      "ibc_path": "transfer/channel-225",
       "key": "juno:native:ibc/1D9E14A1F00613ED39E4B8A8763A20C9BE5B5EA0198F2FE47EAE43CD91A0137B",
       "origin": "IBC",
       "raw_amount": "500000000",
       "source_chain": "juno",
-      "symbol": "ibc/1D9E14A1F00613\u2026",
+      "symbol": "unois",
       "type": "token",
       "usd_price": null,
       "usd_value": null
     },
     {
       "amount": null,
-      "base_denom": "ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241",
+      "base_denom": "uhuahua",
       "change_24h": null,
       "custody_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
       "decimals": null,
-      "ibc_path": null,
+      "ibc_path": "transfer/channel-28",
       "key": "juno:native:ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241",
       "origin": "IBC",
       "raw_amount": "69000000",
       "source_chain": "juno",
-      "symbol": "ibc/D836B191CDAE8E\u2026",
+      "symbol": "uhuahua",
       "type": "token",
       "usd_price": null,
       "usd_value": null
@@ -35,7 +35,7 @@
     {
       "amount": "1402.010133",
       "base_denom": "ujuno",
-      "change_24h": 3.0256748386956556,
+      "change_24h": 3.206916673206308,
       "custody_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
       "decimals": 6,
       "ibc_path": null,
@@ -45,8 +45,8 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00920549",
-      "usd_value": "12.90619025923017"
+      "usd_price": "0.00921862",
+      "usd_value": "12.92459865227646"
     },
     {
       "amount": "7.32641",
@@ -56,26 +56,26 @@
       "source_chain": "juno",
       "symbol": "NETA",
       "type": "token",
-      "usd_price": "1.282080008310435654961968069",
-      "usd_value": "9.393043793685658886869912480"
+      "usd_price": "1.283908668219806695520336026",
+      "usd_value": "9.406441305932273972127145064"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-10-06T13:49:22.215459Z",
-  "height": 42427859,
+  "generated_at": "2026-10-06T14:04:36.076033Z",
+  "height": 42428216,
   "nns_price": {
-    "observed_at": "2026-10-06T13:49:22.215459Z",
+    "observed_at": "2026-10-06T14:04:36.076033Z",
     "pool": "juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra",
     "source": "treasury-wynd-juno-usd",
     "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
-    "usd_price": "1.282080008310435654961968069",
+    "usd_price": "1.283908668219806695520336026",
     "usd_source": "CoinGecko"
   },
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "22.29923405291582888686991248",
+  "total_usd": "22.33103995820873397212714506",
   "treasury_accounts": [
     {
       "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
@@ -88,10 +88,8 @@
   "treasury_type": "dao-core",
   "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.",
   "warnings": [
-    "Denom trace unavailable for ibc/1D9E14A1F00613ED39E4B8A8763A20C9BE5B5EA0198F2FE47EAE43CD91A0137B: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 501: Not Implemented | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
     "Unknown decimals for ibc/1D9E14A1F00613ED39E4B8A8763A20C9BE5B5EA0198F2FE47EAE43CD91A0137B; quantity shown in raw units",
-    "Denom trace unavailable for ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241: all Juno REST providers failed: https://juno-api.polkachu.com: HTTP Error 501: Not Implemented | https://juno.api.m.stavr.tech: HTTP Error 501: Not Implemented | https://juno-rest.publicnode.com: HTTP Error 501: Not Implemented",
     "Unknown decimals for ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241; quantity shown in raw units",
-    "Unpriced assets excluded from USD total: ibc/1D9E14A1F00613\u2026, ibc/D836B191CDAE8E\u2026"
+    "Unpriced assets excluded from USD total: unois, uhuahua"
   ]
 }
