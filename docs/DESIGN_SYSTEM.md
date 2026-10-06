@@ -491,3 +491,13 @@ Use All, Messages, Governance and Unread. NNS lifecycle notices belong under
 Messages while retaining their system-source label and contextual actions.
 Do not add a separate Names filter. Planned shared-mailbox design is documented
 in DAO_MAILBOX_DESIGN_2026-10-06.md; it is not an enabled UI capability.
+
+## DAO mailbox component — gated candidate, 2026-10-06
+
+The tested, unmounted DAO inbox component places a native select beside the Inbox
+heading, using existing graphite controls and mint states. Omit it unless enabled
+mailboxes are authorized for the connected wallet. Keep the DAO browsing selector
+independent of mailbox access. On small screens the heading/select may wrap.
+Conversations group by account, with chronological entries in the reader and
+assignment/blocking in contextual controls. Do not publish fixture inboxes. See
+DAO_MAILBOX_IMPLEMENTATION_2026-10-06.md for remaining activation requirements.

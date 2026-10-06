@@ -1,7 +1,8 @@
 # DAO mailboxes and NNS — design decisions, not live
 
-Owner discussion: 6 October 2026. Only the removal of the separate Names inbox
-filter is implemented in this change. Sending remains disabled on mainnet.
+Owner discussion: 6 October 2026. The separate Names inbox filter is removed.
+A [source implementation candidate](DAO_MAILBOX_IMPLEMENTATION_2026-10-06.md) now
+exists; DAO inboxes are not deployed or mounted. Sending remains disabled on mainnet.
 
 ## Confirmed product direction
 

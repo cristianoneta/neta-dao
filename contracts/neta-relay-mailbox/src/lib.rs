@@ -7,6 +7,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+pub mod dao;
+
 const CONTRACT: &str = "neta-relay-mailbox";
 const CHAIN: &str = "uni-7";
 const MAX_PREKEYS: usize = 16;
@@ -79,6 +81,7 @@ pub struct Message {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
+    Dao(dao::Execute),
     Register {
         device_id: String,
         protocol_version: u16,
@@ -118,6 +121,7 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
+    Dao(dao::Query),
     Device {
         address: String,
     },
@@ -227,6 +231,7 @@ pub fn instantiate(
     network(&env)?;
     no_funds(&info)?;
     NEXT_SEQUENCE.save(deps.storage, &0)?;
+    dao::init(deps.storage, &info.sender)?;
     cw2::set_contract_version(deps.storage, CONTRACT, env!("CARGO_PKG_VERSION"))?;
     Ok(Response::new().add_attribute("action", "instantiate"))
 }
@@ -241,6 +246,7 @@ pub fn execute(
     network(&env)?;
     no_funds(&info)?;
     match msg {
+        ExecuteMsg::Dao(msg) => dao::execute(deps, env, info, msg),
         ExecuteMsg::Register {
             device_id,
             protocol_version,
@@ -397,6 +403,7 @@ fn send(
     ciphertext: Binary,
     prekey_id: Option<u16>,
 ) -> Result<Response, Error> {
+    dao::active_name(deps.as_ref(), &env, &info.sender, false)?;
     if !hex_id(&message_id, 64) || !(16..=MAX_CIPHERTEXT).contains(&ciphertext.len()) {
         return Err(Error::Message);
     }
@@ -472,6 +479,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         return Err(StdError::generic_err("UNI-7 only"));
     }
     match msg {
+        QueryMsg::Dao(msg) => dao::query(deps, msg),
         QueryMsg::Device { address } => {
             let address = deps.api.addr_validate(&address)?;
             to_json_binary(&DEVICES.may_load(deps.storage, &address)?)
