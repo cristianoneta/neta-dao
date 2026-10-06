@@ -1,7 +1,8 @@
-import { validateCommunityLedger } from './treasury-community-accounting.mjs?v=20261006-8';
-import { validateGenericLedger, reviewedGenericPeriod } from './treasury-generic-accounting.mjs?v=20261006-8';
+import { validateCommunityLedger, reviewedCommunityPeriod } from './treasury-community-accounting.mjs?v=20261006-9';
+import { validateStakingLedger, reviewedStakingPeriod } from './treasury-staking-accounting.mjs?v=20261006-9';
+import { validateGenericLedger, reviewedGenericPeriod } from './treasury-generic-accounting.mjs?v=20261006-9';
 // Cash-basis reporting over explicitly classified receipts. No balance-derived income.
-import { accountsFor } from './treasury-accounting-config.mjs?v=20261006-8';
+import { accountsFor } from './treasury-accounting-config.mjs?v=20261006-9';
 export { accountsFor };
 export const categories = accountsFor({ id: 'neta' }).map(a => [a.id, a.label]);
 const known = new Set(categories.map(([id]) => id));
@@ -24,6 +25,7 @@ export function period(year, month, now = new Date()) {
   return { start, end, previousStart, previousEnd, toDate: now.getTime() >= start && now.getTime() < naturalEnd, annual };
 }
 export function validateLedger(data, dao) {
+  if (data?.schema_version === 4) return validateStakingLedger(data, dao);
   if (data?.schema_version === 3) return validateCommunityLedger(data, dao);
   if (data?.schema_version === 2) return validateGenericLedger(data, dao);
   if (!data || data.schema_version !== 1 || data.scope !== 'neta-main-dao' || dao.id !== 'neta'
@@ -48,7 +50,8 @@ export function validateLedger(data, dao) {
 // Zero means no recorded activity in a successfully refreshed and reviewed snapshot.
 // It is a provisional result, never a completeness or balance-reconciliation claim.
 export function reviewedPeriod(entries, data, start, end, now = Date.now()) {
-  if (data?.schema_version === 3) return false; // Exact tax evidence is not complete module accounting.
+  if (data?.schema_version === 4) return reviewedStakingPeriod(entries,data,start,end,now);
+  if (data?.schema_version === 3) return reviewedCommunityPeriod(entries,data,start,end,now);
   if (data?.schema_version === 2) return reviewedGenericPeriod(entries, data, start, end, now);
   const review = data?.movement_review, refreshed = Date.parse(data?.last_success_at);
   if (data?.refresh_status !== 'completed' || review?.status !== 'PARTIAL'

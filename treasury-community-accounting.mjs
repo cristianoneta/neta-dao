@@ -1,5 +1,5 @@
 // Block evidence is distinct from a bank transaction; no invented transaction hashes.
-import { validateGenericLedger } from './treasury-generic-accounting.mjs?v=20261006-8';
+import { validateGenericLedger, reviewedGenericPeriod } from './treasury-generic-accounting.mjs?v=20261006-9';
 const start = Date.parse('2026-10-01T00:00:00Z');
 const address = 'juno1jv65s3grqf6v6jl3dp4t6c9t9rk99cd83d88wr';
 const fees = 'juno17xpfvakm2amg962yls6f84z3kell8c5lxtqmvp';
@@ -57,4 +57,14 @@ export function validateCommunityLedger(data, dao) {
       || c.blocks!==ordered.reduce((n,r)=>n+r.evidence.blocks,0)) throw Error('Community Pool coverage does not match allocations');
   }
   return data.entries;
+}
+// These are explicitly recorded totals, not a claim of complete module accounting.
+export function reviewedCommunityPeriod(entries,data,from,to,now){
+ const c=data.block_coverage,r=data.recorded_cash_review;
+ if(!c||c.status!=='CURRENT'||!r||r.status!=='reviewed'||r.method!=='distribution-outflows-less-reward-withdrawals'
+  ||r.from_height!==c.from_height||r.through_height!==c.through_height||r.unresolved?.length!==0
+  ||!Number.isInteger(r.transactions_checked)||r.transactions_checked<0
+  ||from>=Date.parse(c.through_time)||now-Date.parse(c.through_time)>7200000
+  ||entries.some(e=>e.usd_value===null&&e.category!=='funding'))return false;
+ return reviewedGenericPeriod(entries.filter(e=>e.evidence?.kind!=='block-distribution'),{...data,coverage_gaps:[]},from,to,now);
 }

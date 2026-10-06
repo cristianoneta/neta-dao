@@ -1,4 +1,4 @@
-import { usdNumber } from './treasury-pnl.mjs?v=20261006-8';
+import { usdNumber } from './treasury-pnl.mjs?v=20261006-9';
 export const el = (tag, text, cls) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (cls) n.className = cls; return n; };
 export const dollars = value => value === null ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(usdNumber(value));
 export const date = value => new Date(value).toLocaleString('en-GB', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' });

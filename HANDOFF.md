@@ -1,5 +1,38 @@
 # NETA DAO handoff
 
+## Daily staking accrual and recorded zeros — release candidate, 2026-10-06
+
+Owner requested daily accrued staking income, no duplicate revenue on claims, and
+zero values/sums for accounts without recorded movements, including consolidation.
+The pending change adds a daily, claim-adjusted Delegation Programme ledger:
+closing withdrawable rewards minus opening rewards plus intervening withdrawals.
+Both explicit claims and automatic withdrawals during staking changes are captured
+from SDK events. Exact matched claim transfers are settlements, outside revenue.
+Unknown movements, unexplained decreases, stale sources and missing USD quotes
+block recorded totals. The normal 15-minute holdings/receipt refresh is retained;
+reward sampling advances once per UTC day to the previous day's closing block.
+
+Historical state at 1 October was unavailable from the inspected public providers.
+The earliest existing pinned reward snapshot is **6 October 13:57:10 UTC**.
+The first recorded accrual ends **15:21:23 UTC**: **454.025905 JUNO / $4.19**.
+Opening stock is not income. Earlier October staking revenue remains unavailable;
+it must not be described as zero. Daily periods use historical opening USD quotes,
+never current repricing. The archive and quote cache are new collector-owned files.
+
+Community Pool outflows were checked against matching SDK withdrawal events by
+transaction message and denomination. No unmatched outflow was found in the
+current archive. Recorded zero expense accounts and recorded surplus can therefore
+be shown provisionally. Zero Other income means no other *recorded* income;
+unmeasured withdrawal dust and validator-removal remainders remain excluded.
+Consolidated sums require every unit's recorded review to pass; missing/failed
+sources or unknown payments must not silently become zero. No complete module
+balance reconciliation or full October staking P&L is claimed.
+
+Validation: 144 Node tests and 65 targeted Python tests pass. A live Delegation
+holdings/receipt collection and real archive projection succeeded. Hosted browser
+checks and publication evidence will be recorded after integration. Existing bot
+exports and holdings history are preserved; production regenerates statements.
+
 ## Community Pool October tax accounting — LIVE, 2026-10-06 15:25 UTC
 
 [PR #185](https://github.com/cristianoneta/neta-dao/pull/185) is merged as

@@ -7,6 +7,10 @@ export const expenseAccounts = [
   { id: 'other_expenses', label: 'Other expenses', section: 'expenses' },
 ];
 export const accountingProfiles = {
+  'juno-delegation': {
+    adapter: 'treasury-receipts',
+    accounts: [{ id: 'staking_rewards', label: 'Staking rewards', section: 'income' }],
+  },
   juno: {
     adapter: 'native-community-pool',
     accounts: [{ id: 'community_tax', label: 'Community Tax', section: 'income' }],

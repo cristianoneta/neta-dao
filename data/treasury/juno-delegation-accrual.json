@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "chain_id": "juno-1",
+  "treasury_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+  "accounting_start": "2026-10-01T00:00:00Z",
+  "opening": {
+    "height": 42428044,
+    "timestamp": "2026-10-06T13:57:10.758236337Z",
+    "hash": "9281485F6F635EC0394CC3CAF2283E6232FFE78F0C9AD2C01B547F23D61F967A",
+    "rewards": {
+      "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9": "140151",
+      "ujuno": "3829983722190"
+    },
+    "source": "collector-owned-height-pinned-history",
+    "method": "withdrawable-rewards-truncated-per-validator"
+  },
+  "intervals": [
+    {
+      "id": "juno-1:staking:42428044-42430022",
+      "start": {
+        "height": 42428044,
+        "timestamp": "2026-10-06T13:57:10.758236337Z",
+        "hash": "9281485F6F635EC0394CC3CAF2283E6232FFE78F0C9AD2C01B547F23D61F967A",
+        "rewards": {
+          "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9": "140151",
+          "ujuno": "3829983722190"
+        },
+        "source": "collector-owned-height-pinned-history",
+        "method": "withdrawable-rewards-truncated-per-validator"
+      },
+      "end": {
+        "height": 42430022,
+        "timestamp": "2026-10-06T15:21:23.958791301Z",
+        "hash": "950C3FB342B618EF0F1B70A40527DAE876CF019040452EAF5B9A7164D18B8B48",
+        "rewards": {
+          "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9": "140151",
+          "ujuno": "3830437748095"
+        },
+        "source": "https://juno.api.m.stavr.tech",
+        "method": "withdrawable-rewards-truncated-per-validator"
+      },
+      "claims": [],
+      "amounts": {
+        "ujuno": "454025905"
+      },
+      "method": "closing-withdrawable-minus-opening-plus-claims",
+      "collected_at": "2026-10-06T15:38:21.698264Z"
+    }
+  ],
+  "last_sample_day": "2026-10-06",
+  "last_success_at": "2026-10-06T15:38:21.698285Z"
+}
