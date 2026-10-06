@@ -1,5 +1,48 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Latest checkpoint — 2026-10-06, Treasury categories and provisional totals
+
+[PR #177](https://github.com/cristianoneta/neta-dao/pull/177) is merged as
+`ca7160eb13aacbb1937b83e4c3e8abefe290c3dd`. It follows the cutoff/favicon release
+[#176](https://github.com/cristianoneta/neta-dao/pull/176).
+
+- Accounting starts **1 October 2026 UTC for every DAO**. Preserve earlier exports;
+  do not restart pre-October backfills. Connected collectors continue on schedule.
+- NETA's successfully refreshed, reviewed recorded activity can show **$5.00 income,
+  $0.00 expenses and $5.00 provisional surplus**, plus zeros in empty accounts.
+  These are snapshot totals, not a full coverage/reconciled-balance claim. Failures,
+  stale current snapshots and unresolved movements block provisional totals.
+- Treasury events show **Income · NNS registrations/renewals** when exact receipt
+  evidence matches. Unknown legs remain **Unclassified**. Mixed transfers are visible.
+- Each proposal action has a shared spending-category dropdown. Categories persist
+  in local drafts and review revisions; changing a payment invalidates its category
+  binding. Internal transfers have a separate non-expense option. No wallet write
+  was performed to test this feature.
+- **Still open:** automatic expense posting from executed mainnet proposals. The
+  category is planned-purpose metadata; the execution adapter must match approved
+  actions to actual treasury legs and payment-time prices before booking. Native
+  Juno Community Pool and generic Operations accounting still need adapters.
+- The mint voxel-N favicon/apple-touch icon from #176 is live.
+
+Validation: **126 JavaScript + 43 targeted Python tests** pass. Final application
+head `63d91447c2915f026cedb11ca3c9f1219e50a3b0` passed frontend/contract CI
+[37462995391](https://github.com/cristianoneta/neta-dao/actions/runs/37462995391)
+and browser CI [37462995304](https://github.com/cristianoneta/neta-dao/actions/runs/37462995304).
+Treasury/proposal screenshots were inspected at **320, 390, 768 and 1440 px**;
+browser checks cover category persistence/invalidation, zero/result display,
+NNS tags, DAO isolation, identity/fetch failures and keyboard interaction.
+Pages [37463261077](https://github.com/cristianoneta/neta-dao/actions/runs/37463261077)
+succeeded. All **13 checked served files matched source SHA-256**, including
+HTML, category/event/P&L modules, shared CSS, the NNS register and favicon.
+Main frontend/contract CI [37463249064](https://github.com/cristianoneta/neta-dao/actions/runs/37463249064) also passed.
+
+Fresh collector evidence: NETA receipt refresh **2026-10-06 12:23:42 UTC** succeeded,
+with **1 matched receipt, 0 unreviewed observed movements** and PARTIAL index coverage.
+Main collector [37462915165](https://github.com/cristianoneta/neta-dao/actions/runs/37462915165)
+and Operations collector [37463193815](https://github.com/cristianoneta/neta-dao/actions/runs/37463193815)
+succeeded. Preserve their newer main-branch snapshot commits when continuing.
+
+
 ## Continuation — 2026-10-06, accounting cutoff and favicon
 
 Owner narrowed accounting to **1 October 2026 onward, for every DAO**. No older
@@ -12,7 +55,7 @@ Complete P&L coverage and non-NNS classification/pricing/reconciliation remain o
 Community Pool still has no accounting adapter. Preserve existing older exports.
 
 
-Updated **2026-10-06, after PR #176 publication**. This is the current continuation checkpoint.
+Updated **2026-10-06, after PR #177 publication**. This is the current continuation checkpoint.
 Scope: `cristianoneta/neta-dao`, <https://dao.netareborn.com>.
 
 ## Read first
@@ -106,7 +149,13 @@ Do not rerun the old paused-state launch verifier unchanged against the active r
    funding and internal-transfer classification; add authoritative payment-time
    prices and reconciliation. Keep the shared schema and explicit coverage states.
    Further source adapters belong in configuration/parser boundaries, not custom
-   P&L pages for each DAO. UI redesign from this session is complete.
+   P&L pages for each DAO. Continue the owner's requested automatic spending
+   allocation by implementing verified proposal-execution matching: consume the
+   approved `dao_accounting_v1` per-action category, match actual outgoing treasury
+   legs, fix payment-time USD, and prevent duplicate posting. Do not turn planned
+   categories into actual expenses or enable mainnet writes as a shortcut. Native
+   Juno Community Pool and generic Operations accounting still need adapters.
+   NNS registrations/renewals already tag automatically from exact receipts.
 2. **Names:** mainnet renewal/transfer and consenting live-validator E2E remain
    unverified; validator testing stays deferred. Existing UNI-7 lifecycle evidence
    must be reused; the separate UNI-7 tariff-update receipt remains outstanding.
@@ -143,7 +192,7 @@ Older session chronology is preserved in
 Historical next-step wording there does not supersede this checkpoint.
 
 
-### Treasury follow-up — 2026-10-06 (release verification pending)
+### Treasury follow-up — 2026-10-06 (published in PR #177)
 
 Provisional zeros and Income/Expenses/result now require a successful recent receipt
 refresh and exact movement review; partial index coverage remains explicit.
@@ -151,5 +200,5 @@ Treasury event tags come from exact NNS receipt matches; unknown legs remain
 Unclassified. Proposal actions expose shared spending categories, retained as
 `dao_accounting_v1` metadata in local drafts and workshop revisions, bound to the
 unchanged action. Mainnet spend execution/matching is still not connected, so a
-planned category alone never posts an expense. See TREASURY_CUTOFF_2026-10-06.md
-for the schema and boundaries. Follow-up PR/CI/deployment evidence pending.
+planned category alone never posts an expense. See [the implementation record](TREASURY_CUTOFF_2026-10-06.md)
+for the schema and boundaries. PR #177 evidence is recorded at the top of this document.
