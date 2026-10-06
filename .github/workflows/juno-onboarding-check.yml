@@ -1,0 +1,29 @@
+name: Juno treasury onboarding check
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/juno-onboarding-check.yml'
+      - 'scripts/update_delegation_treasury.py'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Read public Juno state
+        run: |
+          python - <<'PY'
+          import sys,json,base64
+          sys.path.insert(0,'scripts')
+          from update_treasury import rest,smart
+          a='juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0'
+          for q in [{'config':{}},{'cw20_token_list':{}},{'voting_module':{}},{'proposal_modules':{}},{'admin':{}}]:
+            try:print('PUBLIC_QUERY',json.dumps(q),json.dumps(smart(a,q)))
+            except Exception as e:print('QUERY_ERROR',str(e))
+          paths=['/cosmos/distribution/v1beta1/params','/cosmos/bank/v1beta1/balances/'+a+'?pagination.limit=1000','/cosmos/staking/v1beta1/delegations/'+a+'?pagination.limit=1000','/cosmos/staking/v1beta1/delegators/'+a+'/unbonding_delegations?pagination.limit=1000','/cosmos/distribution/v1beta1/delegators/'+a+'/rewards','/cosmos/base/tendermint/v1beta1/node_info','/cosmwasm/wasm/v1/contract/'+a]
+          for p in paths:
+            try:print('PUBLIC_QUERY',p,json.dumps(rest(p)))
+            except Exception as e:print('QUERY_ERROR',p,str(e))
+          PY
