@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TASKS = {
+    'accounting': ('update_treasury_accounting.py', [], 150),
     'balances': ('update_treasury.py', ['--dao', 'neta'], 300),
     'events': ('update_treasury_events.py', ['--dao', 'neta'], 150),
 }
@@ -33,6 +34,9 @@ def main():
         event_data = json.loads(event_path.read_text())
         if event_data.get('status') == 'UNAVAILABLE':
             status['events']['status'] = 'unavailable'
+    accounting_path = ROOT / 'data/treasury/neta-main-accounting.json'
+    if accounting_path.exists() and json.loads(accounting_path.read_text()).get('refresh_status') != 'completed':
+        status['accounting']['status'] = 'unavailable'
     path = ROOT / 'data/daos/neta-status.json'
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(status, indent=2) + '\n')

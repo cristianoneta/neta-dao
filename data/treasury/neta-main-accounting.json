@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "scope": "neta-main-dao",
+  "chain_id": "juno-1",
+  "treasury_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
+  "registry": "juno1pc8wrq89ljuhu2qt6rtk5lkkrptxajtf3un5llu8prg7r4z50vlszfhhza",
+  "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
+  "status": "PARTIAL",
+  "refresh_status": "completed",
+  "checked_at": "2026-10-06T09:10:55.308219Z",
+  "last_success_at": "2026-10-06T09:10:55.308219Z",
+  "source": {
+    "provider": "https://juno.api.m.stavr.tech",
+    "through_height": 42421309,
+    "indexed_transactions": 4
+  },
+  "warnings": [
+    "Whole-Treasury history and expense classification are incomplete. Totals, result and missing categories are unavailable, not zero.",
+    "NNS values are a subtotal of matched receipts, not a guarantee of complete registry history."
+  ],
+  "entries": [
+    {
+      "id": "juno-1:85689A2C75DE86829D4116FA0AABBA5062D269679CA139984E169E8E2ACF8DC1:0",
+      "chain_id": "juno-1",
+      "tx_hash": "85689A2C75DE86829D4116FA0AABBA5062D269679CA139984E169E8E2ACF8DC1",
+      "message_index": 0,
+      "height": 42400450,
+      "timestamp": "2026-10-05T18:20:13Z",
+      "treasury_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
+      "registry": "juno1pc8wrq89ljuhu2qt6rtk5lkkrptxajtf3un5llu8prg7r4z50vlszfhhza",
+      "category": "nns_registration",
+      "name": "cristiano.neta",
+      "years": 1,
+      "payer": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+      "asset": "NETA",
+      "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
+      "raw_amount": "4755098",
+      "amount": "4.755098",
+      "usd_value": "5.000000976594010594",
+      "valuation": {
+        "method": "executed-snapshot-rate",
+        "usd_per_neta_12": "1051503244853",
+        "observed_at": 1791222489,
+        "expires_at": 1791308889,
+        "note": "Conversion rate accepted by the registry at payment; not a spot-price measurement."
+      },
+      "evidence": {
+        "kind": "provider-receipt",
+        "provider": "https://juno.api.m.stavr.tech"
+      }
+    }
+  ]
+}

@@ -27,8 +27,8 @@ preserves drafts, keys and transaction journals. Tests cover late connection rep
 Use [DAO_ONBOARDING_CHECKLIST](DAO_ONBOARDING_CHECKLIST.md) for additions.
 The main DAO has read-only proposals, Treasury, staking participants and following;
 its writes remain disabled. `.dao.neta` directory labels are not registered names.
-Main DAO historical events are UNAVAILABLE, not zero; its NNS revenue display is
-not yet connected to the verified mainnet name-payment receipts.
+Main DAO historical events are UNAVAILABLE, not zero; its separate NNS accounting ledger now matches registry payments, exact NETA forwarding
+and the executed price snapshot. Full historical accounting remains unavailable.
 
 People/Members uses Operations cw4 membership, main DAO staked NETA and the native
 Juno bonded-delegation adapter. Native Juno participation is explained rather than
@@ -235,9 +235,13 @@ converts failed access reads to zero. Frontend checks are not contract guarantee
 
 ## Treasury: live snapshots, limited accounting
 
-The [accepted P&L draft](TREASURY_PNL_DRAFT_2026-10-05.md) is saved as a design
-reference with corrected contrast and fictional example data. It is not connected
-to production Treasury accounting; verified NNS revenue integration remains open.
+The [accepted P&L draft](TREASURY_PNL_DRAFT_2026-10-05.md) remains the design reference.
+The [2026-10-06 receipt-accounting implementation](TREASURY_ACCOUNTING_2026-10-06.md)
+adds period/category views and an isolated NNS receipt collector in the existing
+main DAO job. NNS subtotals use the transaction’s accepted conversion rate;
+full income, paid expenses, result and reconciliation remain unavailable.
+The old fictional Treasury forecasts, allocations and payments are removed from
+the live page source. Publication status belongs to the implementation record.
 
 | Owner | Inputs / outputs |
 | --- | --- |

@@ -218,12 +218,12 @@ try{
  await page.waitForFunction(()=>document.querySelector('#dao-members-panel').textContent.includes('1 active staking addresses'));
  await page.getByRole('button',{name:'Treasury',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('#treasury-live-status').textContent.includes('NETA DAO'));
- assert.equal(await page.locator('#treasury-nns').isVisible(),true);
+ assert.equal(await page.locator('#treasury-pnl').isVisible(),true);
  assert.match(await page.locator('#treasury-events').textContent(),/history unavailable/i);
  assert.equal(await page.locator('.allocation-card').isVisible(),false);
  assert.equal(await page.locator('.treasury-bottom-grid').isVisible(),false);
  assert.doesNotMatch(await page.locator('.treasury-events-note').textContent(),/OSMOSIS/i);
- assert.match(await page.locator('#treasury-nns').textContent(),/Not active yet/);
+ assert.match(await page.locator('#pnl-coverage').textContent(),/identity unavailable/);
  await page.getByRole('button',{name:'Proposals',exact:true}).click();
  assert.equal(await page.locator('#primary-action').isDisabled(),true);
  assert.match(await page.locator('#action-hint').textContent(),/not connected/);

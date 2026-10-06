@@ -1,6 +1,6 @@
 # NETA DAO handoff
 
-Updated: **2026-10-06, Names UX follow-up**. This is the continuation entry point, not an append-only session log.
+Updated: **2026-10-06, Treasury receipt-accounting continuation**. This is the continuation entry point, not an append-only session log.
 
 
 ## Names UX optimization — 2026-10-06
@@ -79,9 +79,13 @@ Next steps:
    message/profile/renewal links without buying again. Do not repeat deployment,
    activation or the first purchase. Real mainnet renewal/transfer and consenting
    live-validator E2E remain unverified and need deliberate owner wallet actions.
-2. The accepted Treasury P&L design below is saved. Its real-data implementation
-   remains open; NNS fees are not yet integrated into the Treasury event ledger.
-   Historical main-DAO events still report UNAVAILABLE and must not become zero.
+2. Treasury now has a receipt-backed P&L implementation in this continuation branch.
+   See [accounting implementation and release gates](docs/TREASURY_ACCOUNTING_2026-10-06.md).
+   The first NNS payment is matched live and recorded in a separate accounting ledger.
+   Whole-DAO historical events remain UNAVAILABLE; full income, expenses and result
+   are unavailable, never zero. [PR #173](https://github.com/cristianoneta/neta-dao/pull/173)
+   owns hosted checks and publication evidence; inspect its latest state.
+   Next data work is historical coverage and explicit expense/funding classification.
 3. Preserve later bot commits and follow the ordinary checks/Pages verification
    for further changes. Do not rerun the old paused-registry launch workflow
    unchanged against the now-active registry.
@@ -111,8 +115,9 @@ Scoped light foregrounds and dropdown colors now protect the dark draft from hos
 text-style leakage. Local light/dark checks (including black host-style injection)
 measured at least 6.98:1 for visible text; period/category interactions and
 1024/768/390/320 px reflow passed. Apply shared production tokens when implementing.
-The NNS release is now complete; source-backed Treasury accounting is the next
-planned implementation using this design. Approval of the mockup does not mean the P&L is implemented or deployed.
+The NNS release is complete. The 2026-10-06 continuation implements this composition
+with the first real NNS receipt and explicit partial coverage; see the accounting
+record linked above for validation and publication status. Full accounting is still open.
 
 ## Start here
 
@@ -162,7 +167,7 @@ registration are complete. Fresh chain reads confirm purchases open and the name
   The panel distinguishes existence, UNI-7 consensus membership and unavailable
   data; it does not award points or close the real operator test gate.
 
-## Next task
+## Historical NNS launch context (completed; see current checkpoint above)
 
 Owner's latest direction on 2026-10-05 **supersedes the WYND Render plan**:
 reuse the existing Treasury NETA price; ordinary deviations are acceptable. Price
@@ -221,8 +226,8 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
 Upgrade transfer (`MsgUpdateAdmin` on each contract) and registry `set_admin`
 are separate future owner actions. No transfer or removal of authority is authorized.
 UNI-7 contracts, completed lifecycle, local key and journals are preserved.
-Validator live tests stay deferred. Treasury P&L production implementation remains open;
-the NNS UI release is complete and the accepted draft above is saved for that work; the shared collapsed-warning fix is already published in PR #160.
+Validator live tests stay deferred. The Treasury receipt-accounting continuation is source-implemented with partial coverage;
+its release status is owned by the accounting record above; the shared collapsed-warning fix is already published in PR #160.
 
 The main `.neta name` and `My profile` pages already reuse the existing UNI-7
 manifest, shared header wallet and journals for registration/renewal/transfers and

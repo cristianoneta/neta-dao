@@ -19,6 +19,7 @@ provenance. Do not read every historical handoff as an independent to-do list.
 | Accepted Names product rules | [v2 plan](NETA_NAMES_V2_PLAN.md) |
 | Registry/quote and profile/operator protocols | [Registry](NNS_V2_REGISTRY_2026-10-04.md), [Profiles/programme decisions](NNS_VALIDATOR_PROFILES_2026-10-04.md) |
 | Faucet live evidence and remaining tests | [Faucet handoff](HANDOFF_NEXT_CHAT_FAUCET_2026-10-04.md), [service operation](../faucet/README.md) |
+| Treasury cash-based P&L and NNS receipt coverage | [Accounting continuation](TREASURY_ACCOUNTING_2026-10-06.md) |
 | UI/new pages | [Design system](DESIGN_SYSTEM.md) |
 | DAO addition and membership | [Onboarding checklist](DAO_ONBOARDING_CHECKLIST.md), [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md) |
 | Governance APIs and permissions | [Review architecture](../REVIEW_ARCHITECTURE.md) |

@@ -11,6 +11,7 @@ on:
       - 'assets/relay-crypto/**'
       - 'relay.js'
       - 'treasury.js'
+      - 'treasury-pnl*.mjs'
       - 'neta-governance.js'
       - 'names.js'
       - 'names-workspace.js'
@@ -57,6 +58,7 @@ jobs:
       - run: npm run test:browser
       - run: node browser-uni7-lab.mjs
       - run: node browser-workspace-security.mjs
+      - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-treasury-pnl.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-profile.mjs
       - run: node browser-names-v2.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-workspace.mjs
