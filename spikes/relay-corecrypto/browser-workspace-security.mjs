@@ -158,7 +158,7 @@ try{
  await page.locator('#names-directory-query').fill('<img src=x onerror=alert(1)>');
  assert.equal(await page.locator('#names-directory-list img').count(),0);
  await page.locator('#names-directory-query').fill('cristiano');
- await page.getByRole('button',{name:'Calculate name fee',exact:true}).click();
+  await page.getByRole('button',{name:'Check a name',exact:true}).click();
  for(const [label,total] of [['abc','$99 USD'],['abcd','$19 USD'],['cristiano','$5 USD']]){
   await page.locator('#names-fee-label').fill(label);
   assert.equal(await page.locator('#names-fee-total').textContent(),'Check availability');
@@ -316,6 +316,5 @@ try{
  console.log('Shared signing bundle: exact signed transaction journal blocks repeated signatures after reload');
  await context.close();
 }finally{await browser?.close();server.close();}
-
 
 

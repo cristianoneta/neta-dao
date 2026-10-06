@@ -24,8 +24,8 @@ Owner approved implementing the critical Names review. This revision adds:
   Registry tariffs replace the hardcoded price footer. DAO search copy matches
   the available DAO directory. Shared graphite/mint styling and mobile wrapping remain.
 
-Release tracking: branch `feat/nns-ux-20261006`; its PR owns hosted CI, Pages and
-served-asset verification evidence. Local validation covers 115 Node tests,
+Release tracking: [PR #172](https://github.com/cristianoneta/neta-dao/pull/172)
+owns hosted CI, Pages and served-asset verification evidence. Local validation covers 115 Node tests,
 mainnet/UNI-7 browser flows, administration, provider failure, wallet isolation,
 late profile replies, saved pending work, grace boundaries and 320–1440 px layouts.
 No real wallet transaction or contract change was performed. Existing welcome,
