@@ -13,8 +13,8 @@
   "adapter": "native-community-pool",
   "status": "PARTIAL",
   "refresh_status": "completed",
-  "checked_at": "2026-10-06T12:53:32.544493Z",
-  "last_success_at": "2026-10-06T12:53:32.475107Z",
+  "checked_at": "2026-10-06T12:58:44.721560Z",
+  "last_success_at": "2026-10-06T12:58:42.766505Z",
   "sources": [
     {
       "adapter": "cosmos-rest-receipts",
@@ -29,10 +29,10 @@
         "timestamp": "2026-09-30T10:14:02.896994123Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42226530,
-      "last_scanned_height": 42426510,
-      "anchor_hash": "34B225A20D01E147EBB859117B3E478A11C0C3D1631E0851FBE8446C069C3F5A",
-      "incremental": false,
+      "scan_start_height": 42426410,
+      "last_scanned_height": 42426650,
+      "anchor_hash": "8BF676A10CABC67845A9CD820675A4BD085584570CAC5969E4EB01E8BF6E32F2",
+      "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
       "historical_missing_transactions": 0,
