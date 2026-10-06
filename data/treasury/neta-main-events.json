@@ -1,6 +1,6 @@
 {
   "accounting_start": "2026-10-01T00:00:00Z",
-  "checked_at": "2026-10-06T12:52:20.231415Z",
+  "checked_at": "2026-10-06T12:58:29.094340Z",
   "cursor": {
     "chains": [
       {
@@ -14,15 +14,15 @@
         "accounting_start": "2026-10-01T00:00:00Z",
         "adapter": "cosmos-rest-receipts",
         "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
-        "anchor_hash": "D6765DED635A6C8CA1E13029F290207FD89B6DEC45415CAFFB7E4DADF9F0FA61",
+        "anchor_hash": "2020A493E0351E4BDCEB2E04AF82F5FCEA898C6C5926E187D6F1F2DA0FD25A77",
         "chain_id": "juno-1",
         "coverage": "provider-index-only",
         "historical_missing_transactions": 0,
         "historical_missing_tx_hashes": [],
-        "incremental": true,
-        "indexed_transactions": 0,
+        "incremental": false,
+        "indexed_transactions": 1,
         "last_full_replay_day": "2026-10-06",
-        "last_scanned_height": 42426501,
+        "last_scanned_height": 42426645,
         "query_keys": [
           "wasm._contract_address",
           "transfer.sender",
@@ -33,8 +33,42 @@
           "wasm.to",
           "wasm.from"
         ],
+        "query_pairs": [
+          [
+            "wasm._contract_address",
+            "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+          ],
+          [
+            "transfer.sender",
+            "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+          ],
+          [
+            "transfer.recipient",
+            "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+          ],
+          [
+            "coin_spent.spender",
+            "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+          ],
+          [
+            "coin_received.receiver",
+            "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+          ],
+          [
+            "wasm.sender",
+            "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+          ],
+          [
+            "wasm.to",
+            "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+          ],
+          [
+            "wasm.from",
+            "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+          ]
+        ],
         "range_capable": true,
-        "scan_start_height": 42425732,
+        "scan_start_height": 42225447,
         "source": "https://juno.api.m.stavr.tech"
       }
     ],
@@ -88,8 +122,8 @@
       "type": "inflow"
     }
   ],
-  "generated_at": "2026-10-06T12:52:20.231382Z",
-  "last_success_at": "2026-10-06T12:52:20.231382Z",
+  "generated_at": "2026-10-06T12:58:29.094313Z",
+  "last_success_at": "2026-10-06T12:58:29.094313Z",
   "nns": {
     "accounting_file": "neta-main-accounting.json",
     "note": "Matched NNS receipts are collected separately; historical events alone do not establish complete naming revenue.",
@@ -110,15 +144,15 @@
       "accounting_start": "2026-10-01T00:00:00Z",
       "adapter": "cosmos-rest-receipts",
       "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
-      "anchor_hash": "D6765DED635A6C8CA1E13029F290207FD89B6DEC45415CAFFB7E4DADF9F0FA61",
+      "anchor_hash": "2020A493E0351E4BDCEB2E04AF82F5FCEA898C6C5926E187D6F1F2DA0FD25A77",
       "chain_id": "juno-1",
       "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
-      "incremental": true,
-      "indexed_transactions": 0,
+      "incremental": false,
+      "indexed_transactions": 1,
       "last_full_replay_day": "2026-10-06",
-      "last_scanned_height": 42426501,
+      "last_scanned_height": 42426645,
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -129,8 +163,42 @@
         "wasm.to",
         "wasm.from"
       ],
+      "query_pairs": [
+        [
+          "wasm._contract_address",
+          "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+        ],
+        [
+          "transfer.sender",
+          "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+        ],
+        [
+          "transfer.recipient",
+          "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+        ],
+        [
+          "coin_spent.spender",
+          "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+        ],
+        [
+          "coin_received.receiver",
+          "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+        ],
+        [
+          "wasm.sender",
+          "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+        ],
+        [
+          "wasm.to",
+          "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+        ],
+        [
+          "wasm.from",
+          "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+        ]
+      ],
       "range_capable": true,
-      "scan_start_height": 42425732,
+      "scan_start_height": 42225447,
       "source": "https://juno.api.m.stavr.tech"
     }
   ],
