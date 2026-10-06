@@ -61,6 +61,7 @@ export class PersonalBrowserController{
     finally{this.quiesce();this.busy=false;if(this.invalidated||!this.snapshot)await this.release();this.emit();}
   }
   invalidate(){this.invalidated=true;this.emit();if(!this.busy)void this.release();}
+  async lockInbox(){if(this.busy)throw Error('Personal operation already running');if(this.invalidated)throw Error('Reconnect the personal session');await this.release();this.failed=false;this.emit();}
   async close(){this.invalidated=true;this.emit();if(!this.busy)await this.release();}
   async release(){this.quiesce();this.runtime.close();this.wire=null;this.repo?.close();this.repo=null;this.code=null;this.snapshot=null;this.record=null;await this.lock?.release();this.lock=null;globalThis.removeEventListener?.('keplr_keystorechange',this.accountChanged);}
   quiesce(){for(const name of ['cc','db','dbKey']){try{this[name]?.uniffiDestroy();}catch{}this[name]=null;}}

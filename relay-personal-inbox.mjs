@@ -32,7 +32,7 @@ export function mountPersonalInbox({root,controller,authorizeBackup}){
   const deny=button('Review consent removal',async()=>show(await controller.reviewContact('consent',address.input.value.trim(),false),r=>controller.submitLifecycle(r)));
   const block=button('Review block',async()=>show(await controller.reviewContact('block',address.input.value.trim(),true),r=>controller.submitLifecycle(r)));
   const unblock=button('Review unblock',async()=>show(await controller.reviewContact('block',address.input.value.trim(),false),r=>controller.submitLifecycle(r)));
-  const pending=make('div'),close=button('Lock inbox',async()=>{clearReview();recovery.input.value='';message.input.value='';await controller.close();});
+  const pending=make('div'),close=button('Lock inbox',async()=>{clearReview();recovery.input.value='';message.input.value='';await controller.lockInbox();});
   confirm.type='button';confirm.onclick=()=>perform(async()=>{const value=review,submit=action;clearReview();if(!value||!submit)throw Error('Review the action again');await submit(value);message.input.value='';});
   for(const input of [address.input,message.input,recovery.input])input.addEventListener('input',clearReview);
   const deviceTools=make('details');deviceTools.append(make('summary','Device and backup'),auth,rotation,prepared,refill);actions.append(generate,create,unlock,restore,registration,refresh,recover,close,deviceTools);

@@ -99,6 +99,10 @@ try{
  await a.page.getByRole('button',{name:'Review registration',exact:true}).click();await a.page.getByRole('button',{name:'Confirm in Keplr',exact:true}).click();await a.page.waitForFunction(()=>c.status().registered&&!c.busy);await register(b);await consent(b,a);await consent(a,b);
  await send(a,b,'Already read and archived');await invoke(b,'receive');await send(b,a,'Reply before backup');await invoke(a,'receive');
  assert.equal((await invoke(a,'status')).history.length,2);assert.equal((await invoke(b,'status')).history.length,2);
+ // The user's Lock action releases crypto handles without invalidating the wallet session.
+ await a.page.getByRole('button',{name:'Lock inbox',exact:true}).click();await a.page.waitForFunction(()=>!c.status().open);
+ await a.page.getByLabel('Recovery code',{exact:true}).fill(ac);await a.page.getByRole('button',{name:'Unlock this browser',exact:true}).click();await a.page.waitForFunction(()=>c.status().open&&!c.busy);
+ assert.equal((await invoke(a,'status')).history.length,2);
  // A second tab shares the IDB but cannot acquire this mailbox's lifetime lock.
  const second=await profile(alice,a.context);await assert.rejects(invoke(second,'unlock',ac),/another|lock|open/i);await second.page.close();
  // Ready packet survives wallet rejection and is explicitly retried byte-for-byte.
