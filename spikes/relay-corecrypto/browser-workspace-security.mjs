@@ -89,7 +89,7 @@ try{
  // The shared header must disconnect on every workspace route, preserving journals/drafts.
  const wallet='juno1qurswpc8qurswpc8qurswpc8qurswpc89pyp8a';
  await page.evaluate(address=>{window.keplr={experimentalSuggestChain:async()=>{},enable:async()=>{},getOfflineSigner:()=>({getAccounts:async()=>[{address}]})};localStorage.setItem('neta-pending-tx-v1:uni-7:disconnect-fixture','preserve');localStorage.setItem('wallet-controls-draft-fixture','preserve');},wallet);
- for(const hash of ['home','governance','treasury','delivery','people/members','people/contributors','relay/inbox','relay/directory','relay/contacts','relay/profile','relay/register']){
+ for(const hash of ['home','governance','treasury','delivery','people/structure','people/members','people/contributors','relay/inbox','relay/directory','relay/contacts','relay/profile','relay/register']){
   await page.evaluate(hash=>{location.hash=hash;},hash);
   await page.locator('#gov-connect').click();
   await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
@@ -207,6 +207,9 @@ try{
     assert.equal(await hero.locator('.concept-badge').count(),0);
     assert.equal(await page.locator('#treasury-view .treasury-controls').count(),0);
     assert.equal(await hero.locator('#treasury-updated').isVisible(),true);
+   }else if(view==='people'){
+    assert.equal(await hero.locator('.concept-badge').count(),0);
+    assert.equal(await page.locator('#dao-structure-panel').isVisible(),true);
    }else assert.equal(await hero.locator(view==='governance'?'#new-draft':'.concept-badge').isVisible(),true);
   }
  }
