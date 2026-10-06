@@ -12,18 +12,19 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Read public Juno state
+      - name: Collect public delegation treasury
+        env:
+          TREASURY_DAILY_SNAPSHOT: '1'
+        run: python scripts/update_delegation_treasury.py
+      - name: Export generated evidence
         run: |
           python - <<'PY'
-          import sys,json,base64
+          from pathlib import Path
+          import json,sys
           sys.path.insert(0,'scripts')
-          from update_treasury import rest,smart
-          a='juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0'
-          for q in [{'config':{}},{'cw20_token_list':{}},{'voting_module':{}},{'proposal_modules':{}},{'admin':{}}]:
-            try:print('PUBLIC_QUERY',json.dumps(q),json.dumps(smart(a,q)))
-            except Exception as e:print('QUERY_ERROR',str(e))
-          paths=['/cosmos/distribution/v1beta1/params','/cosmos/bank/v1beta1/balances/'+a+'?pagination.limit=1000','/cosmos/staking/v1beta1/delegations/'+a+'?pagination.limit=1000','/cosmos/staking/v1beta1/delegators/'+a+'/unbonding_delegations?pagination.limit=1000','/cosmos/distribution/v1beta1/delegators/'+a+'/rewards','/cosmos/base/tendermint/v1beta1/node_info','/cosmwasm/wasm/v1/contract/'+a]
-          for p in paths:
-            try:print('PUBLIC_QUERY',p,json.dumps(rest(p)))
-            except Exception as e:print('QUERY_ERROR',p,str(e))
+          from update_treasury import rest
+          for path in sorted(Path('data/treasury').glob('juno-delegation*.json')):
+            print('GENERATED_FILE',str(path),json.dumps(json.loads(path.read_text()),separators=(',',':')))
+          denom='008BFD000A10BCE5F0D4DD819AE1C1EC2942396062DABDD6AE64A655ABC7085B'
+          print('IBC_TRACE',json.dumps(rest('/ibc/apps/transfer/v1/denom_traces/'+denom)))
           PY

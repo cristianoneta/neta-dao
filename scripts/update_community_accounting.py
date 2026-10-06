@@ -125,6 +125,10 @@ def collect(previous=None, get=request_json):
             source = next(iter(previous.get('sources', [])), None)
             found, coverage = scan(get, base, CHAIN, prior, source)
             candidates, governance_scan = governance(get, base)
+            tax_params = get(base + '/cosmos/distribution/v1beta1/params', timeout=15)['params']
+            from decimal import Decimal
+            tax = Decimal(tax_params['community_tax'])
+            if not tax.is_finite() or not 0 <= tax <= 1: raise ValueError('Invalid community_tax')
             rows = {r['tx_hash']: r for r in prior}
             for tx in found.values():
                 row = funding_event(tx, base)
@@ -146,6 +150,8 @@ def collect(previous=None, get=request_json):
                     'sources': [coverage], 'events': sorted(rows.values(), key=lambda r: (r['timestamp'], r['id']), reverse=True),
                     'execution_candidates': candidates, 'governance_scan': governance_scan,
                     'governance_proposals_checked': governance_scan['checked'],
+                    'community_tax': {'rate': str(tax), 'observed_at': stamp, 'source': base + '/cosmos/distribution/v1beta1/params',
+                                      'basis': 'Distribution rewards including minted inflation and transaction fees; the current rate is not historical revenue.'},
                     'coverage_gaps': gaps, 'warnings': gaps + ([f'{len(candidates)} passed spending proposals await exact execution receipts and payment-time prices.'] if candidates else [])}
         except Exception as error:
             errors.append(f'{base}: {type(error).__name__}: {error}')

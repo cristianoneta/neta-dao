@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - "scripts/update_delegation_treasury.py"
       - "scripts/update_treasury.py"
       - "scripts/update_treasury_events.py"
       - "scripts/treasury_history.py"
@@ -39,11 +40,13 @@ jobs:
         run: python scripts/update_treasury.py
       - name: Collect Operations and native Community Pool accounting independently
         run: python scripts/update_generic_accounting.py --collect
+      - name: Collect Delegation Programme holdings and receipts
+        run: python scripts/update_delegation_treasury.py
       - name: Commit changed snapshot
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add data/treasury/current.json data/treasury/history.json data/treasury/juno-community-pool.json data/treasury/juno-community-history.json data/treasury/events.json data/treasury/neta-operations-accounting.json data/treasury/juno-community-events.json data/treasury/juno-community-accounting.json
+          git add data/treasury/juno-delegation*.json data/treasury/current.json data/treasury/history.json data/treasury/juno-community-pool.json data/treasury/juno-community-history.json data/treasury/events.json data/treasury/neta-operations-accounting.json data/treasury/juno-community-events.json data/treasury/juno-community-accounting.json
           if git diff --cached --quiet; then
             echo "No treasury changes to publish."
             exit 0

@@ -128,7 +128,43 @@
         ]
       },
       "organizationId": "juno",
-      "unitName": "Main"
+      "unitName": "Community Pool"
+    },
+    {
+      "id": "juno-delegation",
+      "chainId": "juno",
+      "network": "juno-1",
+      "name": "Delegation Programme",
+      "unitName": "Delegation Programme",
+      "organizationId": "juno",
+      "parentDaoId": "juno",
+      "parentRelationship": "organizational",
+      "relationshipNote": "Juno reporting unit; assets are governed on-chain. This reporting relationship grants no contract authority.",
+      "mode": "dao-readonly",
+      "core": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+      "coreCodeId": 4047,
+      "onChainName": "Secondary Community Pool",
+      "directoryName": "juno-delegation.dao.neta",
+      "proposalModule": "juno172fvxz9806ae6rjecd09trgrzkcl0026y088ev3lsyg88gmpr7cs764evh",
+      "votingModule": "juno1vnpnl9x7c0xwj0a6lakz5rrv0ewxcwedmn20lj5e7t94lmrn74uq0stq5m",
+      "creationHeight": 12671900,
+      "description": "Juno delegation treasury, known on-chain as Secondary Community Pool (original contract label: Council).",
+      "membership": "Assets are controlled by Juno on-chain governance; delegations are managed by the Delegations SubDAO. Treasury holdings do not confer membership.",
+      "snapshot": "juno-delegation.json",
+      "history": "juno-delegation-history.json",
+      "events": "juno-delegation-events.json",
+      "canVote": false,
+      "accountingSource": {
+        "adapter": "treasury-receipts",
+        "file": "juno-delegation-accounting.json",
+        "scope": "juno-delegation",
+        "treasuries": [
+          {
+            "chain_id": "juno-1",
+            "address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+          }
+        ]
+      }
     }
   ],
   "organizations": [

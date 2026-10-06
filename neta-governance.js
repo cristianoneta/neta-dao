@@ -37,7 +37,7 @@
     for(const dao of scope.units){const option=node("option",null,dao.unitName);option.value=dao.id;group.append(option)}select.append(group);
     select.value=scope.consolidated?"all":state.dao.id;
     document.body.dataset.consolidated=String(scope.consolidated);
-    $("#organization-scope-note").textContent=scope.consolidated?`${scope.organization.name} · Consolidated Treasury includes ${scope.units.map(d=>d.unitName).join(" + ")}. Other sections show Main; select a SubDAO to work with that unit.`:"";
+    $("#organization-scope-note").textContent=scope.consolidated?`${scope.organization.name} · Consolidated Treasury includes ${scope.units.map(d=>d.unitName).join(" + ")}. Other sections show ${scope.dao.unitName}; select a SubDAO to work with that unit.`:"";
     $("#organization-scope-note").hidden=!scope.consolidated;
   }
   function notifyDaoSelection(){renderScope();renderNetwork();window.NETA_SELECTED_DAO=state.dao.id;window.NETA_DAO_SCOPE=state.scope;window.dispatchEvent(new CustomEvent("neta:dao-change",{detail:{id:state.dao.id,name:state.dao.name,mode:state.dao.mode,scope:state.scope}}))}
