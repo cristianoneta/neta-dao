@@ -141,7 +141,7 @@ reserve dimensions to avoid layout shifts. No runtime 3D engine is needed.
 | --- | --- |
 | Home | Assembly hero, Vision/Mission, four illustrated module cards, current status and updates; preserve all reviewed content sections |
 | Proposals | Compact working header, clear draft/review/on-chain stages, selection and filters, readable proposal text; discussions stay visible below the proposal rather than hidden in details |
-| Delivery | Same panels, milestone rows, owner/deadline/evidence treatment; clearly label concept data and unavailable acceptance/payment actions |
+| Delivery | Shared hero with UX DRAFT / NOT LIVE DATA and a scoped no-live-data placeholder for every DAO; no fictional mandates, amounts, milestones, owners, evidence or action buttons (owner update 2026-10-06) |
 | Contributors | Same cards/table styles and readable identities; distinguish illustrative contributions from authoritative records; no fictional live scores |
 | Treasury | Clear totals, tabular figures, consistent asset/event tables, neutral chart grid, labeled series; distinguish committed snapshots and PARTIAL coverage from planning/forecast examples at the relevant section |
 | RELAY | Same shell, list/reader/forms and unread treatment; Directory owns follow controls; zero unread badges stay hidden; unavailable private sending is not the dominant action |
@@ -414,7 +414,9 @@ reviews and controls at 320 px; no extra Names navigation or wizard.
 Use one compact financial statement after Assets, before Treasury events. The
 shared rows are Income, Expenses and Operating surplus / deficit, with account
 children revealed by accessible disclosure buttons. Account mappings supply
-DAO-specific sources; never impose NNS rows on every DAO. Right-align monetary
+DAO-specific sources; never impose NNS rows on every DAO. Other income is always
+the last income row, including in consolidated views. Treasury token quantities
+use two decimal places for display; retain USD values and full accounting precision. Right-align monetary
 columns, use restrained neutral section surfaces and tabular figures. Keep a
 compact partial-coverage label visible; place detailed methodology in a disclosure.
 No repeated income tile, unavailable KPI strip or permanent receipt sidebar.

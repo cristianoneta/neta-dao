@@ -45,7 +45,8 @@ function render() {
     td.append(node); if (value !== null) td.append(el('small', provisional ? 'Provisional' : 'Partial', 'pnl-partial')); return td;
   }
   for (const [section, label] of [['income', 'Income'], ['expenses', 'Expenses']]) {
-    const accounts = summary.categories.filter(a => a.section === section);
+    const accounts = summary.categories.filter(a => a.section === section)
+      .sort((a, b) => Number(a.id === 'other_income') - Number(b.id === 'other_income'));
     const tr = el('tr', undefined, 'pnl-group');
     const th = el('th'); th.scope = 'row';
     const button = el('button'); button.type = 'button'; button.dataset.section = section;
