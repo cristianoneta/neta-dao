@@ -1,5 +1,52 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Verified checkpoint — 6 October 2026, 20:16 Europe/Berlin
+
+[PR #192](https://github.com/cristianoneta/neta-dao/pull/192) is merged as
+`943124f5d2aff0af6503fa5ae04df0df0f798758`. All three PR checks passed:
+[contract/frontend](https://github.com/cristianoneta/neta-dao/actions/runs/37508878784),
+[browser crypto](https://github.com/cristianoneta/neta-dao/actions/runs/37508878528),
+and [WASM build](https://github.com/cristianoneta/neta-dao/actions/runs/37508878514).
+The subsequent [main CI](https://github.com/cristianoneta/neta-dao/actions/runs/37509330946)
+and [Pages deployment](https://github.com/cristianoneta/neta-dao/actions/runs/37509330024)
+also succeeded. The published protocol, client, component and implementation note
+match the reviewed source byte-for-byte; the live index matches merged main and
+does not mount the DAO inbox. The CI WASM hash matches the local reproducible build.
+
+**Merged source candidate, not an activated mailbox.** No new contract was deployed,
+no real DAO was enabled, and mainnet messaging remains disabled. Operations'
+`neta-operations.dao.neta` is still a curated directory identity, not an active
+personal NNS registry name.
+
+Continue with coherent multi-recipient recovery: interrupted outbound/inbound
+crypto, authenticated archive, cursors, history reload, prekey refill and rotation.
+Preserve unresolved preparation/transaction journals; never clear them to retry.
+Then prepare the new UNI-7 instance and reviewed wallet-signing steps, perform real
+wallet/member-replacement E2E and only then connect the component to the main Inbox.
+The agreed upgrade administrator remains the owner's wallet. Existing RELAY
+recovery and mainnet release gates still apply.
+
+### Next product track: payment requests / invoices — planned, not implemented
+
+Do not lose this requirement when continuing the mailbox work. An active .neta
+identity should be able to send an invoice/payment request to an enabled DAO inbox.
+For an assigned project, the contributor selects the project and completed milestone,
+attaches evidence and requests payment. The responsible DAO (for example Operations)
+reviews the invoice and evidence; its acceptance prepares the corresponding
+prefilled payment proposal. Governance approval and actual execution remain separate
+steps. Acceptance alone must not transfer funds or mark an invoice paid.
+
+Reuse the shared conversation and a compact request detail view rather than adding
+another top-level module. Carry the agreed amount, token, fixed payee, project,
+milestone and accounting category into the reviewed proposal; visibly flag deviations.
+Prevent duplicate requests/payments for the same milestone and connect the request
+to proposal ID, execution transaction and Treasury entry. Decide explicitly which
+invoice/evidence fields become public on-chain before proposal submission.
+
+This is product direction and continuation work, not a delivered invoice system.
+Detailed invoice fields, partial payments, disputes, storage and pricing remain to
+be designed. No additional NNS fee or automatic payment has been approved.
+
 ## DAO inbox implementation candidate — 2026-10-06
 
 Source implementation and local tests now exist for opt-in DAO mailbox authority,
