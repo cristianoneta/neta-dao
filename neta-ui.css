@@ -252,6 +252,7 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
 .relay-event-main small, .relay-event-main span, .relay-event time { font-size: 12px; }
 .relay-event.unread .relay-event-dot { box-shadow: none; }
 .relay-reader-summary, .relay-reader-latest { font-size: 15px; }
+.relay-reader-action { display: inline-flex; align-items: center; min-height: 44px; border-radius: 8px; text-decoration: none; }
 .relay-reader h4 { font-size: 13px; letter-spacing: .04em; }
 .relay-reader li, .relay-following-card p, .relay-composer > p, .names-card p { font-size: 14px; }
 .relay-search-label { font-size: 12px; min-width: 0; }
@@ -335,7 +336,7 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
   .reply-item { margin-left: min(calc((var(--reply-depth,1) - 1) * 4px), 16px); padding-inline: 10px; }
   .relay-layout > .treasury-card { padding: 16px; }
   .relay-feed-controls { width: 100%; }
-  .relay-feed-controls button { min-width: 0; }
+  .relay-feed-controls button { min-width: 0; flex-basis: auto; white-space: normal; overflow-wrap: anywhere; }
   .relay-subnav button { font-size: 13px; padding-inline: 12px; }
   .relay-reader { padding: 18px; }
   .relay-reader h3 { font-size: 22px; }

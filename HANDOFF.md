@@ -1,6 +1,72 @@
 # NETA DAO handoff
 
-Updated: **2026-10-05, 20:20 mainnet activation and first purchase checkpoint (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
+Updated: **2026-10-05, 22:28 Treasury design checkpoint (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
+
+
+## Resume on 2026-10-06 — finish the NNS release
+
+Owner asked to save all work and continue tomorrow. The canonical continuation is
+[PR #169](https://github.com/cristianoneta/neta-dao/pull/169), branch
+`feat/nns-flow-inbox-20261005`. It incorporates the earlier PR #168 implementation
+and incident evidence, plus the later explicit requirement for separate renewal,
+outgoing-transfer and incoming-transfer messages. #168 is superseded; do not
+merge it independently. Its branch/worktree is retained.
+
+**Implemented and locally tested, not live:** simplified buying, non-exclusive
+one-hour commitment disclosure, welcome/profile/renewal links, renewal confirmation,
+transfer sent/received, 6/3/1-month and 14/7/1-day reminders plus expiry/grace end,
+wallet isolation, and reduced background polling. 135 Node tests and mainnet,
+UNI-7 and admin browser regressions passed. Desktop/mobile screenshots were checked.
+These are browser-local system notices, not email/push or private mainnet messages.
+Read [release evidence](docs/NNS_FLOW_NOTIFICATIONS_2026-10-05.md).
+
+Next steps, in order:
+1. Fetch current main and PR #169; preserve newer bot output. Inspect its current
+   head and four checks: Contract/frontend, RELAY browser, NNS pricing and faucet.
+   All four were queued during GitHub's runner-assignment incident at this checkpoint.
+2. Once GitHub recovers, retry only failed checks of the latest PR head as needed;
+   do not bypass release checks or repeatedly rerun old snapshot jobs.
+3. After applicable checks pass, merge #169; verify main CI, Pages deployment and
+   served hashes for index, shared CSS, workspace, RELAY and both notice modules.
+   Then record live evidence here/in the release note. It is not deployed yet.
+4. Inspect fresh scheduled snapshots/price timestamps after recovery; use a fresh
+   main-branch run if needed. The signed NNS price lasts at most 24 hours, so
+   prolonged scheduling failure can eventually block new quotes. Never edit bot data.
+5. The existing owner can connect and see the welcome/profile link without making
+   another purchase. Mainnet renewal/transfer remains untested with real wallets;
+   any real transaction needs the owner's deliberate Keplr confirmation.
+
+The source tree was saved through the connected GitHub API after CLI push lacked
+credentials. The initial uploaded tree matched local tests exactly. Working copy:
+`/workspace/scratch/281a81c91ea5/neta-dao`; GitHub is the durable continuation source.
+No private RPC/server was purchased; [the sourced assessment](docs/JUNO_RPC_OPTIONS_2026-10-05.md)
+and [prior incident evidence](docs/ACTIONS_RUNNER_INCIDENT_2026-10-05.md) are saved.
+Treasury production accounting and live validator E2E remain deferred. The owner
+approved a Treasury P&L design draft afterward; its corrected reference is saved below.
+
+## Treasury P&L draft — owner accepted direction, 2026-10-05
+
+The owner said the draft looks good and requested fixing black text on dark
+backgrounds, then saving it for continuation. **Design only, not live accounting.**
+The corrected [interactive preview](docs/design/treasury-pnl-draft.html),
+[editable source](docs/design/treasury-pnl-draft.fragment.html) and
+[requirements / validation / next steps](docs/TREASURY_PNL_DRAFT_2026-10-05.md)
+are preserved in this branch.
+
+Keep the P&L between Assets and Treasury events; default current month, with
+month/year/full-year selection. Separate NNS registration/renewal income and
+expense categories; show operating surplus/deficit and category/event details.
+Transaction-time USD valuation is fixed. Own-wallet transfers, swaps and market
+movements are not revenue; funding and valuation effects have a separate bridge.
+Upcoming commitments remain outside paid expenses. Unavailable data is not zero.
+No Reserve Policy. All preview figures and activity are fictional examples.
+
+Scoped light foregrounds and dropdown colors now protect the dark draft from host
+text-style leakage. Local light/dark checks (including black host-style injection)
+measured at least 6.98:1 for visible text; period/category interactions and
+1024/768/390/320 px reflow passed. Apply shared production tokens when implementing.
+Continue with the NNS release first, then source-backed Treasury accounting using
+this design. Approval of the mockup does not mean the P&L is implemented or deployed.
 
 ## Start here
 
@@ -92,6 +158,15 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   records **4.755098 NETA** from owner to registry and onward to the main NETA DAO.
   See [launch evidence](docs/NNS_MAINNET_DEPLOYMENT_2026-10-05.md) for all three hashes
   and the single-provider verification boundary. Do not repeat activation or payment.
+- **Purchase UX (PR #169; not yet live):** Check availability now includes registry verification. Start
+  registration combines local preparation with the commitment review; Buy name
+  opens the explicitly labelled payment confirmation. Commitments last one hour
+  and do not reserve a name exclusively. Saved secrets and pending journals remain.
+- **Inbox update (PR #169; not yet live):** welcome, renewal confirmation, transfer sent/received and
+  renewal/expiry reminders are implemented with profile/renewal deep links. Local
+  system notices remain distinct from disabled private messaging. See
+  [implementation and release evidence](docs/NNS_FLOW_NOTIFICATIONS_2026-10-05.md).
+  RPC/run assessment: [options](docs/JUNO_RPC_OPTIONS_2026-10-05.md).
 - **Next:** load the existing mainnet name and continue ordinary profile use if
   requested. Mainnet renewal/transfer and live validator E2E are not claimed tested.
   Treasury stays deferred. The initial paused-state workflow must not be rerun
@@ -100,8 +175,8 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
 Upgrade transfer (`MsgUpdateAdmin` on each contract) and registry `set_admin`
 are separate future owner actions. No transfer or removal of authority is authorized.
 UNI-7 contracts, completed lifecycle, local key and journals are preserved.
-Validator live tests stay deferred. Treasury P&L work is explicitly deferred until
-NNS is finished; the shared collapsed-warning fix is already published in PR #160.
+Validator live tests stay deferred. Treasury P&L production implementation stays deferred until
+NNS is finished; the accepted design draft above is saved for that work; the shared collapsed-warning fix is already published in PR #160.
 
 The main `.neta name` and `My profile` pages already reuse the existing UNI-7
 manifest, shared header wallet and journals for registration/renewal/transfers and
