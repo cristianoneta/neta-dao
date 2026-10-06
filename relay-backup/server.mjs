@@ -49,7 +49,7 @@ export function backupServer({store,origin,domain,chain,contract,now=Date.now,ve
         const accessToken=token(),expires=now()+15*60000;sessions.set(accessToken,{scope:challenge.scope,expires,requests:0});json(res,200,{accessToken,expires,scope:challenge.scope});
       }else if(req.url==='/v1/backup'&&req.method==='PUT')json(res,200,store.put(session.scope,body.expectedRevision,JSON.stringify(body.envelope)));
       else throw Error('Unsupported method');
-    }catch(error){const message=error.message;json(res,/Revision conflict/.test(message)?409:/quota|capacity|limit|Busy/.test(message)?429:/Authentication|proof/.test(message)?401:400,{error:/SQLITE|database/i.test(message)?'Backup storage unavailable':message});}
+    }catch(error){const message=error.message;json(res,/Authentication required|Session request limit/.test(message)?401:/Revision conflict/.test(message)?409:/quota|capacity|limit|Busy/.test(message)?429:/Authentication|proof/.test(message)?401:400,{error:/SQLITE|database/i.test(message)?'Backup storage unavailable':message});}
   });
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){

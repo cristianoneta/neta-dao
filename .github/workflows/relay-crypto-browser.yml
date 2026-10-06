@@ -6,6 +6,7 @@ on:
       - '.github/workflows/relay-crypto-browser.yml'
       - 'spikes/relay-corecrypto/**'
       - 'relay-uni7-*.mjs'
+      - 'relay-backup/**'
       - 'relay-personal-*.mjs'
       - 'relay-personal-*.html'
       - 'relay-uni7-lab.html'
@@ -57,7 +58,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '22'
+          node-version: '24.19.0'
           cache: npm
           cache-dependency-path: spikes/relay-corecrypto/package-lock.json
       - run: npm ci
@@ -68,7 +69,9 @@ jobs:
       - run: node browser-uni7-lab.mjs
       - run: node browser-personal-protocol.mjs
       - run: npm ci --prefix ../../faucet --ignore-scripts
+      - run: npm ci --prefix ../../relay-backup --ignore-scripts
       - run: node browser-personal-browser.mjs
+      - run: node browser-personal-deploy.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/dao-inbox-screenshots" node browser-dao-inbox.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-dao-hierarchy.mjs
       - run: node browser-workspace-security.mjs

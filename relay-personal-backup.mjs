@@ -71,12 +71,13 @@ export async function openPersonalBackup(scopeObject,envelope,code,{minimumRevis
 export class PersonalBackupClient{
   constructor({url,webOrigin,scope,keplr,fetcher=fetch,now=Date.now}){
     if(!/^https:\/\/[^/]+$/.test(url)||!/^https:\/\/[^/]+$/.test(webOrigin)||!keplr?.signArbitrary||!keplr?.getOfflineSigner)throw Error('Backup dependencies unavailable');
-    Object.assign(this,{url,webOrigin,scope:personalBackupScope(scope),scopeObject:{...scope},keplr,fetcher,now,token:null,expires:0});
+    Object.assign(this,{url,webOrigin,scope:personalBackupScope(scope),scopeObject:{...scope},keplr,fetcher:fetcher.bind(globalThis),now,token:null,expires:0});
   }
   async wallet(){const active=(await this.keplr.getOfflineSigner(this.scopeObject.chain).getAccounts())[0]?.address;if(active!==this.scopeObject.wallet){this.token=null;throw Error('Backup wallet changed');}}
   async request(path,method,body,authorized=false){
-    if(authorized){await this.wallet();if(!this.token||this.expires<=this.now())throw Error('Backup authentication expired');}
+    if(authorized){await this.wallet();if(!this.token||this.expires<=this.now())throw Error('Backup authentication expired. Authorize encrypted backup, then recover pending actions.');}
     const response=await this.fetcher(this.url+path,{method,cache:'no-store',credentials:'omit',redirect:'error',signal:AbortSignal.timeout(20000),headers:{'content-type':'application/json',...(authorized?{authorization:'Bearer '+this.token}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});
+    if(authorized&&response.status===401){this.disconnect();throw Error('Backup authorization expired. Authorize encrypted backup, then recover pending actions.');}
     if(!response.ok)throw Error('Backup service rejected request ('+response.status+')');return response.json();
   }
   async connect(){
