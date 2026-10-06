@@ -158,7 +158,11 @@ try {
     await page.setViewportSize({width,height:1000});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'account overflow '+width);
     assert.equal(await page.locator('#nns-owned').evaluate(el=>getComputedStyle(el).color), 'rgb(242, 244, 247)');
-    if(process.env.NNS_SCREENSHOT_DIR)await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/account-${chainId}-${width}.png`,fullPage:true});
+    if(process.env.NNS_SCREENSHOT_DIR){
+      await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/account-${chainId}-${width}.png`,fullPage:true});
+      // Small inline previews also make the account panel reviewable from CI logs.
+      if(mainnet&&[1440,320].includes(width))console.log('NNS_ACCOUNT_PREVIEW '+width+' '+(await page.locator('#nns-workspace-session').screenshot({type:'jpeg',quality:75})).toString('base64'));
+    }
   }
   await page.setViewportSize({width:1280,height:900});
   // Verified ownership produces one local system notice, separate from encrypted DMs.
@@ -238,6 +242,7 @@ try {
   await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
   await page.waitForFunction(()=>!!window.NetaNamesAccount.current());
   // Provider failure cannot invent an expiry or change the last verified notices.
+  await page.waitForFunction(()=>window.NetaNameNotifications.events().some(e=>e.type==='NAME RECEIVED'));
   const verifiedNotices=await page.evaluate(()=>window.NetaNameNotifications.events());
   registryUnavailable=true;
   await page.evaluate(()=>Promise.all([window.NetaNamesAccount.refresh({force:true}),window.NetaNameNotifications.refresh()]));
