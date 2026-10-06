@@ -445,3 +445,8 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
 #treasury-view .treasury-main-grid { grid-template-columns:minmax(0,1fr); }
 @media(max-width:960px) { .pnl-content { grid-template-columns:minmax(0,1fr); } #pnl-detail { border-left:0; border-top:1px solid var(--neta-border); padding:20px 0 0; } }
 @media(max-width:640px) { .pnl-kpis { grid-template-columns:minmax(0,1fr); } .pnl-card>header { flex-direction:column; align-items:stretch; } .pnl-filters label { flex:1; min-width:0; } .pnl-filters select { width:100%; font-size:16px; } .pnl-observed { padding:16px; } }
+
+.pnl-body { padding:20px 24px; }
+.pnl-body>#pnl-period { margin-top:0; }
+.pnl-table-hint { display:none; color:var(--neta-text-secondary); font-size:13px; }
+@media(max-width:640px) { .pnl-body { padding:16px; } .pnl-table-hint { display:block; margin-bottom:-12px; } }

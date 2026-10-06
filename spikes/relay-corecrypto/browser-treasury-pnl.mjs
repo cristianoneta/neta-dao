@@ -45,7 +45,7 @@ try {
     await page.locator('#treasury-pnl').scrollIntoViewIfNeeded();
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `overflow at ${width}`);
     assert.equal(await page.locator('#pnl-year').evaluate(e => getComputedStyle(e).color === 'rgb(242, 244, 247)'), true);
-    if (screenshots) await page.locator('#treasury-pnl').screenshot({ path: `${screenshots}/treasury-pnl-${width}.png` });
+    if (screenshots) await page.locator('#treasury-pnl').screenshot({ path: `${screenshots}/treasury-pnl-${width}.png`, style: ".gov-header { visibility:hidden !important; }" });
   }
   await page.setViewportSize({ width: 768, height: 1000 });
   await page.locator('#pnl-year').focus(); await page.keyboard.press('Tab');
