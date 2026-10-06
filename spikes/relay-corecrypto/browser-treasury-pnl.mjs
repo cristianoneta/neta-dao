@@ -49,9 +49,10 @@ try {
   const screenshots = process.env.NNS_SCREENSHOT_DIR;
   if (screenshots) await mkdir(screenshots, { recursive: true });
   for (const width of [1440, 768, 390, 320]) {
-    await page.setViewportSize({ width, height: 1000 });
+    await page.setViewportSize({ width, height: 1800 });
     await page.locator('#treasury-pnl').scrollIntoViewIfNeeded();
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `overflow at ${width}`);
+    assert.equal(await page.locator('#treasury-pnl .pnl-table-wrap').evaluate(e => e.scrollWidth <= e.clientWidth+1), true, `statement needs horizontal scroll at ${width}`);
     assert.equal(await page.locator('#pnl-year').evaluate(e => getComputedStyle(e).color === 'rgb(242, 244, 247)'), true);
     if (screenshots) await page.locator('#treasury-pnl').screenshot({ path: `${screenshots}/treasury-pnl-${width}.png`, style: ".gov-header { visibility:hidden !important; }" });
   }
@@ -94,7 +95,7 @@ try {
   await page.locator('#nns-month').selectOption('10');
   await page.locator('#nns-type').selectOption('all');
   for (const width of [1440,768,390,320]) {
-    await page.setViewportSize({width,height:1000});
+    await page.setViewportSize({width,height:1400});
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth+1), true, `register overflow ${width}`);
     if(screenshots) await page.screenshot({path:`${screenshots}/nns-transactions-${width}.png`,fullPage:true});
   }

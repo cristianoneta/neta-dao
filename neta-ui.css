@@ -471,3 +471,20 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
   .nns-register-main { padding:24px 16px; }
   .nns-register-card>header { padding:16px; }
 }
+
+.pnl-scroll-hint { display:none; }
+@media(max-width:960px) { .pnl-scroll-hint { display:block; } }
+@media(max-width:640px) {
+  .nns-register-card .pnl-filters label { flex:1 1 120px; }
+  #treasury-pnl table { min-width:0; }
+  #treasury-pnl thead { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+  #treasury-pnl tbody { display:block; }
+  #treasury-pnl tr:not([hidden]) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border-bottom:1px solid var(--neta-border); }
+  #treasury-pnl th { grid-column:1/-1; border:0; padding:12px 12px 4px; }
+  #treasury-pnl td { text-align:left; border:0; padding:8px 12px 16px; }
+  #treasury-pnl td::before { display:block; color:var(--neta-text-secondary); font-size:12px; font-weight:400; margin-bottom:8px; }
+  #treasury-pnl td:nth-child(2)::before { content:'Selected period'; }
+  #treasury-pnl td:nth-child(3)::before { content:'Previous period'; }
+  #treasury-pnl .pnl-account th { padding-left:24px; }
+  #treasury-pnl .pnl-result { border-top:2px solid var(--neta-control-border); border-bottom:0; }
+}

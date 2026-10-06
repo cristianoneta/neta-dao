@@ -55,6 +55,10 @@ Design inference: use a restrained hierarchical statement and move source-specif
 receipt detail into a filtered register. Their accrual-recognition rules are not
 copied into this cash receipt implementation.
 
+Mobile statements stack both period values below each account, keeping them
+visible without horizontal scrolling. The wider transaction register retains a
+labelled scroll region and wrapping filters.
+
 ## Validation
 
 119 Node tests pass, including DAO account isolation, alternative source mappings,
