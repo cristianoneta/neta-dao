@@ -2,7 +2,7 @@
   "schema_version": 2,
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
-  "generated_at": "2026-10-06T15:54:24.694215Z",
+  "generated_at": "2026-10-06T15:58:18.776100Z",
   "treasuries": [
     {
       "chain_id": "juno-1",
@@ -24,12 +24,12 @@
         "timestamp": "2026-09-30T11:15:50.297962745Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42227913,
-      "last_scanned_height": 42430776,
-      "anchor_hash": "E0011D0784D6975A609F9704C66596C6D646117F331605432E40D7BBC1FDE166",
-      "incremental": false,
+      "scan_start_height": 42430676,
+      "last_scanned_height": 42430868,
+      "anchor_hash": "FF6ADC4459585E47A62D6148ED31F8CF3C52A7B768DC50ADB938366CD4626126",
+      "incremental": true,
       "range_capable": true,
-      "indexed_transactions": 1,
+      "indexed_transactions": 0,
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
       "last_full_replay_day": "2026-10-06",
@@ -101,12 +101,12 @@
           "timestamp": "2026-09-30T11:15:50.297962745Z",
           "kind": "scan-floor-before-start"
         },
-        "scan_start_height": 42227913,
-        "last_scanned_height": 42430776,
-        "anchor_hash": "E0011D0784D6975A609F9704C66596C6D646117F331605432E40D7BBC1FDE166",
-        "incremental": false,
+        "scan_start_height": 42430676,
+        "last_scanned_height": 42430868,
+        "anchor_hash": "FF6ADC4459585E47A62D6148ED31F8CF3C52A7B768DC50ADB938366CD4626126",
+        "incremental": true,
         "range_capable": true,
-        "indexed_transactions": 1,
+        "indexed_transactions": 0,
         "historical_missing_transactions": 0,
         "historical_missing_tx_hashes": [],
         "last_full_replay_day": "2026-10-06",
@@ -301,7 +301,7 @@
       "reward_withdrawals": []
     }
   ],
-  "last_success_at": "2026-10-06T15:54:24.694215Z",
+  "last_success_at": "2026-10-06T15:58:18.776100Z",
   "coverage_gaps": [
     "Daily staking accrual starts 2026-10-06T13:57:10.758236337Z; earlier October rewards are unavailable, not zero. Opening claimable rewards are excluded from income. Claims only settle accrued rewards. Slashing and other unclassified movements remain outside recorded totals."
   ],
