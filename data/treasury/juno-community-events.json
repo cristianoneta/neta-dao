@@ -9,9 +9,9 @@
   ],
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
-  "generated_at": "2026-10-06T14:45:22.423746Z",
-  "checked_at": "2026-10-06T14:45:22.423746Z",
-  "last_success_at": "2026-10-06T14:45:22.423746Z",
+  "generated_at": "2026-10-06T15:02:42.085901Z",
+  "checked_at": "2026-10-06T15:02:42.085901Z",
+  "last_success_at": "2026-10-06T15:02:42.085901Z",
   "sources": [
     {
       "adapter": "cosmos-rest-receipts",
@@ -26,9 +26,9 @@
         "timestamp": "2026-09-30T10:14:02.896994123Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42428366,
-      "last_scanned_height": 42429152,
-      "anchor_hash": "544C6A078B1EA98C97C7067565125E9C62E4632A20F5CA9296D6D6376A7453C0",
+      "scan_start_height": 42429052,
+      "last_scanned_height": 42429560,
+      "anchor_hash": "73E017993E2F564BA07A819C0892D37D3F574F3518B2356A419C9A88E70C9661",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
@@ -57,7 +57,7 @@
   "governance_proposals_checked": 100,
   "community_tax": {
     "rate": "0.100000000000000000",
-    "observed_at": "2026-10-06T14:45:22.423746Z",
+    "observed_at": "2026-10-06T15:02:42.085901Z",
     "source": "https://juno.api.m.stavr.tech/cosmos/distribution/v1beta1/params",
     "basis": "Distribution rewards including minted inflation and transaction fees; the current rate is not historical revenue."
   },
