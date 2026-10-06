@@ -1,7 +1,8 @@
 # Treasury receipt accounting — 2026-10-06
 
-Status: source implemented; local Node/Python validation passed. Hosted browser,
-PR checks and publication verification are pending. This is partial accounting,
+Status: source implemented and validated locally and through hosted browser tests.
+[PR #173](https://github.com/cristianoneta/neta-dao/pull/173) owns final check and
+publication evidence. This is partial accounting,
 not a claim of a complete P&L or a financial-reporting standard.
 
 ## Implemented
@@ -73,6 +74,12 @@ own unavailable accounting state, never NETA main-DAO revenue.
 - Local Chromium installation failed because the downloaded archive was invalid.
   A dedicated hosted browser test covers period/category controls, DAO isolation,
   source/fetch failure, keyboard navigation and 320/390/768/1440px screenshots.
-  Inspect that run and screenshots before publication; do not claim it passed yet.
+  The hosted tests passed for the final application layout; screenshots at all four
+  widths were inspected. Follow-up keeps fixtures independent of later live sales.
+  Screenshot capture hides the sticky header only in the capture so it does not
+  cover the tall panel; production sticky-header behavior is unchanged.
 
-Release PR owns final hosted checks, screenshot review and Pages/served-file evidence.
+Release PR owns final hosted checks and Pages/served-file evidence. The implemented
+application tree was compared with the uploaded Git tree, without modifying later
+bot snapshots. The final application/test head is
+`d57b8dfe7d391e6108fcc087693f5fb77fc43a33`.

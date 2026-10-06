@@ -83,7 +83,8 @@ Next steps:
    See [accounting implementation and release gates](docs/TREASURY_ACCOUNTING_2026-10-06.md).
    The first NNS payment is matched live and recorded in a separate accounting ledger.
    Whole-DAO historical events remain UNAVAILABLE; full income, expenses and result
-   are unavailable, never zero. Finish PR/browser/Pages checks before claiming publication.
+   are unavailable, never zero. [PR #173](https://github.com/cristianoneta/neta-dao/pull/173)
+   owns hosted checks and publication evidence; inspect its latest state.
    Next data work is historical coverage and explicit expense/funding classification.
 3. Preserve later bot commits and follow the ordinary checks/Pages verification
    for further changes. Do not rerun the old paused-registry launch workflow

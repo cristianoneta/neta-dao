@@ -4,7 +4,7 @@ Updated **2026-10-06**. Start with [HANDOFF](HANDOFF.md), then
 [CURRENT_STATE](docs/CURRENT_STATE.md). This file lists open priorities; detailed
 release evidence belongs to the linked runbooks, not another duplicate chronology.
 
-1. **Treasury accounting:** finish the receipt-backed P&L release in
+1. **Treasury accounting:** inspect the receipt-backed P&L release evidence in
    [accounting continuation](docs/TREASURY_ACCOUNTING_2026-10-06.md), then extend
    historical coverage, expense/funding classification and payment-time prices.
    NNS first purchase and UI release are complete; do not repeat deployment or payment.
