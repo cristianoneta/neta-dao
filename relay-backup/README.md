@@ -1,16 +1,17 @@
 # Personal RELAY encrypted backup candidate
 
-Browser integration now exists in `relay-personal-browser.mjs`: coherent automatic
-snapshots, signed bytes backed up before broadcast, enforced read-only fresh restore
-and explicit new-generation activation. The new real-CoreCrypto browser test uses
-an isolated simulated backup transport; this service's real HTTP/ADR-36/SQLite
-suite remains separate. The gated production Inbox host is connected and tested. Hosting approval, live
-transport verification, final release review and the mainnet two-wallet test remain open. No live backup service is configured.
+The actual Inbox-shell browser regression now uses the real cross-origin HTTPS,
+ADR-36 and SQLite service with real CoreCrypto state. It exposed and fixed native
+fetch binding; it also verifies deliberate reauthorization after the bounded
+120-request session, without changing quotas or automatically signing.
+Chain execution, wallet UI and the session factory are simulated. The fixture
+uses disposable local TLS/test keys; it is not a hosted service or mainnet test.
 
-Not deployed. No hosting resources, remote backups, payment or real-wallet action
-were created. This is a separately testable provider/client candidate, not a
-mainnet release approval. The browser controller and shell tests use a simulated
-transport; the real HTTP service tests remain a separate layer.
+Not deployed. No paid resources, remote user backups or real-wallet transactions
+were created. The owner deployment helper and next steps are in
+[the deployment runbook](../docs/PERSONAL_MAINNET_DEPLOYMENT_RUNBOOK_2026-10-06.md).
+Provider/budget approval, actual mailbox and consenting pilot wallets, exact
+service/CSP pins and real two-wallet mainnet evidence remain open.
 
 ## Concrete proposed deployment
 
@@ -82,7 +83,8 @@ this is not proof of coherent restoration of a real CoreCrypto browser profile.
 
 ## Remaining before activation
 
-1. Finish the release review and owner-reviewed contract upload/instantiate flow.
+1. Review the final candidate and use the prepared owner upload/instantiate flow
+   described in the runbook; no actual deployment is recorded.
 2. Obtain provider/budget approval and the second consenting pilot wallet. Deploy
    the reviewed service with its actual mailbox and allowlist; verify live health,
    authentication, backup, restart persistence and origin policy.

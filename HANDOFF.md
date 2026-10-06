@@ -1,5 +1,76 @@
 # NETA DAO handoff
 
+## Overnight continuation — 6 October 2026, owner deployment and real backup transport
+
+Continue **draft [PR #195](https://github.com/cristianoneta/neta-dao/pull/195)** on
+`codex/personal-messaging-recovery-mainnet`. Application head:
+`0f1d3b419b3c18964debeb5d956f5d151446121b`. The owner asked to finish preparation
+and update the handoff while offline. No paid service or owner transaction was
+performed. **The application PR remains draft, unmerged and inactive.**
+
+Completed in this continuation:
+- Added `relay-personal-deploy.html` and its owner-only controller: separate upload
+  and instantiate reviews, the existing exact-byte signing bridge, durable setup
+  intent, reload/unknown-response recovery without resending, wallet-change review
+  invalidation and public receipt export after two independent fresh-provider
+  checks. Owner upgrade custody and `mainnet:true` / NNS-only / DAO-disabled policy
+  are explicit. The helper is source on the draft branch, not a published live page.
+- Reproduced and shipped separate v0.4 mailbox WASM at
+  `assets/relay-mainnet/neta_relay_mailbox_v04.wasm`, SHA-256
+  `835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708`.
+  CI compares source build and shipped bytes. The deployed v0.1 asset is untouched.
+- Replaced the browser test's fake backup RPC with actual cross-origin local HTTPS,
+  native browser fetch/CORS, disposable ADR-36 signatures and the real SQLite
+  service. This exposed a real native-fetch receiver bug, now fixed. Read/reply,
+  fresh-profile restore, repeated rotations, exact signed-byte backups, storage
+  reopen, lost acknowledgement and failures pass with this real transport.
+- Kept 15-minute/120-request sessions bounded. Exhaustion now invalidates the token
+  and tells the user to authorize backup again, then recover. The browser regression
+  proves that expiry preserves the backup and does not broadcast; renewal is explicit.
+- Integrated current main through `d1b7798`, preserving generated Treasury data.
+
+Validation: **176 root Node tests, nine backup server tests, the real-HTTPS personal
+recovery browser test and the owner deployment browser test passed locally**.
+Deployment layout/keyboard checks cover 1440, 768, 390 and 320 px; desktop/mobile
+screenshots were inspected. Local pinned Rust build matches the shipped hash.
+The browser still simulates chain execution, transaction signing, wallet UI and
+session factory; this does not establish real Keplr/mainnet/provider deployment.
+All five hosted checks passed for this application head:
+[frontend/contracts](https://github.com/cristianoneta/neta-dao/actions/runs/37529752239),
+[backup](https://github.com/cristianoneta/neta-dao/actions/runs/37529752408),
+[faucet/signing](https://github.com/cristianoneta/neta-dao/actions/runs/37529752279),
+[reproducible WASM](https://github.com/cristianoneta/neta-dao/actions/runs/37529752332),
+and [full browser suite](https://github.com/cristianoneta/neta-dao/actions/runs/37529752243).
+The following handoff-only commit changes no application code. This checkpoint
+is also published on main for continuation; PR #195 itself remains draft/unmerged.
+
+### Exact next session
+
+Read the [deployment runbook](https://github.com/cristianoneta/neta-dao/blob/codex/personal-messaging-recovery-mainnet/docs/PERSONAL_MAINNET_DEPLOYMENT_RUNBOOK_2026-10-06.md).
+Review latest PR-head checks/source and publish the deliberate owner helper before
+asking for its two real wallet confirmations. Save and independently verify the
+real code ID, contract address and exported public receipts. The owner wallet
+`juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57` remains upgrade administrator.
+
+The separate Render backup proposal (previously recorded USD 7.25/month base,
+not a billing cap) still needs provider/budget agreement and a second consenting
+pilot wallet. No service exists. Configure the actual mailbox and allowlist,
+verify hosted TLS/CORS/authentication/backup/restart behavior, then pin only the
+real deployment and exact HTTPS origin, including the workspace CSP. Neither
+production pin was changed; public SEND and DAO writes remain disabled.
+
+Use a private consenting two-wallet mainnet pilot to verify registration, mutual
+consent, send/read/reply, reload and fresh-browser recovery with explicit rotation
+before public activation. No fabricated address, hostname or pilot evidence is
+allowed. Unknown transactions remain locked without proof; a new browser cannot
+independently prove a malicious provider's backup freshness. Private history is
+still separate from the DAO/system filters and unread counts.
+
+After personal release: shared DAO inbox/recovery and direct mainnet testing,
+compact inbox selector/shared handling states, then **payment requests/invoices**,
+project/milestone evidence, reviewed proposals, duplicate-payment prevention and
+Treasury linkage. Preserve all existing keys, transaction journals and SQLite/WAL.
+
 ## Production Inbox connection — 6 October 2026
 
 Continue **draft [PR #195](https://github.com/cristianoneta/neta-dao/pull/195)** on

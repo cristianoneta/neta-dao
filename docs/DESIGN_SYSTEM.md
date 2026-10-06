@@ -526,3 +526,13 @@ requires deliberate reopening. The connected wallet chain must be Juno mainnet.
 The private history is currently a separate section, above the DAO/name updates;
 their filters and counts do not index it yet. Do not imply unified private unread
 counts. The default source pin is null and keeps the disabled preview intact.
+
+
+## Personal mailbox owner deployment — 2026-10-06
+
+The separate operator page reuses the Names deployment page foundations and
+graphite/mint tokens. Keep upload/create reviews distinct; show mainnet, real JUNO
+fees, owner upgrade authority and reviewed artifact identity. Retain a visible
+pending-transaction recovery section and public receipt export. Disconnect/account
+changes clear reviews while preserving journals. This page does not activate
+public messaging or create a backup service; no new main navigation item.
