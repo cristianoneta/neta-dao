@@ -72,7 +72,7 @@
       if(source.events.status!=="PARTIAL"&&source.events.status!=="LIVE")warnings.push(`${source.dao.unitName}: retained transaction evidence; refresh unavailable.`);
       warnings.push(...(source.events.warnings||[]).map(w=>`${source.dao.unitName}: ${w}`));
       treasuryEvents.push(...source.events.events.map(event=>({...event,_daoId:source.dao.id,_unitName:source.dao.unitName,_accounting:source.ledger,
-        _internal:(event.movements||[]).some(m=>accounts.has(`${event.chain_id}:${m.counterparty}`))})));
+        _internal:!!event.tx_hash && !event.reward_withdrawals?.length && (event.movements||[]).some(m=>accounts.has(`${event.chain_id}:${m.counterparty}`))})));
     }
     treasuryEvents.sort((a,b)=>(Date.parse(b.timestamp)||0)-(Date.parse(a.timestamp)||0));
     eventsWarning=warnings.join(" · ");$(".treasury-events-note").textContent="Main + SubDAO transaction records · unit shown on each event · internal transfers are not operating income or expenses.";

@@ -70,6 +70,8 @@ try{
  await page.goto(`http://127.0.0.1:${server.address().port}/index.html?dao=juno#treasury`);
  await page.waitForFunction(()=>document.querySelector('#pnl-coverage')?.textContent.includes('Consolidated'));
  assert.match(await page.locator('.pnl-result').innerText(),/\$/);
+ await page.locator('#treasury-events-toggle').click();
+ assert.doesNotMatch(await page.locator('#treasury-events .event-row').filter({hasText:'Income · Staking rewards'}).first().innerText(),/Internal transfer/);
  if(screenshots) await page.locator('#treasury-pnl').screenshot({path:`${screenshots}/consolidated-accrual-320.png`});
  assert.deepEqual(errors,[]);console.log('Community Pool historical accounting: block references, period filters, partial totals and 4 viewports passed');
 }finally{await browser?.close();await new Promise(r=>server.close(r));}

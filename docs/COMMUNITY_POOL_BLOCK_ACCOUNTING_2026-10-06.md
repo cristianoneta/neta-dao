@@ -70,7 +70,12 @@ The tax allocation series does not yet reconstruct withdrawal dust, validator-re
 remainders or all other module income. Successful spends must be matched to actual
 execution and approved categories before expense posting. Full module balance
 reconciliation and complete expenses/operating-result totals remain unavailable.
-Delegation Programme staking/slashing accounting is a separate unfinished adapter.
+Since PR #187, provisional recorded totals are allowed after a per-message audit
+of distribution outflows against SDK reward withdrawals finds no unmatched spend.
+Zero Other income means no other recorded income; unmeasured module rounding is
+explicitly excluded. These are not full reconciled totals. Delegation Programme
+reward accrual is now daily and claim-adjusted from its first retained snapshot
+on 6 October. Earlier October rewards and slashing reconciliation remain open.
 
 Pool snapshot differences can support an estimate after adding payouts and removing
 other inflows, but are not themselves tax receipts. Daily snapshot timestamps do not
