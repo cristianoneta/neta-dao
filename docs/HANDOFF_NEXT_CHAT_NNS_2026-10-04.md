@@ -1,9 +1,9 @@
 # Next chat — NNS Treasury prices and mainnet preparation
 
-Checkpoint updated: **2026-10-05, 22:06 release continuation**.
-Resume with PR #169 and the ordered next steps at the top of root HANDOFF.
-Purchase UX and distinct name lifecycle messages are locally tested but not live;
-hosted checks remain queued during the Actions incident. PR #168 is superseded.
+Checkpoint updated: **2026-10-06, 07:18 release verified**.
+PR #169 is merged and published; all four PR checks, applicable main checks, Pages
+and the six served asset hashes passed. Follow root HANDOFF for remaining work.
+Purchase UX and distinct name lifecycle messages are live. PR #168 is superseded.
 The date in this filename preserves existing links. Earlier UNI-7 sections are
 dated evidence; the current mainnet checkpoint below takes precedence.
 Read [AGENTS](../AGENTS.md), [root HANDOFF](../HANDOFF.md) and
@@ -43,7 +43,7 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
   records **4.755098 NETA** from owner to registry and onward to the main NETA DAO.
   See [launch evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) for all three hashes
   and the single-provider verification boundary. Do not repeat activation or payment.
-- **Purchase UX (PR #169; not live):** Check availability includes registry verification; Start
+- **Purchase UX (PR #169; live 2026-10-06):** Check availability includes registry verification; Start
   registration prepares locally and opens the commitment review in one action.
   Buy name opens payment review with an explicit purchase confirmation. The
   one-hour commitment is not exclusive; expiry is checked and shown before payment.
@@ -61,8 +61,8 @@ receipt bundle on **2026-10-05 at 13:54 Berlin**. Do not repeat uploads or creat
 Upgrade transfer (`MsgUpdateAdmin` on each contract) and registry `set_admin`
 are separate future owner actions. No transfer or removal of authority is authorized.
 UNI-7 contracts, completed lifecycle, local key and journals are preserved.
-Validator live tests stay deferred. Treasury P&L work is explicitly deferred until
-NNS is finished; the shared collapsed-warning fix is already published in PR #160.
+Validator live tests stay deferred. The NNS UI release is complete; Treasury P&L remains planned, with its accepted
+design saved in the root handoff; the shared collapsed-warning fix is already published in PR #160.
 
 ## UNI-7 owner update — 2026-10-05
 

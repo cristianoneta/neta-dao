@@ -64,7 +64,23 @@ The initial PR checks were all queued: RELAY 37367523820, contract/frontend
 37367523919, pricing 37367523764, faucet 37367523813. Check the current PR head
 rather than assuming these run IDs cover later commits.
 
-**Not merged or live.** GitHub runner assignment was disrupted. Owner requested
-saving the work and continuing 2026-10-06. Finish applicable hosted checks, merge,
-then verify Pages and served assets. Do not bypass checks. Root HANDOFF owns the
-ordered continuation. No live mainnet transaction occurred in this work.
+**Published and verified on 2026-10-06.** PR #169 merged at
+`2e0ef62243513383362eb664bf9e56df2c559203`, preserving newer generated snapshots.
+All four PR checks passed at `dce666dce47f866883ef08c150a880c65106bab9`:
+pricing `37417458664`, faucet `37417458674`, contract/frontend `37417458680`,
+RELAY browser `37417458715`. On main, pricing `37417655034`, faucet `37417655021`
+and contract/frontend `37417655089` passed; RELAY's workflow is PR-triggered.
+Pages `37417654224` succeeded. At 05:17:45 UTC all six changed public UI files
+matched the merged source byte-for-byte; [hash evidence](deployments/nns-ui-release-2026-10-06.json).
+The served NNS price passed Ed25519 validation (observed 04:48:22 UTC, valid for 24h).
+
+On the first resumed attempt, browser-workspace-security still asserted the old
+Read registry copy and removed nns-prepare control. Corrected it and the related
+mainnet setup fixture to the combined availability/registration flow. The setup
+fixture now exercises failed availability reads and confirms reserve/payment/sign
+controls remain blocked. Both affected suites passed locally, followed by all
+hosted suites. No mainnet payment, transfer or administration transaction was sent.
+
+Scheduled Treasury/member/main-DAO updates recovered overnight; no old data job
+was replayed. Main-DAO history remains unavailable and NNS revenue accounting is
+still unconnected. The Treasury P&L artifact is a saved design, not live accounting.

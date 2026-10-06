@@ -1,6 +1,6 @@
 # NETA DAO code-backed current state
 
-Updated **2026-10-05** after owner activation and the first mainnet NNS purchase. Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
+Updated **2026-10-06** after publishing and verifying the NNS purchase/inbox release (#169). Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
 [HANDOFF](../HANDOFF.md) owns the next action and working rules. Observed chain,
 service and data states are timestamped evidence, not guarantees of future state.
 The previous append-only inventory is retained in the [archive](archive/CURRENT_STATE_BEFORE_CLEANUP_2026-10-04.md).
@@ -84,7 +84,7 @@ still needs the original setup browser. See [integration](NAMES_MAIN_PAGE_INTEGR
 deliberate wallet switches, with expiry/revision/identity checks;
 `names-v2-validator-ui.mjs` handles the distinct signature/publication reviews.
 Lost/unknown submissions stay locked until reconciled; no automatic resend occurs.
-The pending PR #169 purchase UI combines registry verification with Check availability,
+The published PR #169 purchase UI combines registry verification with Check availability,
 and local preparation with Start registration. Buy name / Buy and confirm in Keplr
 explicitly label payment; renewals use corresponding renewal labels. Load my name
 verifies the registry on demand. Commitments are non-exclusive and valid for one
@@ -153,7 +153,7 @@ new installations also apply the approved tariff before purchasing. Quotes read
 the current on-chain tariff/version.
 Free DAO namespaces, verified receiving addresses, private contacts and
 DAO-authorized profile proposals remain later work. Browser-local lifecycle
-notifications are implemented in pending PR #169; hosted publication is outstanding.
+notifications are published in PR #169; hosted checks, Pages and served files were verified on 2026-10-06.
 
 ## UNI-7 faucet
 
@@ -211,6 +211,10 @@ The legacy contract has no v0.3.0 hash/JSON-array/cooldown/withdraw hardening, a
 converts failed access reads to zero. Frontend checks are not contract guarantees.
 
 ## Treasury: live snapshots, limited accounting
+
+The [accepted P&L draft](TREASURY_PNL_DRAFT_2026-10-05.md) is saved as a design
+reference with corrected contrast and fictional example data. It is not connected
+to production Treasury accounting; verified NNS revenue integration remains open.
 
 | Owner | Inputs / outputs |
 | --- | --- |
@@ -279,7 +283,7 @@ observed data lag and successful latest collector runs without claiming live dat
 
 ## RELAY: main inbox versus encrypted lab
 
-Pending PR #169 (locally tested, not yet live) gives NNS system notices a Names filter, unread state and identity-scoped
+PR #169 (published and verified on 2026-10-06) gives NNS system notices a Names filter, unread state and identity-scoped
 history: first-registration welcome, renewal confirmation, outgoing and incoming
 transfer notices, 6/3/1 calendar-month and 14/7/1-day reminders, expiry and grace-end
 notices. Links open the correct profile/renewal menu without signing. Each observation
