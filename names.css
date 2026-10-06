@@ -99,3 +99,30 @@
 .nns-session p,#nns-name-result { overflow-wrap:anywhere; }
 #nns-workspace-session[hidden],#nns-review[hidden],#nns-recovery[hidden],#nns-offer-fields[hidden] { display:none; }
 #nns-review-heading { scroll-margin-top:180px; }
+
+/* Task-focused Names management, using the shared graphite/mint foundations. */
+#nns-purchase-area { margin-top:24px; }
+#nns-purchase-area > section { border:0; padding:0; background:transparent; }
+#nns-purchase-area > aside { background:var(--neta-surface-raised); }
+#nns-purchase-area h3 { font-size:21px; margin-top:0; }
+.nns-step { font-weight:600; color:var(--neta-text) !important; }
+.nns-secondary-actions { padding-top:20px; border-top:1px solid var(--neta-border); }
+.nns-transfer > summary,.names-validator-help > summary { cursor:pointer; min-height:44px; padding:10px 0; font-weight:600; }
+#nns-transfer-panel:not([open]) { padding-top:10px; padding-bottom:10px; }
+#nns-status:empty,#nns-account-help:empty,#nns-transfer-error:empty { display:none; }
+#nns-status[data-kind="error"] { color:var(--neta-danger); padding:12px 16px; background:var(--neta-danger-soft); border-radius:8px; }
+#nns-owned[data-state="grace"],#nns-owned[data-state="released"] { color:var(--neta-warning); }
+#nns-recovery:not([hidden]) { border:1px solid var(--neta-warning); border-radius:8px; padding:12px 16px; background:var(--neta-warning-soft); }
+.nns-review-title { color:var(--neta-text) !important; font-size:21px; font-weight:650; }
+.nns-review-summary { display:grid; grid-template-columns:minmax(120px,1fr) minmax(0,2fr); gap:12px 24px; margin:20px 0; }
+.nns-review-summary dt { color:var(--neta-text-secondary); }
+.nns-review-summary dd { margin:0; color:var(--neta-text); overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+#nns-review-notes p { color:var(--neta-text); }
+.gov-shell .names-page .neta-primary:disabled { color:var(--neta-text-secondary); background:var(--neta-surface-raised); border-color:var(--neta-border); }
+[data-name-panel="profile"] > .names-layout > .names-panel { border:0; padding:0; background:transparent; }
+@media(max-width:640px) {
+  .nns-review-summary { grid-template-columns:1fr; gap:4px; }
+  .nns-review-summary dd { margin-bottom:12px; }
+  #nns-purchase-area > aside { padding:16px; }
+  .nns-secondary-actions { gap:8px; }
+}

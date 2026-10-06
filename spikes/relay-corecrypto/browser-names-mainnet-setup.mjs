@@ -16,7 +16,7 @@ try{
  await page.goto(origin+'/index.html#relay/register');
  assert.equal(await page.locator('#nns-network').inputValue(),'juno-1');
  await page.locator('#nns-technical summary').click();await page.locator('#nns-refresh').click();await page.waitForFunction(()=>!document.querySelector('#nns-refresh').disabled);
- assert.match(await page.locator('#nns-status').textContent(),/not open yet/);
+ assert.match(await page.locator('#nns-status').textContent(),/registry information is unavailable/);
  for(const id of ['nns-reserve','nns-payment'])assert.equal(await page.locator('#'+id).isDisabled(),true);
  // Availability now performs verification on demand; reads stay available, writes stay gated.
  assert.equal(await page.locator('#nns-check-name').isDisabled(),false);
