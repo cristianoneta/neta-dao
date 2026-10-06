@@ -488,3 +488,13 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
   #treasury-pnl .pnl-account th { padding-left:24px; }
   #treasury-pnl .pnl-result { border-top:2px solid var(--neta-control-border); border-bottom:0; }
 }
+
+/* Planned proposal categories and receipt-backed Treasury tags share account labels. */
+.proposal-accounting{display:grid;gap:16px;margin-top:16px;min-width:0}
+.proposal-accounting label{display:grid;gap:8px;min-width:0}
+.proposal-accounting label>span,.accounting-help{font-size:13px;line-height:1.5;color:var(--neta-text-secondary)}
+.proposal-accounting select{width:100%;min-width:0;min-height:44px;border:1px solid var(--neta-control-border);border-radius:8px;background:var(--neta-surface);color:var(--neta-text);padding:8px;font:inherit}
+.proposal-accounting select:focus-visible{outline:2px solid var(--neta-focus);outline-offset:2px}
+.proposal-accounting select:disabled{opacity:.65}
+.event-accounting-tags{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.event-accounting-tag{border:1px solid var(--neta-border);border-radius:999px;padding:4px 8px;font-size:12px;line-height:1.4;color:var(--neta-text-secondary);background:var(--neta-surface)}

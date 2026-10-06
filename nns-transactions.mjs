@@ -1,5 +1,5 @@
-import { period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-3';
-import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-3';
+import { period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-4';
+import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-4';
 const $ = id => document.getElementById(id);
 const year = $('nns-year'), month = $('nns-month'), type = $('nns-type');
 const params = new URLSearchParams(location.search);

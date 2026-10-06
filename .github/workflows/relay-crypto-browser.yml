@@ -14,6 +14,7 @@ on:
       - 'treasury-*.mjs'
       - 'nns-transactions.mjs'
       - 'nns-transactions.html'
+      - 'proposal-accounting.mjs'
       - 'neta-governance.js'
       - 'names.js'
       - 'names-workspace.js'
