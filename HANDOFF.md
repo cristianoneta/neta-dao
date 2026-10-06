@@ -1,10 +1,11 @@
 # NETA DAO handoff
 
-## Daily staking accrual and recorded zeros — release candidate, 2026-10-06
+## Daily staking accrual, recorded zeros and Home — LIVE, 2026-10-06
 
 Owner requested daily accrued staking income, no duplicate revenue on claims, and
 zero values/sums for accounts without recorded movements, including consolidation.
-The pending change adds a daily, claim-adjusted Delegation Programme ledger:
+[PR #187](https://github.com/cristianoneta/neta-dao/pull/187), merged as
+`2fcf43c8ba236f2feeb609e199864a11afa5c41c`, adds a daily, claim-adjusted ledger:
 closing withdrawable rewards minus opening rewards plus intervening withdrawals.
 Both explicit claims and automatic withdrawals during staking changes are captured
 from SDK events. Exact matched claim transfers are settlements, outside revenue.
@@ -28,10 +29,33 @@ Consolidated sums require every unit's recorded review to pass; missing/failed
 sources or unknown payments must not silently become zero. No complete module
 balance reconciliation or full October staking P&L is claimed.
 
-Validation: 144 Node tests and 65 targeted Python tests pass. A live Delegation
-holdings/receipt collection and real archive projection succeeded. Hosted browser
-checks and publication evidence will be recorded after integration. Existing bot
-exports and holdings history are preserved; production regenerates statements.
+Validation: **144 Node tests and 65 targeted Python tests passed**. Final PR #187
+head `163a32e756b1c3f65702a6b688ba9705324133bd` passed
+[frontend/contract CI 37490902889](https://github.com/cristianoneta/neta-dao/actions/runs/37490902889),
+[browser CI 37490903045](https://github.com/cristianoneta/neta-dao/actions/runs/37490903045)
+and onboarding check 37490902854. Browser coverage includes Community Pool,
+Delegation Programme and consolidated statements; mobile and desktop screenshots
+were inspected. [Production Treasury run 37491282504](https://github.com/cristianoneta/neta-dao/actions/runs/37491282504)
+succeeded, including the dedicated Delegation collector. Production frontend CI
+37491282485 and [Pages deployment 37491472688](https://github.com/cristianoneta/neta-dao/actions/runs/37491472688)
+succeeded. Deployed data/code commit at verification: `516af0cc8047da7dda5fa903ef30c779351fad38`.
+Live browser checks confirmed **Delegation income/result $4.19, expenses $0.00**,
+and **Juno consolidated income/result $168.03, expenses $0.00**, as a dated,
+provisional checkpoint. Existing bot exports and holdings history are preserved.
+
+Home copy is updated to 6 October: DAO/SubDAO navigation, Community Tax, daily
+staking accrual and recorded-total limitations. The Home element/attribute sequence
+(except article dates), layout, CSS and artwork are unchanged and checked live.
+A verification follow-up corrects the consolidated event label: non-transaction
+staking accrual and SDK reward settlements are not labelled internal treasury
+transfers merely because the distribution module also holds Community Pool assets.
+The existing internal cash-transfer accounting logic is unchanged.
+
+Daily accrual failures retain existing entries and block provisional totals. If a
+later receipt replay changes claims in a recorded interval, collection stops for
+reconciliation rather than silently rewriting income. Missing historical state or
+missed UTC boundaries need source recovery; never move the opening baseline forward
+or count existing claimable holdings as new revenue.
 
 ## Community Pool October tax accounting — LIVE, 2026-10-06 15:25 UTC
 
