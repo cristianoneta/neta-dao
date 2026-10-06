@@ -36,7 +36,7 @@ export function mountDaoInboxes({document,window,client,account}) {
   const notice=make('p','names-help');notice.setAttribute('role','status');
   const layout=make('div','relay-inbox'),list=make('div','relay-feed'),reader=make('article','relay-reader');
   list.setAttribute('aria-label','DAO conversations');reader.setAttribute('aria-label','DAO conversation');
-  const more=make('button',null,'Load earlier entries');more.type='button';more.hidden=true;
+  const more=make('button',null,'Load more messages');more.type='button';more.hidden=true;
   layout.append(list,reader);panel.append(notice,layout,more);card.append(panel);
   const personal=[...card.querySelectorAll('.relay-header-actions,.relay-feed-controls,.relay-toolbar,.relay-inbox,#relay-nns-status,#relay-status')].filter(el=>!panel.contains(el));
   const original=new Map(personal.map(el=>[el,el.hidden]));
