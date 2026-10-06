@@ -1,8 +1,9 @@
 // Cash-basis reporting over explicitly classified receipts. No balance-derived income.
-import { accountsFor } from './treasury-accounting-config.mjs?v=20261006-2';
+import { accountsFor } from './treasury-accounting-config.mjs?v=20261006-3';
 export { accountsFor };
 export const categories = accountsFor({ id: 'neta' }).map(a => [a.id, a.label]);
 const known = new Set(categories.map(([id]) => id));
+export const accountingStart = Date.parse('2026-10-01T00:00:00Z');
 const scale = 10n ** 18n;
 export function usdUnits(value) {
   if (typeof value !== 'string' || !/^\d+(\.\d{1,18})?$/.test(value)) throw Error('Invalid fixed USD value');
@@ -41,8 +42,8 @@ export function validateLedger(data, dao) {
   return [...entries.values()];
 }
 export function summarize(entries, range, accounts = accountsFor({ id: 'neta' })) {
-  const selected = entries.filter(row => Date.parse(row.timestamp) >= range.start && Date.parse(row.timestamp) < range.end);
-  const previous = entries.filter(row => Date.parse(row.timestamp) >= range.previousStart && Date.parse(row.timestamp) < range.previousEnd);
+  const selected = entries.filter(row => Date.parse(row.timestamp) >= Math.max(accountingStart, range.start) && Date.parse(row.timestamp) < range.end);
+  const previous = entries.filter(row => Date.parse(row.timestamp) >= Math.max(accountingStart, range.previousStart) && Date.parse(row.timestamp) < range.previousEnd);
   const subtotal = rows => rows.length ? rows.reduce((sum, row) => sum + usdUnits(row.usd_value), 0n) : null;
   return { rows: selected, observedIncome: subtotal(selected.filter(row => accounts.some(a => a.id === row.category && a.section === 'income'))),
     // Receipt coverage does not establish a complete period, even when the scan succeeds.

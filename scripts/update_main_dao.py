@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TASKS = {
     'accounting': ('update_treasury_accounting.py', [], 150),
     'balances': ('update_treasury.py', ['--dao', 'neta'], 300),
-    'events': ('update_treasury_events.py', ['--dao', 'neta'], 150),
+    'events': ('update_treasury_events.py', ['--dao', 'neta'], 300),
 }
 
 def run(item):
@@ -37,6 +37,16 @@ def main():
     accounting_path = ROOT / 'data/treasury/neta-main-accounting.json'
     if accounting_path.exists() and json.loads(accounting_path.read_text()).get('refresh_status') != 'completed':
         status['accounting']['status'] = 'unavailable'
+    if accounting_path.exists() and event_path.exists():
+        from update_treasury_accounting import reconcile_movements
+        try:
+            accounting_data = json.loads(accounting_path.read_text())
+            accounting_data['movement_review'] = reconcile_movements(json.loads(event_path.read_text()), accounting_data)
+            temporary = accounting_path.with_suffix('.json.tmp')
+            temporary.write_text(json.dumps(accounting_data, indent=2) + '\n')
+            temporary.replace(accounting_path)
+        except (ValueError, KeyError, TypeError) as error:
+            status['reconciliation'] = {'status': 'unavailable', 'note': str(error)}
     path = ROOT / 'data/daos/neta-status.json'
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(status, indent=2) + '\n')

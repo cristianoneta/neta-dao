@@ -7,6 +7,7 @@ on:
       - 'scripts/update_treasury_accounting.py'
       - 'scripts/update_treasury.py'
       - 'scripts/update_treasury_events.py'
+      - 'scripts/treasury_history.py'
       - 'data/dao-directory.json'
       - 'data/treasury/token-registry.json'
       - '.github/workflows/main-dao-snapshot.yml'

@@ -48,3 +48,13 @@ test('shared statement config isolates DAO income sources and supports other acc
   assert.equal(expense.observedIncome,null);
   assert.throws(()=>validateLedger(ledger,{...dao,id:'juno'}));
 });
+
+
+test('all DAO summaries exclude activity before the October accounting start', () => {
+  const old = {...row, timestamp:'2026-09-30T23:59:59Z'};
+  const first = {...row, timestamp:'2026-10-01T00:00:00Z'};
+  const annual = summarize([old, first], period(2026, 'all', new Date('2026-11-01')));
+  assert.equal(annual.rows.length, 1);
+  assert.equal(annual.rows[0].timestamp, first.timestamp);
+  assert.equal(summarize([old], period(2026, 10, new Date('2026-11-01'))).categories[0].previousObserved, null);
+});

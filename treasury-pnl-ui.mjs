@@ -1,5 +1,5 @@
-import { accountsFor, period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-2';
-import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-2';
+import { accountingStart, accountsFor, period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-3';
+import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-3';
 const root = document.querySelector('#treasury-pnl');
 let state = window.NetaTreasuryAccounting || {};
 const expanded = new Set();
@@ -41,7 +41,9 @@ function render() {
     }
   }
   const result = el('tr', undefined, 'pnl-result'), title = el('th', 'Operating surplus / deficit'); title.scope = 'row'; result.append(title, amount(null), amount(null)); tbody.append(result);
-  root.querySelector('#pnl-source').textContent = state.data && !error ? `Last successful receipt refresh: ${state.data.last_success_at ? date(state.data.last_success_at) + ' UTC' : 'unavailable'}. Latest attempt: ${state.data.refresh_status}. Conversion is fixed at the accepted payment rate. Buyer-paid gas is not a DAO expense. Selected interval: ${date(range.start)} – ${date(range.end)} (end exclusive). Comparison: ${date(range.previousStart)} – ${date(range.previousEnd)}.` : 'Classified receipts with payment-time prices are required. Treasury balances alone do not establish income or expenses.';
+  root.querySelector('#pnl-source').textContent = state.data && !error ? `Last successful receipt refresh: ${state.data.last_success_at ? date(state.data.last_success_at) + ' UTC' : 'unavailable'}. Latest attempt: ${state.data.refresh_status}. Conversion is fixed at the accepted payment rate. Buyer-paid gas is not a DAO expense. Selected interval: ${date(Math.max(accountingStart, range.start))} – ${date(range.end)} (end exclusive). Comparison: ${date(range.previousStart)} – ${date(range.previousEnd)}.` : 'Classified receipts with payment-time prices are required. Treasury balances alone do not establish income or expenses.';
+  root.querySelector('#pnl-source').textContent += ' Accounting starts 1 October 2026 UTC for every DAO. Earlier comparison periods are outside coverage.';
+  if (state.data?.movement_review && !error) root.querySelector('#pnl-source').textContent += ` Movement review: ${state.data.movement_review.matched_receipts} linked NNS receipts; ${state.data.movement_review.unreviewed_movements} observed movements awaiting classification. Balance reconciliation remains unavailable.`;
 }
 year.addEventListener('change', render); month.addEventListener('change', render);
 window.addEventListener('neta:treasury-accounting', event => { const changed = state.dao?.id !== event.detail.dao?.id; state = event.detail; if (changed) expanded.clear(); render(); });

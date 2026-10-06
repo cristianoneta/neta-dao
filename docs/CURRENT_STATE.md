@@ -1,5 +1,15 @@
 # NETA DAO code-backed current state
 
+## Continuation — 2026-10-06, accounting cutoff and favicon
+
+Owner narrowed accounting to **1 October 2026 onward, for every DAO**. No older
+backfill. The continuation implements a shared date-bounded receipt collector,
+daily delayed-index replay, exact NNS movement cross-reference and a mint voxel N
+browser icon. See [cutoff implementation](TREASURY_CUTOFF_2026-10-06.md). Publication checks are pending.
+Full P&L and non-NNS classification/pricing/reconciliation remain open. Native Juno
+Community Pool still has no accounting adapter. Preserve existing older exports.
+
+
 ## Treasury statement revision — 2026-10-06
 
 Published and verified in PR #174: shared Income / Expenses / Operating result rows
