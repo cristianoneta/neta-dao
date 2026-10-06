@@ -161,13 +161,13 @@ try{
  await page.getByRole('button',{name:'Calculate name fee',exact:true}).click();
  for(const [label,total] of [['abc','$99 USD'],['abcd','$19 USD'],['cristiano','$5 USD']]){
   await page.locator('#names-fee-label').fill(label);
-  assert.equal(await page.locator('#names-fee-total').textContent(),'Read registry');
+  assert.equal(await page.locator('#names-fee-total').textContent(),'Check availability');
  }
  await page.locator('#names-fee-years').selectOption('3');
- assert.equal(await page.locator('#names-fee-total').textContent(),'Read registry');
+ assert.equal(await page.locator('#names-fee-total').textContent(),'Check availability');
  await page.locator('#names-fee-label').fill('ab');
  assert.equal(await page.locator('#names-fee-label').getAttribute('aria-invalid'),'true');
- assert.equal(await page.locator('#nns-prepare').isDisabled(),true);
+ assert.equal(await page.locator('#nns-reserve').isDisabled(),true);
  for(const width of [320,390,768,1440]){
   await page.setViewportSize({width,height:1000});
   let baseline;

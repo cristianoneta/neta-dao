@@ -17,12 +17,26 @@ try{
  assert.equal(await page.locator('#nns-network').inputValue(),'juno-1');
  await page.locator('#nns-refresh').click();await page.waitForFunction(()=>!document.querySelector('#nns-refresh').disabled);
  assert.match(await page.locator('#nns-status').textContent(),/not open yet/);
- for(const id of ['nns-prepare','nns-payment','nns-check-name'])assert.equal(await page.locator('#'+id).isDisabled(),true);
+ for(const id of ['nns-reserve','nns-payment'])assert.equal(await page.locator('#'+id).isDisabled(),true);
+ // Availability now performs verification on demand; reads stay available, writes stay gated.
+ assert.equal(await page.locator('#nns-check-name').isDisabled(),false);
+ await page.locator('#names-fee-label').fill('cristiano');
+ await page.locator('#nns-check-name').click();
+ await page.waitForFunction(()=>!document.querySelector('#nns-check-name').disabled);
+ assert.equal(await page.locator('#nns-review').isVisible(),false);
+ for(const id of ['nns-reserve','nns-payment','nns-confirm'])assert.equal(await page.locator('#'+id).isDisabled(),true);
  await page.unroute('**/docs/deployments/nns-mainnet.json');
  await page.reload();
  await page.locator('#nns-refresh').click();await page.waitForFunction(()=>!document.querySelector('#nns-refresh').disabled);
  assert.match(await page.locator('#nns-status').textContent(),/Verified Juno mainnet deployment unavailable/);
- for(const id of ['nns-prepare','nns-payment','nns-check-name'])assert.equal(await page.locator('#'+id).isDisabled(),true);
+ for(const id of ['nns-reserve','nns-payment'])assert.equal(await page.locator('#'+id).isDisabled(),true);
+ // Availability now performs verification on demand; reads stay available, writes stay gated.
+ assert.equal(await page.locator('#nns-check-name').isDisabled(),false);
+ await page.locator('#names-fee-label').fill('cristiano');
+ await page.locator('#nns-check-name').click();
+ await page.waitForFunction(()=>!document.querySelector('#nns-check-name').disabled);
+ assert.equal(await page.locator('#nns-review').isVisible(),false);
+ for(const id of ['nns-reserve','nns-payment','nns-confirm'])assert.equal(await page.locator('#'+id).isDisabled(),true);
  await page.goto(origin+'/names-mainnet-setup.html');
  assert.equal(await page.locator('#copy-private').isDisabled(),true);
  await page.locator('#create-key').click();await page.waitForFunction(()=>!document.querySelector('#download-private').disabled);
