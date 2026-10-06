@@ -1,13 +1,13 @@
 {
-  "checked_at": "2026-10-06T09:20:16.542319Z",
+  "checked_at": "2026-10-06T09:28:32.444819Z",
   "events": [],
   "generated_at": null,
   "last_success_at": null,
   "nns": {
-    "note": "No verified NNS fee source is configured. Incoming NETA alone does not establish naming revenue.",
-    "registry": null,
+    "accounting_file": "neta-main-accounting.json",
+    "note": "Matched NNS receipts are collected separately; historical events alone do not establish complete naming revenue.",
     "revenue_raw": null,
-    "status": "not_active"
+    "status": "separate_receipt_ledger"
   },
   "schema_version": 2,
   "scope": "neta-main-dao",
