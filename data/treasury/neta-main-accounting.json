@@ -5,13 +5,14 @@
   "treasury_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
   "registry": "juno1pc8wrq89ljuhu2qt6rtk5lkkrptxajtf3un5llu8prg7r4z50vlszfhhza",
   "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
+  "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
   "refresh_status": "completed",
-  "checked_at": "2026-10-06T11:47:45.714830Z",
-  "last_success_at": "2026-10-06T11:47:45.714830Z",
+  "checked_at": "2026-10-06T12:06:27.890438Z",
+  "last_success_at": "2026-10-06T12:06:27.890438Z",
   "source": {
     "provider": "https://juno.api.m.stavr.tech",
-    "through_height": 42424988,
+    "through_height": 42425427,
     "indexed_transactions": 4
   },
   "warnings": [
@@ -49,5 +50,29 @@
         "provider": "https://juno.api.m.stavr.tech"
       }
     }
-  ]
+  ],
+  "movement_review": {
+    "accounting_start": "2026-10-01T00:00:00Z",
+    "status": "PARTIAL",
+    "event_refresh_status": "PARTIAL",
+    "matched_receipts": 1,
+    "unmatched_receipt_ids": [],
+    "unreviewed_movements": 0,
+    "movements": [
+      {
+        "id": "juno-1:85689A2C75DE86829D4116FA0AABBA5062D269679CA139984E169E8E2ACF8DC1:0",
+        "tx_hash": "85689A2C75DE86829D4116FA0AABBA5062D269679CA139984E169E8E2ACF8DC1",
+        "timestamp": "2026-10-05T18:20:13Z",
+        "denom": "cw20:juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
+        "direction": "in",
+        "raw_amount": "4755098",
+        "counterparty": "juno1pc8wrq89ljuhu2qt6rtk5lkkrptxajtf3un5llu8prg7r4z50vlszfhhza",
+        "classification": "nns_registration",
+        "usd_value": "5.000000976594010594",
+        "receipt_id": "juno-1:85689A2C75DE86829D4116FA0AABBA5062D269679CA139984E169E8E2ACF8DC1:0"
+      }
+    ],
+    "balance_reconciliation": "UNAVAILABLE",
+    "note": "Receipt cross-reference only. Missing activity, funding, expenses, internal transfers and historical prices remain unresolved."
+  }
 }
