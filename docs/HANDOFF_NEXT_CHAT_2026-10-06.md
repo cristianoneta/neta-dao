@@ -1,25 +1,43 @@
 # Next-chat handoff — dao.netareborn.com
 
-## Community Pool October tax accounting — release candidate, 2026-10-06
+## Community Pool October tax accounting — LIVE, 2026-10-06 15:25 UTC
 
-Recovered the interrupted working tree on [PR #185](https://github.com/cristianoneta/neta-dao/pull/185).
-The initial backfill and a subsequent resume have completed: **184,739 consecutive
-blocks**, 42,244,897–42,429,635, through **2026-10-06 15:04:57 UTC**. Reconstructed
-Community Tax: **18,098.587307900002038077193637 JUNO**, with indicative historical
-USD references totalling **$162.82** across six UTC dates. No allocation is unpriced.
-This is a dated checkpoint, not a full Community Pool P&L. The tested resume read
-only 566 new blocks in 26 seconds. The application remains under review until
-release verification is recorded below; retain newer production snapshots.
+[PR #185](https://github.com/cristianoneta/neta-dao/pull/185) is merged as
+`7ca484404c6a8e30a4cd68cda271abc9c7e6ce80`. Community Tax now appears in the
+shared Income statement and Treasury events on the live Community Pool page.
+The initial October backfill is complete through the first production checkpoint:
+**185,121 consecutive blocks**, 42,244,897–42,430,017, through
+**2026-10-06 15:21:10 UTC**. The 188 tax entries total approximately
+**18,135.997553 JUNO / $163.17**, using historical daily-opening USD references.
+All observed tax allocations across six UTC dates have a quote. These figures
+are a dated checkpoint; preserve newer bot exports. Full Pool accounting remains
+partial, including other module income, expenses and operating result.
 
-Local validation: **140 Node tests and 58 targeted Python tests passed**. A live
-Community Pool receipt refresh and statement projection succeeded. An unrelated
-Operations receipt refresh failed locally; its retained production exports were
-not changed. Browser testing previews the actual compressed archive without
-committing over bot-owned event/accounting files. The existing workflow generates
-those projections after integration. The first hosted frontend/contract run
-[37483386732](https://github.com/cristianoneta/neta-dao/actions/runs/37483386732) passed.
-The first browser run found a test reading a closed disclosure; the test now opens
-it first. Final hosted browser and deployment results remain to be recorded.
+Validation and publication evidence:
+
+- Local: **140 Node tests and 58 targeted Python tests passed**.
+- Final application head `90a2d8a3b26f6adefaf51a911b2684681ab78312`:
+  [frontend/contract CI 37486227103](https://github.com/cristianoneta/neta-dao/actions/runs/37486227103)
+  and [browser CI 37486226828](https://github.com/cristianoneta/neta-dao/actions/runs/37486226828) passed.
+  Community Pool browser coverage includes 320, 390, 768 and 1440 px, statement
+  filters, explicit historical valuation and block-linked events.
+- Production [Treasury run 37486842132](https://github.com/cristianoneta/neta-dao/actions/runs/37486842132)
+  completed successfully. Its incremental scan added **382 blocks in four seconds**,
+  and all three receipt/statement refreshes completed. The earlier local Operations
+  refresh failure did not recur in this run. Bot data commit: `59403333ea1be8bcf0e89d972aeaa2d43dd15e0a`.
+- [Production frontend CI 37486841987](https://github.com/cristianoneta/neta-dao/actions/runs/37486841987)
+  and [data deployment 37486960908](https://github.com/cristianoneta/neta-dao/actions/runs/37486960908) passed.
+- Live browser verification confirmed **Community Tax $163.17**, October 2026,
+  “Historical daily USD references”, block-linked Treasury events and unavailable
+  expense/result totals. The served accounting export is schema 3 with CURRENT
+  block coverage through the height above. The provider warning about unavailable
+  older governance pages remains visible; it is not silently removed.
+
+Update cadence: Operations, Community Pool and Delegation Programme collectors
+are scheduled every **15 minutes**; NETA Main every **30 minutes** at :07 and :37.
+An open Treasury page reloads published exports every **60 seconds**. Collector,
+GitHub scheduling and deployment latency apply; Refresh does not trigger a chain
+collector. Existing holdings snapshots and published functionality are preserved.
 
 - Community Tax is derived from each block's fee-collector transfer minus emitted
   validator rewards, using exact decimal arithmetic. It includes allocation

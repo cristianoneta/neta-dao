@@ -1,7 +1,8 @@
 # Juno Community Pool block accounting
 
-Status: implementation under review; deployment evidence is recorded in the current
-handoff after integration. Accounting begins 1 October 2026 UTC.
+Status: live after PR #185 on 6 October 2026; successful production collector and
+deployment evidence are recorded in the current handoff. Accounting begins
+1 October 2026 UTC.
 
 ## Evidence and interpretation
 
