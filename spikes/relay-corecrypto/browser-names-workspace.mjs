@@ -206,7 +206,10 @@ try {
   await page.waitForFunction(()=>window.NetaNameNotifications?.events().some(e=>e.type==='WELCOME'));
   await page.evaluate(()=>window.NetaNameNotifications.refresh());
   assert.equal(await page.evaluate(()=>window.NetaNameNotifications.events().filter(e=>e.type==='WELCOME').length),1);
-  await page.locator('[data-relay-panel="inbox"]').click();await page.locator('[data-relay-filter="names"]').click();
+  await page.locator('[data-relay-panel="inbox"]').click();assert.equal(await page.locator('[data-relay-filter="names"]').count(),0);
+  await page.locator('[data-relay-filter="governance"]').click();
+  assert.equal(await page.locator('#relay-feed .relay-event-message').count(),0);
+  await page.locator('[data-relay-filter="messages"]').click();
   await page.locator('#relay-feed .relay-event').click();
   assert.match(await page.locator('#relay-reader').textContent(),/Congratulations/);
   assert.match(await page.locator('#relay-reader').textContent(),/compatible applications/);
