@@ -64,3 +64,23 @@ test('exact internal transfer pairs are eliminated only in the group, unknown or
   const broken=transfers();mutate(broken);const s=summarizeOrganization(broken,range,now);assert.equal(s.eliminatedPairs,0);assert.equal(s.result,null);
  }
 });
+test('Juno Community Pool and Delegation Programme preserve separate custody and tax accounts',()=>{
+ const org=organizations.find(o=>o.id==='juno'),junoUnits=unitsFor(org,daos);
+ assert.deepEqual(junoUnits.map(d=>d.unitName),['Community Pool','Delegation Programme']);
+ const selection=resolveSelection(new URLSearchParams('dao=juno&subdao=main'),organizations,daos);
+ assert.equal(selection.dao.id,'juno');assert.equal(selection.consolidated,false);
+ const other=resolveSelection(new URLSearchParams('dao=juno&subdao=juno-delegation'),organizations,daos);
+ assert.equal(other.dao.core,'juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0');
+ const input=junoUnits.map(dao=>({dao,data:read(dao.snapshot)})),sum=consolidateSnapshots(input,now);
+ assert.equal(sum.loaded,2);
+ assert.ok(Math.abs(sum.total_usd-input.reduce((n,s)=>n+Number(s.data.total_usd),0))<1e-6);
+ assert.ok(sum.assets.some(a=>a.position==='Delegated'));
+ assert.ok(sum.assets.some(a=>a.position==='Claimable rewards'));
+ const partial=consolidateSnapshots([input[0],{dao:junoUnits[1],error:'Unavailable'}],now);
+ assert.equal(partial.loaded,1);assert.ok(partial.warnings.some(w=>w.includes('Missing assets are not zero')));
+ const report=summarizeOrganization(junoUnits.map(dao=>({dao,data:read(dao.accountingSource.file)})),range,now);
+ assert.equal(report.income,null);assert.equal(report.result,null);
+ assert.ok(report.categories.some(a=>a.id==='community_tax'));
+ assert.ok(report.categories.some(a=>a.id==='other_income'));
+ assert.ok(!report.categories.some(a=>a.id.startsWith('nns_')));
+});

@@ -1,0 +1,33 @@
+name: Juno treasury onboarding check
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/juno-onboarding-check.yml'
+      - 'scripts/update_delegation_treasury.py'
+      - 'scripts/update_treasury.py'
+      - 'data/dao-directory.json'
+      - 'data/treasury/token-registry.json'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Collect public delegation treasury
+        env:
+          TREASURY_DAILY_SNAPSHOT: '1'
+        run: python scripts/update_delegation_treasury.py
+      - name: Export generated evidence
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,sys
+          sys.path.insert(0,'scripts')
+          from update_treasury import rest
+          for path in sorted(Path('data/treasury').glob('juno-delegation*.json')):
+            print('GENERATED_FILE',str(path),json.dumps(json.loads(path.read_text()),separators=(',',':')))
+          denom='008BFD000A10BCE5F0D4DD819AE1C1EC2942396062DABDD6AE64A655ABC7085B'
+          print('IBC_TRACE',json.dumps(rest('/ibc/apps/transfer/v1/denoms/'+denom)))
+          PY

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import os
 import sys
@@ -151,8 +152,18 @@ def native_metadata(denom, providers=RESTS, source_chain="juno"):
         return dict(registered)
     if not denom.startswith("ibc/"):
         return dict(BASE_ASSETS.get(denom, {"symbol": denom, "decimals": None}))
-    trace, _ = rest(f"/ibc/apps/transfer/v1/denom_traces/{denom[4:]}", providers)
-    trace = trace.get("denom_trace", trace)
+    try:
+        trace, _ = rest(f"/ibc/apps/transfer/v1/denom_traces/{denom[4:]}", providers)
+        trace = trace.get("denom_trace", trace)
+    except RuntimeError:
+        # ibc-go v10 replaced denom_traces with structured denominations.
+        payload, _ = rest(f"/ibc/apps/transfer/v1/denoms/{denom[4:]}", providers)
+        item = payload['denom']
+        path = '/'.join(part for hop in item['trace'] for part in (hop['port_id'], hop['channel_id']))
+        trace = {'path': path, 'base_denom': item['base']}
+        full = (path + '/' if path else '') + item['base']
+        if hashlib.sha256(full.encode()).hexdigest().upper() != denom[4:]:
+            raise ValueError('IBC denomination hash mismatch')
     base = trace.get("base_denom", "")
     fallback = {"symbol": base or denom[:18] + "…", "decimals": None}
     # A ticker/base denom does not identify an IBC asset: origin and route matter.
@@ -301,7 +312,7 @@ def write_snapshot(snapshot, name="current", history_name="history"):
         history = json.loads(history_path.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError):
         history = {"schema_version": 1, "snapshots": []}
-    if name == "neta-main":
+    if snapshot.get("treasury_address") and snapshot.get("treasury_type") != "dao-and-cross-chain":
         history.update({"chain_id": snapshot["chain_id"], "treasury_address": snapshot["treasury_address"]})
     day = snapshot["generated_at"][:10]
     compact = {key: snapshot[key] for key in ("generated_at", "height", "status", "total_usd")}

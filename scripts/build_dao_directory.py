@@ -12,7 +12,7 @@ def generate():
     assert len({o['id'] for o in organizations}) == len(organizations)
     for organization in organizations:
         units=[row for row in rows if row.get('organizationId') == organization['id']]
-        assert any(row['id'] == organization['mainDaoId'] and row['unitName'] == 'Main' for row in units)
+        assert any(row['id'] == organization['mainDaoId'] and bool(row['unitName']) for row in units)
         assert all(row['chainId'] == organization['chainId'] for row in units)
         assert len({row['unitName'].lower() for row in units}) == len(units)
     for row in rows:

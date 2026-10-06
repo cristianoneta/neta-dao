@@ -90,6 +90,7 @@ def build(dao, events, previous=None):
             'checked_at': now(), 'last_success_at': stamp if completed else (previous or {}).get('last_success_at'),
             'sources': events.get('sources', []), 'coverage_gaps': gaps,
             'execution_candidates': events.get('execution_candidates', []),
+            **({'community_tax': events['community_tax']} if dao['id'] == 'juno' and 'community_tax' in events else {}),
             'warnings': events.get('warnings', []), 'entries': entries,
             'movement_review': {'accounting_start': ACCOUNTING_START, 'status': 'PARTIAL',
                 'event_refresh_status': events.get('status'), 'matched_receipts': len(entries),

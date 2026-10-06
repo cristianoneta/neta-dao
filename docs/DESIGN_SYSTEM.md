@@ -462,3 +462,12 @@ asset positions and expandable P&L unit totals. Missing coverage is explicit at 
 value it affects; do not invent zeros. Other sections remain unit-specific, with
 Main clearly identified for organization scope. Retain existing DAO contract and
 permission identities. No new wallet or transaction flow is introduced.
+
+## Juno reporting units — owner update 2026-10-06
+
+The main unit may have an explicit name: Juno uses **Community Pool** first,
+followed by **Delegation Programme**. Keep ordering based on the main unit's ID,
+not the literal label Main. Use the shared Treasury assets/P&L layout; label native
+positions Available, Delegated, Unbonding and Claimable rewards without merging
+availability states. Community Pool income expands into Community Tax and Other
+income. Keep historical accrual coverage separate from the observed current rate.

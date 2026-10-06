@@ -43,6 +43,17 @@
     "origin": "IBC",
     "symbol": "OSMO"
   },
+  "juno:ibc/008BFD000A10BCE5F0D4DD819AE1C1EC2942396062DABDD6AE64A655ABC7085B": {
+    "base_denom": "ubtsg",
+    "coingecko": "bitsong",
+    "decimals": 6,
+    "ibc_path": "transfer/channel-17/ubtsg",
+    "identity_source": "https://github.com/cosmos/chain-registry/blob/master/_IBC/bitsong-juno.json",
+    "metadata_source": "https://github.com/cosmos/chain-registry/blob/master/bitsong/assetlist.json",
+    "origin": "IBC",
+    "reviewed_at": "2026-10-06",
+    "symbol": "BTSG"
+  },
   "osmosis:ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4": {
     "base_denom": "uakt",
     "coingecko": "akash-network",
