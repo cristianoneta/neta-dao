@@ -1,3 +1,12 @@
+# NETA RELAY mailbox — v0.3 source candidate
+
+The deployed UNI-7 instance below is still v0.1. v0.3 has not been deployed;
+no existing instance or artifact is replaced. See
+[DAO inbox implementation](../../docs/DAO_MAILBOX_IMPLEMENTATION_2026-10-06.md)
+for implemented authority, NNS binding, shared encrypted records and explicit
+recovery/deployment gates. The candidate remains hardcoded to UNI-7. A new
+instance must retain the owner-selected upgrade admin. No migration is supplied.
+
 # NETA RELAY mailbox (UNI-7 prototype)
 
 The contract is a public, testnet-only store for one active device per wallet,

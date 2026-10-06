@@ -1,5 +1,19 @@
 # Next-chat handoff — dao.netareborn.com
 
+## DAO inbox implementation candidate — 2026-10-06
+
+Source implementation and local tests now exist for opt-in DAO mailbox authority,
+immutable DAO-name assignment, current CW4 readers, NNS-only senders, blocking,
+shared conversation state, multi-recipient Proteus packets and a compact Inbox
+selector. **Not deployed or mounted in the main workspace.** Existing v0.1 pins
+and mainnet send locks remain unchanged. No real DAO has been opted in.
+
+See [implementation, tests and release gates](DAO_MAILBOX_IMPLEMENTATION_2026-10-06.md).
+A real crypto failure test found partial session persistence after callback errors;
+the new durable preparation journal keeps such sends locked. Coherent recovery,
+a new signed UNI-7 deployment, real-wallet E2E and adapter activation still remain.
+No fake DAO inboxes are published. Operations' current name is still directory-only.
+
 ## Inbox simplification and DAO mailbox decisions — 2026-10-06
 
 The separate Names inbox filter is removed. Existing NNS system notices appear

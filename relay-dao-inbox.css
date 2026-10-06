@@ -1,0 +1,14 @@
+.dao-inbox-heading{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.dao-inbox-heading h2{margin:0}
+.dao-mailbox-picker{display:flex;align-items:center;gap:12px;margin-top:0;color:var(--neta-text-secondary);font-size:14px}
+.dao-mailbox-picker[hidden],.dao-inbox-panel[hidden]{display:none}
+.dao-mailbox-picker select{max-width:100%;min-height:44px;padding:8px 12px;background:var(--neta-surface);color:var(--neta-text);border:1px solid var(--neta-control-border);border-radius:8px;font:inherit}
+.dao-mailbox-picker select:focus-visible{outline:2px solid var(--neta-focus);outline-offset:3px}
+.dao-inbox-panel .relay-event{display:flex;flex-direction:column;align-items:flex-start;gap:6px;color:var(--neta-text);overflow-wrap:anywhere}
+.dao-inbox-panel .relay-reader>button{margin:8px 8px 16px 0}
+.dao-message{border-top:1px solid var(--neta-border);padding:16px 0;color:var(--neta-text)}
+.dao-message small{color:var(--neta-text-secondary)}
+.dao-message p{white-space:pre-wrap;overflow-wrap:anywhere}
+.dao-action-review{padding:16px;border:1px solid var(--neta-control-border);border-radius:8px;margin:16px 0}
+.dao-action-review pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+@media(max-width:640px){.dao-mailbox-picker{align-items:stretch;flex-direction:column;gap:6px}.dao-mailbox-picker select{width:100%}}
