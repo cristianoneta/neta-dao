@@ -6,7 +6,7 @@ export const PERSONAL_MAINNET_POLICY = Object.freeze({
   dao_enabled: false
 });
 export const PERSONAL_MAINNET_OWNER = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
-export const PERSONAL_MAINNET_WASM = 'ec8650278f5ce4dd3c587154581caeec20f7ff9e0d6d6d5903f4cb2712720c45';
+export const PERSONAL_MAINNET_WASM = '835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708';
 export function personalMainnetProfile(deployment = PERSONAL_MAINNET_DEPLOYMENT) {
   if (!deployment || deployment.chainId !== 'juno-1' || !/^juno1[0-9a-z]{58}$/.test(deployment.contract || '') ||
       deployment.creator !== PERSONAL_MAINNET_OWNER || deployment.admin !== PERSONAL_MAINNET_OWNER ||

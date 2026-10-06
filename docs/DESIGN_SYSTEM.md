@@ -501,3 +501,16 @@ independent of mailbox access. On small screens the heading/select may wrap.
 Conversations group by account, with chronological entries in the reader and
 assignment/blocking in contextual controls. Do not publish fixture inboxes. See
 DAO_MAILBOX_IMPLEMENTATION_2026-10-06.md for remaining activation requirements.
+
+## Personal recovery Inbox — gated candidate, 2026-10-06
+
+The unmounted personal component reuses graphite/mint tokens, labelled recovery,
+contact and message fields, literal-text history and a focusable inline review.
+Keep device/backup and contact-permission controls in native disclosures; retain
+visible pending recovery and read-only/backup-pending/error states. Generate and
+acknowledge a separately saved recovery code before creating a profile. Never
+render the code after successful unlock/create/restore or on wallet invalidation.
+Reviews summarize action, network, wallet and recipient; full transaction details
+are collapsed. Every chain action needs a distinct review and Keplr confirmation.
+Restoring does not enable sending. This component is tested separately and does
+not mount itself in production or activate mainnet SEND.

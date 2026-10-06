@@ -1,5 +1,12 @@
 # Personal RELAY encrypted backup candidate
 
+Browser integration now exists in `relay-personal-browser.mjs`: coherent automatic
+snapshots, signed bytes backed up before broadcast, enforced read-only fresh restore
+and explicit new-generation activation. The new real-CoreCrypto browser test uses
+an isolated simulated backup transport; this service's real HTTP/ADR-36/SQLite
+suite remains separate. Hosting approval, production mounting/review and the
+mainnet two-wallet test remain open. No live backup service is configured.
+
 Not deployed. No hosting resources, remote backups, payment or real-wallet action
 were created. This is a separately testable provider/client candidate, not a
 complete integrated browser recovery system or mainnet release approval.

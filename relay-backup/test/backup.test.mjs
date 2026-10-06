@@ -7,7 +7,7 @@ import {Secp256k1Wallet} from '@cosmjs/amino';
 import {BackupStore} from '../store.mjs';
 import {backupServer} from '../server.mjs';
 import {verifyOwnership} from '../auth.mjs';
-import {sealPersonalBackup,openPersonalBackup,personalBackupScope,backupDigest,PersonalBackupClient} from '../../relay-personal-backup.mjs';
+import {sealPersonalBackup,openPersonalBackup,personalBackupScope,backupDigest,PersonalBackupClient,wrapPersonalDatabaseKey,unwrapPersonalDatabaseKey} from '../../relay-personal-backup.mjs';
 const signing=await Secp256k1Wallet.fromKey(new Uint8Array(32).fill(7),'juno'),wallet=(await signing.getAccounts())[0].address;
 const scopeObject={chain:'juno-1',wallet,contract:'juno1'+'a'.repeat(58)},scope=personalBackupScope(scopeObject),code='c'.repeat(64);
 const path='relay-'+'1'.repeat(24)+'.db';
@@ -84,4 +84,13 @@ test('concurrent request cap bounds memory and releases capacity after completio
   release();assert.ok((await Promise.all(pending)).every(r=>r.status===200));
   assert.equal((await post('/v1/challenge',{wallet})).status,200);
  }finally{release();await new Promise(r=>server.close(r));store.close();}
+});
+
+
+test('database key wrapping is authenticated and domain/scope separated',async()=>{
+ const secret=crypto.getRandomValues(new Uint8Array(32)),wrapped=await wrapPersonalDatabaseKey(scopeObject,secret,code);
+ assert.deepEqual(await unwrapPersonalDatabaseKey(scopeObject,wrapped,code),secret);
+ await assert.rejects(unwrapPersonalDatabaseKey(scopeObject,wrapped,'d'.repeat(64)));
+ await assert.rejects(unwrapPersonalDatabaseKey({...scopeObject,wallet:'juno1'+'p'.repeat(38)},wrapped,code));
+ const altered=JSON.parse(wrapped);altered.iv=Buffer.alloc(12).toString('base64');await assert.rejects(unwrapPersonalDatabaseKey(scopeObject,JSON.stringify(altered),code));
 });

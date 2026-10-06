@@ -48,7 +48,7 @@ export class PersonalMailboxLifecycle {
       keys(input.prekeys);
       identity({...input,generation:own.generation+1,active:true});
       if(input.fingerprint===own.fingerprint||input.device_id===own.device_id)throw Error('Rotation requires a separately prepared new device');
-      msg={register:{device_id:input.device_id,protocol_version:input.protocol_version,fingerprint:input.fingerprint,prekeys:input.prekeys}};
+      msg={register:{expected_previous_generation:own.generation,device_id:input.device_id,protocol_version:input.protocol_version,fingerprint:input.fingerprint,prekeys:input.prekeys}};
     }else throw Error('Unsupported lifecycle action');
     if(['refill','rotate'].includes(kind)&&await this.prepared(kind,input,before)!==true)throw Error('Crypto preparation is not durably saved');
     await this.adapter.assertWallet();

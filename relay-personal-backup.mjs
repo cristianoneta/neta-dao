@@ -12,10 +12,10 @@ export function personalBackupScope({chain,contract,wallet}){
   return JSON.stringify([chain,contract,wallet]);
 }
 const header=(scope,revision)=>JSON.stringify({version:1,scope,revision});
-async function key(code,salt,scope){
+async function key(code,salt,scope,purpose='neta-personal-backup-v1'){
   if(!/^[a-f0-9]{64}$/.test(code||''))throw Error('Generated 256-bit recovery code required');
   const secret=Uint8Array.from(code.match(/../g),s=>parseInt(s,16));
-  try{const material=await crypto.subtle.importKey('raw',secret,'HKDF',false,['deriveKey']);return await crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt,info:enc.encode('neta-personal-backup-v1:'+scope)},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}finally{secret.fill(0);}
+  try{const material=await crypto.subtle.importKey('raw',secret,'HKDF',false,['deriveKey']);return await crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt,info:enc.encode(purpose+':'+scope)},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}finally{secret.fill(0);}
 }
 function validateSnapshot(s,scope){
   if(s?.version!==1||s.scope!==scope||s.corecryptoVersion!=='10.5.3'||!s.descriptor||! /^[a-f0-9]{64}$/.test(s.descriptor.fingerprint||'')||
@@ -81,4 +81,18 @@ export class PersonalBackupClient{
     await this.wallet();if(receipt.revision!==envelope.revision||receipt.digest!==digest||!Number.isSafeInteger(receipt.updated))throw Error('Backup acknowledgement mismatch');
     return {revision:receipt.revision,digest,updated:receipt.updated};
   }
+}
+
+// Separate key-wrapping domain; no unwrapped DB key is stored outside memory.
+export async function wrapPersonalDatabaseKey(scopeObject,secret,code){
+  const scope=personalBackupScope(scopeObject);
+  if(!(secret instanceof Uint8Array)||secret.length!==32)throw Error('Invalid database key');
+  const salt=crypto.getRandomValues(new Uint8Array(32)),iv=crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:enc.encode(scope)},await key(code,salt,scope,'neta-personal-db-key-v1'),secret));
+  return JSON.stringify({version:1,salt:b64(salt),iv:b64(iv),ciphertext:b64(ciphertext)});
+}
+export async function unwrapPersonalDatabaseKey(scopeObject,wrapped,code){
+  const scope=personalBackupScope(scopeObject);if(typeof wrapped!=='string'||wrapped.length>1024)throw Error('Invalid wrapped database key');
+  const value=JSON.parse(wrapped);if(value.version!==1)throw Error('Invalid wrapped database key');
+  return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(value.iv,12),additionalData:enc.encode(scope)},await key(code,bytes(value.salt,32),scope,'neta-personal-db-key-v1'),bytes(value.ciphertext,48)));
 }

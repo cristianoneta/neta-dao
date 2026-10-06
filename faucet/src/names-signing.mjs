@@ -77,7 +77,7 @@ export function createBridge({chainId='uni-7',client,lookup,assertWallet,verifyD
     matchTransaction(found.tx,r);
     return {transactionHash:hashValue,chainId,height:found.height,code:found.code,intentMatched:true,events:found.events||[]};
   }
-  async function execute(request,{beforeSign=async()=>{}}={}){
+  async function execute(request,{beforeSign=async()=>{},onSigned=async()=>{}}={}){
     const r=structuredClone(request);requestValid(r);
     // Legacy no-admin requests remain readable by recover(), never signable on mainnet.
     if(r.kind==='instantiate'&&(chainId==='juno-1'?r.migrationAdmin!==MAINNET_UPGRADE_ADMIN:r.migrationAdmin!==undefined))throw Error('Review the required chain-specific migration administrator.');
@@ -102,6 +102,12 @@ export function createBridge({chainId='uni-7',client,lookup,assertWallet,verifyD
           await assertWallet(r.owner);
           await beforeSign();
           row={...row,status:'signed',hash:hash(bytes),bytes:toBase64(bytes)};save(storage,key,row);
+          // A recovery-aware caller may durably back up these exact signed bytes
+          // before journalBroadcast can submit them. Failure here is proven
+          // not-broadcast and retains the recorded attempt for explicit recovery.
+          await onSigned({transactionHash:row.hash});
+          await assertWallet(r.owner);
+          await beforeSign();
         }catch(error){row.status='not_broadcast';save(storage,key,row);throw error;}
         return signed;
       },
@@ -165,5 +171,5 @@ export function createBridge({chainId='uni-7',client,lookup,assertWallet,verifyD
       return receipt;
     });
   }
-  return {execute,recover,adminReviewGuard:true};
+  return {execute,recover,adminReviewGuard:true,signedCheckpointGuard:true};
 }

@@ -1,5 +1,57 @@
 # Personal messaging first — owner continuation, 6 October 2026
 
+## Browser integration checkpoint — 6 October 2026
+
+Continue draft [PR #195](https://github.com/cristianoneta/neta-dao/pull/195),
+branch `codex/personal-messaging-recovery-mainnet`. This checkpoint supersedes
+older statements below that the controller and real-profile restore are absent.
+
+The personal browser controller now connects real CoreCrypto, the encrypted local
+checkpoint, archive, cursor, outbound journal, lifecycle actions and exact-byte
+signing bridge. Automatic encrypted snapshots cover all these records together.
+The bridge requires a successful backup of the exact signed bytes before broadcast;
+failed or ambiguous uploads preserve the attempt and block continuation. Recovery
+uses receipts and never automatically retransmits. Restored profiles remain
+read-only, including after a rejected rotation, until an explicitly reviewed new
+key generation is confirmed. Old generation keys remain available for delayed reads.
+
+A pinned CoreCrypto cache issue was found by the interrupted-decryption test.
+Restoration now creates a fresh disposable same-origin WASM runtime before copying
+checkpoint blocks; reopening the old runtime could retain an advanced ratchet.
+The iframe is runtime isolation, not a security boundary. The unmounted Inbox
+component provides recovery-code setup, unlock/restore, history, contact permissions,
+review/confirm actions and pending recovery. `relay-personal-session.mjs` wires the
+actual wallet/query/backup adapters; its default deployment still fails closed.
+
+Local evidence: **166 root Node tests, 59 signing/faucet tests, seven backup tests
+and 22 mailbox Rust tests**. The real-browser integration test exercises create,
+registration, send/read/reply, exact ciphertext retry after rejection, pre-ready and
+inbound crashes, wrong recovery code, interrupted fresh-profile import, historical
+and unread messages, rotation/retired keys, unknown accepted transactions, exact
+signed bytes in backup before broadcast, failed backup, lost acknowledgement,
+concurrent tabs/profiles and wallet switching. The tested UI creates/registers a real
+local crypto profile; desktop/tablet/mobile layouts (1440/768/390/320) were inspected.
+Wallet, chain and remote backup transport in this browser test are simulated.
+Actual HTTP/ADR-36/SQLite behavior is covered separately by the backup suite.
+Inspect the latest PR-head Actions results before integration; local evidence is
+not a claim that a newer hosted run passed.
+
+The contract candidate now requires mainnet `sender_generation` and
+`expected_previous_generation` at execution, fencing delayed sends and competing
+rotations. Candidate v0.4 WASM SHA-256 (Rust 1.81.0):
+`835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708`.
+The deployed v0.1 WASM asset and UNI-7 pin are unchanged.
+
+**Still not live:** production Inbox mounting/runtime review, backup provider and
+budget approval, owner-reviewed mainnet deployment and the consenting two-wallet
+mainnet test remain. The deployment pin is null and production SEND is disabled.
+No service, cost, wallet transaction or real remote backup was created. Restoring
+an unknown transaction without provable inclusion/non-broadcast remains locked;
+a fresh profile cannot independently prove a malicious provider's freshness.
+Owner upgrade admin, active owned .neta sender policy and disabled DAO write routes
+are unchanged. After personal release: shared DAO recovery/mainnet testing, then
+payment requests/invoices and Treasury linkage.
+
 ## Continuation — 6 October 2026, personal messaging recovery candidates
 
 Continue **draft PR #195**, branch `codex/personal-messaging-recovery-mainnet`.

@@ -86,6 +86,8 @@ pub struct Message {
 pub enum ExecuteMsg {
     Dao(dao::Execute),
     Register {
+        #[serde(default)]
+        expected_previous_generation: Option<u64>,
         device_id: String,
         protocol_version: u16,
         fingerprint: String,
@@ -97,6 +99,8 @@ pub enum ExecuteMsg {
         prekeys: Vec<Prekey>,
     },
     SendInitial {
+        #[serde(default)]
+        sender_generation: Option<u64>,
         recipient: String,
         recipient_generation: u64,
         prekey_id: u16,
@@ -104,6 +108,8 @@ pub enum ExecuteMsg {
         ciphertext: Binary,
     },
     Send {
+        #[serde(default)]
+        sender_generation: Option<u64>,
         recipient: String,
         recipient_generation: u64,
         message_id: String,
@@ -252,6 +258,7 @@ pub fn execute(
             dao::execute(deps, env, info, msg)
         }
         ExecuteMsg::Register {
+            expected_previous_generation,
             device_id,
             protocol_version,
             fingerprint,
@@ -272,6 +279,12 @@ pub fn execute(
                 Some(old) => old.generation.checked_add(1).ok_or(Error::Sequence)?,
                 None => 1,
             };
+            let previous_generation = generation - 1;
+            if expected_previous_generation.map_or(policy.chain_id == "juno-1", |expected| {
+                expected != previous_generation
+            }) {
+                return Err(Error::DeviceChanged);
+            }
             IDENTITIES.save(
                 deps.storage,
                 (&info.sender, generation),
@@ -363,6 +376,7 @@ pub fn execute(
             Ok(Response::new().add_attribute("action", "set_block"))
         }
         ExecuteMsg::SendInitial {
+            sender_generation,
             recipient,
             recipient_generation,
             prekey_id,
@@ -374,11 +388,13 @@ pub fn execute(
             info,
             recipient,
             recipient_generation,
+            sender_generation,
             message_id,
             ciphertext,
             Some(prekey_id),
         ),
         ExecuteMsg::Send {
+            sender_generation,
             recipient,
             recipient_generation,
             message_id,
@@ -389,6 +405,7 @@ pub fn execute(
             info,
             recipient,
             recipient_generation,
+            sender_generation,
             message_id,
             ciphertext,
             None,
@@ -403,6 +420,7 @@ fn send(
     info: MessageInfo,
     recipient: String,
     recipient_generation: u64,
+    sender_generation: Option<u64>,
     message_id: String,
     ciphertext: Binary,
     prekey_id: Option<u16>,
@@ -419,6 +437,11 @@ fn send(
         return Err(Error::Blocked);
     }
     let sender_device = DEVICES.load(deps.storage, &info.sender)?;
+    if sender_generation.map_or(env.block.chain_id == "juno-1", |expected| {
+        expected != sender_device.generation
+    }) {
+        return Err(Error::DeviceChanged);
+    }
     let mut receiver = DEVICES.load(deps.storage, &recipient)?;
     if !sender_device.active || !receiver.active || receiver.generation != recipient_generation {
         return Err(Error::DeviceChanged);

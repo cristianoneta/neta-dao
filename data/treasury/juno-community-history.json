@@ -1270,6 +1270,124 @@
       "height": 42335199,
       "status": "PARTIAL",
       "total_usd": "193763.1332293166946401428618"
+    },
+    {
+      "assets": [
+        {
+          "amount": null,
+          "decimals": null,
+          "key": "juno:native:factory/juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0/reece",
+          "raw_amount": "1.000000000000000000",
+          "source_chain": "juno",
+          "symbol": "factory/juno10r39fueph9fq7a6lgswu4zdsg8t3gxlq670lt0/reece",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": null,
+          "decimals": null,
+          "key": "juno:native:factory/juno1ulnur0yl5e3d7d6gekw2stlft8ydltes50lzkem8hnazkvp23g8sfcjt5d/sas",
+          "raw_amount": "3000000000000.000000000000000000",
+          "source_chain": "juno",
+          "symbol": "factory/juno1ulnur0yl5e3d7d6gekw2stlft8ydltes50lzkem8hnazkvp23g8sfcjt5d/sas",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": null,
+          "decimals": null,
+          "key": "juno:native:ibc/055F223602B754BF34FE269B729837A02BDF79E069F2387AEEA9CD28DE961BE7",
+          "raw_amount": "2846700000000.000000000000000000",
+          "source_chain": "juno",
+          "symbol": "uthiol",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "460.900000000000000000",
+          "decimals": 18,
+          "key": "juno:native:ibc/171E8F6687D290D378678310F9F15D367DCD245BF06184532B703A92054A8A4F",
+          "raw_amount": "460900000000000000000.000000000000000000",
+          "source_chain": "juno",
+          "symbol": "DAI.axl",
+          "usd_price": "0.999756",
+          "usd_value": "460.787540400000000000000000"
+        },
+        {
+          "amount": null,
+          "decimals": null,
+          "key": "juno:native:ibc/2578547913C40B0DEBAB7E458F191491DE6288A01E1000E9BAE34103DEB189D3",
+          "raw_amount": "2100000000000.000000000000000000",
+          "source_chain": "juno",
+          "symbol": "uterp",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "11515.791275000000000000",
+          "decimals": 6,
+          "key": "juno:native:ibc/4A482FA914A4B9B05801ED81C33713899F322B24F76A06F4B8FE872485EA22FF",
+          "raw_amount": "11515791275.000000000000000000",
+          "source_chain": "juno",
+          "symbol": "USDC.n",
+          "usd_price": "0.999901",
+          "usd_value": "11514.65121166377500000000000"
+        },
+        {
+          "amount": null,
+          "decimals": null,
+          "key": "juno:native:ibc/8F865D9760B482FF6254EDFEC1FF2F1273B9AB6873A7DE484F89639795D73D75",
+          "raw_amount": "163000000.000000000000000000",
+          "source_chain": "juno",
+          "symbol": "uluna",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "3.28450823233206308701455",
+          "decimals": 6,
+          "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
+          "raw_amount": "3284508.232332063087014550",
+          "source_chain": "juno",
+          "symbol": "ATOM",
+          "usd_price": "1.78",
+          "usd_value": "5.8464246535510722948858990"
+        },
+        {
+          "amount": null,
+          "decimals": null,
+          "key": "juno:native:ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241",
+          "raw_amount": "69000000.000000000000000000",
+          "source_chain": "juno",
+          "symbol": "uhuahua",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "0.00421726998356150977021",
+          "decimals": 6,
+          "key": "juno:native:ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034",
+          "raw_amount": "4217.269983561509770210",
+          "source_chain": "juno",
+          "symbol": "USDC",
+          "usd_price": "0.999901",
+          "usd_value": "0.00421685247383313718074274921"
+        },
+        {
+          "amount": "20495698.21151883222230009616",
+          "decimals": 6,
+          "key": "juno:native:ujuno",
+          "raw_amount": "20495698211518.832222300096163554",
+          "source_chain": "juno",
+          "symbol": "JUNO",
+          "usd_price": "0.00913938",
+          "usd_value": "187317.9743203909848358450528"
+        }
+      ],
+      "generated_at": "2026-10-06T19:31:46.822634Z",
+      "height": 42435910,
+      "status": "PARTIAL",
+      "total_usd": "199299.2637139607847412771194"
     }
   ]
 }

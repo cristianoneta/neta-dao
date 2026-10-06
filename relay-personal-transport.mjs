@@ -15,6 +15,7 @@ export function personalSendRequest(profile, wallet, row, intentId) {
       row.ciphertext.some(n => !Number.isInteger(n) || n < 0 || n > 255) || !/^[a-f0-9]{32}$/.test(intentId))
     throw Error('Invalid saved personal packet');
   const body = {recipient: row.meta.recipient, recipient_generation: row.meta.recipientGeneration,
+    sender_generation: row.meta.senderGeneration,
     message_id: row.id, ciphertext: base64(row.ciphertext)};
   const initial = row.send.initialPrekeyId !== undefined;
   if (initial) body.prekey_id = row.send.initialPrekeyId;
