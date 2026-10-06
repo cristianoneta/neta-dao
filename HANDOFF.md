@@ -1,5 +1,17 @@
 # NETA DAO handoff
 
+## Inbox simplification and DAO mailbox decisions — 2026-10-06
+
+The separate Names inbox filter is removed. Existing NNS system notices appear
+under Messages, All and Unread; their verified source, lifecycle links, ownership
+boundaries and read state are preserved. They remain locally generated system
+notices, not encrypted peer messages. Mainnet messaging is still disabled.
+
+Design decisions for future implementation are recorded in
+[DAO mailbox design](docs/DAO_MAILBOX_DESIGN_2026-10-06.md). Shared DAO inboxes,
+blocking, NNS-only sending, role subaddresses and milestone payment requests are
+not live. Do not expose a working mailbox switcher until its access controls exist.
+
 ## DAO structure — 2026-10-06
 
 People opens with DAO structure, ahead of Members and Contributors. The graph

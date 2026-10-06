@@ -484,3 +484,10 @@ assembly plaza for Main and the green/orange/stone contributor art for SubDAOs.
 Keep branch connectors neutral and allow nested levels and mobile reflow. Show
 only configured units and explicit organizational relationships, with a concise
 authority note. Existing direct Members/Contributors links remain functional.
+
+## Inbox filters — owner update 2026-10-06
+
+Use All, Messages, Governance and Unread. NNS lifecycle notices belong under
+Messages while retaining their system-source label and contextual actions.
+Do not add a separate Names filter. Planned shared-mailbox design is documented
+in DAO_MAILBOX_DESIGN_2026-10-06.md; it is not an enabled UI capability.
