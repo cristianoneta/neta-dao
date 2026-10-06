@@ -109,7 +109,7 @@ test("operations treasury includes the DAO-controlled Osmosis Polytone proxy", (
 test("operations events replay the address index and keep a durable watermark", () => {
   const collector = readFileSync("scripts/update_treasury_events.py", "utf8");
   assert.match(collector, /last_scanned_height/);
-  assert.match(collector, /anchored-incremental-with-full-replay-fallback/);
+  assert.match(collector, /date-bounded-receipts-with-daily-replay/);
   assert.match(collector, /historical address index is empty/);
 });
 

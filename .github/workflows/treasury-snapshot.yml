@@ -6,6 +6,7 @@ on:
     paths:
       - "scripts/update_treasury.py"
       - "scripts/update_treasury_events.py"
+      - "scripts/treasury_history.py"
       - "scripts/update_dao_directory.py"
       - "data/dao-directory.json"
       - "data/treasury/token-registry.json"

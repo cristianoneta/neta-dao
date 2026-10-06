@@ -38,7 +38,8 @@ try {
   assert.equal(await page.locator('[data-section="income"]').evaluate(e => e === document.activeElement), true);
   const detailLink = await page.locator('#pnl-account-nns_registration th a').getAttribute('href');
   assert.match(detailLink, /year=2026&month=10&type=nns_registration/);
-  await page.locator('#pnl-month').selectOption('9');
+  assert.equal(await page.locator('#pnl-month option[value="9"]').isDisabled(), true);
+  await page.locator('#pnl-month').selectOption('11');
   assert.doesNotMatch(await page.locator('#pnl-rows').innerText(), /\$5.00/);
   await page.locator('#pnl-month').selectOption('all');
   assert.match(await page.locator('#pnl-rows').innerText(), /\$5.00/);
@@ -86,9 +87,10 @@ try {
   assert.match(await page.locator('#nns-total').innerText(), /\$10.00/);
   await page.locator('#nns-type').selectOption('nns_renewal');
   assert.equal(await page.locator('#nns-payments tr').count(), 1);
-  await page.locator('#nns-month').selectOption('9');
+  assert.equal(await page.locator('#nns-month option[value="9"]').isDisabled(), true);
+  await page.locator('#nns-month').selectOption('11');
   assert.equal(await page.locator('#nns-payments tr').count(), 0);
-  assert.match(await page.locator('#nns-empty').innerText(), /No matched payments/);
+  assert.match(await page.locator('#nns-empty').innerText(), /not started/);
   await page.locator('#nns-year').selectOption('2028');
   assert.match(await page.locator('#nns-empty').innerText(), /not started/);
   await page.locator('#nns-year').selectOption('2026');

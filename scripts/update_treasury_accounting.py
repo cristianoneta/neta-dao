@@ -146,6 +146,45 @@ def scan(base, manifest):
     raise ValueError('Registry scan limit reached')
 
 
+def reconcile_movements(event_data, ledger):
+    """Attach already validated NNS receipts to exact Treasury legs; never double-count.
+
+    Other transfers require reviewed purpose and payment-time pricing. Reconciliation
+    is a receipt cross-reference, not an opening/closing balance reconciliation.
+    """
+    if (event_data.get('scope') != ledger['scope'] or event_data.get('treasuries') != [
+            {'chain_id': ledger['chain_id'], 'address': ledger['treasury_address']}]):
+        raise ValueError('Movement review identity mismatch')
+    payments = {row['id']: row for row in ledger['entries']}
+    matched, unresolved, review = set(), 0, []
+    for event in event_data.get('events', []):
+        if not event.get('timestamp') or instant(event['timestamp']) < instant('2026-10-01T00:00:00Z'):
+            continue
+        for index, movement in enumerate(event.get('movements', [])):
+            key = f"{event['chain_id']}:{event['tx_hash']}:{movement.get('message_index')}"
+            receipt = payments.get(key)
+            item = {'id': f"{event['id']}:{index}", 'tx_hash': event['tx_hash'],
+                    'timestamp': event['timestamp'], 'denom': movement['denom'],
+                    'direction': movement['direction'], 'raw_amount': movement['raw_amount'],
+                    'counterparty': movement['counterparty'], 'classification': 'unreviewed',
+                    'usd_value': None, 'receipt_id': None}
+            if receipt and (movement['direction'], movement['denom'], movement['raw_amount'], movement['counterparty']) == (
+                    'in', 'cw20:' + ledger['token'], receipt['raw_amount'], ledger['registry']):
+                if key in matched:
+                    raise ValueError('Multiple Treasury legs match one income receipt')
+                matched.add(key)
+                item.update(classification=receipt['category'], usd_value=receipt['usd_value'], receipt_id=key)
+            else:
+                unresolved += 1
+            review.append(item)
+    return {'accounting_start': '2026-10-01T00:00:00Z', 'status': 'PARTIAL',
+            'event_refresh_status': event_data.get('status', 'UNAVAILABLE'),
+            'matched_receipts': len(matched), 'unmatched_receipt_ids': sorted(set(payments) - matched),
+            'unreviewed_movements': unresolved, 'movements': review,
+            'balance_reconciliation': 'UNAVAILABLE',
+            'note': 'Receipt cross-reference only. Missing activity, funding, expenses, internal transfers and historical prices remain unresolved.'}
+
+
 def collect(offline=False):
     manifest = json.loads(MANIFEST.read_text())
     dao = next(d for d in json.loads((ROOT / 'data/dao-directory.json').read_text())['daos'] if d['id'] == 'neta')
@@ -186,7 +225,7 @@ def collect(offline=False):
     checked = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
     return {'schema_version': 1, 'scope': 'neta-main-dao', 'chain_id': manifest['chain_id'],
             'treasury_address': manifest['treasury'], 'registry': manifest['registry'], 'token': manifest['token'],
-            'status': 'PARTIAL', 'refresh_status': 'completed' if live else 'unavailable',
+            'accounting_start': '2026-10-01T00:00:00Z', 'status': 'PARTIAL', 'refresh_status': 'completed' if live else 'unavailable',
             'checked_at': checked, 'last_success_at': checked if live else previous.get('last_success_at'),
             'source': source, 'warnings': warnings,
             'entries': sorted(rows.values(), key=lambda r: (r['timestamp'], r['id']))}

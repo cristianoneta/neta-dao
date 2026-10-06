@@ -38,7 +38,8 @@ class Onboarding(unittest.TestCase):
   token=DAO['tokenContract'];known={token:{'symbol':'NETA','decimals':6}}
   data=[event(token,DAO['core']),event('fake',DAO['core']),event(token,'other'),event(token,DAO['core'],'mint')]
   rows=events.movements(data,{},DAO['core'],known)
-  self.assertEqual(len(rows),1);self.assertEqual(rows[0]['amount'],'5');self.assertEqual(rows[0]['counterparty'],'sender')
+  self.assertEqual(len(rows),2);self.assertEqual(rows[0]['amount'],'5');self.assertEqual(rows[0]['counterparty'],'sender')
+  self.assertIsNone(rows[1]['amount']);self.assertFalse(rows[1]['asset_verified']);self.assertEqual(rows[1]['raw_amount'],'5000000')
   self.assertNotIn('revenue_source',rows[0])
  def test_dao_inventory_separates_custody_and_capabilities(self):
   rows=json.loads((ROOT/'data/dao-directory.json').read_text())['daos'];ops=next(d for d in rows if d['id']=='neta-operations');juno=next(d for d in rows if d['id']=='juno')

@@ -1,5 +1,15 @@
 # NETA DAO handoff
 
+## Continuation — 2026-10-06, accounting cutoff and favicon
+
+Owner narrowed accounting to **1 October 2026 onward, for every DAO**. No older
+backfill. The continuation implements a shared date-bounded receipt collector,
+daily delayed-index replay, exact NNS movement cross-reference and a mint voxel N
+browser icon. See [cutoff implementation](docs/TREASURY_CUTOFF_2026-10-06.md). Publication checks are pending.
+Full P&L and non-NNS classification/pricing/reconciliation remain open. Native Juno
+Community Pool still has no accounting adapter. Preserve existing older exports.
+
+
 Updated **2026-10-06, 13:30 Europe/Berlin**. Current continuation entry point for
 <https://dao.netareborn.com> and `cristianoneta/neta-dao`.
 

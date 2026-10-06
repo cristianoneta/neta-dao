@@ -2,6 +2,7 @@
 """Collect immutable, transaction-backed NETA Operations treasury events."""
 from __future__ import annotations
 
+from collections import Counter
 import base64
 import json
 import os
@@ -13,6 +14,11 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 
+try:
+    from treasury_history import ACCOUNTING_START, scan as receipt_scan
+except ModuleNotFoundError:
+    from scripts.treasury_history import ACCOUNTING_START, scan as receipt_scan
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "treasury" / "events.json"
 REGISTRY = ROOT / "data" / "treasury" / "token-registry.json"
@@ -22,13 +28,13 @@ TREASURY = "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl"
 OSMOSIS_TREASURY = "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80"
 CHAINS = (
     {
-        "id": "juno-1", "name": "Juno", "address": TREASURY, "creation_height": 4_322_988,
+        "id": "juno-1", "name": "Juno", "rests": ("https://juno.api.m.stavr.tech", "https://juno-api.polkachu.com"), "address": TREASURY, "creation_height": 4_322_988,
         "rpcs": ("https://juno-rpc.publicnode.com", "https://juno.api.pocket.network", "https://juno-rpc.polkachu.com"),
         "explorer_tx": "https://atomscan.com/juno/transactions/{hash}",
         "explorer_account": "https://atomscan.com/juno/accounts/{address}", "require_history": True,
     },
     {
-        "id": "osmosis-1", "name": "Osmosis", "address": OSMOSIS_TREASURY, "creation_height": 15_838_602,
+        "id": "osmosis-1", "name": "Osmosis", "rests": ("https://osmosis-api.polkachu.com", "https://rest.cosmos.directory/osmosis"), "address": OSMOSIS_TREASURY, "creation_height": 15_838_602,
         "rpcs": ("https://osmosis-rpc.publicnode.com", "https://osmosis-rpc.polkachu.com"),
         "explorer_tx": "https://www.mintscan.io/osmosis/tx/{hash}",
         "explorer_account": "https://www.mintscan.io/osmosis/address/{address}", "require_history": False,
@@ -191,13 +197,13 @@ def movements(events, registry, address=TREASURY, cw20_tokens=None):
         attrs = dict(attributes(event))
         contract = attrs.get("_contract_address")
         meta = (cw20_tokens or {}).get(contract)
-        if not meta or attrs.get("action") not in {"transfer", "transfer_from", "send", "send_from"}:
+        if not contract or attrs.get("action") not in {"transfer", "transfer_from", "send", "send_from"}:
             continue
         sender, recipient, raw = attrs.get("from"), attrs.get("to"), attrs.get("amount")
         if address not in {sender, recipient} or not raw or not raw.isdigit() or sender == recipient:
             continue
         direction = "out" if sender == address else "in"
-        result.append({"direction": direction, "asset": meta["symbol"], "amount": str(Decimal(raw) / Decimal(10) ** meta["decimals"]), "raw_amount": raw, "denom": "cw20:" + contract, "counterparty": recipient if direction == "out" else sender})
+        result.append({"direction": direction, "asset": meta["symbol"] if meta else "Unverified CW20", "amount": str(Decimal(raw) / Decimal(10) ** meta["decimals"]) if meta else None, "raw_amount": raw, "message_index": int(attrs["msg_index"]) if str(attrs.get("msg_index", "")).isdigit() else None, "asset_verified": bool(meta), "denom": "cw20:" + contract, "counterparty": recipient if direction == "out" else sender})
     return result
 
 
@@ -227,7 +233,7 @@ def proposal_titles(module=PROPOSAL_MODULE):
     errors = []
     for base in PROPOSAL_RESTS:
         try:
-            proposals = request_json(f"{base}/cosmwasm/wasm/v1/contract/{module}/smart/{query}")["data"]["proposals"]
+            proposals = request_json(f"{base}/cosmwasm/wasm/v1/contract/{module}/smart/{query}", timeout=8)["data"]["proposals"]
             return {str(item["id"]): item["proposal"].get("title") for item in proposals}
         except Exception as error:
             errors.append(f"{base}: {error}")
@@ -299,27 +305,81 @@ def collect_chain(chain, existing, registry, titles, source=None):
     return list(prior.values()), {"chain_id": chain["id"], "address": chain["address"], "source": base, "indexed_transactions": indexed_total, "last_scanned_height": end_height, "anchor_hash": anchor_hash, "scan_start_height": start_height, "incremental": incremental, "range_capable": range_capable, "historical_missing_transactions": historical_missing, "historical_missing_tx_hashes": sorted(unresolved), "contract_creation_height": chain["creation_height"]}
 
 
+def collect_receipt_chain(chain, existing, registry, titles, source=None):
+    prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"]}
+    errors = []
+    for base in chain["rests"]:
+        try:
+            found, coverage = receipt_scan(request_json, base, chain, list(prior.values()), source,
+                full_replay=os.environ.get("TREASURY_EVENTS_FULL_REPLAY") == "1")
+            candidate = dict(prior)
+            for digest, receipt in found.items():
+                if datetime.fromisoformat(receipt['timestamp'].replace('Z', '+00:00')) < datetime.fromisoformat(ACCOUNTING_START.replace('Z', '+00:00')):
+                    continue
+                # Failed execution is retained as activity, but its attempted transfers are not payments.
+                succeeded = int(receipt['code']) == 0
+                tx = {"hash": digest, "height": receipt['height'], "tx_result": {
+                    "events": receipt.get('events', []) if succeeded else []}}
+                row = normalize(tx, receipt['timestamp'], registry, chain, titles)
+                row['status'] = 'confirmed' if succeeded else 'failed'
+                row['code'] = int(receipt['code'])
+                row['evidence'] = {'kind': 'provider-receipt', 'provider': base}
+                row['accounting_start'] = ACCOUNTING_START
+                for index, movement in enumerate(row['movements']):
+                    movement['id'] = f"{row['id']}:{index}"
+                    movement['classification'] = 'unreviewed'
+                    movement['usd_value'] = None
+                    movement['valuation_status'] = 'payment-time-price-unavailable'
+                old = prior.get(digest)
+                if old:
+                    if not row.get('proposal_title'):
+                        row['proposal_title'] = old.get('proposal_title')
+                    # Source/enrichment may improve; money and timestamp may not change silently.
+                    fields = ('direction', 'raw_amount', 'denom', 'counterparty')
+                    old_moves = [tuple(m.get(k) for k in fields) for m in old.get('movements', [])]
+                    new_moves = [tuple(m.get(k) for k in fields) for m in row['movements']]
+                    migration_additions = (source or {}).get('adapter') != 'cosmos-rest-receipts' and not (Counter(old_moves) - Counter(new_moves))
+                    if (old_moves != new_moves and not migration_additions) or (old.get('timestamp') and datetime.fromisoformat(old['timestamp'].replace('Z', '+00:00')) != datetime.fromisoformat(row['timestamp'].replace('Z', '+00:00'))):
+                        raise ValueError('Previously recorded movement changed')
+                candidate[digest] = row
+            return list(candidate.values()), coverage
+        except Exception as error:
+            errors.append(f"{base}: {type(error).__name__}: {error}")
+    raise RuntimeError('Receipt refresh unavailable; ' + ' | '.join(errors))
+
+
 def collect(chains=CHAINS, output=OUT, proposal_module=PROPOSAL_MODULE, scope="neta-operations-cross-chain"):
     previous = load_existing(output)
     existing = previous.get("events", [])
     source_by_chain = {row["chain_id"]: row for row in previous.get("sources", [])}
-    registry, titles = denom_registry(), proposal_titles(proposal_module)
+    registry = denom_registry()
+    try:
+        titles = proposal_titles(proposal_module)
+    except Exception:
+        titles = {}  # Optional enrichment must not block monetary receipt collection.
     rows, sources = [], []
     for chain in chains:
-        chain_rows, source = collect_chain(chain, existing, registry, titles, source_by_chain.get(chain["id"]))
+        chain_rows, source = collect_receipt_chain(chain, existing, registry, titles, source_by_chain.get(chain["id"]))
         rows.extend(chain_rows)
         sources.append(source)
     rows.sort(key=lambda row: (row.get("timestamp") or "", row["chain_id"] == "juno-1", row["height"], row["tx_hash"]), reverse=True)
     missing = sum(not row.get("timestamp") for row in rows)
     warnings = [f"Exact block timestamp unavailable from public RPC archives for {missing} historical events."] if missing else []
     warnings += [f"{source['chain_id']}: {source['historical_missing_transactions']} cached historical transactions are currently absent from the public index; records retained." for source in sources if source["historical_missing_transactions"]]
-    return {"schema_version": 2, "generated_at": now(), "treasuries": [{"chain_id": chain["id"], "address": chain["address"]} for chain in chains], "scope": scope, "sources": sources, "cursor": {"strategy": "anchored-incremental-with-full-replay-fallback", "chains": sources}, "warnings": warnings, "events": rows}
+    warnings.append("Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses.")
+    return {"schema_version": 2, "accounting_start": ACCOUNTING_START, "status": "PARTIAL", "generated_at": now(), "treasuries": [{"chain_id": chain["id"], "address": chain["address"]} for chain in chains], "scope": scope, "sources": sources, "cursor": {"strategy": "date-bounded-receipts-with-daily-replay", "chains": sources}, "warnings": warnings, "events": rows}
 
 
 def collect_main(dao, output):
     chain = {**CHAINS[0], "address": dao["core"], "creation_height": dao["creationHeight"],
              "probe_key": "transfer.recipient", "queries": (*QUERIES, "wasm.from", "wasm.contract_address"),
              "cw20_tokens": {dao["tokenContract"]: {"symbol": "NETA", "decimals": 6}}}
+    accounting_path = ROOT / 'data/treasury/neta-main-accounting.json'
+    if accounting_path.exists():
+        ledger = json.loads(accounting_path.read_text())
+        if (ledger.get('chain_id'), ledger.get('treasury_address'), ledger.get('token')) != (dao['network'], dao['core'], dao['tokenContract']):
+            raise ValueError('Known receipt ledger identity mismatch')
+        chain['known_receipts'] = ledger.get('entries', [])
     expected = [{"chain_id": dao["network"], "address": dao["core"]}]
     previous = load_existing(output)
     if previous.get("events") or previous.get("sources"):
@@ -355,7 +415,9 @@ def main():
     else:
         data = collect()
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temporary = output.with_suffix(".json.tmp")
+    temporary.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temporary.replace(output)
     counts = {}
     for event in data["events"]:
         counts[event["type"]] = counts.get(event["type"], 0) + 1
