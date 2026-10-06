@@ -159,11 +159,16 @@ def run():
     from community_statement import prices_for
     try:
         accrued = accrue(dao, snapshot, bank_feed)
+        ledger['accrual_refresh_status'] = 'completed'
     except Exception as error:
         accrued = json.loads(archive.read_text()) if archive.exists() else None
+        ledger['accrual_refresh_status'] = 'unavailable'
         ledger['warnings'].append('Daily staking refresh failed; prior evidence retained: ' + str(error))
     if accrued:
         events, ledger = project(dao, bank_feed, ledger, accrued, prices_for(accrued['intervals'], PRICES))
+        if ledger['accrual_refresh_status'] != 'completed':
+            ledger['accrual_coverage']['status'] = 'UNAVAILABLE'
+            events['accrual_coverage']['status'] = 'UNAVAILABLE'
         atomic(path, events)
     atomic(ledger_path, ledger)
     print(json.dumps({'snapshot': snapshot, 'events_status': events['status'], 'events': len(events['events']),

@@ -132,6 +132,9 @@ def collect(dao, snapshot, events, path=OUT):
     today = datetime.now(timezone.utc).date().isoformat()
     if path.exists():
         data = json.loads(path.read_text()); opening = validate(data)
+        for row in data['intervals']:
+            if claim_rows(events, row['start'], row['end']) != row['claims']:
+                raise ValueError('Recorded reward claims changed; retained accrual requires reconciliation')
         if data.get('last_sample_day') == today: return data
         target = (instant(opening.get('boundary_at', opening['timestamp'])).date() + timedelta(days=1)).isoformat() + 'T00:00:00Z'
         if instant(target) >= instant(snapshot['generated_at']): return data
