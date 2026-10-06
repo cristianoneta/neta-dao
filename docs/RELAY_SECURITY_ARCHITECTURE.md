@@ -36,19 +36,20 @@ are not supported product features.
 
 ## Contract boundary: implemented versus required
 
-Implemented in `contracts/neta-relay-mailbox/src/lib.rs`: hardcoded `uni-7`;
-no attached funds; one current registration; generation increments on register/
-revoke; bounded prekeys; atomic initial-prekey consumption with ciphertext storage;
-message-ID deduplication; public inbox/device/sent queries; blocklist;
-10-second sender cooldown; 4096-byte ciphertext limit; 50-entry query limit.
-The contract stores opaque ciphertext and does not perform encryption or verify
-its decrypted envelope. Gas fees are separate from attached application funds.
+The deployed v0.1 instance remains UNI-7-only. Current v0.4 source adds explicit
+Juno-mainnet instantiation with the agreed owner, binds the production NNS registry
+at instantiation and disables all DAO execute routes in the personal-mainnet mode.
+Owner decision 2026-10-06 20:37 removes the former 5-NETA staking prerequisite.
+Sending requires a current active sender-owned .neta identity, checked against the
+registry; no staking query or additional messaging fee is introduced.
 
-**Not implemented:** mainnet network configuration, stake queries or a 5-NETA
-gate, historical registrations and a production migration/recovery policy.
-The agreed future mainnet policy requires at least 5 actively staked NETA at
-registration/send, with independent review. The current crate cannot simply be
-instantiated on `juno-1`; it rejects that chain.
+The source retains no attached funds, generation-bound recipient consent, historical
+identities, monotonic prekeys, atomic initial-prekey consumption, deduplication,
+blocking, 10-second sender cooldown, 4096-byte ciphertext and 50-entry query limits.
+The contract stores opaque ciphertext; it does not encrypt or authenticate plaintext.
+Gas is separate from application fees. Read the personal-mainnet preparation note:
+source support does not mean a deployed contract, finished client or release approval.
+Production backup/migration/client/recovery requirements remain open.
 
 ## Local state, crash and recovery
 

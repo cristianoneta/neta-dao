@@ -6,6 +6,7 @@ on:
       - '.github/workflows/relay-crypto-browser.yml'
       - 'spikes/relay-corecrypto/**'
       - 'relay-uni7-*.mjs'
+      - 'relay-personal-*.mjs'
       - 'relay-uni7-lab.html'
       - 'relay-uni7-lab.css'
       - 'assets/relay-crypto/**'

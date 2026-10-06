@@ -44,7 +44,7 @@ fn setup() -> OwnedDeps<
         deps.as_mut(),
         env(),
         mock_info("creator", &[]),
-        InstantiateMsg {},
+        InstantiateMsg::default(),
     )
     .unwrap();
     execute(
@@ -443,4 +443,140 @@ fn recipient_consent_cannot_be_granted_by_sender_and_rotation_invalidates_it() {
     )
     .unwrap();
     assert_eq!(identity.unwrap().device_id, "alice-device");
+}
+
+#[test]
+fn mainnet_requires_explicit_mode_owner_and_keeps_dao_closed() {
+    let mut deps = mock_dependencies();
+    let mut main = env();
+    main.block.chain_id = "juno-1".into();
+    assert!(instantiate(
+        deps.as_mut(),
+        main.clone(),
+        mock_info(policy::OWNER, &[]),
+        InstantiateMsg::default()
+    )
+    .is_err());
+    assert!(instantiate(
+        deps.as_mut(),
+        main.clone(),
+        mock_info("other", &[]),
+        InstantiateMsg { mainnet: true }
+    )
+    .is_err());
+    instantiate(
+        deps.as_mut(),
+        main.clone(),
+        mock_info(policy::OWNER, &[]),
+        InstantiateMsg { mainnet: true },
+    )
+    .unwrap();
+    let config: policy::Config =
+        from_json(query(deps.as_ref(), main.clone(), QueryMsg::Config {}).unwrap()).unwrap();
+    assert_eq!(config.chain_id, "juno-1");
+    assert_eq!(config.nns_registry.as_deref(), Some(policy::REGISTRY));
+    assert!(execute(
+        deps.as_mut(),
+        main.clone(),
+        mock_info(policy::OWNER, &[]),
+        ExecuteMsg::Dao(dao::Execute::BindRegistry {
+            address: "otherregistry".into()
+        })
+    )
+    .is_err());
+    assert!(query(deps.as_ref(), env(), QueryMsg::Config {}).is_err());
+}
+
+#[test]
+fn mainnet_requires_current_active_name_but_never_queries_stake() {
+    use cosmwasm_std::{ContractResult, SystemResult, WasmQuery};
+    let mut main = env();
+    main.block.chain_id = "juno-1".into();
+    for (active, transferred, missing, unavailable, pass) in [
+        (false, false, false, false, false),
+        (true, true, false, false, false),
+        (true, false, true, false, false),
+        (true, false, false, true, false),
+        (true, false, false, false, true),
+    ] {
+        let mut deps = mock_dependencies();
+        instantiate(
+            deps.as_mut(),
+            main.clone(),
+            mock_info(policy::OWNER, &[]),
+            InstantiateMsg { mainnet: true },
+        )
+        .unwrap();
+        let expires = if active {
+            main.block.time.seconds() + 1000
+        } else {
+            main.block.time.seconds()
+        };
+        deps.querier.update_wasm(move |query| {
+            if let WasmQuery::Smart { contract_addr, msg } = query {
+                assert_eq!(
+                    contract_addr,
+                    policy::REGISTRY,
+                    "No staking query is authorized"
+                );
+                if unavailable {
+                    return SystemResult::Ok(ContractResult::Err("registry unavailable".into()));
+                }
+                let raw = String::from_utf8(msg.to_vec()).unwrap();
+                let response = if raw.contains("name_of") {
+                    if missing {
+                        "{\"address\":\"alice\",\"name\":null}".into()
+                    } else {
+                        "{\"address\":\"alice\",\"name\":\"alice\"}".into()
+                    }
+                } else {
+                    let owner = if transferred {
+                        "different-owner"
+                    } else {
+                        "alice"
+                    };
+                    format!("{{\"name\":\"alice\",\"owner\":\"{owner}\",\"expires_at\":{expires}}}")
+                };
+                SystemResult::Ok(ContractResult::Ok(Binary::from(response.into_bytes())))
+            } else {
+                SystemResult::Ok(ContractResult::Err("unexpected query".into()))
+            }
+        });
+        for who in ["alice", "bob"] {
+            execute(
+                deps.as_mut(),
+                main.clone(),
+                mock_info(who, &[]),
+                register(who, vec![prekey(1)]),
+            )
+            .unwrap();
+        }
+        execute(
+            deps.as_mut(),
+            main.clone(),
+            mock_info("bob", &[]),
+            ExecuteMsg::AllowSender {
+                address: "alice".into(),
+                recipient_generation: 1,
+                sender_generation: 1,
+                allowed: true,
+            },
+        )
+        .unwrap();
+        let result = execute(
+            deps.as_mut(),
+            main.clone(),
+            mock_info("alice", &[]),
+            send_initial(1, 1, 1),
+        );
+        assert_eq!(result.is_ok(), pass, "{result:?}");
+        assert_eq!(
+            DEVICES
+                .load(&deps.storage, &Addr::unchecked("bob"))
+                .unwrap()
+                .prekeys
+                .len(),
+            if pass { 0 } else { 1 }
+        );
+    }
 }

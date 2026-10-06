@@ -110,11 +110,28 @@ export class Uni7Archive {
     store.put({ ...row, status: 'confirmed', sequence });
     await done(tx);
   }
+  async abandonPrepared(id) {
+    const row = await this.record(id);
+    if (!row || row.status === 'rolled_back') return;
+    if (row.direction !== 'out' || row.status !== 'intent') throw Error('Cannot abandon this archive record');
+    const tx = this.db.transaction(STORE, 'readwrite'), completed = done(tx);
+    tx.objectStore(STORE).put({ ...row, status: 'rolled_back' });
+    await completed; // Preserve encrypted content and its audit record.
+  }
+  async confirmPrepared(id, sequence) {
+    const row = await this.record(id);
+    if (row?.direction !== 'out') throw Error('Outgoing archive missing');
+    if (row.status === 'confirmed') {
+      if (row.sequence !== sequence) throw Error('Archive receipt changed');
+      return;
+    }
+    await this.commit(id, sequence);
+  }
   async readable() {
     const rows = await this.all();
     const result = [];
     for (const row of rows) {
-      if (row.status === 'quarantined') continue;
+      if (['quarantined','rolled_back'].includes(row.status)) continue;
       if (row.status !== 'confirmed') throw Error('Unresolved archive intent: device must remain locked');
       const aad = enc.encode(this.wallet + ':' + row.messageId + ':' + row.direction);
       const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: Uint8Array.from(row.iv), additionalData: aad },

@@ -33,7 +33,7 @@ fn setup() -> (DepsOwned, Arc<Mutex<Chain>>) {
         deps.as_mut(),
         env(),
         mock_info("registrar", &[]),
-        InstantiateMsg {},
+        InstantiateMsg::default(),
     )
     .unwrap();
     let state = Arc::new(Mutex::new(Chain {
