@@ -9,6 +9,7 @@ export function backupServer({store,origin,domain,chain,contract,now=Date.now,ve
   if(!Array.isArray(allowedWallets)||!allowedWallets.length||allowedWallets.length>10||allowedWallets.some(w=>!validWallet(w)))throw Error('Explicit pilot backup wallet allowlist required');
   const permitted=new Set(allowedWallets);
   const challenges=new Map(),sessions=new Map(),rates=new Map();
+  let active=0;
   const purge=map=>{for(const [k,v] of map)if(v.expires<=now())map.delete(k);};
   const json=(res,status,value)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'}).end(JSON.stringify(value));};
   return http.createServer(async(req,res)=>{
@@ -18,6 +19,9 @@ export function backupServer({store,origin,domain,chain,contract,now=Date.now,ve
     if(req.method==='OPTIONS'){res.setHeader('access-control-allow-methods','GET, POST, PUT');res.setHeader('access-control-allow-headers','Content-Type, Authorization');res.writeHead(204).end();return;}
     purge(challenges);purge(sessions);purge(rates);
     if(!['/v1/challenge','/v1/auth','/v1/backup'].includes(req.url)){json(res,404,{error:'Not found'});return;}
+    if(active>=4){json(res,429,{error:'Backup request capacity reached'});return;}
+    active++;let released=false;const release=()=>{if(!released){released=true;active--;}};
+    res.once('finish',release);res.once('close',release);
     try{
       let session=null;
       if(req.url==='/v1/backup'){

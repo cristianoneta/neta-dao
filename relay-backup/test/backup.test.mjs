@@ -70,3 +70,18 @@ test('HTTP auth rejects replay/expiry/origin and client recovers a lost backup a
   assert.equal(store.get(scope).revision,1);
  }finally{await new Promise(r=>server.close(r));store.close();}
 });
+test('concurrent request cap bounds memory and releases capacity after completion',async()=>{
+ const store=new BackupStore(':memory:');let release,entered=0;
+ const hold=new Promise(r=>release=r),origin='https://dao.netareborn.com';
+ const server=backupServer({store,origin,domain:'https://backup.example',chain:'juno-1',contract:scopeObject.contract,allowedWallets:[wallet],verify:async()=>{entered++;await hold;return true;}});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;
+ const post=(path,body)=>fetch(url+path,{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
+ try{
+  const challenges=[];for(let i=0;i<4;i++)challenges.push(await(await post('/v1/challenge',{wallet})).json());
+  const pending=challenges.map(c=>post('/v1/auth',{nonce:c.nonce,signature:{}}));
+  for(let i=0;i<100&&entered<4;i++)await new Promise(r=>setTimeout(r,5));assert.equal(entered,4);
+  assert.equal((await post('/v1/challenge',{wallet})).status,429);
+  release();assert.ok((await Promise.all(pending)).every(r=>r.status===200));
+  assert.equal((await post('/v1/challenge',{wallet})).status,200);
+ }finally{release();await new Promise(r=>server.close(r));store.close();}
+});

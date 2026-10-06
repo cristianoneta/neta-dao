@@ -38,7 +38,7 @@ credentials; reconnect requires another wallet authentication. This is not yet a
 background backup experience across browser restarts.
 
 Only `https://dao.netareborn.com` is accepted as the web origin. A private pilot
-allowlist limits admission. Challenge/IP/session capacity is bounded. The service
+allowlist limits admission. Challenge/IP/session capacity is bounded; at most four requests may process concurrently. The service
 ignores forwarded IP headers, so a shared proxy may conservatively rate-limit
 multiple users together; review proxy behavior before a public release.
 

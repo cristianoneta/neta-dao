@@ -26,7 +26,7 @@ Additional implemented candidates (not mounted in the production Inbox):
   Pilot wallet allowlist required; no faucet environment or signing key is used.
   Provider/cost approval is still outstanding. No service or upload was created.
 
-Validation: 166 root Node tests and five backup integration tests pass locally.
+Validation: 166 root Node tests and six backup integration tests pass locally.
 The lifecycle/protocol application head `188fbe8` passed all three hosted checks;
 its new real-CoreCrypto browser test covers generation isolation, delayed old-device
 reads, new-device reply, replay rejection and historical identity. Backup candidate
