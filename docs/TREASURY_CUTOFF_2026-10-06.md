@@ -119,3 +119,46 @@ adapter must remove review metadata from executable messages, bind the approved
 revision/action to verified outgoing treasury legs, avoid duplicate payments and
 provide payment-time USD valuation before posting an expense. No category may be
 inferred from a proposal title or merely from its `proposal_id`.
+
+
+## Latest checkpoint — 2026-10-06, Treasury categories and provisional totals
+
+[PR #177](https://github.com/cristianoneta/neta-dao/pull/177) is merged as
+`ca7160eb13aacbb1937b83e4c3e8abefe290c3dd`. It follows the cutoff/favicon release
+[#176](https://github.com/cristianoneta/neta-dao/pull/176).
+
+- Accounting starts **1 October 2026 UTC for every DAO**. Preserve earlier exports;
+  do not restart pre-October backfills. Connected collectors continue on schedule.
+- NETA's successfully refreshed, reviewed recorded activity can show **$5.00 income,
+  $0.00 expenses and $5.00 provisional surplus**, plus zeros in empty accounts.
+  These are snapshot totals, not a full coverage/reconciled-balance claim. Failures,
+  stale current snapshots and unresolved movements block provisional totals.
+- Treasury events show **Income · NNS registrations/renewals** when exact receipt
+  evidence matches. Unknown legs remain **Unclassified**. Mixed transfers are visible.
+- Each proposal action has a shared spending-category dropdown. Categories persist
+  in local drafts and review revisions; changing a payment invalidates its category
+  binding. Internal transfers have a separate non-expense option. No wallet write
+  was performed to test this feature.
+- **Still open:** automatic expense posting from executed mainnet proposals. The
+  category is planned-purpose metadata; the execution adapter must match approved
+  actions to actual treasury legs and payment-time prices before booking. Native
+  Juno Community Pool and generic Operations accounting still need adapters.
+- The mint voxel-N favicon/apple-touch icon from #176 is live.
+
+Validation: **126 JavaScript + 43 targeted Python tests** pass. Final application
+head `63d91447c2915f026cedb11ca3c9f1219e50a3b0` passed frontend/contract CI
+[37462995391](https://github.com/cristianoneta/neta-dao/actions/runs/37462995391)
+and browser CI [37462995304](https://github.com/cristianoneta/neta-dao/actions/runs/37462995304).
+Treasury/proposal screenshots were inspected at **320, 390, 768 and 1440 px**;
+browser checks cover category persistence/invalidation, zero/result display,
+NNS tags, DAO isolation, identity/fetch failures and keyboard interaction.
+Pages [37463261077](https://github.com/cristianoneta/neta-dao/actions/runs/37463261077)
+succeeded. All **13 checked served files matched source SHA-256**, including
+HTML, category/event/P&L modules, shared CSS, the NNS register and favicon.
+Main frontend/contract CI [37463249064](https://github.com/cristianoneta/neta-dao/actions/runs/37463249064) also passed.
+
+Fresh collector evidence: NETA receipt refresh **2026-10-06 12:23:42 UTC** succeeded,
+with **1 matched receipt, 0 unreviewed observed movements** and PARTIAL index coverage.
+Main collector [37462915165](https://github.com/cristianoneta/neta-dao/actions/runs/37462915165)
+and Operations collector [37463193815](https://github.com/cristianoneta/neta-dao/actions/runs/37463193815)
+succeeded. Preserve their newer main-branch snapshot commits when continuing.
