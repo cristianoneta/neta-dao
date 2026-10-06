@@ -2,6 +2,7 @@ import copy
 import importlib.util
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -72,8 +73,9 @@ class AccountingTests(unittest.TestCase):
         with self.assertRaises(ValueError): self.rows(tx)
 
     def test_outage_retains_archive_without_complete_period_claim(self):
-        with patch.object(accounting, 'scan', side_effect=OSError('offline')):
-            data = accounting.collect()
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(accounting, 'OUTPUT', Path(directory) / 'accounting.json'), patch.object(accounting, 'scan', side_effect=OSError('offline')):
+                data = accounting.collect()
         self.assertEqual(data['status'], 'PARTIAL')
         self.assertEqual(data['refresh_status'], 'unavailable')
         self.assertEqual(len(data['entries']), 1)

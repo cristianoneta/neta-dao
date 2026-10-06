@@ -5,6 +5,9 @@ import { chromium } from 'playwright';
 
 const root = new URL('../../', import.meta.url);
 const ledger = JSON.parse(await readFile(new URL('data/treasury/neta-main-accounting.json', root)));
+// Pin the archived first purchase; later live sales must not change fixture totals.
+ledger.entries = ledger.entries.filter(row => row.tx_hash === '85689A2C75DE86829D4116FA0AABBA5062D269679CA139984E169E8E2ACF8DC1');
+assert.equal(ledger.entries.length, 1);
 const server = http.createServer(async (req, res) => {
   try {
     const path = new URL(req.url, 'http://localhost').pathname;
@@ -18,6 +21,7 @@ try {
   browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) });
   const context = await browser.newContext();
   await context.route('https://**/*', route => route.abort());
+  await context.route('**/neta-main-accounting.json*', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(ledger) }));
   await context.addInitScript(() => localStorage.setItem('neta-governance-selected-dao', 'neta'));
   const page = await context.newPage(), errors = [];
   page.on('pageerror', e => errors.push(e.message));
