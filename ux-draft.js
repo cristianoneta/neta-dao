@@ -60,7 +60,7 @@
       if(!view)continue;
       let empty=view.querySelector(".dao-scope-empty");
       if(!empty){empty=document.createElement("div");empty.className="dao-scope-empty";view.append(empty)}
-      const unavailable=id!=="neta-operations"&&name!=="treasury";
+      const unavailable=name==="delivery";
       [...view.children].slice(1).forEach(child=>{if(child!==empty&&child.id!=="dao-members-panel"&&child.id!=="treasury-nns")child.hidden=unavailable});
       if(name==="treasury"){
         view.querySelectorAll(".allocation-card,.risk-impact-grid,.cashflow-card,.treasury-bottom-grid").forEach(el=>el.hidden=id!=="neta-operations");

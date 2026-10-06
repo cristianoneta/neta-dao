@@ -1,5 +1,19 @@
 # NETA DAO handoff
 
+## Delivery placeholder for every DAO — 2026-10-06
+
+Owner requested removal of fictional Delivery records. Every DAO and SubDAO now
+uses the same UX DRAFT / NOT LIVE DATA header and scoped no-live-data placeholder.
+The former Operations sample mandates, budgets, paid amounts, owner, milestones,
+evidence and inactive action buttons are removed from HTML, not merely hidden.
+Delivery and its Home summary describe planned functionality; there is no live
+mandate tracking, acceptance or payment release. DAO switching cannot restore
+sample records. Other income is always the last income row in the shared statement,
+including consolidated views, while named income sources keep their relative order.
+Treasury token quantities (assets, LP underlyings and accrual events) display two
+decimal places; USD values remain visible and accounting precision is unchanged.
+Existing Treasury exports and transaction flows are unchanged.
+
 ## Daily staking accrual, recorded zeros and Home — LIVE, 2026-10-06
 
 Owner requested daily accrued staking income, no duplicate revenue on claims, and
