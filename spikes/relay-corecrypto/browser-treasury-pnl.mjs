@@ -42,7 +42,7 @@ try {
   await context.addInitScript(() => { if (!localStorage.getItem('neta-governance-selected-dao')) localStorage.setItem('neta-governance-selected-dao', 'neta'); });
   const page = await context.newPage(), errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  await page.goto(`http://127.0.0.1:${server.address().port}/index.html#treasury`);
+  await page.goto(`http://127.0.0.1:${server.address().port}/index.html?dao=neta&subdao=main#treasury`);
   await page.locator('#pnl-year').selectOption('2026');
   await page.locator('#pnl-month').selectOption('10');
   await page.waitForFunction(() => document.querySelector('#pnl-rows').textContent.includes('$5.00'));

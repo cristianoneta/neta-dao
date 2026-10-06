@@ -9,7 +9,7 @@ let data = null, entries = [], error = '', loading = false;
 function render() {
   const query = new URLSearchParams({ year: year.value, month: month.value, type: type.value });
   history.replaceState(null, '', `${location.pathname}?${query}`);
-  $('nns-back').href = `index.html?${new URLSearchParams({ dao: 'neta', pnl_year: year.value, pnl_month: month.value })}#treasury`;
+  $('nns-back').href = `index.html?${new URLSearchParams({ dao: 'neta', subdao: 'main', pnl_year: year.value, pnl_month: month.value })}#treasury`;
   const range = period(Number(year.value), month.value === 'all' ? 'all' : Number(month.value));
   const selected = entries.filter(row => type.value === 'all' || row.category === type.value);
   const summary = summarize(selected, range), rows = summary.rows.slice().sort((a,b) => Date.parse(b.timestamp)-Date.parse(a.timestamp));

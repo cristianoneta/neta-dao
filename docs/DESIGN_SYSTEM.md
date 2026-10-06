@@ -445,3 +445,20 @@ the statement. Keep snapshot time/source as compact text beneath the hero
 description; omit the separate controls row. Preserve the modest Treasury voxel
 art on desktop without an empty aside row on mobile. Keep source/coverage states
 at the balances and P&L they describe.
+
+
+## Organizational DAO selector — owner decision 2026-10-06
+
+Use Chain → DAO organization → SubDAO. Default to Consolidated overview; visually
+separate it from the native select's DAO units group, with Main first and remaining
+units alphabetically. Operations belongs formally to NETA; no on-chain hierarchy
+is asserted. Chain denotes the governance home; cross-chain custody stays included.
+Use the existing searchable organization picker and a labelled native unit select.
+At mobile widths let SubDAO use a full row and let the header scroll with content
+to leave usable screen space. Treasury omits the network badge entirely.
+
+Consolidated Treasury shows included unit values/dates and links, custody-preserving
+asset positions and expandable P&L unit totals. Missing coverage is explicit at the
+value it affects; do not invent zeros. Other sections remain unit-specific, with
+Main clearly identified for organization scope. Retain existing DAO contract and
+permission identities. No new wallet or transaction flow is introduced.

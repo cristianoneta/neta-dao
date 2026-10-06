@@ -28,6 +28,7 @@ on:
       - 'assets/names-testnet/**'
       - 'tests/fixtures/nns-v2-quote.json'
       - 'dao-directory.js'
+      - 'dao-hierarchy.mjs'
       - 'dao-members.js'
       - 'data/dao-directory.json'
       - 'index.html'
@@ -60,6 +61,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
       - run: node browser-uni7-lab.mjs
+      - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-dao-hierarchy.mjs
       - run: node browser-workspace-security.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-treasury-pnl.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-profile.mjs

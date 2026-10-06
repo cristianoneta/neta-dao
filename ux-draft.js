@@ -56,7 +56,7 @@
     document.querySelector("#people-scope").textContent=(window.NetaDaoDirectory.find(d=>d.id===id)?.name||"Unknown DAO").toUpperCase()+" · PEOPLE";
     for(const name of ["delivery","treasury"]){
       const view=views[name],eyebrow=view?.querySelector(".concept-hero .eyebrow");
-      if(eyebrow)eyebrow.textContent=scope[name];
+      if(eyebrow)eyebrow.textContent=name==="treasury"&&window.NETA_DAO_SCOPE?.consolidated?window.NETA_DAO_SCOPE.organization.name.toUpperCase()+" · CONSOLIDATED TREASURY":scope[name];
       if(!view)continue;
       let empty=view.querySelector(".dao-scope-empty");
       if(!empty){empty=document.createElement("div");empty.className="dao-scope-empty";view.append(empty)}
