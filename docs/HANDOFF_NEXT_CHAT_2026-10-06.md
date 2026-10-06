@@ -1,5 +1,37 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Latest continuation — production Inbox, 6 October 2026
+
+Continue **draft [PR #195](https://github.com/cristianoneta/neta-dao/pull/195)**,
+branch `codex/personal-messaging-recovery-mainnet`, application head
+`46dd99b017f4164b23297c5a20463edc75b37086`.
+[Current detailed handoff](https://github.com/cristianoneta/neta-dao/blob/codex/personal-messaging-recovery-mainnet/docs/HANDOFF_NEXT_CHAT_2026-10-06.md).
+**This supersedes older incomplete-controller/mounting statements below.**
+
+The actual Inbox shell is connected behind a source-pinned release gate, with
+shared mainnet wallet state, disconnect/navigation protection and late-connection
+cancellation. Repeated device changes exposed and fixed runtime reuse and oversized
+checkpoint encoding. Fresh runtime opens, cold identity checks and compact encrypted
+blocks retain old keys, history, existing quotas and legacy-backup restore.
+
+Local: 170 Node tests, nine backup tests, the existing workspace security suite and
+the expanded real-CoreCrypto browser test passed, including repeated rotations,
+delayed reads, fresh-profile restore, header disconnect/reconnect and pending
+transaction recovery. Browser chain/wallet/backup transport are simulated; live
+HTTP/browser integration is still a release gate. Hosted latest-head checks are
+being verified; inspect their final outcomes before integration.
+
+**PR #195 is not merged or deployed; mainnet sending remains disabled.** No service,
+cost or real signature was created. Next: finish release review, prepare the owner-
+reviewed upload/instantiate flow, agree the backup provider/budget and second pilot
+wallet, verify actual contract/service/HTTP transport, pin the exact service origin
+in configuration/CSP and run the consenting two-wallet mainnet test. Private history
+is a separate Inbox section; DAO/name filters and unread counts do not yet index it.
+Owner upgrade custody and active owned .neta eligibility without staking remain.
+
+After personal messaging: shared DAO inbox/recovery and mainnet testing, then
+payment requests/invoices, proposals and Treasury linkage.
+
 ## Latest continuation — 6 October 2026, personal recovery candidates
 
 Continue **draft [PR #195](https://github.com/cristianoneta/neta-dao/pull/195)**,
