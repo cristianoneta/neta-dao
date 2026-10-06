@@ -8,11 +8,11 @@
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
   "refresh_status": "completed",
-  "checked_at": "2026-10-06T13:21:01.838872Z",
-  "last_success_at": "2026-10-06T13:21:01.838872Z",
+  "checked_at": "2026-10-06T13:36:29.019264Z",
+  "last_success_at": "2026-10-06T13:36:29.019264Z",
   "source": {
     "provider": "https://juno.api.m.stavr.tech",
-    "through_height": 42427173,
+    "through_height": 42427534,
     "indexed_transactions": 4
   },
   "warnings": [
