@@ -5,6 +5,7 @@
 // never silently resume a ratchet that another browser may have advanced.
 const enc=new TextEncoder(),dec=new TextDecoder('utf-8',{fatal:true});
 const LIMIT=5*1024*1024;
+const BLOCK_ENCODING='neta-personal-packed-blocks-v1';
 const b64=bytes=>{let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s);};
 const bytes=(s,n)=>{if(typeof s!=='string'||s.length>8*1024*1024)throw Error('Invalid backup bytes');let r;try{r=Uint8Array.from(atob(s),c=>c.charCodeAt(0));}catch{throw Error('Invalid backup bytes');}if(b64(r)!==s||(n&&r.length!==n))throw Error('Invalid backup bytes');return r;};
 export function personalBackupScope({chain,contract,wallet}){
@@ -28,7 +29,18 @@ function validateSnapshot(s,scope){
 export async function backupDigest(envelope){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',enc.encode(JSON.stringify(envelope)))),b=>b.toString(16).padStart(2,'0')).join('');}
 export async function sealPersonalBackup(scopeObject,revision,snapshot,code){
   const scope=personalBackupScope(scopeObject);if(!Number.isSafeInteger(revision)||revision<1)throw Error('Invalid backup revision');validateSnapshot(snapshot,scope);
-  const raw=enc.encode(JSON.stringify(snapshot));if(raw.length>LIMIT)throw Error('Backup snapshot quota exceeded');
+  // SQLite ciphertext represented as decimal arrays used several times its raw
+  // size and exhausted the quota after only a few retained device generations.
+  // Pack every checkpoint block, including retired/prepared/inbound journals,
+  // inside the authenticated payload. Keep the existing ciphertext/server cap.
+  const raw=enc.encode(JSON.stringify({encoding:BLOCK_ENCODING,snapshot},(name,value)=>{
+    if(value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).length===3&&
+      /^relay-[a-f0-9]{24}\.db$/.test(value.path||'')&&Number.isSafeInteger(value.offset)&&value.offset>=0&&Array.isArray(value.data)){
+      if(!value.data.length||value.data.length>65536||value.data.some(v=>!Number.isInteger(v)||v<0||v>255))throw Error('Invalid backup block');
+      return {path:value.path,offset:value.offset,packedBytes:b64(value.data)};
+    }
+    return value;
+  }));if(raw.length>LIMIT)throw Error('Backup snapshot quota exceeded');
   const salt=crypto.getRandomValues(new Uint8Array(32)),iv=crypto.getRandomValues(new Uint8Array(12));
   const ciphertext=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:enc.encode(header(scope,revision))},await key(code,salt,scope),raw));
   return {version:1,scope,revision,salt:b64(salt),iv:b64(iv),ciphertext:b64(ciphertext)};
@@ -39,7 +51,21 @@ export async function openPersonalBackup(scopeObject,envelope,code,{minimumRevis
   if(expectedDigest!==null&&await backupDigest(envelope)!==expectedDigest)throw Error('Backup digest mismatch');
   const ciphertext=bytes(envelope.ciphertext);if(ciphertext.length>LIMIT+16)throw Error('Backup quota exceeded');
   let raw;try{raw=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(envelope.iv,12),additionalData:enc.encode(header(scope,envelope.revision))},await key(code,bytes(envelope.salt,32),scope),ciphertext);}catch{throw Error('Recovery code, identity or backup authentication failed');}
-  const snapshot=JSON.parse(dec.decode(raw));validateSnapshot(snapshot,scope);
+  const payload=JSON.parse(dec.decode(raw));
+  // Existing v1 envelopes containing direct numeric-array snapshots remain readable.
+  let snapshot=payload;
+  if(payload.encoding!==undefined){
+    if(payload.encoding!==BLOCK_ENCODING)throw Error('Unsupported backup block encoding');
+    snapshot=JSON.parse(JSON.stringify(payload.snapshot),(name,value)=>{
+      if(value&&typeof value==='object'&&Object.hasOwn(value,'packedBytes')){
+        if(Object.keys(value).length!==3||!/^relay-[a-f0-9]{24}\.db$/.test(value.path||'')||!Number.isSafeInteger(value.offset)||value.offset<0||typeof value.packedBytes!=='string'||value.packedBytes.length>87384)throw Error('Invalid packed backup block');
+        const data=bytes(value.packedBytes);if(!data.length||data.length>65536)throw Error('Invalid packed backup block');
+        return {path:value.path,offset:value.offset,data:Array.from(data)};
+      }
+      return value;
+    });
+  }
+  validateSnapshot(snapshot,scope);
   return {mode:'restore_read_only',writesAllowed:false,revision:envelope.revision,snapshot};
 }
 export class PersonalBackupClient{
@@ -57,7 +83,7 @@ export class PersonalBackupClient{
     await this.wallet();const c=await this.request('/v1/challenge','POST',{wallet:this.scopeObject.wallet});
     let parsed;try{parsed=JSON.parse(c.message);}catch{throw Error('Invalid backup challenge');}
     if(parsed.purpose!=='NETA RELAY encrypted backup access v1'||parsed.domain!==this.url||parsed.origin!==this.webOrigin||parsed.scope!==this.scope||parsed.nonce!==c.nonce||! /^[a-f0-9]{64}$/.test(c.nonce)||parsed.expires!==c.expires||c.expires<=this.now()||c.expires>this.now()+125000)throw Error('Backup challenge identity mismatch');
-    const signature=await this.keplr.signArbitrary(this.scopeObject.chain,this.scopeObject.wallet,c.message);await this.wallet();
+    await this.wallet();const signature=await this.keplr.signArbitrary(this.scopeObject.chain,this.scopeObject.wallet,c.message);await this.wallet();
     const auth=await this.request('/v1/auth','POST',{nonce:c.nonce,signature});
     if(auth.scope!==this.scope||! /^[a-f0-9]{64}$/.test(auth.accessToken)||!Number.isSafeInteger(auth.expires)||auth.expires<=this.now()||auth.expires>this.now()+905000)throw Error('Invalid backup session');
     await this.wallet();this.token=auth.accessToken;this.expires=auth.expires;

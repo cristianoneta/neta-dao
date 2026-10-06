@@ -65,8 +65,15 @@ const server=http.createServer(async(req,res)=>{const path=new URL(req.url,'http
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 let browser;
-async function profile(wallet,context){
- context||=await browser.newContext();const page=await context.newPage();await page.exposeFunction('fixtureRPC',rpc);await page.goto(origin+'/fixture');
+async function profile(wallet,context,workspace=false){
+ context||=await browser.newContext();const page=await context.newPage();await page.exposeFunction('fixtureRPC',rpc);
+ if(workspace){
+  await page.route('https://**/*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({data:[],proposals:[],pagination:{total:'0'}})}));
+  await page.goto(origin+'/index.html#relay');await page.waitForFunction(()=>!!window.NetaWorkspaceWallet?.getSession);
+  assert.equal(await page.locator('#relay-personal-inbox').isHidden(),true,'null release must not activate the Inbox');
+  assert.equal(await page.locator('iframe[title="Personal encryption runtime"]').count(),0);
+  await page.addScriptTag({url:origin+'/assets/names-signing.js'});
+ }else await page.goto(origin+'/fixture');
  await page.evaluate(async({wallet,contract})=>{
   const {PersonalCryptoRuntime}=await import('/relay-personal-runtime.mjs');
   const {PersonalBrowserController}=await import('/relay-personal-browser.mjs');
@@ -81,7 +88,27 @@ async function profile(wallet,context){
     return {...r,bodyBytes:Uint8Array.from(r.bodyBytes),authInfoBytes:Uint8Array.from(r.authInfoBytes),signatures:r.signatures.map(s=>Uint8Array.from(s))};
    },broadcastTxSync:bytes=>call('broadcast',Array.from(bytes))}});
   window.makeController=()=>new PersonalBrowserController({runtime:new PersonalCryptoRuntime(),adapter,backup,makeBridge,fault:async point=>{if(window.failAt===point){window.failAt=null;throw Error('Crash at '+point);}}});window.c=makeController();
- },{wallet,contract});return {context,page,wallet};
+ },{wallet,contract});
+ if(workspace){
+  await page.evaluate(async({wallet,contract})=>{
+   window.keplr={enable:async chain=>{if(chain!=='juno-1')throw Error('Wrong shared wallet network');},getOfflineSigner:()=>({getAccounts:async()=>[{address:wallet}]})};
+   const {mountPersonalWorkspace}=await import('/relay-personal-workspace.mjs');
+   const {PERSONAL_MAINNET_OWNER,PERSONAL_MAINNET_WASM}=await import('/relay-personal-network.mjs');
+   const release={enabled:true,backupUrl:'https://fixture.invalid',deployment:{chainId:'juno-1',contract,creator:PERSONAL_MAINNET_OWNER,admin:PERSONAL_MAINNET_OWNER,codeId:123,codeHash:PERSONAL_MAINNET_WASM,label:'NETA RELAY personal v0.4 · Juno mainnet'}};
+   window.workspaceOpens=0;window.holdConnect=false;window.finishConnect=null;window.disconnectedCandidates=0;
+   window.ui=mountPersonalWorkspace({root:document.getElementById('relay-personal-inbox'),release,loadSigning:async()=>NetaNamesSigning,
+    connect:async({assertCurrent})=>{workspaceOpens++;if(holdConnect)await new Promise(resolve=>window.finishConnect=resolve);const controller=window.c;
+     return {controller,authorizeBackup:async()=>assertCurrent(),disconnect:async()=>{disconnectedCandidates++;await controller.close();}};}});
+  },{wallet,contract});
+  assert.equal(await page.getByRole('button',{name:'Open personal inbox',exact:true}).isDisabled(),true);
+  assert.equal(await page.evaluate(()=>workspaceOpens),0,'page must not open or authorize a personal session automatically');
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(()=>NetaWorkspaceWallet.getSession()?.chainId==='juno-1');
+  await page.locator('#relay-new-message').click();
+  await page.getByRole('button',{name:'Generate recovery code',exact:true}).waitFor();
+  assert.equal(await page.locator('#relay-composer').isHidden(),true,'legacy composer must stay closed');
+ }
+ return {context,page,wallet};
 }
 const invoke=(p,method,...args)=>p.page.evaluate(async({method,args})=>c[method](...args),{method,args});
 const register=async p=>invoke(p,'submitRegistration',await invoke(p,'reviewRegistration'));
@@ -89,12 +116,11 @@ const consent=async(p,other)=>invoke(p,'submitLifecycle',await invoke(p,'reviewC
 const send=async(p,other,text)=>invoke(p,'submitMessage',await invoke(p,'prepareMessage',other.wallet,text));
 try{
  browser=await chromium.launch({headless:true,...(process.env.RELAY_CHROMIUM_PATH?{executablePath:process.env.RELAY_CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}: {})});
- const a=await profile(alice),b=await profile(bob);
- await a.page.evaluate(async()=>{const {mountPersonalInbox}=await import('/relay-personal-inbox.mjs');const root=document.createElement('main');document.body.append(root);window.ui=mountPersonalInbox({root,controller:c,authorizeBackup:async()=>{}});});
+ const a=await profile(alice,undefined,true),b=await profile(bob);
  await a.page.getByRole('button',{name:'Generate recovery code',exact:true}).click();
  const ac=await a.page.getByLabel('Recovery code',{exact:true}).inputValue();assert.match(ac,/^[a-f0-9]{64}$/);
  await a.page.getByRole('checkbox').check();await a.page.getByRole('button',{name:'Create encrypted inbox',exact:true}).click();
- await a.page.waitForFunction(()=>c.status().open&&!c.busy&&!document.querySelector('[role=alert]').textContent);
+ await a.page.waitForFunction(()=>c.status().open&&!c.busy&&!document.querySelector('#relay-personal-inbox [role=alert]').textContent);
  const bc=(await invoke(b,'create')).recoveryCode;codes.set(alice,ac);codes.set(bob,bc);
  await a.page.getByRole('button',{name:'Review registration',exact:true}).click();await a.page.getByRole('button',{name:'Confirm in Keplr',exact:true}).click();await a.page.waitForFunction(()=>c.status().registered&&!c.busy);await register(b);await consent(b,a);await consent(a,b);
  await send(a,b,'Already read and archived');await invoke(b,'receive');await send(b,a,'Reply before backup');await invoke(a,'receive');
@@ -133,9 +159,39 @@ try{
  assert.ok((await invoke(a,'status')).history.some(r=>r.text==='Reply after restored rotation'));
  await invoke(restored,'submitLifecycle',await invoke(restored,'prepareRefill'));assert.equal(devices.get(bob).max_prekey_id,16);
  // Responsive, keyboard and literal-text checks on the real controller UI.
- for(const width of [1440,768,390,320]){await a.page.setViewportSize({width,height:1000});assert.equal(await a.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await a.page.screenshot({path:'/tmp/personal-inbox-'+width+'.png',fullPage:true});}
+ for(const width of [1440,768,390,320]){await a.page.setViewportSize({width,height:1000});await a.page.evaluate(()=>scrollTo(0,0));assert.equal(await a.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await a.page.screenshot({path:'/tmp/personal-workspace-'+width+'.png',fullPage:true});}
  await a.page.keyboard.press('Tab');assert.equal(await a.page.evaluate(()=>document.activeElement!==document.body),true);
  assert.ok(await a.page.getByRole('list',{name:'Encrypted message history'}).innerText());
+ // Repeated generations must retain both delayed old reads and current replies.
+ // Each cycle opens both retained and current SQLite paths in the same profile.
+ for(let cycle=0;cycle<2;cycle++){
+  await send(a,restored,'Delayed across generation '+cycle);
+  await invoke(restored,'submitLifecycle',await invoke(restored,'prepareRotation'));
+  await invoke(restored,'receive');assert.ok((await invoke(restored,'status')).history.some(r=>r.text==='Delayed across generation '+cycle));
+  await consent(restored,a);await consent(a,restored);
+  await send(a,restored,'Current generation '+cycle);await invoke(restored,'receive');
+  await send(restored,a,'Reply from generation '+cycle);await invoke(a,'receive');
+  assert.ok((await invoke(a,'status')).history.some(r=>r.text==='Reply from generation '+cycle));
+ }
+ // The real shared header clears plaintext even if Keplr retains the account.
+ await a.page.locator('#gov-disconnect').click();
+ assert.equal(await a.page.getByRole('list',{name:'Encrypted message history'}).count(),0);
+ assert.equal((await invoke(a,'status')).open,false);
+ await a.page.evaluate(()=>{window.c=makeController();});
+ await a.page.locator('#gov-connect').click();await a.page.getByRole('button',{name:'Open personal inbox',exact:true}).click();
+ await a.page.getByLabel('Recovery code',{exact:true}).fill(ac);await a.page.getByRole('button',{name:'Unlock this browser',exact:true}).click();
+ await a.page.waitForFunction(()=>c.status().open&&!c.busy);
+ // Navigation also destroys the visible session, preserving the encrypted store.
+ await a.page.locator('[data-relay-panel=directory]').click();assert.equal((await invoke(a,'status')).open,false);
+ await a.page.locator('[data-relay-panel=inbox]').click();await a.page.evaluate(()=>{window.c=makeController();window.holdConnect=true;});
+ await a.page.getByRole('button',{name:'Open personal inbox',exact:true}).click();await a.page.waitForFunction(()=>!!finishConnect);
+ await a.page.locator('#gov-disconnect').click();const discarded=await a.page.evaluate(()=>disconnectedCandidates);
+ await a.page.evaluate(()=>finishConnect());await a.page.waitForFunction(n=>disconnectedCandidates>n,discarded);
+ assert.equal(await a.page.getByLabel('Recovery code',{exact:true}).count(),0,'late connection must not remount the old wallet');
+ await a.page.evaluate(()=>{window.c=makeController();window.holdConnect=false;});await a.page.locator('#gov-connect').click();
+ await a.page.getByRole('button',{name:'Open personal inbox',exact:true}).click();
+ await a.page.getByLabel('Recovery code',{exact:true}).fill(ac);await a.page.getByRole('button',{name:'Unlock this browser',exact:true}).click();
+ await a.page.waitForFunction(()=>c.status().open&&!c.busy);
  // Signed bytes are already backed up when chain accepts but receipt reads vanish.
  hideReceipts=true;const pending=await invoke(a,'prepareMessage',bob,'Accepted but response lost');await assert.rejects(invoke(a,'submitMessage',pending),/UNKNOWN/);const once=broadcasts;
  await invoke(a,'close');await a.context.close();hideReceipts=false;const anew=await profile(alice);await invoke(anew,'restore',ac);

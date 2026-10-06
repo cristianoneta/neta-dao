@@ -1,5 +1,5 @@
-// Recovery UI candidate. The production workspace does not mount this component
-// until deployment, provider and release gates are satisfied. No fixtures here.
+// Recovery UI. The workspace mounts this only for a source-pinned release and
+// an explicitly opened mainnet wallet session. No fixtures here.
 export function mountPersonalInbox({root,controller,authorizeBackup}){
   if(!root||!controller||typeof authorizeBackup!=='function')throw Error('Personal inbox dependencies required');
   const doc=root.ownerDocument,make=(tag,text)=>{const e=doc.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
@@ -35,21 +35,23 @@ export function mountPersonalInbox({root,controller,authorizeBackup}){
   const pending=make('div'),close=button('Lock inbox',async()=>{clearReview();recovery.input.value='';message.input.value='';await controller.lockInbox();});
   confirm.type='button';confirm.onclick=()=>perform(async()=>{const value=review,submit=action;clearReview();if(!value||!submit)throw Error('Review the action again');await submit(value);message.input.value='';});
   for(const input of [address.input,message.input,recovery.input])input.addEventListener('input',clearReview);
-  const deviceTools=make('details');deviceTools.append(make('summary','Device and backup'),auth,rotation,prepared,refill);actions.append(generate,create,unlock,restore,registration,refresh,recover,close,deviceTools);
+  const deviceTools=make('details');deviceTools.append(make('summary','Device and backup'),rotation,prepared,refill);actions.append(generate,auth,create,unlock,restore,registration,refresh,recover,close,deviceTools);
   const contacts=make('details');contacts.append(make('summary','Contact permissions'),allow,deny,block,unblock);send.className=confirm.className='personal-primary';
   root.append(heading,notice,error,recovery.wrap,savedLabel,actions,address.wrap,contacts,message.wrap,send,pending,reviewPanel,history);
   function render(state){
     if(disposed)return;
-    for(const b of [...controls,confirm])b.disabled=working||state.busy;
+    for(const b of [...controls,confirm])b.disabled=working||state.busy||state.closed;
     const open=state.open;
+    if(open&&auth.parentNode!==deviceTools)deviceTools.append(auth);
+    if(!open&&auth.parentNode!==actions)actions.insertBefore(auth,create);
     for(const el of [recovery.wrap,savedLabel,generate,create,unlock,restore])el.hidden=open;
     for(const b of [registration,refresh,recover,rotation,prepared,refill,send,allow,deny,block,unblock,close])b.hidden=!open;
     address.wrap.hidden=message.wrap.hidden=contacts.hidden=!open;
     if(open){registration.hidden=state.registered;refresh.disabled||=!state.registered;for(const b of [send,allow,deny,block,unblock,refill])b.disabled||=state.readOnly||state.needsRecovery;}
-    notice.textContent=!open?'Unlock or restore your encrypted inbox.':state.needsRecovery?'Action interrupted. Recover the saved state before continuing.':state.readOnly?'Restored read-only. Review a new device generation before sending.':state.backupPending?'Encrypted backup awaiting confirmation.':'Encrypted backup confirmed · device generation '+state.generation;
+    notice.textContent=!open?'Authorize encrypted backup, then create, unlock or restore your inbox.':state.needsRecovery?'Action interrupted. Recover the saved state before continuing.':state.readOnly?'Restored read-only. Review a new device generation before sending.':state.backupPending?'Encrypted backup awaiting confirmation.':'Encrypted backup confirmed · device generation '+state.generation;
     history.replaceChildren();for(const row of state.history||[]){const li=make('li'),meta=make('small',(row.direction==='in'?'From ':'To ')+(row.direction==='in'?row.meta.sender:row.meta.recipient)),body=make('p',row.text);li.append(meta,body);history.append(li);}
     pending.replaceChildren();for(const row of state.pending||[]){const label=make('p','Pending message · '+row.state+' · '+(row.outcome||'review/recovery required')),retry=make('button','Review saved message');retry.type='button';retry.disabled=working||state.busy||state.readOnly||state.needsRecovery;retry.onclick=()=>perform(async()=>show(await controller.reviewPending(row.id),r=>controller.submitMessage(r)));pending.append(label,retry);}
-    if(!open&&wasOpen){clearReview();message.input.value='';recovery.input.value='';}wasOpen=open;
+    if(state.closed||(!open&&wasOpen)){clearReview();message.input.value='';recovery.input.value='';address.input.value='';saved.checked=false;recovery.input.type='password';error.textContent='';}wasOpen=open;
   }
   const previous=controller.onState;controller.onState=state=>{previous(state);render(state);};render(controller.status());
   return {dispose(){disposed=true;controller.onState=previous;root.replaceChildren();void controller.close();}};

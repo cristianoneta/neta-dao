@@ -1,0 +1,43 @@
+{
+  "scope": {
+    "chain": "juno-1",
+    "wallet": "juno1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+    "contract": "juno1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"
+  },
+  "code": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "snapshot": {
+    "version": 1,
+    "scope": "[\"juno-1\",\"juno1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"juno1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\"]",
+    "corecryptoVersion": "10.5.3",
+    "descriptor": {
+      "fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "generation": 1
+    },
+    "wrappedKey": "synthetic legacy key",
+    "path": "relay-111111111111111111111111.db",
+    "blocks": [
+      {
+        "path": "relay-111111111111111111111111.db",
+        "offset": 0,
+        "data": [
+          1,
+          2,
+          255
+        ]
+      }
+    ],
+    "archiveRecords": [],
+    "sendRecords": [],
+    "transactionIntents": [],
+    "registrationIntent": null,
+    "cursor": 0
+  },
+  "envelope": {
+    "version": 1,
+    "scope": "[\"juno-1\",\"juno1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"juno1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\"]",
+    "revision": 1,
+    "salt": "QUekB8vioPh+bHEtRkezTa4Ggm+lfp13XhiREGStQDk=",
+    "iv": "o6Z0WpHo5j7b7qL6",
+    "ciphertext": "UvkQNz7fJxAUqP2/pHi05BYuIzisiykuRqWfeYDrP0Wb68tnYtzdVAnOt1qboffqrPyEDOMxZlKh4Q8d1ZTHg/FIcEfpOosJQM4K6o2bd/akZoVuKtVnke5F6864cdP5zDNBV2teHWBxkWIFYc22QgF4iR2EfBGsoLhHaS1zIQ6GYSVSBX8GsZdwpv1wV6t1U+fyo12aMlfVrnODHWBLirAXCwU1ZQvEUuNplFMAkeV+u9nGuSs7VnN7Ey7LtaPJBvGyVhfY4tDb01AVTevKDYiRa+YykK5E6+Q9FLS9HCRyKfNZtACzCz4IqHF8DYirZmFmAbsJnXW7z6BU2tXZwKyr7t7L/0ugczTxHG9tFYbYKFsAkf9EB3msifWX+cD+40CBuP8R1B920uCOlqyM4CZuhmhnZTTQSQ5PFkSmUZCcYXgb6Wsez5si67mr9b6eaGMeY7v4Wg1cPmbRXIRJ763piY9FfpDBKzzfTzmejr8CqOc8mvKo3DaXSvT0EUHaAI2Rg+j8Ar2CkKASKnnx1CAmVrdRhXLDArkaY7MALrXmfn4pNB8TVZQD1cGsqkfjKYWCukPQiWKrs3LFKitslf042piRCkfcOQ/lSS0QSLH5s0lkXmhOizEyLTZ6Da2kuJAUD5L3VjmgU0KEhFbD94YTZBaNozIPXSNQyFLuw9lzx2/ZINmHWLBZiNsQC5BfDe+wkwAtNnYS7NljQkStOYSvDF3qQ7bQ8SE6gBUISTlq3pFMeCfM690="
+  }
+}

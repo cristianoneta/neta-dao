@@ -23,7 +23,7 @@ export function personalMainnetPlan() {
     signing_wallet: PERSONAL_MAINNET_OWNER, upgrade_admin: PERSONAL_MAINNET_OWNER,
     wasm_sha256: PERSONAL_MAINNET_WASM, label: 'NETA RELAY personal v0.4 · Juno mainnet',
     instantiate: { mainnet: true }, funds: [], policy: { ...PERSONAL_MAINNET_POLICY },
-    remaining: ['coherent off-device encrypted backup and restore', 'consent/refill/rotation client integration',
-      'production runtime review', 'owner-reviewed deployment and two-wallet mainnet evidence'],
+    remaining: ['approved backup provider and live transport verification',
+      'owner-reviewed deployment and exact contract/service pins', 'consenting two-wallet mainnet evidence'],
     note: 'Preparation only. Existing UNI-7 device state and deployment remain unchanged.' };
 }

@@ -94,3 +94,19 @@ test('database key wrapping is authenticated and domain/scope separated',async()
  await assert.rejects(unwrapPersonalDatabaseKey({...scopeObject,wallet:'juno1'+'p'.repeat(38)},wrapped,code));
  const altered=JSON.parse(wrapped);altered.iv=Buffer.alloc(12).toString('base64');await assert.rejects(unwrapPersonalDatabaseKey(scopeObject,JSON.stringify(altered),code));
 });
+
+test('packed retained generations fit the existing quota and preserve every byte',async()=>{
+ const s=snapshot();const blocks=Array.from({length:6},(_,i)=>({path,offset:i*65536,data:Array(65536).fill(255)}));
+ s.blocks=structuredClone(blocks);s.controller={retired:[{blocks:structuredClone(blocks)},{blocks:structuredClone(blocks)}],inbound:{blocks:structuredClone(blocks)}};
+ s.sendRecords=[{state:'preparing',blocks:structuredClone(blocks)}];
+ assert.ok(JSON.stringify(s).length>5*1024*1024,'numeric representation must reproduce the quota regression');
+ const envelope=await sealPersonalBackup(scopeObject,1,s,code);
+ assert.ok(Buffer.from(envelope.ciphertext,'base64').length<3*1024*1024,'packing must retain the existing cap');
+ assert.deepEqual((await openPersonalBackup(scopeObject,envelope,code)).snapshot,s);
+});
+
+test('previous numeric-array encrypted snapshots remain recoverable',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const fixture=JSON.parse(await readFile(new URL('../../tests/fixtures/personal-backup-legacy.json',import.meta.url)));
+ assert.deepEqual((await openPersonalBackup(fixture.scope,fixture.envelope,fixture.code)).snapshot,fixture.snapshot);
+});

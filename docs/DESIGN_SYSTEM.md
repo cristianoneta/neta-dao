@@ -514,3 +514,15 @@ Reviews summarize action, network, wallet and recipient; full transaction detail
 are collapsed. Every chain action needs a distinct review and Keplr confirmation.
 Restoring does not enable sending. This component is tested separately and does
 not mount itself in production or activate mainnet SEND.
+
+
+## Personal Inbox workspace host — gated source, 2026-10-06
+
+Use the existing Inbox card and shared wallet header. A reviewed release supplies
+an explicit Open personal inbox action; Compose focuses/opens that same section.
+Keep backup authorization visible before setup/unlock/restore; device tools stay
+in a disclosure. Disconnect or leaving Inbox clears the plaintext section and
+requires deliberate reopening. The connected wallet chain must be Juno mainnet.
+The private history is currently a separate section, above the DAO/name updates;
+their filters and counts do not index it yet. Do not imply unified private unread
+counts. The default source pin is null and keeps the disabled preview intact.

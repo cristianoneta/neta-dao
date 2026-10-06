@@ -43,7 +43,7 @@ export class PersonalBrowserController{
   }
   emit(){this.onState(this.status());}
   status(){
-    if(this.invalidated||!this.snapshot)return {open:false,busy:this.busy,history:[],readOnly:true};
+    if(this.invalidated||!this.snapshot)return {open:false,closed:this.invalidated,busy:this.busy,history:[],readOnly:true};
     return {open:true,busy:this.busy,readOnly:this.snapshot.controller.readOnly||!!this.snapshot.controller.rotationRecovery,needsRecovery:this.failed,
       generation:this.snapshot.descriptor.generation,registered:this.snapshot.controller.registered,
       backup:this.record?.remote||null,backupPending:!!this.record?.pendingUpload||this.record?.envelope.revision!==(this.record?.remote?.revision||0),
@@ -80,10 +80,12 @@ export class PersonalBrowserController{
     catch(error){throw originalError||error;}return structuredClone(result);
   }
   async openCrypto(device=this.snapshot){
-    this.quiesce();const secret=await unwrapPersonalDatabaseKey(this.scopeObject,device.wrappedKey,this.code);
+    // Native handles/VFS caches can survive wrapper destruction. Never open a
+    // different database or reopen after a checkpoint in the preceding realm.
+    this.quiesce();this.wire=await this.runtime.reset();const secret=await unwrapPersonalDatabaseKey(this.scopeObject,device.wrappedKey,this.code);
     try{this.dbKey=new this.wire.DatabaseKey(secret);}finally{secret.fill(0);}
     this.db=await this.wire.Database.open(device.path,this.dbKey);this.cc=this.wire.CoreCrypto.new(this.db);await this.transaction(ctx=>ctx.proteusInit());
-    if(await this.transaction(ctx=>ctx.proteusFingerprint())!==device.descriptor.fingerprint){this.quiesce();throw Error('Personal local fingerprint mismatch');}
+    const actualFingerprint=await this.transaction(ctx=>ctx.proteusFingerprint());if(actualFingerprint!==device.descriptor.fingerprint){this.quiesce();throw Error('Personal local fingerprint mismatch (generation '+device.descriptor.generation+')');}
   }
   async restoreWorking(device=this.snapshot){
     if(device.path!==await this.path(device.descriptor))throw Error('Backup database path mismatch');
@@ -97,13 +99,17 @@ export class PersonalBrowserController{
     await restoreRatchet(device.path,device.blocks);
   }
   async newDevice(generation){
+    this.quiesce();this.wire=await this.runtime.reset();
     const descriptor={generation,device_id:'personal-'+random(12),protocol_version:1,fingerprint:null,prekeys:[],max_prekey_id:8};
     const path=await this.path(descriptor),secret=crypto.getRandomValues(new Uint8Array(32));
     let wrappedKey;try{wrappedKey=await wrapPersonalDatabaseKey(this.scopeObject,secret,this.code);this.dbKey=new this.wire.DatabaseKey(secret);}finally{secret.fill(0);}
     this.db=await this.wire.Database.open(path,this.dbKey);this.cc=this.wire.CoreCrypto.new(this.db);await this.transaction(ctx=>ctx.proteusInit());
     descriptor.fingerprint=await this.transaction(ctx=>ctx.proteusFingerprint());
     for(let id=1;id<=8;id++)descriptor.prekeys.push({id,bundle:b64(await this.transaction(ctx=>ctx.proteusNewPrekey(id)))});
-    this.quiesce();return {path,wrappedKey,descriptor,blocks:await captureRatchet(path)};
+    this.quiesce();const device={path,wrappedKey,descriptor,blocks:await captureRatchet(path)};
+    // Check that the persisted key really survives a fresh runtime before it can
+    // be backed up or offered for registration on-chain.
+    await this.openCrypto(device);this.quiesce();return device;
   }
   validateSnapshot(s){
     if(s?.controller?.version!==1||typeof s.controller.readOnly!=='boolean'||typeof s.controller.registered!=='boolean'||!Array.isArray(s.controller.retired)||!Array.isArray(s.controller.quarantine))throw Error('Unsupported personal controller snapshot');

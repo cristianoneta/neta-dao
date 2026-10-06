@@ -1,5 +1,63 @@
 # NETA DAO code-backed current state
 
+## Production Inbox connection — 6 October 2026
+
+Continue **draft [PR #195](https://github.com/cristianoneta/neta-dao/pull/195)** on
+`codex/personal-messaging-recovery-mainnet`. This supersedes older statements that
+only the standalone browser fixture is connected. Do not recreate from main.
+
+`index.html` now loads the personal workspace host. With a reviewed release pin it
+uses the existing Inbox card, Compose action and shared wallet header; there is no
+second wallet selector. The default release and deployment are **null**, so normal
+page load cannot open a crypto runtime, authenticate to backup or enable sending.
+The inactive preview now accurately says Juno mainnet preparation, without making
+an unnecessary UNI-7 mailbox request. Backup authorization is visible during setup.
+
+The shared wallet publishes its actual connected chain. Inbox connection requests
+Juno mainnet. Disconnect, keystore changes and leaving Inbox immediately clear
+visible messages, recovery codes and reviews. Late connections are disposed; the
+real session adapter guards wallet, signing and backup calls against the original
+shared session even when Keplr still exposes the same account. Encrypted stores,
+pending transactions and in-flight recovery evidence are retained. The disposable
+crypto iframe now uses an external module and a restrictive local-only CSP; the
+workspace's script policy is unchanged.
+A subsequent repeat exposed a generation-2 local fingerprint mismatch after
+reading with a retired device. Every crypto database open and new-device creation
+now uses a fresh WASM realm, and a new device must survive a cold fingerprint read
+before registration review. The regression additionally cycles through repeated
+rotations with delayed reads and new-generation replies. The assertion was retained;
+check the final repeated/hosted results before claiming this follow-up is green.
+The repeated-rotation test also exposed quota exhaustion from decimal byte arrays.
+Checkpoint blocks now use compact base64 inside the authenticated encrypted payload,
+including retired/prepared/inbound states. The existing 5-MiB plaintext and 8-MiB
+server limits stay in place; no history or keys are discarded. A captured legacy
+numeric-array envelope and a multi-generation size regression pass round-trip tests.
+
+Validation: **170 root Node tests and nine HTTP/ADR-36/SQLite backup tests passed**.
+The real-CoreCrypto recovery suite now runs the first participant inside the actual
+`index.html` shell and exercises header disconnect/reconnect, navigation, a late
+connection, encrypted unlock and the existing crash/restore/rotation/send tests.
+Wallet, chain, backup transport and the session factory in that browser test are
+simulated; the real factory/adapter cancellation behavior has separate Node tests.
+The existing workspace security suite also passed. Layouts checked at 1440, 768,
+390 and 320 px. Hosted checks must be verified on the latest PR head before merge.
+The earlier `b89cb49` head had five green checks; those do not certify this update.
+
+**Not merged, hosted or activated.** Next: finish the release review and prepare the
+owner-reviewed store/instantiate flow; obtain agreement for the separate backup
+provider/budget, configure its actual mailbox and consenting pilot wallets, then
+verify the real HTTP/browser transport. Pin the verified deployment and exact HTTPS
+backup origin in `relay-personal-release.mjs`, and add that exact origin to the
+workspace CSP (never a wildcard). Perform the owner-signed mainnet two-wallet
+exchange/reply/reload/fresh-profile restore before public activation. The private
+history currently stays in its own section within Inbox; it is not yet indexed by
+the DAO/name-update filters or unread counts. No fabricated mailbox or service URL
+belongs in production. Owner upgrade admin, NNS-only sender eligibility and disabled
+DAO writes remain unchanged. No service, cost or real signature was created.
+
+After personal messaging: shared DAO inbox/recovery and mainnet testing, then
+payment requests/invoices, reviewed proposals and Treasury linkage.
+
 ## Browser integration checkpoint — 6 October 2026
 
 Continue draft [PR #195](https://github.com/cristianoneta/neta-dao/pull/195),

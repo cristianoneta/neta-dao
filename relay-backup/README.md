@@ -4,12 +4,13 @@ Browser integration now exists in `relay-personal-browser.mjs`: coherent automat
 snapshots, signed bytes backed up before broadcast, enforced read-only fresh restore
 and explicit new-generation activation. The new real-CoreCrypto browser test uses
 an isolated simulated backup transport; this service's real HTTP/ADR-36/SQLite
-suite remains separate. Hosting approval, production mounting/review and the
-mainnet two-wallet test remain open. No live backup service is configured.
+suite remains separate. The gated production Inbox host is connected and tested. Hosting approval, live
+transport verification, final release review and the mainnet two-wallet test remain open. No live backup service is configured.
 
 Not deployed. No hosting resources, remote backups, payment or real-wallet action
 were created. This is a separately testable provider/client candidate, not a
-complete integrated browser recovery system or mainnet release approval.
+mainnet release approval. The browser controller and shell tests use a simulated
+transport; the real HTTP service tests remain a separate layer.
 
 ## Concrete proposed deployment
 
@@ -33,9 +34,11 @@ complete integrated browser recovery system or mainnet release approval.
 
 `relay-personal-backup.mjs` encrypts a versioned snapshot in the browser using a
 256-bit generated recovery code, HKDF and AES-GCM. Scope (chain, mailbox, wallet)
-and revision are authenticated. The codec requires ratchet blocks, wrapped key,
-descriptor, archive, send/transaction/registration journals and cursor. It cannot
-prove that its caller captured these consistently; that integration is still open.
+and revision are authenticated. The encrypted payload packs checkpoint bytes as base64, including retired and
+in-flight generations; prior numeric-array snapshots remain readable. Quotas are
+unchanged and no history/keys are discarded. The codec requires ratchet blocks, wrapped key,
+descriptor, archive, send/transaction/registration journals and cursor. The browser controller captures those stores consistently in its real-CoreCrypto
+crash/restore tests; the codec alone is not that evidence.
 Never include the recovery code in public metadata, an HTTP request or chain data.
 
 ADR-36 challenges bind the service domain, web origin, exact mailbox/wallet, nonce
@@ -59,15 +62,15 @@ No deletion API, plaintext history, wallet private keys or payout capability exi
 The client verifies upload acknowledgements and recovers a lost acknowledgement
 by reading the exact digest; it does not overwrite a conflicting revision. Errors
 remain visible to its caller. Last-confirmed status must only advance on a matching
-revision/digest. That UI/automatic snapshot integration is not implemented here.
+revision/digest. The controller supplies automatic snapshots and visible pending/error states.
 
 Restoration authenticates the complete envelope and rejects versions below a
 locally known minimum. Every returned snapshot is explicitly **read-only**.
 A malicious provider can serve a valid older snapshot to a fresh profile without a
 prior watermark; these modules do not solve that by themselves. Safe resumption
 needs coherent state import/reconciliation and a reviewed new device generation.
-Neither the read-only marker nor a green codec test is an enforcement mechanism in
-a live crypto controller. The existing production SEND remains disabled.
+The controller enforces read-only restoration and requires a confirmed new device
+generation before sending; a green codec test alone is not that evidence. The existing production SEND remains disabled.
 
 ## Verification
 
@@ -79,12 +82,14 @@ this is not proof of coherent restoration of a real CoreCrypto browser profile.
 
 ## Remaining before activation
 
-1. Connect generation-aware crypto, reviewed lifecycle and exact-byte message
-   transport to one recovery-aware personal browser controller.
-2. Capture quiescent real browser stores automatically and prove coherent import
-   into an empty profile, including unread messages, pending transactions, stale
-   backups, rotation and concurrent profiles. Do not discard the existing journals.
-3. Review the actual production runtime, UI recovery flow and provider assumptions.
-4. Obtain provider/budget approval, deploy the reviewed contract/service and verify
-   live identity/configuration. Owner retains contract upgrade administration.
-5. Run the consenting two-wallet mainnet exchange/reply/reload/restore evidence.
+1. Finish the release review and owner-reviewed contract upload/instantiate flow.
+2. Obtain provider/budget approval and the second consenting pilot wallet. Deploy
+   the reviewed service with its actual mailbox and allowlist; verify live health,
+   authentication, backup, restart persistence and origin policy.
+3. Pin the exact contract/service in `relay-personal-release.mjs`, and add only the
+   actual backup origin to `index.html` connect-src. Never permit arbitrary origins
+   or activate from URL parameters/local storage. Retain owner upgrade custody.
+4. Run the consenting two-wallet mainnet exchange/reply/reload/restore checks with
+   the real session, wallet and HTTP transport before public activation.
+
+No deployment or service approval is implied by local or hosted candidate tests.

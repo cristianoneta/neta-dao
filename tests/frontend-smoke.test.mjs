@@ -35,7 +35,7 @@ test("Relay follows DAOs and creates local governance notifications safely", () 
 
 test("Relay messaging remains locked behind explicit security gates", () => {
   assert.match(html, /Messaging is not active. This preview does not send or save your text/);
-  assert.match(html, /TESTNET · NO STAKE GATE/);
+  assert.match(html, /ACTIVE .NETA NAME · NO STAKING REQUIREMENT/);
   assert.match(html, /Sending is not active yet. Your draft stays in this browser and is never submitted/);
   assert.match(html, /type="submit" disabled aria-describedby="relay-send-note">SEND MESSAGE/);
   assert.match(relay, /event=>event.preventDefault\(\)/);
