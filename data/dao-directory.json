@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "daos": [
     {
       "id": "neta-operations",
@@ -43,7 +43,12 @@
             "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80"
           }
         ]
-      }
+      },
+      "organizationId": "neta",
+      "unitName": "Operations",
+      "parentDaoId": "neta",
+      "parentRelationship": "organizational",
+      "relationshipNote": "Formally part of NETA; no on-chain parent relationship is asserted."
     },
     {
       "id": "neta",
@@ -82,7 +87,9 @@
             "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
           }
         ]
-      }
+      },
+      "organizationId": "neta",
+      "unitName": "Main"
     },
     {
       "id": "juno",
@@ -119,7 +126,23 @@
             "address": "juno1jv65s3grqf6v6jl3dp4t6c9t9rk99cd83d88wr"
           }
         ]
-      }
+      },
+      "organizationId": "juno",
+      "unitName": "Main"
+    }
+  ],
+  "organizations": [
+    {
+      "id": "neta",
+      "name": "NETA",
+      "chainId": "juno",
+      "mainDaoId": "neta"
+    },
+    {
+      "id": "juno",
+      "name": "Juno Network Governance",
+      "chainId": "juno",
+      "mainDaoId": "juno"
     }
   ]
 }

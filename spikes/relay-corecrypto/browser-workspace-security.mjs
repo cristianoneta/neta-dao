@@ -58,13 +58,15 @@ try{
  await page.goto(origin+'/index.html');
  await page.locator('#dao-search').fill('Juno');
  await page.locator('#dao-options button').filter({hasText:'Juno Network Governance'}).click();
+ await page.locator('#subdao-select').selectOption('juno');
  await page.waitForFunction(()=>document.querySelector('#treasury-total').textContent==='$200.00');
  await page.waitForTimeout(700);
  assert.equal(await page.locator('#treasury-total').textContent(),'$200.00','old Operations response overwrote Community Pool');
  assert.match(await page.locator('#treasury-live-status').textContent(),/JUNO COMMUNITY POOL/);
  delayOperations=false;
- await page.locator('#dao-search').fill('Operations');
- await page.locator('#dao-options button').filter({hasText:'NETA Operations DAO'}).click();
+ await page.locator('#dao-search').fill('NETA');
+ await page.locator('#dao-options button').filter({hasText:'NETA'}).click();
+ await page.locator('#subdao-select').selectOption('neta-operations');
  await page.locator('[data-workspace-view=governance]').click();
  await page.waitForFunction(()=>document.querySelector('#proposal-list').textContent.includes('Proposal 2'));
  await page.locator('#proposal-list button').filter({hasText:'Proposal 1'}).click();
@@ -218,7 +220,7 @@ try{
  assert.equal(new URL(page.url()).hash,'#relay/dao/neta');
  assert.match(await page.locator('#names-dao-address').textContent(),/^juno1c5v6/);
  await page.getByRole('button',{name:'View participation',exact:true}).click();
- assert.equal(await page.locator('#dao-search').inputValue(),'Neta DAO');
+ assert.equal(await page.locator('#dao-search').inputValue(),'NETA');
  await page.waitForFunction(()=>document.querySelector('#dao-members-panel').textContent.includes('1 active staking addresses'));
  await page.getByRole('button',{name:'Treasury',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('#treasury-live-status').textContent.includes('NETA DAO'));
@@ -237,7 +239,7 @@ try{
  assert.match(await page.locator('#action-hint').textContent(),/Neta DAO proposal module/);
  assert.equal(await page.locator('#vote-actions').isVisible(),false);
  await page.reload();
- assert.equal(await page.locator('#dao-search').inputValue(),'Neta DAO');
+ assert.equal(await page.locator('#dao-search').inputValue(),'NETA');
  for(const width of [320,768,1440]){
   await page.setViewportSize({width,height:1000});
   await page.getByRole('button',{name:'People',exact:true}).click();
@@ -251,11 +253,12 @@ try{
  assert.equal(await page.locator('#names-copy-address').count(),0);
  // Shared People navigation for every DAO; legacy links, planned contributors and reload.
  await page.goto(origin+'/index.html#contributors');
- await page.waitForURL('**/index.html#people/members');
+ await page.waitForURL('**/index.html*#people/members');
  assert.equal(new URL(page.url()).hash,'#people/members');
  for(const [name,id] of [['Operations','neta-operations'],['Neta DAO','neta'],['Juno Network Governance','juno']]){
-  await page.locator('#dao-search').fill(name);
-  await page.locator('#dao-options button').filter({hasText:name}).click();
+  await page.locator('#dao-search').fill(id==='juno'?'Juno':'NETA');
+  await page.locator('#dao-options button').filter({hasText:id==='juno'?'Juno Network Governance':'NETA'}).click();
+  await page.locator('#subdao-select').selectOption(id);
   await page.locator('[data-people-panel="contributors"]').click();
   assert.equal(await page.locator('#people-contributors-panel').isVisible(),true);
   assert.match(await page.locator('#people-contributors-panel').textContent(),/No contributor records are connected/);
@@ -266,11 +269,12 @@ try{
   if(id==='neta-operations')await page.waitForFunction(()=>document.querySelector('#dao-members-panel').textContent.includes('weighted member addresses'));
   if(id==='juno')await page.waitForFunction(()=>document.querySelector('#dao-members-panel').textContent.includes('bonded delegator addresses'));
   assert.ok(await page.locator('#dao-members-panel .dao-member-row').count()>0);
-  await page.goBack();await page.waitForURL('**/index.html#people/contributors');assert.equal(new URL(page.url()).hash,'#people/contributors');
-  await page.goForward();await page.waitForURL('**/index.html#people/members');assert.equal(new URL(page.url()).hash,'#people/members');
+  await page.goBack();await page.waitForURL('**/index.html*#people/contributors');assert.equal(new URL(page.url()).hash,'#people/contributors');
+  await page.goForward();await page.waitForURL('**/index.html*#people/members');assert.equal(new URL(page.url()).hash,'#people/members');
  }
- await page.locator('#dao-search').fill('Neta DAO');
- await page.locator('#dao-options button').filter({hasText:'Neta DAO'}).click();
+ await page.locator('#dao-search').fill('NETA');
+ await page.locator('#dao-options button').filter({hasText:'NETA'}).click();
+ await page.locator('#subdao-select').selectOption('neta');
  await page.waitForFunction(()=>document.querySelector('#dao-members-panel').textContent.includes('1 active staking addresses'));
  await page.locator('#dao-members-panel input').fill('no-match');
  assert.match(await page.locator('#dao-members-panel').textContent(),/No member matches/);

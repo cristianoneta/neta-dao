@@ -1,5 +1,39 @@
 # Next-chat handoff — dao.netareborn.com
 
+## DAO hierarchy and consolidated Treasury — 2026-10-06
+
+Owner approved Chain → DAO → SubDAO. NETA is the organization; Main and Operations
+are its units. **Operations is formally a SubDAO of NETA without an asserted
+on-chain parent link.** The canonical directory stores this organizational
+relationship separately from contract identities and signing capabilities.
+
+- DAO selection defaults to Consolidated overview; Main is first in the unit
+  group, remaining SubDAOs alphabetical. `?dao=neta` is the organization overview;
+  `?dao=neta&subdao=main` selects Main. Old `?dao=neta-operations` links still select
+  Operations. Scope is persisted separately; drafts and journals keep their IDs.
+- Consolidated assets include each configured custody account once, including
+  Operations' Osmosis proxy. Unit cards show source times, addresses and direct
+  links. Missing/stale units remain explicit; unpriced assets remain partial.
+- Consolidated P&L requires reviewed data from every included unit for period
+  totals. An expandable unit breakdown preserves attribution. Exact reciprocal
+  same-chain transfer legs can be eliminated only from the group view; unmatched,
+  ambiguous or IBC legs without packet linkage remain unresolved. External gas
+  and unknown movements are not silently eliminated. Source ledgers are unchanged.
+- History uses common UTC snapshot dates only; no missing-unit forward filling.
+  Snapshots may have different observation times. This remains estimated holdings
+  attribution, not transaction-derived P&L or balance reconciliation.
+- Other workspace sections continue to show the selected unit (Main in overview),
+  with an explicit scope note. There is no combined governance authority or vote.
+- Owner removed the network/testnet badge entirely from **Treasury**. Actual
+  testnet areas retain their contextual indicator and transaction protections.
+
+Remaining: generic expense execution/pricing and native Community Pool block/module
+coverage stay incomplete as documented below. Consolidation does not close them.
+Local validation: 135 JavaScript tests and 8 DAO onboarding tests; hosted browser
+checks cover 320/390/768/1440 px, missing ledgers, race handling and scope navigation.
+Release CI/deployment evidence belongs to the hierarchy PR.
+
+
 ## Treasury header refinement — 2026-10-06
 
 Owner requested removal of USD/NETA buttons and the right-side “Live assets /
