@@ -6,7 +6,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from update_dao_directory import get, smart, paginated, PROVIDERS
-from update_treasury import native_assets, prices, snapshot_result, write_snapshot, now
+from update_treasury import native_assets, prices, snapshot_result, write_snapshot, now, ASSETS
 from update_treasury_events import collect as collect_events, CHAINS, QUERIES
 from update_community_accounting import atomic
 from update_generic_accounting import build as accounting_review
@@ -86,7 +86,8 @@ def build_snapshot(dao, base):
     rewards = get(base, '/cosmos/distribution/v1beta1/delegators/' + address + '/rewards', height)
     withdraw = get(base, '/cosmos/distribution/v1beta1/delegators/' + address + '/withdraw_address', height)['withdraw_address']
     positions = staking_positions(delegations, unbondings, rewards, address)
-    try: market, price_source = prices(['juno-network', 'cosmos', 'usd-coin'])
+    price_ids = ['juno-network', *[meta['coingecko'] for meta in ASSETS.values() if meta.get('coingecko')]]
+    try: market, price_source = prices(price_ids)
     except Exception: market, price_source = {}, 'Unavailable'
     warnings = []
     assets = native_assets(coins, market, warnings, custody_address=address, providers=(base,))

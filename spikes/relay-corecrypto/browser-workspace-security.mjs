@@ -3,6 +3,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 const root=new URL('../../',import.meta.url);
+const inventory=JSON.parse(await readFile(new URL('data/dao-directory.json',root)));
 const server=http.createServer(async(req,res)=>{
  try {const path=new URL(req.url,'http://localhost').pathname;
   if(path.includes('..')){res.writeHead(400).end();return;}
@@ -50,8 +51,12 @@ try{
   if(path.endsWith('history.json'))return json(route,{snapshots:[]});
   if(path.endsWith('neta-main-events.json'))return json(route,{scope:'neta-main-dao',treasuries:[{chain_id:'juno-1',address:'juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6'}],status:'UNAVAILABLE',events:[]});
   if(path.endsWith('events.json'))return json(route,{events:[]});
-  const juno=path.endsWith('juno-community-pool.json');
-  return json(route,{chain_id:'juno-1',treasury_type:'dao-core',treasury_address:path.endsWith("neta-main.json")?"juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6":undefined,generated_at:'2026-10-02T20:00:00Z',height:1,status:'LIVE',total_usd:juno?'200':'100',price_source:'mock',assets:[{type:'token',symbol:'JUNO',amount:'1',usd_value:juno?'200':'100'}]});
+  const dao=inventory.daos.find(d=>path.endsWith('/'+d.snapshot));
+  if(!dao)return json(route,{});
+  const juno=dao.id==='juno',address=dao.core;
+  return json(route,{chain_id:dao.network,treasury_type:juno?'community-pool':'dao-core',treasury_address:address,
+   treasury_accounts:dao.accountingSource.treasuries,generated_at:'2026-10-02T20:00:00Z',height:1,status:'LIVE',total_usd:juno?'200':'100',price_source:'mock',
+   assets:[{type:'token',key:'juno:native:ujuno',source_chain:'juno',custody_address:address,symbol:'JUNO',amount:'1',usd_value:juno?'200':'100'}]});
  });
  await context.route('**/data/daos/neta.json',route=>json(route,{adapter:'cw20-staked-legacy',power_decimals:6,power_unit:'NETA',chain_id:'juno-1',token_contract:'juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr',core:'juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6',voting_module:'juno1839rlmw33avduccuhpnv6cqxsdlwpz87vq8g6x6jkfrdzpwtl8nsgf20f4',staking_contract:'juno1a7x8aj7k38vnj9edrlymkerhrl5d4ud3makmqhx6vt3dhu0d824qh038zh',members_complete:true,members:[{address:'juno1'+'q'.repeat(38),power_raw:'1000000'}],total_power_raw:'1000000',height:100,generated_at:'2026-10-03T18:00:00Z'}));
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));

@@ -23,3 +23,23 @@ class DelegationPositions(unittest.TestCase):
         with patch('update_delegation_treasury.smart',side_effect=[['a'],['a']]):
             with self.assertRaises(ValueError):token_list('base','dao',12)
 if __name__=='__main__':unittest.main()
+
+class IbcIdentity(unittest.TestCase):
+    def test_v10_trace_checks_hash_without_trusting_ticker_for_price(self):
+        import hashlib
+        from update_treasury import native_metadata
+        digest=hashlib.sha256(b'transfer/channel-999/uatom').hexdigest().upper()
+        payload={'denom':{'base':'uatom','trace':[{'port_id':'transfer','channel_id':'channel-999'}]}}
+        with patch('update_treasury.rest',side_effect=[RuntimeError('deprecated'),(payload,'provider')]):
+            meta=native_metadata('ibc/'+digest)
+            self.assertEqual(meta['base_denom'],'uatom')
+            self.assertIsNone(meta['decimals']);self.assertNotIn('coingecko',meta)
+        with patch('update_treasury.rest',side_effect=[RuntimeError('deprecated'),(payload,'provider')]):
+            with self.assertRaises(ValueError):native_metadata('ibc/'+'A'*64)
+    def test_bitsong_route_is_juno_scoped(self):
+        from update_treasury import native_metadata
+        denom='ibc/008BFD000A10BCE5F0D4DD819AE1C1EC2942396062DABDD6AE64A655ABC7085B'
+        self.assertEqual(native_metadata(denom)['symbol'],'BTSG')
+        self.assertEqual(native_metadata(denom)['decimals'],6)
+        with patch('update_treasury.rest',return_value=({'denom_trace':{'base_denom':'ubtsg','path':'transfer/channel-17'}},'provider')):
+            self.assertNotIn('coingecko',native_metadata(denom,source_chain='osmosis'))
