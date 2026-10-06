@@ -1,5 +1,5 @@
-import { accountingStart, accountsFor, period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-4';
-import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-4';
+import { accountingStart, accountsFor, period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-5';
+import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-5';
 const root = document.querySelector('#treasury-pnl');
 let state = window.NetaTreasuryAccounting || {};
 const expanded = new Set();
@@ -12,7 +12,7 @@ function render() {
   const summary = summarize(entries, range, accountsFor(state.dao), error || state.loading ? null : state.data);
   const future = range.start > Date.now();
   root.querySelector('#pnl-period').textContent = `${month.selectedOptions[0].textContent} ${year.value}${range.toDate ? ' · to date' : ''} · UTC`;
-  root.querySelector('#pnl-coverage').textContent = state.loading ? 'Loading accounting evidence…' : error || (future ? 'Future period · no actuals yet' : state.data ? summary.provisional ? 'Provisional · recorded transactions' : 'Partial coverage · totals incomplete' : 'Accounting history is not connected for this DAO.');
+  root.querySelector('#pnl-coverage').textContent = state.loading ? 'Loading accounting evidence…' : error || (future ? 'Future period · no actuals yet' : state.data ? summary.provisional ? 'Provisional · recorded transactions' : state.data.refresh_status !== 'completed' ? 'Accounting refresh unavailable · retained evidence' : state.data.coverage_gaps?.length ? 'Connected · module coverage incomplete' : 'Partial coverage · totals incomplete' : 'Accounting history is not connected for this DAO.');
   const tbody = root.querySelector('#pnl-rows'); tbody.replaceChildren();
   function amount(value, detail, provisional = false) {
     const td = el('td');
@@ -41,9 +41,11 @@ function render() {
     }
   }
   const result = el('tr', undefined, 'pnl-result'), title = el('th', 'Operating surplus / deficit'); title.scope = 'row'; result.append(title, amount(summary.result, null, summary.provisional), amount(summary.previousResult, null, summary.previousProvisional)); tbody.append(result);
-  root.querySelector('#pnl-source').textContent = state.data && !error ? `Last successful receipt refresh: ${state.data.last_success_at ? date(state.data.last_success_at) + ' UTC' : 'unavailable'}. Latest attempt: ${state.data.refresh_status}. Conversion is fixed at the accepted payment rate. Buyer-paid gas is not a DAO expense. Selected interval: ${date(Math.max(accountingStart, range.start))} – ${date(range.end)} (end exclusive). Comparison: ${date(range.previousStart)} – ${date(range.previousEnd)}.` : 'Classified receipts with payment-time prices are required. Treasury balances alone do not establish income or expenses.';
+  root.querySelector('#pnl-source').textContent = state.data && !error ? `Last successful receipt refresh: ${state.data.last_success_at ? date(state.data.last_success_at) + ' UTC' : 'unavailable'}. Latest attempt: ${state.data.refresh_status}. ${state.data.schema_version === 1 ? "Conversion is fixed at the accepted payment rate. Buyer-paid gas is not a DAO expense." : "Funding is separate from operating income. Unknown payment purpose or missing historical prices prevents booking."} Selected interval: ${date(Math.max(accountingStart, range.start))} – ${date(range.end)} (end exclusive). Comparison: ${date(range.previousStart)} – ${date(range.previousEnd)}.` : 'Classified receipts with payment-time prices are required. Treasury balances alone do not establish income or expenses.';
   root.querySelector('#pnl-source').textContent += ' Accounting starts 1 October 2026 UTC for every DAO. Earlier comparison periods are outside coverage. Provisional zeros and results describe successfully refreshed, reviewed transactions only; public-index coverage remains partial. Unreviewed movements, failed refreshes or stale current-period snapshots prevent provisional totals.';
-  if (state.data?.movement_review && !error) root.querySelector('#pnl-source').textContent += ` Movement review: ${state.data.movement_review.matched_receipts} linked NNS receipts; ${state.data.movement_review.unreviewed_movements} observed movements awaiting classification. Balance reconciliation remains unavailable.`;
+  if (state.data?.coverage_gaps?.length && !error) root.querySelector('#pnl-source').textContent += ' ' + state.data.coverage_gaps.join(' ');
+  if (state.data?.execution_candidates?.length && !error) root.querySelector('#pnl-source').textContent += ` ${state.data.execution_candidates.length} passed spending proposals await verified execution receipts.`;
+  if (state.data?.movement_review && !error) root.querySelector('#pnl-source').textContent += ` Movement review: ${state.data.movement_review.matched_receipts} linked receipts; ${state.data.movement_review.unreviewed_movements} observed movements awaiting classification. Balance reconciliation remains unavailable.`;
 }
 year.addEventListener('change', render); month.addEventListener('change', render);
 window.addEventListener('neta:treasury-accounting', event => { const changed = state.dao?.id !== event.detail.dao?.id; state = event.detail; if (changed) expanded.clear(); render(); });

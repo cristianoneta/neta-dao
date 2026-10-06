@@ -1,5 +1,23 @@
 # NETA DAO handoff
 
+## Latest continuation — all-DAO accounting adapters (2026-10-06)
+
+Owner asked to connect the remaining DAOs. Operations now has its own generated
+accounting review for Juno core + Osmosis proxy. Native Juno has a separate direct
+funding/governance adapter. Both are configured in the shared DAO directory and
+loaded by the shared Treasury UI, with strict source identity and failure handling.
+
+**Connected does not mean complete:** Operations can show provisional zeros only
+for fresh reviewed recorded movements. Community Pool totals remain unavailable
+because block allocations and drip/module payouts are not reconstructed. Approved
+proposal-category-to-execution matching and historical USD pricing remain open.
+The native adapter never books a passed proposal as a payment. Older Juno governance
+pagination currently returns a provider server error; retained recent reads carry
+an explicit partial-coverage warning. No live wallet write was performed.
+
+See [adapter implementation and remaining boundaries](docs/TREASURY_ALL_DAO_ADAPTERS_2026-10-06.md).
+Publication/collector verification is pending in the implementation record.
+
 ## Latest checkpoint — 2026-10-06, Treasury categories and provisional totals
 
 [PR #177](https://github.com/cristianoneta/neta-dao/pull/177) is merged as

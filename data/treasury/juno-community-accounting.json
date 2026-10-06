@@ -1,0 +1,74 @@
+{
+  "schema_version": 2,
+  "dao_id": "juno",
+  "scope": "juno-community-pool",
+  "treasuries": [
+    {
+      "chain_id": "juno-1",
+      "address": "juno1jv65s3grqf6v6jl3dp4t6c9t9rk99cd83d88wr"
+    }
+  ],
+  "chain_id": "juno-1",
+  "accounting_start": "2026-10-01T00:00:00Z",
+  "adapter": "native-community-pool",
+  "status": "PARTIAL",
+  "refresh_status": "completed",
+  "checked_at": "2026-10-06T12:53:32.544493Z",
+  "last_success_at": "2026-10-06T12:53:32.475107Z",
+  "sources": [
+    {
+      "adapter": "cosmos-rest-receipts",
+      "chain_id": "juno-1",
+      "address": "juno1jv65s3grqf6v6jl3dp4t6c9t9rk99cd83d88wr",
+      "source": "https://juno.api.m.stavr.tech",
+      "accounting_start": "2026-10-01T00:00:00Z",
+      "accounting_boundary": {
+        "start_at": "2026-10-01T00:00:00Z",
+        "height": 42226530,
+        "hash": "34EFDA575561E469BD547CBC59503646CB6F65C02A988B0A6D2494865471E5EE",
+        "timestamp": "2026-09-30T10:14:02.896994123Z",
+        "kind": "scan-floor-before-start"
+      },
+      "scan_start_height": 42226530,
+      "last_scanned_height": 42426510,
+      "anchor_hash": "34B225A20D01E147EBB859117B3E478A11C0C3D1631E0851FBE8446C069C3F5A",
+      "incremental": false,
+      "range_capable": true,
+      "indexed_transactions": 0,
+      "historical_missing_transactions": 0,
+      "historical_missing_tx_hashes": [],
+      "last_full_replay_day": "2026-10-06",
+      "query_keys": [
+        "message.action"
+      ],
+      "query_pairs": [
+        [
+          "message.action",
+          "/cosmos.distribution.v1beta1.MsgFundCommunityPool"
+        ]
+      ],
+      "coverage": "provider-index-only"
+    }
+  ],
+  "coverage_gaps": [
+    "Block-level Community Pool accruals, rounding, burns and drip/module payouts are not yet reconstructed. Full income, expenses and result remain unavailable.",
+    "Older governance page unavailable (HTTPError); recent observed proposals retained, catalogue coverage incomplete."
+  ],
+  "execution_candidates": [],
+  "warnings": [
+    "Block-level Community Pool accruals, rounding, burns and drip/module payouts are not yet reconstructed. Full income, expenses and result remain unavailable.",
+    "Older governance page unavailable (HTTPError); recent observed proposals retained, catalogue coverage incomplete."
+  ],
+  "entries": [],
+  "movement_review": {
+    "accounting_start": "2026-10-01T00:00:00Z",
+    "status": "PARTIAL",
+    "event_refresh_status": "PARTIAL",
+    "matched_receipts": 0,
+    "unmatched_receipt_ids": [],
+    "unreviewed_movements": 0,
+    "movements": [],
+    "balance_reconciliation": "UNAVAILABLE",
+    "note": "Recorded receipts only. Unknown purpose or missing payment-time valuation blocks period totals."
+  }
+}
