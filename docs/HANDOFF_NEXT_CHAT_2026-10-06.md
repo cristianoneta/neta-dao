@@ -26,7 +26,15 @@ transaction fees. The collector records the current rate/source/date separately
 from revenue; never apply today's rate retroactively or infer tax from balance
 changes. Historical block-level accruals and payment-time prices remain open.
 
-PR #183 contains this continuation. Release evidence is recorded after validation.
+Implementation and source boundaries: [Juno Treasury onboarding](JUNO_DELEGATION_TREASURY_2026-10-06.md).
+Release PR: [#183](https://github.com/cristianoneta/neta-dao/pull/183).
+Application `a1930ed4ef5605e00392dd05f880e56f51466ee7` passed contract/frontend
+[37475015127](https://github.com/cristianoneta/neta-dao/actions/runs/37475015127),
+browser [37475015023](https://github.com/cristianoneta/neta-dao/actions/runs/37475015023)
+and live collector [37475015072](https://github.com/cristianoneta/neta-dao/actions/runs/37475015072).
+136 JavaScript and 62 targeted Python tests passed locally. Browser screenshots for
+both Juno units and consolidation were reviewed at 320/390/768/1440px. Final main
+CI, collector and Pages deployment evidence is retained in the release PR.
 
 
 ## DAO hierarchy and consolidated Treasury — 2026-10-06

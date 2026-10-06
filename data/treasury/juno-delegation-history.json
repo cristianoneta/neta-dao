@@ -5,14 +5,14 @@
     {
       "assets": [
         {
-          "amount": null,
-          "decimals": null,
+          "amount": "686.021124",
+          "decimals": 6,
           "key": "juno:native:ibc/008BFD000A10BCE5F0D4DD819AE1C1EC2942396062DABDD6AE64A655ABC7085B",
           "raw_amount": "686021124",
           "source_chain": "juno",
-          "symbol": "ubtsg",
-          "usd_price": null,
-          "usd_value": null
+          "symbol": "BTSG",
+          "usd_price": "0.00048366",
+          "usd_value": "0.33180097683384"
         },
         {
           "amount": "2.096638",
@@ -31,8 +31,8 @@
           "raw_amount": "1403",
           "source_chain": "juno",
           "symbol": "USDC",
-          "usd_price": "0.999893",
-          "usd_value": "0.001402849879"
+          "usd_price": "0.99992",
+          "usd_value": "0.00140288776"
         },
         {
           "amount": "2916586.37162",
@@ -41,8 +41,8 @@
           "raw_amount": "2916586371620",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00922858",
-          "usd_value": "26915.9506574048996"
+          "usd_price": "0.00923133",
+          "usd_value": "26923.9712699268546"
         },
         {
           "amount": "14999522.938953",
@@ -51,8 +51,8 @@
           "raw_amount": "14999522938953",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00922858",
-          "usd_value": "138424.29740396287674"
+          "usd_price": "0.00923133",
+          "usd_value": "138465.54609204499749"
         },
         {
           "amount": "0.140151",
@@ -65,20 +65,20 @@
           "usd_value": "0.25087029"
         },
         {
-          "amount": "3829969.264603",
+          "amount": "3829983.72219",
           "decimals": 6,
           "key": "juno:native:ujuno:rewards",
-          "raw_amount": "3829969264603",
+          "raw_amount": "3829983722190",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00922858",
-          "usd_value": "35345.17775592995374"
+          "usd_price": "0.00923133",
+          "usd_value": "35355.8436341642127"
         }
       ],
-      "generated_at": "2026-10-06T13:54:29.190560891Z",
-      "height": 42427981,
-      "status": "PARTIAL",
-      "total_usd": "200689.43107245760908"
+      "generated_at": "2026-10-06T13:57:10.758236337Z",
+      "height": 42428044,
+      "status": "LIVE",
+      "total_usd": "200749.69805231065863"
     }
   ],
   "treasury_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
