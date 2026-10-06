@@ -96,7 +96,7 @@ def select_rpc(chain):
 def load_existing(path=OUT):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except (FileNotFoundError, json.JSONDecodeError):
+    except FileNotFoundError:
         return {"schema_version": 2, "events": []}
 
 
@@ -332,6 +332,8 @@ def collect_receipt_chain(chain, existing, registry, titles, source=None):
                     movement['valuation_status'] = 'payment-time-price-unavailable'
                 old = prior.get(digest)
                 if old:
+                    if int(old['height']) != row['height'] or old.get('status', 'confirmed') != row['status']:
+                        raise ValueError('Previously recorded receipt identity changed')
                     if not row.get('proposal_title'):
                         row['proposal_title'] = old.get('proposal_title')
                     # Source/enrichment may improve; money and timestamp may not change silently.
@@ -351,6 +353,14 @@ def collect_receipt_chain(chain, existing, registry, titles, source=None):
 def collect(chains=CHAINS, output=OUT, proposal_module=PROPOSAL_MODULE, scope="neta-operations-cross-chain"):
     previous = load_existing(output)
     existing = previous.get("events", [])
+    expected = [{"chain_id": chain["id"], "address": chain["address"]} for chain in chains]
+    if (existing or previous.get('sources')) and (previous.get('scope') != scope or previous.get('treasuries') != expected):
+        raise ValueError('Treasury history identity mismatch')
+    identities = {(item['chain_id'], item['address']) for item in expected}
+    if any((row.get('chain_id'), row.get('treasury_address')) not in identities for row in existing):
+        raise ValueError('Foreign Treasury receipt')
+    if any((row.get('chain_id'), row.get('address')) not in identities for row in previous.get('sources', [])):
+        raise ValueError('Foreign Treasury watermark')
     source_by_chain = {row["chain_id"]: row for row in previous.get("sources", [])}
     registry = denom_registry()
     try:

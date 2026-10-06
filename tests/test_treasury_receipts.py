@@ -1,6 +1,7 @@
 import copy
 import json
 import sys
+import tempfile
 import unittest
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -92,6 +93,15 @@ class ReceiptHistoryTests(unittest.TestCase):
         row['movements'].append(copy.deepcopy(row['movements'][0]))
         with self.assertRaisesRegex(ValueError,'Multiple Treasury legs'):
             accounting.reconcile_movements(data,ledger)
+
+    def test_corrupt_or_foreign_history_cannot_reset_collection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'events.json'
+            path.write_text('{invalid')
+            with self.assertRaises(json.JSONDecodeError): events.load_existing(path)
+        with patch.object(events, 'load_existing', return_value={'scope':'wrong', 'events':[{}]}):
+            with self.assertRaisesRegex(ValueError,'identity mismatch'):
+                events.collect()
 
     def test_failed_receipts_cannot_create_transfer_rows(self):
         tx=copy.deepcopy(self.tx);tx['code']=5

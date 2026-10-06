@@ -54,9 +54,10 @@ Generated with the built-in image generation tool; resized only for browser form
 
 ## Validation and publication
 
-Local validation: 120 Node tests and 42 targeted Python tests passed. Regression
+Local validation: 120 Node tests and 43 targeted Python tests passed. Regression
 coverage includes the October boundary, empty native versus populated CW20 index,
 truncated/duplicate pages, missing known transactions, daily replay, failed receipts,
 changed amounts and exact NNS cross-reference. Existing browser tests now verify
-that pre-start periods cannot be selected. Hosted checks and production collection
-are still pending; do not treat this document alone as deployment evidence.
+that pre-start periods cannot be selected. A read-only local live scan via Polkachu found the real NNS receipt at block
+42400450; provider coverage through block 42425219 remained explicitly PARTIAL.
+Hosted checks and production collection are still pending; do not treat this document alone as deployment evidence.

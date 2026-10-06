@@ -22,7 +22,7 @@ def instant(value):
 
 
 def block(get, base, height, chain_id):
-    data = get(f'{base}/cosmos/base/tendermint/v1beta1/blocks/{height}', timeout=10)
+    data = get(f'{base}/cosmos/base/tendermint/v1beta1/blocks/{height}', timeout=15)
     header = (data.get('block') or data.get('sdk_block'))['header']
     if header['chain_id'] != chain_id or (height != 'latest' and int(header['height']) != int(height)):
         raise ValueError('Block identity mismatch')
@@ -68,7 +68,7 @@ def search(get, base, key, address, start, end):
     query = f"{key}='{address}' AND tx.height>={start} AND tx.height<={end}"
     for page in range(1, 101):
         data = get(base + '/cosmos/tx/v1beta1/txs?' + urlencode({
-            'query': query, 'page': page, 'limit': 100, 'order_by': 'ORDER_BY_ASC'}), timeout=10)
+            'query': query, 'page': page, 'limit': 100, 'order_by': 'ORDER_BY_ASC'}), timeout=15)
         total = int(data['total'])
         if total < 0 or (expected is not None and total != expected):
             raise ValueError('Index total changed')
