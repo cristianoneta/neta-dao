@@ -11,8 +11,8 @@
           "raw_amount": "686021124",
           "source_chain": "juno",
           "symbol": "BTSG",
-          "usd_price": "0.00048363",
-          "usd_value": "0.33178039620012"
+          "usd_price": "0.00048494",
+          "usd_value": "0.33267908387256"
         },
         {
           "amount": "2.096638",
@@ -31,8 +31,8 @@
           "raw_amount": "1403",
           "source_chain": "juno",
           "symbol": "USDC",
-          "usd_price": "0.999901",
-          "usd_value": "0.001402861103"
+          "usd_price": "0.99995",
+          "usd_value": "0.00140292985"
         },
         {
           "amount": "2916586.37162",
@@ -41,8 +41,8 @@
           "raw_amount": "2916586371620",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00913938",
-          "usd_value": "26655.7911530563956"
+          "usd_price": "0.00918399",
+          "usd_value": "26785.9000710943638"
         },
         {
           "amount": "14999522.938953",
@@ -51,8 +51,8 @@
           "raw_amount": "14999522938953",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00913938",
-          "usd_value": "137086.33995780826914"
+          "usd_price": "0.00918399",
+          "usd_value": "137755.46867611496247"
         },
         {
           "amount": "0.140151",
@@ -65,20 +65,20 @@
           "usd_value": "0.24946878"
         },
         {
-          "amount": "3831788.06038",
+          "amount": "3831916.3723",
           "decimals": 6,
           "key": "juno:native:ujuno:rewards",
-          "raw_amount": "3831788060380",
+          "raw_amount": "3831916372300",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00913938",
-          "usd_value": "35020.1671632757644"
+          "usd_price": "0.00918399",
+          "usd_value": "35192.281644039477"
         }
       ],
-      "generated_at": "2026-10-06T19:31:19.399822138Z",
-      "height": 42435901,
+      "generated_at": "2026-10-06T19:55:03.170413074Z",
+      "height": 42436460,
       "status": "LIVE",
-      "total_usd": "198766.61294181773226"
+      "total_usd": "199737.96595768252583"
     }
   ],
   "treasury_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"

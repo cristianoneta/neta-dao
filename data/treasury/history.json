@@ -1088,8 +1088,8 @@
           "raw_amount": "761080781",
           "source_chain": "juno",
           "symbol": "JUNO",
-          "usd_price": "0.00913938",
-          "usd_value": "6.95580646825578"
+          "usd_price": "0.00918375",
+          "usd_value": "6.98957562250875"
         },
         {
           "amount": "817.744263",
@@ -1098,8 +1098,8 @@
           "raw_amount": "817744263",
           "source_chain": "osmosis",
           "symbol": "AKT",
-          "usd_price": "0.764396",
-          "usd_value": "625.080443660148"
+          "usd_price": "0.764636",
+          "usd_value": "625.276702283268"
         },
         {
           "amount": "1932.499146",
@@ -1108,8 +1108,8 @@
           "raw_amount": "1932499146",
           "source_chain": "osmosis",
           "symbol": "JUNO",
-          "usd_price": "0.00913938",
-          "usd_value": "17.66184404496948"
+          "usd_price": "0.00918375",
+          "usd_value": "17.74758903207750"
         },
         {
           "amount": "3441.43943",
@@ -1118,8 +1118,8 @@
           "raw_amount": "3441439430",
           "source_chain": "osmosis",
           "symbol": "USDC.n",
-          "usd_price": "0.999901",
-          "usd_value": "3441.09872749643"
+          "usd_price": "0.999926",
+          "usd_value": "3441.18476348218"
         },
         {
           "amount": "3161.997431",
@@ -1128,8 +1128,8 @@
           "raw_amount": "3161997431",
           "source_chain": "osmosis",
           "symbol": "JKL",
-          "usd_price": "0.00093522",
-          "usd_value": "2.95716323741982"
+          "usd_price": "0.00093525",
+          "usd_value": "2.95725809734275"
         },
         {
           "amount": "177.320495",
@@ -1138,8 +1138,8 @@
           "raw_amount": "177320495",
           "source_chain": "osmosis",
           "symbol": "ATONE",
-          "usd_price": "0.096792",
-          "usd_value": "17.163205352040"
+          "usd_price": "0.096812",
+          "usd_value": "17.166751761940"
         },
         {
           "amount": "3.200008",
@@ -1148,14 +1148,14 @@
           "raw_amount": "3200008",
           "source_chain": "osmosis",
           "symbol": "OSMO",
-          "usd_price": "0.0356145",
-          "usd_value": "0.1139666849160"
+          "usd_price": "0.03561341",
+          "usd_value": "0.11396319690728"
         }
       ],
-      "generated_at": "2026-10-06T19:31:46.822634Z",
-      "height": 42435910,
+      "generated_at": "2026-10-06T19:55:33.584177Z",
+      "height": 42436471,
       "status": "PARTIAL",
-      "total_usd": "4131.50115694417908"
+      "total_usd": "4131.90660347622428"
     }
   ]
 }
