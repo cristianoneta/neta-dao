@@ -70,5 +70,12 @@ Pool and consolidated Juno P&L totals remain unavailable instead of fabricated z
 PR [#183](https://github.com/cristianoneta/neta-dao/pull/183). Local Node/Python checks,
 hosted collector and browser tests cover unit selection, separate custody,
 consolidated totals, non-JUNO assets, reward truncation, wrong-address rejection,
-incomplete P&L and 320/390/768/1440px layouts. Final run/deployment evidence is
-linked from the handoff and retained in the release PR. No wallet transaction occurred.
+incomplete P&L and 320/390/768/1440px layouts. Merged as
+`33ef6db9da688c75be1dd323dcab94b96735ffd4`. Main CI
+[37475921659](https://github.com/cristianoneta/neta-dao/actions/runs/37475921659),
+production collector [37475921767](https://github.com/cristianoneta/neta-dao/actions/runs/37475921767)
+and Pages [37476007738](https://github.com/cristianoneta/neta-dao/actions/runs/37476007738)
+passed. The deployed snapshot at height 42,428,202 is LIVE; ten served application
+files matched reviewed source and production UI confirmed both units and the
+income split. See the [published handoff checkpoint](HANDOFF_NEXT_CHAT_2026-10-06.md)
+for dated balances, deployment commit and next work. No wallet transaction occurred.

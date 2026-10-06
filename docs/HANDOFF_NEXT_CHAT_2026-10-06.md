@@ -33,8 +33,52 @@ Application `a1930ed4ef5605e00392dd05f880e56f51466ee7` passed contract/frontend
 browser [37475015023](https://github.com/cristianoneta/neta-dao/actions/runs/37475015023)
 and live collector [37475015072](https://github.com/cristianoneta/neta-dao/actions/runs/37475015072).
 136 JavaScript and 62 targeted Python tests passed locally. Browser screenshots for
-both Juno units and consolidation were reviewed at 320/390/768/1440px. Final main
-CI, collector and Pages deployment evidence is retained in the release PR.
+both Juno units and consolidation were reviewed at 320/390/768/1440px.
+
+### Published checkpoint — 2026-10-06, 16:10 Europe/Berlin (14:10 UTC)
+
+PR #183 is merged as `33ef6db9da688c75be1dd323dcab94b96735ffd4`.
+This is the current checkpoint; older sections below are historical context and do
+not supersede the connected adapters or the remaining coverage gaps described here.
+
+- Main contract/frontend CI [37475921659](https://github.com/cristianoneta/neta-dao/actions/runs/37475921659)
+  and NNS CI [37475921688](https://github.com/cristianoneta/neta-dao/actions/runs/37475921688) passed.
+- Production Treasury workflow [37475921767](https://github.com/cristianoneta/neta-dao/actions/runs/37475921767)
+  passed every collection step, including Delegation Programme. Its LIVE snapshot
+  is pinned to height **42,428,202**, observed **2026-10-06 14:03:56 UTC**.
+- Pages [37476007738](https://github.com/cristianoneta/neta-dao/actions/runs/37476007738)
+  successfully deployed bot snapshot commit `3d54ccd0fd54ecb0c17321c5637f26d083ea279a`,
+  which includes the release. Preserve this and newer generated data when continuing.
+- Ten served HTML/JavaScript/module files matched reviewed source byte-for-byte.
+  Production browser inspection confirmed both unit names, **2/2 units** in Juno
+  consolidation, separate liquid/delegated/reward positions, and the Community
+  Pool's **Community Tax / Other income** rows. Its accounting basis displays the
+  observed **10%** rate and the historical-coverage limitation. No wallet action.
+
+Verified production entry points:
+[Community Pool](https://dao.netareborn.com/index.html?dao=juno&chain=juno&subdao=main#treasury),
+[Delegation Programme](https://dao.netareborn.com/index.html?dao=juno&chain=juno&subdao=juno-delegation#treasury),
+[Juno consolidated Treasury](https://dao.netareborn.com/index.html?dao=juno#treasury).
+
+At that production snapshot, Delegation Programme held **2,916,586.371620 JUNO
+available**, **14,999,522.938953 JUNO delegated**, **3,830,019.995514 JUNO claimable**,
+and no unbonding JUNO. Other assets: **2.096638 ATOM available + 0.140151 ATOM
+claimable**, **686.021124 BTSG** and **0.001403 USDC**. These are dated observations;
+subsequent generated snapshots supersede them.
+
+### Next continuation
+
+1. Start from fresh `origin/main`; preserve bot snapshots and use a branch/PR.
+2. If continuing Treasury accounting, reconstruct Community Pool block/module
+   accruals and payouts from **1 October 2026 UTC** and attach historical USD prices.
+   Do not use today's Community Tax rate retroactively or infer revenue from
+   changes in the pool balance. Do not restart pre-cutoff backfills.
+3. Delegation Programme still needs staking-receipt/slashing classification,
+   payment-time valuation and reconciliation; claimable holdings are not cash income.
+   Generic proposal-category-to-executed-payment matching also remains open.
+4. Keep Community Pool and consolidated P&L totals unavailable until the missing
+   evidence is covered. Daily history will grow through the existing workflow;
+   there is no need to initialize this DAO again or add another scheduled collector.
 
 
 ## DAO hierarchy and consolidated Treasury — 2026-10-06
@@ -171,7 +215,7 @@ Complete P&L coverage and non-NNS classification/pricing/reconciliation remain o
 Community Pool still has no accounting adapter. Preserve existing older exports.
 
 
-Updated **2026-10-06, after PR #177 publication**. This is the current continuation checkpoint.
+Historical checkpoint: **2026-10-06, after PR #177 publication**. The published PR #183 checkpoint above supersedes this section.
 Scope: `cristianoneta/neta-dao`, <https://dao.netareborn.com>.
 
 ## Read first
