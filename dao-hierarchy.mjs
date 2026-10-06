@@ -19,3 +19,27 @@ export function selectionParams(selection, params = new URLSearchParams()) {
   else params.set('subdao', selection.dao.id === selection.organization.mainDaoId ? 'main' : selection.dao.id);
   return params;
 }
+
+// Read only explicit organizational links; never infer contract control.
+export function structureFor(organization, directory) {
+  const units = unitsFor(organization, directory);
+  const nodes = new Map(units.map(dao => [dao.id, {dao, children: []}]));
+  if (nodes.size !== units.length) throw new Error('Duplicate DAO identities in organizational structure.');
+  for (const dao of units) {
+    const visited = new Set([dao.id]);
+    let parent = dao.parentDaoId;
+    while (parent) {
+      if (!nodes.has(parent)) throw new Error('A parent DAO is outside the configured organization.');
+      if (visited.has(parent)) throw new Error('Circular DAO relationship in organizational structure.');
+      visited.add(parent);
+      parent = nodes.get(parent).dao.parentDaoId;
+    }
+  }
+  const roots = [];
+  for (const dao of units) {
+    const node = nodes.get(dao.id);
+    if (dao.parentDaoId) nodes.get(dao.parentDaoId).children.push(node);
+    else roots.push(node);
+  }
+  return {units, roots};
+}

@@ -29,6 +29,7 @@ on:
       - 'tests/fixtures/nns-v2-quote.json'
       - 'dao-directory.js'
       - 'dao-hierarchy.mjs'
+      - 'dao-structure.mjs'
       - 'dao-members.js'
       - 'data/dao-directory.json'
       - 'index.html'

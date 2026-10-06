@@ -9,6 +9,7 @@
   <title>NETA Governance</title>
   <link rel="stylesheet" href="neta-governance.css?v=20261003-1"><link rel="stylesheet" href="governance-overrides.css?v=20261003-1"><link rel="stylesheet" href="relay.css?v=20261003-3"><link rel="stylesheet" href="names.css?v=20261006-ux-1">
   <link rel="stylesheet" href="neta-ui.css?v=20261006-hierarchy-1">
+<link rel="stylesheet" href="dao-structure.css?v=20261006-1">
 </head>
 <body class="dao-workspace">
 <header class="gov-header"><a href="index.html" class="gov-brand">NETA REBORN</a><div class="governance-selectors"><div class="chain-picker"><label for="chain-select">SELECT CHAIN</label><div class="chain-select-wrap"><select id="chain-select" aria-label="Select governance chain"><option value="juno">Juno</option></select><span aria-hidden="true">⌄</span></div></div><div class="dao-picker"><label for="dao-search">SELECT DAO</label><div class="dao-combobox"><input id="dao-search" role="combobox" aria-expanded="false" aria-controls="dao-options" aria-autocomplete="list" autocomplete="off" value="NETA"><span aria-hidden="true">⌄</span></div><div id="dao-options" class="dao-options" role="listbox" hidden></div></div><div class="subdao-picker"><label for="subdao-select">SELECT SUBDAO</label><div class="chain-select-wrap"><select id="subdao-select" aria-label="Select SubDAO"><option value="all">Consolidated overview</option></select><span aria-hidden="true">⌄</span></div></div></div><div class="relay-global-scope">YOUR RELAY</div><div class="gov-controls"><span class="testnet-pill">UNI-7 TESTNET</span><button id="gov-connect" type="button">Connect Keplr</button><button id="gov-disconnect" type="button" hidden>Disconnect</button></div></header>
@@ -54,9 +55,10 @@
   </section>
 
   <section id="people-view" class="workspace-view concept-page" hidden>
-    <header class="concept-hero page-hero"><div><span class="eyebrow" id="people-scope">DAO · PEOPLE</span><h1>The people behind the DAO.</h1><p>Explore who can participate in governance and, in future, who takes responsibility for the work.</p></div><div class="page-hero-aside"><span class="module-art module-art--contributors page-hero-art" aria-hidden="true"></span><div class="concept-badge">MEMBERS<br><small>CONTRIBUTORS PLANNED</small></div></div></header>
-    <nav class="relay-subnav people-subnav" aria-label="People sections"><button type="button" class="active" data-people-panel="members" aria-pressed="true">Members</button><button type="button" data-people-panel="contributors" aria-pressed="false">Contributors</button></nav>
-    <section id="dao-members-panel" class="names-panel" data-people-panel-view="members" aria-label="DAO members"></section>
+    <header class="concept-hero page-hero"><div><span class="eyebrow" id="people-scope">DAO · PEOPLE</span><h1>The people behind the DAO.</h1><p>Explore the DAO structure, governance members and, in future, who takes responsibility for the work.</p></div><div class="page-hero-aside"><span class="module-art module-art--contributors page-hero-art" aria-hidden="true"></span></div></header>
+    <nav class="relay-subnav people-subnav" aria-label="People sections"><button type="button" class="active" data-people-panel="structure" aria-pressed="true">DAO structure</button><button type="button" data-people-panel="members" aria-pressed="false">Members</button><button type="button" data-people-panel="contributors" aria-pressed="false">Contributors</button></nav>
+    <section id="dao-structure-panel" data-people-panel-view="structure" aria-label="DAO structure"><p>Loading DAO structure…</p></section>
+    <section id="dao-members-panel" hidden class="names-panel" data-people-panel-view="members" aria-label="DAO members"></section>
     <section id="people-contributors-panel" class="names-panel" data-people-panel-view="contributors" hidden><span class="names-badge">Planned</span><h2>Contributors</h2><p>People and teams who actively contribute to this DAO will appear here.</p><p>We will define roles, responsibilities, permissions and assignments, and how they are connected to DAO decisions. No contributor records are connected yet.</p><p class="names-help">Governance membership alone does not establish a contributor role, an assignment or additional permissions.</p></section>
   </section>
 
@@ -169,8 +171,9 @@
     </form>
   </section>
 </div>
-<script src="assets/socials-testnet-client.js?v=6"></script><script src="dao-directory.js?v=20261006-7"></script><script src="neta-governance.js?v=20261006-7"></script><script src="ux-draft.js?v=delivery-placeholder-20261006"></script><script src="treasury.js?v=20261006-11"></script><script type="module" src="treasury-pnl-ui.mjs?v=20261006-other-income-last"></script><script src="names.js?v=2"></script><script src="dao-members.js?v=20261003-people-1"></script><script src="names-workspace.js?v=20261006-ux-1"></script><script type="module" src="names-profile.mjs?v=20261005-network-1"></script><script src="relay.js?v=20261005-nns-2"></script><script src="relay-mailbox-status.js?v=1"></script>
+<script src="assets/socials-testnet-client.js?v=6"></script><script src="dao-directory.js?v=20261006-7"></script><script src="neta-governance.js?v=20261006-structure-1"></script><script src="ux-draft.js?v=20261006-structure-1"></script><script src="treasury.js?v=20261006-11"></script><script type="module" src="treasury-pnl-ui.mjs?v=20261006-other-income-last"></script><script src="names.js?v=2"></script><script src="dao-members.js?v=20261003-people-1"></script><script src="names-workspace.js?v=20261006-ux-1"></script><script type="module" src="names-profile.mjs?v=20261005-network-1"></script><script src="relay.js?v=20261005-nns-2"></script><script src="relay-mailbox-status.js?v=1"></script>
 <script type="module" src="names-v2-workspace.mjs?v=8"></script><script type="module" src="names-v2-account.mjs?v=2"></script><script type="module" src="names-v2-notifications.mjs?v=1"></script>
+<script type="module" src="dao-structure.mjs?v=20261006-1"></script>
 </body></html>
 
 

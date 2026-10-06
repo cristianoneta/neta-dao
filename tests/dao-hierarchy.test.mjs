@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {unitsFor,resolveSelection,selectionParams} from '../dao-hierarchy.mjs';
+import {unitsFor,resolveSelection,selectionParams,structureFor} from '../dao-hierarchy.mjs';
 import {consolidateSnapshots,consolidateHistory,summarizeOrganization,eliminateInternalTransfers} from '../treasury-consolidation.mjs';
 import {period,usdUnits} from '../treasury-pnl.mjs';
 const inventory=JSON.parse(readFileSync(new URL('../data/dao-directory.json',import.meta.url)));
@@ -83,4 +83,18 @@ test('Juno Community Pool and Delegation Programme preserve separate custody and
  assert.ok(report.categories.some(a=>a.id==='community_tax'));
  assert.ok(report.categories.some(a=>a.id==='other_income'));
  assert.ok(!report.categories.some(a=>a.id.startsWith('nns_')));
+});
+
+test('structure follows explicit parents across branches and levels; malformed graphs fail closed',()=>{
+ const children=[...daos,{...units[1],id:'alpha',unitName:'Alpha',parentDaoId:'neta'}, {...units[1],id:'nested',unitName:'Nested',parentDaoId:'neta-operations'}];
+ const graph=structureFor(neta,children);
+ assert.deepEqual(graph.roots.map(n=>n.dao.id),['neta']);
+ assert.deepEqual(graph.roots[0].children.map(n=>n.dao.id),['alpha','neta-operations']);
+ assert.equal(graph.roots[0].children[1].children[0].dao.id,'nested');
+ assert.equal(graph.units.length,4);
+ assert.throws(()=>structureFor(neta,[...daos,{...units[1],id:'outside',parentDaoId:'juno'}]),/outside/);
+ assert.throws(()=>structureFor(neta,[...daos,{...units[1],id:'self',parentDaoId:'self'}]),/Circular/);
+ assert.throws(()=>structureFor(neta,[...daos,{...units[1],id:'a',parentDaoId:'b'},{...units[1],id:'b',parentDaoId:'a'}]),/Circular/);
+ assert.throws(()=>structureFor(neta,[...daos,units[0]]),/Duplicate/);
+ assert.equal(structureFor(neta,[...daos,{...units[1],id:'independent',parentDaoId:null}]).roots.length,2);
 });

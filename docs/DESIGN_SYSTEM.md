@@ -473,3 +473,14 @@ not the literal label Main. Use the shared Treasury assets/P&L layout; label nat
 positions Available, Delegated, Unbonding and Claimable rewards without merging
 availability states. Community Pool income expands into Community Tax and Other
 income. Keep historical accrual coverage separate from the observed current rate.
+
+## DAO structure — owner approval 2026-10-06
+
+People opens with DAO structure before Members and Contributors. Use a framed
+organizational diagram, node buttons and a consolidated overview button tied to
+the shared header selection. Mint plus a Selected label marks the active unit;
+when consolidated, mark the frame and no individual node. Reuse the colorful
+assembly plaza for Main and the green/orange/stone contributor art for SubDAOs.
+Keep branch connectors neutral and allow nested levels and mobile reflow. Show
+only configured units and explicit organizational relationships, with a concise
+authority note. Existing direct Members/Contributors links remain functional.

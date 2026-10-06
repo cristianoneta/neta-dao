@@ -29,6 +29,39 @@ try{
  await context.route('**/neta-operations-accounting.json*',async r=>{if(delayOps)await new Promise(resolve=>setTimeout(resolve,500));return missingOps?r.fulfill({status:503,body:'unavailable'}):json(r,opsLedger)});
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  const origin=`http://127.0.0.1:${server.address().port}`;
+ // Structure shares the canonical scope selector; graph clicks never create wallet actions.
+ for(const [organization,mainId,childId] of [['neta','neta','neta-operations'],['juno','juno','juno-delegation']]){
+  await page.goto(origin+'/index.html?dao='+organization+'#people');
+  await page.waitForURL('**#people/structure');
+  await page.locator('.structure-node').first().waitFor();
+  assert.equal(await page.locator('[data-people-panel]').first().innerText(),'DAO structure');
+  assert.equal(await page.locator('.structure-node').count(),2);
+  assert.equal(await page.locator('.structure-node[aria-pressed="true"]').count(),0);
+  assert.equal(await page.locator('.structure-overview').getAttribute('aria-pressed'),'true');
+  await page.locator(`[data-structure-id="${childId}"]`).click();
+  assert.equal(await page.locator('#subdao-select').inputValue(),childId);
+  assert.equal(await page.locator(`[data-structure-id="${childId}"]`).getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator(`[data-structure-id="${childId}"]`).evaluate(el=>el===document.activeElement),true);
+  assert.equal(new URL(page.url()).searchParams.get('subdao'),childId);
+  await page.reload();await page.locator('.structure-node').first().waitFor();
+  assert.equal(await page.locator(`[data-structure-id="${childId}"]`).getAttribute('aria-pressed'),'true');
+  for(const width of [320,390,768,1440]){
+   await page.setViewportSize({width,height:1000});
+   await page.evaluate(()=>window.scrollTo(0,0));
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`structure overflow at ${width}`);
+   if(process.env.NNS_SCREENSHOT_DIR){await mkdir(process.env.NNS_SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/structure-${organization}-${width}.png`,fullPage:true})}
+  }
+  await page.locator('.structure-overview').press('Enter');
+  assert.equal(await page.locator('#subdao-select').inputValue(),'all');
+  assert.equal(new URL(page.url()).searchParams.has('subdao'),false);
+  await page.locator('#subdao-select').selectOption(mainId);
+  assert.equal(await page.locator(`[data-structure-id="${mainId}"]`).getAttribute('aria-pressed'),'true');
+  await page.locator('[data-people-panel="members"]').click();
+  assert.equal(await page.locator('#dao-structure-panel').isVisible(),false);
+  assert.equal(await page.locator('#dao-members-panel').isVisible(),true);
+  await page.locator('[data-people-panel="structure"]').click();
+  assert.equal(await page.locator('#dao-structure-panel').isVisible(),true);
+ }
  await page.goto(origin+'/index.html?dao=neta#treasury');
  await page.waitForFunction(()=>document.querySelector('#treasury-units').children.length===2);
  assert.equal(await page.locator('#dao-search').inputValue(),'NETA');
@@ -112,6 +145,14 @@ try{
  await page.locator('#subdao-select').selectOption('juno-delegation');
  await page.waitForFunction(()=>document.querySelector('#treasury-live-status').textContent==='LIVE DATA UNAVAILABLE');
  assert.equal(await page.locator('#treasury-total').innerText(),'—');
+ // Synthetic branches are test-only; production contains only directory-backed units.
+ const directoryScript=await readFile(new URL('dao-directory.js',root),'utf8');
+ const extraUnits=Array.from({length:4},(_,i)=>({...ops,id:`test-branch-${i}`,unitName:`Test branch ${i}`,parentDaoId:i===3?'test-branch-0':'neta'}));
+ await context.route('**/dao-directory.js*',r=>r.fulfill({contentType:'text/javascript',body:directoryScript+';window.NetaDaoDirectory=Object.freeze([...window.NetaDaoDirectory,...'+JSON.stringify(extraUnits)+'].map(Object.freeze));'}));
+ await page.goto(origin+'/index.html?dao=neta#people/structure');await page.locator('.structure-node').first().waitFor();
+ assert.equal(await page.locator('.structure-node').count(),6);
+ assert.equal(await page.locator('.structure-branches .structure-branches').count(),1);
+ for(const width of [320,768,1440]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`multi-level structure overflow at ${width}`)}
  assert.deepEqual(errors,[]);
  console.log('DAO hierarchy: organizational grouping, custody, consolidated P&L, failures, stale responses, navigation and 320–1440px passed');
 }finally{await browser?.close();await new Promise(resolve=>server.close(resolve))}
