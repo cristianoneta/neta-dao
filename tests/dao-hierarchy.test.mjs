@@ -8,7 +8,14 @@ const inventory=JSON.parse(readFileSync(new URL('../data/dao-directory.json',imp
 const {daos,organizations}=inventory, neta=organizations.find(o=>o.id==='neta'),units=unitsFor(neta,daos);
 const read=name=>JSON.parse(readFileSync(new URL('../data/treasury/'+name,import.meta.url)));
 const now=Date.parse('2026-10-06T14:00:00Z'),range=period(2026,10,new Date(now));
-function sources(){return units.map(dao=>{const data=read(dao.accountingSource.file);data.last_success_at=new Date(now).toISOString();return{dao,data}})}
+function sources(){return units.map(dao=>{
+ const data=read(dao.accountingSource.file);data.last_success_at=new Date(now).toISOString();data.refresh_status='completed';
+ data.entries=dao.id==='neta'?data.entries.filter(r=>r.tx_hash==='85689A2C75DE86829D4116FA0AABBA5062D269679CA139984E169E8E2ACF8DC1'):[];
+ const receipt=data.entries[0];
+ data.movement_review={status:'PARTIAL',event_refresh_status:'PARTIAL',accounting_start:'2026-10-01T00:00:00Z',unreviewed_movements:0,matched_receipts:data.entries.length,unmatched_receipt_ids:[],movements:receipt?[{id:receipt.id,tx_hash:receipt.tx_hash,timestamp:receipt.timestamp,denom:`cw20:${receipt.token}`,direction:'in',raw_amount:receipt.raw_amount,counterparty:receipt.registry,classification:receipt.category,usd_value:receipt.usd_value,receipt_id:receipt.id}]:[]};
+ if(dao.id!=='neta'){data.coverage_gaps=[];data.execution_candidates=[];data.sources=dao.accountingSource.treasuries.map(t=>({...t,adapter:'cosmos-rest-receipts',accounting_start:'2026-10-01T00:00:00Z',last_scanned_height:100,anchor_hash:'A'.repeat(64)}))}
+ return{dao,data};
+})}
 test('formal NETA hierarchy is explicit, Main first; legacy and canonical links retain units',()=>{
  assert.deepEqual(units.map(d=>d.unitName),['Main','Operations']);
  assert.equal(units[1].parentRelationship,'organizational');

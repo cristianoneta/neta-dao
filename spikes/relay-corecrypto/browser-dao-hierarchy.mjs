@@ -8,6 +8,13 @@ const read=async name=>JSON.parse(await readFile(new URL('data/treasury/'+name,r
 const main=inventory.daos.find(d=>d.id==='neta'),ops=inventory.daos.find(d=>d.id==='neta-operations');
 const mainLedger=await read(main.accountingSource.file),opsLedger=await read(ops.accountingSource.file);
 mainLedger.last_success_at=opsLedger.last_success_at=new Date().toISOString();
+mainLedger.refresh_status=opsLedger.refresh_status='completed';
+mainLedger.entries=mainLedger.entries.filter(r=>r.tx_hash==='85689A2C75DE86829D4116FA0AABBA5062D269679CA139984E169E8E2ACF8DC1');
+const receipt=mainLedger.entries[0];assert.ok(receipt);
+const review={status:'PARTIAL',event_refresh_status:'PARTIAL',accounting_start:'2026-10-01T00:00:00Z',unreviewed_movements:0,matched_receipts:0,unmatched_receipt_ids:[],movements:[]};
+mainLedger.movement_review={...review,matched_receipts:1,movements:[{id:receipt.id,tx_hash:receipt.tx_hash,timestamp:receipt.timestamp,denom:`cw20:${receipt.token}`,direction:'in',raw_amount:receipt.raw_amount,counterparty:receipt.registry,classification:receipt.category,usd_value:receipt.usd_value,receipt_id:receipt.id}]};
+opsLedger.entries=[];opsLedger.coverage_gaps=[];opsLedger.execution_candidates=[];opsLedger.movement_review=review;
+opsLedger.sources=ops.accountingSource.treasuries.map(t=>({...t,adapter:'cosmos-rest-receipts',accounting_start:'2026-10-01T00:00:00Z',last_scanned_height:100,anchor_hash:'A'.repeat(64)}));
 const mainSnapshot=await read(main.snapshot),opsSnapshot=await read(ops.snapshot);
 const expected=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(mainSnapshot.total_usd)+Number(opsSnapshot.total_usd));
 const server=http.createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;const body=await readFile(new URL('.'+path,root));res.writeHead(200,{'content-type':/\.m?js$/.test(path)?'text/javascript':path.endsWith('.css')?'text/css':path.endsWith('.json')?'application/json':'text/html'}).end(body)}catch{res.writeHead(404).end()}});
