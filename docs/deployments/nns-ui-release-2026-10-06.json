@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-10-06T05:17:45.677Z",
+  "sha": "2e0ef62243513383362eb664bf9e56df2c559203",
+  "checks": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "expected": "9202a3a7c77171d3fa60debe4b885a15bf0429146a32e8833a686409e22a94fc",
+      "served": "9202a3a7c77171d3fa60debe4b885a15bf0429146a32e8833a686409e22a94fc",
+      "matches": true
+    },
+    {
+      "path": "neta-ui.css",
+      "status": 200,
+      "expected": "bbddc31071ea2c5f4fc6aece8cc8e290c6611a88dc2827a773a95a715ed1d04f",
+      "served": "bbddc31071ea2c5f4fc6aece8cc8e290c6611a88dc2827a773a95a715ed1d04f",
+      "matches": true
+    },
+    {
+      "path": "names-v2-workspace.mjs",
+      "status": 200,
+      "expected": "8eb642c778ca646d83878843adec6801ee0b9e6cbdfbd4df58f4893f7e53deb5",
+      "served": "8eb642c778ca646d83878843adec6801ee0b9e6cbdfbd4df58f4893f7e53deb5",
+      "matches": true
+    },
+    {
+      "path": "relay.js",
+      "status": 200,
+      "expected": "9d500575ddf87b823e56b1bfccc3d680b0d6564bcd3ac8e9c538eaad721cc82a",
+      "served": "9d500575ddf87b823e56b1bfccc3d680b0d6564bcd3ac8e9c538eaad721cc82a",
+      "matches": true
+    },
+    {
+      "path": "names-v2-notifications.mjs",
+      "status": 200,
+      "expected": "1ba4f74ec1f9fbdb66f6802c143f92f1d83bb727125427a566f128900be8682e",
+      "served": "1ba4f74ec1f9fbdb66f6802c143f92f1d83bb727125427a566f128900be8682e",
+      "matches": true
+    },
+    {
+      "path": "names-v2-notifications-core.mjs",
+      "status": 200,
+      "expected": "21e1063f17a6c0821d6cfa76ad7fc838d7275ff53d184bd0a47fb5fc50113956",
+      "served": "21e1063f17a6c0821d6cfa76ad7fc838d7275ff53d184bd0a47fb5fc50113956",
+      "matches": true
+    }
+  ],
+  "price": {
+    "signature": "valid",
+    "observed": "2026-10-06T04:48:22.000Z",
+    "expires": "2026-10-07T04:48:22.000Z"
+  }
+}
