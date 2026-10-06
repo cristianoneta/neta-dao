@@ -7,6 +7,7 @@ const root = new URL('../../', import.meta.url);
 const browserCrypto = new URL('./node_modules/@wireapp/core-crypto/dist/browser/', import.meta.url);
 const files = {
   '/relay-uni7-lab.html': new URL('relay-uni7-lab.html', root),
+  '/neta-ui.css': new URL('neta-ui.css', root),
   '/relay-uni7-lab.css': new URL('relay-uni7-lab.css', root),
   '/relay-testnet-setup.css': new URL('relay-testnet-setup.css', root),
   '/relay-personal-recovery.mjs': new URL('relay-personal-recovery.mjs', root),
@@ -193,7 +194,9 @@ try {
   await restart(a);
   assert.equal(sequence, acceptedSequence, 'unlock resent accepted ciphertext');
   assert.match(await a.page.locator('#history').innerText(), /receipt recovered without a duplicate send/);
-  await b.page.locator('#receive').click(); await ready(b.page, 'DECRYPTED & ARCHIVED');
+  await b.page.locator('#receive').click();
+  await b.page.waitForFunction(() => document.querySelector('#history').textContent.includes('receipt recovered without a duplicate send'));
+  await ready(b.page, 'DECRYPTED & ARCHIVED');
   assert.match(await b.page.locator('#history').innerText(), /receipt recovered without a duplicate send/);
   console.log('Personal outbound: pre-ready rollback and lost-response reconciliation passed with real CoreCrypto');
   if (process.env.RELAY_AUDIT_ADVERSARIAL === '1') {
