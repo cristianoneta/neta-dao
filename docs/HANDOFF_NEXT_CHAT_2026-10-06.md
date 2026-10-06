@@ -30,7 +30,10 @@ Candidate WASM SHA-256:
 Local: 155 Node tests, 20 mailbox Rust tests, format/Clippy and WASM build passed.
 Hosted CI status must be checked on the latest PR head. An initial added browser
 assertion observed stale UI status before rendering completed; the follow-up waits
-for the actual recovered message. Do not describe that failed run as passing.
+for the actual recovered message. That updated personal browser exchange/recovery
+step has now passed in run 37513496120; the complete workflow and other latest-head
+checks were still running at this checkpoint. Check their final results before
+integration. Do not describe the earlier failed run as passing.
 
 **Still not mainnet-test-ready:** consent/refill/rotation and generation-aware
 crypto-controller integration, ready-but-unconfirmed transaction reconciliation,
