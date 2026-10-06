@@ -2,6 +2,7 @@ import copy
 import sys
 import unittest
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 import community_block_ledger as block
@@ -31,6 +32,17 @@ class Blocks(unittest.TestCase):
             block.write(path,data);first=path.read_bytes()
             self.assertEqual(block.read_ledger(path),data)
             block.write(path,data);self.assertEqual(path.read_bytes(),first)
+    def test_stale_block_scan_and_failed_receipt_refresh_remain_visible(self):
+        data=ledger();data.update(status='CURRENT',last_success_at='2026-10-01T00:00:04Z',last_scanned_height=21,target_height=21)
+        data['ranges'][0].update(module_transfers=[],transaction_evidence=[])
+        with TemporaryDirectory() as directory:
+            path=Path(directory)/'blocks.json.gz';block.write(path,data)
+            with patch.object(statement,'OUT',path),patch.object(statement,'prices_for',return_value={}):
+                feed,accounting=statement.build({}, {'events':[],'warnings':['Funding RPC failed'],'status':'UNAVAILABLE'}, {'entries':[],'refresh_status':'unavailable'})
+        self.assertEqual(feed['block_coverage']['status'],'STALE')
+        self.assertIn('Funding RPC failed',feed['warnings'])
+        self.assertEqual(accounting['refresh_status'],'unavailable')
+        self.assertEqual(len(accounting['entries']),1)
     def test_exact_residual_not_current_tax_or_commission(self):
         values,extra,tx=block.allocation(result(),20)
         self.assertEqual(values,{'ujuno':'10.000000000000000001','uatom':'0.2'})

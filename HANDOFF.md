@@ -1,11 +1,25 @@
 # NETA DAO handoff
 
-## Community Pool October accounting — continuation in progress, 2026-10-06
+## Community Pool October tax accounting — release candidate, 2026-10-06
 
-Recovered the interrupted working tree into a separate branch. The original scan
-stopped at block 42,288,660 (2 October 09:08 UTC); continuation resumes after that
-checkpoint. This section describes the implementation under review, not a deployed
-release. Preserve newer generated snapshots on main.
+Recovered the interrupted working tree on [PR #185](https://github.com/cristianoneta/neta-dao/pull/185).
+The initial backfill and a subsequent resume have completed: **184,739 consecutive
+blocks**, 42,244,897–42,429,635, through **2026-10-06 15:04:57 UTC**. Reconstructed
+Community Tax: **18,098.587307900002038077193637 JUNO**, with indicative historical
+USD references totalling **$162.82** across six UTC dates. No allocation is unpriced.
+This is a dated checkpoint, not a full Community Pool P&L. The tested resume read
+only 566 new blocks in 26 seconds. The application remains under review until
+release verification is recorded below; retain newer production snapshots.
+
+Local validation: **140 Node tests and 58 targeted Python tests passed**. A live
+Community Pool receipt refresh and statement projection succeeded. An unrelated
+Operations receipt refresh failed locally; its retained production exports were
+not changed. Browser testing previews the actual compressed archive without
+committing over bot-owned event/accounting files. The existing workflow generates
+those projections after integration. The first hosted frontend/contract run
+[37483386732](https://github.com/cristianoneta/neta-dao/actions/runs/37483386732) passed.
+The first browser run found a test reading a closed disclosure; the test now opens
+it first. Final hosted browser and deployment results remain to be recorded.
 
 - Community Tax is derived from each block's fee-collector transfer minus emitted
   validator rewards, using exact decimal arithmetic. It includes allocation

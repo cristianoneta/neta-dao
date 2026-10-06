@@ -51,7 +51,11 @@ The existing 15-minute Treasury workflow runs the scanner with a 180-second budg
 then builds receipt and tax statements. It retains the latest complete chunk even
 if a later RPC request fails. Initial backfill can be run with a larger time budget;
 normal collection starts after the saved last height and does not rescan October.
-The block ledger and price cache are collector-owned generated JSON files.
+The block ledger and price cache are collector-owned generated JSON files. The
+block ledger is stored as deterministic gzip (`juno-community-blocks.json.gz`),
+without dropping evidence; this avoids committing megabytes of repeated event
+attribute names at every checkpoint. The browser reads only the projected files.
+The scanner step has a five-minute hard timeout in addition to its normal budget.
 
 Funding refresh preserves previously published block events until their replacement
 statement succeeds. Statement failures retain previous accounting entries. Block

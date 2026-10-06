@@ -1,11 +1,29 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {chromium} from 'playwright';
 const root=new URL('../../',import.meta.url);
-const source=JSON.parse(await readFile(new URL('data/treasury/juno-community-accounting.json',root)));
+// Preview the collector's real archived evidence without overwriting bot-owned
+// production exports in a PR. Historical quotes are frozen; no network is used.
+const preview=JSON.parse(execFileSync('python',['-c',`
+import sys,json
+sys.path.insert(0,'scripts')
+import community_statement as s
+from pathlib import Path
+root=Path('data/treasury')
+s.prices_for=lambda ranges: json.loads((root/'juno-community-prices.json').read_text())['quotes']
+feed=json.loads((root/'juno-community-events.json').read_text())
+base=json.loads((root/'juno-community-accounting.json').read_text())
+feed['events']=[e for e in feed['events'] if e.get('evidence',{}).get('kind')!='block-distribution']
+base['entries']=[e for e in base['entries'] if e.get('evidence',{}).get('kind')!='block-distribution']
+feed,ledger=s.build({},feed,base)
+print(json.dumps({'feed':feed,'ledger':ledger}))
+`],{cwd:fileURLToPath(root),encoding:'utf8',maxBuffer:16*1024*1024}));
+const source=preview.ledger;
 assert.equal(source.schema_version,3);assert.ok(source.entries.some(r=>r.category==='community_tax'&&Number(r.usd_value)>0));
-const server=http.createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;res.writeHead(200,{'content-type':/\.m?js$/.test(path)?'text/javascript':path.endsWith('.css')?'text/css':path.endsWith('.json')?'application/json':'text/html'}).end(await readFile(new URL('.'+path,root)));}catch{res.writeHead(404).end();}});
+const server=http.createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;const projected=path==='/data/treasury/juno-community-accounting.json'?preview.ledger:path==='/data/treasury/juno-community-events.json'?preview.feed:null;res.writeHead(200,{'content-type':/\.m?js$/.test(path)?'text/javascript':path.endsWith('.css')?'text/css':path.endsWith('.json')?'application/json':'text/html'}).end(projected?JSON.stringify(projected):await readFile(new URL('.'+path,root)));}catch{res.writeHead(404).end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 let browser;
 try{
@@ -16,6 +34,7 @@ try{
  await page.locator('#pnl-year').selectOption('2026');await page.locator('#pnl-month').selectOption('10');
  await page.waitForFunction(()=>document.querySelector('#pnl-account-community_tax').textContent.includes('$'));
  await page.getByRole('button',{name:'+ Income',exact:true}).click();
+ await page.locator('#treasury-pnl details').filter({has:page.locator('#pnl-source')}).locator('summary').click();
  assert.match(await page.locator('#pnl-source').innerText(),/historical daily opening|Historical daily opening/);
  assert.match(await page.locator('#treasury-events').innerText(),/Income · Community Tax/);
  assert.match(await page.locator('#treasury-events').innerText(),/JUNO/);
