@@ -78,6 +78,40 @@ try{
  await page.waitForFunction(()=>document.querySelector('#subdao-select').value==='neta-operations');
  assert.equal(await page.locator('#dao-search').inputValue(),'NETA');
  await page.locator('#subdao-select').press('Home');await page.locator('#subdao-select').press('Enter');
+ // Juno uses the same shell and consolidation with its named main unit.
+ await page.goto(origin+'/index.html?dao=juno#treasury');
+ await page.waitForFunction(()=>document.querySelector('#treasury-units').children.length===2&&!document.querySelector('#treasury-units').hidden);
+ assert.deepEqual(await page.locator('#subdao-select option').allTextContents(),['Consolidated overview','Community Pool','Delegation Programme']);
+ const junoUnits=inventory.daos.filter(d=>d.organizationId==='juno');
+ const junoSnapshots=await Promise.all(junoUnits.map(d=>read(d.snapshot)));
+ const junoExpected=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(junoSnapshots.reduce((n,d)=>n+Number(d.total_usd),0));
+ assert.equal(await page.locator('#treasury-total').innerText(),junoExpected);
+ await page.locator('[data-section="income"]').click();
+ assert.match(await page.locator('#pnl-rows').innerText(),/Community Tax/);
+ assert.match(await page.locator('#pnl-rows').innerText(),/Other income/);
+ assert.doesNotMatch(await page.locator('#pnl-rows').innerText(),/NNS registrations/);
+ assert.match(await page.locator('.pnl-result').innerText(),/—/);
+ for(const unit of ['juno','juno-delegation','all']){
+  await page.locator('#subdao-select').selectOption(unit);
+  await page.waitForFunction(()=>!document.querySelector('#treasury-refresh').disabled);
+  if(unit==='juno-delegation'){
+   assert.match(await page.locator('#treasury-assets').innerText(),/JUNO · Delegated/);
+   assert.match(await page.locator('#treasury-assets').innerText(),/JUNO · Claimable rewards/);
+   assert.doesNotMatch(await page.locator('.treasury-events-note').innerText(),/Operations|Polytone/);
+   assert.equal(await page.locator('#pnl-account-community_tax').count(),0);
+  }
+  for(const width of [320,390,768,1440]){
+   await page.setViewportSize({width,height:1000});
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,`Juno ${unit} overflow at ${width}`);
+   assert.equal(await page.locator('.testnet-pill').isVisible(),false);
+   if(process.env.NNS_SCREENSHOT_DIR)await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/juno-${unit}-${width}.png`,fullPage:true});
+  }
+ }
+ // A foreign-address snapshot must not appear in the standalone treasury either.
+ await context.route('**/juno-delegation.json*',async r=>json(r,{...junoSnapshots.find(d=>d.dao_id==='juno-delegation'),treasury_address:'foreign'}));
+ await page.locator('#subdao-select').selectOption('juno-delegation');
+ await page.waitForFunction(()=>document.querySelector('#treasury-live-status').textContent==='LIVE DATA UNAVAILABLE');
+ assert.equal(await page.locator('#treasury-total').innerText(),'—');
  assert.deepEqual(errors,[]);
  console.log('DAO hierarchy: organizational grouping, custody, consolidated P&L, failures, stale responses, navigation and 320–1440px passed');
 }finally{await browser?.close();await new Promise(resolve=>server.close(resolve))}

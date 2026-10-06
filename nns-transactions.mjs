@@ -1,4 +1,4 @@
-import { period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-5';
+import { period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-7';
 import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-5';
 const $ = id => document.getElementById(id);
 const year = $('nns-year'), month = $('nns-month'), type = $('nns-type');

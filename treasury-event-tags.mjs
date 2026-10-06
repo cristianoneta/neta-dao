@@ -1,4 +1,4 @@
-import { validateLedger, accountsFor } from './treasury-pnl.mjs?v=20261006-5';
+import { validateLedger, accountsFor } from './treasury-pnl.mjs?v=20261006-7';
 
 // Exact receipt-to-movement matches only. A direction or proposal title is not an account.
 export function eventTags(event, data, dao) {

@@ -1,5 +1,34 @@
 # NETA DAO code-backed current state
 
+## Juno Delegation Programme and Community Tax — 2026-10-06
+
+Owner named Juno's main reporting unit **Community Pool** and added
+**Delegation Programme** under Juno. The supplied core is
+`juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0`.
+Public chain config identifies **Secondary Community Pool** (code 4047; original
+contract label Council). Keep the requested display name separate from identity
+checks. Organizational reporting does not confer contract authority.
+
+The dedicated collector includes height-pinned bank balances, native delegated
+stake, unbonding, per-validator truncated claimable rewards and DAO-listed CW20s.
+Redelegations are already counted in delegated stake. This treasury contains small
+non-JUNO bank assets as well; do not hardcode a JUNO-only portfolio. Other DeFi
+positions/unlisted contracts are outside discovery coverage. Separate event and
+accounting files begin at the shared 1 October cutoff. Staking classification,
+slashing and payment-time pricing remain incomplete; accrued rewards are holdings,
+not automatically booked revenue. Juno consolidated assets include both units;
+incomplete Community Pool/module accounting still blocks consolidated P&L totals.
+
+Community Pool income now has **Community Tax** (`community_tax`) and **Other
+income**, shared into Juno consolidation but not other DAOs. The live parameter
+read on 2026-10-06 was **10%**. Distribution rewards include minted inflation and
+transaction fees. The collector records the current rate/source/date separately
+from revenue; never apply today's rate retroactively or infer tax from balance
+changes. Historical block-level accruals and payment-time prices remain open.
+
+PR #183 contains this continuation. Release evidence is recorded after validation.
+
+
 ## DAO hierarchy and consolidated Treasury — 2026-10-06
 
 Owner approved Chain → DAO → SubDAO. NETA is the organization; Main and Operations

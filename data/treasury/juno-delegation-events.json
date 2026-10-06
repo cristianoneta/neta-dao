@@ -1,0 +1,198 @@
+{
+  "schema_version": 2,
+  "accounting_start": "2026-10-01T00:00:00Z",
+  "status": "PARTIAL",
+  "generated_at": "2026-10-06T13:51:42.395965Z",
+  "treasuries": [
+    {
+      "chain_id": "juno-1",
+      "address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+    }
+  ],
+  "scope": "juno-delegation",
+  "sources": [
+    {
+      "adapter": "cosmos-rest-receipts",
+      "chain_id": "juno-1",
+      "address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+      "source": "https://juno.api.m.stavr.tech",
+      "accounting_start": "2026-10-01T00:00:00Z",
+      "accounting_boundary": {
+        "start_at": "2026-10-01T00:00:00Z",
+        "height": 42227913,
+        "hash": "A811C003887D55622FB9F699F427D31A1A5848F345FCF4776F2E99075B6D8EC9",
+        "timestamp": "2026-09-30T11:15:50.297962745Z",
+        "kind": "scan-floor-before-start"
+      },
+      "scan_start_height": 42227913,
+      "last_scanned_height": 42427893,
+      "anchor_hash": "D64CC7839A5FB511CEE1E432B723D957B64654FD9F803CA060CA25B273430B49",
+      "incremental": false,
+      "range_capable": true,
+      "indexed_transactions": 1,
+      "historical_missing_transactions": 0,
+      "historical_missing_tx_hashes": [],
+      "last_full_replay_day": "2026-10-06",
+      "query_keys": [
+        "wasm._contract_address",
+        "transfer.sender",
+        "transfer.recipient",
+        "coin_spent.spender",
+        "coin_received.receiver",
+        "wasm.sender",
+        "wasm.to",
+        "wasm.from"
+      ],
+      "query_pairs": [
+        [
+          "wasm._contract_address",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "transfer.sender",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "transfer.recipient",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "coin_spent.spender",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "coin_received.receiver",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "wasm.sender",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "wasm.to",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "wasm.from",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ]
+      ],
+      "coverage": "provider-index-only"
+    }
+  ],
+  "cursor": {
+    "strategy": "date-bounded-receipts-with-daily-replay",
+    "chains": [
+      {
+        "adapter": "cosmos-rest-receipts",
+        "chain_id": "juno-1",
+        "address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+        "source": "https://juno.api.m.stavr.tech",
+        "accounting_start": "2026-10-01T00:00:00Z",
+        "accounting_boundary": {
+          "start_at": "2026-10-01T00:00:00Z",
+          "height": 42227913,
+          "hash": "A811C003887D55622FB9F699F427D31A1A5848F345FCF4776F2E99075B6D8EC9",
+          "timestamp": "2026-09-30T11:15:50.297962745Z",
+          "kind": "scan-floor-before-start"
+        },
+        "scan_start_height": 42227913,
+        "last_scanned_height": 42427893,
+        "anchor_hash": "D64CC7839A5FB511CEE1E432B723D957B64654FD9F803CA060CA25B273430B49",
+        "incremental": false,
+        "range_capable": true,
+        "indexed_transactions": 1,
+        "historical_missing_transactions": 0,
+        "historical_missing_tx_hashes": [],
+        "last_full_replay_day": "2026-10-06",
+        "query_keys": [
+          "wasm._contract_address",
+          "transfer.sender",
+          "transfer.recipient",
+          "coin_spent.spender",
+          "coin_received.receiver",
+          "wasm.sender",
+          "wasm.to",
+          "wasm.from"
+        ],
+        "query_pairs": [
+          [
+            "wasm._contract_address",
+            "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+          ],
+          [
+            "transfer.sender",
+            "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+          ],
+          [
+            "transfer.recipient",
+            "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+          ],
+          [
+            "coin_spent.spender",
+            "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+          ],
+          [
+            "coin_received.receiver",
+            "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+          ],
+          [
+            "wasm.sender",
+            "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+          ],
+          [
+            "wasm.to",
+            "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+          ],
+          [
+            "wasm.from",
+            "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+          ]
+        ],
+        "coverage": "provider-index-only"
+      }
+    ]
+  },
+  "warnings": [
+    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses."
+  ],
+  "events": [
+    {
+      "id": "juno-1:1685E1D54E21D20864722007230628F96163BD5E8443A54C81F83B6893D82793",
+      "chain_id": "juno-1",
+      "chain_name": "Juno",
+      "treasury_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+      "height": 42359349,
+      "timestamp": "2026-10-04T13:09:50Z",
+      "timestamp_status": "confirmed",
+      "tx_hash": "1685E1D54E21D20864722007230628F96163BD5E8443A54C81F83B6893D82793",
+      "status": "confirmed",
+      "type": "proposal_execution",
+      "title": "DAO proposal 16 executed",
+      "movements": [],
+      "proposal_id": "16",
+      "proposal_title": "Remove all members and dao rename",
+      "actions": [
+        "execute",
+        "execute_proposal_completed_hook",
+        "execute_proposal_hook",
+        "execute_update_config",
+        "update_members"
+      ],
+      "ibc_packets": 0,
+      "classification_confidence": "derived",
+      "explorer_url": "https://atomscan.com/juno/transactions/1685E1D54E21D20864722007230628F96163BD5E8443A54C81F83B6893D82793",
+      "account_explorer_url": "https://atomscan.com/juno/accounts/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+      "code": 0,
+      "evidence": {
+        "kind": "provider-receipt",
+        "provider": "https://juno.api.m.stavr.tech"
+      },
+      "accounting_start": "2026-10-01T00:00:00Z"
+    }
+  ],
+  "last_success_at": "2026-10-06T13:51:42.395965Z",
+  "coverage_gaps": [
+    "Staking reward receipts, slashing and module movements are not fully classified or valued at payment time. Holdings include accrued rewards; these are not booked as income."
+  ]
+}

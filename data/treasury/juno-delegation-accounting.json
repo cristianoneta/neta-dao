@@ -1,0 +1,107 @@
+{
+  "schema_version": 2,
+  "dao_id": "juno-delegation",
+  "scope": "juno-delegation",
+  "treasuries": [
+    {
+      "chain_id": "juno-1",
+      "address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+    }
+  ],
+  "chain_id": "juno-1",
+  "accounting_start": "2026-10-01T00:00:00Z",
+  "adapter": "treasury-receipts",
+  "status": "PARTIAL",
+  "refresh_status": "completed",
+  "checked_at": "2026-10-06T13:51:42.396485Z",
+  "last_success_at": "2026-10-06T13:51:42.395965Z",
+  "sources": [
+    {
+      "adapter": "cosmos-rest-receipts",
+      "chain_id": "juno-1",
+      "address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+      "source": "https://juno.api.m.stavr.tech",
+      "accounting_start": "2026-10-01T00:00:00Z",
+      "accounting_boundary": {
+        "start_at": "2026-10-01T00:00:00Z",
+        "height": 42227913,
+        "hash": "A811C003887D55622FB9F699F427D31A1A5848F345FCF4776F2E99075B6D8EC9",
+        "timestamp": "2026-09-30T11:15:50.297962745Z",
+        "kind": "scan-floor-before-start"
+      },
+      "scan_start_height": 42227913,
+      "last_scanned_height": 42427893,
+      "anchor_hash": "D64CC7839A5FB511CEE1E432B723D957B64654FD9F803CA060CA25B273430B49",
+      "incremental": false,
+      "range_capable": true,
+      "indexed_transactions": 1,
+      "historical_missing_transactions": 0,
+      "historical_missing_tx_hashes": [],
+      "last_full_replay_day": "2026-10-06",
+      "query_keys": [
+        "wasm._contract_address",
+        "transfer.sender",
+        "transfer.recipient",
+        "coin_spent.spender",
+        "coin_received.receiver",
+        "wasm.sender",
+        "wasm.to",
+        "wasm.from"
+      ],
+      "query_pairs": [
+        [
+          "wasm._contract_address",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "transfer.sender",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "transfer.recipient",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "coin_spent.spender",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "coin_received.receiver",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "wasm.sender",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "wasm.to",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "wasm.from",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ]
+      ],
+      "coverage": "provider-index-only"
+    }
+  ],
+  "coverage_gaps": [
+    "Staking reward receipts, slashing and module movements are not fully classified or valued at payment time. Holdings include accrued rewards; these are not booked as income."
+  ],
+  "execution_candidates": [],
+  "warnings": [
+    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses."
+  ],
+  "entries": [],
+  "movement_review": {
+    "accounting_start": "2026-10-01T00:00:00Z",
+    "status": "PARTIAL",
+    "event_refresh_status": "PARTIAL",
+    "matched_receipts": 0,
+    "unmatched_receipt_ids": [],
+    "unreviewed_movements": 0,
+    "movements": [],
+    "balance_reconciliation": "UNAVAILABLE",
+    "note": "Recorded receipts only. Unknown purpose or missing payment-time valuation blocks period totals."
+  }
+}

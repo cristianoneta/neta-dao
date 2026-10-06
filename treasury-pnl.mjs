@@ -1,6 +1,6 @@
 import { validateGenericLedger, reviewedGenericPeriod } from './treasury-generic-accounting.mjs?v=20261006-5';
 // Cash-basis reporting over explicitly classified receipts. No balance-derived income.
-import { accountsFor } from './treasury-accounting-config.mjs?v=20261006-5';
+import { accountsFor } from './treasury-accounting-config.mjs?v=20261006-7';
 export { accountsFor };
 export const categories = accountsFor({ id: 'neta' }).map(a => [a.id, a.label]);
 const known = new Set(categories.map(([id]) => id));

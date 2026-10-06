@@ -41,6 +41,9 @@ jobs:
       - name: Collect Operations and native Community Pool accounting independently
         run: python scripts/update_generic_accounting.py --collect
       - name: Collect Delegation Programme holdings and receipts
+        continue-on-error: true
+        env:
+          TREASURY_DAILY_SNAPSHOT: auto
         run: python scripts/update_delegation_treasury.py
       - name: Commit changed snapshot
         run: |

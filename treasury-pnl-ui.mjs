@@ -1,6 +1,6 @@
-import {summarizeOrganization} from './treasury-consolidation.mjs?v=20261006-1';
+import {summarizeOrganization} from './treasury-consolidation.mjs?v=20261006-7';
 import {selectionParams} from './dao-hierarchy.mjs?v=20261006-1';
-import { accountingStart, accountsFor, period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-5';
+import { accountingStart, accountsFor, period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-7';
 import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-5';
 const root = document.querySelector('#treasury-pnl');
 let state = window.NetaTreasuryAccounting || {};
