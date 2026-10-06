@@ -1,40 +1,77 @@
 {
+  "accounting_start": "2026-10-01T00:00:00Z",
   "cursor": {
     "chains": [
       {
+        "accounting_boundary": {
+          "hash": "BE042E542E5714047C579D8E8D640F4162AF614F73DB687FF35E81A12AB9A583",
+          "height": 42225452,
+          "kind": "scan-floor-before-start",
+          "start_at": "2026-10-01T00:00:00Z",
+          "timestamp": "2026-09-30T09:25:44.964961120Z"
+        },
+        "accounting_start": "2026-10-01T00:00:00Z",
+        "adapter": "cosmos-rest-receipts",
         "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-        "anchor_hash": "4B90DA22228F79915DB51815151433CA3F78DC1DF4742262DC98CB68804BACEF",
+        "anchor_hash": "12958B514D28F9CFFAE1A5F758B8BE3A6B645C4CA3E5387192CA45AE415360FE",
         "chain_id": "juno-1",
-        "contract_creation_height": 4322988,
+        "coverage": "provider-index-only",
         "historical_missing_transactions": 0,
         "historical_missing_tx_hashes": [],
         "incremental": false,
-        "indexed_transactions": 47,
-        "last_scanned_height": 42425271,
-        "range_capable": false,
-        "scan_start_height": 4322988,
-        "source": "https://juno-rpc.publicnode.com"
+        "indexed_transactions": 0,
+        "last_full_replay_day": "2026-10-06",
+        "last_scanned_height": 42425432,
+        "query_keys": [
+          "wasm._contract_address",
+          "transfer.sender",
+          "transfer.recipient",
+          "coin_spent.spender",
+          "coin_received.receiver",
+          "wasm.sender",
+          "wasm.to",
+          "wasm.from"
+        ],
+        "range_capable": true,
+        "scan_start_height": 42225452,
+        "source": "https://juno.api.m.stavr.tech"
       },
       {
+        "accounting_boundary": {
+          "hash": "18CB1047831DAA424A9001371CCFC57B5120F6F4834B1DABB239878D56C222B4",
+          "height": 71411294,
+          "kind": "scan-floor-before-start",
+          "start_at": "2026-10-01T00:00:00Z",
+          "timestamp": "2026-09-27T06:03:24.727567283Z"
+        },
+        "accounting_start": "2026-10-01T00:00:00Z",
+        "adapter": "cosmos-rest-receipts",
         "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-        "anchor_hash": "A2A698C2AF3889AAF208B5015C043DEEF026F12736DD904C33FEC82BF88819F3",
+        "anchor_hash": "AD31D1F3DFDA8A3BC272B09F0B7EE7FD7DC7F62CF215106A98BF5C52C5696CD5",
         "chain_id": "osmosis-1",
-        "contract_creation_height": 15838602,
-        "historical_missing_transactions": 3,
-        "historical_missing_tx_hashes": [
-          "D0D5EF884C0C978F69A0519189D0532B3E978836CE83E0BFA6CD41C2646F8295",
-          "EAE0D9E688B7280DCD039593C06D0702D5F33F02F05609136D0E8F207AD8D491",
-          "F93104E8558FB65D105154B2945741DF27652EDF6A870BAA4AB153DE6EB449C0"
-        ],
+        "coverage": "provider-index-only",
+        "historical_missing_transactions": 0,
+        "historical_missing_tx_hashes": [],
         "incremental": false,
         "indexed_transactions": 0,
-        "last_scanned_height": 72010980,
-        "range_capable": false,
-        "scan_start_height": 15838602,
-        "source": "https://osmosis-rpc.publicnode.com"
+        "last_full_replay_day": "2026-10-06",
+        "last_scanned_height": 72011274,
+        "query_keys": [
+          "wasm._contract_address",
+          "transfer.sender",
+          "transfer.recipient",
+          "coin_spent.spender",
+          "coin_received.receiver",
+          "wasm.sender",
+          "wasm.to",
+          "wasm.from"
+        ],
+        "range_capable": true,
+        "scan_start_height": 71411294,
+        "source": "https://osmosis-api.polkachu.com"
       }
     ],
-    "strategy": "anchored-incremental-with-full-replay-fallback"
+    "strategy": "date-bounded-receipts-with-daily-replay"
   },
   "events": [
     {
@@ -1692,43 +1729,80 @@
       "type": "inflow"
     }
   ],
-  "generated_at": "2026-10-06T11:59:49.563230Z",
+  "generated_at": "2026-10-06T12:06:45.140970Z",
   "schema_version": 2,
   "scope": "neta-operations-cross-chain",
   "sources": [
     {
+      "accounting_boundary": {
+        "hash": "BE042E542E5714047C579D8E8D640F4162AF614F73DB687FF35E81A12AB9A583",
+        "height": 42225452,
+        "kind": "scan-floor-before-start",
+        "start_at": "2026-10-01T00:00:00Z",
+        "timestamp": "2026-09-30T09:25:44.964961120Z"
+      },
+      "accounting_start": "2026-10-01T00:00:00Z",
+      "adapter": "cosmos-rest-receipts",
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-      "anchor_hash": "4B90DA22228F79915DB51815151433CA3F78DC1DF4742262DC98CB68804BACEF",
+      "anchor_hash": "12958B514D28F9CFFAE1A5F758B8BE3A6B645C4CA3E5387192CA45AE415360FE",
       "chain_id": "juno-1",
-      "contract_creation_height": 4322988,
+      "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
       "incremental": false,
-      "indexed_transactions": 47,
-      "last_scanned_height": 42425271,
-      "range_capable": false,
-      "scan_start_height": 4322988,
-      "source": "https://juno-rpc.publicnode.com"
+      "indexed_transactions": 0,
+      "last_full_replay_day": "2026-10-06",
+      "last_scanned_height": 42425432,
+      "query_keys": [
+        "wasm._contract_address",
+        "transfer.sender",
+        "transfer.recipient",
+        "coin_spent.spender",
+        "coin_received.receiver",
+        "wasm.sender",
+        "wasm.to",
+        "wasm.from"
+      ],
+      "range_capable": true,
+      "scan_start_height": 42225452,
+      "source": "https://juno.api.m.stavr.tech"
     },
     {
+      "accounting_boundary": {
+        "hash": "18CB1047831DAA424A9001371CCFC57B5120F6F4834B1DABB239878D56C222B4",
+        "height": 71411294,
+        "kind": "scan-floor-before-start",
+        "start_at": "2026-10-01T00:00:00Z",
+        "timestamp": "2026-09-27T06:03:24.727567283Z"
+      },
+      "accounting_start": "2026-10-01T00:00:00Z",
+      "adapter": "cosmos-rest-receipts",
       "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-      "anchor_hash": "A2A698C2AF3889AAF208B5015C043DEEF026F12736DD904C33FEC82BF88819F3",
+      "anchor_hash": "AD31D1F3DFDA8A3BC272B09F0B7EE7FD7DC7F62CF215106A98BF5C52C5696CD5",
       "chain_id": "osmosis-1",
-      "contract_creation_height": 15838602,
-      "historical_missing_transactions": 3,
-      "historical_missing_tx_hashes": [
-        "D0D5EF884C0C978F69A0519189D0532B3E978836CE83E0BFA6CD41C2646F8295",
-        "EAE0D9E688B7280DCD039593C06D0702D5F33F02F05609136D0E8F207AD8D491",
-        "F93104E8558FB65D105154B2945741DF27652EDF6A870BAA4AB153DE6EB449C0"
-      ],
+      "coverage": "provider-index-only",
+      "historical_missing_transactions": 0,
+      "historical_missing_tx_hashes": [],
       "incremental": false,
       "indexed_transactions": 0,
-      "last_scanned_height": 72010980,
-      "range_capable": false,
-      "scan_start_height": 15838602,
-      "source": "https://osmosis-rpc.publicnode.com"
+      "last_full_replay_day": "2026-10-06",
+      "last_scanned_height": 72011274,
+      "query_keys": [
+        "wasm._contract_address",
+        "transfer.sender",
+        "transfer.recipient",
+        "coin_spent.spender",
+        "coin_received.receiver",
+        "wasm.sender",
+        "wasm.to",
+        "wasm.from"
+      ],
+      "range_capable": true,
+      "scan_start_height": 71411294,
+      "source": "https://osmosis-api.polkachu.com"
     }
   ],
+  "status": "PARTIAL",
   "treasuries": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
@@ -1741,6 +1815,6 @@
   ],
   "warnings": [
     "Exact block timestamp unavailable from public RPC archives for 57 historical events.",
-    "osmosis-1: 3 cached historical transactions are currently absent from the public index; records retained."
+    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses."
   ]
 }
