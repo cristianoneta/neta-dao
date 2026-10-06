@@ -1,11 +1,11 @@
 # Documentation map
 
-Updated 2026-10-05. Use current documents for decisions and dated evidence for
+Updated 2026-10-06. Use current documents for decisions and dated evidence for
 provenance. Do not read every historical handoff as an independent to-do list.
 
 | Purpose | Owning document |
 | --- | --- |
-| Next chat, current priority, preservation rules | [Root HANDOFF](../HANDOFF.md) |
+| Next chat, current priority, preservation rules | [Root HANDOFF](../HANDOFF.md), [2026-10-06 checkpoint](HANDOFF_NEXT_CHAT_2026-10-06.md) |
 | Connected features, deployment boundaries and source map | [CURRENT_STATE](CURRENT_STATE.md) |
 | Open work across modules | [PROJECT_CHECKPOINT](../PROJECT_CHECKPOINT.md) |
 | Verification commands and repository overview | [Root README](../README.md) |

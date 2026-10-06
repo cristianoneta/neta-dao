@@ -1,8 +1,13 @@
 # Shared Treasury statement and NNS payment register
 
-Status: implemented; 119 root Node tests pass locally. Hosted browser, responsive
-screenshots and publication are release gates owned by
-[PR #174](https://github.com/cristianoneta/neta-dao/pull/174). No generated ledger or chain state changed.
+Status: published and verified on 2026-10-06 in
+[PR #174](https://github.com/cristianoneta/neta-dao/pull/174), merge
+`735e997eee313e7801347ac072f09ff3b5d970ea`. 119 root Node tests passed; hosted
+frontend (37447236498), browser (37447236381), main frontend (37447675306) and
+Pages (37447673895) passed. Screenshots at 320/390/768/1440 px were inspected;
+nine changed public assets matched source SHA-256. No generated ledger or chain
+state changed. Exact release evidence is in the PR and
+[next-chat checkpoint](HANDOFF_NEXT_CHAT_2026-10-06.md).
 
 ## Owner revision
 
