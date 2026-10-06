@@ -278,7 +278,7 @@ def collect_chain(chain, existing, registry, titles, source=None):
             for tx in future.result():
                 if start_height <= int(tx["height"]) <= end_height and int(tx.get("tx_result", {}).get("code", 0)) == 0:
                     found[tx["hash"]] = tx
-    prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"]}
+    prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"] and row.get('evidence', {}).get('kind') != 'staking-accrual'}
     absent = {digest for digest, row in prior.items() if start_height <= int(row["height"]) <= end_height and digest not in found}
     unresolved = set(source.get("historical_missing_tx_hashes", [])) if incremental and source else set()
     unresolved = (unresolved - set(found)) | absent
@@ -306,7 +306,7 @@ def collect_chain(chain, existing, registry, titles, source=None):
 
 
 def collect_receipt_chain(chain, existing, registry, titles, source=None):
-    prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"]}
+    prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"] and row.get('evidence', {}).get('kind') != 'staking-accrual'}
     errors = []
     for base in chain["rests"]:
         try:
@@ -325,6 +325,9 @@ def collect_receipt_chain(chain, existing, registry, titles, source=None):
                 row['code'] = int(receipt['code'])
                 row['evidence'] = {'kind': 'provider-receipt', 'provider': base}
                 row['accounting_start'] = ACCOUNTING_START
+                if chain.get('staking_rewards') and succeeded:
+                    from staking_accrual import withdrawals
+                    row['reward_withdrawals'] = withdrawals(receipt.get('events', []), chain['address'])
                 for index, movement in enumerate(row['movements']):
                     movement['id'] = f"{row['id']}:{index}"
                     movement['classification'] = 'unreviewed'
@@ -436,4 +439,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

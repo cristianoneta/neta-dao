@@ -1,7 +1,7 @@
-import {summarizeOrganization} from './treasury-consolidation.mjs?v=20261006-8';
+import {summarizeOrganization} from './treasury-consolidation.mjs?v=20261006-9';
 import {selectionParams} from './dao-hierarchy.mjs?v=20261006-1';
-import { accountingStart, accountsFor, period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-8';
-import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-8';
+import { accountingStart, accountsFor, period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-9';
+import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-9';
 const root = document.querySelector('#treasury-pnl');
 let state = window.NetaTreasuryAccounting || {};
 const expanded = new Set();
@@ -17,9 +17,9 @@ function render() {
 
   const future = range.start > Date.now();
   const basis=root.querySelector('#pnl-basis');
-  if(basis) basis.textContent=(state.consolidated ? 'Recorded activity · USD valuation per source' : state.dao?.id==='juno' ? 'Block allocations · Historical daily USD references' : 'Cash basis · USD at payment time')+' · From 1 October 2026 (UTC)';
+  if(basis) basis.textContent=(state.consolidated ? 'Recorded activity · USD valuation per source' : state.dao?.id==='juno' ? 'Block allocations · Historical daily USD references' : state.dao?.id==='juno-delegation' ? 'Daily staking accrual · Claims excluded from revenue' : 'Cash basis · USD at payment time')+' · From 1 October 2026 (UTC)';
   root.querySelector('#pnl-period').textContent = `${month.selectedOptions[0].textContent} ${year.value}${range.toDate ? ' · to date' : ''} · UTC`;
-  root.querySelector('#pnl-coverage').textContent = state.loading ? 'Loading accounting evidence…' : error || (future ? 'Future period · no actuals yet' : state.data ? summary.provisional ? 'Provisional · recorded transactions' : state.data.refresh_status !== 'completed' ? 'Accounting refresh unavailable · retained evidence' : state.data.coverage_gaps?.length ? 'Connected · module coverage incomplete' : 'Partial coverage · totals incomplete' : 'Accounting history is not connected for this DAO.');
+  root.querySelector('#pnl-coverage').textContent = state.loading ? 'Loading accounting evidence…' : error || (future ? 'Future period · no actuals yet' : state.data ? summary.provisional ? state.data?.schema_version>=3 ? 'Recorded totals · provisional, partial coverage' : 'Provisional · recorded transactions' : state.data.refresh_status !== 'completed' ? 'Accounting refresh unavailable · retained evidence' : state.data.coverage_gaps?.length ? 'Connected · module coverage incomplete' : 'Partial coverage · totals incomplete' : 'Accounting history is not connected for this DAO.');
   if(state.consolidated) root.querySelector('#pnl-coverage').textContent=error || (future ? 'Future period · no actuals yet' : summary.provisional ? 'Consolidated · provisional recorded transactions' : 'Consolidated · incomplete accounting; total result unavailable');
   let units=root.querySelector('.pnl-units');
   if(!units){units=el('details',undefined,'pnl-units');root.querySelector('.pnl-table-wrap').after(units)}
@@ -60,17 +60,22 @@ function render() {
       const title = el('th'); title.scope = 'row';
       if (account.detail) { const link = el('a', `${account.label} ↗`); link.href = `${account.detail}?${new URLSearchParams({ year: year.value, month: month.value, type: account.filter })}`; title.append(link); }
       else title.textContent = account.label;
+      if(account.id === 'staking_rewards') title.append(el('small', 'Daily increase in claimable rewards plus intervening claims. Opening holdings are excluded.', 'pnl-partial'));
+      if(account.id === 'other_income' && state.dao?.id==='juno') title.append(el('small', 'Recorded income only; unmeasured module rounding is excluded.', 'pnl-partial'));
       if(account.id === 'community_tax') title.append(el('small', 'Block allocations from distribution rewards, including allocation rounding. Historical USD reference.', 'pnl-partial'));
       row.append(title, amount(account.observed, account.detail ? account : null, summary.provisional), amount(account.previousObserved, null, summary.previousProvisional)); tbody.append(row);
     }
   }
-  const result = el('tr', undefined, 'pnl-result'), title = el('th', 'Operating surplus / deficit'); title.scope = 'row'; result.append(title, amount(summary.result, null, summary.provisional), amount(summary.previousResult, null, summary.previousProvisional)); tbody.append(result);
+  const result = el('tr', undefined, 'pnl-result'), title = el('th', state.data?.schema_version>=3 || state.consolidated ? 'Recorded surplus / deficit' : 'Operating surplus / deficit'); title.scope = 'row'; result.append(title, amount(summary.result, null, summary.provisional), amount(summary.previousResult, null, summary.previousProvisional)); tbody.append(result);
   root.querySelector('#pnl-source').textContent = state.data && !error ? `Last successful receipt refresh: ${state.data.last_success_at ? date(state.data.last_success_at) + ' UTC' : 'unavailable'}. Latest attempt: ${state.data.refresh_status}. ${state.data.schema_version === 1 ? "Conversion is fixed at the accepted payment rate. Buyer-paid gas is not a DAO expense." : "Funding is separate from operating income. Unknown payment purpose or missing historical prices prevents booking."} Selected interval: ${date(Math.max(accountingStart, range.start))} – ${date(range.end)} (end exclusive). Comparison: ${date(range.previousStart)} – ${date(range.previousEnd)}.` : 'Classified receipts with payment-time prices are required. Treasury balances alone do not establish income or expenses.';
   root.querySelector('#pnl-source').textContent += ' Accounting starts 1 October 2026 UTC for every DAO. Earlier comparison periods are outside coverage. Provisional zeros and results describe successfully refreshed, reviewed transactions only; public-index coverage remains partial. Unreviewed movements, failed refreshes or stale current-period snapshots prevent provisional totals.';
   if(state.consolidated) root.querySelector('#pnl-source').textContent=`Organizational scope: ${state.organization.name}. Main and configured SubDAOs are included, regardless of whether an on-chain parent relationship exists. ${summary.eliminatedPairs||0} exact internal transfer pairs excluded from operating P&L. Unmatched internal legs and IBC transfers without packet linkage remain unresolved and block provisional results. Group income, expenses and result require every unit to have reviewed period data. Account rows may show partial observed receipts. Coverage, external expenses and historical pricing limitations of each source remain in effect. Accounting begins 1 October 2026 UTC. Snapshots are refreshed independently. `+(summary.components||[]).map(s=>`${s.dao.unitName}: ${s.error || (s.summary.provisional?'reviewed recorded movements':'incomplete')} · last successful refresh ${s.data?.last_success_at||'unavailable'}`).join('; ');
+  if(state.dao?.id==='juno-delegation' && state.data?.accrual_coverage && !error) root.querySelector('#pnl-coverage').textContent += ` · Rewards since ${state.data.accrual_coverage.from_time.slice(0,10)}, through ${state.data.accrual_coverage.through_time.slice(0,10)}`;
   const taxSource = state.consolidated ? state.sources?.find(s=>s.dao?.id==='juno')?.data : state.dao?.id==='juno'?state.data:null;
   const tax = taxSource?.community_tax;
   if(tax && Number.isFinite(Number(tax.rate)) && Number(tax.rate)>=0 && Number(tax.rate)<=1) root.querySelector('#pnl-source').textContent += ` Community Tax: ${new Intl.NumberFormat('en-US',{style:'percent',maximumFractionDigits:4}).format(Number(tax.rate))} observed ${date(tax.observed_at)} UTC. This current parameter is not used to estimate historical revenue.`;
+  const rewardSource=state.consolidated ? state.sources?.find(s=>s.dao?.id==='juno-delegation')?.data : state.dao?.id==='juno-delegation'?state.data:null;
+  if(rewardSource?.accrual_coverage) root.querySelector('#pnl-source').textContent += ` Daily staking accrual covers ${rewardSource.accrual_coverage.from_time} – ${rewardSource.accrual_coverage.through_time}. Earlier October rewards are unavailable. Claims settle rewards already accrued and are not additional income. ${rewardSource.valuation_policy || ''}`;
   if (taxSource?.block_coverage) root.querySelector('#pnl-source').textContent += ` Scanned ${taxSource.block_coverage.blocks} consecutive blocks from 1 October through ${taxSource.block_coverage.through_time}. ${taxSource.valuation_policy || ''}`;
   if (state.data?.coverage_gaps?.length && !error) root.querySelector('#pnl-source').textContent += ' ' + state.data.coverage_gaps.join(' ');
   if (state.data?.execution_candidates?.length && !error) root.querySelector('#pnl-source').textContent += ` ${state.data.execution_candidates.length} passed spending proposals await verified execution receipts.`;

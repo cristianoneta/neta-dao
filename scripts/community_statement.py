@@ -24,7 +24,7 @@ def prices_for(ranges, path=PRICES):
     assets['ujuno'] = {'symbol':'JUNO','decimals':6,'coingecko':'juno-network'}
     missing={}
     for row in ranges:
-        day=row['start']['timestamp'][:10]
+        day=row.get('day', row['start']['timestamp'][:10])
         for denom in row['amounts']:
             asset=assets.get(denom,{})
             if asset.get('coingecko') and f'{day}:{denom}' not in data['quotes']:
@@ -90,6 +90,8 @@ def project(blocks, quotes):
 def build(dao, feed, base):
     if not OUT.exists() and not OUT.with_suffix('').exists(): return feed,base
     blocks=read_ledger(OUT); validate(blocks)
+    from community_cash_review import review
+    cash_review = review(blocks)
     prices=prices_for(blocks['ranges'])
     block_events,entries=project(blocks,prices)
     through=blocks['ranges'][-1]['end']['timestamp'] if blocks['ranges'] else None
@@ -102,6 +104,8 @@ def build(dao, feed, base):
               'module_transfer_blocks':sum(bool(r['module_transfers']) for r in blocks['ranges']),
               'transaction_blocks':sum(len(r['transaction_evidence']) for r in blocks['ranges'])}
     gaps=list(GAPS)
+    if cash_review['status'] == 'reviewed':
+        gaps = ['Recorded totals include tax allocations and reviewed transactions. No unmatched distribution outflows were found. Zero other income means no other recorded income; unmeasured withdrawal dust and validator-removal remainders are excluded. Full module balance reconciliation remains incomplete.']
     refreshed=instant(blocks['last_success_at']) if blocks.get('last_success_at') else None
     if not refreshed or not -60 <= (datetime.now(timezone.utc)-refreshed).total_seconds() <= 7200:
         coverage['status']='STALE'
@@ -115,6 +119,7 @@ def build(dao, feed, base):
           'warnings':list(dict.fromkeys([*warnings,*gaps]))}
     feed['events'].sort(key=lambda e:(e['timestamp'],e['id']),reverse=True)
     base={**base,'schema_version':3,'entries':base['entries']+entries,'block_coverage':coverage,
+          'recorded_cash_review':cash_review,
           'coverage_gaps':gaps,'valuation_policy':'Historical daily opening USD reference, fixed per UTC day. Indicative conversion; not an executed payment rate.',
           'block_last_success_at':blocks.get('last_success_at'),'warnings':feed['warnings']}
     return feed,base

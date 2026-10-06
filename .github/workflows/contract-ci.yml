@@ -55,6 +55,9 @@ on:
       - "scripts/update_community_accounting.py"
       - "scripts/community_block_ledger.py"
       - "scripts/community_statement.py"
+      - "scripts/community_cash_review.py"
+      - "scripts/staking_accrual.py"
+      - "tests/test_staking_accrual.py"
       - "tests/test_community_blocks.py"
       - "tests/treasury-community-accounting.test.mjs"
       - "tests/test_generic_accounting.py"
@@ -127,6 +130,9 @@ on:
       - "scripts/update_community_accounting.py"
       - "scripts/community_block_ledger.py"
       - "scripts/community_statement.py"
+      - "scripts/community_cash_review.py"
+      - "scripts/staking_accrual.py"
+      - "tests/test_staking_accrual.py"
       - "tests/test_community_blocks.py"
       - "tests/treasury-community-accounting.test.mjs"
       - "tests/test_generic_accounting.py"
@@ -206,7 +212,7 @@ jobs:
           node --test tests/*.test.mjs
           node --check relay-testnet-setup.js
           node --check relay-uni7-readiness.js
-          python -m unittest tests/test_delegation_treasury.py tests/test_treasury_events.py tests/test_treasury_history.py tests/test_treasury_accounting.py tests/test_treasury_receipts.py tests/test_generic_accounting.py tests/test_community_blocks.py
+          python -m unittest tests/test_delegation_treasury.py tests/test_treasury_events.py tests/test_treasury_history.py tests/test_treasury_accounting.py tests/test_treasury_receipts.py tests/test_generic_accounting.py tests/test_community_blocks.py tests/test_staking_accrual.py
       - name: Cache pinned audit binary
         id: audit-cache
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3

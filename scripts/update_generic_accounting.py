@@ -29,6 +29,7 @@ def build(dao, events, previous=None):
     accounts = {(t['chain_id'], t['address']) for t in config['treasuries']}
     if len(accounts) != len(config['treasuries']): raise ValueError('Duplicate treasury account')
     movements, entries, seen, event_ids = [], [], set(), set()
+    settlements, reward_gaps = [], []
     for event in events.get('events', []):
         if (event.get('chain_id'), event.get('treasury_address')) not in accounts:
             raise ValueError('Foreign treasury event')
@@ -47,6 +48,21 @@ def build(dao, events, previous=None):
             if event.get('movements'): raise ValueError('Failed transaction has payment legs')
             continue
         if event.get('status') != 'confirmed': raise ValueError('Unconfirmed payment')
+        reward_coins = {}
+        if dao['id'] == 'juno-delegation':
+            from staking_accrual import DISTRIBUTION
+            for reward in event.get('reward_withdrawals', []):
+                if reward.get('recipient') != dao['core']:
+                    reward_gaps.append(event['id'])
+                for denom, raw in reward['amounts'].items():
+                    if not raw.isdigit(): raise ValueError('Invalid reward withdrawal')
+                    reward_coins[denom] = reward_coins.get(denom, 0) + int(raw)
+            incoming = {}
+            for m in event.get('movements', []):
+                if m['direction'] == 'in' and m['counterparty'] == DISTRIBUTION:
+                    incoming[m['denom']] = incoming.get(m['denom'], 0) + int(m['raw_amount'])
+            # Only exact matches may be removed from operating income.
+            if incoming != reward_coins: reward_coins = {}
         for index, movement in enumerate(event.get('movements', [])):
             uid = f"{event['id']}:{index}"
             if uid in seen: raise ValueError('Duplicate Treasury leg')
@@ -63,6 +79,10 @@ def build(dao, events, previous=None):
                    'counterparty': movement['counterparty'], 'classification': 'unreviewed',
                    'usd_value': None, 'receipt_id': None}
             # Funding is protocol-evidenced only for the native CP adapter.
+            if dao['id'] == 'juno-delegation' and row['direction'] == 'in' and row['counterparty'] == DISTRIBUTION and row['denom'] in reward_coins:
+                settlements.append({**row, 'classification':'reward_settlement', 'evidence':event['evidence'],
+                                    'withdrawals':event['reward_withdrawals']})
+                continue
             if dao['id'] == 'juno' and movement.get('classification') == 'funding' and movement['direction'] == 'in':
                 row.update(classification='funding', receipt_id=uid)
                 entries.append({**row, 'category': 'funding', 'evidence': event['evidence']})
@@ -92,6 +112,7 @@ def build(dao, events, previous=None):
             'execution_candidates': events.get('execution_candidates', []),
             **({'community_tax': events['community_tax']} if dao['id'] == 'juno' and 'community_tax' in events else {}),
             'warnings': events.get('warnings', []), 'entries': entries,
+            **({'reward_settlements': settlements, 'reward_withdrawal_gaps': sorted(set(reward_gaps))} if dao['id'] == 'juno-delegation' else {}),
             'movement_review': {'accounting_start': ACCOUNTING_START, 'status': 'PARTIAL',
                 'event_refresh_status': events.get('status'), 'matched_receipts': len(entries),
                 'unmatched_receipt_ids': [], 'unreviewed_movements': unresolved, 'movements': movements,
@@ -123,6 +144,8 @@ def run():
     for dao in daos:
         config = dao.get('accountingSource', {})
         if config.get('adapter') not in ('treasury-receipts', 'native-community-pool'): continue
+        # The dedicated staking collector owns both bank review and daily accrual.
+        if dao['id'] == 'juno-delegation': continue
         path = ROOT / 'data/treasury' / config['file']
         previous = json.loads(path.read_text()) if path.exists() else None
         try:

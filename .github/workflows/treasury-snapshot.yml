@@ -12,6 +12,8 @@ on:
       - "scripts/update_community_accounting.py"
       - "scripts/community_block_ledger.py"
       - "scripts/community_statement.py"
+      - "scripts/community_cash_review.py"
+      - "scripts/staking_accrual.py"
       - "scripts/update_dao_directory.py"
       - "data/dao-directory.json"
       - "data/treasury/token-registry.json"
@@ -51,6 +53,7 @@ jobs:
       - name: Build receipt and Community Pool statements
         run: python scripts/update_generic_accounting.py --collect
       - name: Collect Delegation Programme holdings and receipts
+        timeout-minutes: 5
         continue-on-error: true
         env:
           TREASURY_DAILY_SNAPSHOT: auto

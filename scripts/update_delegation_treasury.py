@@ -13,7 +13,7 @@ from update_generic_accounting import build as accounting_review
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'data/treasury'
-GAPS = ['Staking reward receipts, slashing and module movements are not fully classified or valued at payment time. Holdings include accrued rewards; these are not booked as income.']
+GAPS = ['Daily reward accrual is separate from claims. Unclassified movements and slashing remain outside recorded totals.']
 
 
 def staking_positions(delegations, unbondings, rewards, address):
@@ -119,7 +119,7 @@ def build_snapshot(dao, base):
                            'rewards': positions['rewards'], 'withdraw_address': withdraw,
                            'validator_count': sum(int(d['balance']['amount']) > 0 for d in delegations)},
                   cw20_tokens_checked=tokens, balance_height_pinned=True,
-                  valuation_policy='Available, delegated, unbonding and claimable positions counted once. Redelegations are already in delegated balances. Rewards are holdings, not booked income.')
+                  valuation_policy='Available, delegated, unbonding and claimable positions counted once. Daily reward income is recorded separately; claims are not a second revenue.')
     if withdraw != address: result['status'] = 'PARTIAL'
     return result
 
@@ -134,7 +134,8 @@ def run():
     write_snapshot(snapshot, 'juno-delegation', 'juno-delegation-history')
     path = OUT / dao['events']; previous = json.loads(path.read_text()) if path.exists() else {}
     chain = {**CHAINS[0], 'address': dao['core'], 'creation_height': dao['creationHeight'],
-             'queries': (*QUERIES, 'wasm.from', 'wasm.contract_address'), 'cw20_tokens': {}}
+             'queries': (*QUERIES, 'wasm.from', 'wasm.contract_address'), 'cw20_tokens': {}, 'staking_rewards': True,
+             'query_pairs': [(key, dao['core']) for key in (*QUERIES, 'wasm.from', 'withdraw_rewards.delegator')]}
     try:
         events = collect_events((chain,), path, dao['proposalModule'], dao['accountingSource']['scope'])
         events['last_success_at'] = events['generated_at']
@@ -144,10 +145,31 @@ def run():
                   'checked_at': now(), 'events': previous.get('events', []), 'sources': previous.get('sources', []),
                   'warnings': ['Receipt refresh unavailable; previous evidence retained.', str(error)]}
     events['coverage_gaps'] = GAPS
+    # Keep published accrual visible until its replacement projection succeeds.
+    if not any(e.get('evidence', {}).get('kind') == 'staking-accrual' for e in events['events']):
+        events['events'] += [e for e in previous.get('events', []) if e.get('evidence', {}).get('kind') == 'staking-accrual']
+    if 'accrual_coverage' in previous: events['accrual_coverage'] = previous['accrual_coverage']
     atomic(path, events)
     ledger_path = OUT / dao['accountingSource']['file']
     prior = json.loads(ledger_path.read_text()) if ledger_path.exists() else None
-    ledger = accounting_review(dao, events, prior)
+    bank_feed = {**events, 'events': [e for e in events['events'] if e.get('evidence', {}).get('kind') != 'staking-accrual']}
+    bank_prior = {**prior, 'entries': [e for e in prior['entries'] if e.get('evidence', {}).get('kind') != 'staking-accrual']} if prior else None
+    ledger = accounting_review(dao, bank_feed, bank_prior)
+    from staking_accrual import collect as accrue, project, OUT as archive, PRICES
+    from community_statement import prices_for
+    try:
+        accrued = accrue(dao, snapshot, bank_feed)
+        ledger['accrual_refresh_status'] = 'completed'
+    except Exception as error:
+        accrued = json.loads(archive.read_text()) if archive.exists() else None
+        ledger['accrual_refresh_status'] = 'unavailable'
+        ledger['warnings'].append('Daily staking refresh failed; prior evidence retained: ' + str(error))
+    if accrued:
+        events, ledger = project(dao, bank_feed, ledger, accrued, prices_for(accrued['intervals'], PRICES))
+        if ledger['accrual_refresh_status'] != 'completed':
+            ledger['accrual_coverage']['status'] = 'UNAVAILABLE'
+            events['accrual_coverage']['status'] = 'UNAVAILABLE'
+        atomic(path, events)
     atomic(ledger_path, ledger)
     print(json.dumps({'snapshot': snapshot, 'events_status': events['status'], 'events': len(events['events']),
                       'accounting_status': ledger['refresh_status']}))

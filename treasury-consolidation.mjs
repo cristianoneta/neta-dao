@@ -1,4 +1,4 @@
-import {validateLedger, summarize, accountsFor} from './treasury-pnl.mjs?v=20261006-8';
+import {validateLedger, summarize, accountsFor} from './treasury-pnl.mjs?v=20261006-9';
 const accountKey = t => `${t.chain_id}:${t.address}`;
 export function assertDistinctAccounts(units) {
   const owners = new Map();
