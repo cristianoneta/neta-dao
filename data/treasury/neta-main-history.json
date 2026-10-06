@@ -49,6 +49,54 @@
       "height": 42335199,
       "status": "PARTIAL",
       "total_usd": "15.25743821530656779563021444"
+    },
+    {
+      "assets": [
+        {
+          "amount": null,
+          "decimals": null,
+          "key": "juno:native:ibc/1D9E14A1F00613ED39E4B8A8763A20C9BE5B5EA0198F2FE47EAE43CD91A0137B",
+          "raw_amount": "500000000",
+          "source_chain": "juno",
+          "symbol": "unois",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": null,
+          "decimals": null,
+          "key": "juno:native:ibc/D836B191CDAE8EDACDEBE7B64B504C5E06CC17C6A072DAF278F9A96DF66F6241",
+          "raw_amount": "69000000",
+          "source_chain": "juno",
+          "symbol": "uhuahua",
+          "usd_price": null,
+          "usd_value": null
+        },
+        {
+          "amount": "1402.010133",
+          "decimals": 6,
+          "key": "juno:native:ujuno",
+          "raw_amount": "1402010133",
+          "source_chain": "juno",
+          "symbol": "JUNO",
+          "usd_price": "0.00916752",
+          "usd_value": "12.85295593448016"
+        },
+        {
+          "amount": "7.32641",
+          "decimals": null,
+          "key": "cw20:juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
+          "raw_amount": null,
+          "source_chain": "juno",
+          "symbol": "NETA",
+          "usd_price": "1.276791796828423590224631336",
+          "usd_value": "9.354300188201730875657641266"
+        }
+      ],
+      "generated_at": "2026-10-06T19:17:39.195029Z",
+      "height": 42435577,
+      "status": "PARTIAL",
+      "total_usd": "22.20725612268189087565764127"
     }
   ],
   "treasury_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
