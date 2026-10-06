@@ -196,7 +196,11 @@ try{
    const hero=page.locator(`#${view==='governance'?'governance':view}-view .page-hero`);
    assert.equal(await hero.locator('.page-hero-art').isVisible(),width>960,view+' artwork at '+width);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,view+' overflow at '+width);
-   assert.equal(await hero.locator(view==='governance'?'#new-draft':'.concept-badge').isVisible(),true);
+   if(view==='treasury'){
+    assert.equal(await hero.locator('.concept-badge').count(),0);
+    assert.equal(await page.locator('#treasury-view .treasury-controls').count(),0);
+    assert.equal(await hero.locator('#treasury-updated').isVisible(),true);
+   }else assert.equal(await hero.locator(view==='governance'?'#new-draft':'.concept-badge').isVisible(),true);
   }
  }
  assert.deepEqual(errors,[]);
