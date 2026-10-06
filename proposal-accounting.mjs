@@ -20,7 +20,7 @@ export function isSpend(action) {
 }
 export function categoriesFor(actions, records = []) {
   return actions.map((action, index) => {
-    const matches = records.filter(r => r.action_index === index && r.action_key === actionKey(action) && allowed.has(r.category));
+    const matches = records.filter(r => r && r.action_index === index && r.action_key === actionKey(action) && allowed.has(r.category));
     return matches.length === 1 ? matches[0].category : '';
   });
 }

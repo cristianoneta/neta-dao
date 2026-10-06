@@ -8,7 +8,7 @@ daily delayed-index replay, exact NNS movement cross-reference and a mint voxel 
 browser icon. See [cutoff implementation](docs/TREASURY_CUTOFF_2026-10-06.md). Published in [PR #176](https://github.com/cristianoneta/neta-dao/pull/176);
 all four PR checks and main frontend CI passed. Both production collectors succeeded.
 The main DAO now has one matched NNS movement; coverage remains PARTIAL.
-Full P&L and non-NNS classification/pricing/reconciliation remain open. Native Juno
+Complete P&L coverage and non-NNS classification/pricing/reconciliation remain open. Native Juno
 Community Pool still has no accounting adapter. Preserve existing older exports.
 
 
@@ -35,7 +35,8 @@ sidebar are removed. [Implementation and release evidence](docs/TREASURY_STATEME
 Full DAO accounting remains unavailable. NNS subtotals are explicitly partial;
 next Treasury work is reviewed expense/funding classification, payment-time prices
 and balance reconciliation from 1 October onward; no older backfill.
-Do not fabricate zero totals or classify every incoming transfer as revenue.
+Provisional zeros require successful refresh and exact movement review (see below);
+never classify every incoming transfer as revenue.
 
 Names purchase/management UX and local lifecycle notices are published (#169,
 #171, #172). Mainnet deployment, activation and first purchase are complete.

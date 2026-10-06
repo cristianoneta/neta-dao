@@ -19,6 +19,7 @@ test('bindings survive JSON formatting; amount, recipient, position and category
   assert.throws(() => validateCategories([{},action], records));
   assert.throws(() => validateCategories([action],[{...records[0],category:'made_up'}]));
   assert.throws(() => validateCategories([action],[...records,...records]));
+  assert.deepEqual(categoriesFor([action],[null,{},'invalid']),['']);
 });
 test('CW20 transfers and native execution funds require categories without modifying actions', () => {
   const cw20 = {wasm:{execute:{contract_addr:'token',msg:btoa(JSON.stringify({transfer:{recipient:'recipient',amount:'10'}})),funds:[]}}};

@@ -8,7 +8,7 @@ daily delayed-index replay, exact NNS movement cross-reference and a mint voxel 
 browser icon. See [cutoff implementation](TREASURY_CUTOFF_2026-10-06.md). Published in [PR #176](https://github.com/cristianoneta/neta-dao/pull/176);
 all four PR checks and main frontend CI passed. Both production collectors succeeded.
 The main DAO now has one matched NNS movement; coverage remains PARTIAL.
-Full P&L and non-NNS classification/pricing/reconciliation remain open. Native Juno
+Complete P&L coverage and non-NNS classification/pricing/reconciliation remain open. Native Juno
 Community Pool still has no accounting adapter. Preserve existing older exports.
 
 
@@ -70,7 +70,8 @@ displayed **$5.00** at its executed payment-time rate. The synthetic renewal is
 only a browser fixture. The collector-owned ledger is
 `data/treasury/neta-main-accounting.json`; do not edit its entries manually.
 NNS receipt coverage remains **PARTIAL**. Complete income, expenses, operating
-result remain **UNAVAILABLE**, never zero. Main-DAO event coverage was subsequently
+result remain unverified. The follow-up below permits labelled provisional zeros
+and totals for successfully refreshed, reviewed recorded movements. Main-DAO event coverage was subsequently
 connected by #176 from 1 October, with one verified NNS movement and PARTIAL coverage.
 Transfers, swaps, funding and price movements are not automatically revenue.
 Buyer-paid gas is not a DAO expense. Full accounting is the next data task.
