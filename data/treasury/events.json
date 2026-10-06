@@ -3,28 +3,32 @@
     "chains": [
       {
         "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-        "anchor_hash": "DE182254917E6839829C89CAE3F1E13365AFA91FF2657DF783266C7A1048CB91",
+        "anchor_hash": "9D1E1E9BA1A8EE3000370C084FF895CFA81D38742046BDC1DA8864E543CD4BEE",
         "chain_id": "juno-1",
         "contract_creation_height": 4322988,
         "historical_missing_transactions": 0,
         "historical_missing_tx_hashes": [],
         "incremental": false,
         "indexed_transactions": 47,
-        "last_scanned_height": 42418588,
+        "last_scanned_height": 42419084,
         "range_capable": false,
         "scan_start_height": 4322988,
         "source": "https://juno-rpc.publicnode.com"
       },
       {
         "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-        "anchor_hash": "7CCE1F253E6780113976A487E74C4FFCCEA0289CF8401E685018787E1CAB8EE5",
+        "anchor_hash": "5EF660074541A50C545B9D55F7C447BD46BD02470942E3171DEC872C641081A0",
         "chain_id": "osmosis-1",
         "contract_creation_height": 15838602,
-        "historical_missing_transactions": 0,
-        "historical_missing_tx_hashes": [],
+        "historical_missing_transactions": 3,
+        "historical_missing_tx_hashes": [
+          "D0D5EF884C0C978F69A0519189D0532B3E978836CE83E0BFA6CD41C2646F8295",
+          "EAE0D9E688B7280DCD039593C06D0702D5F33F02F05609136D0E8F207AD8D491",
+          "F93104E8558FB65D105154B2945741DF27652EDF6A870BAA4AB153DE6EB449C0"
+        ],
         "incremental": false,
         "indexed_transactions": 0,
-        "last_scanned_height": 71998560,
+        "last_scanned_height": 71999486,
         "range_capable": false,
         "scan_start_height": 15838602,
         "source": "https://osmosis-rpc.publicnode.com"
@@ -1688,34 +1692,38 @@
       "type": "inflow"
     }
   ],
-  "generated_at": "2026-10-06T07:14:55.259009Z",
+  "generated_at": "2026-10-06T07:36:04.139048Z",
   "schema_version": 2,
   "scope": "neta-operations-cross-chain",
   "sources": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-      "anchor_hash": "DE182254917E6839829C89CAE3F1E13365AFA91FF2657DF783266C7A1048CB91",
+      "anchor_hash": "9D1E1E9BA1A8EE3000370C084FF895CFA81D38742046BDC1DA8864E543CD4BEE",
       "chain_id": "juno-1",
       "contract_creation_height": 4322988,
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
       "incremental": false,
       "indexed_transactions": 47,
-      "last_scanned_height": 42418588,
+      "last_scanned_height": 42419084,
       "range_capable": false,
       "scan_start_height": 4322988,
       "source": "https://juno-rpc.publicnode.com"
     },
     {
       "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-      "anchor_hash": "7CCE1F253E6780113976A487E74C4FFCCEA0289CF8401E685018787E1CAB8EE5",
+      "anchor_hash": "5EF660074541A50C545B9D55F7C447BD46BD02470942E3171DEC872C641081A0",
       "chain_id": "osmosis-1",
       "contract_creation_height": 15838602,
-      "historical_missing_transactions": 0,
-      "historical_missing_tx_hashes": [],
+      "historical_missing_transactions": 3,
+      "historical_missing_tx_hashes": [
+        "D0D5EF884C0C978F69A0519189D0532B3E978836CE83E0BFA6CD41C2646F8295",
+        "EAE0D9E688B7280DCD039593C06D0702D5F33F02F05609136D0E8F207AD8D491",
+        "F93104E8558FB65D105154B2945741DF27652EDF6A870BAA4AB153DE6EB449C0"
+      ],
       "incremental": false,
       "indexed_transactions": 0,
-      "last_scanned_height": 71998560,
+      "last_scanned_height": 71999486,
       "range_capable": false,
       "scan_start_height": 15838602,
       "source": "https://osmosis-rpc.publicnode.com"
@@ -1732,6 +1740,7 @@
     }
   ],
   "warnings": [
-    "Exact block timestamp unavailable from public RPC archives for 57 historical events."
+    "Exact block timestamp unavailable from public RPC archives for 57 historical events.",
+    "osmosis-1: 3 cached historical transactions are currently absent from the public index; records retained."
   ]
 }
