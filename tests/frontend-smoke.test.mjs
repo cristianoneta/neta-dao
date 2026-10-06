@@ -244,8 +244,8 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.match(html, /id="names-view"/);
   assert.match(names, /const REGISTRY=null/);
   assert.match(html, /Annual registration and renewal/);
-  assert.match(html, /USD 5 · 4 characters: USD 19 · 3 characters: USD 99/);
-  assert.match(html, /Read the selected registry for current purchase availability and pricing/);
+  assert.match(html, /id="nns-tariff-summary"/);
+  assert.match(html, /fees are loaded from the selected registry/);
   assert.doesNotMatch(html, /Mainnet registration is not active yet|name registration and lookup are not active yet/);
   assert.doesNotMatch(html, /names-preview-entry|Explore the preview/);
   assert.match(html, /names-workspace\.js\?v=[^"\s]+/);

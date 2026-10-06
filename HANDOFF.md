@@ -1,7 +1,35 @@
 # NETA DAO handoff
 
-Updated: **2026-10-06, 07:18 release verified (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
+Updated: **2026-10-06, Names UX follow-up**. This is the continuation entry point, not an append-only session log.
 
+
+## Names UX optimization — 2026-10-06
+
+Owner approved implementing the critical Names review. This revision adds:
+- Owner-focused management: existing names show Edit profile, Renew and Transfer;
+  registration/renewal forms open for the selected task. Availability is the first
+  primary action, followed by Start registration and Buy name as appropriate.
+- Read-only pending-journal discovery immediately after the shared wallet connects,
+  before Names signing permission. Recovery opens automatically; records are never
+  rewritten or removed by the presentation layer.
+- Active, 30-day grace and released-name states. The registry only enumerates active
+  names by wallet; expired names are discovered from local hints and verified live.
+  On a fresh browser, use Find an expired name. Hints never authorize transactions.
+- Automatic public-profile loading, Review changes as the primary action, and
+  unsaved edits preserved across route/wallet switches within the current page.
+  Reload published profile explicitly replaces edits; a browser reload does not
+  preserve these in-memory profile drafts. Pending transaction journals stay durable.
+- Readable transaction summaries with exact amount, term, Treasury destination,
+  price timestamps and deadlines; complete transaction details remain available.
+  Registry tariffs replace the hardcoded price footer. DAO search copy matches
+  the available DAO directory. Shared graphite/mint styling and mobile wrapping remain.
+
+Release tracking: [PR #172](https://github.com/cristianoneta/neta-dao/pull/172)
+owns hosted CI, Pages and served-asset verification evidence. Local validation covers 115 Node tests,
+mainnet/UNI-7 browser flows, administration, provider failure, wallet isolation,
+late profile replies, saved pending work, grace boundaries and 320–1440 px layouts.
+No real wallet transaction or contract change was performed. Existing welcome,
+renewal and transfer notices and the Treasury P&L scope below remain unchanged.
 
 ## Compact Names account panel — 2026-10-06 follow-up
 

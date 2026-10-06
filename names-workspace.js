@@ -24,7 +24,7 @@
       directory:["Directory","Find a DAO and choose the updates you want to receive."],
       contacts:["Contacts","Keep the people and DAOs you use most in one place."],
       profile:["My profile","Your name, public contacts and validator identities."],
-      register:["Your .neta name","Register, renew and transfer your .neta name on the selected network."],
+      register:["Your .neta name","Your identity, public profile and registration."],
       dao:["DAO profile","Identity, address and updates for this DAO."]
     }[name];
     find("#names-page-title").textContent = copy[0];
@@ -66,7 +66,7 @@
   }
   const empty = element("div", "names-empty");
   empty.append(element("h3", null, "No matching directory entry"), element("p", null, "Try another search or show all entries. Search results do not indicate name availability."));
-  const calculate = element("button", null, "Calculate name fee"); calculate.type = "button";
+  const calculate = element("button", null, "Check a name"); calculate.type = "button";
   calculate.addEventListener("click", () => { find("#names-fee-label").value = query.value.trim(); updateFee(); navigate("register"); });
   empty.append(calculate); list.append(empty);
   function renderDirectory() {

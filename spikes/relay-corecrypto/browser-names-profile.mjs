@@ -30,7 +30,7 @@ try {
   await page.locator('#names-profile-twitter').fill('@operator');
   await page.locator('#names-profile-email').fill('hello@example.org');
   await page.locator('#names-profile-web').fill('https://example.org');
-  await page.locator('#names-profile-form summary').click();
+  await page.locator('#names-profile-form summary').filter({hasText:'Validator addresses'}).click();
   const network = page.getByRole('combobox', {name: 'Network', exact: true});
   assert.equal(await network.inputValue(), 'juno');
   assert.deepEqual(await network.locator('option').allTextContents(), ['Juno']);
@@ -54,7 +54,7 @@ try {
   assert.equal(await preview.locator('img,script').count(),0);
   assert.equal(await preview.locator('a[href="https://t.me/operator"]').count(),1);
   assert.equal(await preview.locator('a[href="https://example.org"]').getAttribute('rel'),'noopener noreferrer');
-  assert.equal(await page.getByRole('button',{name:'Review public profile',exact:true}).isDisabled(),true);
+  assert.equal(await page.getByRole('button',{name:'Review changes',exact:true}).isDisabled(),true);
   assert.equal(await page.evaluate(()=>Object.keys(localStorage).some(k=>/names-profile/.test(k))),false);
   if(process.env.NNS_SCREENSHOT_DIR) await mkdir(process.env.NNS_SCREENSHOT_DIR,{recursive:true});
   for (const width of [1440,768,390,320]) {
@@ -63,7 +63,7 @@ try {
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`overflow at ${width}`);
     if(process.env.NNS_SCREENSHOT_DIR) {
       await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/profile-${width}.png`,fullPage:true});
-      await page.locator('#names-profile-form details').screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/profile-network-${width}.png`});
+      await page.locator('#names-profile-form details').filter({hasText:'Validator addresses'}).screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/profile-network-${width}.png`});
     }
   }
   // A network change invalidates the preview; unsupported IDs cannot fall back to Juno.

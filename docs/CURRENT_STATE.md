@@ -36,6 +36,19 @@ shown as a fabricated DAO member list. Contributors is a shared planned state;
 there is no authoritative contributor assignment/role/payment service.
 See [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
 
+## Names task-focused UX — 2026-10-06
+
+This revision separates owner management from registration and renewal forms;
+shows pending local transactions before a Names signing connection; distinguishes
+active, grace and released names; and loads the public profile automatically.
+Profile edits survive route/wallet switches in memory without late reads replacing
+user input. Reloading the browser still discards unpublished profile edits.
+Expired-name lookup uses verified local hints, with manual lookup for fresh browsers
+because `name_of` returns active names only. Current on-chain tariffs populate the
+price rules. Payment reviews expose the debit, Treasury, price age and expiry in
+readable rows, retaining full details. No contract or signing protocol changed.
+See [HANDOFF](../HANDOFF.md) for release tracking and remaining real-wallet checks.
+
 ## Compact Names panel — 2026-10-06 follow-up
 
 Implemented in [PR #171](https://github.com/cristianoneta/neta-dao/pull/171)

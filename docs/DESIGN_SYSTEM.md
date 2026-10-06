@@ -388,3 +388,23 @@ administration. Use the shared foreground tokens, wrapping actions and a stacked
 network selector on small screens. Loading, no active name and failed lookup are
 distinct states; failed reads expose Retry name lookup. Automatic reads never
 request wallet permission, submit transactions or overwrite unfinished forms.
+
+
+## Names management and reviews — owner update 2026-10-06
+
+Use the existing RELAY navigation. Show owners their name, expiry and contextual
+Edit profile / Renew / Transfer actions; keep a new purchase form out of the normal
+owner view. Availability is the first primary action; show registration/payment
+only when relevant. Renewal skips availability and commitment. Expired names in
+30-day grace expose renewal, not profile editing/transfer. Explain manual expired
+name lookup when no local identity hint exists.
+
+Pending transaction recovery is visible immediately after shared-wallet connection,
+without a separate Names signing permission. Keep journals scoped and intact.
+Load the owner's public profile on entering My profile. Late replies must not
+replace edits; Review changes is primary and Preview is secondary. Make explicit
+reload's overwrite behavior clear. Validator fields remain an optional disclosure.
+Use readable definition rows for reviews, preserving debit, term, destination,
+price dates and deadlines; collapse full technical details. Derive tariffs from
+verified registry state. Retain shared semantic contrast tokens and stack/wrap
+reviews and controls at 320 px; no extra Names navigation or wizard.
