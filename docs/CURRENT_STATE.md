@@ -16,7 +16,26 @@ pagination currently returns a provider server error; retained recent reads carr
 an explicit partial-coverage warning. No live wallet write was performed.
 
 See [adapter implementation and remaining boundaries](TREASURY_ALL_DAO_ADAPTERS_2026-10-06.md).
-Publication/collector verification is pending in the implementation record.
+Published in [PR #179](https://github.com/cristianoneta/neta-dao/pull/179), merged as
+`15f53ebc99bffbe2c897878797671644d8a6384d`. Application head
+`275f849d054471ffce297cbb3ad32ba55b71f16f` passed frontend/contract CI
+[37466866330](https://github.com/cristianoneta/neta-dao/actions/runs/37466866330)
+and browser CI [37466866353](https://github.com/cristianoneta/neta-dao/actions/runs/37466866353).
+Main CI [37467182865](https://github.com/cristianoneta/neta-dao/actions/runs/37467182865)
+and Pages [37467476267](https://github.com/cristianoneta/neta-dao/actions/runs/37467476267) passed.
+Production Treasury collector
+[37467182835](https://github.com/cristianoneta/neta-dao/actions/runs/37467182835)
+completed both new adapters: Operations at **12:58:44 UTC**, native Juno at
+**12:58:42 UTC**, with zero observed direct post-cutoff movements. This is not a
+claim of zero native module income. Main collector
+[37467182948](https://github.com/cristianoneta/neta-dao/actions/runs/37467182948)
+also succeeded. Preserve newer generated snapshots on main.
+
+Ten served application assets matched local SHA-256. Production browser inspection
+confirmed Operations' provisional zero income/expenses/result and Juno's connected,
+incomplete state without leaked NNS rows or fabricated zero totals. The hosted
+browser suite covers 320/390/768/1440 px for both new adapters. No new wallet action.
+
 
 ## Latest checkpoint — 2026-10-06, Treasury categories and provisional totals
 
