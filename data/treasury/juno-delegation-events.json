@@ -2,7 +2,7 @@
   "schema_version": 2,
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
-  "generated_at": "2026-10-06T14:04:58.023476Z",
+  "generated_at": "2026-10-06T14:16:22.062398Z",
   "treasuries": [
     {
       "chain_id": "juno-1",
@@ -24,9 +24,9 @@
         "timestamp": "2026-09-30T11:15:50.297962745Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42427947,
-      "last_scanned_height": 42428204,
-      "anchor_hash": "8B6008C092C2E5916E123C3583C81432BC82DFFEF7C3E7DE259381F19058BAE9",
+      "scan_start_height": 42428104,
+      "last_scanned_height": 42428471,
+      "anchor_hash": "1FA6DA17F47071766AEEF005AD50A56294B3A1803BDC207BDAFB15036FF4ABA8",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
@@ -96,9 +96,9 @@
           "timestamp": "2026-09-30T11:15:50.297962745Z",
           "kind": "scan-floor-before-start"
         },
-        "scan_start_height": 42427947,
-        "last_scanned_height": 42428204,
-        "anchor_hash": "8B6008C092C2E5916E123C3583C81432BC82DFFEF7C3E7DE259381F19058BAE9",
+        "scan_start_height": 42428104,
+        "last_scanned_height": 42428471,
+        "anchor_hash": "1FA6DA17F47071766AEEF005AD50A56294B3A1803BDC207BDAFB15036FF4ABA8",
         "incremental": true,
         "range_capable": true,
         "indexed_transactions": 0,
@@ -191,7 +191,7 @@
       "accounting_start": "2026-10-01T00:00:00Z"
     }
   ],
-  "last_success_at": "2026-10-06T14:04:58.023476Z",
+  "last_success_at": "2026-10-06T14:16:22.062398Z",
   "coverage_gaps": [
     "Staking reward receipts, slashing and module movements are not fully classified or valued at payment time. Holdings include accrued rewards; these are not booked as income."
   ]
