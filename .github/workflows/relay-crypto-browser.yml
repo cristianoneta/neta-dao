@@ -64,6 +64,7 @@ jobs:
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-dao-hierarchy.mjs
       - run: node browser-workspace-security.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-treasury-pnl.mjs
+      - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-community-accounting.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-profile.mjs
       - run: node browser-names-v2.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-names-workspace.mjs
@@ -80,4 +81,3 @@ jobs:
           if-no-files-found: error
       - name: Adversarial receive and crash recovery regressions
         run: RELAY_AUDIT_ADVERSARIAL=1 node browser-uni7-lab.mjs
-

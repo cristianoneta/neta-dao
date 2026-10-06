@@ -1,5 +1,50 @@
 # NETA DAO code-backed current state
 
+## Community Pool October tax accounting — release candidate, 2026-10-06
+
+Recovered the interrupted working tree on [PR #185](https://github.com/cristianoneta/neta-dao/pull/185).
+The initial backfill and a subsequent resume have completed: **184,739 consecutive
+blocks**, 42,244,897–42,429,635, through **2026-10-06 15:04:57 UTC**. Reconstructed
+Community Tax: **18,098.587307900002038077193637 JUNO**, with indicative historical
+USD references totalling **$162.82** across six UTC dates. No allocation is unpriced.
+This is a dated checkpoint, not a full Community Pool P&L. The tested resume read
+only 566 new blocks in 26 seconds. The application remains under review until
+release verification is recorded below; retain newer production snapshots.
+
+Local validation: **140 Node tests and 58 targeted Python tests passed**. A live
+Community Pool receipt refresh and statement projection succeeded. An unrelated
+Operations receipt refresh failed locally; its retained production exports were
+not changed. Browser testing previews the actual compressed archive without
+committing over bot-owned event/accounting files. The existing workflow generates
+those projections after integration. The first hosted frontend/contract run
+[37483386732](https://github.com/cristianoneta/neta-dao/actions/runs/37483386732) passed.
+The first browser run found a test reading a closed disclosure; the test now opens
+it first. Final hosted browser and deployment results remain to be recorded.
+
+- Community Tax is derived from each block's fee-collector transfer minus emitted
+  validator rewards, using exact decimal arithmetic. It includes allocation
+  rounding; the current 10% parameter and pool-balance differences are not used.
+- The single existing Treasury workflow resumes the scan at the last checked block.
+  The initial October backfill is the expensive step; normal runs read only new
+  blocks. Checkpoints survive individual provider failures.
+- Tax entries populate the shared Income / Community Tax row and Treasury events.
+  They link to blocks, with explicit ranges, never invented transaction hashes.
+- USD values use a cached historical UTC daily-opening market reference, explicitly
+  indicative rather than an executed payment rate. Missing quotes stay unpriced.
+- Full expenses/result remain unavailable: withdrawal rounding, validator-removal
+  remainders, generic payment classification and balance reconciliation are open.
+  A passed proposal does not establish a paid expense.
+- Existing allocations survive a failed subsequent funding/price refresh. Duplicate
+  denominations, overlapping ranges and mismatched coverage fail validation.
+
+Owner asked whether tax could be estimated between snapshots. This is possible as
+an explicitly labelled estimate only after correcting for payouts and other inflows.
+The current saved daily snapshots do not align to UTC month boundaries; historical
+state queries attempted here failed. No estimate is silently substituted into the
+verified tax ledger. A future estimate must remain separate from evidenced actuals.
+
+See [block accounting implementation](COMMUNITY_POOL_BLOCK_ACCOUNTING_2026-10-06.md).
+
 ## Juno Delegation Programme and Community Tax — 2026-10-06
 
 Owner named Juno's main reporting unit **Community Pool** and added

@@ -126,9 +126,21 @@ def run():
         path = ROOT / 'data/treasury' / config['file']
         previous = json.loads(path.read_text()) if path.exists() else None
         try:
-            data = build(dao, json.loads((ROOT / 'data/treasury' / dao['events']).read_text()), previous)
+            event_path = ROOT / 'data/treasury' / dao['events']
+            events = json.loads(event_path.read_text())
+            if dao['id'] == 'juno':
+                # Block-derived entries have a separate schema and validator;
+                # never pass their fractional SDK coins through bank receipt logic.
+                events = {**events, 'events': [e for e in events['events'] if e.get('evidence', {}).get('kind') != 'block-distribution']}
+                prior_receipts = {**previous, 'entries': [e for e in previous.get('entries', []) if e.get('evidence', {}).get('kind') != 'block-distribution']} if previous else None
+                data = build(dao, events, prior_receipts)
+                from community_statement import build as block_statement
+                events, data = block_statement(dao, events, data)
+                atomic(event_path, events)
+            else:
+                data = build(dao, events, previous)
         except Exception as error:
-            data = {**(previous or {}), 'schema_version': 2, 'dao_id': dao['id'], 'scope': config['scope'],
+            data = {**(previous or {}), 'schema_version': (previous or {}).get('schema_version', 2), 'dao_id': dao['id'], 'scope': config['scope'],
                     'chain_id': dao['network'], 'treasuries': config['treasuries'], 'adapter': config['adapter'],
                     'accounting_start': ACCOUNTING_START, 'status': 'PARTIAL', 'refresh_status': 'unavailable',
                     'checked_at': now(), 'warnings': [f'Refresh failed; retained evidence: {type(error).__name__}: {error}'],

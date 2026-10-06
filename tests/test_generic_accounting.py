@@ -104,4 +104,14 @@ class Community(unittest.TestCase):
         d=community.collect(old,get=lambda *a,**k:(_ for _ in ()).throw(RuntimeError('offline')))
         self.assertEqual(d['status'],'UNAVAILABLE');self.assertEqual(d['events'],old['events']);self.assertEqual(d['sources'],old['sources'])
 
+    def test_funding_refresh_retains_block_evidence_until_projection_succeeds(self):
+        old=feed(CP);row=event(CP);row['evidence']={'kind':'block-distribution'}
+        old['events']=[row];old['block_coverage']={'through_height':300}
+        def get(url,**kwargs):
+            if 'module_accounts' in url:return {'account':{'name':'distribution','base_account':{'address':community.ADDRESS}}}
+            return {'params':{'community_tax':'0.1'}}
+        with patch.object(community,'scan',return_value=({},old['sources'][0])),patch.object(community,'governance',return_value=([],{'checked':0,'status':'provider-index-only'})):
+            data=community.collect(old,get)
+        self.assertEqual(data['events'],[row]);self.assertEqual(data['block_coverage'],old['block_coverage'])
+
 if __name__=='__main__':unittest.main()

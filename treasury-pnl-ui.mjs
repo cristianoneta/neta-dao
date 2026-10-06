@@ -1,7 +1,7 @@
-import {summarizeOrganization} from './treasury-consolidation.mjs?v=20261006-7';
+import {summarizeOrganization} from './treasury-consolidation.mjs?v=20261006-8';
 import {selectionParams} from './dao-hierarchy.mjs?v=20261006-1';
-import { accountingStart, accountsFor, period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-7';
-import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-5';
+import { accountingStart, accountsFor, period, validateLedger, summarize } from './treasury-pnl.mjs?v=20261006-8';
+import { setupPeriods, dollars, date, el } from './treasury-report-ui.mjs?v=20261006-8';
 const root = document.querySelector('#treasury-pnl');
 let state = window.NetaTreasuryAccounting || {};
 const expanded = new Set();
@@ -16,6 +16,8 @@ function render() {
   catch(e) { error=e.message; summary=summarize([],range,accountsFor(state.dao)); }
 
   const future = range.start > Date.now();
+  const basis=root.querySelector('#pnl-basis');
+  if(basis) basis.textContent=(state.consolidated ? 'Recorded activity · USD valuation per source' : state.dao?.id==='juno' ? 'Block allocations · Historical daily USD references' : 'Cash basis · USD at payment time')+' · From 1 October 2026 (UTC)';
   root.querySelector('#pnl-period').textContent = `${month.selectedOptions[0].textContent} ${year.value}${range.toDate ? ' · to date' : ''} · UTC`;
   root.querySelector('#pnl-coverage').textContent = state.loading ? 'Loading accounting evidence…' : error || (future ? 'Future period · no actuals yet' : state.data ? summary.provisional ? 'Provisional · recorded transactions' : state.data.refresh_status !== 'completed' ? 'Accounting refresh unavailable · retained evidence' : state.data.coverage_gaps?.length ? 'Connected · module coverage incomplete' : 'Partial coverage · totals incomplete' : 'Accounting history is not connected for this DAO.');
   if(state.consolidated) root.querySelector('#pnl-coverage').textContent=error || (future ? 'Future period · no actuals yet' : summary.provisional ? 'Consolidated · provisional recorded transactions' : 'Consolidated · incomplete accounting; total result unavailable');
@@ -58,7 +60,7 @@ function render() {
       const title = el('th'); title.scope = 'row';
       if (account.detail) { const link = el('a', `${account.label} ↗`); link.href = `${account.detail}?${new URLSearchParams({ year: year.value, month: month.value, type: account.filter })}`; title.append(link); }
       else title.textContent = account.label;
-      if(account.id === 'community_tax') title.append(el('small', 'Share of distribution rewards (inflation + transaction fees). Historical receipts pending.', 'pnl-partial'));
+      if(account.id === 'community_tax') title.append(el('small', 'Block allocations from distribution rewards, including allocation rounding. Historical USD reference.', 'pnl-partial'));
       row.append(title, amount(account.observed, account.detail ? account : null, summary.provisional), amount(account.previousObserved, null, summary.previousProvisional)); tbody.append(row);
     }
   }
@@ -69,6 +71,7 @@ function render() {
   const taxSource = state.consolidated ? state.sources?.find(s=>s.dao?.id==='juno')?.data : state.dao?.id==='juno'?state.data:null;
   const tax = taxSource?.community_tax;
   if(tax && Number.isFinite(Number(tax.rate)) && Number(tax.rate)>=0 && Number(tax.rate)<=1) root.querySelector('#pnl-source').textContent += ` Community Tax: ${new Intl.NumberFormat('en-US',{style:'percent',maximumFractionDigits:4}).format(Number(tax.rate))} observed ${date(tax.observed_at)} UTC. This current parameter is not used to estimate historical revenue.`;
+  if (taxSource?.block_coverage) root.querySelector('#pnl-source').textContent += ` Scanned ${taxSource.block_coverage.blocks} consecutive blocks from 1 October through ${taxSource.block_coverage.through_time}. ${taxSource.valuation_policy || ''}`;
   if (state.data?.coverage_gaps?.length && !error) root.querySelector('#pnl-source').textContent += ' ' + state.data.coverage_gaps.join(' ');
   if (state.data?.execution_candidates?.length && !error) root.querySelector('#pnl-source').textContent += ` ${state.data.execution_candidates.length} passed spending proposals await verified execution receipts.`;
   if (state.data?.movement_review && !error) root.querySelector('#pnl-source').textContent += ` Movement review: ${state.data.movement_review.matched_receipts} linked receipts; ${state.data.movement_review.unreviewed_movements} observed movements awaiting classification. Balance reconciliation remains unavailable.`;

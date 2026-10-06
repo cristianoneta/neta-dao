@@ -1,6 +1,7 @@
-import { validateGenericLedger, reviewedGenericPeriod } from './treasury-generic-accounting.mjs?v=20261006-5';
+import { validateCommunityLedger } from './treasury-community-accounting.mjs?v=20261006-8';
+import { validateGenericLedger, reviewedGenericPeriod } from './treasury-generic-accounting.mjs?v=20261006-8';
 // Cash-basis reporting over explicitly classified receipts. No balance-derived income.
-import { accountsFor } from './treasury-accounting-config.mjs?v=20261006-7';
+import { accountsFor } from './treasury-accounting-config.mjs?v=20261006-8';
 export { accountsFor };
 export const categories = accountsFor({ id: 'neta' }).map(a => [a.id, a.label]);
 const known = new Set(categories.map(([id]) => id));
@@ -23,6 +24,7 @@ export function period(year, month, now = new Date()) {
   return { start, end, previousStart, previousEnd, toDate: now.getTime() >= start && now.getTime() < naturalEnd, annual };
 }
 export function validateLedger(data, dao) {
+  if (data?.schema_version === 3) return validateCommunityLedger(data, dao);
   if (data?.schema_version === 2) return validateGenericLedger(data, dao);
   if (!data || data.schema_version !== 1 || data.scope !== 'neta-main-dao' || dao.id !== 'neta'
       || data.chain_id !== dao.network || data.treasury_address !== dao.core
@@ -46,6 +48,7 @@ export function validateLedger(data, dao) {
 // Zero means no recorded activity in a successfully refreshed and reviewed snapshot.
 // It is a provisional result, never a completeness or balance-reconciliation claim.
 export function reviewedPeriod(entries, data, start, end, now = Date.now()) {
+  if (data?.schema_version === 3) return false; // Exact tax evidence is not complete module accounting.
   if (data?.schema_version === 2) return reviewedGenericPeriod(entries, data, start, end, now);
   const review = data?.movement_review, refreshed = Date.parse(data?.last_success_at);
   if (data?.refresh_status !== 'completed' || review?.status !== 'PARTIAL'
@@ -85,7 +88,7 @@ export function summarize(entries, range, accounts = accountsFor({ id: 'neta' })
   const previous = entries.filter(row => Date.parse(row.timestamp) >= Math.max(accountingStart, range.previousStart) && Date.parse(row.timestamp) < range.previousEnd);
   const currentReady = reviewedPeriod(entries, data, range.start, range.end, now);
   const previousReady = reviewedPeriod(entries, data, range.previousStart, range.previousEnd, now);
-  const subtotal = (rows, ready = false) => rows.length ? rows.reduce((sum, row) => sum + usdUnits(row.usd_value), 0n) : ready ? 0n : null;
+  const subtotal = (rows, ready = false) => { const priced=rows.filter(row=>row.usd_value!==null); return priced.length ? priced.reduce((sum,row)=>sum+usdUnits(row.usd_value),0n) : ready && !rows.length ? 0n : null; };
   const section = (rows, kind, ready) => subtotal(rows.filter(row => accounts.some(a => a.id === row.category && a.section === kind)), ready);
   const income = currentReady ? section(selected, 'income', true) : null;
   const expenses = currentReady ? section(selected, 'expenses', true) : null;

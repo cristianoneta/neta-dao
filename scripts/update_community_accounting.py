@@ -121,7 +121,10 @@ def collect(previous=None, get=request_json):
             account = get(base + '/cosmos/auth/v1beta1/module_accounts/distribution', timeout=15)['account']
             if account.get('name') != 'distribution' or account['base_account']['address'] != ADDRESS:
                 raise ValueError('Distribution module identity mismatch')
-            prior = previous.get('events', [])
+            # Keep published block evidence until its replacement statement has
+            # been built successfully. A funding/price refresh must not erase it.
+            retained_blocks = [e for e in previous.get('events', []) if e.get('evidence', {}).get('kind') == 'block-distribution']
+            prior = [e for e in previous.get('events', []) if e.get('evidence', {}).get('kind') != 'block-distribution']
             source = next(iter(previous.get('sources', [])), None)
             found, coverage = scan(get, base, CHAIN, prior, source)
             candidates, governance_scan = governance(get, base)
@@ -147,7 +150,8 @@ def collect(previous=None, get=request_json):
             return {'schema_version': 2, 'scope': SCOPE, 'treasuries': expected,
                     'accounting_start': ACCOUNTING_START, 'status': 'PARTIAL',
                     'generated_at': stamp, 'checked_at': stamp, 'last_success_at': stamp,
-                    'sources': [coverage], 'events': sorted(rows.values(), key=lambda r: (r['timestamp'], r['id']), reverse=True),
+                    'sources': [coverage], 'events': sorted([*rows.values(), *retained_blocks], key=lambda r: (r['timestamp'], r['id']), reverse=True),
+                    **({'block_coverage': previous['block_coverage']} if 'block_coverage' in previous else {}),
                     'execution_candidates': candidates, 'governance_scan': governance_scan,
                     'governance_proposals_checked': governance_scan['checked'],
                     'community_tax': {'rate': str(tax), 'observed_at': stamp, 'source': base + '/cosmos/distribution/v1beta1/params',
