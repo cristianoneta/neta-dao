@@ -63,7 +63,7 @@ try {
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`overflow at ${width}`);
     if(process.env.NNS_SCREENSHOT_DIR) {
       await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/profile-${width}.png`,fullPage:true});
-      await page.locator('#names-profile-form details').screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/profile-network-${width}.png`});
+      await page.locator('#names-profile-form details').filter({hasText:'Validator addresses'}).screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/profile-network-${width}.png`});
     }
   }
   // A network change invalidates the preview; unsupported IDs cannot fall back to Juno.
