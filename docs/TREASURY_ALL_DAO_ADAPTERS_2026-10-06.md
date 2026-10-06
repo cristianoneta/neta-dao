@@ -76,7 +76,7 @@ incomplete state without leaked NNS rows or fabricated zero totals. The hosted
 browser suite covers 320/390/768/1440 px for both new adapters. No new wallet action.
 
 A separate member-snapshot run initially failed on a GitHub push HTTP 500 after
-successful collection (37467182988). A targeted retry was requested; this was not
+successful collection (37467182988). Attempt 2 succeeded after a targeted retry; this was not
 a Treasury adapter failure.
 
 Native historical block results are reachable on STAVR. Completing native accounting

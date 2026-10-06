@@ -435,3 +435,13 @@ select for each action's planned spending category, with shared expense labels a
 an explicit non-expense transfer choice. Read-only proposals disable the selects.
 Provisional statement amounts use a text label; zero is shown only for a reviewed
 snapshot and must not imply full public-index coverage.
+
+
+## Compact Treasury header — owner update 2026-10-06
+
+Remove the USD/NETA currency buttons and the hero's “Live assets / Partial
+accounting” badge for every DAO. USD remains the accounting unit, labelled in
+the statement. Keep snapshot time/source as compact text beneath the hero
+description; omit the separate controls row. Preserve the modest Treasury voxel
+art on desktop without an empty aside row on mobile. Keep source/coverage states
+at the balances and P&L they describe.

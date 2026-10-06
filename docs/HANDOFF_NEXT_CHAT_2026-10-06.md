@@ -1,5 +1,13 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Treasury header refinement — 2026-10-06
+
+Owner requested removal of USD/NETA buttons and the right-side “Live assets /
+Partial accounting” badge on every Treasury page. The shared header now omits
+both, moves the snapshot timestamp/source into its introduction and removes
+the separate controls row. USD and coverage labels remain at the P&L.
+Accounting adapters and the remaining native-module boundaries below are unchanged.
+
 ## Latest continuation — all-DAO accounting adapters (2026-10-06)
 
 Owner asked to connect the remaining DAOs. Operations now has its own generated

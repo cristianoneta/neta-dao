@@ -222,7 +222,7 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
 .treasury-history-chart text { font-family: var(--neta-font); }
 .treasury-history-method, .treasury-events-note, .asset-row small, .treasury-warning, .treasury-live-note { font-size: 12px; }
 .treasury-history-legend { flex-wrap: wrap; }
-.treasury-controls > span { font-size: 12px; white-space: normal; }
+#treasury-updated { margin: 12px 0 0; color: var(--neta-text-secondary); font-size: 12px; line-height: 1.5; white-space: normal; }
 .treasury-history-ranges button.active, .treasury-event-filters button.active { background: var(--neta-selected); color: var(--neta-accent); border-color: var(--neta-accent); }
 .asset-row { min-width: 0; }
 .asset-row > div, .event-row > div, .risk-row > div { min-width: 0; overflow-wrap: anywhere; }
