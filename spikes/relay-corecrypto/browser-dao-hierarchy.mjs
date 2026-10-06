@@ -39,11 +39,12 @@ try{
  assert.match(await page.locator('#treasury-units').innerText(),/Organizational SubDAO of NETA/);
  assert.match(await page.locator('#pnl-coverage').innerText(),/Consolidated · provisional/);
  await page.getByText('Breakdown by DAO unit',{exact:true}).click();
- assert.equal(await page.locator('.pnl-units tbody tr,.pnl-units table > tr').count(),3);
+ assert.equal(await page.locator('.pnl-units table tr').count(),3);
  for(const width of [320,390,768,1440]){
   await page.setViewportSize({width,height:1000});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,`hierarchy overflow at ${width}`);
   assert.equal(await page.locator('#subdao-select').isVisible(),true);
+  if(width<=640)assert.equal(await page.locator('.pnl-units tbody tr').first().locator('td').first().evaluate(el=>getComputedStyle(el,'::before').content),'\"Income\"');
   if(process.env.NNS_SCREENSHOT_DIR){await mkdir(process.env.NNS_SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/dao-hierarchy-${width}.png`,fullPage:true})}
  }
  await page.locator('#subdao-select').selectOption('neta-operations');

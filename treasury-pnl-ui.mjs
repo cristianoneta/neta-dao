@@ -24,13 +24,13 @@ function render() {
   units.hidden=!state.consolidated;units.replaceChildren();
   if(state.consolidated && summary.components){
     units.append(el('summary','Breakdown by DAO unit'));
-    const table=el('table');const heading=el('tr');for(const name of ['Unit','Income','Expenses','Result'])heading.append(el('th',name));table.append(heading);
+    const table=el('table'),head=el('thead'),body=el('tbody'),heading=el('tr');for(const name of ['Unit','Income','Expenses','Result']){const th=el('th',name);th.scope='col';heading.append(th)}head.append(heading);table.append(head,body);
     for(const source of summary.components){
       const row=el('tr'),title=el('th'),link=el('a',source.dao.unitName+' ↗','pnl-unit-link');
       link.href=`index.html?${selectionParams({organization:state.organization,dao:source.dao,consolidated:false},new URLSearchParams({year:year.value,month:month.value}))}#treasury`;
       title.append(link,el('small',source.error|| (source.summary.provisional?'Provisional':'Incomplete'),'pnl-partial'));row.append(title);
-      for(const key of ['income','expenses','result'])row.append(el('td',source.summary[key]===null?'—':dollars(source.summary[key])));
-      table.append(row);
+      title.scope='row';for(const [key,label] of [['income','Income'],['expenses','Expenses'],['result','Result']]){const td=el('td',source.summary[key]===null?'—':dollars(source.summary[key]));td.dataset.label=label;row.append(td)}
+      body.append(row);
     }
     units.append(table);
   }

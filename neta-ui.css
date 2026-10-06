@@ -517,3 +517,8 @@ body[data-workspace-view=relay] #organization-scope-note { display: none; }
   .subdao-picker { grid-column: 1 / -1; }
   .gov-header { position: relative; }
 }
+
+.pnl-units summary { cursor: pointer; min-height: 44px; padding: 12px 0; }
+@media(max-width:640px) {
+  #treasury-pnl .pnl-units td[data-label]::before { content: attr(data-label); }
+}
