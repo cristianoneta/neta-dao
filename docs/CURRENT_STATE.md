@@ -2,7 +2,7 @@
 
 ## Treasury statement revision — 2026-10-06
 
-Source implementation now uses shared Income / Expenses / Operating result rows
+Published and verified in PR #174: shared Income / Expenses / Operating result rows
 with configured child accounts. NNS appears only for NETA, and its filtered payment
 register is a separate page. Removed the repeated observed-income card, fixed
 receipt sidebar and redundant unavailable KPI cards. Years begin at 2026 with
@@ -10,7 +10,7 @@ receipt sidebar and redundant unavailable KPI cards. Years begin at 2026 with
 are explicitly partial. [Implementation and release tracking](TREASURY_STATEMENT_2026-10-06.md).
 
 
-Updated **2026-10-06** after publishing and verifying the NNS purchase/inbox release (#169). Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
+Updated **2026-10-06** after publishing and verifying the standard Treasury statement (#174), following the Names releases (#169/#171/#172). Source-tested work and live deployments are distinguished below. This file owns the feature inventory;
 [HANDOFF](../HANDOFF.md) owns the next action and working rules. Observed chain,
 service and data states are timestamped evidence, not guarantees of future state.
 The previous append-only inventory is retained in the [archive](archive/CURRENT_STATE_BEFORE_CLEANUP_2026-10-04.md).
@@ -171,7 +171,7 @@ generation/revision 1, expiry 2027-10-05T18:20:13Z. Successful STAVR REST receip
 show 4.755098 NETA debited to the registry and forwarded to the main NETA DAO;
 fresh identity/resolve reads agree. See [launch evidence](NNS_MAINNET_DEPLOYMENT_2026-10-05.md)
 for hashes and the single-provider verification boundary. Mainnet renewal/transfer
-and validator E2E are still unverified; Treasury remains deferred.
+and validator E2E are still unverified; Treasury receipt accounting is published with partial coverage.
 See [runbook](../names/README.md) and [historical snapshot evidence](NNS_SNAPSHOT_RELEASE_2026-10-05.md).
 The earlier continuous WYND server is deferred, not hosted. Its stricter policy
 is not the policy of the approved snapshot system.
