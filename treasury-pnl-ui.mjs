@@ -16,6 +16,8 @@ function render() {
   catch(e) { error=e.message; summary=summarize([],range,accountsFor(state.dao)); }
 
   const future = range.start > Date.now();
+  const basis=root.querySelector('#pnl-basis');
+  if(basis) basis.textContent=(state.consolidated ? 'Recorded activity · USD valuation per source' : state.dao?.id==='juno' ? 'Block allocations · Historical daily USD references' : 'Cash basis · USD at payment time')+' · From 1 October 2026 (UTC)';
   root.querySelector('#pnl-period').textContent = `${month.selectedOptions[0].textContent} ${year.value}${range.toDate ? ' · to date' : ''} · UTC`;
   root.querySelector('#pnl-coverage').textContent = state.loading ? 'Loading accounting evidence…' : error || (future ? 'Future period · no actuals yet' : state.data ? summary.provisional ? 'Provisional · recorded transactions' : state.data.refresh_status !== 'completed' ? 'Accounting refresh unavailable · retained evidence' : state.data.coverage_gaps?.length ? 'Connected · module coverage incomplete' : 'Partial coverage · totals incomplete' : 'Accounting history is not connected for this DAO.');
   if(state.consolidated) root.querySelector('#pnl-coverage').textContent=error || (future ? 'Future period · no actuals yet' : summary.provisional ? 'Consolidated · provisional recorded transactions' : 'Consolidated · incomplete accounting; total result unavailable');
