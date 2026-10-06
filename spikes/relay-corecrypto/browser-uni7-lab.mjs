@@ -221,6 +221,10 @@ try {
       body:JSON.stringify({sender:bob,contract,msg:{send:{recipient:bob,recipient_generation:1,
         message_id:oldId,ciphertext:Buffer.alloc(32).toString('base64')}}})});
     assert.equal(forged.status,200);
+    // restart(a) intentionally clears the compose form. Select the recipient
+    // again before testing malformed incoming packets; otherwise validation
+    // stops this send before any crypto/transport operation is exercised.
+    await a.page.locator('#recipient').fill(bob);
     await a.page.locator('#message').fill('valid after malformed ciphertext and colliding ID');
     await a.page.getByRole('button',{name:'TEST ENCRYPTED SEND · KEPLR'}).click();
     await a.page.waitForFunction(()=>document.querySelector('#history').textContent.includes('valid after malformed ciphertext and colliding ID'));
