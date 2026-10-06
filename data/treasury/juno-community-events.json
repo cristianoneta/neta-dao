@@ -9,9 +9,9 @@
   ],
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
-  "generated_at": "2026-10-06T13:45:44.028740Z",
-  "checked_at": "2026-10-06T13:45:44.028740Z",
-  "last_success_at": "2026-10-06T13:45:44.028740Z",
+  "generated_at": "2026-10-06T14:04:48.748011Z",
+  "checked_at": "2026-10-06T14:04:48.748011Z",
+  "last_success_at": "2026-10-06T14:04:48.748011Z",
   "sources": [
     {
       "adapter": "cosmos-rest-receipts",
@@ -26,9 +26,9 @@
         "timestamp": "2026-09-30T10:14:02.896994123Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42427437,
-      "last_scanned_height": 42427752,
-      "anchor_hash": "FCD6723971984C3B8B669F5BC9FF1327B7FB3AB58F3D75671B3A6B88DF5AC5FB",
+      "scan_start_height": 42427652,
+      "last_scanned_height": 42428200,
+      "anchor_hash": "4424AB344B9D0B6E3B28ABAF412307D172D72DD4D9C128C7EAF289880252A2D5",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
@@ -55,6 +55,12 @@
     "warning": "Older governance page unavailable (HTTPError); recent observed proposals retained, catalogue coverage incomplete."
   },
   "governance_proposals_checked": 100,
+  "community_tax": {
+    "rate": "0.100000000000000000",
+    "observed_at": "2026-10-06T14:04:48.748011Z",
+    "source": "https://juno.api.m.stavr.tech/cosmos/distribution/v1beta1/params",
+    "basis": "Distribution rewards including minted inflation and transaction fees; the current rate is not historical revenue."
+  },
   "coverage_gaps": [
     "Block-level Community Pool accruals, rounding, burns and drip/module payouts are not yet reconstructed. Full income, expenses and result remain unavailable.",
     "Older governance page unavailable (HTTPError); recent observed proposals retained, catalogue coverage incomplete."
