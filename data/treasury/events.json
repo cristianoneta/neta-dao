@@ -13,7 +13,7 @@
         "accounting_start": "2026-10-01T00:00:00Z",
         "adapter": "cosmos-rest-receipts",
         "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-        "anchor_hash": "A6D6354CC87D4980093161D86056DFE96FB30CE6D1ADA772BF85721966EB87EF",
+        "anchor_hash": "DBE6F41BD991B00F872346218A3C0A42137FF92F3CE354E0E375C8DCC7EABDA7",
         "chain_id": "juno-1",
         "coverage": "provider-index-only",
         "historical_missing_transactions": 0,
@@ -21,7 +21,7 @@
         "incremental": true,
         "indexed_transactions": 0,
         "last_full_replay_day": "2026-10-06",
-        "last_scanned_height": 42432622,
+        "last_scanned_height": 42433059,
         "query_keys": [
           "wasm._contract_address",
           "transfer.sender",
@@ -67,7 +67,7 @@
           ]
         ],
         "range_capable": true,
-        "scan_start_height": 42431910,
+        "scan_start_height": 42432522,
         "source": "https://juno.api.m.stavr.tech"
       },
       {
@@ -81,7 +81,7 @@
         "accounting_start": "2026-10-01T00:00:00Z",
         "adapter": "cosmos-rest-receipts",
         "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-        "anchor_hash": "6FFAA22474DEDF0A6DBF41F4E809206A60E0E7E7156102FA4E116B91099D2F2C",
+        "anchor_hash": "CF415589F77EDF2ACA183E61DF166CD2D963D08337F1DC66E0317A4BF3E93F5E",
         "chain_id": "osmosis-1",
         "coverage": "provider-index-only",
         "historical_missing_transactions": 0,
@@ -89,7 +89,7 @@
         "incremental": true,
         "indexed_transactions": 0,
         "last_full_replay_day": "2026-10-06",
-        "last_scanned_height": 72024647,
+        "last_scanned_height": 72025425,
         "query_keys": [
           "wasm._contract_address",
           "transfer.sender",
@@ -135,7 +135,7 @@
           ]
         ],
         "range_capable": true,
-        "scan_start_height": 72023398,
+        "scan_start_height": 72024547,
         "source": "https://osmosis-api.polkachu.com"
       }
     ],
@@ -1797,7 +1797,7 @@
       "type": "inflow"
     }
   ],
-  "generated_at": "2026-10-06T17:13:00.446022Z",
+  "generated_at": "2026-10-06T17:31:35.937667Z",
   "schema_version": 2,
   "scope": "neta-operations-cross-chain",
   "sources": [
@@ -1812,7 +1812,7 @@
       "accounting_start": "2026-10-01T00:00:00Z",
       "adapter": "cosmos-rest-receipts",
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-      "anchor_hash": "A6D6354CC87D4980093161D86056DFE96FB30CE6D1ADA772BF85721966EB87EF",
+      "anchor_hash": "DBE6F41BD991B00F872346218A3C0A42137FF92F3CE354E0E375C8DCC7EABDA7",
       "chain_id": "juno-1",
       "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
@@ -1820,7 +1820,7 @@
       "incremental": true,
       "indexed_transactions": 0,
       "last_full_replay_day": "2026-10-06",
-      "last_scanned_height": 42432622,
+      "last_scanned_height": 42433059,
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -1866,7 +1866,7 @@
         ]
       ],
       "range_capable": true,
-      "scan_start_height": 42431910,
+      "scan_start_height": 42432522,
       "source": "https://juno.api.m.stavr.tech"
     },
     {
@@ -1880,7 +1880,7 @@
       "accounting_start": "2026-10-01T00:00:00Z",
       "adapter": "cosmos-rest-receipts",
       "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-      "anchor_hash": "6FFAA22474DEDF0A6DBF41F4E809206A60E0E7E7156102FA4E116B91099D2F2C",
+      "anchor_hash": "CF415589F77EDF2ACA183E61DF166CD2D963D08337F1DC66E0317A4BF3E93F5E",
       "chain_id": "osmosis-1",
       "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
@@ -1888,7 +1888,7 @@
       "incremental": true,
       "indexed_transactions": 0,
       "last_full_replay_day": "2026-10-06",
-      "last_scanned_height": 72024647,
+      "last_scanned_height": 72025425,
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -1934,7 +1934,7 @@
         ]
       ],
       "range_capable": true,
-      "scan_start_height": 72023398,
+      "scan_start_height": 72024547,
       "source": "https://osmosis-api.polkachu.com"
     }
   ],

@@ -2,7 +2,7 @@
   "schema_version": 2,
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
-  "generated_at": "2026-10-06T17:13:11.646534Z",
+  "generated_at": "2026-10-06T17:31:48.414125Z",
   "treasuries": [
     {
       "chain_id": "juno-1",
@@ -24,9 +24,9 @@
         "timestamp": "2026-09-30T11:15:50.297962745Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42431915,
-      "last_scanned_height": 42432627,
-      "anchor_hash": "14F77FF685457C9491C6C8EA88663CAE7D5AEBDDDB28BF24902FB1BC62B7DBCA",
+      "scan_start_height": 42432527,
+      "last_scanned_height": 42433065,
+      "anchor_hash": "BEDB2A6387D9524CDD568AC581A4FD18EBBB6F2C5D070B69C812D27B5AB490EE",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
@@ -101,9 +101,9 @@
           "timestamp": "2026-09-30T11:15:50.297962745Z",
           "kind": "scan-floor-before-start"
         },
-        "scan_start_height": 42431915,
-        "last_scanned_height": 42432627,
-        "anchor_hash": "14F77FF685457C9491C6C8EA88663CAE7D5AEBDDDB28BF24902FB1BC62B7DBCA",
+        "scan_start_height": 42432527,
+        "last_scanned_height": 42433065,
+        "anchor_hash": "BEDB2A6387D9524CDD568AC581A4FD18EBBB6F2C5D070B69C812D27B5AB490EE",
         "incremental": true,
         "range_capable": true,
         "indexed_transactions": 0,
@@ -301,7 +301,7 @@
       "reward_withdrawals": []
     }
   ],
-  "last_success_at": "2026-10-06T17:13:11.646534Z",
+  "last_success_at": "2026-10-06T17:31:48.414125Z",
   "coverage_gaps": [
     "Daily staking accrual starts 2026-10-06T13:57:10.758236337Z; earlier October rewards are unavailable, not zero. Opening claimable rewards are excluded from income. Claims only settle accrued rewards. Slashing and other unclassified movements remain outside recorded totals."
   ],
