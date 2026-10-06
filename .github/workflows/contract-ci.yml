@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "contracts/**"
+      - "proposal-accounting.mjs"
       - "neta-governance.js"
       - "ux-draft.js"
       - "treasury.js"
@@ -65,6 +66,7 @@ on:
     branches: [main]
     paths:
       - "contracts/**"
+      - "proposal-accounting.mjs"
       - "neta-governance.js"
       - "ux-draft.js"
       - "treasury.js"

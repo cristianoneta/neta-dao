@@ -60,4 +60,62 @@ truncated/duplicate pages, missing known transactions, daily replay, failed rece
 changed amounts and exact NNS cross-reference. Existing browser tests now verify
 that pre-start periods cannot be selected. A read-only local live scan via Polkachu found the real NNS receipt at block
 42400450; provider coverage through block 42425219 remained explicitly PARTIAL.
-Hosted checks and production collection are still pending; do not treat this document alone as deployment evidence.
+Published in [PR #176](https://github.com/cristianoneta/neta-dao/pull/176), merge
+`31f727db5dbc00340640c5b183ce4aab054e0d9c`. Final application head
+`26f8387147e566439d1362597066722eed5d3408` passed frontend/contract
+[37460531506](https://github.com/cristianoneta/neta-dao/actions/runs/37460531506),
+browser [37460531435](https://github.com/cristianoneta/neta-dao/actions/runs/37460531435),
+NNS pricing [37460531499](https://github.com/cristianoneta/neta-dao/actions/runs/37460531499)
+and faucet [37460531589](https://github.com/cristianoneta/neta-dao/actions/runs/37460531589).
+Statement and register screenshots at 320/390/768/1440 px were inspected. The
+renewal in browser screenshots is a synthetic fixture, never production income.
+The initial browser failure was the Playwright disabled-state helper on an option;
+native option.disabled and actual period behavior pass in the final suite.
+
+Production main frontend [37460896776](https://github.com/cristianoneta/neta-dao/actions/runs/37460896776),
+main collector [37460896833](https://github.com/cristianoneta/neta-dao/actions/runs/37460896833),
+Operations collector [37460897042](https://github.com/cristianoneta/neta-dao/actions/runs/37460897042)
+and Pages [37460967256](https://github.com/cristianoneta/neta-dao/actions/runs/37460967256)
+passed. Earlier Pages runs were superseded by the collector commits, not failed deployments.
+
+At 12:06 UTC the main collector completed all three tasks, recorded one NNS event,
+and linked it once to 4.755098 NETA / USD 5.000000976594010594. Coverage through Juno
+42425427 remains PARTIAL. Operations successfully scanned Juno through 42425432 and
+Osmosis through 72011274, preserving 57 older records; no new indexed receipts were
+returned in those date-bounded scans. No complete zero-activity claim is made.
+Separate local read-only scans also succeeded for all three configured accounts.
+
+Nine served assets matched repository SHA-256 after Pages completed: index.html,
+Treasury P&L UI/core/report modules, NNS register HTML/module, favicon.ico, 32px
+favicon PNG and Apple touch icon. No generated ledgers were manually edited.
+
+
+## Follow-up: provisional totals and spending categories
+
+Owner requested provisional zeros/sums for reviewed, recorded activity and categories
+on Treasury events and spending proposals. The follow-up adds:
+
+- Provisional Income / Expenses / result when the receipt refresh succeeded and
+  every observed selected-period movement has an exact receipt match. Empty accounts
+  then show $0. Failed or stale current-period refreshes, unmatched receipts and
+  unreviewed movements block totals. Index coverage and balance reconciliation
+  remain partial/unavailable. A current snapshot older than two hours is stale.
+- Receipt-backed event tags (`Income · NNS registrations`, `Income · NNS renewals`);
+  unmatched legs display `Unclassified`, including mixed-transfer events. Direction
+  alone never establishes income, expense or an internal transfer.
+- One spending-category dropdown per action, using the shared expense account IDs;
+  `not_expense` identifies treasury transfers. Known bank/CW20 payment shapes require
+  a category. Other action shapes expose an optional category; arbitrary contract
+  effects cannot be inferred from their JSON.
+- `dao_accounting_v1` revision metadata contains allocations with zero-based
+  `action_index`, canonical `action_key` and `category`. This is review metadata,
+  separate from executable messages. Category bindings survive JSON formatting,
+  but edits/reordering invalidate affected bindings. Local drafts, workshop
+  publications and revisions retain it; read-only proposals disable the controls.
+
+Mainnet spend submission and execution matching are still not connected. These
+categories capture intent; they do not create ledger expenses. A future execution
+adapter must remove review metadata from executable messages, bind the approved
+revision/action to verified outgoing treasury legs, avoid duplicate payments and
+provide payment-time USD valuation before posting an expense. No category may be
+inferred from a proposal title or merely from its `proposal_id`.

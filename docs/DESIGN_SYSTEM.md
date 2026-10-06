@@ -425,3 +425,13 @@ filters, original transaction links and payment-time conversion details. Preserv
 filter state on the return link. Match shared graphite/mint tokens and provide a
 contained horizontal scroll region on mobile. No balance-derived income, assumed
 zero, fabricated comparison or current-price revaluation.
+
+
+## Accounting categories — owner update 2026-10-06
+
+Treasury event account tags use compact neutral pills with explicit Income/Expense
+labels and an Unclassified fallback. Proposal action details use a labelled native
+select for each action's planned spending category, with shared expense labels and
+an explicit non-expense transfer choice. Read-only proposals disable the selects.
+Provisional statement amounts use a text label; zero is shown only for a reviewed
+snapshot and must not imply full public-index coverage.

@@ -5,12 +5,14 @@
 Owner narrowed accounting to **1 October 2026 onward, for every DAO**. No older
 backfill. The continuation implements a shared date-bounded receipt collector,
 daily delayed-index replay, exact NNS movement cross-reference and a mint voxel N
-browser icon. See [cutoff implementation](TREASURY_CUTOFF_2026-10-06.md). Publication checks are pending.
+browser icon. See [cutoff implementation](TREASURY_CUTOFF_2026-10-06.md). Published in [PR #176](https://github.com/cristianoneta/neta-dao/pull/176);
+all four PR checks and main frontend CI passed. Both production collectors succeeded.
+The main DAO now has one matched NNS movement; coverage remains PARTIAL.
 Full P&L and non-NNS classification/pricing/reconciliation remain open. Native Juno
 Community Pool still has no accounting adapter. Preserve existing older exports.
 
 
-Updated **2026-10-06, 13:30 Europe/Berlin**. This is the current continuation checkpoint.
+Updated **2026-10-06, after PR #176 publication**. This is the current continuation checkpoint.
 Scope: `cristianoneta/neta-dao`, <https://dao.netareborn.com>.
 
 ## Read first
@@ -68,7 +70,8 @@ displayed **$5.00** at its executed payment-time rate. The synthetic renewal is
 only a browser fixture. The collector-owned ledger is
 `data/treasury/neta-main-accounting.json`; do not edit its entries manually.
 NNS receipt coverage remains **PARTIAL**. Complete income, expenses, operating
-result and historical main-DAO events remain **UNAVAILABLE**, never zero.
+result remain **UNAVAILABLE**, never zero. Main-DAO event coverage was subsequently
+connected by #176 from 1 October, with one verified NNS movement and PARTIAL coverage.
 Transfers, swaps, funding and price movements are not automatically revenue.
 Buyer-paid gas is not a DAO expense. Full accounting is the next data task.
 
@@ -98,7 +101,7 @@ Do not rerun the old paused-state launch verifier unchanged against the active r
 
 ## Next work and retained open gates
 
-1. **Treasury data:** establish historical coverage and reviewed income, expense,
+1. **Treasury data:** continue coverage from **1 October 2026** and reviewed income, expense,
    funding and internal-transfer classification; add authoritative payment-time
    prices and reconciliation. Keep the shared schema and explicit coverage states.
    Further source adapters belong in configuration/parser boundaries, not custom
@@ -137,3 +140,15 @@ task is recorded in that repository's handoff; it is not part of DAO accounting 
 Older session chronology is preserved in
 [the previous handoff archive](archive/HANDOFF_BEFORE_TREASURY_CHECKPOINT_2026-10-06.md).
 Historical next-step wording there does not supersede this checkpoint.
+
+
+### Treasury follow-up — 2026-10-06 (release verification pending)
+
+Provisional zeros and Income/Expenses/result now require a successful recent receipt
+refresh and exact movement review; partial index coverage remains explicit.
+Treasury event tags come from exact NNS receipt matches; unknown legs remain
+Unclassified. Proposal actions expose shared spending categories, retained as
+`dao_accounting_v1` metadata in local drafts and workshop revisions, bound to the
+unchanged action. Mainnet spend execution/matching is still not connected, so a
+planned category alone never posts an expense. See TREASURY_CUTOFF_2026-10-06.md
+for the schema and boundaries. Follow-up PR/CI/deployment evidence pending.

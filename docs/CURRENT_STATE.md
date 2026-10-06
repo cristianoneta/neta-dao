@@ -5,7 +5,9 @@
 Owner narrowed accounting to **1 October 2026 onward, for every DAO**. No older
 backfill. The continuation implements a shared date-bounded receipt collector,
 daily delayed-index replay, exact NNS movement cross-reference and a mint voxel N
-browser icon. See [cutoff implementation](TREASURY_CUTOFF_2026-10-06.md). Publication checks are pending.
+browser icon. See [cutoff implementation](TREASURY_CUTOFF_2026-10-06.md). Published in [PR #176](https://github.com/cristianoneta/neta-dao/pull/176);
+all four PR checks and main frontend CI passed. Both production collectors succeeded.
+The main DAO now has one matched NNS movement; coverage remains PARTIAL.
 Full P&L and non-NNS classification/pricing/reconciliation remain open. Native Juno
 Community Pool still has no accounting adapter. Preserve existing older exports.
 
@@ -47,7 +49,9 @@ preserves drafts, keys and transaction journals. Tests cover late connection rep
 Use [DAO_ONBOARDING_CHECKLIST](DAO_ONBOARDING_CHECKLIST.md) for additions.
 The main DAO has read-only proposals, Treasury, staking participants and following;
 its writes remain disabled. `.dao.neta` directory labels are not registered names.
-Main DAO historical events are UNAVAILABLE, not zero; its separate NNS accounting ledger now matches registry payments, exact NETA forwarding
+Main DAO events from 1 October are connected with PARTIAL provider-index coverage
+(PR #176); one NNS payment movement is verified. Its separate NNS accounting ledger
+matches registry payments, exact NETA forwarding
 and the executed price snapshot. Full historical accounting remains unavailable.
 
 People/Members uses Operations cw4 membership, main DAO staked NETA and the native
@@ -304,16 +308,24 @@ The five reviewed Osmosis routes are explicitly chain-scoped in the registry; se
 [Treasury valuation correction](TREASURY_VALUATION_FIX_2026-10-03.md) for dated
 incident evidence. Current data timestamps/status belong to the exported JSON.
 
-Event ledger: schema v2, chain/hash deduplication and proposal-title enrichment.
-The continuation adds height-bounded scans, a verified block-hash anchor, 100-block
-overlap and 20-block tip delay. Missing anchors use full replay. Changed anchors,
-truncated pages or loss of recorded historical TXs fail without replacing exports.
-`TREASURY_EVENTS_FULL_REPLAY=1` requests a full replay; it preserves prior records. Monetary extraction is
-native `transfer` event based; contract activity alone is not complete CW20/LP
-cash flow. Missing historical timestamps remain null with exact block heights.
-Juno historical indexing is required; absent legacy Osmosis matches are allowed.
-The frontend shows three latest non-technical movements and expanded filters.
-There is no Juno Community Pool transaction feed or treasury execution.
+Event ledger: schema v2, chain/hash deduplication and optional proposal-title
+metadata. Main NETA and Operations Juno/Osmosis now use REST receipt queries with
+fresh chain identity, exact receipt timestamps, anchored watermarks, 100-block
+overlap and 20-block tip delay. Daily replay starts at a verified recent floor
+before 1 October and filters by the exact UTC cutoff; no older backfill. Existing
+older records stay intact. Empty native indexes no longer prevent CW20 discovery.
+Missing known receipts, changed amounts/identity, corrupt prior JSON and truncated
+pages fail without replacing valid exports. `TREASURY_EVENTS_FULL_REPLAY=1` replays
+from this accounting floor, not chain inception. Atomic writes preserve collector
+ownership. Supported native/CW20-shaped movements are observations; unknown token
+contracts retain raw units without guessed prices/decimals. Failed attempts do not
+become payments. This is not a complete CW20/LP or module-distribution ledger.
+The 2026-10-06 release runs retained all 57 older Operations records and found one
+main NNS payment; no new Operations receipts were returned in the scanned range.
+That empty result is not a proof of zero economic activity. The exact NNS Treasury
+leg is cross-referenced to its payment-time ledger entry once; remaining movements
+stay unreviewed. Full P&L, balance reconciliation and native Community Pool
+accounting remain unavailable. See [release evidence](TREASURY_CUTOFF_2026-10-06.md).
 
 `treasury.js` now aborts superseded requests, bounds fetch time to 15 seconds and
 checks a request epoch before changing shared state or the UI. Late responses
@@ -433,3 +445,15 @@ to the repository Actions-secret form. It stores only the public key and has
 `connect-src 'none'`. Private-key export/copy requires an explicit click. It does
 not install the secret, deploy contracts or enable purchases. Public-key continuity
 and matching backup restoration avoid silently replacing an existing authority.
+
+
+### Treasury follow-up — 2026-10-06 (release verification pending)
+
+Provisional zeros and Income/Expenses/result now require a successful recent receipt
+refresh and exact movement review; partial index coverage remains explicit.
+Treasury event tags come from exact NNS receipt matches; unknown legs remain
+Unclassified. Proposal actions expose shared spending categories, retained as
+`dao_accounting_v1` metadata in local drafts and workshop revisions, bound to the
+unchanged action. Mainnet spend execution/matching is still not connected, so a
+planned category alone never posts an expense. See TREASURY_CUTOFF_2026-10-06.md
+for the schema and boundaries. Follow-up PR/CI/deployment evidence pending.

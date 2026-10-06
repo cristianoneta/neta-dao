@@ -8,6 +8,12 @@ const ledger = JSON.parse(await readFile(new URL('data/treasury/neta-main-accoun
 // Pin the archived first purchase; later live sales must not change fixture totals.
 ledger.entries = ledger.entries.filter(row => row.tx_hash === '85689A2C75DE86829D4116FA0AABBA5062D269679CA139984E169E8E2ACF8DC1');
 assert.equal(ledger.entries.length, 1);
+ledger.refresh_status = 'completed'; ledger.last_success_at = new Date().toISOString();
+const receipt = ledger.entries[0];
+ledger.movement_review = { status:'PARTIAL',event_refresh_status:'PARTIAL',accounting_start:'2026-10-01T00:00:00Z',matched_receipts:1,unmatched_receipt_ids:[],unreviewed_movements:0,
+  movements:[{id:receipt.id,tx_hash:receipt.tx_hash,timestamp:receipt.timestamp,denom:`cw20:${receipt.token}`,direction:'in',raw_amount:receipt.raw_amount,counterparty:receipt.registry,classification:receipt.category,usd_value:receipt.usd_value,receipt_id:receipt.id}]};
+const eventFixture = {scope:ledger.scope,status:'PARTIAL',warnings:[],treasuries:[{chain_id:ledger.chain_id,address:ledger.treasury_address}],events:[{...receipt,type:'inflow',title:'4.755098 NETA received',explorer_url:'https://atomscan.com/juno/transactions/'+receipt.tx_hash,movements:[{...ledger.movement_review.movements[0],message_index:receipt.message_index,amount:'4.755098',symbol:'NETA'}]}]};
+
 const server = http.createServer(async (req, res) => {
   try {
     const path = new URL(req.url, 'http://localhost').pathname;
@@ -22,6 +28,7 @@ try {
   const context = await browser.newContext();
   await context.route('https://**/*', route => route.abort());
   await context.route('**/neta-main-accounting.json*', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(ledger) }));
+  await context.route('**/neta-main-events.json*', route => route.fulfill({ contentType:'application/json', body:JSON.stringify(eventFixture) }));
   await context.addInitScript(() => { if (!localStorage.getItem('neta-governance-selected-dao')) localStorage.setItem('neta-governance-selected-dao', 'neta'); });
   const page = await context.newPage(), errors = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -30,7 +37,7 @@ try {
   await page.locator('#pnl-month').selectOption('10');
   await page.waitForFunction(() => document.querySelector('#pnl-rows').textContent.includes('$5.00'));
   assert.deepEqual(await page.locator('#pnl-year option').allTextContents(), ['2026','2027','2028']);
-  assert.match(await page.locator('#pnl-coverage').innerText(), /Partial coverage/);
+  assert.match(await page.locator('#pnl-coverage').innerText(), /Provisional · recorded transactions/);
   assert.equal(await page.locator('.allocation-card,.risk-card,.cashflow-card,.pnl-observed,#pnl-detail,.pnl-kpis').count(), 0);
   assert.equal(await page.locator('#pnl-account-nns_registration').isVisible(), false);
   await page.getByRole('button', { name: '+ Income', exact: true }).click();
@@ -47,6 +54,10 @@ try {
   assert.match(await page.locator('#pnl-coverage').innerText(), /Future period/);
   await page.locator('#pnl-year').selectOption('2026');
   await page.locator('#pnl-month').selectOption('10');
+  assert.match(await page.locator('.pnl-result').innerText(), /\$5.00/);
+  await page.getByRole('button', { name:'+ Expenses', exact:true }).click();
+  assert.match(await page.locator('#pnl-account-development').innerText(), /\$0.00/);
+  assert.match(await page.locator('#treasury-events').innerText(), /Income · NNS registrations/);
   const screenshots = process.env.NNS_SCREENSHOT_DIR;
   if (screenshots) await mkdir(screenshots, { recursive: true });
   for (const width of [1440, 768, 390, 320]) {
@@ -55,11 +66,40 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `overflow at ${width}`);
     assert.equal(await page.locator('#treasury-pnl .pnl-table-wrap').evaluate(e => e.scrollWidth <= e.clientWidth+1), true, `statement needs horizontal scroll at ${width}`);
     assert.equal(await page.locator('#pnl-year').evaluate(e => getComputedStyle(e).color === 'rgb(242, 244, 247)'), true);
+    if (screenshots) await page.locator('#treasury-events').screenshot({ path: `${screenshots}/treasury-events-${width}.png`, style: ".gov-header { visibility:hidden !important; }" });
     if (screenshots) await page.locator('#treasury-pnl').screenshot({ path: `${screenshots}/treasury-pnl-${width}.png`, style: ".gov-header { visibility:hidden !important; }" });
   }
   await page.setViewportSize({ width: 768, height: 1000 });
   await page.locator('#pnl-year').focus(); await page.keyboard.press('Tab');
   assert.equal(await page.locator('#pnl-month').evaluate(e => e === document.activeElement), true);
+  // Categories persist per action and DAO; editing a payment invalidates its binding.
+  await page.locator('[data-workspace-view=governance]').click();
+  await page.locator('#new-draft').click();
+  await page.locator('#proposal-title').fill('Community grant');
+  await page.locator('#proposal-summary').fill('Fund a community project');
+  await page.locator('#proposal-body').fill('A reviewed grant, paid only after execution.');
+  const payment = {bank:{send:{to_address:'juno1recipient',amount:[{denom:'ujuno',amount:'1000000'}]}}};
+  await page.locator('#proposal-actions').fill(JSON.stringify([payment]));
+  await page.locator('#save-local').click();
+  assert.match(await page.locator('#gov-status').innerText(),/SELECT A SPENDING CATEGORY FOR ACTION 1/);
+  await page.getByLabel('Action 1 spending category',{exact:true}).selectOption('grants');
+  await page.locator('#save-local').click();
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('neta-governance-local-draft:neta')));
+  assert.equal(JSON.parse(saved.actions_json).find(a=>a.type==='dao_accounting_v1').allocations[0].category,'grants');
+  await page.locator('#new-draft').click();
+  assert.equal(await page.getByLabel('Action 1 spending category',{exact:true}).inputValue(),'grants');
+  for(const width of [1440,768,390,320]){
+    await page.setViewportSize({width,height:1400});
+    await page.locator('#proposal-accounting').scrollIntoViewIfNeeded();
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,`proposal overflow at ${width}`);
+    if(screenshots)await page.locator('.actions-panel').screenshot({path:`${screenshots}/proposal-categories-${width}.png`,style:'.gov-header { visibility:hidden !important; }'});
+  }
+  payment.bank.send.amount[0].amount='2000000';
+  await page.locator('#proposal-actions').fill(JSON.stringify([payment]));
+  assert.equal(await page.getByLabel('Action 1 spending category',{exact:true}).inputValue(),'');
+  await page.locator('#save-local').click();
+  assert.match(await page.locator('#gov-status').innerText(),/SELECT A SPENDING CATEGORY/);
+  await page.locator('[data-workspace-view=treasury]').click();
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('neta:dao-change', { detail: { id: 'juno' } })));
   await page.waitForFunction(() => document.querySelector('#pnl-coverage').textContent.includes('not connected'));
   assert.doesNotMatch(await page.locator('#pnl-rows').textContent(), /NNS|cristiano|\$5.00/);
