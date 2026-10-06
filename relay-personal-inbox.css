@@ -4,3 +4,7 @@
 @media(max-width:640px){.personal-inbox{padding:16px;margin:8px}.personal-inbox button{margin:4px 0;width:100%}}
 
 .personal-inbox details{margin:12px 0}.personal-inbox summary{cursor:pointer;min-height:44px;display:list-item;align-content:center}.personal-inbox .personal-primary{background:var(--neta-accent);color:var(--neta-on-accent)}
+<<<<<<< HEAD
+.personal-inbox button.personal-primary:not(:disabled){background:var(--neta-accent);color:var(--neta-on-accent)}.personal-inbox button.personal-primary:hover:not(:disabled){background:var(--neta-accent-hover);color:var(--neta-on-accent)}.personal-inbox button:disabled{background:var(--neta-surface-raised);color:var(--neta-text-secondary);opacity:1}
+=======
+>>>>>>> origin/codex/personal-messaging-recovery-mainnet
