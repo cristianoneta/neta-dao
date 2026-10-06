@@ -1,5 +1,45 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Latest continuation — 6 October 2026, personal recovery candidates
+
+Continue **draft [PR #195](https://github.com/cristianoneta/neta-dao/pull/195)**,
+branch `codex/personal-messaging-recovery-mainnet`, saved head
+`2b4523fb9de9437947b656f04243accaeea8082e`. Do not recreate its implementation
+from main. [Detailed candidate note](https://github.com/cristianoneta/neta-dao/blob/codex/personal-messaging-recovery-mainnet/docs/PERSONAL_MESSAGING_MAINNET_2026-10-06.md)
+and [backup proposal](https://github.com/cristianoneta/neta-dao/blob/codex/personal-messaging-recovery-mainnet/relay-backup/README.md).
+
+The browser failure was a missing recipient after the test's deliberate reload;
+it is fixed without removing assertions. All three original checks passed at
+`3e678e1`. New lifecycle/transport/crypto candidates passed all three checks at
+`188fbe8`, including real CoreCrypto generation isolation and historical sender
+identity. Backup/authentication/codec candidates passed hosted backup CI at
+`772dd77` and `c4da6ec`; the latter also passed browser/frontend CI. Local tests:
+**166 Node + six backup integration tests**; backup dependency audit reports zero
+vulnerabilities. The final follow-up bounds simultaneous backup requests. Inspect
+all latest-head workflow results before integration; earlier results are not a
+claim that newer in-flight runs passed.
+
+Source candidates now cover reviewed consent/block/refill/rotation, generation-
+separated encryption, exact signed-transaction attempt recovery and an isolated
+encrypted backup service/client. **They are not yet connected to one production
+personal crypto controller.** Next: integrate those modules with durable browser
+state and the existing signing bridge, automate quiescent snapshots, enforce
+read-only staged restoration and test real fresh-profile ratchet/archive/outbox/
+cursor recovery, rotation and concurrent profiles. Synthetic backup tests do not
+close those gates. Then production review, owner-reviewed mainnet deployment and
+the consenting two-wallet test. No mainnet signing/deployment/hosting/backup exists.
+
+Separate Render Blueprint is prepared; proposed base is **USD 7.25/month** before
+tax/possible workspace charges/overages. Provider/budget approval remains open.
+No service was created. Existing faucet credentials, keys, pending journals and
+generated Treasury snapshots are preserved. Mainnet SEND is still disabled,
+deployment pin null, owner upgrade admin unchanged, and active owned .neta
+replaces the former stake prerequisite. DAO routes remain disabled.
+
+After personal messaging: shared DAO recovery/direct mainnet testing, compact
+Inbox selector/shared handling states, then milestone payment requests/proposals/
+Treasury linkage. Do not lose the invoice requirement.
+
 ## Continuation — 6 October 2026, personal messaging recovery candidates
 
 Continue **draft PR #195**, branch `codex/personal-messaging-recovery-mainnet`.
