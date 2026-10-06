@@ -9,9 +9,9 @@
   ],
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
-  "generated_at": "2026-10-06T20:13:59.306423Z",
-  "checked_at": "2026-10-06T20:13:59.306423Z",
-  "last_success_at": "2026-10-06T20:13:59.306423Z",
+  "generated_at": "2026-10-06T20:35:42.934733Z",
+  "checked_at": "2026-10-06T20:35:42.934733Z",
+  "last_success_at": "2026-10-06T20:35:42.934733Z",
   "sources": [
     {
       "adapter": "cosmos-rest-receipts",
@@ -26,9 +26,9 @@
         "timestamp": "2026-09-30T10:14:02.896994123Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42436357,
-      "last_scanned_height": 42436883,
-      "anchor_hash": "FE296861A9D619856F0DF8B022AF7F4B8A1712D0C26DD3E50B48811F21F31DCA",
+      "scan_start_height": 42436783,
+      "last_scanned_height": 42437394,
+      "anchor_hash": "1109B2AB1ED766A06F3E9000D3DDDFB58C456CD358B3FAD5DAA8ACC2C1C3327A",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
@@ -48,6 +48,86 @@
     }
   ],
   "events": [
+    {
+      "id": "juno-1:distribution:42436883-42437392",
+      "chain_id": "juno-1",
+      "chain_name": "Juno",
+      "treasury_address": "juno1jv65s3grqf6v6jl3dp4t6c9t9rk99cd83d88wr",
+      "height": 42437392,
+      "timestamp": "2026-10-06T20:34:38.775976062Z",
+      "timestamp_status": "confirmed",
+      "tx_hash": null,
+      "status": "confirmed",
+      "type": "inflow",
+      "title": "Community Tax \u00b7 2026-10-06",
+      "movements": [
+        {
+          "id": "juno-1:distribution:42436883-42437392:0",
+          "chain_id": "juno-1",
+          "treasury_address": "juno1jv65s3grqf6v6jl3dp4t6c9t9rk99cd83d88wr",
+          "tx_hash": null,
+          "timestamp": "2026-10-06T20:34:38.775976062Z",
+          "height": 42437392,
+          "message_index": 0,
+          "denom": "ujuno",
+          "asset": "JUNO",
+          "amount": "49.946992200000005739731015",
+          "decimals": 6,
+          "direction": "in",
+          "raw_amount": "49946992.200000005739731015",
+          "counterparty": "juno17xpfvakm2amg962yls6f84z3kell8c5lxtqmvp",
+          "classification": "community_tax",
+          "category": "community_tax",
+          "usd_value": "0.460653933729728212",
+          "receipt_id": "juno-1:distribution:42436883-42437392:0",
+          "valuation": {
+            "usd_price": "0.009222856341081699",
+            "timestamp_ms": 1791244800000,
+            "day": "2026-10-06",
+            "denom": "ujuno",
+            "coin_id": "juno-network",
+            "decimals": 6,
+            "symbol": "JUNO",
+            "source": "https://api.coingecko.com/api/v3/coins/juno-network/market_chart/range?vs_currency=usd&from=1791151200&to=1791252000",
+            "method": "historical-daily-opening-reference",
+            "fetched_at": "2026-10-06T15:09:27.746877Z"
+          },
+          "evidence": {
+            "kind": "block-distribution",
+            "source": "https://juno.rpc.m.stavr.tech",
+            "start": {
+              "height": 42436883,
+              "timestamp": "2026-10-06T20:12:59.681612562Z",
+              "hash": "FE296861A9D619856F0DF8B022AF7F4B8A1712D0C26DD3E50B48811F21F31DCA"
+            },
+            "end": {
+              "height": 42437392,
+              "timestamp": "2026-10-06T20:34:38.775976062Z",
+              "hash": "64E28025BB220FB6172B4B174EAD181D502F8CABAB9F9DA68B681AB1615DBD7C"
+            },
+            "blocks": 510,
+            "results_sha256": "ba8bd089e97d80acb7149c3b11c50b0b810b9f2ecde9e47de09e8858dfc0e2be",
+            "method": "fee-collector-transfers-minus-validator-rewards"
+          }
+        }
+      ],
+      "evidence": {
+        "kind": "block-distribution",
+        "start": {
+          "height": 42436883,
+          "timestamp": "2026-10-06T20:12:59.681612562Z",
+          "hash": "FE296861A9D619856F0DF8B022AF7F4B8A1712D0C26DD3E50B48811F21F31DCA"
+        },
+        "end": {
+          "height": 42437392,
+          "timestamp": "2026-10-06T20:34:38.775976062Z",
+          "hash": "64E28025BB220FB6172B4B174EAD181D502F8CABAB9F9DA68B681AB1615DBD7C"
+        },
+        "blocks": 510
+      },
+      "explorer_url": "https://atomscan.com/juno/blocks/42437392",
+      "proposal_id": null
+    },
     {
       "id": "juno-1:distribution:42436457-42436882",
       "chain_id": "juno-1",
@@ -16213,14 +16293,14 @@
     "source": "https://juno.rpc.m.stavr.tech",
     "accounting_start": "2026-10-01T00:00:00Z",
     "from_height": 42244897,
-    "through_height": 42436882,
-    "through_time": "2026-10-06T20:12:57.17202929Z",
-    "target_height": 42436882,
+    "through_height": 42437392,
+    "through_time": "2026-10-06T20:34:38.775976062Z",
+    "target_height": 42437392,
     "status": "CURRENT",
-    "blocks": 191986,
-    "ranges": 202,
+    "blocks": 192496,
+    "ranges": 203,
     "module_transfer_blocks": 0,
-    "transaction_blocks": 2500
+    "transaction_blocks": 2503
   },
   "execution_candidates": [],
   "governance_scan": {
@@ -16231,7 +16311,7 @@
   "governance_proposals_checked": 100,
   "community_tax": {
     "rate": "0.100000000000000000",
-    "observed_at": "2026-10-06T20:13:59.306423Z",
+    "observed_at": "2026-10-06T20:35:42.934733Z",
     "source": "https://juno.api.m.stavr.tech/cosmos/distribution/v1beta1/params",
     "basis": "Distribution rewards including minted inflation and transaction fees; the current rate is not historical revenue."
   },
