@@ -22,7 +22,7 @@ try {
   const context = await browser.newContext();
   await context.route('https://**/*', route => route.abort());
   await context.route('**/neta-main-accounting.json*', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(ledger) }));
-  await context.addInitScript(() => localStorage.setItem('neta-governance-selected-dao', 'neta'));
+  await context.addInitScript(() => { if (!localStorage.getItem('neta-governance-selected-dao')) localStorage.setItem('neta-governance-selected-dao', 'neta'); });
   const page = await context.newPage(), errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.goto(`http://127.0.0.1:${server.address().port}/index.html#treasury`);
@@ -98,7 +98,9 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth+1), true, `register overflow ${width}`);
     if(screenshots) await page.screenshot({path:`${screenshots}/nns-transactions-${width}.png`,fullPage:true});
   }
+  await page.evaluate(() => localStorage.setItem('neta-governance-selected-dao','juno'));
   await page.locator('#nns-back').click();
+  assert.equal(await page.evaluate(() => window.NETA_SELECTED_DAO),'neta');
   assert.equal(await page.locator('#pnl-year').inputValue(),'2026');
   assert.equal(await page.locator('#pnl-month').inputValue(),'10');
   await page.goBack();

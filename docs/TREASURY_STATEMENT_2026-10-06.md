@@ -1,8 +1,8 @@
 # Shared Treasury statement and NNS payment register
 
 Status: implemented; 119 root Node tests pass locally. Hosted browser, responsive
-screenshots and publication are release gates owned by the follow-up PR (link to
-be recorded before integration). No generated ledger or chain state changed.
+screenshots and publication are release gates owned by
+[PR #174](https://github.com/cristianoneta/neta-dao/pull/174). No generated ledger or chain state changed.
 
 ## Owner revision
 
@@ -34,7 +34,8 @@ This is a reusable cash statement schema, not an assertion of GAAP/IFRS complian
 and amounts preserve year/month and preselect registration or renewal. All payments
 removes the type filter. Every matched entry in that selection is listed, newest
 first, with name/term, UTC date, type, exact NETA amount, payment-time USD, explorer
-link and expandable conversion evidence. Return to Treasury preserves year/month.
+link and expandable conversion evidence. Return to Treasury preserves year/month and explicitly selects the NETA DAO,
+including when opening the register directly from another DAO context.
 No wallet, chain request or new background service. Refresh reads the committed
 collector ledger, applies the same strict identity/arithmetic/duplicate validation,
 and clears stale rows on failure. The public-index coverage warning remains.
