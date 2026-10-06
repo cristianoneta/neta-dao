@@ -2,7 +2,7 @@
   "schema_version": 2,
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
-  "generated_at": "2026-10-06T15:31:33.459975Z",
+  "generated_at": "2026-10-06T15:54:24.694215Z",
   "treasuries": [
     {
       "chain_id": "juno-1",
@@ -24,12 +24,12 @@
         "timestamp": "2026-09-30T11:15:50.297962745Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42429924,
-      "last_scanned_height": 42430239,
-      "anchor_hash": "BA0E54F66FB0690FF0BF9032CA8FA2BEE0F8899BFF174056E202133535CEDA90",
-      "incremental": true,
+      "scan_start_height": 42227913,
+      "last_scanned_height": 42430776,
+      "anchor_hash": "E0011D0784D6975A609F9704C66596C6D646117F331605432E40D7BBC1FDE166",
+      "incremental": false,
       "range_capable": true,
-      "indexed_transactions": 0,
+      "indexed_transactions": 1,
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
       "last_full_replay_day": "2026-10-06",
@@ -41,7 +41,8 @@
         "coin_received.receiver",
         "wasm.sender",
         "wasm.to",
-        "wasm.from"
+        "wasm.from",
+        "withdraw_rewards.delegator"
       ],
       "query_pairs": [
         [
@@ -75,6 +76,10 @@
         [
           "wasm.from",
           "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+        ],
+        [
+          "withdraw_rewards.delegator",
+          "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
         ]
       ],
       "coverage": "provider-index-only"
@@ -96,12 +101,12 @@
           "timestamp": "2026-09-30T11:15:50.297962745Z",
           "kind": "scan-floor-before-start"
         },
-        "scan_start_height": 42429924,
-        "last_scanned_height": 42430239,
-        "anchor_hash": "BA0E54F66FB0690FF0BF9032CA8FA2BEE0F8899BFF174056E202133535CEDA90",
-        "incremental": true,
+        "scan_start_height": 42227913,
+        "last_scanned_height": 42430776,
+        "anchor_hash": "E0011D0784D6975A609F9704C66596C6D646117F331605432E40D7BBC1FDE166",
+        "incremental": false,
         "range_capable": true,
-        "indexed_transactions": 0,
+        "indexed_transactions": 1,
         "historical_missing_transactions": 0,
         "historical_missing_tx_hashes": [],
         "last_full_replay_day": "2026-10-06",
@@ -113,7 +118,8 @@
           "coin_received.receiver",
           "wasm.sender",
           "wasm.to",
-          "wasm.from"
+          "wasm.from",
+          "withdraw_rewards.delegator"
         ],
         "query_pairs": [
           [
@@ -147,6 +153,10 @@
           [
             "wasm.from",
             "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
+          ],
+          [
+            "withdraw_rewards.delegator",
+            "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
           ]
         ],
         "coverage": "provider-index-only"
@@ -157,6 +167,105 @@
     "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses."
   ],
   "events": [
+    {
+      "id": "juno-1:staking:42428044-42430022",
+      "chain_id": "juno-1",
+      "chain_name": "Juno",
+      "treasury_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+      "timestamp": "2026-10-06T15:21:23.958791301Z",
+      "height": 42430022,
+      "tx_hash": null,
+      "status": "confirmed",
+      "type": "inflow",
+      "title": "Staking rewards \u00b7 2026-10-06",
+      "movements": [
+        {
+          "id": "juno-1:staking:42428044-42430022:0",
+          "receipt_id": "juno-1:staking:42428044-42430022:0",
+          "chain_id": "juno-1",
+          "treasury_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+          "tx_hash": null,
+          "timestamp": "2026-10-06T15:21:23.958791301Z",
+          "height": 42430022,
+          "message_index": 0,
+          "denom": "ujuno",
+          "asset": "JUNO",
+          "decimals": 6,
+          "amount": "454.025905",
+          "raw_amount": "454025905",
+          "direction": "in",
+          "counterparty": "juno1jv65s3grqf6v6jl3dp4t6c9t9rk99cd83d88wr",
+          "classification": "staking_rewards",
+          "category": "staking_rewards",
+          "usd_value": "4.187415696944607067",
+          "valuation": {
+            "usd_price": "0.009222856341081699",
+            "timestamp_ms": 1791244800000,
+            "day": "2026-10-06",
+            "denom": "ujuno",
+            "coin_id": "juno-network",
+            "decimals": 6,
+            "symbol": "JUNO",
+            "source": "https://api.coingecko.com/api/v3/coins/juno-network/market_chart/range?vs_currency=usd&from=1791151200&to=1791252000",
+            "method": "historical-daily-opening-reference",
+            "fetched_at": "2026-10-06T15:09:27.746877Z"
+          },
+          "evidence": {
+            "kind": "staking-accrual",
+            "method": "closing-withdrawable-minus-opening-plus-claims",
+            "start": {
+              "height": 42428044,
+              "timestamp": "2026-10-06T13:57:10.758236337Z",
+              "hash": "9281485F6F635EC0394CC3CAF2283E6232FFE78F0C9AD2C01B547F23D61F967A",
+              "rewards": {
+                "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9": "140151",
+                "ujuno": "3829983722190"
+              },
+              "source": "collector-owned-height-pinned-history",
+              "method": "withdrawable-rewards-truncated-per-validator"
+            },
+            "end": {
+              "height": 42430022,
+              "timestamp": "2026-10-06T15:21:23.958791301Z",
+              "hash": "950C3FB342B618EF0F1B70A40527DAE876CF019040452EAF5B9A7164D18B8B48",
+              "rewards": {
+                "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9": "140151",
+                "ujuno": "3830437748095"
+              },
+              "source": "https://juno.api.m.stavr.tech",
+              "method": "withdrawable-rewards-truncated-per-validator"
+            },
+            "claims": []
+          }
+        }
+      ],
+      "evidence": {
+        "kind": "staking-accrual",
+        "start": {
+          "height": 42428044,
+          "timestamp": "2026-10-06T13:57:10.758236337Z",
+          "hash": "9281485F6F635EC0394CC3CAF2283E6232FFE78F0C9AD2C01B547F23D61F967A",
+          "rewards": {
+            "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9": "140151",
+            "ujuno": "3829983722190"
+          },
+          "source": "collector-owned-height-pinned-history",
+          "method": "withdrawable-rewards-truncated-per-validator"
+        },
+        "end": {
+          "height": 42430022,
+          "timestamp": "2026-10-06T15:21:23.958791301Z",
+          "hash": "950C3FB342B618EF0F1B70A40527DAE876CF019040452EAF5B9A7164D18B8B48",
+          "rewards": {
+            "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9": "140151",
+            "ujuno": "3830437748095"
+          },
+          "source": "https://juno.api.m.stavr.tech",
+          "method": "withdrawable-rewards-truncated-per-validator"
+        }
+      },
+      "explorer_url": "https://atomscan.com/juno/blocks/42430022"
+    },
     {
       "id": "juno-1:1685E1D54E21D20864722007230628F96163BD5E8443A54C81F83B6893D82793",
       "chain_id": "juno-1",
@@ -188,11 +297,21 @@
         "kind": "provider-receipt",
         "provider": "https://juno.api.m.stavr.tech"
       },
-      "accounting_start": "2026-10-01T00:00:00Z"
+      "accounting_start": "2026-10-01T00:00:00Z",
+      "reward_withdrawals": []
     }
   ],
-  "last_success_at": "2026-10-06T15:31:33.459975Z",
+  "last_success_at": "2026-10-06T15:54:24.694215Z",
   "coverage_gaps": [
-    "Staking reward receipts, slashing and module movements are not fully classified or valued at payment time. Holdings include accrued rewards; these are not booked as income."
-  ]
+    "Daily staking accrual starts 2026-10-06T13:57:10.758236337Z; earlier October rewards are unavailable, not zero. Opening claimable rewards are excluded from income. Claims only settle accrued rewards. Slashing and other unclassified movements remain outside recorded totals."
+  ],
+  "accrual_coverage": {
+    "method": "daily-claim-adjusted-rewards",
+    "from_time": "2026-10-06T13:57:10.758236337Z",
+    "through_time": "2026-10-06T15:21:23.958791301Z",
+    "through_height": 42430022,
+    "last_success_at": "2026-10-06T15:38:21.698285Z",
+    "intervals": 1,
+    "status": "CURRENT"
+  }
 }
