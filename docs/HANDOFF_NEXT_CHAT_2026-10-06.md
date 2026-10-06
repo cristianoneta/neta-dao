@@ -1,5 +1,36 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Community Pool October accounting — continuation in progress, 2026-10-06
+
+Recovered the interrupted working tree into a separate branch. The original scan
+stopped at block 42,288,660 (2 October 09:08 UTC); continuation resumes after that
+checkpoint. This section describes the implementation under review, not a deployed
+release. Preserve newer generated snapshots on main.
+
+- Community Tax is derived from each block's fee-collector transfer minus emitted
+  validator rewards, using exact decimal arithmetic. It includes allocation
+  rounding; the current 10% parameter and pool-balance differences are not used.
+- The single existing Treasury workflow resumes the scan at the last checked block.
+  The initial October backfill is the expensive step; normal runs read only new
+  blocks. Checkpoints survive individual provider failures.
+- Tax entries populate the shared Income / Community Tax row and Treasury events.
+  They link to blocks, with explicit ranges, never invented transaction hashes.
+- USD values use a cached historical UTC daily-opening market reference, explicitly
+  indicative rather than an executed payment rate. Missing quotes stay unpriced.
+- Full expenses/result remain unavailable: withdrawal rounding, validator-removal
+  remainders, generic payment classification and balance reconciliation are open.
+  A passed proposal does not establish a paid expense.
+- Existing allocations survive a failed subsequent funding/price refresh. Duplicate
+  denominations, overlapping ranges and mismatched coverage fail validation.
+
+Owner asked whether tax could be estimated between snapshots. This is possible as
+an explicitly labelled estimate only after correcting for payouts and other inflows.
+The current saved daily snapshots do not align to UTC month boundaries; historical
+state queries attempted here failed. No estimate is silently substituted into the
+verified tax ledger. A future estimate must remain separate from evidenced actuals.
+
+See [block accounting implementation](COMMUNITY_POOL_BLOCK_ACCOUNTING_2026-10-06.md).
+
 ## Juno Delegation Programme and Community Tax — 2026-10-06
 
 Owner named Juno's main reporting unit **Community Pool** and added
