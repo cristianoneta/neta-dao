@@ -36,6 +36,15 @@ shown as a fabricated DAO member list. Contributors is a shared planned state;
 there is no authoritative contributor assignment/role/payment service.
 See [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md).
 
+## Compact Names panel — 2026-10-06 follow-up
+
+Feature-branch implementation, pending hosted checks and deployment: an automatic,
+read-only summary shows the connected wallet's name and expiry. Edit profile and
+Renew name fill the existing forms after rechecking ownership; confirmations stay
+explicit. A compact network selector stays visible. Optional refresh controls and
+technical pricing details are collapsed. Wallet/network changes invalidate old
+reads, failures offer retry, and automatic reads preserve form drafts and journals.
+
 ## Names: main workspace versus UNI-7 lab
 
 | Surface | Implemented and connected | Boundary |

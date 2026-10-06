@@ -3,6 +3,20 @@
 Updated: **2026-10-06, 07:18 release verified (Europe/Berlin)**. This is the continuation entry point, not an append-only session log.
 
 
+## Compact Names account panel — 2026-10-06 follow-up
+
+Owner approved simplifying the large Names network panel. The change replaces
+the manual name-loading entry point with a read-only wallet summary and direct
+Edit profile / Renew name shortcuts. Keep the compact network selector visible;
+pricing/network diagnostics and owner administration stay collapsed. Account
+reads do not enable Keplr, sign or overwrite drafts. Wallet/network changes abort
+old reads; provider failure has an explicit retry state. Saved transaction
+recovery remains separate and takes priority over switching forms.
+
+This follow-up is implemented on the feature branch; hosted browser checks and
+publication verification are pending. Do not infer deployment from this entry.
+The P&L scope and earlier release evidence below remain unchanged.
+
 ## Current checkpoint — yesterday's NNS updates are live
 
 Owner requested catching up the saved changes on 2026-10-06. [PR #169](https://github.com/cristianoneta/neta-dao/pull/169)

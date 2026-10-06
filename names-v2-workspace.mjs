@@ -51,6 +51,7 @@ function render() {
   $('nns-refresh').disabled = busy;
   $('nns-network').disabled = busy;
   $('nns-my-name').disabled = busy || !connected;
+  for (const id of ['nns-edit-owned','nns-renew-owned']) $(id).disabled = busy || !!open || !window.NetaNamesAccount?.current();
   $('nns-check-name').disabled = busy;
   $('nns-reserve').disabled = busy || !connected || config?.purchases_paused === true || broken || (open && i?.phase !== 'prepared') || !registration;
   $('nns-reserve').hidden = !registration;
@@ -141,9 +142,10 @@ function showReview(text, action, check, confirmLabel = 'Confirm in Keplr') {
 function resetConnection() {
   epoch++; session?.disconnect(); session = null; clearReview();
   $('nns-owned').textContent = '';
-  message(wallet() ? 'Wallet connected. Load your name or choose an action.' : 'Wallet disconnected. Saved transactions are preserved.');
+  message(wallet() ? '' : 'Wallet disconnected. Saved transactions are preserved.');
   render();
 }
+window.addEventListener('neta:nns-account', render);
 window.addEventListener('neta:wallet-change', resetConnection);
 window.addEventListener('keplr_keystorechange', resetConnection);
 window.addEventListener('storage', event => {
@@ -191,6 +193,48 @@ $('nns-my-name').onclick = () => run(async check => {
   }
   message('Current name read. No transaction was sent.');
 });
+// Shortcuts fill the existing forms; publication/payment still needs its own review.
+function manageOwned(action) {
+  return run(async check => {
+    clearReview();
+    const owned = window.NetaNamesAccount?.current();
+    if (!owned) throw Error('Reload your current name first.');
+    const current = await connected(check); check();
+    const saved = intent();
+    if (saved && saved.phase !== 'complete') throw Error('Finish or reconcile the saved transaction before switching forms.');
+    const record = await current.reader.identity(owned.name); check();
+    if (record?.name !== owned.name || record.owner !== current.owner ||
+        record.generation !== owned.generation || record.ownership_revision !== owned.ownership_revision ||
+        record.expires_at <= now()) throw Error('Name ownership changed. Retry the name lookup.');
+    let contacts;
+    if (action === 'profile') {
+      const result = await current.reader.profile(owned.name); check();
+      if (!result?.active || result.profile?.identity.name !== owned.name ||
+          result.profile.identity.owner !== current.owner ||
+          result.profile.identity.generation !== record.generation ||
+          result.profile.identity.ownership_revision !== record.ownership_revision) throw Error('The current profile is unavailable.');
+      contacts = normalizeContacts(result.profile.contacts);
+    }
+    document.querySelector('[data-relay-panel="' + (action === 'profile' ? 'profile' : 'register') + '"]').click();
+    $('names-profile-name').value = owned.name;
+    $('nns-transfer-name').value = owned.name;
+    if (action === 'profile') {
+      for (const field of CONTACT_FIELDS) $('names-profile-form').elements[field].value = contacts[field];
+      $('names-profile-preview').hidden = true;
+      $('names-profile-bio').focus();
+      message('Edit your profile below. Changes are published only after your confirmation.');
+    } else {
+      $('names-fee-label').value = owned.name.replace(/\.neta$/, '');
+      $('nns-operation').value = 'renew';
+      $('names-fee-label').dispatchEvent(new Event('input', {bubbles: true}));
+      $('names-fee-years').focus();
+      message('Choose the renewal term below, then review the payment.');
+    }
+    formVersion++; clearReview();
+  });
+}
+$('nns-edit-owned').onclick = () => manageOwned('profile');
+$('nns-renew-owned').onclick = () => manageOwned('renew');
 $('nns-check-name').onclick = () => run(async check => {
   clearReview(); const name = normalizeName($('names-fee-label').value);
   await verify(); check();
@@ -238,7 +282,7 @@ $('nns-payment').onclick = () => run(async check => {
       await current.client.register(current.owner, offer);
     }
     else await current.client.renew({payer: current.owner, name, years, reviewedOffer: offer});
-    return `${operation === 'register' ? 'Purchase' : 'Renewal'} confirmed · ${q.name} · ${micro(q.amount)} ${tokenLabel()} · ${q.years} year(s). Use Load my name to see the current expiry.`;
+    return `${operation === 'register' ? 'Purchase' : 'Renewal'} confirmed · ${q.name} · ${micro(q.amount)} ${tokenLabel()} · ${q.years} year(s). Your name summary will refresh automatically.`;
   }, check, operation === 'register' ? 'Buy and confirm in Keplr' : 'Renew and confirm in Keplr');
 });
 $('nns-transfer-form').onsubmit = event => {
@@ -300,7 +344,7 @@ $('nns-confirm').onclick = () => run(async () => {
   if (!accepted) throw Error('Review an action first.');
   const result=await accepted.action();
   window.dispatchEvent(new Event('neta:nns-updated'));
-  message(typeof result==='string'?result:`Action completed on ${networkLabel()}. Use Load my name or Load current profile to refresh the result.`);
+  message(typeof result==='string'?result:`Action completed on ${networkLabel()}. Your name summary refreshes automatically; use Load current profile to refresh contact fields.`);
 });
 $('nns-discard').onclick = () => { clearReview(); render(); };
 for (const id of ['names-fee-form', 'names-profile-form', 'nns-transfer-form']) {

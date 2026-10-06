@@ -18,7 +18,7 @@ const recipient = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
 const config = {...manifest, purchases_paused: false, tariff_version: 2, tariff: {three_cents: 9900, four_cents: 1900, standard_cents: 500}};
 let record = null, commitment = null, offer = null, revision = 0, lost = false, writes = [], delayedProfile = null, holdProfile = false;
 let contacts = {description: '', discord: '', telegram: '', twitter: '', email: '', website: ''};
-let priceUnavailable=false, registryUnavailable=false;
+let priceUnavailable=false, registryUnavailable=false, holdName=false, delayedName=null;
 if(adminMode){assert.equal(mainnet,true);config.purchases_paused=true;for(const pin of Object.values(manifest.contracts))pin.creator=owner;}
 const json = (route, data) => route.fulfill({status: 200, contentType: 'application/json', headers: {'access-control-allow-origin': '*'}, body: JSON.stringify(data)});
 const server = http.createServer(async (req,res) => {try {const p=new URL(req.url,'http://localhost').pathname;const b=await readFile(new URL('.'+p,root));res.writeHead(200,{'content-type':/\.m?js$/.test(p)?'text/javascript':p.endsWith('.css')?'text/css':p.endsWith('.json')?'application/json':'text/html'}).end(b);}catch {res.writeHead(404).end();}});
@@ -41,7 +41,7 @@ try {
       let value=[];
       if(q.config)value=contract===manifest.registry?config:contract===manifest.profile_contract?{registry:manifest.registry}:{owner};
       else if(q.token_info)value={decimals:6};
-      else if(q.name_of)value={address:q.name_of.address,name:record?.owner===q.name_of.address?record.name:null};
+      else if(q.name_of){value={address:q.name_of.address,name:record?.owner===q.name_of.address?record.name:null};if(holdName){holdName=false;await new Promise(resolve=>delayedName=resolve);}}
       else if(q.resolve)value={name:q.resolve.name,owner:record?.owner||null,active:!!record,in_grace:false,available:!record,expires_at:record?.expires_at||null,next_generation:record?2:1};
       else if(q.identity)value=record;
       else if(q.commitment)value=commitment;
@@ -77,12 +77,15 @@ try {
     window.NetaNamesSigning={validAddress:()=>true,connect:async()=>{if(window.holdConnection)await new Promise(resolve=>window.releaseConnection=resolve);return {disconnect(){window.testDisconnects++;}};},createBridge:()=>({adminReviewGuard:true,execute:async(request,{beforeSign}={})=>{await beforeSign?.();await beforeSign?.();return window.simulateNamesWrite(request);},recover:request=>window.simulateNamesRecovery(request)})};
   },{owner});
   const settle=()=>page.waitForFunction(()=>!document.querySelector('#nns-refresh').disabled);
-  const click=async id=>{await page.locator('#'+id).click();await settle();};
+  const details=async()=>{if(!await page.locator('#nns-technical').evaluate(el=>el.open))await page.locator('#nns-technical summary').click();};
+  const click=async id=>{if(['nns-refresh','nns-my-name'].includes(id))await details();await page.locator('#'+id).click();await settle();};
   await page.goto(origin+'/index.html#relay/register');
   await page.locator('#nns-network').selectOption(chainId);
   if(!mainnet)manifest.quote_public_key=config.quote_public_key=await page.evaluate(async()=>{const {getTestAuthority}=await import('/names-v2-test-authority.mjs');return (await getTestAuthority({create:true})).publicKey;});
   assert.equal(await page.locator('#nns-reserve').isDisabled(),true);
   assert.equal(await page.locator('#nns-workspace-session').isVisible(),true);
+  assert.equal(await page.locator('#nns-technical').evaluate(el=>el.open),false);
+  assert.equal(await page.locator('#nns-my-name').isVisible(),false);
   // Availability performs the registry check without any prior refresh or wallet prompt.
   assert.equal(await page.locator('#nns-prepare').count(),0);
   assert.equal(await page.locator('#nns-check-name').isEnabled(),true);
@@ -94,6 +97,12 @@ try {
   assert.equal(await page.locator('#nns-admin').isVisible(),false);
   await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
   assert.equal(await page.evaluate(()=>window.enabledNamesChains.at(-1)),chainId);
+  await page.waitForFunction(()=>document.querySelector('#nns-owned').textContent==='No active name for this wallet.');
+  assert.equal(await page.locator('#nns-owned-actions').isVisible(),false);
+  const enablesBeforeRead=await page.evaluate(()=>window.enabledNamesChains.length);
+  await page.evaluate(()=>window.NetaNamesAccount.refresh({force:true}));
+  assert.equal(await page.evaluate(()=>window.enabledNamesChains.length),enablesBeforeRead);
+  assert.equal(writes.length,0);
   if(adminMode){
     assert.equal(await page.locator('#nns-admin').isVisible(),true);
     await page.locator('#nns-admin summary').click();
@@ -140,6 +149,18 @@ try {
   commitment.expires_at=commitmentExpiry;
   await click('nns-payment');assert.match(await page.locator('#nns-review-text').textContent(),mainnet?/9.500000 NETA/:/9.500000 mock NETA/);assert.equal(writes.length,1);assert.equal(await page.locator('#nns-confirm').textContent(),'Buy and confirm in Keplr');
   await click('nns-confirm');assert.equal(writes.length,2);assert.equal(record.name,'abcd.neta');
+  await page.waitForFunction(()=>window.NetaNamesAccount.current()?.name==='abcd.neta');
+  assert.match(await page.locator('#nns-owned').textContent(),/abcd.neta · valid until/);
+  assert.equal(await page.locator('#nns-owned-actions').isVisible(),true);
+  if(await page.locator('#nns-technical').evaluate(el=>el.open))await page.locator('#nns-technical summary').click();
+  if(process.env.NNS_SCREENSHOT_DIR)await mkdir(process.env.NNS_SCREENSHOT_DIR,{recursive:true});
+  for(const width of [1440,768,390,320]){
+    await page.setViewportSize({width,height:1000});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'account overflow '+width);
+    assert.equal(await page.locator('#nns-owned').evaluate(el=>getComputedStyle(el).color), 'rgb(242, 244, 247)');
+    if(process.env.NNS_SCREENSHOT_DIR)await page.screenshot({path:`${process.env.NNS_SCREENSHOT_DIR}/account-${chainId}-${width}.png`,fullPage:true});
+  }
+  await page.setViewportSize({width:1280,height:900});
   // Verified ownership produces one local system notice, separate from encrypted DMs.
   await page.waitForFunction(()=>window.NetaNameNotifications?.events().some(e=>e.type==='WELCOME'));
   await page.evaluate(()=>window.NetaNameNotifications.refresh());
@@ -161,12 +182,16 @@ try {
   assert.match(renewalLink,/nns-action=renew#relay\/register/);
   assert.equal(await page.evaluate(()=>window.NetaNameNotifications.events().every(e=>e.read)),true);
   await page.locator('[data-relay-panel="register"]').click();
-  await click('nns-my-name');assert.match(await page.locator('#nns-owned').textContent(),/abcd.neta/);assert.equal(await page.locator('#nns-operation').inputValue(),'renew');
+  await page.waitForFunction(()=>!!window.NetaNamesAccount.current());
+  await click('nns-renew-owned');assert.equal(await page.locator('#names-fee-label').inputValue(),'abcd');assert.equal(await page.locator('#nns-operation').inputValue(),'renew');assert.equal(writes.length,2);
   if(mainnet){config.tariff.four_cents=2400;config.tariff_version++;await click('nns-refresh');}
   await click('nns-payment');assert.equal(await page.locator('#nns-payment').textContent(),'Renew name');assert.equal(await page.locator('#nns-confirm').textContent(),'Renew and confirm in Keplr');if(mainnet)assert.match(await page.locator('#nns-review-text').textContent(),/12.000000 NETA/);const expiry=record.expires_at;await click('nns-confirm');assert.equal(record.expires_at,expiry+31536000);
   await page.waitForFunction(()=>window.NetaNameNotifications.events().some(e=>e.type==='RENEWAL CONFIRMED'));
   // Profile editing reuses the main form and snapshots FormData before disabling it.
-  await page.locator('[data-relay-panel="profile"]').click();
+  await page.waitForFunction(()=>!!window.NetaNamesAccount.current());
+  await click('nns-edit-owned');
+  assert.equal(await page.locator('#names-profile-name').inputValue(),'abcd.neta');
+  assert.equal(writes.length,3);
   await page.locator('#names-profile-bio').fill('Public biography');
   await page.locator('#names-profile-telegram').fill('@example');
   await click('nns-publish-profile');assert.equal(writes.length,3);assert.match(await page.locator('#nns-review-text').textContent(),/Public biography/);
@@ -198,15 +223,35 @@ try {
   await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
   await page.waitForFunction(()=>window.NetaNameNotifications.events().some(e=>e.type==='NAME RECEIVED'));
   await page.locator('[data-relay-panel="register"]').click();
+  await page.waitForFunction(()=>window.NetaNamesAccount.current()?.owner===window.testWallet);
+  // A late read cannot repopulate a disconnected wallet or overwrite form drafts.
+  await page.locator('#names-fee-label').fill('draftname');
+  holdName=true;await page.evaluate(()=>{window.accountRead=window.NetaNamesAccount.refresh({force:true});});
+  await page.waitForFunction(()=>document.querySelector('#nns-owned').textContent.includes('Loading'));
+  for(let attempt=0;!delayedName&&attempt<100;attempt++)await page.waitForTimeout(20);
+  assert.ok(delayedName);
+  await page.locator('#gov-disconnect').click();
+  delayedName();delayedName=null;await page.evaluate(()=>window.accountRead);
+  assert.equal(await page.locator('#nns-owned').textContent(),'Connect your wallet to see your name.');
+  assert.equal(await page.locator('#nns-owned-actions').isVisible(),false);
+  assert.equal(await page.locator('#names-fee-label').inputValue(),'draftname');
+  await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);
+  await page.waitForFunction(()=>!!window.NetaNamesAccount.current());
   // Provider failure cannot invent an expiry or change the last verified notices.
   const verifiedNotices=await page.evaluate(()=>window.NetaNameNotifications.events());
-  registryUnavailable=true;await page.evaluate(()=>window.NetaNameNotifications.refresh());registryUnavailable=false;
+  registryUnavailable=true;
+  await page.evaluate(()=>Promise.all([window.NetaNamesAccount.refresh({force:true}),window.NetaNameNotifications.refresh()]));
+  assert.equal(await page.locator('#nns-owned').textContent(),'Your name could not be loaded.');
+  assert.equal(await page.locator('#nns-owned-actions').isVisible(),false);
+  assert.equal(await page.locator('#nns-owned-retry').isVisible(),true);
+  registryUnavailable=false;await page.locator('#nns-owned-retry').click();
+  await page.waitForFunction(()=>!!window.NetaNamesAccount.current());
   assert.match(await page.locator('#relay-nns-status').textContent(),/unavailable/);
   assert.deepEqual(await page.evaluate(()=>window.NetaNameNotifications.events()),verifiedNotices);
   await click('nns-my-name');await page.locator('[data-relay-panel="profile"]').click();await click('nns-load-profile');assert.equal(await page.locator('#names-profile-bio').inputValue(),'');
   // Lost outcomes stay journaled after reload. Never silently sign or retry.
   lost=true;await page.locator('#names-profile-bio').fill('Receipt recovery fixture');await click('nns-publish-profile');await click('nns-confirm');assert.match(await page.locator('#nns-status').textContent(),/OUTCOME UNKNOWN/);
-  const count=writes.length;assert.equal(await page.locator('#nns-publish-profile').isDisabled(),true);
+  const count=writes.length;assert.equal(await page.locator('#nns-publish-profile').isDisabled(),true);assert.equal(await page.locator('#nns-renew-owned').isDisabled(),true);
   await page.reload();await click('nns-refresh');
   await page.evaluate(address=>window.testWallet=address,recipient);await page.locator('#gov-connect').click();await page.waitForFunction(()=>!document.querySelector('#gov-connect').disabled);await click('nns-my-name');
   assert.equal(writes.length,count);assert.equal(await page.locator('#nns-publish-profile').isDisabled(),true);assert.equal(await page.locator('#nns-recover').isDisabled(),false);
@@ -228,7 +273,7 @@ try {
     }
   }
   await page.setViewportSize({width:720,height:500});await page.locator('[data-relay-panel="register"]').click();
-  await page.locator('#nns-refresh').focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'nns-refresh');assert.notEqual(await page.locator('#nns-refresh').evaluate(el=>getComputedStyle(el).outlineStyle),'none');
+  await details();await page.locator('#nns-refresh').focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'nns-refresh');assert.notEqual(await page.locator('#nns-refresh').evaluate(el=>getComputedStyle(el).outlineStyle),'none');
   // Direct renewal links select the network and form without a wallet prompt or payment.
   const writesBeforeLink=writes.length;
   await page.goto(origin+renewalLink);await settle();
