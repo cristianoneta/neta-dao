@@ -27,7 +27,7 @@ exists; DAO inboxes are not deployed or mounted. Sending remains disabled on mai
 - DAO names are assigned during curated onboarding and should not have ordinary
   user transfers. Organizational restructuring requires a reviewed reassignment.
 
-## Proposed compact UI (requires implementation)
+## Compact UI (tested candidate, not enabled)
 
 Place a labelled mailbox select beside the existing Inbox heading, using shared
 graphite controls and mint selection. Options: My inbox, then only enabled DAO
@@ -85,12 +85,24 @@ This confirms no active personal-registry name for the Operations core and no
 registration of the curated DAO directory name through that registry. It does
 not constitute activation of an on-chain DAO name or mailbox.
 
-## Related payment-request concept (not implemented)
+## Payment requests / invoices (next product track; not implemented)
 
-Assigned contributors select a project and milestone, attach evidence and submit a
-payment request to its DAO. Keep submission, authorized acceptance, preparation of
-a payment proposal, governance approval and executed payment distinct. Preserve
-the project's agreed amount/asset, show deviations, confirm a fixed recipient,
-prevent duplicate claims and reconcile payment only to actual execution. Invoice
-attachments may be private; public evidence and proposal data must be separated.
-Subaddresses and any pricing model remain future design work.
+Do not lose this requirement when continuing the mailbox work. An active .neta
+identity should be able to send an invoice/payment request to an enabled DAO inbox.
+For an assigned project, the contributor selects the project and completed milestone,
+attaches evidence and requests payment. The responsible DAO (for example Operations)
+reviews the invoice and evidence; its acceptance prepares the corresponding
+prefilled payment proposal. Governance approval and actual execution remain separate
+steps. Acceptance alone must not transfer funds or mark an invoice paid.
+
+Reuse the shared conversation and a compact request detail view rather than adding
+another top-level module. Carry the agreed amount, token, fixed payee, project,
+milestone and accounting category into the reviewed proposal; visibly flag deviations.
+Prevent duplicate requests/payments for the same milestone and connect the request
+to proposal ID, execution transaction and Treasury entry. Decide explicitly which
+invoice/evidence fields become public on-chain before proposal submission.
+
+This is product direction and continuation work, not a delivered invoice system.
+Detailed invoice fields, partial payments, disputes, storage and pricing remain to
+be designed. No additional NNS fee or automatic payment has been approved.
+
