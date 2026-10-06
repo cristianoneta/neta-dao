@@ -26,7 +26,7 @@ reading with a retired device. Every crypto database open and new-device creatio
 now uses a fresh WASM realm, and a new device must survive a cold fingerprint read
 before registration review. The regression additionally cycles through repeated
 rotations with delayed reads and new-generation replies. The assertion was retained;
-check the final repeated/hosted results before claiming this follow-up is green.
+the expanded regression passed locally and in the hosted browser suite.
 The repeated-rotation test also exposed quota exhaustion from decimal byte arrays.
 Checkpoint blocks now use compact base64 inside the authenticated encrypted payload,
 including retired/prepared/inbound states. The existing 5-MiB plaintext and 8-MiB
@@ -40,8 +40,15 @@ connection, encrypted unlock and the existing crash/restore/rotation/send tests.
 Wallet, chain, backup transport and the session factory in that browser test are
 simulated; the real factory/adapter cancellation behavior has separate Node tests.
 The existing workspace security suite also passed. Layouts checked at 1440, 768,
-390 and 320 px. Hosted checks must be verified on the latest PR head before merge.
-The earlier `b89cb49` head had five green checks; those do not certify this update.
+390 and 320 px. All five hosted checks passed for application head
+`46dd99b017f4164b23297c5a20463edc75b37086`:
+[frontend/contracts](https://github.com/cristianoneta/neta-dao/actions/runs/37527103661),
+[backup](https://github.com/cristianoneta/neta-dao/actions/runs/37527103625),
+[faucet/signing](https://github.com/cristianoneta/neta-dao/actions/runs/37527103649),
+[WASM](https://github.com/cristianoneta/neta-dao/actions/runs/37527103683), and
+[browser suite](https://github.com/cristianoneta/neta-dao/actions/runs/37527103567).
+The subsequent handoff-only update changes no application code. The same handoff
+is published on main for continuation; **PR #195 itself remains draft/unmerged**.
 
 **Not merged, hosted or activated.** Next: finish the release review and prepare the
 owner-reviewed store/instantiate flow; obtain agreement for the separate backup
