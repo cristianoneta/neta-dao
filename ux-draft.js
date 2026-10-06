@@ -7,7 +7,7 @@
   const namePanels=["directory","contacts","profile","register","dao"];
   function route(value){
     if(value==="contributors")return {view:"people",panel:"members"};
-    if(["people","people/members","people/contributors"].includes(value))return {view:"people",panel:value.split("/")[1]||"members"};
+    if(["people","people/structure","people/members","people/contributors"].includes(value))return {view:"people",panel:value.split("/")[1]||"structure"};
     if(["names","relay/names","relay/following"].includes(value))return {view:"relay",panel:"directory"};
     if(value==="relay"||value==="relay/inbox")return {view:"relay",panel:"inbox"};
     if(/^relay\/dao\/[a-z0-9-]+$/.test(value))return {view:"relay",panel:"dao",dao:value.split("/")[2]};
@@ -43,7 +43,7 @@
   }
   buttons.forEach(button=>button.addEventListener("click",()=>selectView(button.dataset.workspaceView,{push:true})));
   document.querySelectorAll("[data-people-panel]").forEach(button=>button.addEventListener("click",()=>selectView("people/"+button.dataset.peoplePanel,{push:true})));
-  window.addEventListener("neta:navigate-people",event=>selectView("people/"+(event.detail?.panel==="contributors"?"contributors":"members"),{push:true}));
+  window.addEventListener("neta:navigate-people",event=>selectView("people/"+(["structure","members","contributors"].includes(event.detail?.panel)?event.detail.panel:"structure"),{push:true}));
   relayButtons.forEach(button=>button.addEventListener("click",()=>selectView("relay/"+button.dataset.relayPanel,{push:true})));
   document.querySelector("#relay-open-names")?.addEventListener("click",()=>selectView("relay/directory",{push:true}));
   document.querySelectorAll("[data-home-target]").forEach(button=>button.addEventListener("click",()=>selectView(button.dataset.homeTarget)));
@@ -53,7 +53,7 @@
   function applyDaoScope(id){
     const scope=scopes[id]||scopes["neta-operations"];
     document.body.dataset.selectedDao=id;
-    document.querySelector("#people-scope").textContent=(window.NetaDaoDirectory.find(d=>d.id===id)?.name||"Unknown DAO").toUpperCase()+" · PEOPLE";
+    document.querySelector("#people-scope").textContent=(window.NETA_DAO_SCOPE?.consolidated?window.NETA_DAO_SCOPE.organization.name:window.NetaDaoDirectory.find(d=>d.id===id)?.name||"Unknown DAO").toUpperCase()+" · PEOPLE";
     for(const name of ["delivery","treasury"]){
       const view=views[name],eyebrow=view?.querySelector(".concept-hero .eyebrow");
       if(eyebrow)eyebrow.textContent=name==="treasury"&&window.NETA_DAO_SCOPE?.consolidated?window.NETA_DAO_SCOPE.organization.name.toUpperCase()+" · CONSOLIDATED TREASURY":scope[name];
@@ -73,7 +73,7 @@
   window.addEventListener("neta:dao-change",event=>applyDaoScope(event.detail.id));
   applyDaoScope(window.NETA_SELECTED_DAO||"neta-operations");
   let initialView=window.location.hash.slice(1);
-  if(!initialView||!/^relay\/dao\/[a-z0-9-]+$/.test(initialView)&&!(initialView in views)&&!["contributors","people/members","people/contributors","names","relay/inbox","relay/following","relay/names",...namePanels.map(panel=>"relay/"+panel)].includes(initialView))try{initialView=localStorage.getItem(VIEW_STORAGE_KEY)||"home"}catch{initialView="home"}
+  if(!initialView||!/^relay\/dao\/[a-z0-9-]+$/.test(initialView)&&!(initialView in views)&&!["contributors","people/structure","people/members","people/contributors","names","relay/inbox","relay/following","relay/names",...namePanels.map(panel=>"relay/"+panel)].includes(initialView))try{initialView=localStorage.getItem(VIEW_STORAGE_KEY)||"home"}catch{initialView="home"}
   selectView(initialView,{updateHash:true,scroll:false});
 })();
 

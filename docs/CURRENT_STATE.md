@@ -1,5 +1,26 @@
 # NETA DAO code-backed current state
 
+## DAO structure — 2026-10-06
+
+People opens with DAO structure, ahead of Members and Contributors. The graph
+uses the canonical organization/unit directory and explicit parentDaoId links;
+Main and every configured SubDAO sit inside the same consolidated-scope frame.
+Node selection and the consolidated button use the existing guarded DAO selector,
+keeping the header, URL, saved scope and other modules synchronized. Mint and a
+Selected label identify the current unit; consolidated selection highlights the
+outer frame. Direct Members/Contributors and legacy links keep their behavior.
+
+The approved layout reuses the existing colorful assembly-plaza and contributor
+voxel artwork. Branches, multiple roots and deeper parent relationships are supported;
+cycles, duplicate identities or out-of-group parents show an unavailable state,
+not invented links. Reporting structure grants no on-chain authority. No fictional
+units, additional wallet actions or live Delivery functionality are introduced.
+
+Validation: 36 targeted Node tests and the browser hierarchy suite passed, including
+both organizations, click/keyboard selection, scope persistence, Members navigation,
+320/390/768/1440 px layouts and test-only multi-level branches. Generated Treasury
+and member exports are preserved. This section supersedes older People defaults.
+
 ## Delivery placeholder for every DAO — 2026-10-06
 
 Owner requested removal of fictional Delivery records. Every DAO and SubDAO now
