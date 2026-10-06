@@ -1,5 +1,59 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Continuation checkpoint — 6 October 2026, personal messaging first
+
+**Owner decisions supersede older next-step wording below:**
+1. Prepare/test personal messaging on **Juno mainnet first**.
+2. Afterwards finish shared DAO inbox recovery, test directly on mainnet, integrate
+   the Inbox selector/shared handling states, then implement payment requests.
+3. **Remove the 5-NETA staking prerequisite from messaging contracts.** Sending
+   requires an active, currently sender-owned .neta name. Recipient consent,
+   blocking and existing protocol payload/cooldown bounds remain.
+
+### Saved code — draft PR #195, not deployed
+[PR #195](https://github.com/cristianoneta/neta-dao/pull/195) holds the current work
+on `codex/personal-messaging-recovery-mainnet`, current head `33aaae1e7c47e025a4503a00eeca3f2388458c56`.
+**Continue that branch/PR; do not rebuild from main or treat its code as live.**
+Its [implementation note](https://github.com/cristianoneta/neta-dao/blob/codex/personal-messaging-recovery-mainnet/docs/PERSONAL_MESSAGING_MAINNET_2026-10-06.md)
+describes the implementation and exact open gates.
+
+Implemented candidate: authenticated encrypted pre-send journal/checkpoint,
+pre-ready crash rollback with retained intent, exact-receipt recovery after ready
+ciphertext without automatic resend, interrupted-registration reconciliation,
+immediate plaintext clearing on wallet switch, separated network identity checks,
+and v0.4 explicit mainnet contract configuration with current NNS ownership checks
+and **no staking query**. Mainnet DAO execute routes remain disabled.
+The owner wallet remains the intended upgrade administrator.
+
+Candidate WASM SHA-256:
+`ec8650278f5ce4dd3c587154581caeec20f7ff9e0d6d6d5903f4cb2712720c45`.
+Local: 155 Node tests, 20 mailbox Rust tests, format/Clippy and WASM build passed.
+Hosted CI status must be checked on the latest PR head. An initial added browser
+assertion observed stale UI status before rendering completed; the follow-up waits
+for the actual recovered message. Do not describe that failed run as passing.
+
+**Still not mainnet-test-ready:** consent/refill/rotation and generation-aware
+crypto-controller integration, ready-but-unconfirmed transaction reconciliation,
+automatic off-device backup/provider and coherent fresh-profile restore, production
+runtime/security review, and owner-reviewed deployment/two-wallet evidence remain.
+The client deployment pin is null, main Inbox SEND is disabled, and no new contract,
+mainnet transaction, hosting service or remote backup has been created. Existing
+v0.1 deployment, keys and unresolved transaction/crypto journals are preserved.
+
+### Sidequest — published
+[PR #194](https://github.com/cristianoneta/neta-dao/pull/194) merged as
+`15d2c836a65297c77d91ba5f8e455573c9e9d261`. It hides only the exact Juno UNI-7
+workshop #1 “Make Cristiano the new Senator” and #2 “Testing 1” by default.
+“Show test reviews” reveals them. No on-chain record was deleted; mainnet proposals
+are unaffected. Both applicable PR checks passed. The served HTML, controller and
+CSS were verified byte-for-byte against the reviewed source.
+
+Payment requests/invoices remain explicitly next after DAO inboxes: project and
+milestone, evidence, fixed payee/amount/token/accounting category, accepted request
+to prefilled proposal, distinct governance approval/execution/payment confirmation,
+duplicate-payment prevention and Treasury linkage. No automatic payout or new fee.
+
+
 ## Verified checkpoint — 6 October 2026, 20:16 Europe/Berlin
 
 [PR #192](https://github.com/cristianoneta/neta-dao/pull/192) is merged as
