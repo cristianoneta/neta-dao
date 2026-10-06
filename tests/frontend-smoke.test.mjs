@@ -36,7 +36,7 @@ test("Relay follows DAOs and creates local governance notifications safely", () 
 test("Relay messaging remains locked behind explicit security gates", () => {
   assert.match(html, /Messaging is not active. This preview does not send or save your text/);
   assert.match(html, /TESTNET · NO STAKE GATE/);
-  assert.match(relay, /ENCRYPTED MESSAGING IS NOT ACTIVE YET/);
+  assert.match(html, /Sending is not active yet. Your draft stays in this browser and is never submitted/);
   assert.match(html, /type="submit" disabled aria-describedby="relay-send-note">SEND MESSAGE/);
   assert.match(relay, /event=>event.preventDefault\(\)/);
   assert.match(relay, /closeComposer/);
@@ -46,6 +46,7 @@ test("Relay prioritizes messages before governance in the inbox", () => {
   const messages = html.indexOf('data-relay-filter="messages"');
   const governanceFilter = html.indexOf('data-relay-filter="governance"');
   assert.ok(messages > -1 && messages < governanceFilter);
+  assert.doesNotMatch(html, /data-relay-filter="names"/);
 });
 
 test("Relay hides a zero badge and gives the inbox the full width", () => {
