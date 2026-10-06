@@ -1,5 +1,6 @@
+import { validateGenericLedger, reviewedGenericPeriod } from './treasury-generic-accounting.mjs?v=20261006-5';
 // Cash-basis reporting over explicitly classified receipts. No balance-derived income.
-import { accountsFor } from './treasury-accounting-config.mjs?v=20261006-4';
+import { accountsFor } from './treasury-accounting-config.mjs?v=20261006-5';
 export { accountsFor };
 export const categories = accountsFor({ id: 'neta' }).map(a => [a.id, a.label]);
 const known = new Set(categories.map(([id]) => id));
@@ -22,6 +23,7 @@ export function period(year, month, now = new Date()) {
   return { start, end, previousStart, previousEnd, toDate: now.getTime() >= start && now.getTime() < naturalEnd, annual };
 }
 export function validateLedger(data, dao) {
+  if (data?.schema_version === 2) return validateGenericLedger(data, dao);
   if (!data || data.schema_version !== 1 || data.scope !== 'neta-main-dao' || dao.id !== 'neta'
       || data.chain_id !== dao.network || data.treasury_address !== dao.core
       || data.token !== dao.tokenContract || data.registry !== 'juno1pc8wrq89ljuhu2qt6rtk5lkkrptxajtf3un5llu8prg7r4z50vlszfhhza'
@@ -44,6 +46,7 @@ export function validateLedger(data, dao) {
 // Zero means no recorded activity in a successfully refreshed and reviewed snapshot.
 // It is a provisional result, never a completeness or balance-reconciliation claim.
 export function reviewedPeriod(entries, data, start, end, now = Date.now()) {
+  if (data?.schema_version === 2) return reviewedGenericPeriod(entries, data, start, end, now);
   const review = data?.movement_review, refreshed = Date.parse(data?.last_success_at);
   if (data?.refresh_status !== 'completed' || review?.status !== 'PARTIAL'
       || review.event_refresh_status !== 'PARTIAL' || review.accounting_start !== '2026-10-01T00:00:00Z'

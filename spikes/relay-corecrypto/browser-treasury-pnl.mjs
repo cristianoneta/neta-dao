@@ -29,6 +29,16 @@ try {
   await context.route('https://**/*', route => route.abort());
   await context.route('**/neta-main-accounting.json*', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(ledger) }));
   await context.route('**/neta-main-events.json*', route => route.fulfill({ contentType:'application/json', body:JSON.stringify(eventFixture) }));
+  const daos = JSON.parse(await readFile(new URL('data/dao-directory.json', root))).daos;
+  const genericFixture = dao => ({schema_version:2,dao_id:dao.id,chain_id:dao.network,...dao.accountingSource,
+    accounting_start:'2026-10-01T00:00:00Z',refresh_status:'completed',last_success_at:new Date().toISOString(),
+    entries:[],coverage_gaps:dao.id==='juno'?['Block allocations and module payouts remain incomplete.']:[],
+    sources:dao.accountingSource.treasuries.map(t=>({...t,adapter:'cosmos-rest-receipts',accounting_start:'2026-10-01T00:00:00Z',last_scanned_height:100,anchor_hash:'A'.repeat(64)})),
+    movement_review:{status:'PARTIAL',event_refresh_status:'PARTIAL',accounting_start:'2026-10-01T00:00:00Z',movements:[],unmatched_receipt_ids:[],matched_receipts:0,unreviewed_movements:0}});
+  for (const dao of daos.filter(d=>d.id!=='neta')) {
+    await context.route(`**/${dao.accountingSource.file}*`, route=>route.fulfill({contentType:'application/json',body:JSON.stringify(genericFixture(dao))}));
+    await context.route(`**/${dao.events}*`,route=>route.fulfill({contentType:'application/json',body:JSON.stringify({scope:dao.accountingSource.scope,treasuries:dao.accountingSource.treasuries,status:'PARTIAL',events:[],warnings:[]})}));
+  }
   await context.addInitScript(() => { if (!localStorage.getItem('neta-governance-selected-dao')) localStorage.setItem('neta-governance-selected-dao', 'neta'); });
   const page = await context.newPage(), errors = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -101,8 +111,27 @@ try {
   assert.match(await page.locator('#gov-status').innerText(),/SELECT A SPENDING CATEGORY/);
   await page.locator('[data-workspace-view=treasury]').click();
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('neta:dao-change', { detail: { id: 'juno' } })));
-  await page.waitForFunction(() => document.querySelector('#pnl-coverage').textContent.includes('not connected'));
+  await page.waitForFunction(() => document.querySelector('#pnl-coverage').textContent.includes('Connected · module coverage incomplete'));
+  assert.doesNotMatch(await page.locator('.pnl-result').innerText(), /\$0.00/);
   assert.doesNotMatch(await page.locator('#pnl-rows').textContent(), /NNS|cristiano|\$5.00/);
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('neta:dao-change', { detail: { id: 'neta-operations' } })));
+  await page.waitForFunction(() => document.querySelector('#pnl-coverage').textContent.includes('Provisional'));
+  assert.match(await page.locator('.pnl-result').innerText(), /\$0.00/);
+  assert.doesNotMatch(await page.locator('#pnl-rows').innerText(), /NNS|\$5.00/);
+  for (const daoId of ['neta-operations', 'juno']) {
+    await page.evaluate(id=>window.dispatchEvent(new CustomEvent('neta:dao-change',{detail:{id}})),daoId);
+    await page.waitForFunction(()=>!document.querySelector('#treasury-refresh').disabled);
+    for (const width of [1440,768,390,320]) {
+      await page.setViewportSize({width,height:1200});
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,`${daoId} overflow at ${width}`);
+      if(screenshots)await page.locator('#treasury-pnl').screenshot({path:`${screenshots}/${daoId}-accounting-${width}.png`,style:'.gov-header { visibility:hidden !important; }'});
+    }
+  }
+  const ops=daos.find(d=>d.id==='neta-operations');
+  await context.route('**/neta-operations-accounting.json*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({...genericFixture(ops),treasuries:[]})}));
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('neta:dao-change',{detail:{id:'neta-operations'}})));
+  await page.waitForFunction(()=>document.querySelector('#pnl-coverage').textContent.includes('identity unavailable'));
+  assert.doesNotMatch(await page.locator('.pnl-result').innerText(),/\$0.00/);
   // Foreign accounting source fails closed; a failed fetch is not zero revenue.
   await context.route('**/neta-main-accounting.json*', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ ...ledger, treasury_address: 'wrong' }) }));
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('neta:dao-change', { detail: { id: 'neta' } })));

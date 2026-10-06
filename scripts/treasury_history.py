@@ -90,6 +90,11 @@ def search(get, base, key, address, start, end):
 
 
 def scan(get, base, chain, prior_rows, source=None, full_replay=False):
+    if source and (source.get('chain_id'), source.get('address')) != (chain['id'], chain['address']):
+        raise ValueError('Receipt source identity mismatch')
+    pairs = [list(pair) for pair in chain.get('query_pairs', [(key, chain['address']) for key in QUERY_KEYS])]
+    if source and source.get('query_pairs') != pairs:
+        full_replay = True
     tip = block(get, base, 'latest', chain['id'])
     age = (datetime.now(timezone.utc) - instant(tip['time'])).total_seconds()
     if not -60 <= age <= 600:
@@ -110,7 +115,8 @@ def scan(get, base, chain, prior_rows, source=None, full_replay=False):
     anchor = block(get, base, end, chain['id'])['hash']
     found = {}
     with ThreadPoolExecutor(max_workers=3) as pool:
-        for result in pool.map(lambda key: search(get, base, key, chain['address'], start, end), QUERY_KEYS):
+        for result in pool.map(lambda pair: search(get, base, pair[0], pair[1], start, end),
+                               chain.get('query_pairs', [(key, chain['address']) for key in QUERY_KEYS])):
             for digest, tx in result.items():
                 if digest in found and found[digest] != tx:
                     raise ValueError('Queries disagree on receipt')
@@ -127,4 +133,5 @@ def scan(get, base, chain, prior_rows, source=None, full_replay=False):
         'incremental': incremental, 'range_capable': True, 'indexed_transactions': len(found),
         'historical_missing_transactions': 0, 'historical_missing_tx_hashes': [],
         'last_full_replay_day': source['last_full_replay_day'] if incremental else replay_day,
-        'query_keys': list(QUERY_KEYS), 'coverage': 'provider-index-only'}
+        'query_keys': [pair[0] for pair in chain.get('query_pairs', [(key, chain['address']) for key in QUERY_KEYS])],
+        'query_pairs': chain.get('query_pairs', [(key, chain['address']) for key in QUERY_KEYS]), 'coverage': 'provider-index-only'}

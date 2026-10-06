@@ -60,7 +60,7 @@ class ReceiptHistoryTests(unittest.TestCase):
 
     def test_incremental_overlap_and_daily_full_replay(self):
         tip={'height':'42420000','time':datetime.now(timezone.utc).isoformat(),'hash':'A'*64}
-        source={'adapter':'cosmos-rest-receipts','last_scanned_height':42410000,'anchor_hash':'A'*64,
+        source={'chain_id':self.chain['id'],'address':self.chain['address'],'query_pairs':[[key,self.chain['address']] for key in history.QUERY_KEYS],'adapter':'cosmos-rest-receipts','last_scanned_height':42410000,'anchor_hash':'A'*64,
                 'last_full_replay_day':datetime.now(timezone.utc).date().isoformat()}
         with patch.object(history,'block',return_value=tip), patch.object(history,'boundary',return_value={'height':42000000}), patch.object(history,'search',return_value={}):
             _, result=history.scan(None,'base',self.chain,[],source)

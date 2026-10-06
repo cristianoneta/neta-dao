@@ -1,4 +1,4 @@
-import { expenseAccounts } from './treasury-accounting-config.mjs?v=20261006-4';
+import { expenseAccounts } from './treasury-accounting-config.mjs?v=20261006-5';
 
 export const accountingType = 'dao_accounting_v1';
 export const accountingOptions = [...expenseAccounts, { id: 'not_expense', label: 'Treasury transfer / not an expense' }];

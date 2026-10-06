@@ -1,0 +1,110 @@
+{
+  "schema_version": 2,
+  "dao_id": "neta-operations",
+  "scope": "neta-operations-cross-chain",
+  "treasuries": [
+    {
+      "chain_id": "juno-1",
+      "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl"
+    },
+    {
+      "chain_id": "osmosis-1",
+      "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80"
+    }
+  ],
+  "chain_id": "juno-1",
+  "accounting_start": "2026-10-01T00:00:00Z",
+  "adapter": "treasury-receipts",
+  "status": "PARTIAL",
+  "refresh_status": "completed",
+  "checked_at": "2026-10-06T12:53:32.543913Z",
+  "last_success_at": "2026-10-06T12:50:28.225958Z",
+  "sources": [
+    {
+      "accounting_boundary": {
+        "hash": "BE042E542E5714047C579D8E8D640F4162AF614F73DB687FF35E81A12AB9A583",
+        "height": 42225452,
+        "kind": "scan-floor-before-start",
+        "start_at": "2026-10-01T00:00:00Z",
+        "timestamp": "2026-09-30T09:25:44.964961120Z"
+      },
+      "accounting_start": "2026-10-01T00:00:00Z",
+      "adapter": "cosmos-rest-receipts",
+      "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
+      "anchor_hash": "49EB8236B0D9EE4412C69AA615A67474012F2F06E6C2FD12A194AC2B40304A02",
+      "chain_id": "juno-1",
+      "coverage": "provider-index-only",
+      "historical_missing_transactions": 0,
+      "historical_missing_tx_hashes": [],
+      "incremental": true,
+      "indexed_transactions": 0,
+      "last_full_replay_day": "2026-10-06",
+      "last_scanned_height": 42426457,
+      "query_keys": [
+        "wasm._contract_address",
+        "transfer.sender",
+        "transfer.recipient",
+        "coin_spent.spender",
+        "coin_received.receiver",
+        "wasm.sender",
+        "wasm.to",
+        "wasm.from"
+      ],
+      "range_capable": true,
+      "scan_start_height": 42425793,
+      "source": "https://juno.api.m.stavr.tech"
+    },
+    {
+      "accounting_boundary": {
+        "hash": "18CB1047831DAA424A9001371CCFC57B5120F6F4834B1DABB239878D56C222B4",
+        "height": 71411294,
+        "kind": "scan-floor-before-start",
+        "start_at": "2026-10-01T00:00:00Z",
+        "timestamp": "2026-09-27T06:03:24.727567283Z"
+      },
+      "accounting_start": "2026-10-01T00:00:00Z",
+      "adapter": "cosmos-rest-receipts",
+      "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
+      "anchor_hash": "78BB575AE123966B926C234DED03A22EFE8204F8563046F2B2B68FED82353CFA",
+      "chain_id": "osmosis-1",
+      "coverage": "provider-index-only",
+      "historical_missing_transactions": 0,
+      "historical_missing_tx_hashes": [],
+      "incremental": true,
+      "indexed_transactions": 0,
+      "last_full_replay_day": "2026-10-06",
+      "last_scanned_height": 72013193,
+      "query_keys": [
+        "wasm._contract_address",
+        "transfer.sender",
+        "transfer.recipient",
+        "coin_spent.spender",
+        "coin_received.receiver",
+        "wasm.sender",
+        "wasm.to",
+        "wasm.from"
+      ],
+      "range_capable": true,
+      "scan_start_height": 72012041,
+      "source": "https://osmosis-api.polkachu.com"
+    }
+  ],
+  "coverage_gaps": [],
+  "execution_candidates": [],
+  "warnings": [
+    "Exact block timestamp unavailable from public RPC archives for 57 historical events.",
+    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses."
+  ],
+  "entries": [],
+  "movement_review": {
+    "accounting_start": "2026-10-01T00:00:00Z",
+    "status": "PARTIAL",
+    "event_refresh_status": "PARTIAL",
+    "matched_receipts": 0,
+    "unmatched_receipt_ids": [],
+    "unreviewed_movements": 0,
+    "movements": [],
+    "balance_reconciliation": "UNAVAILABLE",
+    "note": "Recorded receipts only. Unknown purpose or missing payment-time valuation blocks period totals."
+  }
+}

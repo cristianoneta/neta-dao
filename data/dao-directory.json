@@ -28,6 +28,21 @@
         "decimals": 0,
         "unit": "votes",
         "label": "voting weight"
+      },
+      "accountingSource": {
+        "adapter": "treasury-receipts",
+        "file": "neta-operations-accounting.json",
+        "scope": "neta-operations-cross-chain",
+        "treasuries": [
+          {
+            "chain_id": "juno-1",
+            "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl"
+          },
+          {
+            "chain_id": "osmosis-1",
+            "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80"
+          }
+        ]
       }
     },
     {
@@ -56,6 +71,17 @@
         "decimals": 6,
         "unit": "NETA",
         "label": "NETA staked"
+      },
+      "accountingSource": {
+        "adapter": "nns-receipts",
+        "file": "neta-main-accounting.json",
+        "scope": "neta-main-dao",
+        "treasuries": [
+          {
+            "chain_id": "juno-1",
+            "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6"
+          }
+        ]
       }
     },
     {
@@ -74,7 +100,7 @@
       "membership": "Juno governance uses bonded stake. Delegators can vote directly; a validator vote applies to delegated stake when its delegator does not override it. Validator totals are not additional voting power.",
       "snapshot": "juno-community-pool.json",
       "history": "juno-community-history.json",
-      "events": null,
+      "events": "juno-community-events.json",
       "canVote": false,
       "membershipSource": {
         "adapter": "native-staking",
@@ -82,6 +108,17 @@
         "decimals": 6,
         "unit": "JUNO",
         "label": "JUNO bonded"
+      },
+      "accountingSource": {
+        "adapter": "native-community-pool",
+        "file": "juno-community-accounting.json",
+        "scope": "juno-community-pool",
+        "treasuries": [
+          {
+            "chain_id": "juno-1",
+            "address": "juno1jv65s3grqf6v6jl3dp4t6c9t9rk99cd83d88wr"
+          }
+        ]
       }
     }
   ]
