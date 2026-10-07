@@ -40,6 +40,11 @@ try{
  await page.getByRole('button',{name:'Confirm in Keplr',exact:true}).click();
  await page.waitForFunction(()=>calls.read>0);assert.equal(await page.locator('#inbox img').count(),0);assert.match(await page.getByRole('list').innerText(),/<img/);
  assert.equal(await page.getByLabel('Contact .neta name or wallet').inputValue(),wallet);assert.equal(await page.evaluate(()=>calls.consent),0);
+ // A running user operation keeps automatic reads out of the crypto controller.
+ await page.evaluate(()=>{state.busy=true;c.onState({...state});});const busyReads=await page.evaluate(()=>calls.read);
+ await page.waitForTimeout(350);assert.equal(await page.evaluate(()=>calls.read),busyReads,'polling must skip a busy controller');
+ assert.equal(await page.getByRole('button',{name:'Send message',exact:true}).isDisabled(),true);
+ await page.evaluate(()=>{state.busy=false;c.onState({...state});});await page.waitForFunction(before=>calls.read>before,busyReads);
  await page.evaluate(()=>{expire=true;});await page.getByRole('button',{name:'Renew backup access',exact:true}).waitFor();const reads=await page.evaluate(()=>calls.read);
  await page.waitForTimeout(300);assert.equal(await page.evaluate(()=>calls.read),reads,'expired auth pauses automatic reads');
  await page.getByRole('button',{name:'Renew backup access',exact:true}).click();await page.waitForFunction(()=>!state.needsRecovery);assert.equal(await page.evaluate(()=>calls.sign),1);

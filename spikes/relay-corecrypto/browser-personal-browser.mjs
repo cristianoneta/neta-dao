@@ -94,10 +94,15 @@ async function profile(wallet,context,workspace=false){
   await page.evaluate(async({wallet,contract})=>{
    window.keplr={enable:async chain=>{if(chain!=='juno-1')throw Error('Wrong shared wallet network');},getOfflineSigner:()=>({getAccounts:async()=>[{address:wallet}]})};
    const {mountPersonalWorkspace}=await import('/relay-personal-workspace.mjs');
+   const {mountPersonalInbox}=await import('/relay-personal-inbox.mjs');
    const {PERSONAL_MAINNET_OWNER,PERSONAL_MAINNET_WASM}=await import('/relay-personal-network.mjs');
    const release={enabled:true,backupUrl:'https://fixture.invalid',deployment:{chainId:'juno-1',contract,creator:PERSONAL_MAINNET_OWNER,admin:PERSONAL_MAINNET_OWNER,codeId:123,codeHash:PERSONAL_MAINNET_WASM,label:'NETA RELAY personal v0.4 · Juno mainnet'}};
    window.workspaceOpens=0;window.holdConnect=false;window.finishConnect=null;window.disconnectedCandidates=0;
    window.ui=mountPersonalWorkspace({root:document.getElementById('relay-personal-inbox'),release,loadSigning:async()=>NetaNamesSigning,
+    // This suite deliberately owns the ordering of receive/crash/recovery calls.
+    // A wall-clock poll must not consume a packet or fault injection between them.
+    // Automatic polling and its busy guard are exercised in browser-personal-ux.
+    mountInbox:options=>mountPersonalInbox({...options,pollInterval:0}),
     connect:async({assertCurrent})=>{workspaceOpens++;if(holdConnect)await new Promise(resolve=>window.finishConnect=resolve);const controller=window.c;
      return {controller,authorizeBackup:async()=>{assertCurrent();if(!backup.token||backup.expires<=backup.now())await backup.connect();assertCurrent();},disconnect:async()=>{disconnectedCandidates++;await controller.close();}};}});
   },{wallet,contract});

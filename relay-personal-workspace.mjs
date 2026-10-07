@@ -18,7 +18,8 @@ export async function loadPersonalSigning(doc = document) {
 }
 
 export function mountPersonalWorkspace({root, release, connect = connectPersonalBrowser,
-  wallet = () => globalThis.NetaWorkspaceWallet?.getSession(), loadSigning = loadPersonalSigning} = {}) {
+  wallet = () => globalThis.NetaWorkspaceWallet?.getSession(), loadSigning = loadPersonalSigning,
+  mountInbox = mountPersonalInbox} = {}) {
   if (!root) throw Error('Personal workspace root required');
   const doc = root.ownerDocument, win = doc.defaultView;
   const composer = doc.getElementById('relay-composer'), compose = doc.getElementById('relay-new-message');
@@ -74,7 +75,7 @@ export function mountPersonalWorkspace({root, release, connect = connectPersonal
       const bundle = await loadSigning(doc); assertCurrent();
       candidate = await connect({...config, owner, bundle, assertCurrent}); assertCurrent();
       session = candidate;
-      ui = mountPersonalInbox({root: content, controller: session.controller, authorizeBackup: session.authorizeBackup});
+      ui = mountInbox({root: content, controller: session.controller, authorizeBackup: session.authorizeBackup});
       content.querySelector('input')?.focus();
     } catch (error) {
       if (candidate && candidate !== session) await candidate.disconnect();
