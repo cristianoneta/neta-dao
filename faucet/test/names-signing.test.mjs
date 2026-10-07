@@ -106,3 +106,19 @@ test('mainnet bridge isolates attempts and journals, checks chain on recovery an
  h.setChain('juno-1');h.setMode('');const result=await h.bridge().recover(r);assert.equal(result.chainId,'juno-1');
  assert.equal(h.storage.getItem(testnetKey),'preserved-testnet-journal');assert.equal(h.storage.getItem('neta-pending-tx-v1:juno-1:'+owner),null);assert.equal(h.broadcasts(),1);
 });
+
+test('signed-byte checkpoint finishes before broadcast and failure is proven not broadcast',async()=>{
+ for(const fail of [false,true]){
+  const h=harness(),r=request();let backed=false;
+  const original=h.opts.client.broadcastTxSync;
+  h.opts.client.broadcastTxSync=bytes=>{assert.equal(backed,true);return original(bytes);};
+  const pending=h.bridge().execute(r,{onSigned:async({transactionHash})=>{
+   assert.equal(h.broadcasts(),0);
+   const row=JSON.parse(h.storage.getItem(attemptKey(owner,r.intentId)));
+   assert.equal(row.status,'signed');assert.equal(row.hash,transactionHash);assert.ok(row.bytes);
+   if(fail)throw Error('Backup unavailable');backed=true;
+  }});
+  if(fail){await assert.rejects(pending,/Backup unavailable/);assert.equal(h.broadcasts(),0);assert.equal((await h.bridge().recover(r)).notBroadcast,true);}
+  else{assert.equal((await pending).code,0);assert.equal(h.broadcasts(),1);}
+ }
+});

@@ -7,8 +7,10 @@ const root = new URL('../../', import.meta.url);
 const browserCrypto = new URL('./node_modules/@wireapp/core-crypto/dist/browser/', import.meta.url);
 const files = {
   '/relay-uni7-lab.html': new URL('relay-uni7-lab.html', root),
+  '/neta-ui.css': new URL('neta-ui.css', root),
   '/relay-uni7-lab.css': new URL('relay-uni7-lab.css', root),
   '/relay-testnet-setup.css': new URL('relay-testnet-setup.css', root),
+  '/relay-personal-recovery.mjs': new URL('relay-personal-recovery.mjs', root),
   '/relay-uni7-lab.mjs': new URL('relay-uni7-lab.mjs', root),
   '/relay-uni7-client.mjs': new URL('relay-uni7-client.mjs', root),
   '/relay-uni7-checkpoint.mjs': new URL('relay-uni7-checkpoint.mjs', root),
@@ -27,7 +29,7 @@ const alice = 'juno1' + 'q'.repeat(38), bob = 'juno1' + 'p'.repeat(38);
 const contract = 'juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa';
 const stub = `window.NetaSocialsTestnet={
  connect:async()=>({}),
- execute:async(_client,sender,contract,msg)=>{const r=await fetch('/mock/execute',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sender,contract,msg})});if(!r.ok)throw Error(await r.text());return r.json()}
+ execute:async(_client,sender,contract,msg)=>{const r=await fetch('/mock/execute',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sender,contract,msg})});if(!r.ok)throw Error(await r.text());if(window.__lostSendResponse && !msg.register)throw Error('TEST lost broadcast response');return r.json()}
 };`;
 const server = http.createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
@@ -153,6 +155,50 @@ try {
   assert.match(await b.page.locator('#history').innerText(), /hello from Alice on UNI-7/);
   assert.match(await b.page.locator('#history').innerText(), /hello back from Bob/);
   console.log('UNI-7 lab: encrypted exchange, reply and readable restart passed in isolated browser profiles');
+  // Real WASM outbound crash windows. Faults affect only this mocked chain.
+  async function restart(person) {
+    await person.page.reload();
+    await person.page.getByRole('button', { name: 'CONNECT KEPLR · UNI-7' }).click();
+    await ready(person.page, 'WALLET CONNECTED');
+    await person.page.locator('#recovery').fill(person.code);
+    await person.page.getByRole('button', { name: 'UNLOCK EXISTING DEVICE' }).click();
+    await ready(person.page, 'HISTORY RESTORED');
+  }
+  await a.page.route('**/relay-personal-recovery.mjs', async route => {
+    const source = await readFile(files['/relay-personal-recovery.mjs'], 'utf8');
+    await route.fulfill({ contentType: 'text/javascript', body: source.replace(
+      'async ready(id, ciphertext) {',
+      'async ready(id, ciphertext) { if(window.__interruptPrepare) throw Error("TEST interrupted outbound crypto");') });
+  });
+  await restart(a);
+  const beforePreparation = sequence;
+  await a.page.evaluate(() => window.__interruptPrepare = true);
+  await a.page.locator('#recipient').fill(bob);
+  await a.page.locator('#message').fill('interrupted before ready packet');
+  await a.page.locator('#send').click();
+  await ready(a.page, 'TEST interrupted outbound crypto');
+  assert.equal(sequence, beforePreparation, 'preparation failure broadcast a message');
+  await restart(a);
+  assert.equal(sequence, beforePreparation, 'recovery broadcast a message');
+  assert.equal(await a.page.locator('#send').isDisabled(), false);
+  await a.page.locator('#recipient').fill(bob);
+  await a.page.locator('#message').fill('valid after outbound rollback');
+  await a.page.locator('#send').click(); await ready(a.page, 'MESSAGE CONFIRMED');
+  await b.page.locator('#receive').click(); await ready(b.page, 'DECRYPTED & ARCHIVED');
+  assert.match(await b.page.locator('#history').innerText(), /valid after outbound rollback/);
+  assert.doesNotMatch(await b.page.locator('#history').innerText(), /interrupted before ready packet/);
+  await a.page.evaluate(() => window.__lostSendResponse = true);
+  await a.page.locator('#message').fill('receipt recovered without a duplicate send');
+  await a.page.locator('#send').click(); await ready(a.page, 'TEST lost broadcast response');
+  const acceptedSequence = sequence;
+  await restart(a);
+  assert.equal(sequence, acceptedSequence, 'unlock resent accepted ciphertext');
+  assert.match(await a.page.locator('#history').innerText(), /receipt recovered without a duplicate send/);
+  await b.page.locator('#receive').click();
+  await b.page.waitForFunction(() => document.querySelector('#history').textContent.includes('receipt recovered without a duplicate send'));
+  await ready(b.page, 'DECRYPTED & ARCHIVED');
+  assert.match(await b.page.locator('#history').innerText(), /receipt recovered without a duplicate send/);
+  console.log('Personal outbound: pre-ready rollback and lost-response reconciliation passed with real CoreCrypto');
   if (process.env.RELAY_AUDIT_ADVERSARIAL === '1') {
     // Local adversarial regression only. No live-chain writes or wallet keys.
     const bad = await fetch(origin + '/mock/execute', {method:'POST',headers:{'content-type':'application/json'},
@@ -175,6 +221,10 @@ try {
       body:JSON.stringify({sender:bob,contract,msg:{send:{recipient:bob,recipient_generation:1,
         message_id:oldId,ciphertext:Buffer.alloc(32).toString('base64')}}})});
     assert.equal(forged.status,200);
+    // restart(a) intentionally clears the compose form. Select the recipient
+    // again before testing malformed incoming packets; otherwise validation
+    // stops this send before any crypto/transport operation is exercised.
+    await a.page.locator('#recipient').fill(bob);
     await a.page.locator('#message').fill('valid after malformed ciphertext and colliding ID');
     await a.page.getByRole('button',{name:'TEST ENCRYPTED SEND · KEPLR'}).click();
     await a.page.waitForFunction(()=>document.querySelector('#history').textContent.includes('valid after malformed ciphertext and colliding ID'));

@@ -12,11 +12,15 @@ async function setup(t,{limits,paused=false,balance,clock}={}){
   t.after(async()=>{server.closeAllConnections();await new Promise(r=>server.close(r));ledger.close();});
   return {ledger,get calls(){return calls;},get:path=>fetch(`http://127.0.0.1:${server.address().port}${path}`)};
 }
-test('request cap rejects every route before RPC and reports reset time',async t=>{
+test('cheap and invalid requests cannot exhaust persistent payout work budget',async t=>{
   const s=await setup(t,{limits:{requestsPerDay:1}});
-  assert.equal((await s.get('/status')).status,200);const blocked=await s.get('/status');
-  assert.equal(blocked.status,429);assert.ok(blocked.headers.get('retry-after'));assert.match((await blocked.json()).error,/day request limit/);
-  assert.equal((await s.get('/unknown')).status,429);assert.equal(s.calls,1);
+  assert.equal((await s.get('/unknown')).status,404);
+  assert.equal((await s.get('/unknown')).status,404);
+  const results=await Promise.all(Array.from({length:4},()=>s.get('/status')));
+  assert.ok(results.every(r=>r.status===200));assert.equal(s.calls,1);
+  assert.equal(s.ledger.guard.admitRequest(),null);
+  assert.match(s.ledger.guard.admitRequest().reason,/day request limit/);
+  assert.equal((await s.get('/status')).status,200);
 });
 test('concurrent status reads share one RPC refresh and cache it for 30 seconds',async t=>{
   let now=Date.UTC(2026,9,4,12),release;const pending=new Promise(r=>release=r);

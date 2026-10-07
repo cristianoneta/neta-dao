@@ -1,27 +1,27 @@
 name: Build contract WASM
 
 on:
+  workflow_call:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "contracts/**"
-      - "assets/names-testnet/**"
-      - "assets/names-mainnet/**"
-      - "assets/relay-mainnet/**"
-      - "relay-personal-network.mjs"
-      - "names/mainnet-artifacts.mjs"
-      - "names-v2-artifacts.mjs"
-      - ".github/workflows/build-testnet-wasm.yml"
 
 permissions:
   contents: read
 
 jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    outputs:
+      contracts: ${{ steps.list.outputs.contracts }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - id: list
+        run: echo "contracts=$(node -p 'JSON.stringify(require("./scripts/contracts.json"))')" >> "$GITHUB_OUTPUT"
   build:
+    needs: inventory
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        contract: [neta-proposal-workshop, workshop-access-mock, neta-names, neta-names-v2, neta-names-test-token, neta-validator-profiles, neta-relay-mailbox]
+        contract: ${{ fromJSON(needs.inventory.outputs.contracts) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Install pinned Rust toolchain

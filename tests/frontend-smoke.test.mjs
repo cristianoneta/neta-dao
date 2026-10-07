@@ -35,10 +35,10 @@ test("Relay follows DAOs and creates local governance notifications safely", () 
 
 test("Relay messaging remains locked behind explicit security gates", () => {
   assert.match(html, /Messaging is not active. This preview does not send or save your text/);
-  assert.match(html, /TESTNET · NO STAKE GATE/);
+  assert.match(html, /ACTIVE .NETA NAME · NO STAKING REQUIREMENT/);
   assert.match(html, /Sending is not active yet. Your draft stays in this browser and is never submitted/);
   assert.match(html, /type="submit" disabled aria-describedby="relay-send-note">SEND MESSAGE/);
-  assert.match(relay, /event=>event.preventDefault\(\)/);
+  assert.match(relay, /\(?event\)?\s*=>\s*event.preventDefault\(\)/);
   assert.match(relay, /closeComposer/);
 });
 
@@ -55,8 +55,8 @@ test("Relay hides a zero badge and gives the inbox the full width", () => {
   assert.match(relayCss, /\.relay-layout\{display:block\}/);
   assert.doesNotMatch(html, /class="relay-watchlist/);
   assert.doesNotMatch(html, /data-relay-panel-view="following"/);
-  assert.match(relay, /count\.hidden=unread===0/);
-  assert.match(relay, /markRead\.disabled=unread===0/);
+  assert.match(relay, /count\.hidden\s*=\s*unread\s*===\s*0/);
+  assert.match(relay, /markRead\.disabled\s*=\s*unread\s*===\s*0/);
   assert.match(html, /relay\.css\?v=20261003-3/);
   assert.match(html, /relay\.js\?v=[^"\s]+/);
   assert.doesNotMatch(html, /LIVE ALERTS/);
@@ -70,7 +70,7 @@ test("Juno community history is seeded with two daily snapshots", () => {
 });
 
 test("treasury renders LP ownership and underlying assets without HTML injection", () => {
-  assert.match(treasury, /item\.type==="lp"/);
+  assert.match(treasury, /item\.type\s*===\s*['"]lp['"]/);
   assert.match(treasury, /item\.underlyings/);
   assert.doesNotMatch(treasury, /\.innerHTML\s*=|insertAdjacentHTML|\.outerHTML\s*=/);
   for (const id of ["treasury-assets", "treasury-total", "treasury-updated", "treasury-refresh"]) {
@@ -126,9 +126,9 @@ test("treasury events replace sample activity with verified linked transactions"
 });
 
 test("small and unpriced treasury assets are collapsed without changing totals", () => {
-  assert.match(treasury, /Number\(item\.usd_value\)>=50/);
+  assert.match(treasury, /Number\(item\.usd_value\)\s*>=\s*50/);
   assert.match(treasury, /SMALL \/ UNPRICED ASSETS/);
-  assert.match(treasury, /renderAssets\(data\.assets,Number\(data.total_usd\|\|0\),data\.warnings\|\|\[\],policyText\)/);
+  assert.match(treasury, /renderAssets\(data\.assets,\s*Number\(data.total_usd\s*\|\|\s*0\),\s*data\.warnings\s*\|\|\s*\[\],\s*policyText\)/);
   assert.match(treasury, /details\.append\(warning\)/);
   assert.doesNotMatch(treasury, /assets\.after\(warning\)/);
   assert.match(treasury, /details\.append\(policy\)/);
@@ -213,13 +213,13 @@ test("Juno review explains each missing stake requirement", () => {
 
 test("comment staking actions are configured per DAO and contextual", () => {
   assert.match(governance, /commentStakeUrl/);
-  assert.match(governance, /commentBlocked=discussion/);
+  assert.match(governance, /commentBlocked\s*=\s*discussion/);
   assert.match(governance, /!state\.access\?\.can_comment/);
   assert.doesNotMatch(governance, /delegateTestJunox|TEST_DELEGATION_AMOUNT/);
 });
 
 test("deliverables are embedded in the revision payload", () => {
-  assert.match(governance, /DELIVERABLE_TYPE="dao_deliverable_v1"/);
+  assert.match(governance, /DELIVERABLE_TYPE\s*=\s*['"]dao_deliverable_v1['"]/);
   assert.match(governance, /MILESTONE \/ DELIVERABLE/);
   assert.match(governance, /DEADLINE/);
   assert.match(governance, /CONFIRMED BY/);
@@ -270,9 +270,9 @@ test("Names validates the full 5–32 character label and rejects ambiguous name
 });
 
 test("Relay reading pane shows the proposal summary and message styling remains distinct", () => {
-  assert.match(relay, /proposal=previous\?\.items\?\.\[selectedKey\]/);
-  assert.match(relay, /summary\.textContent=proposal\?\.summary/);
-  assert.match(relay, /summaryHeading\.textContent="SUMMARY"/);
+  assert.match(relay, /proposal\s*=\s*previous\?\.items\?\.\[selectedKey\]/);
+  assert.match(relay, /summary\.textContent\s*=\s*proposal\?\.summary/);
+  assert.match(relay, /summaryHeading\.textContent\s*=\s*['"]SUMMARY['"]/);
   assert.match(relay, /GOVERNANCE ·/);
   assert.match(readFileSync("relay.css","utf8"), /\.relay-event-message\.selected/);
   assert.match(html, /PREVIEW · SEND DISABLED/);

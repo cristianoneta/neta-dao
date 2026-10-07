@@ -1,55 +1,7 @@
 name: RELAY browser crypto smoke
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/relay-crypto-browser.yml'
-      - 'spikes/relay-corecrypto/**'
-      - 'relay-uni7-*.mjs'
-      - 'relay-personal-*.mjs'
-      - 'relay-personal-*.html'
-      - 'juno-consensus-*.mjs'
-      - 'juno-upgrade-status.*'
-      - 'juno-upgrade-history.mjs'
-      - 'juno-upgrade-readiness.mjs'
-      - 'data/validator-upgrades/*-readiness.json'
-      - 'community-tools/**'
-      - 'community-tools*.css'
-      - 'community-*.mjs'
-      - 'data/community-upgrades.json'
-      - 'relay-uni7-lab.html'
-      - 'relay-uni7-lab.css'
-      - 'assets/relay-crypto/**'
-      - 'relay.js'
-      - 'relay-dao-*.mjs'
-      - 'relay-dao-inbox.css'
-      - 'treasury.js'
-      - 'treasury-*.mjs'
-      - 'nns-transactions.mjs'
-      - 'nns-transactions.html'
-      - 'proposal-accounting.mjs'
-      - 'neta-governance.js'
-      - 'names.js'
-      - 'names-workspace.js'
-      - 'names-profile*.mjs'
-      - 'names-v2*.mjs'
-      - 'names/**'
-      - 'names-mainnet-*.html'
-      - 'names-mainnet-*.css'
-      - 'names-v2*.html'
-      - 'assets/names-signing.js'
-      - 'assets/names-testnet/**'
-      - 'tests/fixtures/nns-v2-quote.json'
-      - 'dao-directory.js'
-      - 'dao-hierarchy.mjs'
-      - 'dao-structure.mjs'
-      - 'dao-members.js'
-      - 'data/dao-directory.json'
-      - 'index.html'
-      - "*.css"
-      - "assets/design/**"
-      - "docs/design/responsive-preview.html"
-      - "ux-draft.js"
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -66,7 +18,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '22'
+          node-version: '24.19.0'
           cache: npm
           cache-dependency-path: spikes/relay-corecrypto/package-lock.json
       - run: npm ci
@@ -75,7 +27,14 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
       - run: node browser-uni7-lab.mjs
+      - run: node browser-personal-protocol.mjs
+      - run: npm ci --prefix ../../faucet --ignore-scripts
+      - run: npm ci --prefix ../../relay-backup --ignore-scripts
+      - run: node browser-personal-browser.mjs
+      - run: node browser-personal-ux.mjs
       - run: node browser-personal-deploy.mjs
+      - run: node ../../scripts/build-personal-pilot.mjs --check
+      - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-personal-pilot.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-juno-consensus.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/dao-inbox-screenshots" node browser-dao-inbox.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-dao-hierarchy.mjs

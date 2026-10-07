@@ -48,7 +48,7 @@ Node 24, persistent local disk, one service instance. Build from this directory:
 npm ci --ignore-scripts
 npm test
 npm start
-# alternatively: docker build -t neta-junox-faucet .
+# alternatively: docker build -f faucet/Dockerfile -t neta-junox-faucet . (from repository root)
 ```
 
 Configuration (no mnemonic value in environment variables):
@@ -95,7 +95,8 @@ public activation. Defaults apply without new environment variables:
 
 | Guard | Ceiling |
 | --- | --- |
-| Admitted HTTP requests, all paths/clients combined | 60 per UTC minute, 5,000 per UTC day, 50,000 per UTC month |
+| Verified fresh claim work, all wallets combined | 60 per UTC minute, 5,000 per UTC day, 50,000 per UTC month |
+| Short-term direct-peer traffic | 60 cheap requests/minute; separate 30 claim requests/minute |
 | Concurrent admitted HTTP handlers | 4 |
 | New payout reservations, all wallets combined | 100 per UTC day, 1,000 per UTC month |
 | Per-wallet payout | 25 JUNOX per rolling 24 hours |
@@ -103,13 +104,14 @@ public activation. Defaults apply without new environment variables:
 | POST body | 8 KiB |
 
 Request counters persist in the **same SQLite file** as the payout journal.
-Exhausted requests receive a small HTTP 429 with reset time, before body parsing,
-wallet verification or RPC. Day/month windows reset at UTC boundaries, not the
+Exhausted verified-work requests receive HTTP 429 with reset time after wallet
+verification and before payout RPC work. Invalid routes/proofs, preflights, status
+reads and outcome replays do not consume persistent work budgets. Day/month windows reset at UTC boundaries, not the
 Render billing date. Payout caps count every reservation, including failures and
 old claims, and are enforced in the signing-reservation transaction. No refund on
 failure, no resetting usage or deleting journals to restart. A completed/pending
-claim can still return its existing result when the request budget permits it.
-Maximum newly reserved transfers are 1,000 JUNOX/day and 10,000 JUNOX/month;
+claim can return its existing authenticated outcome without charging work budget.
+Maximum newly reserved transfers are 2,500 JUNOX/day and 25,000 JUNOX/month;
 confirmed transfers can finish later than their reservation window.
 
 `FAUCET_REQUESTS_PER_MINUTE`, `FAUCET_REQUESTS_PER_DAY`,
