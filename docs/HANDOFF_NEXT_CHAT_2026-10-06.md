@@ -1,5 +1,33 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Shared pilot and simpler Inbox — 7 October 2026
+
+Owner decision: use the existing `neta-junox-faucet` Render service for RELAY
+backups while there are no users; separate it after adoption. This supersedes the
+earlier separate-service proposal. See [the implementation and operating plan](RELAY_SHARED_PILOT_2026-10-07.md),
+including the explicit separation to-do and preservation/restore procedure.
+
+[PR #195](https://github.com/cristianoneta/neta-dao/pull/195), application commit
+`dbb32a9f8845250f7caa1aaf981f88f58f0ea234`, integrates main through `7c52b36` and adds
+state-selected setup/unlock/restore, contextual backup renewal, automatic idle
+receive/reconciliation, verified `.neta` contacts and non-authorizing invitation
+links. Wallet signing, consent, generation checks, exact-byte journals and the
+15-minute/120-request backup bounds remain explicit and unchanged. Passkeys and
+unattended signing are deferred. The root Blueprint reuses the existing service,
+disk and faucet secret, with a separate backup database and routes. RELAY defaults
+to disabled until the actual mailbox and consenting wallets are configured.
+
+Local checks pass: 180 root Node tests, 62 Faucet tests, ten backup tests, the
+real-CoreCrypto HTTPS recovery suite and the new responsive Inbox UX regression.
+Hosted checks are recorded on PR #195 for the application commit above.
+
+No live Render redeploy or real owner transaction is evidenced here. Both release
+pins remain null, public messaging and DAO writes stay inactive. Next: complete
+the release review, verify owner upload/instantiate receipts, update the existing Render
+service's root/build/start settings, configure the real mailbox and allowlist,
+verify live persistence/authentication and the two-wallet pilot. Preserve all
+keys, journals, faucet SQLite/WAL and generated Treasury snapshots.
+
 ## Adversarial contract review — 7 October 2026
 
 The owner asked for a whitehat-style check. See the scoped
