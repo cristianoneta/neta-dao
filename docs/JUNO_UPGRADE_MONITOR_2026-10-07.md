@@ -43,3 +43,16 @@ strictly more than two thirds, mismatched vote identities/heights/rounds, observ
 disagreement, failed requests and 320–1440 px rendering. The live deployment helper
 keeps its original transaction providers and freshness checks. This tracker never
 authorizes a deployment or activates personal messaging; PR #195 remains draft.
+
+## Publication checkpoint
+
+Live page: https://dao.netareborn.com/juno-upgrade-status.html
+
+PR #206 merged as `8a58a1b7813beef265f6627bdb31806b361e76a8`. Final-head
+browser run `37589459187` and frontend run `37589459176` passed. Main frontend
+run `37589754571` and Pages deployment `37589754547` passed after integration.
+The preceding chat reported opening the live page; the handoff session rechecked
+GitHub publication records without making a fresh consensus observation.
+
+Continue from [the current handoff](HANDOFF_NEXT_CHAT_2026-10-07.md). The percentages
+above remain historical; recheck live nodes before drawing a current conclusion.
