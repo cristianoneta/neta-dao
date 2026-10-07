@@ -1,6 +1,6 @@
 {
   "accounting_start": "2026-10-01T00:00:00Z",
-  "checked_at": "2026-10-06T23:45:25.650772Z",
+  "checked_at": "2026-10-07T00:29:55.056557Z",
   "cursor": {
     "chains": [
       {
@@ -14,15 +14,15 @@
         "accounting_start": "2026-10-01T00:00:00Z",
         "adapter": "cosmos-rest-receipts",
         "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
-        "anchor_hash": "F821FC938A53F0DDA426AA57BFEB7988A1778B6EB86DCBF6F12272387812358D",
+        "anchor_hash": "2D1D089025FD967629367ABF1B4633144B2E573E8802D21B81B5AEB57B49489E",
         "chain_id": "juno-1",
         "coverage": "provider-index-only",
         "historical_missing_transactions": 0,
         "historical_missing_tx_hashes": [],
-        "incremental": true,
-        "indexed_transactions": 0,
-        "last_full_replay_day": "2026-10-06",
-        "last_scanned_height": 42441862,
+        "incremental": false,
+        "indexed_transactions": 1,
+        "last_full_replay_day": "2026-10-07",
+        "last_scanned_height": 42442906,
         "query_keys": [
           "wasm._contract_address",
           "transfer.sender",
@@ -68,7 +68,7 @@
           ]
         ],
         "range_capable": true,
-        "scan_start_height": 42441085,
+        "scan_start_height": 42225447,
         "source": "https://juno.api.m.stavr.tech"
       }
     ],
@@ -122,8 +122,8 @@
       "type": "inflow"
     }
   ],
-  "generated_at": "2026-10-06T23:45:25.650736Z",
-  "last_success_at": "2026-10-06T23:45:25.650736Z",
+  "generated_at": "2026-10-07T00:29:55.056523Z",
+  "last_success_at": "2026-10-07T00:29:55.056523Z",
   "nns": {
     "accounting_file": "neta-main-accounting.json",
     "note": "Matched NNS receipts are collected separately; historical events alone do not establish complete naming revenue.",
@@ -144,15 +144,15 @@
       "accounting_start": "2026-10-01T00:00:00Z",
       "adapter": "cosmos-rest-receipts",
       "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
-      "anchor_hash": "F821FC938A53F0DDA426AA57BFEB7988A1778B6EB86DCBF6F12272387812358D",
+      "anchor_hash": "2D1D089025FD967629367ABF1B4633144B2E573E8802D21B81B5AEB57B49489E",
       "chain_id": "juno-1",
       "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
-      "incremental": true,
-      "indexed_transactions": 0,
-      "last_full_replay_day": "2026-10-06",
-      "last_scanned_height": 42441862,
+      "incremental": false,
+      "indexed_transactions": 1,
+      "last_full_replay_day": "2026-10-07",
+      "last_scanned_height": 42442906,
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -198,7 +198,7 @@
         ]
       ],
       "range_capable": true,
-      "scan_start_height": 42441085,
+      "scan_start_height": 42225447,
       "source": "https://juno.api.m.stavr.tech"
     }
   ],
