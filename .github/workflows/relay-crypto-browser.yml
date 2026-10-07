@@ -71,6 +71,7 @@ jobs:
       - run: npm ci --prefix ../../faucet --ignore-scripts
       - run: npm ci --prefix ../../relay-backup --ignore-scripts
       - run: node browser-personal-browser.mjs
+      - run: node browser-personal-ux.mjs
       - run: node browser-personal-deploy.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/dao-inbox-screenshots" node browser-dao-inbox.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-dao-hierarchy.mjs

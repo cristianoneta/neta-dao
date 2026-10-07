@@ -3,6 +3,7 @@
 // deployment or mount production SEND. All chain writes require a reviewed
 // request through the supplied exact-byte bridge and the owner's wallet UI.
 import {PersonalBrowserStore} from './relay-personal-store.mjs';
+import {resolvePersonalContact} from './relay-personal-contacts.mjs';
 import {PersonalSendJournal} from './relay-personal-recovery.mjs';
 import {PersonalMessageTransport} from './relay-personal-transport.mjs';
 import {PersonalMailboxLifecycle,personalSessionId} from './relay-personal-lifecycle.mjs';
@@ -46,10 +47,23 @@ export class PersonalBrowserController{
     if(this.invalidated||!this.snapshot)return {open:false,closed:this.invalidated,busy:this.busy,history:[],readOnly:true};
     return {open:true,busy:this.busy,readOnly:this.snapshot.controller.readOnly||!!this.snapshot.controller.rotationRecovery,needsRecovery:this.failed,
       generation:this.snapshot.descriptor.generation,registered:this.snapshot.controller.registered,
+      prepared:!!this.snapshot.controller.prepared,
       backup:this.record?.remote||null,backupPending:!!this.record?.pendingUpload||this.record?.envelope.revision!==(this.record?.remote?.revision||0),
       history:clone(this.snapshot.archiveRecords.filter(r=>r.status==='confirmed')),
       pending:this.snapshot.sendRecords.filter(r=>!terminal(r)).map(r=>({id:r.id,state:r.state,outcome:r.attempt?.outcome||null})),
       operation:this.snapshot.registrationIntent?.status||null};
+  }
+  async entryMode({remote=false}={}){
+    await this.guard();
+    if(this.snapshot||this.busy)throw Error('Close the inbox before checking its setup');
+    const store=await PersonalBrowserStore.open(this.scope);
+    let local;try{local=await store.read();}finally{store.close();}
+    await this.guard();if(local)return 'unlock';
+    if(!remote)return 'check_backup';
+    const backup=await this.backup.latest(),device=await this.adapter.device();await this.guard();
+    if(backup)return 'restore';
+    if(device)throw Error('Registered inbox has no available backup. Use the original browser; do not reset its keys.');
+    return 'create';
   }
   async guard(){if(this.invalidated)throw Error('Personal controller closed or wallet changed');try{await this.adapter.assertWallet();if(this.adapter.address!==this.scopeObject.wallet)throw Error('Personal wallet changed');}catch(error){this.invalidate();throw error;}}
   async run(fn,{recover=false}={}){
@@ -240,8 +254,9 @@ export class PersonalBrowserController{
     if(old){if(old.sequence!==sequence||old.text!==row.text||!same(old.meta,row.meta))throw Error('Archived message receipt changed');return;}
     this.snapshot.archiveRecords.push({id:row.archiveId,direction:'out',status:'confirmed',sequence,meta:clone(row.meta),text:row.text});await this.persist();
   }
-  async prepareMessage(recipient,text){return this.run(async()=>{
+  async prepareMessage(recipientInput,text){return this.run(async()=>{
     this.ensureIdle();await this.assertWritable();if(!this.snapshot.controller.registered)throw Error('Register personal device first');await this.sync();
+    const contact=await resolvePersonalContact(this.adapter,recipientInput),recipient=contact.address;
     if(!address(recipient)||recipient===this.scopeObject.wallet||typeof text!=='string'||!text||enc.encode(text).length>1800)throw Error('Invalid personal recipient or message');
     const remote=await this.adapter.device(recipient);if(!remote?.active)throw Error('Recipient has no active device');
     if(!same(await this.adapter.smart({consent:{recipient,sender:this.scopeObject.wallet}}),[remote.generation,this.snapshot.descriptor.generation]))throw Error('Recipient consent required');
@@ -251,7 +266,7 @@ export class PersonalBrowserController{
     await this.openCrypto();const session=personalSessionId(meta,{address:meta.sender,...d},{address:recipient,...remote});
     const exists=await this.transaction(ctx=>ctx.proteusSessionExists(session));const prekey=exists?null:remote.prekeys?.[0];if(!exists&&!prekey)throw Error('Recipient needs prekeys');
     this.quiesce();const blocks=await captureRatchet(this.snapshot.path),archiveId=await personalArchiveId(meta);
-    const send={messageId:meta.messageId,recipient,generation:remote.generation,deviceId:remote.device_id,fingerprint:remote.fingerprint,
+    const send={messageId:meta.messageId,recipient,recipientName:contact.name,generation:remote.generation,deviceId:remote.device_id,fingerprint:remote.fingerprint,
       ...(prekey?{initialPrekeyId:prekey.id,initialPrekeyBundle:Array.from(unb64(prekey.bundle))}:{})};
     await this.journal.prepare({meta,text,archiveId,blocks,send});await this.openCrypto();
     const encrypted=await this.transaction(ctx=>encryptPersonal(ctx,meta,text,remote));
@@ -266,8 +281,10 @@ export class PersonalBrowserController{
   });}
   async receive(){return this.run(async()=>{
     if(!this.snapshot.controller.registered)throw Error('Personal device is not registered');this.ensureIdle();
+    // Empty automatic polls perform no backup request and no ratchet mutation.
+    const rows=await this.adapter.inbox(this.snapshot.cursor||null);if(!rows.length)return this.status();
     if(!this.snapshot.controller.readOnly)await this.sync();
-    const rows=await this.adapter.inbox(this.snapshot.cursor||null);let previous=this.snapshot.cursor;
+    let previous=this.snapshot.cursor;
     for(const row of rows){
       if(!Number.isSafeInteger(row.sequence)||row.sequence<=previous||row.recipient!==this.scopeObject.wallet||! /^[a-f0-9]{64}$/.test(row.message_id)||!address(row.sender))throw Error('Invalid personal inbox sequence');previous=row.sequence;
       const device=[this.snapshot,...this.snapshot.controller.retired].find(d=>d.descriptor.generation===row.recipient_generation);
@@ -307,7 +324,7 @@ export class PersonalBrowserController{
     }else throw Error('Registration outcome remains unknown');
     saved.receipt=receipt;await this.persist();return clone(saved);
   }
-  async reviewContact(kind,contact,allowed){return this.run(async()=>{this.ensureIdle();await this.assertWritable();await this.sync();return this.lifecycle.review(kind,{address:contact,allowed});});}
+  async reviewContact(kind,input,allowed){return this.run(async()=>{this.ensureIdle();await this.assertWritable();await this.sync();const contact=await resolvePersonalContact(this.adapter,input);return this.lifecycle.review(kind,{address:contact.address,contactName:contact.name,allowed});});}
   async prepareRefill(){return this.run(async()=>{
     this.ensureIdle();await this.assertWritable();await this.sync();const own=await this.assertOwn();
     if(this.snapshot.controller.prepared)throw Error('Prepared lifecycle action already exists');

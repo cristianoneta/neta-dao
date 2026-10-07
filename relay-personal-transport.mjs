@@ -22,6 +22,7 @@ export function personalSendRequest(profile, wallet, row, intentId) {
   return {owner: wallet, contract: profile.contract, intentId, kind: 'execute',
     msg: {[initial ? 'send_initial' : 'send']: body}, memo: 'RELAY personal encrypted message · ' + profile.chain};
 }
+import {checkPersonalContact} from './relay-personal-contacts.mjs';
 export class PersonalMessageTransport {
   constructor({adapter, journal, bridge, locks = globalThis.navigator?.locks}) {
     if (!adapter?.profile || !journal?.entries || !journal?.save || !bridge?.execute || !bridge?.recover || !locks?.request)
@@ -50,6 +51,7 @@ export class PersonalMessageTransport {
   }
   async validate(row) {
     await this.adapter.assertWallet(); await this.adapter.verify();
+    await checkPersonalContact(this.adapter,row.send.recipientName,row.meta.recipient);
     if (row.meta.sender !== this.adapter.address) throw Error('Wallet changed');
     const own = await this.adapter.device(), remote = await this.adapter.device(row.meta.recipient);
     if (!own?.active || own.generation !== row.meta.senderGeneration || own.fingerprint !== row.meta.senderFingerprint ||

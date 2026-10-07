@@ -2,7 +2,7 @@
   "schema_version": 2,
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
-  "generated_at": "2026-10-06T20:35:56.702915Z",
+  "generated_at": "2026-10-07T06:16:40.031968Z",
   "treasuries": [
     {
       "chain_id": "juno-1",
@@ -24,15 +24,15 @@
         "timestamp": "2026-09-30T11:15:50.297962745Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42436787,
-      "last_scanned_height": 42437400,
-      "anchor_hash": "7913C84FCE4F4CEDD8B3339D60F57F7FDB767CAB50F5EF5969513CEEADF3F599",
+      "scan_start_height": 42450212,
+      "last_scanned_height": 42451038,
+      "anchor_hash": "7E029F674CAB531C4C96241DFE29B2DFC929C8988CC522B7B464C12BA3F86A02",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
-      "last_full_replay_day": "2026-10-06",
+      "last_full_replay_day": "2026-10-07",
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -101,15 +101,15 @@
           "timestamp": "2026-09-30T11:15:50.297962745Z",
           "kind": "scan-floor-before-start"
         },
-        "scan_start_height": 42436787,
-        "last_scanned_height": 42437400,
-        "anchor_hash": "7913C84FCE4F4CEDD8B3339D60F57F7FDB767CAB50F5EF5969513CEEADF3F599",
+        "scan_start_height": 42450212,
+        "last_scanned_height": 42451038,
+        "anchor_hash": "7E029F674CAB531C4C96241DFE29B2DFC929C8988CC522B7B464C12BA3F86A02",
         "incremental": true,
         "range_capable": true,
         "indexed_transactions": 0,
         "historical_missing_transactions": 0,
         "historical_missing_tx_hashes": [],
-        "last_full_replay_day": "2026-10-06",
+        "last_full_replay_day": "2026-10-07",
         "query_keys": [
           "wasm._contract_address",
           "transfer.sender",
@@ -164,7 +164,8 @@
     ]
   },
   "warnings": [
-    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses."
+    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses.",
+    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2,\"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42451062)\",\"details\":[]}"
   ],
   "events": [
     {
@@ -301,7 +302,7 @@
       "reward_withdrawals": []
     }
   ],
-  "last_success_at": "2026-10-06T20:35:56.702915Z",
+  "last_success_at": "2026-10-07T06:16:40.031968Z",
   "coverage_gaps": [
     "Daily staking accrual starts 2026-10-06T13:57:10.758236337Z; earlier October rewards are unavailable, not zero. Opening claimable rewards are excluded from income. Claims only settle accrued rewards. Slashing and other unclassified movements remain outside recorded totals."
   ],
@@ -312,6 +313,6 @@
     "through_height": 42430022,
     "last_success_at": "2026-10-06T15:38:21.698285Z",
     "intervals": 1,
-    "status": "CURRENT"
+    "status": "UNAVAILABLE"
   }
 }

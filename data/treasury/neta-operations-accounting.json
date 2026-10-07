@@ -17,8 +17,8 @@
   "adapter": "treasury-receipts",
   "status": "PARTIAL",
   "refresh_status": "completed",
-  "checked_at": "2026-10-06T20:35:45.088864Z",
-  "last_success_at": "2026-10-06T20:35:45.073486Z",
+  "checked_at": "2026-10-07T06:16:27.369896Z",
+  "last_success_at": "2026-10-07T06:16:27.356908Z",
   "sources": [
     {
       "accounting_boundary": {
@@ -31,15 +31,15 @@
       "accounting_start": "2026-10-01T00:00:00Z",
       "adapter": "cosmos-rest-receipts",
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-      "anchor_hash": "1109B2AB1ED766A06F3E9000D3DDDFB58C456CD358B3FAD5DAA8ACC2C1C3327A",
+      "anchor_hash": "8F25D72F6805FB55B5021033A69ED811A0A07B45CC4233CD6FA0D2924AAFAFC0",
       "chain_id": "juno-1",
       "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
       "incremental": true,
       "indexed_transactions": 0,
-      "last_full_replay_day": "2026-10-06",
-      "last_scanned_height": 42437394,
+      "last_full_replay_day": "2026-10-07",
+      "last_scanned_height": 42451032,
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -85,7 +85,7 @@
         ]
       ],
       "range_capable": true,
-      "scan_start_height": 42436783,
+      "scan_start_height": 42450206,
       "source": "https://juno.api.m.stavr.tech"
     },
     {
@@ -99,15 +99,15 @@
       "accounting_start": "2026-10-01T00:00:00Z",
       "adapter": "cosmos-rest-receipts",
       "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-      "anchor_hash": "A66179BF9E0BE4465D9359FE362DD6AF2E0A75B35D94B2273609A4A24310250A",
+      "anchor_hash": "60A28FA315D33A8FC36FF538C3E6EF0746789D03FE1A0A5B530FEEAFBB51114D",
       "chain_id": "osmosis-1",
       "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
       "incremental": true,
       "indexed_transactions": 0,
-      "last_full_replay_day": "2026-10-06",
-      "last_scanned_height": 72033449,
+      "last_full_replay_day": "2026-10-07",
+      "last_scanned_height": 72058746,
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -153,7 +153,7 @@
         ]
       ],
       "range_capable": true,
-      "scan_start_height": 72032410,
+      "scan_start_height": 72057298,
       "source": "https://osmosis-api.polkachu.com"
     }
   ],

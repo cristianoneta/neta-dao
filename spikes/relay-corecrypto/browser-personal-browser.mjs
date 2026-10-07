@@ -99,14 +99,14 @@ async function profile(wallet,context,workspace=false){
    window.workspaceOpens=0;window.holdConnect=false;window.finishConnect=null;window.disconnectedCandidates=0;
    window.ui=mountPersonalWorkspace({root:document.getElementById('relay-personal-inbox'),release,loadSigning:async()=>NetaNamesSigning,
     connect:async({assertCurrent})=>{workspaceOpens++;if(holdConnect)await new Promise(resolve=>window.finishConnect=resolve);const controller=window.c;
-     return {controller,authorizeBackup:async()=>{assertCurrent();await backup.connect();assertCurrent();},disconnect:async()=>{disconnectedCandidates++;await controller.close();}};}});
+     return {controller,authorizeBackup:async()=>{assertCurrent();if(!backup.token||backup.expires<=backup.now())await backup.connect();assertCurrent();},disconnect:async()=>{disconnectedCandidates++;await controller.close();}};}});
   },{wallet,contract});
   assert.equal(await page.getByRole('button',{name:'Open personal inbox',exact:true}).isDisabled(),true);
   assert.equal(await page.evaluate(()=>workspaceOpens),0,'page must not open or authorize a personal session automatically');
   await page.locator('#gov-connect').click();
   await page.waitForFunction(()=>NetaWorkspaceWallet.getSession()?.chainId==='juno-1');
   await page.locator('#relay-new-message').click();
-  await page.getByRole('button',{name:'Generate recovery code',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Continue with wallet',exact:true}).waitFor();
   assert.equal(await page.locator('#relay-composer').isHidden(),true,'legacy composer must stay closed');
  }
  return {context,page,wallet};
@@ -119,17 +119,19 @@ const send=async(p,other,text)=>invoke(p,'submitMessage',await invoke(p,'prepare
 try{
  browser=await chromium.launch({headless:true,...(process.env.RELAY_CHROMIUM_PATH?{executablePath:process.env.RELAY_CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}: {})});
  const a=await profile(alice,undefined,true),b=await profile(bob);
- await a.page.getByRole('button',{name:'Generate recovery code',exact:true}).click();
+ await a.page.getByRole('button',{name:'Continue with wallet',exact:true}).click();
+ await a.page.getByLabel('Recovery code',{exact:true}).waitFor();
  const ac=await a.page.getByLabel('Recovery code',{exact:true}).inputValue();assert.match(ac,/^[a-f0-9]{64}$/);
- await a.page.getByRole('checkbox').check();await a.page.getByRole('button',{name:'Create encrypted inbox',exact:true}).click();
+ await a.page.getByRole('checkbox').check();await a.page.getByRole('button',{name:'Create inbox',exact:true}).click();
  await a.page.waitForFunction(()=>c.status().open&&!c.busy&&!document.querySelector('#relay-personal-inbox [role=alert]').textContent);
  const bc=(await invoke(b,'create')).recoveryCode;codes.set(alice,ac);codes.set(bob,bc);
- await a.page.getByRole('button',{name:'Review registration',exact:true}).click();await a.page.getByRole('button',{name:'Confirm in Keplr',exact:true}).click();await a.page.waitForFunction(()=>c.status().registered&&!c.busy);await register(b);await consent(b,a);await consent(a,b);
+ await a.page.getByRole('region',{name:'Review personal action'}).waitFor();await a.page.getByRole('button',{name:'Confirm in Keplr',exact:true}).click();await a.page.waitForFunction(()=>c.status().registered&&!c.busy);await register(b);await consent(b,a);await consent(a,b);
+ const emptyPoll=transport.stats().requests;await invoke(a,'receive');assert.equal(transport.stats().requests,emptyPoll,'empty polls must not consume backup authorization');
  await send(a,b,'Already read and archived');await invoke(b,'receive');await send(b,a,'Reply before backup');await invoke(a,'receive');
  assert.equal((await invoke(a,'status')).history.length,2);assert.equal((await invoke(b,'status')).history.length,2);
  // The user's Lock action releases crypto handles without invalidating the wallet session.
  await a.page.getByRole('button',{name:'Lock inbox',exact:true}).click();await a.page.waitForFunction(()=>!c.status().open);
- await a.page.getByLabel('Recovery code',{exact:true}).fill(ac);await a.page.getByRole('button',{name:'Unlock this browser',exact:true}).click();await a.page.waitForFunction(()=>c.status().open&&!c.busy);
+ await a.page.getByLabel('Recovery code',{exact:true}).fill(ac);await a.page.getByRole('button',{name:'Unlock inbox',exact:true}).click();await a.page.waitForFunction(()=>c.status().open&&!c.busy);
  assert.equal((await invoke(a,'status')).history.length,2);
  // A second tab shares the IDB but cannot acquire this mailbox's lifetime lock.
  const second=await profile(alice,a.context);await assert.rejects(invoke(second,'unlock',ac),/another|lock|open/i);await second.page.close();
@@ -184,7 +186,7 @@ try{
  assert.equal((await invoke(a,'status')).open,false);
  await a.page.evaluate(()=>{window.c=makeController();});
  await a.page.locator('#gov-connect').click();await a.page.getByRole('button',{name:'Open personal inbox',exact:true}).click();
- await a.page.getByLabel('Recovery code',{exact:true}).fill(ac);await a.page.getByRole('button',{name:'Unlock this browser',exact:true}).click();
+ await a.page.getByLabel('Recovery code',{exact:true}).fill(ac);await a.page.getByRole('button',{name:'Unlock inbox',exact:true}).click();
  await a.page.waitForFunction(()=>c.status().open&&!c.busy);
  // Navigation also destroys the visible session, preserving the encrypted store.
  await a.page.locator('[data-relay-panel=directory]').click();assert.equal((await invoke(a,'status')).open,false);
@@ -195,7 +197,7 @@ try{
  assert.equal(await a.page.getByLabel('Recovery code',{exact:true}).count(),0,'late connection must not remount the old wallet');
  await a.page.evaluate(()=>{window.c=makeController();window.holdConnect=false;});await a.page.locator('#gov-connect').click();
  await a.page.getByRole('button',{name:'Open personal inbox',exact:true}).click();
- await a.page.getByLabel('Recovery code',{exact:true}).fill(ac);await a.page.getByRole('button',{name:'Unlock this browser',exact:true}).click();
+ await a.page.getByLabel('Recovery code',{exact:true}).fill(ac);await a.page.getByRole('button',{name:'Unlock inbox',exact:true}).click();
  await a.page.waitForFunction(()=>c.status().open&&!c.busy);
  await authorize(restored);
  // Signed bytes are already backed up when chain accepts but receipt reads vanish.

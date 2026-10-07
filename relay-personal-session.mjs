@@ -25,6 +25,6 @@ export async function connectPersonalBrowser({deployment,backupUrl,owner,keplr=g
   controller=new PersonalBrowserController({runtime:new PersonalCryptoRuntime(),adapter,backup,storage,onState,
     makeBridge:journal=>bundle.createBridge({chainId:profile.chain,client,storage:journal,
       lookup:hash=>lookupTransaction(hash,fetcher,profile.chain),assertWallet:()=>adapter.assertWallet(),verifyDeployment:()=>adapter.verify()})});
-  return {controller,authorizeBackup:()=>{check();return backup.connect();},async disconnect(){connected=false;await controller.close();backup.disconnect();client.disconnect();}};
+  return {controller,authorizeBackup:()=>{check();return (async()=>{if(!backup.token||backup.expires<=backup.now())await backup.connect();check();})();},async disconnect(){connected=false;await controller.close();backup.disconnect();client.disconnect();}};
   } catch(error) {connected=false;await controller?.close();backup?.disconnect();client?.disconnect();throw error;}
 }

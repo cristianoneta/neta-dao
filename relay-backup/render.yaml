@@ -1,5 +1,5 @@
-# Separate optional service. Not referenced by the faucet Blueprint.
-# Do not deploy until budget/provider approval and the reviewed mailbox exists.
+# Future separation template. Current owner-approved pilot uses root render.yaml.
+# Do not create this extra paid service before the adoption/cost review.
 previews:
   generation: "off"
 services:

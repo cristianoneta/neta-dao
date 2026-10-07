@@ -73,6 +73,18 @@
       "source": "https://api.coingecko.com/api/v3/coins/juno-network/market_chart/range?vs_currency=usd&from=1791151200&to=1791252000",
       "method": "historical-daily-opening-reference",
       "fetched_at": "2026-10-06T15:09:27.746877Z"
+    },
+    "2026-10-07:ujuno": {
+      "usd_price": "0.009124482255153736",
+      "timestamp_ms": 1791331200000,
+      "day": "2026-10-07",
+      "denom": "ujuno",
+      "coin_id": "juno-network",
+      "decimals": 6,
+      "symbol": "JUNO",
+      "source": "https://api.coingecko.com/api/v3/coins/juno-network/market_chart/range?vs_currency=usd&from=1791324000&to=1791338400",
+      "method": "historical-daily-opening-reference",
+      "fetched_at": "2026-10-07T00:20:56.821321Z"
     }
   }
 }

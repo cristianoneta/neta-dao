@@ -8,11 +8,11 @@ services:
     runtime: node
     region: frankfurt
     plan: 0.5c-512mb
-    rootDir: faucet
+    rootDir: .
     numInstances: 1
     autoDeployTrigger: "off"
-    buildCommand: npm ci --omit=dev --ignore-scripts
-    startCommand: 'FAUCET_PUBLIC_ORIGIN="${FAUCET_PUBLIC_ORIGIN:-$RENDER_EXTERNAL_URL}" npm start'
+    buildCommand: npm ci --prefix faucet --omit=dev --ignore-scripts && npm ci --prefix relay-backup --omit=dev --ignore-scripts
+    startCommand: 'FAUCET_PUBLIC_ORIGIN="${FAUCET_PUBLIC_ORIGIN:-$RENDER_EXTERNAL_URL}" node faucet/service/server.mjs'
     # Default TCP health checks avoid polling the chain or claim ledger.
     disk:
       name: faucet-ledger
@@ -36,3 +36,11 @@ services:
         value: https://dao.netareborn.com
       - key: FAUCET_RPC
         value: https://juno.test.rpc.nodeshub.online
+      # Enable only with a verified mailbox and consenting pilot allowlist.
+      # Existing disk, faucet secret and payout ledger stay in place.
+      - key: RELAY_BACKUP_ENABLED
+        value: "false"
+      - key: RELAY_BACKUP_DIRECTORY
+        value: /var/data/relay-backup
+      - key: RELAY_WEB_ORIGIN
+        value: https://dao.netareborn.com

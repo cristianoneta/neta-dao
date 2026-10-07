@@ -18,6 +18,7 @@ function keys(prekeys) {
     if(bytes.length<32||bytes.length>1024||btoa(bytes)!==p.bundle)throw Error('Invalid prekey');seen.add(p.id);
   }
 }
+import {checkPersonalContact} from './relay-personal-contacts.mjs';
 export class PersonalMailboxLifecycle {
   constructor({adapter, bridge, storage=globalThis.localStorage, locks=globalThis.navigator?.locks, prepared}) {
     if(!adapter?.profile||!bridge?.execute||!bridge?.recover||!storage?.getItem||!locks?.request||typeof prepared!=='function')throw Error('Lifecycle dependencies required');
@@ -61,6 +62,7 @@ export class PersonalMailboxLifecycle {
     const previous=this.load();
     this.save({version:1,status:'pending',review,history:[...(previous?.history||[]),...(previous?[{status:previous.status,review:previous.review,receipt:previous.receipt}]:[])]});
     await this.bridge.execute(review.request,{beforeSign:async()=>{
+      await checkPersonalContact(this.adapter,review.input.contactName,review.input.address);
       await this.adapter.assertWallet();await this.adapter.verify();
       if(!same(identity(await this.adapter.device()),review.before))throw Error('Own device changed');
       if(review.remote&&!same(identity(await this.adapter.device(review.input.address)),review.remote))throw Error('Contact changed');

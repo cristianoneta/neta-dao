@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'relay-backup/**'
+      - 'faucet/service/**'
+      - 'render.yaml'
       - 'relay-personal-backup.mjs'
       - '.github/workflows/relay-backup-ci.yml'
   workflow_dispatch:

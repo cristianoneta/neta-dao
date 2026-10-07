@@ -2,7 +2,7 @@ import http from 'node:http';
 import {AMOUNT} from './ledger.mjs';
 import {validAddress} from './chain.mjs';
 
-export function createFaucetServer({ledger,adapter,origin,paused=false,now=Date.now}){
+export function createFaucetServer({ledger,adapter,origin,paused=false,now=Date.now,backup=null}){
   let active=0,snapshot=null,snapshotError=false,nextRefresh=0,refresh=null;
   async function chainStatus(){
     if(refresh)return refresh;
@@ -15,6 +15,12 @@ export function createFaucetServer({ledger,adapter,origin,paused=false,now=Date.
     return refresh;
   }
   const server=http.createServer(async(req,res)=>{
+    // Shared pilot host, separate protocol routes and admission counters. Never
+    // pass a RELAY request to the payout handler (including while disabled).
+    if(req.url==='/health'||req.url?.startsWith('/v1/')){
+      if(backup)return backup.emit('request',req,res);
+      res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'}).end(JSON.stringify({error:'RELAY backup is not enabled'}));return;
+    }
     res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json');res.setHeader('X-Content-Type-Options','nosniff');
     if(req.headers.origin===origin){res.setHeader('Access-Control-Allow-Origin',origin);res.setHeader('Vary','Origin');}
     const respond=(code,data)=>{if(!res.headersSent&&!res.destroyed){res.writeHead(code);res.end(code===204?undefined:JSON.stringify(data));}};

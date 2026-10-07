@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {PersonalMessageTransport} from '../relay-personal-transport.mjs';
-const a='juno1'+'q'.repeat(38),b='juno1'+'p'.repeat(38),contract='juno1'+'a'.repeat(58),mid='1'.repeat(64);
+import {PERSONAL_MAINNET_POLICY} from '../relay-personal-network.mjs';
+const a='juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57',b='juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt',contract='juno1'+'a'.repeat(58),mid='1'.repeat(64);
 function harness() {
   let row={version:1,id:mid,state:'ready',meta:{chain:'juno-1',contract,sender:a,senderGeneration:1,senderFingerprint:'a'.repeat(64),
     recipient:b,recipientGeneration:2,recipientFingerprint:'b'.repeat(64),messageId:mid},
@@ -64,4 +65,16 @@ test('concurrent submissions share the origin lock and cannot create two attempt
   const h=harness(),review=await h.transport.review(mid);
   const results=await Promise.allSettled([h.transport.submit(review),h.transport.submit(review)]);
   assert.equal(h.writes(),1);assert.ok(results.some(r=>/Another tab/.test(r.reason?.message)));
+});
+test('a contact name transferred after review cannot sign or retarget the saved packet',async()=>{
+  const h=harness();let owner=b;
+  h.row().send.recipientName='bob.neta';h.adapter.profile.policy=PERSONAL_MAINNET_POLICY;
+  h.adapter.get=async(base,path)=>path.endsWith('/latest')?
+    {block:{header:{chain_id:'juno-1',height:'99',time:new Date().toISOString()}}}:
+    {data:JSON.parse(atob(decodeURIComponent(path.split('/').at(-1)))).identity?
+      {name:'bob.neta',owner,expires_at:Math.floor(Date.now()/1000)+3600}:{name:'bob.neta',address:owner}};
+  const review=await h.transport.review(mid),ciphertext=structuredClone(h.row().ciphertext);owner=a;
+  await assert.rejects(h.transport.submit(review),/Name owner changed/);
+  assert.equal(h.writes(),0);assert.equal(h.row().meta.recipient,b);
+  assert.deepEqual(h.row().ciphertext,ciphertext);assert.equal(h.row().attempt,undefined);
 });

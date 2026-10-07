@@ -1,5 +1,16 @@
 # Deploy the UNI-7 faucet without managing a server
 
+## Shared RELAY pilot update — 7 October 2026
+
+The owner chose to reuse this existing service for encrypted RELAY backups.
+The root Blueprint now uses repository root, installs both packages and starts
+`faucet/service/server.mjs`. Keep all existing faucet settings, the private group,
+secret file and `/var/data/faucet.sqlite` in place. RELAY defaults off and uses its
+own directory and routes. Follow the [shared pilot runbook](../docs/RELAY_SHARED_PILOT_2026-10-07.md)
+before changing the existing service's build/start settings or enabling backups.
+Separate services after adoption; do not duplicate the faucet or discard its ledger.
+The deployment observations and initial setup below predate this source update.
+
 Status as of 2026-10-04, approximately 13:58 Berlin: the owner deployed the latest
 backend. `/status` reports UNI-7, the dedicated account, 15 JUNOX, ready true,
 `protection:usage-guards-v1`, `confirmation:uni7-exact-hash-v1` and

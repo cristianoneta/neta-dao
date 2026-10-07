@@ -1,5 +1,11 @@
 # Personal RELAY encrypted backup candidate
 
+Owner update, 7 October 2026: the pilot will share the **existing Faucet Render
+service**, using separate routes, authorization and database files in one process.
+Follow the root `render.yaml` and [shared pilot runbook](../docs/RELAY_SHARED_PILOT_2026-10-07.md).
+The standalone Blueprint below is retained for the later service separation.
+No live backup activation has occurred; the real mailbox/allowlist are still needed.
+
 The actual Inbox-shell browser regression now uses the real cross-origin HTTPS,
 ADR-36 and SQLite service with real CoreCrypto state. It exposed and fixed native
 fetch binding; it also verifies deliberate reauthorization after the bounded
@@ -10,10 +16,10 @@ uses disposable local TLS/test keys; it is not a hosted service or mainnet test.
 Not deployed. No paid resources, remote user backups or real-wallet transactions
 were created. The owner deployment helper and next steps are in
 [the deployment runbook](../docs/PERSONAL_MAINNET_DEPLOYMENT_RUNBOOK_2026-10-06.md).
-Provider/budget approval, actual mailbox and consenting pilot wallets, exact
-service/CSP pins and real two-wallet mainnet evidence remain open.
+The shared Faucet host is approved for this pilot. Actual mailbox and consenting
+pilot wallets, exact service/CSP pins and real two-wallet mainnet evidence remain open.
 
-## Concrete proposed deployment
+## Historical separate-service proposal (superseded for the pilot)
 
 - Repository: `cristianoneta/neta-dao`, reviewed PR #195 branch; Blueprint path
   `relay-backup/render.yaml` (NOT the faucet's root Blueprint).
@@ -85,8 +91,8 @@ this is not proof of coherent restoration of a real CoreCrypto browser profile.
 
 1. Review the final candidate and use the prepared owner upload/instantiate flow
    described in the runbook; no actual deployment is recorded.
-2. Obtain provider/budget approval and the second consenting pilot wallet. Deploy
-   the reviewed service with its actual mailbox and allowlist; verify live health,
+2. Obtain the second consenting pilot wallet and configure the approved existing
+   Faucet service using the shared pilot runbook, actual mailbox and allowlist; verify live health,
    authentication, backup, restart persistence and origin policy.
 3. Pin the exact contract/service in `relay-personal-release.mjs`, and add only the
    actual backup origin to `index.html` connect-src. Never permit arbitrary origins
@@ -94,4 +100,5 @@ this is not proof of coherent restoration of a real CoreCrypto browser profile.
 4. Run the consenting two-wallet mainnet exchange/reply/reload/restore checks with
    the real session, wallet and HTTP transport before public activation.
 
-No deployment or service approval is implied by local or hosted candidate tests.
+Local or hosted candidate tests do not establish a live deployment. Shared hosting
+is approved by the owner; an additional paid service still needs a later decision.

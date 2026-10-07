@@ -1,5 +1,83 @@
 # NETA DAO code-backed current state
 
+## Shared pilot and simpler Inbox — 7 October 2026
+
+Owner decision: use the existing `neta-junox-faucet` Render service for RELAY
+backups while there are no users; separate it after adoption. This supersedes the
+earlier separate-service proposal. See [the implementation and operating plan](RELAY_SHARED_PILOT_2026-10-07.md),
+including the explicit separation to-do and preservation/restore procedure.
+
+PR #195 now integrates main through the contract-review publication and adds
+state-selected setup/unlock/restore, contextual backup renewal, automatic idle
+receive/reconciliation, verified `.neta` contacts and non-authorizing invitation
+links. Wallet signing, consent, generation checks, exact-byte journals and the
+15-minute/120-request backup bounds remain explicit and unchanged. Passkeys and
+unattended signing are deferred. The root Blueprint reuses the existing service,
+disk and faucet secret, with a separate backup database and routes. RELAY defaults
+to disabled until the actual mailbox and consenting wallets are configured.
+
+Local checks pass: 180 root Node tests, 62 Faucet tests, ten backup tests, the
+real-CoreCrypto HTTPS recovery suite and the new responsive Inbox UX regression.
+Hosted CI for this continuation is pending publication.
+
+No live Render redeploy or real owner transaction is evidenced here. Both release
+pins remain null, public messaging and DAO writes stay inactive. Next: complete
+review/CI, verify owner upload/instantiate receipts, update the existing Render
+service's root/build/start settings, configure the real mailbox and allowlist,
+verify live persistence/authentication and the two-wallet pilot. Preserve all
+keys, journals, faucet SQLite/WAL and generated Treasury snapshots.
+
+## Adversarial contract review — 7 October 2026
+
+The owner asked for a whitehat-style check. See the scoped
+[personal mailbox v0.4 security review](PERSONAL_MAILBOX_SECURITY_REVIEW_2026-10-07.md).
+No exploitable critical/high defect was confirmed in the reviewed contract
+paths. Ten new adversarial tests pass alongside the existing 22; Clippy passes,
+and the pinned release rebuild remains byte-identical to the published WASM.
+Only tests and documentation changed. This is an internal source review, not an
+independent external audit or an approval to activate public messaging.
+
+Confirmed boundary: the active `.neta` gate applies to sending, not device
+registration; rotations/history can grow state against chain fees without a
+contract-level total quota. Public metadata, client ciphertext authentication,
+owner upgrade custody, registry trust and the explicit dependency-audit exception
+are documented. No owner transaction occurred; deployment/release pins remain
+null, PR #195 remains draft, and the private-pilot/backup/independent-review gates
+remain open. Preserve pending keys and transaction journals.
+
+## Owner deployment publication — 7 October 2026
+
+The owner asked to continue with the reviewed owner deployment page. [PR #200](https://github.com/cristianoneta/neta-dao/pull/200), merged as
+`0a6de50a878ce38f2b60d2a8a8dc03ddb5dfd301`, publishes the v0.4
+contract/source, artifact and standalone setup helper from PR #195 onto current
+main. The shared signing bundle and production Inbox are unchanged. This avoids
+publishing the unfinished personal runtime while making owner deployment concrete.
+
+The setup retains the two explicit wallet confirmations, owner upgrade authority,
+exact-intent recovery without resending and two-provider receipt verification.
+Both personal deployment/release pins remain null. No contract, real signature,
+backup service, cost or public messaging activation was created by this work.
+
+Local checks: 159 root Node tests and the owner browser regression passed. The
+latter simulates chain/signing and covers reload/recovery, wallet invalidation,
+public export, keyboard focus and 1440/768/390/320 px; desktop/mobile screenshots
+were inspected. The artifact hash remains
+`835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708`.
+All three PR checks passed: browser **37576257783**, frontend/contracts
+**37576257803**, and reproducible WASM **37576257837**. Pages **37576743695**
+succeeded. Eight served files, including the WASM, matched source SHA-256.
+The [owner deployment page](https://dao.netareborn.com/relay-personal-deploy.html)
+is now live. Source publication is complete; no owner transaction has been made.
+
+Next: use the live `relay-personal-deploy.html` page with the owner
+wallet. Upload and instantiate are separate Keplr confirmations; save the exported
+public JSON and independently recheck its exact transactions/code/address. Do not
+repeat an unresolved action or clear site data. Provider/budget agreement and a
+second consenting pilot wallet remain open. The full personal runtime still lives
+in draft PR #195; integrate current main into it before continuing. After personal
+mainnet evidence: DAO shared recovery/inbox, then payment requests/invoices and
+Treasury linkage.
+
 ## Overnight continuation — 6 October 2026, owner deployment and real backup transport
 
 Continue **draft [PR #195](https://github.com/cristianoneta/neta-dao/pull/195)** on

@@ -536,3 +536,21 @@ fees, owner upgrade authority and reviewed artifact identity. Retain a visible
 pending-transaction recovery section and public receipt export. Disconnect/account
 changes clear reviews while preserving journals. This page does not activate
 public messaging or create a backup service; no new main navigation item.
+
+## Personal mainnet owner deployment — 2026-10-07
+
+The standalone owner setup page reuses the existing Names deployment foundations
+and styles. Keep Juno mainnet, owner upgrade authority, separate upload/create
+reviews, real network fees and recovery/export visible. Connecting and reviewing
+never sign. Preserve exact-intent journals across account changes and reloads.
+Publishing this helper does not activate private Inbox sending or DAO writes.
+
+## Personal Inbox simplification — candidate, 2026-10-07
+
+Use one compact entry card inside the existing Inbox. Detect local/remote state;
+show only create, unlock or restore as appropriate. Code-saving confirmation and
+wallet reviews remain explicit. Keep maintenance under Device and backup, bound
+history height and offer renewal/recovery only when needed. Names resolve to an
+address shown in the review; contact invitations never grant permission. Automatic
+receive/reconciliation must stop when locked, busy, hidden, disposed or in error.
+No passkey unlock or unattended signing is implied by this UI.

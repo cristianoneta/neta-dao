@@ -4,6 +4,15 @@ Prepared on 6 October 2026 in draft PR #195. No mainnet contract, backup service
 real-wallet signature or recurring cost has been created. This is a runnable
 owner deployment candidate, not a completed production rollout.
 
+## Publication split — 7 October 2026
+
+The standalone owner helper, exact v0.4 artifact/source and null release modules
+were published separately in [PR #200](https://github.com/cristianoneta/neta-dao/pull/200),
+merged as `0a6de50a878ce38f2b60d2a8a8dc03ddb5dfd301`. The public Inbox and shared signing
+bundle remain unchanged; PR #195 still holds the unmerged personal runtime.
+All three PR checks passed and Pages run 37576743695 succeeded. Eight served
+files matched source SHA-256. Use the [verified owner page](https://dao.netareborn.com/relay-personal-deploy.html). No real chain receipt or backup service exists.
+
 ## Reviewed source and identities
 
 - Continue `codex/personal-messaging-recovery-mainnet`; do not rebuild from main.
@@ -55,32 +64,21 @@ uses exact signed intent receipts and never broadcasts automatically.
 
 ## Backup service decision and configuration
 
-The existing proposal is one separate Render service in Frankfurt, plan
-`0.5c-512mb`, Node 24.19.0, manual deployments and a 1-GB persistent disk.
-Blueprint: `relay-backup/render.yaml`; never use the faucet Blueprint or secrets.
-The previously recorded proposal is USD 7.25/month base (USD 7 compute + USD 0.25
-disk), before tax/workspace fees/overages, not a billing cap. Confirm the actual
-provider quote with the owner before creating a service. Provider/budget approval
-is outstanding; the owner's instruction to finish the preparation is not a paid
-service approval.
+Owner update, 7 October: use the existing `neta-junox-faucet` Render service for the
+private pilot, preserving its disk, secret and payout ledger. The old separate
+USD 7.25/month proposal is superseded. See
+[RELAY_SHARED_PILOT_2026-10-07.md](RELAY_SHARED_PILOT_2026-10-07.md) for exact
+settings, the accepted shared-process trade-off, consistent database exports and
+the to-do to separate the service after adoption. No extra paid instance or plan
+upgrade is authorized. No live configuration change is recorded.
 
-Set `RELAY_MAILBOX_CONTRACT` only to the independently verified instance, and
-`RELAY_BACKUP_WALLETS` to consenting pilot wallet addresses (maximum ten).
-The second pilot wallet is still needed. Web origin remains exactly
-`https://dao.netareborn.com`; the provider's exact HTTPS origin must match its
-ADR-36 challenge domain. Do not invent a hostname. Preserve SQLite and WAL on
-`/var/data`; no faucet signing key belongs in this service.
-
-After an approved deployment, verify real health, CORS, ADR-36, encrypted writes,
-restart persistence and quotas at that exact origin. Then prepare a reviewed
-private-pilot client pin for the real contract/service and add only that origin
-to the workspace CSP. The automated local test injects its disposable origin
-into the served fixture HTML; it does not relax production CSP.
-
-Sessions remain bounded to 15 minutes / 120 backup requests. Expiry or exhaustion
-invalidates the client token and explains **Authorize encrypted backup**, then
-**Recover pending actions**. This is a separate wallet authentication, never an
-automatic signature. Reauthorization cannot clear or resend a transaction.
+The root Blueprint now installs both locked packages and retains manual deploys.
+Backup defaults off. Enable only with the independently verified mailbox and
+consenting pilot wallet allowlist; verify existing service origin and startup,
+CORS, bounded ADR-36 access, encrypted writes and restart persistence before
+pinning it in the client. Keep both production pins null until the remaining
+release evidence is complete. The code keeps 15-minute/120-request sessions and
+never silently signs, overwrites a conflicting revision or resends a transaction.
 
 ## Evidence and remaining pilot gate
 
