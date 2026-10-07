@@ -1,28 +1,38 @@
 # NETA DAO handoff
 
-## Latest verified checkpoint — 7 October 2026, 11:38 Berlin
+## Latest verified checkpoint — 7 October 2026, 12:10 Berlin
 
-Community Tools and the validator follow-ups are published: PR #210 added the
-shared Faucet header and recovered pre-quorum evidence; PR #211 combines the
-earliest saved consensus vote with canonical first-signature evidence. The default
-column is **First participation evidence**, explicitly labelled ≤ (participating
-by this time), with its evidence type. This is not an exact upgrade-time ranking.
+The owner requested a fresh handoff after another stalled chat. Read
+[the current handoff](docs/HANDOFF_NEXT_CHAT_2026-10-07.md) for the exact continuation,
+published URLs, timing evidence, automatic-update intervals and remaining gates.
 
-The archive at 09:33:50 UTC covers every block through 42,453,480 and has 20/25
-first signatures, including POSTHUMAN at 11:22:06 Berlin. This is historical
-coverage, not the current number of signing validators. Current participation
-refreshes every 30 visible seconds; archive collection runs every ten minutes
-independently of an open page, and the browser reloads it at most every five
-minutes. Provider/scheduler/Pages delays can extend those intervals.
+- Community Tools, shared header within that section, recovered pre-quorum votes
+  and combined first-participation evidence are published through PRs #208/#210/#211.
+  The previous handoff was merged in #212. The broader request for the Faucet header
+  on all subpages remains a domain-wide scope check; other pages are not verified
+  by the Community Tools implementation.
+- The saved archive at **09:57:31 UTC** covers every block through **42,453,915**,
+  with **20/25 observed first signatures**. The same five records remain unknown.
+  This is archive coverage, not the current number of signing validators.
+  Collector `37603987812` and Pages `37604149174` succeeded for data commit
+  `bfcc2afb210fbd763c19e7bd31d7ca9080dcc377`. Latest inspected main was
+  `592beb63251a070afea4b1d04aa3a1bd50f0e069`, Pages `37604415482` successful.
+- Current participation refreshes every 30 visible seconds; archive collection runs
+  every ten minutes independently of an open page, and the browser reloads it at
+  most every five minutes. Scheduler/provider/Pages delays may extend the wait.
+  First evidence is an upper bound on readiness, not an exact installation time.
+- PR #195 is still the only open PR, draft at
+  `39feff397f600a25057087285e7710d032326aca`. Its prior five checks passed.
+  Real owner receipts, shared Render backup verification and the two-wallet
+  mainnet pilot remain outstanding. Issue #119 remains open and partly relevant;
+  its unactivated-NNS wording is stale and should be reconciled separately.
+- Next: integrate newer main into the personal candidate, recheck providers and
+  recover the existing owner deployment with **Check pending transaction**.
+  Complete personal messaging first, then shared DAO inboxes/recovery, then
+  payment requests/invoices and Treasury linkage. Only sending requires `.neta`.
 
-PR #211 merged as `5ad9fb14bf72daf1ec65341c41d75c687e22cfac`; all five PR
-workflows passed. Collector `37601407504` published data commit
-`ad4bdb481f861f14f64707d5277d0ae125dd2791`; Pages `37601479514` succeeded.
-See [the current handoff](docs/HANDOFF_NEXT_CHAT_2026-10-07.md) for the evidence table, exact limits and next steps.
-
-Open work remains draft PR #195 (personal messaging/recovery/shared-backup pilot)
-and issue #119 (partly current Treasury/other gates; NNS launch wording is outdated).
-No mainnet messaging activation or owner transaction was performed by this work.
+This refresh changes documentation only. No fresh live-browser audit, owner
+transaction, paid service or mainnet messaging activation was performed.
 
 ## Current continuation — 7 October 2026
 
