@@ -52,7 +52,8 @@ try{
         await page.getByLabel('Recovery code',{exact:true}).fill('Screenshot fixture — no real recovery code');
         await page.screenshot({path:join(screens,'personal-pilot-'+width+'.png'),fullPage:true});
       }
-      await page.locator('#pilot-disconnect').focus();assert.notEqual(await page.locator('#pilot-disconnect').evaluate(e=>getComputedStyle(e).outlineStyle),'none');
+      await page.locator('#pilot-disconnect').focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');
+      assert.equal(await page.evaluate(()=>document.activeElement.id),'pilot-disconnect');assert.notEqual(await page.locator('#pilot-disconnect').evaluate(e=>getComputedStyle(e).outlineStyle),'none');
       await page.locator('#pilot-disconnect').click();
     }else await page.evaluate(()=>dispatchEvent(new Event('keplr_keystorechange')));
     assert.equal(await page.locator('#pilot-inbox').isHidden(),true);assert.equal(await page.locator('#pilot-inbox').textContent(),'');
