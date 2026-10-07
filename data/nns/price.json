@@ -6,9 +6,9 @@
   "treasury": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
   "snapshot": {
     "signer_version": 1,
-    "usd_per_neta_12": "1231211787038",
-    "observed_at": 1791343187,
-    "expires_at": 1791429587
+    "usd_per_neta_12": "1234759080861",
+    "observed_at": 1791344976,
+    "expires_at": 1791431376
   },
-  "signature": "KDZ3pTxr9TjtVto5sLprmpCWxw290OxaguMKWEwCdjq8RvdGMVbTrU8KFI/pq6ArDy+37vMlBgu91V3MoJZ0DQ=="
+  "signature": "dUNvQpO3seF5t2SzFelh8b8g5dEO7bRj61JE80o262qzvA9BwZX90Ale8Ry/xDiwptiOqaEpkqFRE+cOd2vACA=="
 }
