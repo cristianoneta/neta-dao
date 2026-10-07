@@ -2,7 +2,7 @@
   "schema_version": 2,
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
-  "generated_at": "2026-10-07T03:23:00.096458Z",
+  "generated_at": "2026-10-07T03:46:47.986355Z",
   "treasuries": [
     {
       "chain_id": "juno-1",
@@ -24,9 +24,9 @@
         "timestamp": "2026-09-30T11:15:50.297962745Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42446340,
-      "last_scanned_height": 42446953,
-      "anchor_hash": "7DA87998E3173133C5ED3C1DBCE746A76B5BB050BEBCECABF62B5D2ACAC91264",
+      "scan_start_height": 42446853,
+      "last_scanned_height": 42447512,
+      "anchor_hash": "3EB23C462C9418CB791E0EDFB76C790D1D6ED5AF5778BCB76E320A8A81724950",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
@@ -101,9 +101,9 @@
           "timestamp": "2026-09-30T11:15:50.297962745Z",
           "kind": "scan-floor-before-start"
         },
-        "scan_start_height": 42446340,
-        "last_scanned_height": 42446953,
-        "anchor_hash": "7DA87998E3173133C5ED3C1DBCE746A76B5BB050BEBCECABF62B5D2ACAC91264",
+        "scan_start_height": 42446853,
+        "last_scanned_height": 42447512,
+        "anchor_hash": "3EB23C462C9418CB791E0EDFB76C790D1D6ED5AF5778BCB76E320A8A81724950",
         "incremental": true,
         "range_capable": true,
         "indexed_transactions": 0,
@@ -165,7 +165,7 @@
   },
   "warnings": [
     "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses.",
-    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2,\"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42446976)\",\"details\":[]}"
+    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2,\"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42447536)\",\"details\":[]}"
   ],
   "events": [
     {
@@ -302,7 +302,7 @@
       "reward_withdrawals": []
     }
   ],
-  "last_success_at": "2026-10-07T03:23:00.096458Z",
+  "last_success_at": "2026-10-07T03:46:47.986355Z",
   "coverage_gaps": [
     "Daily staking accrual starts 2026-10-06T13:57:10.758236337Z; earlier October rewards are unavailable, not zero. Opening claimable rewards are excluded from income. Claims only settle accrued rewards. Slashing and other unclassified movements remain outside recorded totals."
   ],
