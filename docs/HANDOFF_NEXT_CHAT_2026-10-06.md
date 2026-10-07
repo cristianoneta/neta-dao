@@ -1,5 +1,23 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Adversarial contract review — 7 October 2026
+
+The owner asked for a whitehat-style check. See the scoped
+[personal mailbox v0.4 security review](PERSONAL_MAILBOX_SECURITY_REVIEW_2026-10-07.md).
+No exploitable critical/high defect was confirmed in the reviewed contract
+paths. Ten new adversarial tests pass alongside the existing 22; Clippy passes,
+and the pinned release rebuild remains byte-identical to the published WASM.
+Only tests and documentation changed. This is an internal source review, not an
+independent external audit or an approval to activate public messaging.
+
+Confirmed boundary: the active `.neta` gate applies to sending, not device
+registration; rotations/history can grow state against chain fees without a
+contract-level total quota. Public metadata, client ciphertext authentication,
+owner upgrade custody, registry trust and the explicit dependency-audit exception
+are documented. No owner transaction occurred; deployment/release pins remain
+null, PR #195 remains draft, and the private-pilot/backup/independent-review gates
+remain open. Preserve pending keys and transaction journals.
+
 ## Owner deployment publication — 7 October 2026
 
 The owner asked to continue with the reviewed owner deployment page. [PR #200](https://github.com/cristianoneta/neta-dao/pull/200), merged as

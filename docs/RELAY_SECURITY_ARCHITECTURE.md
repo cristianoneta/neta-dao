@@ -1,5 +1,24 @@
 # RELAY security requirements and implementation boundary
 
+## Current scope clarification — 7 October 2026
+
+The v0.4 personal-mainnet candidate now supports explicit owner-only `juno-1`
+instantiation, the pinned NNS registry, name-gated sending, generation-bound
+consent and historical device identities. There is **no 5-NETA stake gate** in
+this candidate. DAO writes remain disabled on mainnet. The standalone owner
+helper and artifact are published, but no owner deployment receipt was verified
+in this session and public messaging remains inactive.
+
+Read the [scoped adversarial contract review](PERSONAL_MAILBOX_SECURITY_REVIEW_2026-10-07.md)
+for current code/test evidence, state-growth limits and trust assumptions. It is
+not an independent audit. The original dated sections below describe historical
+versions and proposals; their old UNI-7-only, missing-history, stake-policy and
+unimplemented-recovery statements must not be treated as the current v0.4 status.
+[CURRENT_STATE.md](CURRENT_STATE.md) tracks the unpublished runtime in draft PR #195.
+The independent client/contract review and real deployment/pilot gates remain open.
+
+## Historical 2–3 October assessment
+
 Reviewed 2026-10-02. This is a threat model and release-gate document, not a
 claim of an audited implementation. [CURRENT_STATE.md](CURRENT_STATE.md) and
 [RELAY_IMPLEMENTATION_PLAN.md](RELAY_IMPLEMENTATION_PLAN.md) inventory actual code.
