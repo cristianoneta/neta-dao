@@ -1,5 +1,33 @@
 # NETA DAO handoff
 
+## Owner correction: readiness before quorum — 7 October, 10:55 Berlin
+
+The first committed signature is **not** the requested upgrade responsiveness
+metric. A recovered pair of `/dump_consensus_state` captures from 07:32 UTC
+survives locally and is preserved without peer data in
+`data/validator-upgrades/juno-v31-readiness.json`. Both agree at 42,452,001,
+round 0: 14 validators had prevoted (64.53% power), 54.77% for the same block.
+Kintsugi's reported prevote time is 07:08:04.799998078 UTC (11m33s after the
+halt reference). Polkachu is absent in this snapshot; its readiness time is
+unknown, not inferred from a later commit or ranked last.
+
+The follow-up defaults to First consensus vote, with partial-coverage labels,
+optional first-block-signature view, earliest-vote sorting and an expandable
+same-round timeline. Live signing remains a separate current window. The
+Faucet header is shared by every Community Tools page; the tracker uses a
+read-only mainnet label, with no wallet action. A bounded future collector needs
+an explicit UTC `readinessWindow` in the registry and archives during the halt.
+Historical v31 coverage cannot be recreated by enabling it now. See the tracker
+document for evidence, timing limitations and future setup. This section records
+the prepared correction; verify its PR/Pages result before calling it live.
+
+The owner also asked whether open work remains relevant: draft PR #195 still
+contains unfinished RELAY recovery/shared-backup/pilot work. Issue #119 remains
+partly relevant (incomplete Treasury coverage/expenses, unknown IBC decimals and
+DAO write/validator-E2E follow-ups), but its unactivated-NNS wording predates the
+verified mainnet launch and the October-only accounting decision. Do not close
+these as completed or merge #195 as part of Community Tools.
+
 ## Current continuation — 7 October 2026
 
 Community Tools follow-up: the owner approved publishing the compact tracker under

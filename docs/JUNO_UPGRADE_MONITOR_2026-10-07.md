@@ -124,7 +124,10 @@ an existing first observation, interprets nil as a block signature, or overwrite
 corrupt saved evidence. Each actual JSON record includes its transaction-independent
 commit hash, signature and timestamp. This is RPC-checked evidence, not local
 Ed25519 signature verification. The half-hour workflow continues partial scans,
-publishing only `data/validator-upgrades/*.json`; completed histories require no
+with a 120-second scan budget and a 1,000-block cap so ordinary block production
+does not permanently outrun a 200-block-per-half-hour limit. A slow or unavailable
+provider can still delay the archive; the scanned-through watermark remains visible.
+It publishes only `data/validator-upgrades/*.json`; completed histories require no
 further node requests. Source disagreement stops at the last accepted prefix.
 The browser reads this separate dated history at most every five minutes and never
 turns an unavailable archive into zero delay. Current participation remains the
@@ -142,5 +145,52 @@ Verification includes the real first canonical v31 commit's schema, six collecto
 unit tests, three browser-history parser tests, the existing core/frontend/faucet
 checks, the expanded tracker browser regression, legacy redirects and the faucet
 browser regression under its new path. Desktop, tablet and narrow layouts were
-reviewed. Browser transaction tests remain simulated; publication evidence follows
-only after CI and deployment are verified.
+reviewed. Browser transaction tests remain simulated; the live publication evidence
+is recorded separately below.
+
+Publication verified: PR #208 merged as `d8172c1d383761ac069d328388ca99127194b933`
+after all four hosted checks passed. Pages run `37596259987` succeeded. The first
+production collector run `37596259838` advanced to height 42,452,320, recording
+16 of 25 first signatures (including GATA HUB at 42,452,230). Its data commit
+`80b369e9770aaa20545f8731da27357210715422` triggered successful Pages run
+`37596335635`; the public JSON and live browser both showed that checkpoint.
+At 08:50 UTC the independent live window showed 17/25 and 76.68% signing power,
+both sources agreeing. Those are dated observations, not fixed status values.
+
+## Pre-quorum readiness correction — owner request at 10:55 Berlin
+
+Recovered original two-provider dump files captured around 07:32 UTC establish
+14 prevoters (19,208,906 / 29,766,214 = 64.53% power), including nil votes.
+11 had block prevotes totaling 16,302,684 = 54.77%; no prevote quorum or precommits
+existed. The archive retains validator sets and vote strings from both sources,
+original file SHA-256, capture-file times and provenance; peer data is omitted.
+Capture times are recovered file timestamps corroborated by the original handoff,
+not independently signed receipt times. Reported vote times are validator clocks.
+Kintsugi: 07:08:04.799998078 UTC, +11m33s; earliest captured The_Cybernetics:
+06:56:41.342866473 UTC, +10s. Polkachu has no vote in that captured round.
+Nothing here proves its installation time, exact online time or final place.
+
+`juno-upgrade-readiness.mjs` checks matching height, round, validators/powers,
+vote identities, types and identical timestamps across observers. The default
+column and sort use earliest archived consensus votes; missing data is unknown.
+An expandable timeline accumulates participation and largest-block agreement
+within one captured round only; nil increases participation only. The separate
+live five-block window and optional canonical-first-signature archive are retained.
+Readiness evidence remains visible when current RPC reads fail.
+
+For future upgrades, add `readinessWindow: {"start":"<UTC ISO time>",
+"end":"<UTC ISO time>"}` to its reviewed registry entry BEFORE the halt.
+The window must be at most 24 hours. `validator-readiness.yml` checks every five
+minutes; in an active window the observer samples every 20 seconds for up to
+250 seconds, only at the first post-upgrade consensus height. It checks chain,
+non-catching-up observers and matching canonical halt anchors, writes accepted
+two-source captures atomically, preserves prior records, and stops when both
+nodes have passed the halt. At most 600 changed captures are accepted. No active
+window means no node calls. Scheduler delays, gaps, late start, disagreement and
+validator clock error prevent exact global-readiness rankings; all archives remain
+explicitly partial. Public RPC reports are not full signature verification. No
+external service, secret, wallet permission or mainnet activation is added.
+
+The old 09:32 snapshot cannot fill the interval through the 09:53 restart. Actual
+node consensus WALs or other contemporaneous observer archives would be needed
+for more evidence; do not manufacture missing times from committed headers.

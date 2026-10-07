@@ -11,6 +11,8 @@ on:
       - 'juno-consensus-*.mjs'
       - 'juno-upgrade-status.*'
       - 'juno-upgrade-history.mjs'
+      - 'juno-upgrade-readiness.mjs'
+      - 'data/validator-upgrades/*-readiness.json'
       - 'community-tools/**'
       - 'community-tools*.css'
       - 'community-*.mjs'
