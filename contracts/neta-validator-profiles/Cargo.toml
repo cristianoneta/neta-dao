@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 cosmwasm-std = "1.5.11"
 cw-storage-plus = "1.2.0"
 cw2 = "1.1.2"
-schemars = "0.8.22"
+schemars = "1.2.2"
 serde = { version = "1.0", features = ["derive"] }
 sha2 = "0.10"
 ripemd = "0.1"
