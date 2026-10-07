@@ -1,5 +1,57 @@
 # NETA DAO code-backed current state
 
+## Juno v31 monitoring closed and verified live — 7 October 2026, 14:44 Berlin
+
+The owner ended this event's monitoring after five hours. The result window is
+**08:56:31–13:56:31 CEST**, anchored to halt block **42,452,000** at
+`2026-10-07T06:56:31.235578431Z`; the configured deadline is
+`2026-10-07T11:56:31.235Z`. This is the observation cutoff, not the later
+publication time. [PR #220](https://github.com/cristianoneta/neta-dao/pull/220)
+merged as `f436a6a3d330cfbda9bb39ad9260344257c88a66` and is live at
+https://dao.netareborn.com/community-tools/validator-upgrades/juno-v31/.
+
+The closed result has **22 / 25 validators**, representing **94.44%** of the
+upgrade validator set's voting power, with saved participation within the window.
+**0base.vc**, **Shutting Down - Redelegate**, and **Secure Secrets** show
+**“No upgrade evidenced within 5h” / “Monitoring ended”**. This records missing
+saved participation evidence, not a verified software version or proof of a
+failed upgrade. First votes and first block signatures remain distinct. Validatus
+now has a saved first included block signature at 12:26:50 CEST (height 42,454,476;
+3h 30m 18s after the halt); its actual readiness could have been earlier.
+
+`data/community-upgrades.json` has `collect: false` and `tracking.status: closed`
+with `windowSeconds: 18000`. Both recurring upgrade-history/readiness schedules
+are removed. Closed events make no collector RPC calls or archive writes; the
+published page reads only static archives/names and has no live RPC/metadata poll,
+auto-refresh timer or visibility-triggered refresh. Reload archive is manual.
+Do not restart v31 monitoring to fill the remaining nulls. A future upgrade needs
+its own explicitly configured tracking window and deliberate scheduling.
+
+The original archives are preserved unchanged. Canonical coverage reaches block
+42,456,613 at 12:10:03 UTC, beyond the cutoff; saved at 12:10:48 UTC. Later evidence
+is excluded from the closed result. `complete: false` still means not every
+validator has a first signature; it does not mean monitoring remains active.
+If archive coverage is missing, the UI states that limitation instead of assigning
+a five-hour absence.
+
+Validation: 182 Node tests and 7 Python collector tests passed locally; all five
+PR checks passed on `742c01f75438ebe0d07fe090413f1f9cbeade1a9`, including
+[browser CI](https://github.com/cristianoneta/neta-dao/actions/runs/37622553010).
+Closed-mode tests cover the real archive, filters, cutoff boundaries, incomplete
+and unavailable archives, and zero external requests after reload, timer advance
+and visibility changes. Desktop/tablet/mobile screenshots at 1440/768/390/320 px
+were inspected. An existing Treasury freshness test now pins its fixture timestamp
+so daily bot data cannot invalidate its clock assumptions; production Treasury
+logic and generated snapshots were not changed by this fix.
+[Pages deployment](https://github.com/cristianoneta/neta-dao/actions/runs/37622890351)
+and all post-merge checks passed. The live page and missing-evidence filter were
+verified at 14:44 Berlin with the exact cutoff, 22/25 and the three notes.
+
+This completes the validator task. The personal pilot checkpoint and the owner's
+explicit fresh-browser-test deferral below remain valid. The next agreed product
+track is DAO multi-recipient recovery; no messaging/Render activation, wallet
+transaction or pilot-state change occurred in this task.
+
 ## Personal mainnet send/read/reload passed; browser restore deferred — 7 October 2026, 14:17 Berlin
 
 Both owner and Faucet devices were active at generation 1 (read-only STAVR query,
