@@ -72,7 +72,8 @@ settings, the accepted shared-process trade-off, consistent database exports and
 the to-do to separate the service after adoption. No extra paid instance or plan
 upgrade is authorized. No live configuration change is recorded.
 
-The root Blueprint now installs both locked packages and retains manual deploys.
+The candidate in PR #195 updates the root Blueprint to install both locked
+packages while retaining manual deploys.
 Backup defaults off. Enable only with the independently verified mailbox and
 consenting pilot wallet allowlist; verify existing service origin and startup,
 CORS, bounded ADR-36 access, encrypted writes and restart persistence before
