@@ -17,8 +17,8 @@
   "adapter": "treasury-receipts",
   "status": "PARTIAL",
   "refresh_status": "completed",
-  "checked_at": "2026-10-07T07:59:01.010553Z",
-  "last_success_at": "2026-10-07T07:59:00.998135Z",
+  "checked_at": "2026-10-07T08:23:20.697474Z",
+  "last_success_at": "2026-10-07T08:23:20.684507Z",
   "sources": [
     {
       "accounting_boundary": {
@@ -31,7 +31,7 @@
       "accounting_start": "2026-10-01T00:00:00Z",
       "adapter": "cosmos-rest-receipts",
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-      "anchor_hash": "A7BA7F410A1BB015ABD74E055DD659A1583FB60AEA431A62D7D41BFEA21AA15B",
+      "anchor_hash": "5D8B5CEFB9EF57274D89088BC3971184EF50679184DA459328405A7E1F4874CA",
       "chain_id": "juno-1",
       "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
@@ -39,7 +39,7 @@
       "incremental": true,
       "indexed_transactions": 0,
       "last_full_replay_day": "2026-10-07",
-      "last_scanned_height": 42452047,
+      "last_scanned_height": 42452350,
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -85,7 +85,7 @@
         ]
       ],
       "range_capable": true,
-      "scan_start_height": 42451737,
+      "scan_start_height": 42451947,
       "source": "https://juno.api.m.stavr.tech"
     },
     {
@@ -99,7 +99,7 @@
       "accounting_start": "2026-10-01T00:00:00Z",
       "adapter": "cosmos-rest-receipts",
       "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-      "anchor_hash": "897D7E963DA25B8C8C823D27666DC77ECF3E1A175D0D72113CBB19E4C57353C1",
+      "anchor_hash": "1FD186325F1B917508EB25F6D448B268928CB1E22FCFB7CCAD3137F552B230EA",
       "chain_id": "osmosis-1",
       "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
@@ -107,7 +107,7 @@
       "incremental": true,
       "indexed_transactions": 0,
       "last_full_replay_day": "2026-10-07",
-      "last_scanned_height": 72063220,
+      "last_scanned_height": 72064275,
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -153,7 +153,7 @@
         ]
       ],
       "range_capable": true,
-      "scan_start_height": 72060135,
+      "scan_start_height": 72063120,
       "source": "https://osmosis-api.polkachu.com"
     }
   ],
