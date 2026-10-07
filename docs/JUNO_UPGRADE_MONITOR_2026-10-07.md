@@ -1,0 +1,236 @@
+# Juno v31 upgrade observation
+
+The owner requested a validator participation tracker during the 7 October 2026
+upgrade, after receiving an approximately 55% consensus estimate from Dimi.
+The standalone `juno-upgrade-status.html` page is read-only and does not require
+a wallet, Render service, secret, new subscription or signing permission.
+
+At approximately 07:32 UTC both PublicNode and STAVR reported consensus height
+42,452,001, round 0, while the latest committed block remained 42,452,000 at
+06:56:31 UTC. Their round-specific validator sets and votes agreed:
+
+- Total voting power: 29,766,214, across 25 validators.
+- Prevotes for block prefix `64AEF8D4020F`: 16,302,684, or 54.77%.
+- Nil prevotes: 2,906,222, or 9.76%.
+- No prevote observed: 10,557,308, or 35.47%.
+- No precommits observed in that round.
+
+This is a historical RPC observation, not a permanent readiness or software-version
+claim. A nil vote counts as participation but does not support a block. Committing
+requires more than two thirds of voting power in precommits for the same block and
+round. Missing votes do not establish that a validator is offline. The interface
+does not combine votes across observers, heights or rounds, and does not verify
+the compact RPC vote strings' signatures independently.
+
+The page refreshes every 30 seconds while visible, with a manual refresh and an
+automatic-refresh checkbox. Unavailable observers lose their current metrics;
+they do not silently become zero participation. Each source has its own results
+and validator list. Names are fetched from the bonded validator metadata at STAVR
+and matched using SHA-256 of the Ed25519 consensus public key, truncated to 20 bytes.
+A dated 25-validator name snapshot is bundled as a fallback when metadata fails;
+the UI labels its date and never uses that snapshot for voting power or votes.
+Raw consensus addresses remain available when neither source has a name.
+
+Sources:
+- https://juno-rpc.publicnode.com/consensus_state
+- https://juno.rpc.m.stavr.tech/consensus_state
+- Each observer's `/dump_consensus_state` and `/status` endpoints.
+- https://juno.api.m.stavr.tech/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED&pagination.limit=100
+- https://github.com/cometbft/cometbft/blob/main/spec/consensus/consensus.md
+
+Tests cover voting power rather than validator count, nil versus absent votes,
+strictly more than two thirds, mismatched vote identities/heights/rounds, observer
+disagreement, failed requests and 320–1440 px rendering. The live deployment helper
+keeps its original transaction providers and freshness checks. This tracker never
+authorizes a deployment or activates personal messaging; PR #195 remains draft.
+
+## Publication checkpoint
+
+Live page: https://dao.netareborn.com/juno-upgrade-status.html
+
+PR #206 merged as `8a58a1b7813beef265f6627bdb31806b361e76a8`. Final-head
+browser run `37589459187` and frontend run `37589459176` passed. Main frontend
+run `37589754571` and Pages deployment `37589754547` passed after integration.
+The preceding chat reported opening the live page; the handoff session rechecked
+GitHub publication records without making a fresh consensus observation.
+
+Continue from [the current handoff](HANDOFF_NEXT_CHAT_2026-10-07.md). The percentages
+above remain historical; recheck live nodes before drawing a current conclusion.
+
+## Compact participation correction — 7 October 2026
+
+The owner observed advancing block heights with 0% live-round votes everywhere.
+The old display sampled the next unfinished round, which resets after each block;
+it therefore gave a misleading picture of ongoing validator participation.
+
+The replacement shows one summary and one filtered validator list. After restart,
+it reads the last five canonical commits, ending one block behind the observed tip,
+plus the validator set pinned to that height. Both observers are asked for the same
+window where possible. Every block must match chain/height, canonical status,
+validator identity/order and signature shape; committed power must exceed two thirds.
+The window stops at the upgrade boundary or an advertised validator-set transition.
+Malformed/incomplete history is unavailable, never fabricated zero participation.
+
+“Signed” means at least one included block signature in this window. Its union of
+voting power is explicitly distinct from signing power in the latest individual
+block; it is not used to claim quorum across blocks. Each row shows signed blocks /
+observed blocks. Nil votes are not block signatures. Missing signatures do not prove
+that a validator has not upgraded. Signatures remain RPC observations, not locally
+verified cryptographic evidence. The two sources are never merged. Disagreement,
+single-source coverage and stale blocks remain visible above the table; source
+selection, observer details, names provenance and methodology are collapsed.
+
+The current-round parser remains only for the initial wait before canonical
+post-upgrade history exists, with explicit round-specific labels. Once a source
+observes resumed blocks, unavailable commit history cannot fall back to a reassuring
+or alarming live-round zero. Reads remain bounded to 10 seconds, one refresh at a
+time, at most 14 node requests per visible 30-second refresh, plus infrequent names
+metadata. No wallet, server, journal or messaging behavior changes.
+
+Local verification: nine core tests and the focused browser regression pass, covering
+empty live rounds after restart, canonical history, exact validator sets, incomplete
+and malformed evidence, nil votes, set changes, source disagreement/fallback, stale
+and missing data, filters and responsive layout at 1440/768/390/320 px. Screenshots
+were inspected; narrow rows reflow without page overflow. Browser RPC data is mocked;
+publication and live-network observations must be recorded separately.
+
+## Community Tools and first-signature history
+
+Owner publication instruction, 7 October: publish the reviewed tracker as part of
+Community Tools. The shared workspace footer links to `/community-tools/`, with
+children `/community-tools/juno-faucet/` and `/community-tools/validator-upgrades/`.
+The v31 detail page is `/community-tools/validator-upgrades/juno-v31/`.
+The old root faucet/tracker URLs are same-origin redirects; query/hash and all
+origin-scoped faucet storage survive. Faucet imports/assets remain at their existing
+root locations. Names' JUNOX links go directly to the new faucet; the owner deployment
+page links directly to v31. No wallet/deployment/backup activation is included.
+
+The new column is **First signature after upgrade halt**. It records the first
+included canonical block precommit and uses that validator's signature timestamp,
+not the block header's timestamp. This matters for v31: the first post-upgrade
+header has time `2026-10-07T06:56:33.885375947Z`, while its signatures were around
+`2026-10-07T07:53:30Z`. Both PublicNode and STAVR returned the same canonical first
+commit during this work. The halt reference is the header of height 42,452,000:
+`2026-10-07T06:56:31.235578431Z`. The elapsed time includes the common chain halt;
+block offset 0 means inclusion in the first resumed block. It cannot reconstruct
+which validator had its binary ready earliest, earlier prevotes, or exact installation
+time. Commit inclusion and validator clocks also affect the observation.
+
+`scripts/update_validator_upgrades.py` walks every height from the halt with two
+independent matching canonical commits, bounded ten-height batches, exact validator
+identity/signature shape, a strict per-block quorum and a linked block chain. It
+retains a contiguous checkpoint and never skips an unavailable height, replaces
+an existing first observation, interprets nil as a block signature, or overwrites
+corrupt saved evidence. Each actual JSON record includes its transaction-independent
+commit hash, signature and timestamp. This is RPC-checked evidence, not local
+Ed25519 signature verification. The ten-minute workflow continues partial scans,
+with a 120-second scan budget and a 1,000-block cap so ordinary block production
+does not permanently outrun a 200-block-per-half-hour limit. A slow or unavailable
+provider can still delay the archive; the scanned-through watermark remains visible.
+It publishes only `data/validator-upgrades/*.json`; completed histories require no
+further node requests. Source disagreement stops at the last accepted prefix.
+The browser reads this separate dated history at most every five minutes and never
+turns an unavailable archive into zero delay. Current participation remains the
+independent five-block live view.
+
+Future upgrades: add an explicitly reviewed ID/height/date/path to
+`data/community-upgrades.json`, create a matching detail page with `data-upgrade`
+and `data-upgrade-height`, and retain the old JSON and URL. The upgrade index renders
+the registry. Stop the previous collector with `collect:false` (or set its inclusive
+`endHeight` while completing backfill); do not let a later upgrade be labelled as
+readiness for an earlier one. The live panel of an old detail page must be frozen
+or relabelled deliberately when publishing that next upgrade.
+
+Verification includes the real first canonical v31 commit's schema, six collector
+unit tests, three browser-history parser tests, the existing core/frontend/faucet
+checks, the expanded tracker browser regression, legacy redirects and the faucet
+browser regression under its new path. Desktop, tablet and narrow layouts were
+reviewed. Browser transaction tests remain simulated; the live publication evidence
+is recorded separately below.
+
+Publication verified: PR #208 merged as `d8172c1d383761ac069d328388ca99127194b933`
+after all four hosted checks passed. Pages run `37596259987` succeeded. The first
+production collector run `37596259838` advanced to height 42,452,320, recording
+16 of 25 first signatures (including GATA HUB at 42,452,230). Its data commit
+`80b369e9770aaa20545f8731da27357210715422` triggered successful Pages run
+`37596335635`; the public JSON and live browser both showed that checkpoint.
+At 08:50 UTC the independent live window showed 17/25 and 76.68% signing power,
+both sources agreeing. Those are dated observations, not fixed status values.
+
+## Pre-quorum readiness correction — owner request at 10:55 Berlin
+
+Recovered original two-provider dump files captured around 07:32 UTC establish
+14 prevoters (19,208,906 / 29,766,214 = 64.53% power), including nil votes.
+11 had block prevotes totaling 16,302,684 = 54.77%; no prevote quorum or precommits
+existed. The archive retains validator sets and vote strings from both sources,
+original file SHA-256, capture-file times and provenance; peer data is omitted.
+Capture times are recovered file timestamps corroborated by the original handoff,
+not independently signed receipt times. Reported vote times are validator clocks.
+Kintsugi: 07:08:04.799998078 UTC, +11m33s; earliest captured The_Cybernetics:
+06:56:41.342866473 UTC, +10s. Polkachu has no vote in that captured round.
+Nothing here proves its installation time, exact online time or final place.
+
+`juno-upgrade-readiness.mjs` checks matching height, round, validators/powers,
+vote identities, types and identical timestamps across observers. The default
+column and sort use earliest archived consensus votes; missing data is unknown.
+An expandable timeline accumulates participation and largest-block agreement
+within one captured round only; nil increases participation only. The separate
+live five-block window and optional canonical-first-signature archive are retained.
+Readiness evidence remains visible when current RPC reads fail.
+
+For future upgrades, add `readinessWindow: {"start":"<UTC ISO time>",
+"end":"<UTC ISO time>"}` to its reviewed registry entry BEFORE the halt.
+The window must be at most 24 hours. `validator-readiness.yml` checks every five
+minutes; in an active window the observer samples every 20 seconds for up to
+250 seconds, only at the first post-upgrade consensus height. It checks chain,
+non-catching-up observers and matching canonical halt anchors, writes accepted
+two-source captures atomically, preserves prior records, and stops when both
+nodes have passed the halt. At most 600 changed captures are accepted. No active
+window means no node calls. Scheduler delays, gaps, late start, disagreement and
+validator clock error prevent exact global-readiness rankings; all archives remain
+explicitly partial. Public RPC reports are not full signature verification. No
+external service, secret, wallet permission or mainnet activation is added.
+
+The old 09:32 snapshot cannot fill the interval through the 09:53 restart. Actual
+node consensus WALs or other contemporaneous observer archives would be needed
+for more evidence; do not manufacture missing times from committed headers.
+
+## Missing first-vote times: combined participation evidence
+
+The default column now selects the earliest available archived consensus vote or
+canonical block signature. Each value is labelled ≤ (participating by this time),
+with the evidence type and local clock time. Missing prevotes no longer hide known
+first signatures. Sorting uses the selected evidence measure; unknown remains
+unknown. The saved pre-quorum timeline and live five-block window stay separate.
+A first signature after restart cannot establish an upgrade after restart.
+
+The contiguous archive checked at 09:17 UTC contains BlueStake in the first resumed
+block (07:53:30 UTC), GATA HUB at 08:11:49 UTC, Polkachu at 08:23:19 UTC and Stakeflow
+at 09:15:14 UTC. None had a vote in the surviving 07:32 UTC snapshot. These are
+signature timestamps, not installation times. The subsequent matched collection
+at 09:33:50 UTC found POSTHUMAN and Shutting down - REDELEGATE ASAP at height
+42,453,271, with first signatures at 09:22:06 UTC (11:22:06 Berlin). It advanced
+the contiguous archive through 42,453,480, with 20/25 first signatures. This is
+historical coverage, not a fresh current-participation count.
+The archive workflow now runs every ten minutes (subject to scheduler/provider
+delays), with its existing bounded scan and five-minute browser cache interval.
+
+## Final publication checkpoint — 11:38 Berlin
+
+PR #210 merged as `93dd8a27dd240f7cc7714913c30f0186c8649874` and Pages
+`37599340713` succeeded. PR #211 merged as
+`5ad9fb14bf72daf1ec65341c41d75c687e22cfac` after all five PR workflows passed
+(head `75df611aeec0728012b787dc35793b8c84670a33`). Production collector
+`37601407504` published data commit `ad4bdb481f861f14f64707d5277d0ae125dd2791`;
+Pages `37601479514` succeeded. The previous Pages run was superseded.
+Validation includes earliest-evidence/unknown-source unit coverage and mocked
+browser fallback, failure-state and 320–1440 px regressions. Publication was
+verified through GitHub deployment records and the committed evidence; direct
+web retrieval was unavailable, so no new production-browser audit is claimed.
+
+The owner accepted automatic updates: 30-second visible live refresh with Auto
+on, ten-minute independent archive collection and five-minute browser archive
+reload. Scheduler/provider/publication delays remain possible. New validators'
+first signatures are appended automatically; existing first records survive
+later inactivity. The complete continuation checkpoint is
+[HANDOFF_NEXT_CHAT_2026-10-07.md](HANDOFF_NEXT_CHAT_2026-10-07.md).

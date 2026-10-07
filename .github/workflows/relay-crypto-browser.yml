@@ -9,6 +9,15 @@ on:
       - 'relay-backup/**'
       - 'relay-personal-*.mjs'
       - 'relay-personal-*.html'
+      - 'juno-consensus-*.mjs'
+      - 'juno-upgrade-status.*'
+      - 'juno-upgrade-history.mjs'
+      - 'juno-upgrade-readiness.mjs'
+      - 'data/validator-upgrades/*-readiness.json'
+      - 'community-tools/**'
+      - 'community-tools*.css'
+      - 'community-*.mjs'
+      - 'data/community-upgrades.json'
       - 'relay-uni7-lab.html'
       - 'relay-uni7-lab.css'
       - 'assets/relay-crypto/**'
@@ -73,6 +82,7 @@ jobs:
       - run: node browser-personal-browser.mjs
       - run: node browser-personal-ux.mjs
       - run: node browser-personal-deploy.mjs
+      - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-juno-consensus.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/dao-inbox-screenshots" node browser-dao-inbox.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-dao-hierarchy.mjs
       - run: node browser-workspace-security.mjs

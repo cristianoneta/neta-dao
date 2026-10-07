@@ -1,5 +1,23 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Current continuation — 7 October 2026
+
+**Start with the [7 October handoff](HANDOFF_NEXT_CHAT_2026-10-07.md).** It supersedes older
+status/next-step instructions below, which are retained as history.
+
+- Live Juno tracker: https://dao.netareborn.com/juno-upgrade-status.html (PR #206).
+- Wallet feedback/RPC timeout fix is published (PR #205); gzip upload fix is merged (PR #204).
+- Draft PR #195 at `39feff397f600a25057087285e7710d032326aca` has five successful
+  hosted workflows, including browser run `37589126376`; it remains unmerged.
+- Actual owner deployment receipts, live shared Render backup and the real
+  two-wallet pilot remain unverified. Both personal release/deployment pins are null.
+- `.neta` is required only to send. Receiving/reading one's own messages requires
+  no name. Use the existing Faucet Render service for the pilot, then separate later.
+- Next: recheck Juno block progress/providers, recover the pending deployment,
+  complete personal mainnet messaging, then DAO inboxes/recovery and payment requests.
+
+The historical 54.77% block-prevote observation is not a current network status.
+
 ## Upload HTTP 400 fix and sender-only name requirement — 7 October 2026
 
 The owner hit HTTP 400 after reviewing the personal mailbox upload. A read-only

@@ -16,9 +16,9 @@
   "accounting_start": "2026-10-01T00:00:00Z",
   "adapter": "treasury-receipts",
   "status": "PARTIAL",
-  "refresh_status": "unavailable",
-  "checked_at": "2026-10-07T07:37:50.074403Z",
-  "last_success_at": "2026-10-07T06:50:37.428430Z",
+  "refresh_status": "completed",
+  "checked_at": "2026-10-07T09:59:43.460781Z",
+  "last_success_at": "2026-10-07T09:59:43.446085Z",
   "sources": [
     {
       "accounting_boundary": {
@@ -31,7 +31,7 @@
       "accounting_start": "2026-10-01T00:00:00Z",
       "adapter": "cosmos-rest-receipts",
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
-      "anchor_hash": "CF009EAED14070FE1A397314DB36FA03ED555D87B5BC5B8DC3F0DF2F0843BCB6",
+      "anchor_hash": "5215D14967E885D0DC583BEE370E10F71D3212355DC98F119BE499657ACAA150",
       "chain_id": "juno-1",
       "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
@@ -39,7 +39,7 @@
       "incremental": true,
       "indexed_transactions": 0,
       "last_full_replay_day": "2026-10-07",
-      "last_scanned_height": 42451837,
+      "last_scanned_height": 42453948,
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -85,7 +85,7 @@
         ]
       ],
       "range_capable": true,
-      "scan_start_height": 42450932,
+      "scan_start_height": 42453430,
       "source": "https://juno.api.m.stavr.tech"
     },
     {
@@ -99,7 +99,7 @@
       "accounting_start": "2026-10-01T00:00:00Z",
       "adapter": "cosmos-rest-receipts",
       "address": "osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80",
-      "anchor_hash": "0E921F7BDA857E2B586794B797FD1DB14A3CA463F58B22574C9BDF427943DFA1",
+      "anchor_hash": "AFB0B024B8C2CC4A361F6B4CE51A4BD95DD5ACF0A9EFF906F810F5932EE8BEA9",
       "chain_id": "osmosis-1",
       "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
@@ -107,7 +107,7 @@
       "incremental": true,
       "indexed_transactions": 0,
       "last_full_replay_day": "2026-10-07",
-      "last_scanned_height": 72060235,
+      "last_scanned_height": 72068481,
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -153,20 +153,21 @@
         ]
       ],
       "range_capable": true,
-      "scan_start_height": 72058646,
+      "scan_start_height": 72067412,
       "source": "https://osmosis-api.polkachu.com"
     }
   ],
   "coverage_gaps": [],
   "execution_candidates": [],
   "warnings": [
-    "Latest collector failed; prior evidence retained."
+    "Exact block timestamp unavailable from public RPC archives for 57 historical events.",
+    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses."
   ],
   "entries": [],
   "movement_review": {
     "accounting_start": "2026-10-01T00:00:00Z",
     "status": "PARTIAL",
-    "event_refresh_status": "UNAVAILABLE",
+    "event_refresh_status": "PARTIAL",
     "matched_receipts": 0,
     "unmatched_receipt_ids": [],
     "unreviewed_movements": 0,

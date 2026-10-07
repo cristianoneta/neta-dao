@@ -1,0 +1,290 @@
+{
+  "schema": 1,
+  "upgradeId": "juno-v31",
+  "chainId": "juno-1",
+  "upgradeHeight": 42452000,
+  "halt": {
+    "height": 42452000,
+    "hash": "8FE1098E1C37513DA7B4430AB8468F59AE3FD117CA628B4E6644D9F40F40FDC3",
+    "time": "2026-10-07T06:56:31.235578431Z"
+  },
+  "sources": [
+    "https://juno-rpc.publicnode.com",
+    "https://juno.rpc.m.stavr.tech"
+  ],
+  "validators": [
+    {
+      "address": "980644C9C8033945BA54EF32C053C395D0269EEA",
+      "power": "6693851"
+    },
+    {
+      "address": "FDA22C79E4C93CBEACD0297036F7650839D6223D",
+      "power": "2307510"
+    },
+    {
+      "address": "31E927F677282369B7E57D39FF9C47E3845BFDEA",
+      "power": "2245919"
+    },
+    {
+      "address": "011CA32A120D5F8007BE9D2AA60C1C7AE8F02634",
+      "power": "2030067"
+    },
+    {
+      "address": "B2F50E82D354517E17E37178A0D4A8A9644C4D4D",
+      "power": "1889243"
+    },
+    {
+      "address": "0F1ED70645D475745565C702588BD1EEBA62C28B",
+      "power": "1823146"
+    },
+    {
+      "address": "B57D60F0B3E0F9548D1C60385D46584356DD61DC",
+      "power": "1371090"
+    },
+    {
+      "address": "33E7D788A563CF87FA86AA63817A198A43364EDE",
+      "power": "1268206"
+    },
+    {
+      "address": "A3F728A1BEF2B4860A7B8104C9CE56ACFFC85561",
+      "power": "1164738"
+    },
+    {
+      "address": "7F530838B75FD46D07133BFAE4383AA2123C96A2",
+      "power": "1025961"
+    },
+    {
+      "address": "1B431E63CC50C7BA283AC9E2F0A13FDD1FC86F74",
+      "power": "986858"
+    },
+    {
+      "address": "596CC5372AC7DF5E8F80D4F73F84A1B3E835EA6A",
+      "power": "969916"
+    },
+    {
+      "address": "D8D80BD5D6D758C3014374AA8EEC545F46686151",
+      "power": "902590"
+    },
+    {
+      "address": "1FF354C5F1F9112F7EF36642369861814B85ECEA",
+      "power": "889807"
+    },
+    {
+      "address": "CB55FF4C609E11A0C417D95A0F697F3B33284BA6",
+      "power": "830108"
+    },
+    {
+      "address": "E85369365EFAF2003506117F8BEC27AD5B03D4A6",
+      "power": "717679"
+    },
+    {
+      "address": "F9D7C618E5E46C3B942EC35BCC8145BA3DB8423F",
+      "power": "641132"
+    },
+    {
+      "address": "2586F90EE50AFDB92FBEB01A026E66FAFD00096D",
+      "power": "624695"
+    },
+    {
+      "address": "B67DDDDF3392C5980B4E0868CC1770BE9118FE65",
+      "power": "440004"
+    },
+    {
+      "address": "5CAB7FDB5BF71DA91A39C46A130FEF51868ADDCC",
+      "power": "377552"
+    },
+    {
+      "address": "72C874A2BC59B8E3316DDE995CB9368E79529A3E",
+      "power": "241221"
+    },
+    {
+      "address": "D226E146E35E3097E53C09147F5F6E89E4C83EFF",
+      "power": "217176"
+    },
+    {
+      "address": "6FD2BA3BA00E6AB6BF43B0A7FBE486C541288F99",
+      "power": "47063"
+    },
+    {
+      "address": "468F19774D884937ECAC184F1704B280A52684C5",
+      "power": "33654"
+    },
+    {
+      "address": "ED5A383F89D74B59E040E1D33E78C9EF5323FD53",
+      "power": "27028"
+    }
+  ],
+  "firstSignatures": {
+    "980644C9C8033945BA54EF32C053C395D0269EEA": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.015745237Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "E+wo7q8AX4IdjJi7CKic0lSe03Sw4GXDFVCf1zO6cWqKhWPV93hOBt4u5MI7d3UFBdmXoyUp+gg4UJmwVxBLAQ=="
+    },
+    "FDA22C79E4C93CBEACD0297036F7650839D6223D": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.098925365Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "h+u4vkJSJo1UfnMD2WRQJOfvOVDrUBPv1HfwyRWd8khKM5j5tsUNXl2reUK0laZhN0wzaUl0QHJ63Yc1o3QABA=="
+    },
+    "31E927F677282369B7E57D39FF9C47E3845BFDEA": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.102678859Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "gxH6jGOAbIRb+uatzixUvvrtcXpJnRy12ap4fxUT57Hfu0BWJfkP6c+LW6eBVsrHAzLCLu5xQIXMml1DRW/yDw=="
+    },
+    "011CA32A120D5F8007BE9D2AA60C1C7AE8F02634": {
+      "height": 42452371,
+      "blockHash": "FE523736F1FE6FED96D2ED3BD8C05290B8500023A0434FF1FC1C964F4B661DB9",
+      "timestamp": "2026-10-07T08:23:19.120787493Z",
+      "secondsFromHalt": 5207,
+      "blocksAfterRestart": 370,
+      "signature": "FbGwBbgjTP31ynNjqXeyevqLjN9rGDvj+cJwfD/kY89ZSOeLibuDscuH7bCe+RFKYD77ORlaGPEag8MsREfICQ=="
+    },
+    "B2F50E82D354517E17E37178A0D4A8A9644C4D4D": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.095759208Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "b1snCY7yrlRcRaLLsaJnTLoHlgQnemLjnLX+PJhzf8FNINa/s+qEh5bfoOQ6mn3xhzuGNDwoIdK2oBfZgDB6BQ=="
+    },
+    "0F1ED70645D475745565C702588BD1EEBA62C28B": {
+      "height": 42453271,
+      "blockHash": "805E7083924A92E6E8E9DF1EEA1AB2B8693EEABA5C3A15E1399D48F33D053136",
+      "timestamp": "2026-10-07T09:22:06.116843464Z",
+      "secondsFromHalt": 8734,
+      "blocksAfterRestart": 1270,
+      "signature": "Efr7XIeSs94728ignlD9mw9jDWyaJ9gpyfogQcm2OZk8XKk6gN8Phsmchl0dgSyqXKnyw+kgs3q4lwESAmhhDw=="
+    },
+    "B57D60F0B3E0F9548D1C60385D46584356DD61DC": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.211953387Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "s+gXG3ZQKjaUJFBs8l6hd7w9U6rS49Fbltr7pxNEUGCt9W27tsjTqhjWIvgQei/OEoLh4XeOSNz5uD+h34ZuDg=="
+    },
+    "33E7D788A563CF87FA86AA63817A198A43364EDE": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.10882087Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "d3Fa5Pf+Um3Nyf04brOQPrxxZSpM4NQZY18H+PQg3zyvY089jrpaV/29pEJ3A5YTTFUeQvDG2ep4eDqweVQvBQ=="
+    },
+    "A3F728A1BEF2B4860A7B8104C9CE56ACFFC85561": null,
+    "7F530838B75FD46D07133BFAE4383AA2123C96A2": {
+      "height": 42453157,
+      "blockHash": "405058E3A0DB5AA655A4FF036063B7A134108D6A2780B33935587C5D4C690F73",
+      "timestamp": "2026-10-07T09:15:14.721035846Z",
+      "secondsFromHalt": 8323,
+      "blocksAfterRestart": 1156,
+      "signature": "wiIZg3Bd9mjsqD4kyMBOKbexOYTKk9FC7zpJahKEOD/7ypw22Cn91TDkZK9jxjG7oomsOMMej52LlVaadkcFAg=="
+    },
+    "1B431E63CC50C7BA283AC9E2F0A13FDD1FC86F74": null,
+    "596CC5372AC7DF5E8F80D4F73F84A1B3E835EA6A": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:29.981160162Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "lstgnw8pbHQx2nu/dZdmHkSc3Au+U3VCHRpmTumlkY5+nIqiFL21oLefrPKkxptyxVNbLDUGeyKKd11t8635Cw=="
+    },
+    "D8D80BD5D6D758C3014374AA8EEC545F46686151": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:29.988767394Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "znHqnIHX1wKliEad5BgjCbUFIx2ZY8PffWWjpxFzEVozzPtOvB3ge8LQ1COJ23rv/wOTzRcVOkgTh4PuMq+ICg=="
+    },
+    "1FF354C5F1F9112F7EF36642369861814B85ECEA": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.098726247Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "2VXTw/tZyesda8T6EnrMZPueVeK2V/CgYkZOhYHsHb90d3YcU4TjfzewXyI6Rpscigq96HRvh9jyOHNOnwkGBQ=="
+    },
+    "CB55FF4C609E11A0C417D95A0F697F3B33284BA6": null,
+    "E85369365EFAF2003506117F8BEC27AD5B03D4A6": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.12036918Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "o70cAToGngyFmlF50MOv0n+DHrs1aV0BMQq4wo+GE7OtqUi28rgxQ+gzOBrD5i/486DgQbeTBGlEERQXCJo/Cw=="
+    },
+    "F9D7C618E5E46C3B942EC35BCC8145BA3DB8423F": null,
+    "2586F90EE50AFDB92FBEB01A026E66FAFD00096D": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.104682472Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "4pbEDQKVGjTuRCxymDtxH7OfNYjhGkR3qK2WaV8XRRPGR6rJ6e0ilm0yqYwyIXPGbufDHnQESQ4oE+XWQx/qAw=="
+    },
+    "B67DDDDF3392C5980B4E0868CC1770BE9118FE65": {
+      "height": 42453271,
+      "blockHash": "805E7083924A92E6E8E9DF1EEA1AB2B8693EEABA5C3A15E1399D48F33D053136",
+      "timestamp": "2026-10-07T09:22:06.16325775Z",
+      "secondsFromHalt": 8734,
+      "blocksAfterRestart": 1270,
+      "signature": "uCi69Wo6fO/hobs92PnmZFlfTja6htr9ndUP5bF4R3NCQfLVBMThGyDXdTpN9XhOQmurIHNTYZvrzjQ+QeWZBw=="
+    },
+    "5CAB7FDB5BF71DA91A39C46A130FEF51868ADDCC": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.196694196Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "vcs7ojbcEOyQe+rmTFtQgPuXJ68OEfVwN5ywo8Mkt1wRFmvcT2UvTIBzTeoMJSuafPzeGJUGB684pf+eRY6tCg=="
+    },
+    "72C874A2BC59B8E3316DDE995CB9368E79529A3E": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.137258382Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "jSF4ZHV1D9l7Shc4iwgKTP6v8bCqsFTZZaTD5UyNZ2gfKoZSw88W+CAx4WrF2YZau6tZn7Hewk70+l8//2Z6CQ=="
+    },
+    "D226E146E35E3097E53C09147F5F6E89E4C83EFF": {
+      "height": 42452230,
+      "blockHash": "7E03DDA1F6F1A7B64B37C6C2B4AF9BE1FBE16D91A1C2668ACC375FD4E1DDA375",
+      "timestamp": "2026-10-07T08:11:49.999314186Z",
+      "secondsFromHalt": 4518,
+      "blocksAfterRestart": 229,
+      "signature": "WRtyrPUpC7Ei4NqHUobT0a8mtuP00Ater4YReP6gBzcXQJp34tN7+7eh6PSVtWU1wjt95+JVi11b0jkgZC6OBg=="
+    },
+    "6FD2BA3BA00E6AB6BF43B0A7FBE486C541288F99": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.105368894Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "ohog8IntbNIEfbif+MqPaa9GZFeKyDGQqv0aLB5drb4PCwdJecOnPtu3l/QRXtPxVyqX3NNQxgQ/Vj+eO/xaBA=="
+    },
+    "468F19774D884937ECAC184F1704B280A52684C5": {
+      "height": 42452001,
+      "blockHash": "A056DD8FF4418AE004311375CC57E9BC3F5386683AB62E864F70B5C6C03E0E1C",
+      "timestamp": "2026-10-07T07:53:30.067066305Z",
+      "secondsFromHalt": 3418,
+      "blocksAfterRestart": 0,
+      "signature": "s7YtxBInBWBLVQbhmGSIkFlii3kolw//Ja01C2os+0Rp6Z5cJ+UAmHhM201K2YftN449kR38kjccbk02gN61BA=="
+    },
+    "ED5A383F89D74B59E040E1D33E78C9EF5323FD53": null
+  },
+  "firstResumedSignatureTime": "2026-10-07T07:53:29.981160162Z",
+  "scannedThrough": 42453915,
+  "scannedHash": "EB9D3ED7ED59C226AF84BC6A094DA350C1C064FCD5C00674E7E633B3A106EC9E",
+  "complete": false,
+  "scannedBlockTime": "2026-10-07T09:56:48.356886421Z",
+  "updatedAt": "2026-10-07T09:57:31.825652Z"
+}

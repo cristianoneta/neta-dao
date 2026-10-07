@@ -554,3 +554,35 @@ history height and offer renewal/recovery only when needed. Names resolve to an
 address shown in the review; contact invitations never grant permission. Automatic
 receive/reconciliation must stop when locked, busy, hidden, disposed or in error.
 No passkey unlock or unattended signing is implied by this UI.
+
+## Compact Juno participation tracker — owner correction, 2026-10-07
+
+Use one compact participation summary and one validator list; keep per-observer
+technical details in a closed disclosure. Prioritize validators without an observed
+block signature and provide All / Signed / No block signature filters. On narrow
+screens, rows reflow into validator/power and status/block-count pairs. Do not repeat
+consensus addresses beneath every known name. Show stale/unavailable/disagreeing data
+at the summary. Empty live consensus rounds are not validator upgrade-readiness data.
+
+## Community Tools hub — owner decision, 2026-10-07
+
+The shared workspace footer now says **Community Tools ↗** and opens
+`/community-tools/`. Use two concise tool cards for Juno Faucet and Validator Upgrade
+Status, then an upgrade index and a separate permanent page for each upgrade.
+Use the existing graphite/mint foundations and breadcrumbs. Existing faucet and
+tracker URLs redirect to their corresponding tools on the same origin; keep all
+wallet and transaction storage keys unchanged. The validator table includes first
+signature delay after the halt and block offset after restart; avoid treating this
+as actual software readiness or using insulting/performance rankings.
+
+## Community Tools header and responsiveness — owner correction, 2026-10-07
+
+All Community Tools pages reuse the Faucet header, assembly-plaza promotion and
+responsive grid via `community-tools-header.css`. Wallet controls remain on the
+Faucet; read-only upgrade pages show Juno mainnet, and the hub shows Juno Community.
+Use First consensus vote as the default delay measure, not the first commit.
+Keep partial historical coverage explicit, unknown values unranked, nil votes
+separate from block agreement, and current signing distinct from responsiveness.
+The chronological power buildup belongs in a compact closed disclosure; measure
+and sort controls stay conventional native selects. Preserve the optional first
+block-signature view as separate evidence, never a readiness substitute.

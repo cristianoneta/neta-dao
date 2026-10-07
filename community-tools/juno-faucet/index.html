@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<link rel="icon" href="/favicon.ico?v=20261006" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32.png?v=20261006">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/brand/apple-touch-icon.png?v=20261006">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://neta-junox-faucet.onrender.com https://juno.test.rpc.nodeshub.online https://juno.test.api.nodeshub.online https://juno.rpc.t.stavr.tech https://juno.api.t.stavr.tech; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Juno testnet faucet · NETA Reborn</title>
+  <meta name="description" content="Get started on Juno UNI-7. Request JUNOX, support the testnet faucet, explore validators, manage your stake and claim rewards.">
+  <link rel="stylesheet" href="/neta-ui.css?v=20261004-wallet-1"><link rel="stylesheet" href="/juno-faucet.css?v=4">
+<link rel="stylesheet" href="/community-tools-header.css?v=1"></head>
+<body>
+<a class="skip-link" href="#faucet-main">Skip to content</a>
+<header class="gov-header faucet-header">
+  <a class="gov-brand" href="/index.html">NETA REBORN</a>
+  <a class="faucet-header-label" href="/community-tools/">COMMUNITY TOOLS</a>
+  <a class="faucet-dao-promo" href="https://dao.netareborn.com/" target="_blank" rel="noopener noreferrer" aria-label="dao.netareborn.com — Create, Discover, Govern DAOs (opens in a new tab)">
+    <img src="/assets/design/assembly-plaza.webp" width="76" height="76" alt="">
+    <span class="faucet-dao-copy"><strong>dao.netareborn.com</strong><span>Create · Discover · Govern DAOs</span></span>
+    <span class="faucet-dao-arrow" aria-hidden="true">↗</span>
+  </a>
+  <div class="gov-controls"><span class="testnet-pill">UNI-7 TESTNET</span><button id="connect" type="button">Connect Keplr</button><button id="disconnect" type="button" hidden>Disconnect</button></div>
+</header>
+<main id="faucet-main" class="faucet-shell">
+<nav class="tool-breadcrumb" aria-label="Breadcrumb"><a href="/community-tools/">Community Tools</a><span aria-hidden="true"> / </span><span>Juno Faucet</span></nav>
+  <section class="faucet-intro"><div><span class="eyebrow">JUNO · A PLACE TO BUILD &amp; EXPERIMENT</span><h1>Juno testnet faucet<span>.</span></h1><p>A little JUNOX to get your next idea started. Connect your wallet, try staking and explore Juno on UNI-7.</p></div><div class="network-note"><strong>Test tokens. Real experiments.</strong><span>JUNOX is for the Juno testnet only. It has no monetary value.</span></div></section>
+  <p id="wallet" class="wallet-address">Your wallet is not connected.</p>
+  <div class="faucet-grid">
+    <section class="faucet-card request-card" aria-labelledby="get-heading"><span class="eyebrow">01 · GET STARTED</span><h2 id="get-heading">A daily boost for your wallet</h2><div class="faucet-amount"><output id="payout-amount">25</output> <span>JUNOX</span></div><p>One fixed payout per wallet every 24 hours. The faucet covers the transfer fee, so you can start with an empty wallet.</p><button id="request" class="neta-primary" type="button" disabled>Get 25 JUNOX</button><p id="faucet-status" class="help" role="status">Checking faucet availability…</p></section>
+    <section class="faucet-card" aria-labelledby="donate-heading"><span class="eyebrow">02 · KEEP IT FLOWING</span><h2 id="donate-heading">Give the next builder a start</h2><p>Have spare test tokens? Add JUNOX to the faucet so more people can try the network.</p><form id="donate-form"><label for="donation">Your donation · JUNOX</label><div class="amount-input"><input id="donation" inputmode="numeric" pattern="[1-9][0-9]*" maxlength="12" placeholder="20" required aria-describedby="donate-help"><button id="donate" type="submit" disabled>Donate JUNOX</button></div></form><p id="donate-help" class="help">Connect Keplr to donate whole JUNOX amounts. A small UNI-7 transaction fee applies.</p><p id="faucet-balance" class="pool-balance">Donations are sent directly to the UNI-7 faucet wallet.</p></section>
+  </div>
+  <section class="wallet-section" aria-labelledby="wallet-heading"><div class="section-heading"><div><span class="eyebrow">YOUR UNI-7 WALLET</span><h2 id="wallet-heading">Make your JUNOX work</h2></div><button id="refresh" type="button">Refresh data</button></div>
+    <div class="wallet-stats"><article><span>Available</span><strong id="available">—</strong><small>JUNOX</small></article><article><span>Staked</span><strong id="staked">—</strong><small>JUNOX</small></article><article><span>Unstaking</span><strong id="unbonding">—</strong><small>JUNOX</small></article><article class="rewards-card"><span>Pending rewards</span><strong id="rewards">—</strong><small>JUNOX</small><button id="claim" type="button" disabled>Claim rewards</button></article></div>
+    <p id="wallet-help" class="help">Connect Keplr to see your balances, stake and rewards.</p><p id="withdraw-address" class="help" hidden></p><ul id="unbonding-list" class="unbonding-list" hidden></ul>
+  </section>
+  <section class="validators-section" aria-labelledby="validators-heading"><div class="section-heading"><div><span class="eyebrow">SUPPORT THE TESTNET</span><h2 id="validators-heading">Explore validators</h2></div><span id="validator-count" class="help">Loading…</span></div><div class="validator-controls"><label for="validator-search">Find a validator<input id="validator-search" type="search" placeholder="Name or validator address" autocomplete="off"></label><label for="validator-filter">Show<select id="validator-filter"><option value="active">Active validators</option><option value="all">All validators</option><option value="mine">My validators</option></select></label></div>
+    <p id="chain-status" class="help" role="status">Reading the current UNI-7 validator set…</p><p id="unstaking-help" class="help">Unstaking starts the network’s unbonding period. Tokens become available when that period ends.</p>
+    <div id="validators" class="validator-list" aria-live="polite"></div>
+  </section>
+  <div id="action-status" class="action-status" role="status" hidden><span id="action-message"></span><button id="dismiss-status" type="button" aria-label="Dismiss transaction status">Dismiss</button></div>
+  <footer class="faucet-footer"><a href="/community-tools/">← Community Tools</a><span>A community service by NETA Reborn · Juno UNI-7</span></footer>
+</main>
+<dialog id="transaction-dialog" aria-labelledby="transaction-heading"><form id="transaction-form"><span class="eyebrow">JUNO TESTNET · UNI-7</span><h2 id="transaction-heading">Stake JUNOX</h2><p id="transaction-target"></p><label for="transaction-amount">Amount · JUNOX</label><input id="transaction-amount" inputmode="decimal" pattern="[0-9]+(\.[0-9]{1,6})?" required autocomplete="off"><p id="transaction-help" class="help"></p><p id="transaction-error" role="alert"></p><div class="dialog-actions"><button id="transaction-cancel" type="button">Cancel</button><button id="transaction-confirm" class="neta-primary" type="submit">Review in Keplr</button></div></form></dialog>
+<script src="/assets/faucet-signing.js?v=2"></script><script type="module" src="/juno-faucet.mjs?v=20261005-25"></script>
+</body></html>

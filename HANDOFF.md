@@ -1,5 +1,64 @@
 # NETA DAO handoff
 
+## Latest verified checkpoint — 7 October 2026, 12:10 Berlin
+
+The owner requested a fresh handoff after another stalled chat. Read
+[the current handoff](docs/HANDOFF_NEXT_CHAT_2026-10-07.md) for the exact continuation,
+published URLs, timing evidence, automatic-update intervals and remaining gates.
+
+- Community Tools, shared header within that section, recovered pre-quorum votes
+  and combined first-participation evidence are published through PRs #208/#210/#211.
+  The previous handoff was merged in #212. The broader request for the Faucet header
+  on all subpages remains a domain-wide scope check; other pages are not verified
+  by the Community Tools implementation.
+- The saved archive at **09:57:31 UTC** covers every block through **42,453,915**,
+  with **20/25 observed first signatures**. The same five records remain unknown.
+  This is archive coverage, not the current number of signing validators.
+  Collector `37603987812` and Pages `37604149174` succeeded for data commit
+  `bfcc2afb210fbd763c19e7bd31d7ca9080dcc377`. Latest inspected main was
+  `592beb63251a070afea4b1d04aa3a1bd50f0e069`, Pages `37604415482` successful.
+- Current participation refreshes every 30 visible seconds; archive collection runs
+  every ten minutes independently of an open page, and the browser reloads it at
+  most every five minutes. Scheduler/provider/Pages delays may extend the wait.
+  First evidence is an upper bound on readiness, not an exact installation time.
+- PR #195 is still the only open PR, draft at
+  `39feff397f600a25057087285e7710d032326aca`. Its prior five checks passed.
+  Real owner receipts, shared Render backup verification and the two-wallet
+  mainnet pilot remain outstanding. Issue #119 remains open and partly relevant;
+  its unactivated-NNS wording is stale and should be reconciled separately.
+- Next: integrate newer main into the personal candidate, recheck providers and
+  recover the existing owner deployment with **Check pending transaction**.
+  Complete personal messaging first, then shared DAO inboxes/recovery, then
+  payment requests/invoices and Treasury linkage. Only sending requires `.neta`.
+
+This refresh changes documentation only. No fresh live-browser audit, owner
+transaction, paid service or mainnet messaging activation was performed.
+
+## Current continuation — 7 October 2026
+
+Community Tools follow-up: the owner approved publishing the compact tracker under
+`/community-tools/validator-upgrades/juno-v31/`, alongside
+`/community-tools/juno-faucet/`. The shared footer opens `/community-tools/`.
+The default participation-evidence column combines saved votes and first block
+signatures as upper bounds; actual software readiness remains unknown. See the
+tracker document for the collector and evidence.
+
+**Start with the [7 October handoff](docs/HANDOFF_NEXT_CHAT_2026-10-07.md).** It supersedes older
+status/next-step instructions below, which are retained as history.
+
+- Live Juno tracker: https://dao.netareborn.com/community-tools/validator-upgrades/juno-v31/ (old root URL redirects).
+- Wallet feedback/RPC timeout fix is published (PR #205); gzip upload fix is merged (PR #204).
+- Draft PR #195 at `39feff397f600a25057087285e7710d032326aca` has five successful
+  hosted workflows, including browser run `37589126376`; it remains unmerged.
+- Actual owner deployment receipts, live shared Render backup and the real
+  two-wallet pilot remain unverified. Both personal release/deployment pins are null.
+- `.neta` is required only to send. Receiving/reading one's own messages requires
+  no name. Use the existing Faucet Render service for the pilot, then separate later.
+- Next: recheck Juno block progress/providers, recover the pending deployment,
+  complete personal mainnet messaging, then DAO inboxes/recovery and payment requests.
+
+The historical 54.77% block-prevote observation is not a current network status.
+
 ## Wallet connection outage — 7 October 2026
 
 At 07:26 UTC, read-only probes still showed both STAVR and PublicNode at
@@ -19,10 +78,11 @@ WASM and pending transaction journals are unchanged. No transaction was signed
 or broadcast during diagnosis. Tests cover outage/journal preservation, stalled
 RPC fallback/cleanup, stale/provider failure and the browser error/retry flow.
 
-PR #195's automatic-poll test race was separately fixed: the scripted crash
-suite owns receive ordering, while the UX suite verifies polling skips busy
-controllers. Both pass in hosted run 37586913733. That run later failed the
-independent community-accounting browser assertion; full CI still needs to pass.
+PR #195's automatic-poll test race and the independent outage-related
+community-accounting browser assertion are now fixed. All five hosted workflows
+pass for application head `39feff397f600a25057087285e7710d032326aca`, including
+browser run `37589126376`. The earlier failed run `37586913733` is superseded.
+PR #195 remains draft, unmerged and inactive; green CI is not live pilot evidence.
 
 ## Upload HTTP 400 fix and sender-only name requirement — 7 October 2026
 
