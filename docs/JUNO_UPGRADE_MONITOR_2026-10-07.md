@@ -123,7 +123,7 @@ retains a contiguous checkpoint and never skips an unavailable height, replaces
 an existing first observation, interprets nil as a block signature, or overwrites
 corrupt saved evidence. Each actual JSON record includes its transaction-independent
 commit hash, signature and timestamp. This is RPC-checked evidence, not local
-Ed25519 signature verification. The half-hour workflow continues partial scans,
+Ed25519 signature verification. The ten-minute workflow continues partial scans,
 with a 120-second scan budget and a 1,000-block cap so ordinary block production
 does not permanently outrun a 200-block-per-half-hour limit. A slow or unavailable
 provider can still delay the archive; the scanned-through watermark remains visible.
@@ -194,3 +194,20 @@ external service, secret, wallet permission or mainnet activation is added.
 The old 09:32 snapshot cannot fill the interval through the 09:53 restart. Actual
 node consensus WALs or other contemporaneous observer archives would be needed
 for more evidence; do not manufacture missing times from committed headers.
+
+## Missing first-vote times: combined participation evidence
+
+The default column now selects the earliest available archived consensus vote or
+canonical block signature. Each value is labelled ≤ (participating by this time),
+with the evidence type and local clock time. Missing prevotes no longer hide known
+first signatures. Sorting uses the selected evidence measure; unknown remains
+unknown. The saved pre-quorum timeline and live five-block window stay separate.
+A first signature after restart cannot establish an upgrade after restart.
+
+The contiguous archive checked at 09:17 UTC contains BlueStake in the first resumed
+block (07:53:30 UTC), GATA HUB at 08:11:49 UTC, Polkachu at 08:23:19 UTC and Stakeflow
+at 09:15:14 UTC. None had a vote in the surviving 07:32 UTC snapshot. These are
+signature timestamps, not installation times; POSTHUMAN's newly reported return
+requires the next matched two-source collection, without inventing its timestamp.
+The archive workflow now runs every ten minutes (subject to scheduler/provider
+delays), with its existing bounded scan and five-minute browser cache interval.

@@ -226,3 +226,14 @@ Keep PR #195 draft until its remaining release work is resolved deliberately.
 
 The older handoff retains Treasury, NNS, governance and wider roadmap details.
 This checkpoint does not complete unrelated backlogs or change application behavior.
+
+## Follow-up: late participation evidence
+
+Owner reported late Stakeflow and POSTHUMAN upgrades. The default v31 table now
+combines earliest saved consensus votes with canonical first block signatures,
+labels all times as participation upper bounds (≤), and retains explicit source
+types. BlueStake signed the first resumed block; GATA HUB, Polkachu and Stakeflow
+first appear later in the gap-free commit archive. This alone does not prove
+installation happened after restart. Preserve the 14 pre-quorum vote records.
+The collector cadence is ten minutes; timestamps for newly returning validators
+must come from matched canonical commits. See JUNO_UPGRADE_MONITOR_2026-10-07.md.
