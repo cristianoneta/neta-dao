@@ -1,5 +1,25 @@
 # Next-chat handoff — dao.netareborn.com — 7 October 2026
 
+## Restricted personal pilot — 7 October 2026
+
+The owner explicitly approved the Faucet wallet's own encrypted-backup access.
+The two admitted wallets are owner `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`
+and Faucet `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`. Render deployment
+`dep-db32r1qd0e5s73eu9kcg` is live with the same reviewed backend commit
+`052e736a87d44bbe3743524b1a547822bc6dbf81`. Health, correctly scoped second-wallet
+challenge and unauthenticated rejection passed. Do not ask for this consent again.
+
+The separate pilot page is `/relay-personal-pilot.html`; this change publishes its
+seven pinned artifacts from candidate `a17a2bf`. Verify Pages deployment and served
+hashes after merge. Read [the pilot instructions and evidence limits](deployments/PERSONAL_PILOT_2026-10-07.md)
+before proceeding. Public Inbox pins remain null and PR #195 remains draft/unmerged.
+No real backup upload, message or recovery lifecycle has been completed. Next user
+action: connect the Faucet wallet, authorize its own backup, save its private
+recovery code and review inbox registration in Keplr. No .neta name is required
+for receiving or registration. Never read/export the Faucet mnemonic.
+The earlier owner-only or missing-second-wallet statements below are historical.
+
+
 ## Shared Render backup deployed — 7 October 2026, 13:15 Berlin
 
 The existing `neta-junox-faucet` service now runs candidate commit

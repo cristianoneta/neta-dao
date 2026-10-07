@@ -1,0 +1,51 @@
+{
+  "observedAt": "2026-10-07T11:34:43.999179+00:00",
+  "deploy": "dep-db32r1qd0e5s73eu9kcg",
+  "wallet": "juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt",
+  "checks": [
+    {
+      "path": "/health",
+      "status": 200,
+      "data": {
+        "ok": true
+      }
+    },
+    {
+      "path": "/v1/challenge",
+      "status": 200,
+      "data": {
+        "message": {
+          "purpose": "NETA RELAY encrypted backup access v1",
+          "domain": "https://neta-junox-faucet.onrender.com",
+          "origin": "https://dao.netareborn.com",
+          "scope": "[\"juno-1\",\"juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6\",\"juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt\"]",
+          "expires": 1791372989211
+        },
+        "nonceOmitted": true
+      }
+    },
+    {
+      "path": "/v1/backup",
+      "status": 401,
+      "data": {
+        "error": "Authentication required"
+      }
+    },
+    {
+      "path": "/status",
+      "status": 200,
+      "data": {
+        "chainId": "uni-7",
+        "address": "juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt",
+        "amount": "25000000",
+        "intervalSeconds": 86400,
+        "balance": "736692569",
+        "ready": true,
+        "protection": "usage-guards-v1",
+        "confirmation": "uni7-exact-hash-v1",
+        "gasPolicy": "bank-send-gas-v1",
+        "pause": null
+      }
+    }
+  ]
+}
