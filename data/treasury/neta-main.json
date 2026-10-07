@@ -35,7 +35,7 @@
     {
       "amount": "1402.010133",
       "base_denom": "ujuno",
-      "change_24h": -1.5461085910853374,
+      "change_24h": -0.9871699103039043,
       "custody_address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
       "decimals": 6,
       "ibc_path": null,
@@ -45,8 +45,8 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00887665",
-      "usd_value": "12.44515324709445"
+      "usd_price": "0.00887677",
+      "usd_value": "12.44532148831041"
     },
     {
       "amount": "7.32641",
@@ -56,30 +56,30 @@
       "source_chain": "juno",
       "symbol": "NETA",
       "type": "token",
-      "usd_price": "1.236281339262638779317358866",
-      "usd_value": "9.057503966787189379178491169"
+      "usd_price": "1.236298052072168446100832145",
+      "usd_value": "9.057626411682055625197597635"
     }
   ],
-  "balance_source": "https://juno-api.polkachu.com",
+  "balance_source": "https://juno.api.m.stavr.tech",
   "chain_id": "juno-1",
-  "generated_at": "2026-10-07T06:53:48.143451Z",
-  "height": 42451934,
+  "generated_at": "2026-10-07T07:21:14.911093Z",
+  "height": 42452000,
   "nns_price": {
-    "observed_at": "2026-10-07T06:53:48.143451Z",
+    "observed_at": "2026-10-07T07:21:14.911093Z",
     "pool": "juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra",
     "source": "treasury-wynd-juno-usd",
     "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
-    "usd_price": "1.236281339262638779317358866",
+    "usd_price": "1.236298052072168446100832145",
     "usd_source": "CoinGecko"
   },
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "21.50265721388163937917849117",
+  "total_usd": "21.50294789999246562519759764",
   "treasury_accounts": [
     {
       "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
-      "balance_source": "https://juno-api.polkachu.com",
+      "balance_source": "https://juno.api.m.stavr.tech",
       "chain_id": "juno-1",
       "control": "dao-core"
     }

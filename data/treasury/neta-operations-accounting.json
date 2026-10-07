@@ -16,8 +16,8 @@
   "accounting_start": "2026-10-01T00:00:00Z",
   "adapter": "treasury-receipts",
   "status": "PARTIAL",
-  "refresh_status": "completed",
-  "checked_at": "2026-10-07T06:50:37.443097Z",
+  "refresh_status": "unavailable",
+  "checked_at": "2026-10-07T07:37:50.074403Z",
   "last_success_at": "2026-10-07T06:50:37.428430Z",
   "sources": [
     {
@@ -160,14 +160,13 @@
   "coverage_gaps": [],
   "execution_candidates": [],
   "warnings": [
-    "Exact block timestamp unavailable from public RPC archives for 57 historical events.",
-    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses."
+    "Latest collector failed; prior evidence retained."
   ],
   "entries": [],
   "movement_review": {
     "accounting_start": "2026-10-01T00:00:00Z",
     "status": "PARTIAL",
-    "event_refresh_status": "PARTIAL",
+    "event_refresh_status": "UNAVAILABLE",
     "matched_receipts": 0,
     "unmatched_receipt_ids": [],
     "unreviewed_movements": 0,

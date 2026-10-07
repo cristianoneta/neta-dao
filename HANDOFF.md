@@ -1,5 +1,29 @@
 # NETA DAO handoff
 
+## Wallet connection outage — 7 October 2026
+
+At 07:26 UTC, read-only probes still showed both STAVR and PublicNode at
+Juno height 42,452,000, block time 06:56:31 UTC. This is the scheduled v31
+upgrade height (governance proposal 379); STAVR reports v31.0.0. PolkaChu RPC
+and REST returned HTTP 502, and the WhisperNode connection failed. These
+observations indicate an upgrade-related network interruption, not proof of
+a Keplr defect. A reachable alternative RPC also served stale blocks; changing
+providers alone would not make deployment safe. Recheck fresh blocks and both
+verification providers before attempting the owner deployment.
+
+The owner page now shows connection progress and errors next to its button,
+distinguishes successful wallet authorization from failed network verification,
+and tries the next approved RPC after a 12-second connection timeout. Late
+clients are disconnected. Freshness checks, two-provider verification, reviewed
+WASM and pending transaction journals are unchanged. No transaction was signed
+or broadcast during diagnosis. Tests cover outage/journal preservation, stalled
+RPC fallback/cleanup, stale/provider failure and the browser error/retry flow.
+
+PR #195's automatic-poll test race was separately fixed: the scripted crash
+suite owns receive ordering, while the UX suite verifies polling skips busy
+controllers. Both pass in hosted run 37586913733. That run later failed the
+independent community-accounting browser assertion; full CI still needs to pass.
+
 ## Upload HTTP 400 fix and sender-only name requirement — 7 October 2026
 
 The owner hit HTTP 400 after reviewing the personal mailbox upload. A read-only

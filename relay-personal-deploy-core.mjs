@@ -91,16 +91,29 @@ export class PersonalMainnetSetup{
   return {kind:'personal-mainnet-deployment-receipts',deployment,policy:POLICY,observations,history:s.history,activated:false};
  });}
 }
-export async function connectPersonalSetup({keplr=globalThis.keplr,bundle=globalThis.NetaNamesSigning,storage=globalThis.localStorage,locks=globalThis.navigator?.locks,fetcher=globalThis.fetch,assertCurrent=()=>{}}={}){
- if(!keplr||!bundle?.createBridge)throw Error('Keplr and signing bundle required.');let active=true,client;
+export async function connectPersonalSetup({keplr=globalThis.keplr,bundle=globalThis.NetaNamesSigning,storage=globalThis.localStorage,locks=globalThis.navigator?.locks,fetcher=globalThis.fetch,assertCurrent=()=>{},onStatus=()=>{},connectionTimeoutMs=12000}={}){
+ if(!keplr)throw Error('Keplr is not available in this browser. Open this page in a browser with Keplr enabled.');
+ if(!bundle?.createBridge)throw Error('The signing tools have not loaded. Reload this page and try connecting again.');let active=true,client;
  const check=()=>{if(!active)throw Error('Deployment session disconnected.');assertCurrent();};
+ const report=message=>{check();onStatus(message);};
+ async function connectRpc(rpc,signer){
+  let expired=false,timer;
+  const pending=Promise.resolve().then(()=>bundle.connect(rpc,signer,'juno-1')).then(value=>{if(expired){value.disconnect();throw Error('Juno RPC connection timed out.');}return value;});
+  try{return await Promise.race([pending,new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(Error('Juno RPC connection timed out.'));},connectionTimeoutMs);})]);}
+  finally{clearTimeout(timer);}
+ }
  const assertWallet=async owner=>{check();const address=(await keplr.getOfflineSigner('juno-1').getAccounts())[0]?.address;check();if(address!==owner)throw Error('Use the approved owner wallet.');};
  try{
-  check();await keplr.enable('juno-1');await assertWallet(OWNER);
+  report('Confirm the connection in Keplr. This does not request a transaction.');await keplr.enable('juno-1');await assertWallet(OWNER);
   const wrapped={getAccounts:async()=>{await assertWallet(OWNER);return keplr.getOfflineSigner('juno-1').getAccounts();},signDirect:async(address,doc)=>{await assertWallet(OWNER);const signed=await keplr.signDirect('juno-1',address,doc,{preferNoSetFee:true});await assertWallet(OWNER);return signed;}};
-  for(const rpc of NETWORK.rpcs){try{check();client=await bundle.connect(rpc,wrapped,'juno-1');break;}catch(error){check();}}
-  if(!client)throw Error('Juno mainnet signing RPC unavailable.');check();
-  const setup=new PersonalMainnetSetup({owner:OWNER,client,bundle,assertWallet,storage,locks,fetcher});setup.state();await setup.verifyState();check();
+  for(const [index,rpc] of NETWORK.rpcs.entries()){
+   report(`Owner wallet verified. Connecting to Juno (${index+1}/${NETWORK.rpcs.length})…`);
+   try{client=await connectRpc(rpc,wrapped);break;}catch(error){check();}
+  }
+  if(!client)throw Error('Keplr connected, but the Juno network connection is unavailable. Retry later. No transaction was requested; keep your browser’s site data.');
+  report('Owner wallet verified. Checking current Juno data with two independent providers…');
+  const setup=new PersonalMainnetSetup({owner:OWNER,client,bundle,assertWallet,storage,locks,fetcher});setup.state();
+  try{await setup.verifyState();}catch(error){check();throw Error('Keplr connected, but Juno verification failed: '+error.message+' No transaction was requested. Retry the connection later.');}check();
   return {owner:OWNER,setup,disconnect(){active=false;client.disconnect();}};
  }catch(error){active=false;client?.disconnect();throw error;}
 }

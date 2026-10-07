@@ -1,6 +1,6 @@
 {
   "accounting_start": "2026-10-01T00:00:00Z",
-  "checked_at": "2026-10-07T06:53:52.382484Z",
+  "checked_at": "2026-10-07T07:21:17.290007Z",
   "cursor": {
     "chains": [
       {
@@ -202,7 +202,7 @@
       "source": "https://juno.api.m.stavr.tech"
     }
   ],
-  "status": "PARTIAL",
+  "status": "UNAVAILABLE",
   "treasuries": [
     {
       "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
@@ -210,6 +210,7 @@
     }
   ],
   "warnings": [
-    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses."
+    "Historical transaction source unavailable; retained records are not a complete history.",
+    "Receipt refresh unavailable; https://juno.api.m.stavr.tech: ValueError: Stale chain tip | https://juno-api.polkachu.com: HTTPError: HTTP Error 502: Bad Gateway"
   ]
 }
