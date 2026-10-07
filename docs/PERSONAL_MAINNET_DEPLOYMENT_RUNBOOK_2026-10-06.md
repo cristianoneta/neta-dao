@@ -1,5 +1,16 @@
 # Personal mailbox deployment and private pilot
 
+## Completed owner deployment — 7 October 2026
+
+The owner has now uploaded code **5170** and instantiated
+`juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6`.
+Both successful receipts, exact signed intents, code bytes, administrator and
+policy were independently verified with PolkaChu and STAVR. Read
+[the evidence and next service settings](deployments/PERSONAL_MAINNET_2026-10-07.md).
+The earlier statements below that no real contract/receipt exists are historical.
+Do not repeat deployment. Continue with the existing Render service and real pilot;
+public activation and backup verification are still outstanding.
+
 Prepared on 6 October 2026 in draft PR #195. No mainnet contract, backup service,
 real-wallet signature or recurring cost has been created. This is a runnable
 owner deployment candidate, not a completed production rollout.
