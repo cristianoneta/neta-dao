@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-cosmwasm-schema = "1.5.11"
+cosmwasm-schema = "3.0.10"
 cosmwasm-std = "1.5.11"
 cw-storage-plus = "1.2.0"
 cw2 = "1.1.2"
