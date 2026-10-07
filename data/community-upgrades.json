@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "upgrades": [
+    {"id":"juno-v31","title":"Juno v31","chainId":"juno-1","height":42452000,"date":"2026-10-07","path":"/community-tools/validator-upgrades/juno-v31/","history":"/data/validator-upgrades/juno-v31.json","collect":true}
+  ]
+}

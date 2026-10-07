@@ -2,6 +2,12 @@
 
 ## Current continuation — 7 October 2026
 
+Community Tools follow-up: the owner approved publishing the compact tracker under
+`/community-tools/validator-upgrades/juno-v31/`, alongside
+`/community-tools/juno-faucet/`. The shared footer opens `/community-tools/`.
+The new first-signature column uses recorded precommit timestamps, not a claim of
+actual software readiness. See the tracker document for the collector and evidence.
+
 **Start with the [7 October handoff](HANDOFF_NEXT_CHAT_2026-10-07.md).** It supersedes older
 status/next-step instructions below, which are retained as history.
 

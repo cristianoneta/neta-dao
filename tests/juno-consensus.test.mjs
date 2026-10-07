@@ -18,3 +18,27 @@ test('malformed, different-height/round and mismatched-identity votes never turn
 test('two observer snapshots must match height, round, power and individual votes',()=>{
  const a=parseConsensus(fixture()),b=structuredClone(a);assert.equal(observationsAgree(a,b),true);b.height++;assert.equal(observationsAgree(a,b),false);b.height--;b.rows[0].prevote.block='C'.repeat(12);assert.equal(observationsAgree(a,b),false);
 });
+
+import {parseCommitWindow,commitWindowsAgree} from '../juno-consensus-core.mjs';
+import {commitFixture} from './fixtures/juno-commits.mjs';
+test('canonical block signatures remain stable when the next live round is empty',()=>{
+ const f=commitFixture(),c=parseCommitWindow(f.commits,f.set,f.height);
+ assert.equal(c.signedPower,'90');assert.equal(c.latestPower,'90');assert.equal(c.missingPower,'10');assert.equal(c.signedCount,3);assert.equal(c.rows[0].signed,5);assert.equal(c.rows[3].signed,0);
+ const round=fixture();round.result.round_state.votes[0].prevotes.fill('nil-Vote');assert.equal(parseConsensus(round).prevotes.power,'0');assert.equal(c.signedPower,'90');
+});
+test('recent participation is not a fabricated single-block quorum; nil is separate',()=>{
+ const f=commitFixture();const sig=f.commits[0].result.signed_header.commit.signatures;
+ sig[2].block_id_flag=3;const c=parseCommitWindow(f.commits,f.set,f.height);
+ assert.equal(c.latestPower,'70');assert.equal(c.signedPower,'90');assert.equal(c.rows[2].signed,4);assert.equal(c.rows[2].nil,1);assert.equal(c.rows[2].latest,'nil');
+});
+test('incomplete, wrong-chain, malformed and noncanonical evidence fails, never yields zero',()=>{
+ const changes=[f=>f.set.result.block_height='1',f=>f.set.result.total='6',f=>f.set.result.validators[1].address=f.set.result.validators[0].address,f=>f.commits.pop(),f=>f.commits[0].result.canonical=false,f=>f.commits[0].result.signed_header.header.chain_id='uni-7',f=>f.commits[0].result.signed_header.commit.height='42452151',f=>f.commits[0].result.signed_header.commit.signatures.pop(),f=>f.commits[0].result.signed_header.commit.signatures[0].validator_address='F'.repeat(40),f=>f.commits[0].result.signed_header.commit.signatures[0].signature=null,f=>f.commits[0].result.signed_header.commit.signatures[0].block_id_flag=3,f=>f.commits[0].result.signed_header.header.last_block_id.hash='F'.repeat(64)];
+ for(const change of changes){const f=commitFixture();change(f);assert.throws(()=>parseCommitWindow(f.commits,f.set,f.height));}
+});
+test('window stops at the upgrade and at a validator-set change',()=>{
+ const first=commitFixture(undefined,42452001);assert.equal(parseCommitWindow(first.commits,first.set,first.height).count,1);
+ const f=commitFixture();f.commits[2].result.signed_header.header.validators_hash='B'.repeat(64);const c=parseCommitWindow(f.commits,f.set,f.height);assert.equal(c.count,2);assert.equal(c.rows[0].signed,2);
+});
+test('cross-check compares exact heights, identities, powers and each commit',()=>{
+ const f=commitFixture(),a=parseCommitWindow(f.commits,f.set,f.height),b=structuredClone(a);assert.equal(commitWindowsAgree(a,b),true);b.blocks[4].kinds[0]='missing';assert.equal(commitWindowsAgree(a,b),false);assert.equal(commitWindowsAgree(a,null),false);
+});
