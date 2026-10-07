@@ -207,7 +207,30 @@ A first signature after restart cannot establish an upgrade after restart.
 The contiguous archive checked at 09:17 UTC contains BlueStake in the first resumed
 block (07:53:30 UTC), GATA HUB at 08:11:49 UTC, Polkachu at 08:23:19 UTC and Stakeflow
 at 09:15:14 UTC. None had a vote in the surviving 07:32 UTC snapshot. These are
-signature timestamps, not installation times; POSTHUMAN's newly reported return
-requires the next matched two-source collection, without inventing its timestamp.
+signature timestamps, not installation times. The subsequent matched collection
+at 09:33:50 UTC found POSTHUMAN and Shutting down - REDELEGATE ASAP at height
+42,453,271, with first signatures at 09:22:06 UTC (11:22:06 Berlin). It advanced
+the contiguous archive through 42,453,480, with 20/25 first signatures. This is
+historical coverage, not a fresh current-participation count.
 The archive workflow now runs every ten minutes (subject to scheduler/provider
 delays), with its existing bounded scan and five-minute browser cache interval.
+
+## Final publication checkpoint — 11:38 Berlin
+
+PR #210 merged as `93dd8a27dd240f7cc7714913c30f0186c8649874` and Pages
+`37599340713` succeeded. PR #211 merged as
+`5ad9fb14bf72daf1ec65341c41d75c687e22cfac` after all five PR workflows passed
+(head `75df611aeec0728012b787dc35793b8c84670a33`). Production collector
+`37601407504` published data commit `ad4bdb481f861f14f64707d5277d0ae125dd2791`;
+Pages `37601479514` succeeded. The previous Pages run was superseded.
+Validation includes earliest-evidence/unknown-source unit coverage and mocked
+browser fallback, failure-state and 320–1440 px regressions. Publication was
+verified through GitHub deployment records and the committed evidence; direct
+web retrieval was unavailable, so no new production-browser audit is claimed.
+
+The owner accepted automatic updates: 30-second visible live refresh with Auto
+on, ten-minute independent archive collection and five-minute browser archive
+reload. Scheduler/provider/publication delays remain possible. New validators'
+first signatures are appended automatically; existing first records survive
+later inactivity. The complete continuation checkpoint is
+[HANDOFF_NEXT_CHAT_2026-10-07.md](HANDOFF_NEXT_CHAT_2026-10-07.md).

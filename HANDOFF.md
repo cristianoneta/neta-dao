@@ -1,45 +1,42 @@
 # NETA DAO handoff
 
-## Owner correction: readiness before quorum — 7 October, 10:55 Berlin
+## Latest verified checkpoint — 7 October 2026, 11:38 Berlin
 
-The first committed signature is **not** the requested upgrade responsiveness
-metric. A recovered pair of `/dump_consensus_state` captures from 07:32 UTC
-survives locally and is preserved without peer data in
-`data/validator-upgrades/juno-v31-readiness.json`. Both agree at 42,452,001,
-round 0: 14 validators had prevoted (64.53% power), 54.77% for the same block.
-Kintsugi's reported prevote time is 07:08:04.799998078 UTC (11m33s after the
-halt reference). Polkachu is absent in this snapshot; its readiness time is
-unknown, not inferred from a later commit or ranked last.
+Community Tools and the validator follow-ups are published: PR #210 added the
+shared Faucet header and recovered pre-quorum evidence; PR #211 combines the
+earliest saved consensus vote with canonical first-signature evidence. The default
+column is **First participation evidence**, explicitly labelled ≤ (participating
+by this time), with its evidence type. This is not an exact upgrade-time ranking.
 
-The follow-up defaults to First consensus vote, with partial-coverage labels,
-optional first-block-signature view, earliest-vote sorting and an expandable
-same-round timeline. Live signing remains a separate current window. The
-Faucet header is shared by every Community Tools page; the tracker uses a
-read-only mainnet label, with no wallet action. A bounded future collector needs
-an explicit UTC `readinessWindow` in the registry and archives during the halt.
-Historical v31 coverage cannot be recreated by enabling it now. See the tracker
-document for evidence, timing limitations and future setup. This section records
-the prepared correction; verify its PR/Pages result before calling it live.
+The archive at 09:33:50 UTC covers every block through 42,453,480 and has 20/25
+first signatures, including POSTHUMAN at 11:22:06 Berlin. This is historical
+coverage, not the current number of signing validators. Current participation
+refreshes every 30 visible seconds; archive collection runs every ten minutes
+independently of an open page, and the browser reloads it at most every five
+minutes. Provider/scheduler/Pages delays can extend those intervals.
 
-The owner also asked whether open work remains relevant: draft PR #195 still
-contains unfinished RELAY recovery/shared-backup/pilot work. Issue #119 remains
-partly relevant (incomplete Treasury coverage/expenses, unknown IBC decimals and
-DAO write/validator-E2E follow-ups), but its unactivated-NNS wording predates the
-verified mainnet launch and the October-only accounting decision. Do not close
-these as completed or merge #195 as part of Community Tools.
+PR #211 merged as `5ad9fb14bf72daf1ec65341c41d75c687e22cfac`; all five PR
+workflows passed. Collector `37601407504` published data commit
+`ad4bdb481f861f14f64707d5277d0ae125dd2791`; Pages `37601479514` succeeded.
+See [the current handoff](docs/HANDOFF_NEXT_CHAT_2026-10-07.md) for the evidence table, exact limits and next steps.
+
+Open work remains draft PR #195 (personal messaging/recovery/shared-backup pilot)
+and issue #119 (partly current Treasury/other gates; NNS launch wording is outdated).
+No mainnet messaging activation or owner transaction was performed by this work.
 
 ## Current continuation — 7 October 2026
 
 Community Tools follow-up: the owner approved publishing the compact tracker under
 `/community-tools/validator-upgrades/juno-v31/`, alongside
 `/community-tools/juno-faucet/`. The shared footer opens `/community-tools/`.
-The new first-signature column uses recorded precommit timestamps, not a claim of
-actual software readiness. See the tracker document for the collector and evidence.
+The default participation-evidence column combines saved votes and first block
+signatures as upper bounds; actual software readiness remains unknown. See the
+tracker document for the collector and evidence.
 
 **Start with the [7 October handoff](docs/HANDOFF_NEXT_CHAT_2026-10-07.md).** It supersedes older
 status/next-step instructions below, which are retained as history.
 
-- Live Juno tracker: https://dao.netareborn.com/juno-upgrade-status.html (PR #206).
+- Live Juno tracker: https://dao.netareborn.com/community-tools/validator-upgrades/juno-v31/ (old root URL redirects).
 - Wallet feedback/RPC timeout fix is published (PR #205); gzip upload fix is merged (PR #204).
 - Draft PR #195 at `39feff397f600a25057087285e7710d032326aca` has five successful
   hosted workflows, including browser run `37589126376`; it remains unmerged.
