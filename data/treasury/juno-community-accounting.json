@@ -12,9 +12,9 @@
   "accounting_start": "2026-10-01T00:00:00Z",
   "adapter": "native-community-pool",
   "status": "PARTIAL",
-  "refresh_status": "unavailable",
-  "checked_at": "2026-10-07T07:37:50.083129Z",
-  "last_success_at": "2026-10-07T06:50:36.056137Z",
+  "refresh_status": "completed",
+  "checked_at": "2026-10-07T07:59:01.016732Z",
+  "last_success_at": "2026-10-07T07:58:58.577052Z",
   "sources": [
     {
       "adapter": "cosmos-rest-receipts",
@@ -29,9 +29,9 @@
         "timestamp": "2026-09-30T10:14:02.896994123Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42450932,
-      "last_scanned_height": 42451837,
-      "anchor_hash": "CF009EAED14070FE1A397314DB36FA03ED555D87B5BC5B8DC3F0DF2F0843BCB6",
+      "scan_start_height": 42451737,
+      "last_scanned_height": 42452047,
+      "anchor_hash": "A7BA7F410A1BB015ABD74E055DD659A1583FB60AEA431A62D7D41BFEA21AA15B",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
@@ -56,14 +56,12 @@
   "execution_candidates": [],
   "community_tax": {
     "rate": "0.100000000000000000",
-    "observed_at": "2026-10-07T06:50:36.056137Z",
+    "observed_at": "2026-10-07T07:58:58.577052Z",
     "source": "https://juno.api.m.stavr.tech/cosmos/distribution/v1beta1/params",
     "basis": "Distribution rewards including minted inflation and transaction fees; the current rate is not historical revenue."
   },
   "warnings": [
-    "Community Pool refresh failed; previous evidence retained.",
-    "https://juno.api.m.stavr.tech: ValueError: Stale chain tip",
-    "https://juno-api.polkachu.com: HTTPError: HTTP Error 502: Bad Gateway",
+    "Older governance page unavailable (HTTPError); recent observed proposals retained, catalogue coverage incomplete.",
     "Recorded totals include tax allocations and reviewed transactions. No unmatched distribution outflows were found. Zero other income means no other recorded income; unmeasured withdrawal dust and validator-removal remainders are excluded. Full module balance reconciliation remains incomplete."
   ],
   "entries": [
@@ -11390,7 +11388,7 @@
   "movement_review": {
     "accounting_start": "2026-10-01T00:00:00Z",
     "status": "PARTIAL",
-    "event_refresh_status": "UNAVAILABLE",
+    "event_refresh_status": "PARTIAL",
     "matched_receipts": 0,
     "unmatched_receipt_ids": [],
     "unreviewed_movements": 0,

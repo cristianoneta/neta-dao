@@ -12,9 +12,9 @@
   "accounting_start": "2026-10-01T00:00:00Z",
   "adapter": "treasury-receipts",
   "status": "PARTIAL",
-  "refresh_status": "unavailable",
-  "checked_at": "2026-10-07T07:37:56.615758Z",
-  "last_success_at": "2026-10-07T06:50:48.682922Z",
+  "refresh_status": "completed",
+  "checked_at": "2026-10-07T07:59:09.484382Z",
+  "last_success_at": "2026-10-07T07:59:09.465271Z",
   "sources": [
     {
       "adapter": "cosmos-rest-receipts",
@@ -29,9 +29,9 @@
         "timestamp": "2026-09-30T11:15:50.297962745Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42450938,
-      "last_scanned_height": 42451842,
-      "anchor_hash": "A42FA02ECE91519586AD0A490158DDA7B0A55A8F2F9C7036C5D9859474A6812E",
+      "scan_start_height": 42451742,
+      "last_scanned_height": 42452047,
+      "anchor_hash": "A7BA7F410A1BB015ABD74E055DD659A1583FB60AEA431A62D7D41BFEA21AA15B",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
@@ -95,9 +95,8 @@
   ],
   "execution_candidates": [],
   "warnings": [
-    "Receipt refresh unavailable; previous evidence retained.",
-    "Receipt refresh unavailable; https://juno.api.m.stavr.tech: ValueError: Stale chain tip | https://juno-api.polkachu.com: HTTPError: HTTP Error 502: Bad Gateway",
-    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2, \"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42452000)\", \"details\":[]}"
+    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses.",
+    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2, \"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42452068)\", \"details\":[]}"
   ],
   "entries": [
     {
@@ -165,7 +164,7 @@
   "movement_review": {
     "accounting_start": "2026-10-01T00:00:00Z",
     "status": "PARTIAL",
-    "event_refresh_status": "UNAVAILABLE",
+    "event_refresh_status": "PARTIAL",
     "matched_receipts": 0,
     "unmatched_receipt_ids": [],
     "unreviewed_movements": 0,
