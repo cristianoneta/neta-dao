@@ -1,5 +1,17 @@
 # NETA DAO handoff
 
+## First Faucet inbox registered — 7 October 2026, 14:00 Berlin
+
+The user completed the Faucet inbox registration. STAVR returned its device at
+generation 1 at 12:00 UTC; the owner still has no registered device. The user's
+screenshot says “Inbox ready · encrypted backup confirmed”, which is a client
+acknowledgement, not an independent hosted recovery test. Next: register the owner,
+then switch back and allow the owner from the Faucet inbox, then send the first
+message. Consent requires both devices to be registered. Do not repeat the Faucet
+registration. [Corrected pilot sequence](docs/deployments/PERSONAL_PILOT_2026-10-07.md).
+Earlier missing-registration statements below are superseded by this checkpoint.
+
+
 ## Restricted personal pilot — 7 October 2026
 
 The owner explicitly approved the Faucet wallet's own encrypted-backup access.
