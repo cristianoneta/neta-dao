@@ -1,0 +1,21 @@
+name: Weekly dependency security audit
+on:
+  schedule:
+    - cron: '19 7 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        directory: [faucet, relay-backup, spikes/relay-corecrypto]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - run: npm audit --prefix '${{ matrix.directory }}' --audit-level=high
+  contracts:
+    uses: ./.github/workflows/contract-ci.yml

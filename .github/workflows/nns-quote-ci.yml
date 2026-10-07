@@ -1,10 +1,8 @@
 name: NNS pricing CI
 on:
-  pull_request:
-    paths: ["names/**", "names-v2-core.mjs", "names-v2-client.mjs", "tests/fixtures/nns-price-snapshot.json", "assets/names-mainnet/**", "scripts/update_treasury.py", ".github/workflows/main-dao-snapshot.yml", "names-profile-core.mjs", ".github/workflows/nns-quote-ci.yml"]
-  push:
-    branches: [main]
-    paths: ["names/**", "names-v2-core.mjs", "names-v2-client.mjs", "tests/fixtures/nns-price-snapshot.json", "assets/names-mainnet/**", "scripts/update_treasury.py", ".github/workflows/main-dao-snapshot.yml", "names-profile-core.mjs", ".github/workflows/nns-quote-ci.yml"]
+  workflow_call:
+  workflow_dispatch:
+
 permissions:
   contents: read
 concurrency:

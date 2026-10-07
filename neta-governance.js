@@ -1,139 +1,2012 @@
-(async()=>{
-  const {unitsFor, resolveSelection, selectionParams} = await import("./dao-hierarchy.mjs?v=20261006-structure-1");
-  const ORGANIZATIONS=window.NetaDaoOrganizations;
-  const { accountingType, accountingOptions, categoriesFor, categoryRecords, validateCategories, isSpend } = await import("./proposal-accounting.mjs?v=20261006-4");
-  const CHAIN_ID="uni-7";
-  const RPCS=["https://juno.test.rpc.nodeshub.online","https://juno.rpc.t.stavr.tech"],RESTS=["https://juno.test.api.nodeshub.online","https://juno.api.t.stavr.tech"];
-  const MAINNET_RESTS=["https://juno-api.polkachu.com","https://juno-api.lavenderfive.com","https://juno.api.m.stavr.tech"],MAINNET_RPCS=["https://juno-rpc.polkachu.com","https://rpc-juno.whispernode.com"],GOVERNANCE_CHAINS=[{id:"juno",name:"Juno"}],DAOS=window.NetaDaoDirectory;
-  const DAO_STORAGE_KEY="neta-governance-selected-dao",JUNO_REVIEW_CONTRACT_KEY="neta-governance-juno-review-contract",TEST_ACCESS_CONTRACT="juno10739807rjqkf4kmtvpu5ll5e67dkch82xzgph83cmn5h8n0fxmnszasg86",TEST_ADMIN="juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",DELIVERABLE_TYPE="dao_deliverable_v1";
-  function storedReviewContract(){try{return localStorage.getItem(JUNO_REVIEW_CONTRACT_KEY)||null}catch{return null}}
-  function storedScope(){try{return JSON.parse(localStorage.getItem("neta-governance-scope")||"null")}catch{return null}}
-  const initialScope=resolveSelection(new URLSearchParams(window.location.search),ORGANIZATIONS,DAOS,storedScope());
-  const initialDao=initialScope.dao;
-  let CONTRACT=initialDao.workshopContract||(initialDao.mode==="native-gov"?storedReviewContract():null),proposalModule=initialDao.proposalModule;
-  const CHAIN={chainId:CHAIN_ID,chainName:"Juno Testnet",rpc:RPCS[0],rest:RESTS[0],bip44:{coinType:118},bech32Config:{bech32PrefixAccAddr:"juno",bech32PrefixAccPub:"junopub",bech32PrefixValAddr:"junovaloper",bech32PrefixValPub:"junovaloperpub",bech32PrefixConsAddr:"junovalcons",bech32PrefixConsPub:"junovalconspub"},currencies:[{coinDenom:"JUNOX",coinMinimalDenom:"ujunox",coinDecimals:6}],feeCurrencies:[{coinDenom:"JUNOX",coinMinimalDenom:"ujunox",coinDecimals:6,gasPriceStep:{low:.1,average:.2,high:.3}}],stakeCurrency:{coinDenom:"JUNOX",coinMinimalDenom:"ujunox",coinDecimals:6},features:["cosmwasm"]};
-  const state={address:null,client:null,mainnetClient:null,access:null,configOwner:null,chain:GOVERNANCE_CHAINS.find(chain=>chain.id===initialDao.chainId)||GOVERNANCE_CHAINS[0],dao:initialDao,scope:initialScope,proposals:[],chainProposals:[],selected:null,revisions:[],comments:[],deliverables:[],accountingRecords:[],replyTo:null,nativeThreads:false,busy:false,filter:"all",countdown:null,requestEpoch:0,walletEpoch:0,connecting:false};
-  const $=s=>document.querySelector(s),node=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
-  const short=a=>a?`${a.slice(0,9)}…${a.slice(-6)}`:"—",when=t=>new Date(Number(t)*1000).toLocaleString(),deadline=(p,ms,label)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error(`${label} TIMED OUT`)),ms))]);
-  const encode=q=>encodeURIComponent(btoa(JSON.stringify(q))),indexingDisabled=e=>/transaction indexing is disabled/i.test([e?.message,e?.data,(()=>{try{return JSON.stringify(e)}catch{return""}})(),String(e)].filter(Boolean).join(" "));
-  function status(text,error=false){$("#gov-status").textContent=text;$("#gov-status").dataset.state=error?"error":"ready"}
-  function namesChain(){return document.body.dataset.workspaceView==="relay"&&["register","profile"].includes(document.body.dataset.relayPanel)?($("#nns-network")?.value||"juno-1"):null}
-  function renderNetwork(){$(".testnet-pill").hidden=document.body.dataset.workspaceView==="treasury";const relay=document.body.dataset.workspaceView==="relay";$(".testnet-pill").textContent=relay?(namesChain()==="juno-1"?"JUNO MAINNET · NAMES":"UNI-7 TESTNET"):state.dao.mode==="dao-readonly"?"JUNO MAINNET · READ ONLY":state.dao.mode==="native-gov"?"MAINNET DATA · UNI-7 REVIEW":"UNI-7 TESTNET"}
-  window.addEventListener("hashchange",renderNetwork);
-  window.addEventListener("neta:relay-panel",renderNetwork);
-  window.addEventListener("neta:nns-network",()=>{clearWallet();renderNetwork()});
-  let announcedWallet=null;
-  window.NetaWorkspaceWallet=Object.freeze({getAddress:()=>state.address});
-  function renderWallet(){renderNetwork();const button=$("#gov-connect");button.textContent=state.connecting?"Connecting…":state.address?short(state.address):"Connect Keplr";button.disabled=state.busy||state.connecting;if(state.address){button.title=state.address;button.setAttribute("aria-label",`Connected wallet ${state.address}. Reconnect Keplr`)}else{button.removeAttribute("title");button.removeAttribute("aria-label")}$("#gov-disconnect").hidden=!state.address;$("#gov-disconnect").disabled=state.busy;if(announcedWallet!==state.address){announcedWallet=state.address;window.dispatchEvent(new CustomEvent("neta:wallet-change",{detail:{address:state.address}}))}}
-  function clearWallet(){state.walletEpoch+=1;state.requestEpoch+=1;state.connecting=false;state.client?.disconnect?.();state.mainnetClient?.disconnect?.();state.client=null;state.mainnetClient=null;state.address=null;state.access=null;renderWallet()}
-  function disconnectWallet(){if(state.busy)return;clearWallet();resetCommentForm();renderActions();renderComments();status("WALLET DISCONNECTED");$("#gov-connect").focus()}
-  function updateWorkflow(stage){document.querySelectorAll(".workflow [data-stage]").forEach(item=>{const value=Number(item.dataset.stage);item.classList.toggle("active",value===stage);item.classList.toggle("complete",value<stage)})}
-  function renderDaoOptions(term=""){const list=$("#dao-options"),needle=term.trim().toLowerCase(),matches=ORGANIZATIONS.filter(dao=>dao.chainId===state.chain.id&&dao.name.toLowerCase().includes(needle)).sort((a,b)=>a.name.localeCompare(b.name,"en",{sensitivity:"base"}));list.replaceChildren();matches.forEach(dao=>{const button=node("button",dao.id===state.scope.organization.id?"active":null);button.type="button";button.setAttribute("role","option");button.setAttribute("aria-selected",String(dao.id===state.scope.organization.id));button.append(node("strong",null,dao.name));button.onclick=()=>selectOrganization(dao);button.onkeydown=event=>{const options=[...list.querySelectorAll("button")],index=options.indexOf(button);if(event.key==="ArrowDown"){event.preventDefault();options[(index+1)%options.length]?.focus()}if(event.key==="ArrowUp"){event.preventDefault();options[(index-1+options.length)%options.length]?.focus()}if(event.key==="Escape"){closeDaoOptions();$("#dao-search").focus()}};list.append(button)});if(!matches.length)list.append(node("div","revision-item","NO WHITELISTED DAO FOUND"));list.hidden=false;$("#dao-search").setAttribute("aria-expanded","true")}
-  function closeDaoOptions(){$("#dao-options").hidden=true;$("#dao-search").setAttribute("aria-expanded","false");$("#dao-search").value=state.scope.organization.name}
-  function renderScope(){
-    const select=$("#subdao-select"),scope=state.scope;
-    select.replaceChildren();const overall=node("option",null,"Consolidated overview");overall.value="all";select.append(overall);
-    const group=node("optgroup");group.label="DAO units";
-    for(const dao of scope.units){const option=node("option",null,dao.unitName);option.value=dao.id;group.append(option)}select.append(group);
-    select.value=scope.consolidated?"all":state.dao.id;
-    document.body.dataset.consolidated=String(scope.consolidated);
-    $("#organization-scope-note").textContent=scope.consolidated?`${scope.organization.name} · Consolidated Treasury includes ${scope.units.map(d=>d.unitName).join(" + ")}. Proposals and Members show ${scope.dao.unitName}; select a SubDAO to work with that unit.`:"";
-    $("#organization-scope-note").hidden=!scope.consolidated;
+(async () => {
+  const { normalizedComment } = await import('./src/governance/comments.mjs');
+  const { unitsFor, resolveSelection, selectionParams } = await import(
+    './dao-hierarchy.mjs?v=20261006-structure-1'
+  );
+  const ORGANIZATIONS = window.NetaDaoOrganizations;
+  const {
+    accountingType,
+    accountingOptions,
+    categoriesFor,
+    categoryRecords,
+    validateCategories,
+    isSpend
+  } = await import('./proposal-accounting.mjs?v=20261006-4');
+  const CHAIN_ID = 'uni-7';
+  const RPCS = ['https://juno.test.rpc.nodeshub.online', 'https://juno.rpc.t.stavr.tech'],
+    RESTS = ['https://juno.test.api.nodeshub.online', 'https://juno.api.t.stavr.tech'];
+  const MAINNET_RESTS = [
+      'https://juno-api.polkachu.com',
+      'https://juno-api.lavenderfive.com',
+      'https://juno.api.m.stavr.tech'
+    ],
+    MAINNET_RPCS = ['https://juno-rpc.polkachu.com', 'https://rpc-juno.whispernode.com'],
+    GOVERNANCE_CHAINS = [{ id: 'juno', name: 'Juno' }],
+    DAOS = window.NetaDaoDirectory;
+  const DAO_STORAGE_KEY = 'neta-governance-selected-dao',
+    JUNO_REVIEW_CONTRACT_KEY = 'neta-governance-juno-review-contract',
+    TEST_ACCESS_CONTRACT = 'juno10739807rjqkf4kmtvpu5ll5e67dkch82xzgph83cmn5h8n0fxmnszasg86',
+    TEST_ADMIN = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57',
+    DELIVERABLE_TYPE = 'dao_deliverable_v1';
+  function storedReviewContract() {
+    try {
+      return localStorage.getItem(JUNO_REVIEW_CONTRACT_KEY) || null;
+    } catch {
+      return null;
+    }
   }
-  function notifyDaoSelection(){renderScope();renderNetwork();window.NETA_SELECTED_DAO=state.dao.id;window.NETA_DAO_SCOPE=state.scope;window.dispatchEvent(new CustomEvent("neta:dao-change",{detail:{id:state.dao.id,name:state.dao.name,mode:state.dao.mode,scope:state.scope}}))}
-  function selectOrganization(organization){return selectDao(DAOS.find(d=>d.id===organization.mainDaoId),true)}
-  async function selectDao(dao,consolidated=false){if(state.busy){renderScope();closeDaoOptions();return}const organization=ORGANIZATIONS.find(o=>o.id===dao.organizationId);state.scope={organization,units:unitsFor(organization,DAOS),dao,consolidated};const url=new URL(window.location.href);selectionParams(state.scope,url.searchParams);history.replaceState(null,"",url);try{localStorage.setItem(DAO_STORAGE_KEY,dao.id);localStorage.setItem("neta-governance-scope",JSON.stringify({organizationId:organization.id,unitId:consolidated?null:dao.id}))}catch{}state.chain=GOVERNANCE_CHAINS.find(chain=>chain.id===dao.chainId)||state.chain;$("#chain-select").value=state.chain.id;if(dao===state.dao){closeDaoOptions();notifyDaoSelection();return}state.requestEpoch+=1;state.dao=dao;closeDaoOptions();notifyDaoSelection();CONTRACT=dao.workshopContract||(dao.mode==="native-gov"?storedReviewContract():null);proposalModule=dao.proposalModule;clearWallet();state.selected=null;state.proposals=[];state.chainProposals=[];renderWallet();$(".testnet-pill").textContent=dao.mode==="dao-readonly"?"JUNO MAINNET · READ ONLY":dao.mode==="native-gov"?"MAINNET DATA · UNI-7 REVIEW":"UNI-7 TESTNET";$("#native-funding-panel").hidden=dao.mode!=="native-gov";newDraft();status(`LOADING ${dao.name.toUpperCase()}…`);try{await load();newDraft()}catch(error){status(`${dao.name.toUpperCase()} SELECTED · ${error.message||String(error)}`,true)}}
-  async function selectGovernanceChain(chainId){const chain=GOVERNANCE_CHAINS.find(item=>item.id===chainId);if(!chain)return;state.chain=chain;const available=DAOS.filter(dao=>dao.chainId===chain.id);if(!available.includes(state.dao)&&available.length)return selectOrganization(ORGANIZATIONS.find(o=>o.chainId===chain.id));closeDaoOptions()}
-  async function query(q){const failures=[];for(const base of RESTS)try{const r=await deadline(fetch(`${base}/cosmwasm/wasm/v1/contract/${CONTRACT}/smart/${encode(q)}`,{cache:"no-store"}),15000,"CONTRACT QUERY");if(r.ok)return(await r.json()).data;failures.push(`${base}: HTTP ${r.status}`)}catch(e){failures.push(`${base}: ${e.message}`)}throw new Error(failures.join(" · "))}
-  async function testnetGet(path){const failures=[];for(const base of RESTS)try{const response=await deadline(fetch(`${base}${path}`,{cache:"no-store"}),15000,"UNI-7 QUERY");if(response.ok)return response.json();const detail=(await response.text()).replace(/\s+/g," ").slice(0,240);failures.push(`${base}: HTTP ${response.status}${detail?` · ${detail}`:""}`)}catch(error){failures.push(`${base}: ${error.message}`)}throw new Error(failures.join(" · "))}
-  const hashHex=value=>/^[0-9a-f]{64}$/i.test(value||"")?value.toLowerCase():Array.from(Uint8Array.from(atob(value||""),character=>character.charCodeAt(0)),byte=>byte.toString(16).padStart(2,"0")).join("");
-  async function findUploadedCode(checksum){let key="";for(let page=0;page<100;page++){const result=await testnetGet(`/cosmwasm/wasm/v1/code?pagination.limit=100${key?`&pagination.key=${encodeURIComponent(key)}`:""}`),match=(result.code_infos||[]).find(info=>info.creator===state.address&&hashHex(info.data_hash)===checksum.toLowerCase());if(match)return{codeId:Number(match.code_id)};key=result.pagination?.next_key||"";if(!key)return null}throw new Error("CODE PAGINATION SAFETY LIMIT REACHED")}
-  async function findReviewContract(codeId){const result=await testnetGet(`/cosmwasm/wasm/v1/contracts/creator/${state.address}?pagination.limit=100`),addresses=[...(result.contract_addresses||[])].reverse();for(const address of addresses){const info=(await testnetGet(`/cosmwasm/wasm/v1/contract/${address}`)).contract_info;if(Number(info?.code_id)===Number(codeId)&&info?.creator===state.address&&info?.label==="Juno Governance Community Review · UNI-7")return{contractAddress:address}}return null}
-  async function mainnetQuery(q){const failures=[];for(const base of MAINNET_RESTS)try{const r=await deadline(fetch(`${base}/cosmwasm/wasm/v1/contract/${proposalModule}/smart/${encode(q)}`,{cache:"no-store"}),15000,"MAINNET QUERY");if(r.ok)return(await r.json()).data;failures.push(`${base}: HTTP ${r.status}`)}catch(e){failures.push(`${base}: ${e.message}`)}throw new Error(failures.join(" · "))}
-  async function queryAll(pageQuery,cursorOf){const rows=[];let cursor=null;for(let page=0;page<100;page++){const batch=await query(pageQuery(cursor));rows.push(...batch);if(batch.length<100)return rows;const next=cursorOf(batch.at(-1));if(next===cursor)throw new Error("PAGINATION DID NOT ADVANCE");cursor=next}throw new Error("PAGINATION SAFETY LIMIT REACHED")}
-  const draftKey=()=>`neta-governance-local-draft:${state.dao.id}`;
-  function localDraft(){try{return JSON.parse(localStorage.getItem(draftKey())||(state.dao.id==="neta-operations"?localStorage.getItem("neta-governance-local-draft"):null)||"null")}catch{return null}}
-  function renderDeliverables(){const list=$("#deliverable-list");list.replaceChildren();state.deliverables.forEach((item,index)=>{const row=node("div","deliverable-row"),field=(label,key,type="text")=>{const wrap=node("label",key==="evidence"?"deliverable-evidence":null,label),input=node("input");input.type=type;input.value=item[key]||"";input.maxLength=key==="evidence"?500:160;input.dataset.deliverableField=key;input.oninput=()=>item[key]=input.value;wrap.append(input);return wrap},remove=node("button",null,"REMOVE");remove.type="button";remove.dataset.removeDeliverable=String(index);remove.onclick=()=>{state.deliverables.splice(index,1);renderDeliverables()};row.append(field("MILESTONE / DELIVERABLE","title"),field("DEADLINE","due_date","date"),field("RESPONSIBLE","owner"),field("CONFIRMED BY","verifier"),remove,field("EXPECTED RESULT / EVIDENCE","evidence"));list.append(row)});if(!state.deliverables.length)list.append(node("div","deliverable-empty","NO DELIVERABLES DEFINED · OPTIONAL"))}
-  function payloadParts(raw="[]"){const parsed=JSON.parse(raw||"[]");if(!Array.isArray(parsed))throw new Error("ACTIONS MUST BE A JSON ARRAY");const metadata=parsed.filter(item=>item?.type===accountingType);if(metadata.length>1||metadata.some(item=>!Array.isArray(item.allocations)))throw new Error("INVALID SPENDING CATEGORIES");return{actions:parsed.filter(item=>![DELIVERABLE_TYPE,accountingType].includes(item?.type)),deliverables:parsed.filter(item=>item?.type===DELIVERABLE_TYPE).map(({type,...item})=>item),accounting:metadata[0]?.allocations||[]}}
-  function renderAccounting(){const list=$("#proposal-accounting");list.replaceChildren();let actions;try{actions=payloadParts($("#proposal-actions").value).actions}catch{list.append(node("p",null,"Enter valid action JSON to choose spending categories."));return}if(!actions.length){list.append(node("p",null,"Add an action to assign its spending category."));return}const categories=categoriesFor(actions,state.accountingRecords);actions.forEach((action,index)=>{const label=node("label"),title=node("span",null,`Action ${index+1} · ${isSpend(action)?"Spending category (required)":"Spending category (if applicable)"}`),select=node("select");select.dataset.accountingAction=String(index);select.setAttribute("aria-label",`Action ${index+1} spending category`);select.disabled=$("#proposal-actions").disabled;const empty=node("option",null,"Select category…");empty.value="";select.append(empty);accountingOptions.forEach(account=>{const option=node("option",null,account.label);option.value=account.id;select.append(option)});select.value=categories[index];select.onchange=()=>{categories[index]=select.value;state.accountingRecords=categoryRecords(actions,categories)};label.append(title,select);list.append(label)})}
-  function values(){const raw=$("#proposal-actions").value.trim()||"[]";let actions;try{actions=payloadParts(raw).actions}catch{return{title:$("#proposal-title").value.trim(),summary:$("#proposal-summary").value.trim(),body:$("#proposal-body").value.trim(),actions_json:raw}}const deliverables=state.deliverables.map(item=>({type:DELIVERABLE_TYPE,title:(item.title||"").trim(),due_date:(item.due_date||"").trim(),owner:(item.owner||"").trim(),verifier:(item.verifier||"").trim(),evidence:(item.evidence||"").trim()}));return{title:$("#proposal-title").value.trim(),summary:$("#proposal-summary").value.trim(),body:$("#proposal-body").value.trim(),actions_json:JSON.stringify([...actions,...deliverables,...(state.accountingRecords.length?[{type:accountingType,allocations:categoryRecords(actions,categoriesFor(actions,state.accountingRecords))}]:[])],null,2)}}
-  function setValues(v={}){$("#proposal-title").value=v.title||"";$("#proposal-summary").value=v.summary||"";$("#proposal-body").value=v.body||"";try{const parts=payloadParts(v.actions_json||"[]");$("#proposal-actions").value=JSON.stringify(parts.actions,null,2);state.deliverables=parts.deliverables;state.accountingRecords=parts.accounting}catch{$("#proposal-actions").value=v.actions_json||"[]";state.deliverables=[];state.accountingRecords=[]}renderDeliverables();renderAccounting()}
-  function validate(v){if(v.title.length<3)throw new Error("TITLE MUST CONTAIN AT LEAST 3 CHARACTERS");if(!v.summary)throw new Error("SUMMARY IS REQUIRED");if(!v.body)throw new Error("PROPOSAL BODY IS REQUIRED");let actions;try{actions=JSON.parse(v.actions_json)}catch{throw new Error("ACTIONS MUST BE VALID JSON")}if(!Array.isArray(actions))throw new Error("ACTIONS MUST BE A JSON ARRAY");const parts=payloadParts(v.actions_json);validateCategories(parts.actions,parts.accounting);actions.filter(item=>item?.type===DELIVERABLE_TYPE).forEach((item,index)=>{if(!item.title||!item.due_date||!item.owner||!item.verifier)throw new Error(`DELIVERABLE ${index+1} REQUIRES TITLE, DEADLINE, RESPONSIBLE AND CONFIRMED BY`);if(!/^\d{4}-\d{2}-\d{2}$/.test(item.due_date))throw new Error(`DELIVERABLE ${index+1} HAS AN INVALID DEADLINE`)})}
-  const chainGroup=s=>["passed","executed"].includes(s)?"approved":["open","deposit"].includes(s)?"in_progress":"rejected",chainLabel=s=>({deposit:"FUNDING",open:"VOTING",passed:"PASSED",executed:"EXECUTED",rejected:"REJECTED",closed:"CLOSED",execution_failed:"EXECUTION FAILED"}[s]||String(s).toUpperCase());
+  function storedScope() {
+    try {
+      return JSON.parse(localStorage.getItem('neta-governance-scope') || 'null');
+    } catch {
+      return null;
+    }
+  }
+  const initialScope = resolveSelection(
+    new URLSearchParams(window.location.search),
+    ORGANIZATIONS,
+    DAOS,
+    storedScope()
+  );
+  const initialDao = initialScope.dao;
+  let CONTRACT =
+      initialDao.workshopContract ||
+      (initialDao.mode === 'native-gov' ? storedReviewContract() : null),
+    proposalModule = initialDao.proposalModule;
+  const CHAIN = {
+    chainId: CHAIN_ID,
+    chainName: 'Juno Testnet',
+    rpc: RPCS[0],
+    rest: RESTS[0],
+    bip44: { coinType: 118 },
+    bech32Config: {
+      bech32PrefixAccAddr: 'juno',
+      bech32PrefixAccPub: 'junopub',
+      bech32PrefixValAddr: 'junovaloper',
+      bech32PrefixValPub: 'junovaloperpub',
+      bech32PrefixConsAddr: 'junovalcons',
+      bech32PrefixConsPub: 'junovalconspub'
+    },
+    currencies: [{ coinDenom: 'JUNOX', coinMinimalDenom: 'ujunox', coinDecimals: 6 }],
+    feeCurrencies: [
+      {
+        coinDenom: 'JUNOX',
+        coinMinimalDenom: 'ujunox',
+        coinDecimals: 6,
+        gasPriceStep: { low: 0.1, average: 0.2, high: 0.3 }
+      }
+    ],
+    stakeCurrency: { coinDenom: 'JUNOX', coinMinimalDenom: 'ujunox', coinDecimals: 6 },
+    features: ['cosmwasm']
+  };
+  const state = {
+    address: null,
+    walletChain: null,
+    client: null,
+    mainnetClient: null,
+    access: null,
+    configOwner: null,
+    chain:
+      GOVERNANCE_CHAINS.find((chain) => chain.id === initialDao.chainId) || GOVERNANCE_CHAINS[0],
+    dao: initialDao,
+    scope: initialScope,
+    proposals: [],
+    chainProposals: [],
+    selected: null,
+    revisions: [],
+    comments: [],
+    deliverables: [],
+    accountingRecords: [],
+    replyTo: null,
+    nativeThreads: false,
+    busy: false,
+    filter: 'all',
+    countdown: null,
+    requestEpoch: 0,
+    walletEpoch: 0,
+    connecting: false
+  };
+  const $ = (s) => document.querySelector(s),
+    node = (tag, cls, text) => {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text !== undefined) n.textContent = text;
+      return n;
+    };
+  const short = (a) => (a ? `${a.slice(0, 9)}…${a.slice(-6)}` : '—'),
+    when = (t) => new Date(Number(t) * 1000).toLocaleString(),
+    deadline = (p, ms, label) =>
+      Promise.race([
+        p,
+        new Promise((_, r) => setTimeout(() => r(new Error(`${label} TIMED OUT`)), ms))
+      ]);
+  const encode = (q) => encodeURIComponent(btoa(JSON.stringify(q))),
+    indexingDisabled = (e) =>
+      /transaction indexing is disabled/i.test(
+        [
+          e?.message,
+          e?.data,
+          (() => {
+            try {
+              return JSON.stringify(e);
+            } catch {
+              return '';
+            }
+          })(),
+          String(e)
+        ]
+          .filter(Boolean)
+          .join(' ')
+      );
+  function status(text, error = false) {
+    $('#gov-status').textContent = text;
+    $('#gov-status').dataset.state = error ? 'error' : 'ready';
+  }
+  function namesChain() {
+    return document.body.dataset.workspaceView === 'relay' &&
+      ['register', 'profile'].includes(document.body.dataset.relayPanel)
+      ? $('#nns-network')?.value || 'juno-1'
+      : null;
+  }
+  function walletChain() {
+    return (
+      namesChain() ||
+      (document.body.dataset.workspaceView === 'relay' &&
+      document.body.dataset.relayPanel === 'inbox'
+        ? 'juno-1'
+        : CHAIN_ID)
+    );
+  }
+  function renderNetwork() {
+    $('.testnet-pill').hidden = document.body.dataset.workspaceView === 'treasury';
+    const relay = document.body.dataset.workspaceView === 'relay';
+    $('.testnet-pill').textContent = relay
+      ? document.body.dataset.relayPanel === 'inbox'
+        ? 'JUNO MAINNET · INBOX'
+        : namesChain() === 'juno-1'
+          ? 'JUNO MAINNET · NAMES'
+          : 'UNI-7 TESTNET'
+      : state.dao.mode === 'dao-readonly'
+        ? 'JUNO MAINNET · READ ONLY'
+        : state.dao.mode === 'native-gov'
+          ? 'MAINNET DATA · UNI-7 REVIEW'
+          : 'UNI-7 TESTNET';
+  }
+  window.addEventListener('hashchange', renderNetwork);
+  window.addEventListener('neta:relay-panel', renderNetwork);
+  window.addEventListener('neta:nns-network', () => {
+    clearWallet();
+    renderNetwork();
+  });
+  let announcedWallet = null,
+    announcedChain = null;
+  window.NetaWorkspaceWallet = Object.freeze({
+    getAddress: () => state.address,
+    getSession: () => ({ address: state.address, chainId: state.walletChain })
+  });
+  function renderWallet() {
+    renderNetwork();
+    const button = $('#gov-connect');
+    button.textContent = state.connecting
+      ? 'Connecting…'
+      : state.address
+        ? short(state.address)
+        : 'Connect Keplr';
+    button.disabled = state.busy || state.connecting;
+    if (state.address) {
+      button.title = state.address;
+      button.setAttribute('aria-label', `Connected wallet ${state.address}. Reconnect Keplr`);
+    } else {
+      button.removeAttribute('title');
+      button.removeAttribute('aria-label');
+    }
+    $('#gov-disconnect').hidden = !state.address;
+    $('#gov-disconnect').disabled = state.busy;
+    if (announcedWallet !== state.address || announcedChain !== state.walletChain) {
+      announcedWallet = state.address;
+      announcedChain = state.walletChain;
+      window.dispatchEvent(
+        new CustomEvent('neta:wallet-change', {
+          detail: { address: state.address, chainId: state.walletChain }
+        })
+      );
+    }
+  }
+  function clearWallet() {
+    state.walletEpoch += 1;
+    state.requestEpoch += 1;
+    state.connecting = false;
+    state.client?.disconnect?.();
+    state.mainnetClient?.disconnect?.();
+    state.client = null;
+    state.mainnetClient = null;
+    state.address = null;
+    state.walletChain = null;
+    state.access = null;
+    renderWallet();
+  }
+  function disconnectWallet() {
+    if (state.busy) return;
+    clearWallet();
+    resetCommentForm();
+    renderActions();
+    renderComments();
+    status('WALLET DISCONNECTED');
+    $('#gov-connect').focus();
+  }
+  function updateWorkflow(stage) {
+    document.querySelectorAll('.workflow [data-stage]').forEach((item) => {
+      const value = Number(item.dataset.stage);
+      item.classList.toggle('active', value === stage);
+      item.classList.toggle('complete', value < stage);
+    });
+  }
+  function renderDaoOptions(term = '') {
+    const list = $('#dao-options'),
+      needle = term.trim().toLowerCase(),
+      matches = ORGANIZATIONS.filter(
+        (dao) => dao.chainId === state.chain.id && dao.name.toLowerCase().includes(needle)
+      ).sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+    list.replaceChildren();
+    matches.forEach((dao) => {
+      const button = node('button', dao.id === state.scope.organization.id ? 'active' : null);
+      button.type = 'button';
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', String(dao.id === state.scope.organization.id));
+      button.append(node('strong', null, dao.name));
+      button.onclick = () => selectOrganization(dao);
+      button.onkeydown = (event) => {
+        const options = [...list.querySelectorAll('button')],
+          index = options.indexOf(button);
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          options[(index + 1) % options.length]?.focus();
+        }
+        if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          options[(index - 1 + options.length) % options.length]?.focus();
+        }
+        if (event.key === 'Escape') {
+          closeDaoOptions();
+          $('#dao-search').focus();
+        }
+      };
+      list.append(button);
+    });
+    if (!matches.length) list.append(node('div', 'revision-item', 'NO WHITELISTED DAO FOUND'));
+    list.hidden = false;
+    $('#dao-search').setAttribute('aria-expanded', 'true');
+  }
+  function closeDaoOptions() {
+    $('#dao-options').hidden = true;
+    $('#dao-search').setAttribute('aria-expanded', 'false');
+    $('#dao-search').value = state.scope.organization.name;
+  }
+  function renderScope() {
+    const select = $('#subdao-select'),
+      scope = state.scope;
+    select.replaceChildren();
+    const overall = node('option', null, 'Consolidated overview');
+    overall.value = 'all';
+    select.append(overall);
+    const group = node('optgroup');
+    group.label = 'DAO units';
+    for (const dao of scope.units) {
+      const option = node('option', null, dao.unitName);
+      option.value = dao.id;
+      group.append(option);
+    }
+    select.append(group);
+    select.value = scope.consolidated ? 'all' : state.dao.id;
+    document.body.dataset.consolidated = String(scope.consolidated);
+    $('#organization-scope-note').textContent = scope.consolidated
+      ? `${scope.organization.name} · Consolidated Treasury includes ${scope.units.map((d) => d.unitName).join(' + ')}. Proposals and Members show ${scope.dao.unitName}; select a SubDAO to work with that unit.`
+      : '';
+    $('#organization-scope-note').hidden = !scope.consolidated;
+  }
+  function notifyDaoSelection() {
+    renderScope();
+    renderNetwork();
+    window.NETA_SELECTED_DAO = state.dao.id;
+    window.NETA_DAO_SCOPE = state.scope;
+    window.dispatchEvent(
+      new CustomEvent('neta:dao-change', {
+        detail: { id: state.dao.id, name: state.dao.name, mode: state.dao.mode, scope: state.scope }
+      })
+    );
+  }
+  function selectOrganization(organization) {
+    return selectDao(
+      DAOS.find((d) => d.id === organization.mainDaoId),
+      true
+    );
+  }
+  async function selectDao(dao, consolidated = false) {
+    if (state.busy) {
+      renderScope();
+      closeDaoOptions();
+      return;
+    }
+    const organization = ORGANIZATIONS.find((o) => o.id === dao.organizationId);
+    state.scope = { organization, units: unitsFor(organization, DAOS), dao, consolidated };
+    const url = new URL(window.location.href);
+    selectionParams(state.scope, url.searchParams);
+    history.replaceState(null, '', url);
+    try {
+      localStorage.setItem(DAO_STORAGE_KEY, dao.id);
+      localStorage.setItem(
+        'neta-governance-scope',
+        JSON.stringify({ organizationId: organization.id, unitId: consolidated ? null : dao.id })
+      );
+    } catch {}
+    state.chain = GOVERNANCE_CHAINS.find((chain) => chain.id === dao.chainId) || state.chain;
+    $('#chain-select').value = state.chain.id;
+    if (dao === state.dao) {
+      closeDaoOptions();
+      notifyDaoSelection();
+      return;
+    }
+    state.requestEpoch += 1;
+    state.dao = dao;
+    closeDaoOptions();
+    notifyDaoSelection();
+    CONTRACT = dao.workshopContract || (dao.mode === 'native-gov' ? storedReviewContract() : null);
+    proposalModule = dao.proposalModule;
+    clearWallet();
+    state.selected = null;
+    state.proposals = [];
+    state.chainProposals = [];
+    renderWallet();
+    $('.testnet-pill').textContent =
+      dao.mode === 'dao-readonly'
+        ? 'JUNO MAINNET · READ ONLY'
+        : dao.mode === 'native-gov'
+          ? 'MAINNET DATA · UNI-7 REVIEW'
+          : 'UNI-7 TESTNET';
+    $('#native-funding-panel').hidden = dao.mode !== 'native-gov';
+    newDraft();
+    status(`LOADING ${dao.name.toUpperCase()}…`);
+    try {
+      await load();
+      newDraft();
+    } catch (error) {
+      status(`${dao.name.toUpperCase()} SELECTED · ${error.message || String(error)}`, true);
+    }
+  }
+  async function selectGovernanceChain(chainId) {
+    const chain = GOVERNANCE_CHAINS.find((item) => item.id === chainId);
+    if (!chain) return;
+    state.chain = chain;
+    const available = DAOS.filter((dao) => dao.chainId === chain.id);
+    if (!available.includes(state.dao) && available.length)
+      return selectOrganization(ORGANIZATIONS.find((o) => o.chainId === chain.id));
+    closeDaoOptions();
+  }
+  async function query(q) {
+    const failures = [];
+    for (const base of RESTS)
+      try {
+        const r = await deadline(
+          fetch(`${base}/cosmwasm/wasm/v1/contract/${CONTRACT}/smart/${encode(q)}`, {
+            cache: 'no-store'
+          }),
+          15000,
+          'CONTRACT QUERY'
+        );
+        if (r.ok) return (await r.json()).data;
+        failures.push(`${base}: HTTP ${r.status}`);
+      } catch (e) {
+        failures.push(`${base}: ${e.message}`);
+      }
+    throw new Error(failures.join(' · '));
+  }
+  async function testnetGet(path) {
+    const failures = [];
+    for (const base of RESTS)
+      try {
+        const response = await deadline(
+          fetch(`${base}${path}`, { cache: 'no-store' }),
+          15000,
+          'UNI-7 QUERY'
+        );
+        if (response.ok) return response.json();
+        const detail = (await response.text()).replace(/\s+/g, ' ').slice(0, 240);
+        failures.push(`${base}: HTTP ${response.status}${detail ? ` · ${detail}` : ''}`);
+      } catch (error) {
+        failures.push(`${base}: ${error.message}`);
+      }
+    throw new Error(failures.join(' · '));
+  }
+  const hashHex = (value) =>
+    /^[0-9a-f]{64}$/i.test(value || '')
+      ? value.toLowerCase()
+      : Array.from(
+          Uint8Array.from(atob(value || ''), (character) => character.charCodeAt(0)),
+          (byte) => byte.toString(16).padStart(2, '0')
+        ).join('');
+  async function findUploadedCode(checksum) {
+    let key = '';
+    for (let page = 0; page < 100; page++) {
+      const result = await testnetGet(
+          `/cosmwasm/wasm/v1/code?pagination.limit=100${key ? `&pagination.key=${encodeURIComponent(key)}` : ''}`
+        ),
+        match = (result.code_infos || []).find(
+          (info) =>
+            info.creator === state.address && hashHex(info.data_hash) === checksum.toLowerCase()
+        );
+      if (match) return { codeId: Number(match.code_id) };
+      key = result.pagination?.next_key || '';
+      if (!key) return null;
+    }
+    throw new Error('CODE PAGINATION SAFETY LIMIT REACHED');
+  }
+  async function findReviewContract(codeId) {
+    const result = await testnetGet(
+        `/cosmwasm/wasm/v1/contracts/creator/${state.address}?pagination.limit=100`
+      ),
+      addresses = [...(result.contract_addresses || [])].reverse();
+    for (const address of addresses) {
+      const info = (await testnetGet(`/cosmwasm/wasm/v1/contract/${address}`)).contract_info;
+      if (
+        Number(info?.code_id) === Number(codeId) &&
+        info?.creator === state.address &&
+        info?.label === 'Juno Governance Community Review · UNI-7'
+      )
+        return { contractAddress: address };
+    }
+    return null;
+  }
+  async function mainnetQuery(q) {
+    const failures = [];
+    for (const base of MAINNET_RESTS)
+      try {
+        const r = await deadline(
+          fetch(`${base}/cosmwasm/wasm/v1/contract/${proposalModule}/smart/${encode(q)}`, {
+            cache: 'no-store'
+          }),
+          15000,
+          'MAINNET QUERY'
+        );
+        if (r.ok) return (await r.json()).data;
+        failures.push(`${base}: HTTP ${r.status}`);
+      } catch (e) {
+        failures.push(`${base}: ${e.message}`);
+      }
+    throw new Error(failures.join(' · '));
+  }
+  async function queryAll(pageQuery, cursorOf) {
+    const rows = [];
+    let cursor = null;
+    for (let page = 0; page < 100; page++) {
+      const batch = await query(pageQuery(cursor));
+      rows.push(...batch);
+      if (batch.length < 100) return rows;
+      const next = cursorOf(batch.at(-1));
+      if (next === cursor) throw new Error('PAGINATION DID NOT ADVANCE');
+      cursor = next;
+    }
+    throw new Error('PAGINATION SAFETY LIMIT REACHED');
+  }
+  const draftKey = () => `neta-governance-local-draft:${state.dao.id}`;
+  function localDraft() {
+    try {
+      return JSON.parse(
+        localStorage.getItem(draftKey()) ||
+          (state.dao.id === 'neta-operations'
+            ? localStorage.getItem('neta-governance-local-draft')
+            : null) ||
+          'null'
+      );
+    } catch {
+      return null;
+    }
+  }
+  function renderDeliverables() {
+    const list = $('#deliverable-list');
+    list.replaceChildren();
+    state.deliverables.forEach((item, index) => {
+      const row = node('div', 'deliverable-row'),
+        field = (label, key, type = 'text') => {
+          const wrap = node('label', key === 'evidence' ? 'deliverable-evidence' : null, label),
+            input = node('input');
+          input.type = type;
+          input.value = item[key] || '';
+          input.maxLength = key === 'evidence' ? 500 : 160;
+          input.dataset.deliverableField = key;
+          input.oninput = () => (item[key] = input.value);
+          wrap.append(input);
+          return wrap;
+        },
+        remove = node('button', null, 'REMOVE');
+      remove.type = 'button';
+      remove.dataset.removeDeliverable = String(index);
+      remove.onclick = () => {
+        state.deliverables.splice(index, 1);
+        renderDeliverables();
+      };
+      row.append(
+        field('MILESTONE / DELIVERABLE', 'title'),
+        field('DEADLINE', 'due_date', 'date'),
+        field('RESPONSIBLE', 'owner'),
+        field('CONFIRMED BY', 'verifier'),
+        remove,
+        field('EXPECTED RESULT / EVIDENCE', 'evidence')
+      );
+      list.append(row);
+    });
+    if (!state.deliverables.length)
+      list.append(node('div', 'deliverable-empty', 'NO DELIVERABLES DEFINED · OPTIONAL'));
+  }
+  function payloadParts(raw = '[]') {
+    const parsed = JSON.parse(raw || '[]');
+    if (!Array.isArray(parsed)) throw new Error('ACTIONS MUST BE A JSON ARRAY');
+    const metadata = parsed.filter((item) => item?.type === accountingType);
+    if (metadata.length > 1 || metadata.some((item) => !Array.isArray(item.allocations)))
+      throw new Error('INVALID SPENDING CATEGORIES');
+    return {
+      actions: parsed.filter((item) => ![DELIVERABLE_TYPE, accountingType].includes(item?.type)),
+      deliverables: parsed
+        .filter((item) => item?.type === DELIVERABLE_TYPE)
+        .map(({ type, ...item }) => item),
+      accounting: metadata[0]?.allocations || []
+    };
+  }
+  function renderAccounting() {
+    const list = $('#proposal-accounting');
+    list.replaceChildren();
+    let actions;
+    try {
+      actions = payloadParts($('#proposal-actions').value).actions;
+    } catch {
+      list.append(node('p', null, 'Enter valid action JSON to choose spending categories.'));
+      return;
+    }
+    if (!actions.length) {
+      list.append(node('p', null, 'Add an action to assign its spending category.'));
+      return;
+    }
+    const categories = categoriesFor(actions, state.accountingRecords);
+    actions.forEach((action, index) => {
+      const label = node('label'),
+        title = node(
+          'span',
+          null,
+          `Action ${index + 1} · ${isSpend(action) ? 'Spending category (required)' : 'Spending category (if applicable)'}`
+        ),
+        select = node('select');
+      select.dataset.accountingAction = String(index);
+      select.setAttribute('aria-label', `Action ${index + 1} spending category`);
+      select.disabled = $('#proposal-actions').disabled;
+      const empty = node('option', null, 'Select category…');
+      empty.value = '';
+      select.append(empty);
+      accountingOptions.forEach((account) => {
+        const option = node('option', null, account.label);
+        option.value = account.id;
+        select.append(option);
+      });
+      select.value = categories[index];
+      select.onchange = () => {
+        categories[index] = select.value;
+        state.accountingRecords = categoryRecords(actions, categories);
+      };
+      label.append(title, select);
+      list.append(label);
+    });
+  }
+  function values() {
+    const raw = $('#proposal-actions').value.trim() || '[]';
+    let actions;
+    try {
+      actions = payloadParts(raw).actions;
+    } catch {
+      return {
+        title: $('#proposal-title').value.trim(),
+        summary: $('#proposal-summary').value.trim(),
+        body: $('#proposal-body').value.trim(),
+        actions_json: raw
+      };
+    }
+    const deliverables = state.deliverables.map((item) => ({
+      type: DELIVERABLE_TYPE,
+      title: (item.title || '').trim(),
+      due_date: (item.due_date || '').trim(),
+      owner: (item.owner || '').trim(),
+      verifier: (item.verifier || '').trim(),
+      evidence: (item.evidence || '').trim()
+    }));
+    return {
+      title: $('#proposal-title').value.trim(),
+      summary: $('#proposal-summary').value.trim(),
+      body: $('#proposal-body').value.trim(),
+      actions_json: JSON.stringify(
+        [
+          ...actions,
+          ...deliverables,
+          ...(state.accountingRecords.length
+            ? [
+                {
+                  type: accountingType,
+                  allocations: categoryRecords(
+                    actions,
+                    categoriesFor(actions, state.accountingRecords)
+                  )
+                }
+              ]
+            : [])
+        ],
+        null,
+        2
+      )
+    };
+  }
+  function setValues(v = {}) {
+    $('#proposal-title').value = v.title || '';
+    $('#proposal-summary').value = v.summary || '';
+    $('#proposal-body').value = v.body || '';
+    try {
+      const parts = payloadParts(v.actions_json || '[]');
+      $('#proposal-actions').value = JSON.stringify(parts.actions, null, 2);
+      state.deliverables = parts.deliverables;
+      state.accountingRecords = parts.accounting;
+    } catch {
+      $('#proposal-actions').value = v.actions_json || '[]';
+      state.deliverables = [];
+      state.accountingRecords = [];
+    }
+    renderDeliverables();
+    renderAccounting();
+  }
+  function validate(v) {
+    if (v.title.length < 3) throw new Error('TITLE MUST CONTAIN AT LEAST 3 CHARACTERS');
+    if (!v.summary) throw new Error('SUMMARY IS REQUIRED');
+    if (!v.body) throw new Error('PROPOSAL BODY IS REQUIRED');
+    let actions;
+    try {
+      actions = JSON.parse(v.actions_json);
+    } catch {
+      throw new Error('ACTIONS MUST BE VALID JSON');
+    }
+    if (!Array.isArray(actions)) throw new Error('ACTIONS MUST BE A JSON ARRAY');
+    const parts = payloadParts(v.actions_json);
+    validateCategories(parts.actions, parts.accounting);
+    actions
+      .filter((item) => item?.type === DELIVERABLE_TYPE)
+      .forEach((item, index) => {
+        if (!item.title || !item.due_date || !item.owner || !item.verifier)
+          throw new Error(
+            `DELIVERABLE ${index + 1} REQUIRES TITLE, DEADLINE, RESPONSIBLE AND CONFIRMED BY`
+          );
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(item.due_date))
+          throw new Error(`DELIVERABLE ${index + 1} HAS AN INVALID DEADLINE`);
+      });
+  }
+  const chainGroup = (s) =>
+      ['passed', 'executed'].includes(s)
+        ? 'approved'
+        : ['open', 'deposit'].includes(s)
+          ? 'in_progress'
+          : 'rejected',
+    chainLabel = (s) =>
+      ({
+        deposit: 'FUNDING',
+        open: 'VOTING',
+        passed: 'PASSED',
+        executed: 'EXECUTED',
+        rejected: 'REJECTED',
+        closed: 'CLOSED',
+        execution_failed: 'EXECUTION FAILED'
+      })[s] || String(s).toUpperCase();
   // Owner-selected historical test reviews; exact chain/contract/id/title match only.
-  const hiddenTestReviews = new Map([[1,"Make Cristiano the new Senator"],[2,"Testing 1"]]);
-  function isHiddenTestReview(p){return CHAIN_ID==="uni-7"&&CONTRACT==="juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw"&&hiddenTestReviews.get(Number(p.id))===p.title}
-  function renderList(){const list=$("#proposal-list");list.replaceChildren();const hiddenCount=state.proposals.filter(isHiddenTestReview).length;$("#test-review-toggle").hidden=!hiddenCount;const workshop=state.proposals.filter(p=>$("#show-test-reviews").checked||!isHiddenTestReview(p)).map(p=>({source:"workshop",group:["declined","rejected","withdrawn"].includes(String(p.status).toLowerCase())?"rejected":"in_progress",sort:Number(p.created_time||p.id),record:p})),chain=state.chainProposals.map(p=>({source:"chain",group:chainGroup(p.proposal.status),sort:Number(p.id),record:p})),draft=localDraft(),local=draft?[{source:"local",group:"in_progress",sort:Date.parse(draft.saved_at)||Date.now(),record:draft}]:[],rows=[...local,...workshop,...chain].filter(x=>state.filter==="all"||x.group===state.filter).sort((a,b)=>b.sort-a.sort);$("#proposal-count").textContent=rows.length;rows.forEach(item=>{const p=item.record,isLocal=item.source==="local",b=node("button",isLocal&&!state.selected||state.selected?.key===`${item.source}:${p.id}`?"active":null);b.type="button";const workshopStatus=String(p.status).toLowerCase()==="declined"?"WITHDRAWN":String(p.status).toUpperCase(),label=isLocal?"PRIVATE DRAFT":item.source==="chain"?chainLabel(p.proposal.status):workshopStatus,title=isLocal?p.title||"UNTITLED LOCAL DRAFT":item.source==="chain"?p.proposal.title:p.title,meta=node("small",`status status-${label.toLowerCase().replaceAll(" ","-")}`,label),context=isLocal?"ONLY IN THIS BROWSER":`#${p.id} · ${item.source==="chain"?"JUNO MAINNET":"PUBLIC REVIEW"}`;b.append(node("strong",null,title),meta,node("small",null,context));b.onclick=()=>isLocal?newDraft():item.source==="chain"?selectChain(p):select(p.id);list.append(b)});if(!rows.length)list.append(node("div","revision-item","NO PROPOSALS MATCH THIS FILTER"))}
-  $("#show-test-reviews").onchange=()=>renderList();
-  function setEditable(enabled){["#proposal-title","#proposal-summary","#proposal-body","#proposal-actions","#change-note"].forEach(s=>$(s).disabled=!enabled);$("#add-action").disabled=!enabled;$("#add-deliverable").disabled=!enabled;document.querySelectorAll("[data-deliverable-field],[data-remove-deliverable],[data-accounting-action]").forEach(item=>item.disabled=!enabled)}
-  function setDetails(open){$("#proposal-details").hidden=!open;const button=$("#proposal-details-toggle");button.setAttribute("aria-expanded",String(open));button.firstChild.textContent=open?"− HIDE PROPOSAL DETAILS":"+ SHOW PROPOSAL DETAILS"}
-  function resetCommentForm(){state.replyTo=null;$("#comment-title").hidden=false;$("#comment-title").value="";$("#comment-body").value="";$("#comment-body").placeholder="Introduce the topic";$("#comment-form-title").textContent="START A NEW TOPIC";$("#publish-comment").textContent="START THREAD";$("#cancel-reply").hidden=true}
-  function beginReply(comment){state.replyTo=comment.id;$("#comment-title").hidden=true;$("#comment-form-title").textContent=`REPLY TO: ${comment.title||short(comment.author)}`;$("#comment-body").placeholder="Reply to this comment";$("#publish-comment").textContent="PUBLISH REPLY";$("#cancel-reply").hidden=false;$("#comment-body").focus()}
-  function normalizedComment(comment,index){const item={...comment,id:comment.id??index+1,parent_id:comment.parent_id??null,title:comment.title||null};if(item.parent_id!==null&&(!Number.isSafeInteger(item.parent_id)||item.parent_id<1||item.parent_id>=item.id))item.parent_id=null;let match;if(item.moderation?.hidden){item.body="COMMENT HIDDEN BY MODERATION"+(item.moderation.reason?` · ${item.moderation.reason}`:"");item.title="MODERATED COMMENT";return item}if(!item.title&&(match=item.body.match(/^\[\[NETA_THREAD:(.*?)\]\]\n?/))){try{item.title=decodeURIComponent(match[1]);item.body=item.body.slice(match[0].length)}catch{/* Malformed public markers stay literal text. */}}else if(item.parent_id===null&&(match=item.body.match(/^\[\[NETA_REPLY:(\d+)\]\]\n?/))){item.parent_id=Number(match[1]);item.body=item.body.slice(match[0].length)}if(item.parent_id!==null&&(!Number.isSafeInteger(item.parent_id)||item.parent_id<1||item.parent_id>=item.id))item.parent_id=null;return item}
-  function renderRevisions(){const list=$("#revision-list");list.replaceChildren();state.revisions.slice().reverse().forEach(r=>{const x=node("div","revision-item");x.append(node("strong",null,`REVISION ${r.revision} · ${r.change_note}`),node("small",null,`${short(r.author)} · ${when(r.created_time)}`));x.onclick=()=>{setValues({...r,title:state.selected.title});renderActions()};list.append(x)})}
-  function renderComments(){const list=$("#comment-list");list.replaceChildren();const comments=state.comments.map(normalizedComment),byId=new Map(comments.map(c=>[c.id,c])),roots=comments.filter(c=>c.parent_id===null),allowed=!!state.access?.can_comment&&state.selected?.status==="discussion";comments.filter(c=>c.parent_id!==null&&!byId.has(c.parent_id)).forEach(c=>{c.parent_id=null;c.title=c.title||"Earlier discussion";roots.push(c)});const children=new Map;comments.forEach(c=>{if(c.parent_id===null)return;const group=children.get(c.parent_id)||[];group.push(c);children.set(c.parent_id,group)});const descendantCount=id=>{const queue=[...(children.get(id)||[])];let total=0;while(queue.length){const c=queue.pop();total++;queue.push(...(children.get(c.id)||[]))}return total};const renderReply=(comment,depth=1)=>{const item=node("div","reply-item");item.style.setProperty("--reply-depth",String(Math.min(depth,4)));const controls=node("div","reply-controls"),reply=node("button",null,"REPLY");reply.type="button";reply.disabled=!allowed||!!comment.moderation?.hidden;reply.onclick=()=>beginReply(comment);controls.append(node("div","thread-meta",`${Number(comment.verified_stake)/1e6} NETA VERIFIED · ${when(comment.created_time)}`),reply);item.append(node("strong",null,short(comment.author)),node("p",null,comment.body),controls);if(depth<32)(children.get(comment.id)||[]).forEach(child=>item.append(renderReply(child,depth+1)));else if(children.has(comment.id))item.append(node("p",null,"DEEPER REPLIES OMITTED · DISPLAY DEPTH LIMIT 32"));return item};roots.forEach(root=>{root.title=root.title||"Earlier discussion";const thread=node("article","thread"),head=node("div","thread-head"),title=node("h4",null,root.title),meta=node("div","thread-meta",`${short(root.author)} · ${Number(root.verified_stake)/1e6} NETA VERIFIED · ${when(root.created_time)}`),controls=node("div","thread-controls"),reply=node("button",null,"REPLY");reply.type="button";reply.disabled=!allowed||!!root.moderation?.hidden;reply.onclick=()=>beginReply(root);const replyCount=descendantCount(root.id);controls.append(reply,node("span","thread-meta",`${replyCount} ${replyCount===1?"REPLY":"REPLIES"}`));head.append(title,node("p",null,root.body),meta,controls);thread.append(head);const replies=children.get(root.id)||[];if(replies.length){const replyList=node("div","reply-list");replies.forEach(c=>replyList.append(renderReply(c)));thread.append(replyList)}list.append(thread)});if(!roots.length)list.append(node("div","comment-item","NO TOPICS YET · START THE FIRST THREAD BELOW"));$("#comment-title").disabled=!allowed;$("#comment-body").disabled=!allowed;$("#publish-comment").disabled=!allowed}
-  function nativeAccess(){const junox=Number(state.access?.active_native_stake||0)/1e6,neta=Number(state.access?.active_neta_stake||0)/1e6,missing=[];if(junox<1)missing.push(`${Math.max(0,1-junox)} MORE JUNOX DELEGATED`);if(neta<1)missing.push(`${Math.max(0,1-neta)} MORE TEST NETA STAKED`);return{junox,neta,missing,label:missing.length?`${missing.join(" + ")} REQUIRED`:`ELIGIBLE · ${junox} JUNOX + ${neta} TEST NETA STAKED`}}
-  function renderActions(){const selected=state.selected,member=!!state.access?.can_publish,discussion=selected?.status==="discussion",native=state.dao.mode==="native-gov",access=native&&state.address?nativeAccess():null,needsSetup=native&&!CONTRACT,canSetup=needsSetup&&state.address===TEST_ADMIN,canWithdraw=discussion&&selected?.source==="workshop"&&selected.author===state.address&&(native||state.address===state.configOwner),commentBlocked=discussion&&!!state.address&&!state.access?.can_comment&&!!state.dao.commentStakeUrl;$("#native-review-setup").hidden=!native||!!CONTRACT;$("#change-note-wrap").hidden=true;$("#revision-panel").hidden=!selected;$("#discussion-panel").hidden=!selected;$("#save-local").hidden=!!selected;$("#publish-revision").hidden=!discussion;$("#eligibility-action").hidden=!commentBlocked;$("#eligibility-action").textContent=state.dao.commentStakeLabel||"OPEN STAKING";$("#comment-requirement").textContent=native?"1 JUNOX + 1 TEST NETA STAKED":"STRICTLY > 10 NETA STAKED";$("#primary-action").hidden=!!selected&&!discussion;$("#discard-action").hidden=!!selected&&!canWithdraw;$("#discard-action").textContent=selected?"DISCARD / WITHDRAW":"DISCARD DRAFT";setEditable(!selected||discussion&&member);if(!selected){$("#action-hint").textContent=needsSetup?canSetup?"First publication will set up the shared UNI-7 review workspace, verify your stake and then publish this draft.":"The shared UNI-7 review workspace must be set up by the configured administrator.":member?native?"Publish this Juno proposal on UNI-7 for community review. Mainnet deposit and submission stay locked.":"Save this private draft locally or publish it on Uni-7 for public review.":native?access?`${access.label} · CURRENT: ${access.junox} JUNOX + ${access.neta} TEST NETA STAKED`:"CONNECT KEPLR · 1 JUNOX DELEGATED + 1 TEST NETA STAKED REQUIRED":!CONTRACT?"Local drafts are available. Public review and proposal submission are not connected for this DAO.":"Connect an eligible DAO wallet to publish. Local saving remains available.";$("#primary-action").textContent=needsSetup?"SET UP + PUBLISH FOR REVIEW":native&&access?.missing.length?access.missing[0]:"PUBLISH FOR REVIEW";$("#primary-action").disabled=state.dao.mode==="dao-readonly"||(needsSetup?!canSetup:!member)}else if(discussion){$("#action-hint").textContent=member?native?"Publish a revision or finalize the community review. Mainnet deposit and submission remain locked.":"Publish a revision or finalize this version and move it to Voting.":native?access?`${access.label} · CURRENT: ${access.junox} JUNOX + ${access.neta} TEST NETA STAKED`:"Connect Keplr to verify review access.":"Public Discussion view. DAO voting power is required to revise or finalize.";$("#save-local").hidden=false;$("#save-local").textContent="SAVE REVISION LOCALLY";$("#publish-revision").disabled=!member;$("#primary-action").textContent=native?"FINALIZE REVIEW":"FINALIZE + SUBMIT ON-CHAIN";$("#primary-action").disabled=!member}else{$("#action-hint").textContent=native&&selected?.status==="ready"?"Community review finalized. Mainnet deposit and native proposal submission are not enabled yet.":`This proposal is in ${String(selected.status).toUpperCase()}.`;$("#primary-action").hidden=true}}
-  async function nativeGet(path){const failures=[];for(const base of MAINNET_RESTS)try{const response=await deadline(fetch(`${base}${path}`,{cache:"no-store"}),15000,"JUNO QUERY");if(response.ok)return response.json();failures.push(`${base}: HTTP ${response.status}`)}catch(error){failures.push(`${base}: ${error.message}`)}throw new Error(failures.join(" · "))}
-  const nativeStatus=value=>({PROPOSAL_STATUS_DEPOSIT_PERIOD:"deposit",PROPOSAL_STATUS_VOTING_PERIOD:"open",PROPOSAL_STATUS_PASSED:"passed",PROPOSAL_STATUS_REJECTED:"rejected",PROPOSAL_STATUS_FAILED:"execution_failed"}[value]||"closed");
-  function normalizeNativeProposal(p){return{id:Number(p.id),proposal:{title:p.title||`Juno proposal #${p.id}`,description:p.summary||p.metadata||"",msgs:p.messages||[],status:nativeStatus(p.status),votes:{yes:p.final_tally_result?.yes_count||"0",no:p.final_tally_result?.no_count||"0",abstain:p.final_tally_result?.abstain_count||"0"},expiration:p.voting_end_time?{at_time:String(BigInt(Date.parse(p.voting_end_time))*1000000n)}:null,native:true,total_deposit:p.total_deposit||[]}}}
-  const formatJuno=amount=>`${(Number(amount||0)/1e6).toLocaleString(undefined,{maximumFractionDigits:6})} JUNO`,formatDuration=value=>{const days=Math.round(Number(String(value||0).replace("s",""))/86400);return `${days} ${days===1?"DAY":"DAYS"}`};
-  async function loadNative(epoch){const [first,depositData,votingData]=await Promise.all([nativeGet("/cosmos/gov/v1/proposals?pagination.reverse=true&pagination.limit=100&pagination.count_total=true"),nativeGet("/cosmos/gov/v1/params/deposit"),nativeGet("/cosmos/gov/v1/params/voting")]),proposals=[...(first.proposals||[])],total=Number(first.pagination?.total||proposals.length);for(let offset=proposals.length;offset<total;offset+=100){const page=await nativeGet(`/cosmos/gov/v1/proposals?pagination.reverse=true&pagination.limit=100&pagination.offset=${offset}`);proposals.push(...(page.proposals||[]))}if(epoch!==state.requestEpoch)return;const params=depositData.params||{},coin=(params.min_deposit||[]).find(item=>item.denom==="ujuno")||params.min_deposit?.[0],minimum=Number(coin?.amount||0),ratio=Number(params.min_initial_deposit_ratio||0);$("#native-min-deposit").textContent=formatJuno(minimum);$("#native-initial-deposit").textContent=formatJuno(minimum*ratio);$("#native-deposit-period").textContent=formatDuration(params.max_deposit_period);$("#native-voting-period").textContent=formatDuration(votingData.params?.voting_period);state.proposals=[];state.chainProposals=proposals.map(normalizeNativeProposal);renderList();status(`${state.chainProposals.length} JUNO GOVERNANCE PROPOSALS · LIVE CHAIN DATA`)}
-  async function loadJunoReviews(epoch){if(!CONTRACT){state.proposals=[];return}const [config,summaries]=await Promise.all([query({config:{}}),queryAll(startAfter=>({proposal_summaries:{start_after:startAfter,limit:100}}),item=>item.proposal.id)]);if(epoch!==state.requestEpoch)return;state.nativeThreads=true;state.configOwner=config.owner;state.proposals=summaries.map(({proposal,latest_revision:latest})=>({...proposal,title:latest.title||`Juno community proposal #${proposal.id}`,status:proposal.withdrawn?"declined":proposal.finalized_version?"ready":"discussion",current_revision:proposal.latest_version}))}
-  async function load(){const epoch=++state.requestEpoch;if(state.dao.mode==="native-gov"){await loadNative(epoch);if(epoch!==state.requestEpoch)return;await loadJunoReviews(epoch);if(epoch!==state.requestEpoch)return;renderList();$("#native-review-setup").hidden=!!CONTRACT;status(`${state.chainProposals.length} JUNO MAINNET · ${state.proposals.length} COMMUNITY REVIEWS`);return}const history=[];let start_before=null;for(let page=0;page<20;page++){const result=await mainnetQuery({reverse_proposals:{start_before,limit:30}}),batch=result.proposals||[];history.push(...batch);if(batch.length<30)break;start_before=batch.at(-1).id}if(!CONTRACT){if(epoch!==state.requestEpoch)return;state.nativeThreads=false;state.configOwner=null;state.proposals=[];state.chainProposals=history;renderList();status(`${history.length} MAINNET PROPOSALS · PUBLIC REVIEW NOT CONFIGURED`);return}const [config,proposals]=await Promise.all([query({config:{}}),queryAll(startAfter=>({proposals:{start_after:startAfter,limit:100}}),item=>item.id)]);if(epoch!==state.requestEpoch)return;state.nativeThreads=Object.prototype.hasOwnProperty.call(config,"minimum_comment_stake");state.configOwner=config.owner;state.proposals=proposals;state.chainProposals=history;renderList();status(`${history.length} ON-CHAIN · ${state.proposals.length} PUBLIC REVIEWS`)}
-  async function select(id){const epoch=state.requestEpoch,daoId=state.dao.id,found=state.proposals.find(p=>p.id===Number(id));if(!found)return;state.selected={...found,key:`workshop:${id}`,source:"workshop"};$("#onchain-panel").hidden=true;setDetails(false);resetCommentForm();renderList();let [revisions,comments]=await Promise.all([state.dao.mode==="native-gov"?queryAll(startAfter=>({revisions:{proposal_id:Number(id),start_after:startAfter,limit:100}}),item=>item.version):query({revisions:{proposal_id:Number(id)}}),queryAll(startAfter=>({comments:{proposal_id:Number(id),start_after:startAfter,limit:100}}),item=>item.id)]);if(epoch!==state.requestEpoch||daoId!==state.dao.id||state.selected?.key!==`workshop:${id}`)return;if(state.dao.mode==="native-gov")revisions=revisions.map(item=>({...item,revision:item.version,change_note:item.change_log}));state.revisions=revisions;state.comments=comments;const current=revisions.find(r=>r.revision===state.selected.current_revision)||revisions.at(-1);setValues({...current,title:state.selected.title});$("#proposal-stage").textContent=`PROPOSAL #${state.selected.id} · REVISION ${state.selected.current_revision}`;$("#proposal-heading").textContent=state.selected.title;$("#proposal-badge").textContent=String(state.selected.status).toUpperCase();updateWorkflow(state.selected.status==="discussion"?4:state.selected.status==="voting"?6:5);renderRevisions();renderComments();renderActions();if(state.dao.mode!=="native-gov"&&revisions.length>=100)status("LEGACY REVISION HISTORY MAY BE TRUNCATED AT 100 RECORDS",true)}
-  function expiryMs(expiration){return expiration?.at_time?Number(BigInt(expiration.at_time)/1000000n):null}
-  function updateCountdown(){const p=state.selected?.proposal,target=expiryMs(p?.expiration);if(!p||p.status!=="open"){$("#voting-deadline").textContent="";return}const left=target-Date.now(),minutes=Math.max(0,Math.floor(left/60000)),days=Math.floor(minutes/1440),hours=Math.floor(minutes%1440/60);$("#voting-deadline").textContent=left<=0?"VOTING ENDED":`${days?`${days}D `:""}${hours}H ${minutes%60}M REMAINING · ENDS ${new Date(target).toLocaleString()}`}
-  function selectChain(item){clearInterval(state.countdown);state.selected={...item,key:`chain:${item.id}`,source:"chain"};state.revisions=[];state.comments=[];setDetails(false);const p=item.proposal,v=p.votes||{},native=!!p.native;setValues({title:p.title,summary:p.description,body:p.description,actions_json:JSON.stringify(p.msgs||[],null,2)});$("#proposal-stage").textContent=`JUNO MAINNET · PROPOSAL ${native?"#":"A"}${item.id}`;$("#proposal-heading").textContent=p.title;$("#proposal-badge").textContent=chainLabel(p.status);$("#onchain-panel").hidden=false;$("#vote-yes").textContent=v.yes||"0";$("#vote-no").textContent=v.no||"0";$("#vote-abstain").textContent=v.abstain||"0";const open=p.status==="open"&&(!expiryMs(p.expiration)||expiryMs(p.expiration)>Date.now());$("#vote-actions").hidden=!open||native||!state.dao.canVote;$("#vote-hint").textContent=native?"Native Juno voting is shown read-only until the transaction adapter is verified.":state.dao.canVote?"Connect Keplr on Juno Mainnet to vote.":"Voting is read-only until this DAO transaction adapter is verified.";$("#revision-panel").hidden=true;$("#discussion-panel").hidden=true;setEditable(false);$("#change-note-wrap").hidden=true;$("#save-local").hidden=true;$("#publish-revision").hidden=true;$("#primary-action").hidden=true;$("#discard-action").hidden=true;$("#action-hint").textContent=native?"This proposal is read directly from Juno native governance.":`This record is read directly from the ${state.dao.name} proposal module.`;$(".next-actions").dataset.status=p.status==="open"?"voting":chainGroup(p.status);updateWorkflow(p.status==="deposit"?3:6);renderList();updateCountdown();state.countdown=setInterval(updateCountdown,30000)}
-  function newDraft(){clearInterval(state.countdown);state.selected=null;state.revisions=[];state.comments=[];setDetails(true);resetCommentForm();$("#onchain-panel").hidden=true;$("#native-funding-panel").hidden=state.dao.mode!=="native-gov";$("#discard-action").hidden=false;$("#discard-action").textContent="DISCARD DRAFT";const draft=localDraft();setValues(draft||{});$("#proposal-stage").textContent=state.dao.mode==="native-gov"?"JUNO · PRIVATE LOCAL DRAFT":"PRIVATE LOCAL DRAFT";$("#proposal-heading").textContent="NEW PROPOSAL";$("#proposal-badge").textContent="DRAFT";$("#change-note-wrap").hidden=true;$("#revision-panel").hidden=true;$("#discussion-panel").hidden=true;updateWorkflow(draft?2:1);renderList();renderActions()}
-  function saveLocal(){const button=$("#save-local"),original=button.textContent;try{const v=values();validate(v);const savedAt=new Date(),message=state.selected?`REVISION SAVED LOCALLY ${savedAt.toLocaleTimeString()} · NOT YET PUBLISHED`:`PRIVATE DRAFT SAVED LOCALLY ${savedAt.toLocaleTimeString()} · ONLY IN THIS BROWSER`;localStorage.setItem(draftKey(),JSON.stringify({...v,saved_at:savedAt.toISOString()}));renderList();status(message);delete $(".next-actions").dataset.status;updateWorkflow(2);renderActions();button.textContent="SAVED LOCALLY ✓";button.dataset.saved="true";setTimeout(()=>{button.textContent=original;delete button.dataset.saved},1800)}catch(error){const message=error?.message||String(error);status(message,true);$("#action-hint").textContent=`COULD NOT SAVE · ${message}`;$(".next-actions").dataset.status="error";button.textContent="SAVE FAILED";setTimeout(()=>{button.textContent=original},1800)}}
-  async function signer(){if(state.client)return state.client;if(!state.address)throw new Error("CONNECT KEPLR FIRST");const base=window.keplr.getOfflineSigner?.(CHAIN_ID)||window.getOfflineSigner?.(CHAIN_ID);const wrapped={getAccounts:()=>base.getAccounts(),signDirect:(a,d)=>window.keplr.signDirect(CHAIN_ID,a,d,{preferNoSetFee:true}),signAmino:(a,d)=>window.keplr.signAmino(CHAIN_ID,a,d,{preferNoSetFee:true})};for(const rpc of RPCS)try{return(state.client=await deadline(NetaSocialsTestnet.connect(rpc,wrapped),45000,"RPC CONNECTION"))}catch{}throw new Error("ALL UNI-7 RPC ENDPOINTS FAILED")}
-  async function recover(check,label){for(let i=0;i<8;i++){if(i)await new Promise(r=>setTimeout(r,2000));const hit=await check();if(hit)return hit}throw new Error(`${label} WAS BROADCAST BUT COULD NOT BE RECOVERED`)}
-  async function execute(msg,memo,check){if(!CONTRACT)throw new Error("PUBLIC REVIEW IS NOT CONFIGURED FOR THIS DAO");const epoch=state.requestEpoch,address=state.address,contract=CONTRACT;try{const client=await signer();if(epoch!==state.requestEpoch||address!==state.address||contract!==CONTRACT)throw new Error("GOVERNANCE CONTEXT CHANGED · REVIEW AGAIN");const active=(await window.keplr.getOfflineSigner(CHAIN_ID).getAccounts())[0]?.address;if(active!==address)throw new Error("KEPLR ACCOUNT CHANGED · RECONNECT");return await NetaSocialsTestnet.execute(client,address,contract,msg,memo)}catch(e){if(!indexingDisabled(e))throw e;await recover(check,memo);return{transactionHash:"RECOVERED_FROM_CHAIN"}}}
-  async function run(button,task){if(state.busy)return false;state.busy=true;renderWallet();const old=button.textContent;button.disabled=true;button.textContent="CHECK KEPLR";try{await task();status("ON-CHAIN ACTION VERIFIED");return true}catch(e){status(e.message||String(e),true);return false}finally{state.busy=false;button.textContent=old;renderWallet();renderActions()}}
-  function openRevisionDialog(){const v=values();validate(v);$("#revision-change-note").value=$("#change-note").value.trim();$("#revision-dialog-error").hidden=true;$("#revision-dialog").hidden=false;document.body.classList.add("revision-dialog-open");requestAnimationFrame(()=>$("#revision-change-note").focus())}
-  function closeRevisionDialog(){$("#revision-dialog").hidden=true;document.body.classList.remove("revision-dialog-open");$("#revision-dialog-error").hidden=true;$("#revision-change-note").value="";$("#change-note").value="";$("#publish-revision").focus()}
-  async function deployNativeReview(){if(state.dao.mode!=="native-gov")throw new Error("SELECT JUNO NETWORK GOVERNANCE FIRST");if(!state.address)throw new Error("CONNECT KEPLR FIRST");if(state.address!==TEST_ADMIN)throw new Error("ONLY THE CONFIGURED TEST ADMIN MAY SET UP THE REVIEW WORKSPACE");const [response,checksumResponse]=await Promise.all([fetch("assets/neta_proposal_workshop.wasm",{cache:"no-store"}),fetch("assets/neta_proposal_workshop.sha256",{cache:"no-store"})]);if(!response.ok||!checksumResponse.ok)throw new Error("VERIFIED REVIEW CONTRACT ARTIFACT NOT FOUND");const wasm=new Uint8Array(await response.arrayBuffer()),expected=(await checksumResponse.text()).trim().split(/\s+/)[0].toLowerCase(),actual=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",wasm)),byte=>byte.toString(16).padStart(2,"0")).join("");if(actual!==expected)throw new Error("REVIEW CONTRACT CHECKSUM MISMATCH");const client=await signer();let uploaded=await findUploadedCode(expected);if(!uploaded)try{uploaded=await NetaSocialsTestnet.upload(client,state.address,wasm,"Upload Juno governance review workshop v0.3.0")}catch(error){if(!indexingDisabled(error))throw error;uploaded=await recover(()=>findUploadedCode(expected),"JUNO REVIEW CODE UPLOAD")}let instance=await findReviewContract(uploaded.codeId);if(!instance)try{instance=await NetaSocialsTestnet.instantiate(client,state.address,uploaded.codeId,{owner:state.address,dao_voting_contract:TEST_ACCESS_CONTRACT,stake_contract:TEST_ACCESS_CONTRACT,minimum_comment_stake:"0",community_gate:{native_denom:"ujunox",minimum_native_stake:"1000000",minimum_neta_stake:"1000000"}},"Juno Governance Community Review · UNI-7","Instantiate Juno governance review workshop v0.3.0")}catch(error){if(!indexingDisabled(error))throw error;instance=await recover(()=>findReviewContract(uploaded.codeId),"JUNO REVIEW INSTANTIATION")}CONTRACT=instance.contractAddress;const config=await query({config:{}});if(config.paused!==false)await execute({set_paused:{paused:false}},"Unpause Juno governance review workshop",async()=>{const updated=await query({config:{}});return updated.paused===false});localStorage.setItem(JUNO_REVIEW_CONTRACT_KEY,CONTRACT);state.access=await query({access:{address:state.address}});if(!state.access?.can_publish)throw new Error("REVIEW WORKSPACE READY · 1 JUNOX DELEGATED AND 1 TEST NETA STAKED ARE REQUIRED");return CONTRACT}
-  async function connect(){
-    if(state.busy||state.connecting)return;
-    if(state.dao.mode==="dao-readonly"&&document.body.dataset.workspaceView!=="relay"){status("This DAO is read-only. Explore active members under People; wallet connection is not required.");return}
-    const epoch=++state.walletEpoch,dao=state.dao,contract=CONTRACT,requestedChain=namesChain()||CHAIN_ID;
-    const current=()=>epoch===state.walletEpoch&&dao===state.dao&&requestedChain===(namesChain()||CHAIN_ID);
-    state.connecting=true;renderWallet();status("CONNECTING · CHECK KEPLR");
-    try{
-      if(!window.keplr)throw new Error("KEPLR NOT FOUND");
-      if(requestedChain===CHAIN_ID){if(!window.keplr.experimentalSuggestChain)throw new Error("KEPLR CHAIN SUGGESTION UNAVAILABLE");await deadline(window.keplr.experimentalSuggestChain(CHAIN),45000,"CHAIN SUGGESTION");if(!current())return;}
-      await deadline(window.keplr.enable(requestedChain),15000,"KEPLR ACCESS");if(!current())return;
-      const base=window.keplr.getOfflineSigner?.(requestedChain)||window.getOfflineSigner?.(requestedChain),account=(await base.getAccounts())[0];if(!current())return;
-      if(!account?.address)throw new Error("NO KEPLR ACCOUNT AVAILABLE");
-      state.client?.disconnect?.();state.mainnetClient?.disconnect?.();state.client=null;state.mainnetClient=null;
-      state.address=account.address;state.access=null;renderWallet();renderActions();renderComments();
-      const access=contract&&requestedChain===CHAIN_ID?await query({access:{address:account.address}}):null;if(!current())return;
-      state.access=access;
-      if(dao.mode==="native-gov"){const neta=Number(access?.active_neta_stake||0)/1e6,junox=Number(access?.active_native_stake||0)/1e6;status(contract?`${access?.can_publish?"REVIEW ELIGIBLE":"CONNECTED"} · ${junox} JUNOX + ${neta} TEST NETA STAKED`:"CONNECTED · DEPLOY THE JUNO REVIEW CONTRACT")}
-      else status(`${access?.can_publish?"DAO MEMBER":"CONNECTED"} · ${Number(access?.staked_neta||0)/1e6} NETA STAKED`);
-    }catch(e){if(current())status(e.message||String(e),true)}
-    finally{if(epoch===state.walletEpoch){state.connecting=false;renderWallet();renderActions();renderComments()}}
+  const hiddenTestReviews = new Map([
+    [1, 'Make Cristiano the new Senator'],
+    [2, 'Testing 1']
+  ]);
+  function isHiddenTestReview(p) {
+    return (
+      CHAIN_ID === 'uni-7' &&
+      CONTRACT === 'juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw' &&
+      hiddenTestReviews.get(Number(p.id)) === p.title
+    );
   }
-  $("#proposal-actions").addEventListener("input",renderAccounting);
-  $("#subdao-select").onchange=e=>{const scope=state.scope;if(e.target.value==="all")selectOrganization(scope.organization);else{const dao=scope.units.find(d=>d.id===e.target.value);if(dao)selectDao(dao)}};
-  $("#chain-select").onchange=e=>selectGovernanceChain(e.currentTarget.value);$("#dao-search").onfocus=e=>{e.currentTarget.select();renderDaoOptions("")};$("#dao-search").oninput=e=>renderDaoOptions(e.currentTarget.value);$("#dao-search").onkeydown=e=>{if(e.key==="Escape")closeDaoOptions();if(e.key==="ArrowDown"){e.preventDefault();if($("#dao-options").hidden)renderDaoOptions(e.currentTarget.value);$("#dao-options button")?.focus()}};$("#dao-search").onblur=()=>setTimeout(()=>{if(!$(".dao-picker").contains(document.activeElement))closeDaoOptions()},0);$("#gov-connect").onclick=connect;$("#gov-disconnect").onclick=disconnectWallet;$("#new-draft").onclick=newDraft;$("#save-local").onclick=saveLocal;$("#proposal-details-toggle").onclick=()=>setDetails($("#proposal-details").hidden);$("#cancel-reply").onclick=resetCommentForm;$("#add-action").onclick=()=>{const a=$("#proposal-actions");if(a.value.trim()==="[]")a.value='[{"type":"wasm_execute","contract":"","msg":{}}]';renderAccounting();a.focus()};$("#add-deliverable").onclick=()=>{state.deliverables.push({title:"",due_date:"",owner:state.address||"",verifier:"",evidence:""});renderDeliverables();setEditable(!state.selected||state.selected.status==="discussion"&&!!state.access?.can_publish);$("[data-deliverable-field]")?.focus()};
-  $("#primary-action").onclick=e=>run(e.currentTarget,async()=>{const native=state.dao.mode==="native-gov";if(!state.selected){const v=values();validate(v);if(native&&!CONTRACT)await deployNativeReview();if(native)await execute({publish_proposal:{content:v}},"Juno Governance publish review",async()=>{const rows=await queryAll(startAfter=>({proposals:{start_after:startAfter,limit:100}}),item=>item.id);return rows.find(p=>p.author===state.address)});else await execute({publish_draft:v},"NETA Governance publish draft",async()=>{const rows=await queryAll(startAfter=>({proposals:{start_after:startAfter,limit:100}}),item=>item.id);return rows.find(p=>p.author===state.address&&p.title===v.title)});localStorage.removeItem(draftKey());if(!native)localStorage.removeItem("neta-governance-local-draft");await load();const hit=state.proposals.slice().reverse().find(p=>p.author===state.address&&p.title===v.title);if(hit)await select(hit.id)}else{const id=state.selected.id;if(native)await execute({finalize:{proposal_id:id,version:state.selected.current_revision}},"Juno Governance finalize review",async()=>{const p=await query({proposal:{proposal_id:id}});return p.finalized_version!==null&&/^[0-9a-f]{64}$/.test(p.finalized_hash||"")});else await execute({finalize_and_submit:{proposal_id:id}},"NETA Governance finalize proposal",async()=>{const p=await query({proposal:{proposal_id:id}});return p.status==="voting"});await load();await select(id)}});
-  $("#publish-revision").onclick=()=>{try{openRevisionDialog()}catch(error){status(error.message||String(error),true)}};
-  $("#revision-dialog-form").onsubmit=async event=>{event.preventDefault();const change_note=$("#revision-change-note").value.trim(),error=$("#revision-dialog-error");if(!change_note){error.textContent="DESCRIBE WHAT CHANGED AND WHY";error.hidden=false;$("#revision-change-note").focus();return}error.hidden=true;$("#change-note").value=change_note;const v=values(),id=state.selected.id,native=state.dao.mode==="native-gov",success=await run($("#confirm-revision"),async()=>{validate(v);if(native)await execute({add_revision:{proposal_id:id,content:v,change_log:change_note}},"Juno Governance publish revision",async()=>{const rows=await query({revisions:{proposal_id:id,start_after:null,limit:100}});return rows.length>state.revisions.length});else await execute({publish_revision:{proposal_id:id,summary:v.summary,body:v.body,actions_json:v.actions_json,change_note}},"NETA Governance publish revision",async()=>{const rows=await query({revisions:{proposal_id:id}});return rows.length>state.revisions.length});await load();await select(id)});if(success)closeRevisionDialog();else{error.textContent=$("#gov-status").textContent;error.hidden=false}};
-  $("#cancel-revision").onclick=closeRevisionDialog;$("[data-close-revision-dialog]").onclick=closeRevisionDialog;document.addEventListener("keydown",event=>{const dialog=$("#revision-dialog");if(dialog.hidden)return;if(event.key==="Escape")closeRevisionDialog();if(event.key==="Tab"){const focusable=[...dialog.querySelectorAll('button:not([disabled]),textarea:not([disabled])')],first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}}});
-  $("#deploy-native-review").onclick=event=>run(event.currentTarget,async()=>{await deployNativeReview();await load();newDraft();status(`JUNO REVIEW WORKSPACE READY · ${short(CONTRACT)}`)});
-  $("#eligibility-action").onclick=()=>{if(state.dao.commentStakeUrl)window.open(state.dao.commentStakeUrl,"_blank","noopener,noreferrer")};
-  $("#comment-form").onsubmit=e=>{e.preventDefault();const button=$("#publish-comment");run(button,async()=>{const body=$("#comment-body").value.trim(),title=$("#comment-title").value.trim(),parentId=state.replyTo,id=state.selected.id;if(!body)throw new Error("COMMENT IS EMPTY");if(parentId===null&&!title)throw new Error("NAME THE TOPIC FIRST");const encodedBody=parentId===null?`[[NETA_THREAD:${encodeURIComponent(title)}]]\n${body}`:`[[NETA_REPLY:${parentId}]]\n${body}`,message=state.nativeThreads?{add_comment:{proposal_id:id,version:state.selected.current_revision,parent_id:parentId,title:parentId===null?title:null,body}}:{add_comment:{proposal_id:id,body:encodedBody}},expectedBody=state.nativeThreads?body:encodedBody;await execute(message,parentId===null?"NETA Governance start discussion thread":"NETA Governance reply to discussion",async()=>{const rows=await query({comments:{proposal_id:id,start_after:null,limit:100}});return rows.some(c=>c.author===state.address&&c.body===expectedBody)});resetCommentForm();await select(id)})};
-  document.querySelectorAll("[data-filter]").forEach(button=>button.onclick=()=>{state.filter=button.dataset.filter;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x===button));renderList()});
-  $("#discard-action").onclick=e=>{if(!state.selected){if(!localDraft()||confirm("Delete this private local draft?")){localStorage.removeItem(draftKey());if(state.dao.id==="neta-operations")localStorage.removeItem("neta-governance-local-draft");setValues({});updateWorkflow(1);renderList();status("PRIVATE DRAFT DELETED")};return}const native=state.dao.mode==="native-gov";if(state.selected.source!=="workshop"||state.selected.status!=="discussion"||state.selected.author!==state.address||!native&&state.address!==state.configOwner)return;if(!confirm("Withdraw this published proposal? Its history will remain visible."))return;run(e.currentTarget,async()=>{const id=state.selected.id;if(native)await execute({withdraw:{proposal_id:id}},"Juno Governance withdraw review",async()=>{const p=await query({proposal:{proposal_id:id}});return p.withdrawn});else await execute({set_status:{proposal_id:id,status:"declined",dao_proposal_id:null}},"NETA Governance withdraw proposal",async()=>{const p=await query({proposal:{proposal_id:id}});return p.status==="declined"});await load();newDraft()})};
-  async function mainnetSigner(){if(state.mainnetClient)return state.mainnetClient;if(!window.keplr)throw new Error("KEPLR NOT FOUND");await window.keplr.enable("juno-1");const base=window.keplr.getOfflineSigner("juno-1"),account=(await base.getAccounts())[0];state.address=account.address;renderWallet();const wrapped={getAccounts:()=>base.getAccounts(),signDirect:(a,d)=>window.keplr.signDirect("juno-1",a,d,{preferNoSetFee:true}),signAmino:(a,d)=>window.keplr.signAmino("juno-1",a,d,{preferNoSetFee:true})};for(const rpc of MAINNET_RPCS)try{return state.mainnetClient=await NetaSocialsTestnet.connect(rpc,wrapped,"0.075ujuno")}catch{}throw new Error("ALL JUNO MAINNET RPC ENDPOINTS FAILED")}
-  document.querySelectorAll("[data-vote]").forEach(button=>button.onclick=()=>run(button,async()=>{const selected=state.selected,epoch=state.requestEpoch,module=proposalModule,dao=state.dao;if(!dao.canVote||selected?.source!=="chain"||selected.proposal.status!=="open")throw new Error("VOTING IS NOT OPEN");const client=await mainnetSigner();if(epoch!==state.requestEpoch||module!==proposalModule||dao!==state.dao||state.selected?.key!==selected.key)throw new Error("VOTING CONTEXT CHANGED · REVIEW AGAIN");const active=(await window.keplr.getOfflineSigner("juno-1").getAccounts())[0]?.address;if(active!==state.address)throw new Error("KEPLR ACCOUNT CHANGED · RECONNECT");await NetaSocialsTestnet.execute(client,state.address,module,{vote:{proposal_id:selected.id,vote:button.dataset.vote}},`${state.dao.name} proposal A${selected.id}: ${button.dataset.vote}`);const refreshed=await mainnetQuery({proposal:{proposal_id:selected.id}});selectChain({id:selected.id,proposal:refreshed})}));
-  $("#chain-select").replaceChildren(...GOVERNANCE_CHAINS.map(chain=>{const option=node("option",null,chain.name);option.value=chain.id;return option}));$("#chain-select").value=state.chain.id;$("#dao-search").value=state.scope.organization.name;$(".testnet-pill").textContent=state.dao.mode==="dao-readonly"?"JUNO MAINNET · READ ONLY":state.dao.mode==="native-gov"?"MAINNET DATA · UNI-7 REVIEW":"UNI-7 TESTNET";$("#native-funding-panel").hidden=state.dao.mode!=="native-gov";$("#native-review-setup").hidden=state.dao.mode!=="native-gov"||!!CONTRACT;notifyDaoSelection();
-  window.addEventListener("neta:select-dao",event=>{const dao=DAOS.find(item=>item.id===event.detail?.id);if(dao)selectDao(dao,event.detail?.consolidated===true&&ORGANIZATIONS.some(o=>o.mainDaoId===dao.id))});
-  window.addEventListener("neta:open-proposal",async event=>{const id=Number(event.detail?.id);if(!Number.isFinite(id))return;let item=state.chainProposals.find(proposal=>Number(proposal.id)===id);if(!item){await load();item=state.chainProposals.find(proposal=>Number(proposal.id)===id)}if(item)selectChain(item);else status(`ON-CHAIN PROPOSAL A${id} NOT FOUND`,true)});
-  window.addEventListener("neta:relay-open",async event=>{const id=Number(event.detail?.proposalId),dao=DAOS.find(item=>item.id===event.detail?.dao);if(!dao||!Number.isFinite(id))return;if(state.dao.id!==dao.id||state.scope.consolidated)await selectDao(dao);let item=state.chainProposals.find(proposal=>Number(proposal.id)===id);if(!item){await load();item=state.chainProposals.find(proposal=>Number(proposal.id)===id)}if(item)selectChain(item);else status(`PROPOSAL #${id} NOT FOUND`,true)});
-  window.addEventListener("keplr_keystorechange",()=>{clearWallet();status("WALLET CHANGED · RECONNECT TO VERIFY ACCESS");renderActions();renderComments()});
-  load().then(newDraft).catch(e=>{newDraft();status(e.message||String(e),true)});
+  function renderList() {
+    const list = $('#proposal-list');
+    list.replaceChildren();
+    const hiddenCount = state.proposals.filter(isHiddenTestReview).length;
+    $('#test-review-toggle').hidden = !hiddenCount;
+    const workshop = state.proposals
+        .filter((p) => $('#show-test-reviews').checked || !isHiddenTestReview(p))
+        .map((p) => ({
+          source: 'workshop',
+          group: ['declined', 'rejected', 'withdrawn'].includes(String(p.status).toLowerCase())
+            ? 'rejected'
+            : 'in_progress',
+          sort: Number(p.created_time || p.id),
+          record: p
+        })),
+      chain = state.chainProposals.map((p) => ({
+        source: 'chain',
+        group: chainGroup(p.proposal.status),
+        sort: Number(p.id),
+        record: p
+      })),
+      draft = localDraft(),
+      local = draft
+        ? [
+            {
+              source: 'local',
+              group: 'in_progress',
+              sort: Date.parse(draft.saved_at) || Date.now(),
+              record: draft
+            }
+          ]
+        : [],
+      rows = [...local, ...workshop, ...chain]
+        .filter((x) => state.filter === 'all' || x.group === state.filter)
+        .sort((a, b) => b.sort - a.sort);
+    $('#proposal-count').textContent = rows.length;
+    rows.forEach((item) => {
+      const p = item.record,
+        isLocal = item.source === 'local',
+        b = node(
+          'button',
+          (isLocal && !state.selected) || state.selected?.key === `${item.source}:${p.id}`
+            ? 'active'
+            : null
+        );
+      b.type = 'button';
+      const workshopStatus =
+          String(p.status).toLowerCase() === 'declined'
+            ? 'WITHDRAWN'
+            : String(p.status).toUpperCase(),
+        label = isLocal
+          ? 'PRIVATE DRAFT'
+          : item.source === 'chain'
+            ? chainLabel(p.proposal.status)
+            : workshopStatus,
+        title = isLocal
+          ? p.title || 'UNTITLED LOCAL DRAFT'
+          : item.source === 'chain'
+            ? p.proposal.title
+            : p.title,
+        meta = node('small', `status status-${label.toLowerCase().replaceAll(' ', '-')}`, label),
+        context = isLocal
+          ? 'ONLY IN THIS BROWSER'
+          : `#${p.id} · ${item.source === 'chain' ? 'JUNO MAINNET' : 'PUBLIC REVIEW'}`;
+      b.append(node('strong', null, title), meta, node('small', null, context));
+      b.onclick = () =>
+        isLocal ? newDraft() : item.source === 'chain' ? selectChain(p) : select(p.id);
+      list.append(b);
+    });
+    if (!rows.length) list.append(node('div', 'revision-item', 'NO PROPOSALS MATCH THIS FILTER'));
+  }
+  $('#show-test-reviews').onchange = () => renderList();
+  function setEditable(enabled) {
+    [
+      '#proposal-title',
+      '#proposal-summary',
+      '#proposal-body',
+      '#proposal-actions',
+      '#change-note'
+    ].forEach((s) => ($(s).disabled = !enabled));
+    $('#add-action').disabled = !enabled;
+    $('#add-deliverable').disabled = !enabled;
+    document
+      .querySelectorAll(
+        '[data-deliverable-field],[data-remove-deliverable],[data-accounting-action]'
+      )
+      .forEach((item) => (item.disabled = !enabled));
+  }
+  function setDetails(open) {
+    $('#proposal-details').hidden = !open;
+    const button = $('#proposal-details-toggle');
+    button.setAttribute('aria-expanded', String(open));
+    button.firstChild.textContent = open ? '− HIDE PROPOSAL DETAILS' : '+ SHOW PROPOSAL DETAILS';
+  }
+  function resetCommentForm() {
+    state.replyTo = null;
+    $('#comment-title').hidden = false;
+    $('#comment-title').value = '';
+    $('#comment-body').value = '';
+    $('#comment-body').placeholder = 'Introduce the topic';
+    $('#comment-form-title').textContent = 'START A NEW TOPIC';
+    $('#publish-comment').textContent = 'START THREAD';
+    $('#cancel-reply').hidden = true;
+  }
+  function beginReply(comment) {
+    state.replyTo = comment.id;
+    $('#comment-title').hidden = true;
+    $('#comment-form-title').textContent = `REPLY TO: ${comment.title || short(comment.author)}`;
+    $('#comment-body').placeholder = 'Reply to this comment';
+    $('#publish-comment').textContent = 'PUBLISH REPLY';
+    $('#cancel-reply').hidden = false;
+    $('#comment-body').focus();
+  }
+  function renderRevisions() {
+    const list = $('#revision-list');
+    list.replaceChildren();
+    state.revisions
+      .slice()
+      .reverse()
+      .forEach((r) => {
+        const x = node('div', 'revision-item');
+        x.append(
+          node('strong', null, `REVISION ${r.revision} · ${r.change_note}`),
+          node('small', null, `${short(r.author)} · ${when(r.created_time)}`)
+        );
+        x.onclick = () => {
+          setValues({ ...r, title: state.selected.title });
+          renderActions();
+        };
+        list.append(x);
+      });
+  }
+  function renderComments() {
+    const list = $('#comment-list');
+    list.replaceChildren();
+    const comments = state.comments.map(normalizedComment),
+      byId = new Map(comments.map((c) => [c.id, c])),
+      roots = comments.filter((c) => c.parent_id === null),
+      allowed = !!state.access?.can_comment && state.selected?.status === 'discussion';
+    comments
+      .filter((c) => c.parent_id !== null && !byId.has(c.parent_id))
+      .forEach((c) => {
+        c.parent_id = null;
+        c.title = c.title || 'Earlier discussion';
+        roots.push(c);
+      });
+    const children = new Map();
+    comments.forEach((c) => {
+      if (c.parent_id === null) return;
+      const group = children.get(c.parent_id) || [];
+      group.push(c);
+      children.set(c.parent_id, group);
+    });
+    const descendantCount = (id) => {
+      const queue = [...(children.get(id) || [])];
+      let total = 0;
+      while (queue.length) {
+        const c = queue.pop();
+        total++;
+        queue.push(...(children.get(c.id) || []));
+      }
+      return total;
+    };
+    const renderReply = (comment, depth = 1) => {
+      const item = node('div', 'reply-item');
+      item.style.setProperty('--reply-depth', String(Math.min(depth, 4)));
+      const controls = node('div', 'reply-controls'),
+        reply = node('button', null, 'REPLY');
+      reply.type = 'button';
+      reply.disabled = !allowed || !!comment.moderation?.hidden;
+      reply.onclick = () => beginReply(comment);
+      controls.append(
+        node(
+          'div',
+          'thread-meta',
+          `${Number(comment.verified_stake) / 1e6} NETA VERIFIED · ${when(comment.created_time)}`
+        ),
+        reply
+      );
+      item.append(
+        node('strong', null, short(comment.author)),
+        node('p', null, comment.body),
+        controls
+      );
+      if (depth < 32)
+        (children.get(comment.id) || []).forEach((child) =>
+          item.append(renderReply(child, depth + 1))
+        );
+      else if (children.has(comment.id))
+        item.append(node('p', null, 'DEEPER REPLIES OMITTED · DISPLAY DEPTH LIMIT 32'));
+      return item;
+    };
+    roots.forEach((root) => {
+      root.title = root.title || 'Earlier discussion';
+      const thread = node('article', 'thread'),
+        head = node('div', 'thread-head'),
+        title = node('h4', null, root.title),
+        meta = node(
+          'div',
+          'thread-meta',
+          `${short(root.author)} · ${Number(root.verified_stake) / 1e6} NETA VERIFIED · ${when(root.created_time)}`
+        ),
+        controls = node('div', 'thread-controls'),
+        reply = node('button', null, 'REPLY');
+      reply.type = 'button';
+      reply.disabled = !allowed || !!root.moderation?.hidden;
+      reply.onclick = () => beginReply(root);
+      const replyCount = descendantCount(root.id);
+      controls.append(
+        reply,
+        node('span', 'thread-meta', `${replyCount} ${replyCount === 1 ? 'REPLY' : 'REPLIES'}`)
+      );
+      head.append(title, node('p', null, root.body), meta, controls);
+      thread.append(head);
+      const replies = children.get(root.id) || [];
+      if (replies.length) {
+        const replyList = node('div', 'reply-list');
+        replies.forEach((c) => replyList.append(renderReply(c)));
+        thread.append(replyList);
+      }
+      list.append(thread);
+    });
+    if (!roots.length)
+      list.append(node('div', 'comment-item', 'NO TOPICS YET · START THE FIRST THREAD BELOW'));
+    $('#comment-title').disabled = !allowed;
+    $('#comment-body').disabled = !allowed;
+    $('#publish-comment').disabled = !allowed;
+  }
+  function nativeAccess() {
+    const junox = Number(state.access?.active_native_stake || 0) / 1e6,
+      neta = Number(state.access?.active_neta_stake || 0) / 1e6,
+      missing = [];
+    if (junox < 1) missing.push(`${Math.max(0, 1 - junox)} MORE JUNOX DELEGATED`);
+    if (neta < 1) missing.push(`${Math.max(0, 1 - neta)} MORE TEST NETA STAKED`);
+    return {
+      junox,
+      neta,
+      missing,
+      label: missing.length
+        ? `${missing.join(' + ')} REQUIRED`
+        : `ELIGIBLE · ${junox} JUNOX + ${neta} TEST NETA STAKED`
+    };
+  }
+  function renderActions() {
+    const selected = state.selected,
+      member = !!state.access?.can_publish,
+      discussion = selected?.status === 'discussion',
+      native = state.dao.mode === 'native-gov',
+      access = native && state.address ? nativeAccess() : null,
+      needsSetup = native && !CONTRACT,
+      canSetup = needsSetup && state.address === TEST_ADMIN,
+      canWithdraw =
+        discussion &&
+        selected?.source === 'workshop' &&
+        selected.author === state.address &&
+        (native || state.address === state.configOwner),
+      commentBlocked =
+        discussion && !!state.address && !state.access?.can_comment && !!state.dao.commentStakeUrl;
+    $('#native-review-setup').hidden = !native || !!CONTRACT;
+    $('#change-note-wrap').hidden = true;
+    $('#revision-panel').hidden = !selected;
+    $('#discussion-panel').hidden = !selected;
+    $('#save-local').hidden = !!selected;
+    $('#publish-revision').hidden = !discussion;
+    $('#eligibility-action').hidden = !commentBlocked;
+    $('#eligibility-action').textContent = state.dao.commentStakeLabel || 'OPEN STAKING';
+    $('#comment-requirement').textContent = native
+      ? '1 JUNOX + 1 TEST NETA STAKED'
+      : 'STRICTLY > 10 NETA STAKED';
+    $('#primary-action').hidden = !!selected && !discussion;
+    $('#discard-action').hidden = !!selected && !canWithdraw;
+    $('#discard-action').textContent = selected ? 'DISCARD / WITHDRAW' : 'DISCARD DRAFT';
+    setEditable(!selected || (discussion && member));
+    if (!selected) {
+      $('#action-hint').textContent = needsSetup
+        ? canSetup
+          ? 'First publication will set up the shared UNI-7 review workspace, verify your stake and then publish this draft.'
+          : 'The shared UNI-7 review workspace must be set up by the configured administrator.'
+        : member
+          ? native
+            ? 'Publish this Juno proposal on UNI-7 for community review. Mainnet deposit and submission stay locked.'
+            : 'Save this private draft locally or publish it on Uni-7 for public review.'
+          : native
+            ? access
+              ? `${access.label} · CURRENT: ${access.junox} JUNOX + ${access.neta} TEST NETA STAKED`
+              : 'CONNECT KEPLR · 1 JUNOX DELEGATED + 1 TEST NETA STAKED REQUIRED'
+            : !CONTRACT
+              ? 'Local drafts are available. Public review and proposal submission are not connected for this DAO.'
+              : 'Connect an eligible DAO wallet to publish. Local saving remains available.';
+      $('#primary-action').textContent = needsSetup
+        ? 'SET UP + PUBLISH FOR REVIEW'
+        : native && access?.missing.length
+          ? access.missing[0]
+          : 'PUBLISH FOR REVIEW';
+      $('#primary-action').disabled =
+        state.dao.mode === 'dao-readonly' || (needsSetup ? !canSetup : !member);
+    } else if (discussion) {
+      $('#action-hint').textContent = member
+        ? native
+          ? 'Publish a revision or finalize the community review. Mainnet deposit and submission remain locked.'
+          : 'Publish a revision or finalize this version and move it to Voting.'
+        : native
+          ? access
+            ? `${access.label} · CURRENT: ${access.junox} JUNOX + ${access.neta} TEST NETA STAKED`
+            : 'Connect Keplr to verify review access.'
+          : 'Public Discussion view. DAO voting power is required to revise or finalize.';
+      $('#save-local').hidden = false;
+      $('#save-local').textContent = 'SAVE REVISION LOCALLY';
+      $('#publish-revision').disabled = !member;
+      $('#primary-action').textContent = native ? 'FINALIZE REVIEW' : 'FINALIZE + SUBMIT ON-CHAIN';
+      $('#primary-action').disabled = !member;
+    } else {
+      $('#action-hint').textContent =
+        native && selected?.status === 'ready'
+          ? 'Community review finalized. Mainnet deposit and native proposal submission are not enabled yet.'
+          : `This proposal is in ${String(selected.status).toUpperCase()}.`;
+      $('#primary-action').hidden = true;
+    }
+  }
+  async function nativeGet(path) {
+    const failures = [];
+    for (const base of MAINNET_RESTS)
+      try {
+        const response = await deadline(
+          fetch(`${base}${path}`, { cache: 'no-store' }),
+          15000,
+          'JUNO QUERY'
+        );
+        if (response.ok) return response.json();
+        failures.push(`${base}: HTTP ${response.status}`);
+      } catch (error) {
+        failures.push(`${base}: ${error.message}`);
+      }
+    throw new Error(failures.join(' · '));
+  }
+  const nativeStatus = (value) =>
+    ({
+      PROPOSAL_STATUS_DEPOSIT_PERIOD: 'deposit',
+      PROPOSAL_STATUS_VOTING_PERIOD: 'open',
+      PROPOSAL_STATUS_PASSED: 'passed',
+      PROPOSAL_STATUS_REJECTED: 'rejected',
+      PROPOSAL_STATUS_FAILED: 'execution_failed'
+    })[value] || 'closed';
+  function normalizeNativeProposal(p) {
+    return {
+      id: Number(p.id),
+      proposal: {
+        title: p.title || `Juno proposal #${p.id}`,
+        description: p.summary || p.metadata || '',
+        msgs: p.messages || [],
+        status: nativeStatus(p.status),
+        votes: {
+          yes: p.final_tally_result?.yes_count || '0',
+          no: p.final_tally_result?.no_count || '0',
+          abstain: p.final_tally_result?.abstain_count || '0'
+        },
+        expiration: p.voting_end_time
+          ? { at_time: String(BigInt(Date.parse(p.voting_end_time)) * 1000000n) }
+          : null,
+        native: true,
+        total_deposit: p.total_deposit || []
+      }
+    };
+  }
+  const formatJuno = (amount) =>
+      `${(Number(amount || 0) / 1e6).toLocaleString(undefined, { maximumFractionDigits: 6 })} JUNO`,
+    formatDuration = (value) => {
+      const days = Math.round(Number(String(value || 0).replace('s', '')) / 86400);
+      return `${days} ${days === 1 ? 'DAY' : 'DAYS'}`;
+    };
+  async function loadNative(epoch) {
+    const [first, depositData, votingData] = await Promise.all([
+        nativeGet(
+          '/cosmos/gov/v1/proposals?pagination.reverse=true&pagination.limit=100&pagination.count_total=true'
+        ),
+        nativeGet('/cosmos/gov/v1/params/deposit'),
+        nativeGet('/cosmos/gov/v1/params/voting')
+      ]),
+      proposals = [...(first.proposals || [])],
+      total = Number(first.pagination?.total || proposals.length);
+    for (let offset = proposals.length; offset < total; offset += 100) {
+      const page = await nativeGet(
+        `/cosmos/gov/v1/proposals?pagination.reverse=true&pagination.limit=100&pagination.offset=${offset}`
+      );
+      proposals.push(...(page.proposals || []));
+    }
+    if (epoch !== state.requestEpoch) return;
+    const params = depositData.params || {},
+      coin =
+        (params.min_deposit || []).find((item) => item.denom === 'ujuno') ||
+        params.min_deposit?.[0],
+      minimum = Number(coin?.amount || 0),
+      ratio = Number(params.min_initial_deposit_ratio || 0);
+    $('#native-min-deposit').textContent = formatJuno(minimum);
+    $('#native-initial-deposit').textContent = formatJuno(minimum * ratio);
+    $('#native-deposit-period').textContent = formatDuration(params.max_deposit_period);
+    $('#native-voting-period').textContent = formatDuration(votingData.params?.voting_period);
+    state.proposals = [];
+    state.chainProposals = proposals.map(normalizeNativeProposal);
+    renderList();
+    status(`${state.chainProposals.length} JUNO GOVERNANCE PROPOSALS · LIVE CHAIN DATA`);
+  }
+  async function loadJunoReviews(epoch) {
+    if (!CONTRACT) {
+      state.proposals = [];
+      return;
+    }
+    const [config, summaries] = await Promise.all([
+      query({ config: {} }),
+      queryAll(
+        (startAfter) => ({ proposal_summaries: { start_after: startAfter, limit: 100 } }),
+        (item) => item.proposal.id
+      )
+    ]);
+    if (epoch !== state.requestEpoch) return;
+    state.nativeThreads = true;
+    state.configOwner = config.owner;
+    state.proposals = summaries.map(({ proposal, latest_revision: latest }) => ({
+      ...proposal,
+      title: latest.title || `Juno community proposal #${proposal.id}`,
+      status: proposal.withdrawn ? 'declined' : proposal.finalized_version ? 'ready' : 'discussion',
+      current_revision: proposal.latest_version
+    }));
+  }
+  async function load() {
+    const epoch = ++state.requestEpoch;
+    if (state.dao.mode === 'native-gov') {
+      await loadNative(epoch);
+      if (epoch !== state.requestEpoch) return;
+      await loadJunoReviews(epoch);
+      if (epoch !== state.requestEpoch) return;
+      renderList();
+      $('#native-review-setup').hidden = !!CONTRACT;
+      status(
+        `${state.chainProposals.length} JUNO MAINNET · ${state.proposals.length} COMMUNITY REVIEWS`
+      );
+      return;
+    }
+    const history = [];
+    let start_before = null;
+    for (let page = 0; page < 20; page++) {
+      const result = await mainnetQuery({ reverse_proposals: { start_before, limit: 30 } }),
+        batch = result.proposals || [];
+      history.push(...batch);
+      if (batch.length < 30) break;
+      start_before = batch.at(-1).id;
+    }
+    if (!CONTRACT) {
+      if (epoch !== state.requestEpoch) return;
+      state.nativeThreads = false;
+      state.configOwner = null;
+      state.proposals = [];
+      state.chainProposals = history;
+      renderList();
+      status(`${history.length} MAINNET PROPOSALS · PUBLIC REVIEW NOT CONFIGURED`);
+      return;
+    }
+    const [config, proposals] = await Promise.all([
+      query({ config: {} }),
+      queryAll(
+        (startAfter) => ({ proposals: { start_after: startAfter, limit: 100 } }),
+        (item) => item.id
+      )
+    ]);
+    if (epoch !== state.requestEpoch) return;
+    state.nativeThreads = Object.prototype.hasOwnProperty.call(config, 'minimum_comment_stake');
+    state.configOwner = config.owner;
+    state.proposals = proposals;
+    state.chainProposals = history;
+    renderList();
+    status(`${history.length} ON-CHAIN · ${state.proposals.length} PUBLIC REVIEWS`);
+  }
+  async function select(id) {
+    const epoch = state.requestEpoch,
+      daoId = state.dao.id,
+      found = state.proposals.find((p) => p.id === Number(id));
+    if (!found) return;
+    state.selected = { ...found, key: `workshop:${id}`, source: 'workshop' };
+    $('#onchain-panel').hidden = true;
+    setDetails(false);
+    resetCommentForm();
+    renderList();
+    let [revisions, comments] = await Promise.all([
+      state.dao.mode === 'native-gov'
+        ? queryAll(
+            (startAfter) => ({
+              revisions: { proposal_id: Number(id), start_after: startAfter, limit: 100 }
+            }),
+            (item) => item.version
+          )
+        : query({ revisions: { proposal_id: Number(id) } }),
+      queryAll(
+        (startAfter) => ({
+          comments: { proposal_id: Number(id), start_after: startAfter, limit: 100 }
+        }),
+        (item) => item.id
+      )
+    ]);
+    if (
+      epoch !== state.requestEpoch ||
+      daoId !== state.dao.id ||
+      state.selected?.key !== `workshop:${id}`
+    )
+      return;
+    if (state.dao.mode === 'native-gov')
+      revisions = revisions.map((item) => ({
+        ...item,
+        revision: item.version,
+        change_note: item.change_log
+      }));
+    state.revisions = revisions;
+    state.comments = comments;
+    const current =
+      revisions.find((r) => r.revision === state.selected.current_revision) || revisions.at(-1);
+    setValues({ ...current, title: state.selected.title });
+    $('#proposal-stage').textContent =
+      `PROPOSAL #${state.selected.id} · REVISION ${state.selected.current_revision}`;
+    $('#proposal-heading').textContent = state.selected.title;
+    $('#proposal-badge').textContent = String(state.selected.status).toUpperCase();
+    updateWorkflow(
+      state.selected.status === 'discussion' ? 4 : state.selected.status === 'voting' ? 6 : 5
+    );
+    renderRevisions();
+    renderComments();
+    renderActions();
+    if (state.dao.mode !== 'native-gov' && revisions.length >= 100)
+      status('LEGACY REVISION HISTORY MAY BE TRUNCATED AT 100 RECORDS', true);
+  }
+  function expiryMs(expiration) {
+    return expiration?.at_time ? Number(BigInt(expiration.at_time) / 1000000n) : null;
+  }
+  function updateCountdown() {
+    const p = state.selected?.proposal,
+      target = expiryMs(p?.expiration);
+    if (!p || p.status !== 'open') {
+      $('#voting-deadline').textContent = '';
+      return;
+    }
+    const left = target - Date.now(),
+      minutes = Math.max(0, Math.floor(left / 60000)),
+      days = Math.floor(minutes / 1440),
+      hours = Math.floor((minutes % 1440) / 60);
+    $('#voting-deadline').textContent =
+      left <= 0
+        ? 'VOTING ENDED'
+        : `${days ? `${days}D ` : ''}${hours}H ${minutes % 60}M REMAINING · ENDS ${new Date(target).toLocaleString()}`;
+  }
+  function selectChain(item) {
+    clearInterval(state.countdown);
+    state.selected = { ...item, key: `chain:${item.id}`, source: 'chain' };
+    state.revisions = [];
+    state.comments = [];
+    setDetails(false);
+    const p = item.proposal,
+      v = p.votes || {},
+      native = !!p.native;
+    setValues({
+      title: p.title,
+      summary: p.description,
+      body: p.description,
+      actions_json: JSON.stringify(p.msgs || [], null, 2)
+    });
+    $('#proposal-stage').textContent = `JUNO MAINNET · PROPOSAL ${native ? '#' : 'A'}${item.id}`;
+    $('#proposal-heading').textContent = p.title;
+    $('#proposal-badge').textContent = chainLabel(p.status);
+    $('#onchain-panel').hidden = false;
+    $('#vote-yes').textContent = v.yes || '0';
+    $('#vote-no').textContent = v.no || '0';
+    $('#vote-abstain').textContent = v.abstain || '0';
+    const open =
+      p.status === 'open' && (!expiryMs(p.expiration) || expiryMs(p.expiration) > Date.now());
+    $('#vote-actions').hidden = !open || native || !state.dao.canVote;
+    $('#vote-hint').textContent = native
+      ? 'Native Juno voting is shown read-only until the transaction adapter is verified.'
+      : state.dao.canVote
+        ? 'Connect Keplr on Juno Mainnet to vote.'
+        : 'Voting is read-only until this DAO transaction adapter is verified.';
+    $('#revision-panel').hidden = true;
+    $('#discussion-panel').hidden = true;
+    setEditable(false);
+    $('#change-note-wrap').hidden = true;
+    $('#save-local').hidden = true;
+    $('#publish-revision').hidden = true;
+    $('#primary-action').hidden = true;
+    $('#discard-action').hidden = true;
+    $('#action-hint').textContent = native
+      ? 'This proposal is read directly from Juno native governance.'
+      : `This record is read directly from the ${state.dao.name} proposal module.`;
+    $('.next-actions').dataset.status = p.status === 'open' ? 'voting' : chainGroup(p.status);
+    updateWorkflow(p.status === 'deposit' ? 3 : 6);
+    renderList();
+    updateCountdown();
+    state.countdown = setInterval(updateCountdown, 30000);
+  }
+  function newDraft() {
+    clearInterval(state.countdown);
+    state.selected = null;
+    state.revisions = [];
+    state.comments = [];
+    setDetails(true);
+    resetCommentForm();
+    $('#onchain-panel').hidden = true;
+    $('#native-funding-panel').hidden = state.dao.mode !== 'native-gov';
+    $('#discard-action').hidden = false;
+    $('#discard-action').textContent = 'DISCARD DRAFT';
+    const draft = localDraft();
+    setValues(draft || {});
+    $('#proposal-stage').textContent =
+      state.dao.mode === 'native-gov' ? 'JUNO · PRIVATE LOCAL DRAFT' : 'PRIVATE LOCAL DRAFT';
+    $('#proposal-heading').textContent = 'NEW PROPOSAL';
+    $('#proposal-badge').textContent = 'DRAFT';
+    $('#change-note-wrap').hidden = true;
+    $('#revision-panel').hidden = true;
+    $('#discussion-panel').hidden = true;
+    updateWorkflow(draft ? 2 : 1);
+    renderList();
+    renderActions();
+  }
+  function saveLocal() {
+    const button = $('#save-local'),
+      original = button.textContent;
+    try {
+      const v = values();
+      validate(v);
+      const savedAt = new Date(),
+        message = state.selected
+          ? `REVISION SAVED LOCALLY ${savedAt.toLocaleTimeString()} · NOT YET PUBLISHED`
+          : `PRIVATE DRAFT SAVED LOCALLY ${savedAt.toLocaleTimeString()} · ONLY IN THIS BROWSER`;
+      localStorage.setItem(draftKey(), JSON.stringify({ ...v, saved_at: savedAt.toISOString() }));
+      renderList();
+      status(message);
+      delete $('.next-actions').dataset.status;
+      updateWorkflow(2);
+      renderActions();
+      button.textContent = 'SAVED LOCALLY ✓';
+      button.dataset.saved = 'true';
+      setTimeout(() => {
+        button.textContent = original;
+        delete button.dataset.saved;
+      }, 1800);
+    } catch (error) {
+      const message = error?.message || String(error);
+      status(message, true);
+      $('#action-hint').textContent = `COULD NOT SAVE · ${message}`;
+      $('.next-actions').dataset.status = 'error';
+      button.textContent = 'SAVE FAILED';
+      setTimeout(() => {
+        button.textContent = original;
+      }, 1800);
+    }
+  }
+  async function signer() {
+    if (state.client) return state.client;
+    if (!state.address) throw new Error('CONNECT KEPLR FIRST');
+    const base = window.keplr.getOfflineSigner?.(CHAIN_ID) || window.getOfflineSigner?.(CHAIN_ID);
+    const wrapped = {
+      getAccounts: () => base.getAccounts(),
+      signDirect: (a, d) => window.keplr.signDirect(CHAIN_ID, a, d, { preferNoSetFee: true }),
+      signAmino: (a, d) => window.keplr.signAmino(CHAIN_ID, a, d, { preferNoSetFee: true })
+    };
+    for (const rpc of RPCS)
+      try {
+        return (state.client = await deadline(
+          NetaSocialsTestnet.connect(rpc, wrapped),
+          45000,
+          'RPC CONNECTION'
+        ));
+      } catch {}
+    throw new Error('ALL UNI-7 RPC ENDPOINTS FAILED');
+  }
+  async function recover(check, label) {
+    for (let i = 0; i < 8; i++) {
+      if (i) await new Promise((r) => setTimeout(r, 2000));
+      const hit = await check();
+      if (hit) return hit;
+    }
+    throw new Error(`${label} WAS BROADCAST BUT COULD NOT BE RECOVERED`);
+  }
+  async function execute(msg, memo, check) {
+    if (!CONTRACT) throw new Error('PUBLIC REVIEW IS NOT CONFIGURED FOR THIS DAO');
+    const epoch = state.requestEpoch,
+      address = state.address,
+      contract = CONTRACT;
+    try {
+      const client = await signer();
+      if (epoch !== state.requestEpoch || address !== state.address || contract !== CONTRACT)
+        throw new Error('GOVERNANCE CONTEXT CHANGED · REVIEW AGAIN');
+      const active = (await window.keplr.getOfflineSigner(CHAIN_ID).getAccounts())[0]?.address;
+      if (active !== address) throw new Error('KEPLR ACCOUNT CHANGED · RECONNECT');
+      return await NetaSocialsTestnet.execute(client, address, contract, msg, memo);
+    } catch (e) {
+      if (!indexingDisabled(e)) throw e;
+      await recover(check, memo);
+      return { transactionHash: 'RECOVERED_FROM_CHAIN' };
+    }
+  }
+  async function run(button, task) {
+    if (state.busy) return false;
+    state.busy = true;
+    renderWallet();
+    const old = button.textContent;
+    button.disabled = true;
+    button.textContent = 'CHECK KEPLR';
+    try {
+      await task();
+      status('ON-CHAIN ACTION VERIFIED');
+      return true;
+    } catch (e) {
+      status(e.message || String(e), true);
+      return false;
+    } finally {
+      state.busy = false;
+      button.textContent = old;
+      renderWallet();
+      renderActions();
+    }
+  }
+  function openRevisionDialog() {
+    const v = values();
+    validate(v);
+    $('#revision-change-note').value = $('#change-note').value.trim();
+    $('#revision-dialog-error').hidden = true;
+    $('#revision-dialog').hidden = false;
+    document.body.classList.add('revision-dialog-open');
+    requestAnimationFrame(() => $('#revision-change-note').focus());
+  }
+  function closeRevisionDialog() {
+    $('#revision-dialog').hidden = true;
+    document.body.classList.remove('revision-dialog-open');
+    $('#revision-dialog-error').hidden = true;
+    $('#revision-change-note').value = '';
+    $('#change-note').value = '';
+    $('#publish-revision').focus();
+  }
+  async function deployNativeReview() {
+    if (state.dao.mode !== 'native-gov') throw new Error('SELECT JUNO NETWORK GOVERNANCE FIRST');
+    if (!state.address) throw new Error('CONNECT KEPLR FIRST');
+    if (state.address !== TEST_ADMIN)
+      throw new Error('ONLY THE CONFIGURED TEST ADMIN MAY SET UP THE REVIEW WORKSPACE');
+    const [response, checksumResponse] = await Promise.all([
+      fetch('assets/neta_proposal_workshop.wasm', { cache: 'no-store' }),
+      fetch('assets/neta_proposal_workshop.sha256', { cache: 'no-store' })
+    ]);
+    if (!response.ok || !checksumResponse.ok)
+      throw new Error('VERIFIED REVIEW CONTRACT ARTIFACT NOT FOUND');
+    const wasm = new Uint8Array(await response.arrayBuffer()),
+      expected = (await checksumResponse.text()).trim().split(/\s+/)[0].toLowerCase(),
+      actual = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', wasm)), (byte) =>
+        byte.toString(16).padStart(2, '0')
+      ).join('');
+    if (actual !== expected) throw new Error('REVIEW CONTRACT CHECKSUM MISMATCH');
+    const client = await signer();
+    let uploaded = await findUploadedCode(expected);
+    if (!uploaded)
+      try {
+        uploaded = await NetaSocialsTestnet.upload(
+          client,
+          state.address,
+          wasm,
+          'Upload Juno governance review workshop v0.3.0'
+        );
+      } catch (error) {
+        if (!indexingDisabled(error)) throw error;
+        uploaded = await recover(() => findUploadedCode(expected), 'JUNO REVIEW CODE UPLOAD');
+      }
+    let instance = await findReviewContract(uploaded.codeId);
+    if (!instance)
+      try {
+        instance = await NetaSocialsTestnet.instantiate(
+          client,
+          state.address,
+          uploaded.codeId,
+          {
+            owner: state.address,
+            dao_voting_contract: TEST_ACCESS_CONTRACT,
+            stake_contract: TEST_ACCESS_CONTRACT,
+            minimum_comment_stake: '0',
+            community_gate: {
+              native_denom: 'ujunox',
+              minimum_native_stake: '1000000',
+              minimum_neta_stake: '1000000'
+            }
+          },
+          'Juno Governance Community Review · UNI-7',
+          'Instantiate Juno governance review workshop v0.3.0'
+        );
+      } catch (error) {
+        if (!indexingDisabled(error)) throw error;
+        instance = await recover(
+          () => findReviewContract(uploaded.codeId),
+          'JUNO REVIEW INSTANTIATION'
+        );
+      }
+    CONTRACT = instance.contractAddress;
+    const config = await query({ config: {} });
+    if (config.paused !== false)
+      await execute(
+        { set_paused: { paused: false } },
+        'Unpause Juno governance review workshop',
+        async () => {
+          const updated = await query({ config: {} });
+          return updated.paused === false;
+        }
+      );
+    localStorage.setItem(JUNO_REVIEW_CONTRACT_KEY, CONTRACT);
+    state.access = await query({ access: { address: state.address } });
+    if (!state.access?.can_publish)
+      throw new Error(
+        'REVIEW WORKSPACE READY · 1 JUNOX DELEGATED AND 1 TEST NETA STAKED ARE REQUIRED'
+      );
+    return CONTRACT;
+  }
+  async function connect() {
+    if (state.busy || state.connecting) return;
+    if (state.dao.mode === 'dao-readonly' && document.body.dataset.workspaceView !== 'relay') {
+      status(
+        'This DAO is read-only. Explore active members under People; wallet connection is not required.'
+      );
+      return;
+    }
+    const epoch = ++state.walletEpoch,
+      dao = state.dao,
+      contract = CONTRACT,
+      requestedChain = walletChain();
+    const current = () =>
+      epoch === state.walletEpoch && dao === state.dao && requestedChain === walletChain();
+    state.connecting = true;
+    renderWallet();
+    status('CONNECTING · CHECK KEPLR');
+    try {
+      if (!window.keplr) throw new Error('KEPLR NOT FOUND');
+      if (requestedChain === CHAIN_ID) {
+        if (!window.keplr.experimentalSuggestChain)
+          throw new Error('KEPLR CHAIN SUGGESTION UNAVAILABLE');
+        await deadline(window.keplr.experimentalSuggestChain(CHAIN), 45000, 'CHAIN SUGGESTION');
+        if (!current()) return;
+      }
+      await deadline(window.keplr.enable(requestedChain), 15000, 'KEPLR ACCESS');
+      if (!current()) return;
+      const base =
+          window.keplr.getOfflineSigner?.(requestedChain) ||
+          window.getOfflineSigner?.(requestedChain),
+        account = (await base.getAccounts())[0];
+      if (!current()) return;
+      if (!account?.address) throw new Error('NO KEPLR ACCOUNT AVAILABLE');
+      state.client?.disconnect?.();
+      state.mainnetClient?.disconnect?.();
+      state.client = null;
+      state.mainnetClient = null;
+      state.address = account.address;
+      state.walletChain = requestedChain;
+      state.access = null;
+      renderWallet();
+      renderActions();
+      renderComments();
+      const access =
+        contract && requestedChain === CHAIN_ID
+          ? await query({ access: { address: account.address } })
+          : null;
+      if (!current()) return;
+      state.access = access;
+      if (dao.mode === 'native-gov') {
+        const neta = Number(access?.active_neta_stake || 0) / 1e6,
+          junox = Number(access?.active_native_stake || 0) / 1e6;
+        status(
+          contract
+            ? `${access?.can_publish ? 'REVIEW ELIGIBLE' : 'CONNECTED'} · ${junox} JUNOX + ${neta} TEST NETA STAKED`
+            : 'CONNECTED · DEPLOY THE JUNO REVIEW CONTRACT'
+        );
+      } else
+        status(
+          `${access?.can_publish ? 'DAO MEMBER' : 'CONNECTED'} · ${Number(access?.staked_neta || 0) / 1e6} NETA STAKED`
+        );
+    } catch (e) {
+      if (current()) status(e.message || String(e), true);
+    } finally {
+      if (epoch === state.walletEpoch) {
+        state.connecting = false;
+        renderWallet();
+        renderActions();
+        renderComments();
+      }
+    }
+  }
+  $('#proposal-actions').addEventListener('input', renderAccounting);
+  $('#subdao-select').onchange = (e) => {
+    const scope = state.scope;
+    if (e.target.value === 'all') selectOrganization(scope.organization);
+    else {
+      const dao = scope.units.find((d) => d.id === e.target.value);
+      if (dao) selectDao(dao);
+    }
+  };
+  $('#chain-select').onchange = (e) => selectGovernanceChain(e.currentTarget.value);
+  $('#dao-search').onfocus = (e) => {
+    e.currentTarget.select();
+    renderDaoOptions('');
+  };
+  $('#dao-search').oninput = (e) => renderDaoOptions(e.currentTarget.value);
+  $('#dao-search').onkeydown = (e) => {
+    if (e.key === 'Escape') closeDaoOptions();
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if ($('#dao-options').hidden) renderDaoOptions(e.currentTarget.value);
+      $('#dao-options button')?.focus();
+    }
+  };
+  $('#dao-search').onblur = () =>
+    setTimeout(() => {
+      if (!$('.dao-picker').contains(document.activeElement)) closeDaoOptions();
+    }, 0);
+  $('#gov-connect').onclick = connect;
+  $('#gov-disconnect').onclick = disconnectWallet;
+  $('#new-draft').onclick = newDraft;
+  $('#save-local').onclick = saveLocal;
+  $('#proposal-details-toggle').onclick = () => setDetails($('#proposal-details').hidden);
+  $('#cancel-reply').onclick = resetCommentForm;
+  $('#add-action').onclick = () => {
+    const a = $('#proposal-actions');
+    if (a.value.trim() === '[]') a.value = '[{"type":"wasm_execute","contract":"","msg":{}}]';
+    renderAccounting();
+    a.focus();
+  };
+  $('#add-deliverable').onclick = () => {
+    state.deliverables.push({
+      title: '',
+      due_date: '',
+      owner: state.address || '',
+      verifier: '',
+      evidence: ''
+    });
+    renderDeliverables();
+    setEditable(
+      !state.selected || (state.selected.status === 'discussion' && !!state.access?.can_publish)
+    );
+    $('[data-deliverable-field]')?.focus();
+  };
+  $('#primary-action').onclick = (e) =>
+    run(e.currentTarget, async () => {
+      const native = state.dao.mode === 'native-gov';
+      if (!state.selected) {
+        const v = values();
+        validate(v);
+        if (native && !CONTRACT) await deployNativeReview();
+        if (native)
+          await execute(
+            { publish_proposal: { content: v } },
+            'Juno Governance publish review',
+            async () => {
+              const rows = await queryAll(
+                (startAfter) => ({ proposals: { start_after: startAfter, limit: 100 } }),
+                (item) => item.id
+              );
+              return rows.find((p) => p.author === state.address);
+            }
+          );
+        else
+          await execute({ publish_draft: v }, 'NETA Governance publish draft', async () => {
+            const rows = await queryAll(
+              (startAfter) => ({ proposals: { start_after: startAfter, limit: 100 } }),
+              (item) => item.id
+            );
+            return rows.find((p) => p.author === state.address && p.title === v.title);
+          });
+        localStorage.removeItem(draftKey());
+        if (!native) localStorage.removeItem('neta-governance-local-draft');
+        await load();
+        const hit = state.proposals
+          .slice()
+          .reverse()
+          .find((p) => p.author === state.address && p.title === v.title);
+        if (hit) await select(hit.id);
+      } else {
+        const id = state.selected.id;
+        if (native)
+          await execute(
+            { finalize: { proposal_id: id, version: state.selected.current_revision } },
+            'Juno Governance finalize review',
+            async () => {
+              const p = await query({ proposal: { proposal_id: id } });
+              return p.finalized_version !== null && /^[0-9a-f]{64}$/.test(p.finalized_hash || '');
+            }
+          );
+        else
+          await execute(
+            { finalize_and_submit: { proposal_id: id } },
+            'NETA Governance finalize proposal',
+            async () => {
+              const p = await query({ proposal: { proposal_id: id } });
+              return p.status === 'voting';
+            }
+          );
+        await load();
+        await select(id);
+      }
+    });
+  $('#publish-revision').onclick = () => {
+    try {
+      openRevisionDialog();
+    } catch (error) {
+      status(error.message || String(error), true);
+    }
+  };
+  $('#revision-dialog-form').onsubmit = async (event) => {
+    event.preventDefault();
+    const change_note = $('#revision-change-note').value.trim(),
+      error = $('#revision-dialog-error');
+    if (!change_note) {
+      error.textContent = 'DESCRIBE WHAT CHANGED AND WHY';
+      error.hidden = false;
+      $('#revision-change-note').focus();
+      return;
+    }
+    error.hidden = true;
+    $('#change-note').value = change_note;
+    const v = values(),
+      id = state.selected.id,
+      native = state.dao.mode === 'native-gov',
+      success = await run($('#confirm-revision'), async () => {
+        validate(v);
+        if (native)
+          await execute(
+            { add_revision: { proposal_id: id, content: v, change_log: change_note } },
+            'Juno Governance publish revision',
+            async () => {
+              const rows = await query({
+                revisions: { proposal_id: id, start_after: null, limit: 100 }
+              });
+              return rows.length > state.revisions.length;
+            }
+          );
+        else
+          await execute(
+            {
+              publish_revision: {
+                proposal_id: id,
+                summary: v.summary,
+                body: v.body,
+                actions_json: v.actions_json,
+                change_note
+              }
+            },
+            'NETA Governance publish revision',
+            async () => {
+              const rows = await query({ revisions: { proposal_id: id } });
+              return rows.length > state.revisions.length;
+            }
+          );
+        await load();
+        await select(id);
+      });
+    if (success) closeRevisionDialog();
+    else {
+      error.textContent = $('#gov-status').textContent;
+      error.hidden = false;
+    }
+  };
+  $('#cancel-revision').onclick = closeRevisionDialog;
+  $('[data-close-revision-dialog]').onclick = closeRevisionDialog;
+  document.addEventListener('keydown', (event) => {
+    const dialog = $('#revision-dialog');
+    if (dialog.hidden) return;
+    if (event.key === 'Escape') closeRevisionDialog();
+    if (event.key === 'Tab') {
+      const focusable = [
+          ...dialog.querySelectorAll('button:not([disabled]),textarea:not([disabled])')
+        ],
+        first = focusable[0],
+        last = focusable.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  });
+  $('#deploy-native-review').onclick = (event) =>
+    run(event.currentTarget, async () => {
+      await deployNativeReview();
+      await load();
+      newDraft();
+      status(`JUNO REVIEW WORKSPACE READY · ${short(CONTRACT)}`);
+    });
+  $('#eligibility-action').onclick = () => {
+    if (state.dao.commentStakeUrl)
+      window.open(state.dao.commentStakeUrl, '_blank', 'noopener,noreferrer');
+  };
+  $('#comment-form').onsubmit = (e) => {
+    e.preventDefault();
+    const button = $('#publish-comment');
+    run(button, async () => {
+      const body = $('#comment-body').value.trim(),
+        title = $('#comment-title').value.trim(),
+        parentId = state.replyTo,
+        id = state.selected.id;
+      if (!body) throw new Error('COMMENT IS EMPTY');
+      if (parentId === null && !title) throw new Error('NAME THE TOPIC FIRST');
+      const encodedBody =
+          parentId === null
+            ? `[[NETA_THREAD:${encodeURIComponent(title)}]]\n${body}`
+            : `[[NETA_REPLY:${parentId}]]\n${body}`,
+        message = state.nativeThreads
+          ? {
+              add_comment: {
+                proposal_id: id,
+                version: state.selected.current_revision,
+                parent_id: parentId,
+                title: parentId === null ? title : null,
+                body
+              }
+            }
+          : { add_comment: { proposal_id: id, body: encodedBody } },
+        expectedBody = state.nativeThreads ? body : encodedBody;
+      await execute(
+        message,
+        parentId === null
+          ? 'NETA Governance start discussion thread'
+          : 'NETA Governance reply to discussion',
+        async () => {
+          const rows = await query({
+            comments: { proposal_id: id, start_after: null, limit: 100 }
+          });
+          return rows.some((c) => c.author === state.address && c.body === expectedBody);
+        }
+      );
+      resetCommentForm();
+      await select(id);
+    });
+  };
+  document.querySelectorAll('[data-filter]').forEach(
+    (button) =>
+      (button.onclick = () => {
+        state.filter = button.dataset.filter;
+        document
+          .querySelectorAll('[data-filter]')
+          .forEach((x) => x.classList.toggle('active', x === button));
+        renderList();
+      })
+  );
+  $('#discard-action').onclick = (e) => {
+    if (!state.selected) {
+      if (!localDraft() || confirm('Delete this private local draft?')) {
+        localStorage.removeItem(draftKey());
+        if (state.dao.id === 'neta-operations')
+          localStorage.removeItem('neta-governance-local-draft');
+        setValues({});
+        updateWorkflow(1);
+        renderList();
+        status('PRIVATE DRAFT DELETED');
+      }
+      return;
+    }
+    const native = state.dao.mode === 'native-gov';
+    if (
+      state.selected.source !== 'workshop' ||
+      state.selected.status !== 'discussion' ||
+      state.selected.author !== state.address ||
+      (!native && state.address !== state.configOwner)
+    )
+      return;
+    if (!confirm('Withdraw this published proposal? Its history will remain visible.')) return;
+    run(e.currentTarget, async () => {
+      const id = state.selected.id;
+      if (native)
+        await execute(
+          { withdraw: { proposal_id: id } },
+          'Juno Governance withdraw review',
+          async () => {
+            const p = await query({ proposal: { proposal_id: id } });
+            return p.withdrawn;
+          }
+        );
+      else
+        await execute(
+          { set_status: { proposal_id: id, status: 'declined', dao_proposal_id: null } },
+          'NETA Governance withdraw proposal',
+          async () => {
+            const p = await query({ proposal: { proposal_id: id } });
+            return p.status === 'declined';
+          }
+        );
+      await load();
+      newDraft();
+    });
+  };
+  async function mainnetSigner() {
+    if (state.mainnetClient) return state.mainnetClient;
+    if (!window.keplr) throw new Error('KEPLR NOT FOUND');
+    await window.keplr.enable('juno-1');
+    const base = window.keplr.getOfflineSigner('juno-1'),
+      account = (await base.getAccounts())[0];
+    state.address = account.address;
+    state.walletChain = 'juno-1';
+    renderWallet();
+    const wrapped = {
+      getAccounts: () => base.getAccounts(),
+      signDirect: (a, d) => window.keplr.signDirect('juno-1', a, d, { preferNoSetFee: true }),
+      signAmino: (a, d) => window.keplr.signAmino('juno-1', a, d, { preferNoSetFee: true })
+    };
+    for (const rpc of MAINNET_RPCS)
+      try {
+        return (state.mainnetClient = await NetaSocialsTestnet.connect(rpc, wrapped, '0.075ujuno'));
+      } catch {}
+    throw new Error('ALL JUNO MAINNET RPC ENDPOINTS FAILED');
+  }
+  document.querySelectorAll('[data-vote]').forEach(
+    (button) =>
+      (button.onclick = () =>
+        run(button, async () => {
+          const selected = state.selected,
+            epoch = state.requestEpoch,
+            module = proposalModule,
+            dao = state.dao;
+          if (!dao.canVote || selected?.source !== 'chain' || selected.proposal.status !== 'open')
+            throw new Error('VOTING IS NOT OPEN');
+          const client = await mainnetSigner();
+          if (
+            epoch !== state.requestEpoch ||
+            module !== proposalModule ||
+            dao !== state.dao ||
+            state.selected?.key !== selected.key
+          )
+            throw new Error('VOTING CONTEXT CHANGED · REVIEW AGAIN');
+          const active = (await window.keplr.getOfflineSigner('juno-1').getAccounts())[0]?.address;
+          if (active !== state.address) throw new Error('KEPLR ACCOUNT CHANGED · RECONNECT');
+          await NetaSocialsTestnet.execute(
+            client,
+            state.address,
+            module,
+            { vote: { proposal_id: selected.id, vote: button.dataset.vote } },
+            `${state.dao.name} proposal A${selected.id}: ${button.dataset.vote}`
+          );
+          const refreshed = await mainnetQuery({ proposal: { proposal_id: selected.id } });
+          selectChain({ id: selected.id, proposal: refreshed });
+        }))
+  );
+  $('#chain-select').replaceChildren(
+    ...GOVERNANCE_CHAINS.map((chain) => {
+      const option = node('option', null, chain.name);
+      option.value = chain.id;
+      return option;
+    })
+  );
+  $('#chain-select').value = state.chain.id;
+  $('#dao-search').value = state.scope.organization.name;
+  $('.testnet-pill').textContent =
+    state.dao.mode === 'dao-readonly'
+      ? 'JUNO MAINNET · READ ONLY'
+      : state.dao.mode === 'native-gov'
+        ? 'MAINNET DATA · UNI-7 REVIEW'
+        : 'UNI-7 TESTNET';
+  $('#native-funding-panel').hidden = state.dao.mode !== 'native-gov';
+  $('#native-review-setup').hidden = state.dao.mode !== 'native-gov' || !!CONTRACT;
+  notifyDaoSelection();
+  window.addEventListener('neta:select-dao', (event) => {
+    const dao = DAOS.find((item) => item.id === event.detail?.id);
+    if (dao)
+      selectDao(
+        dao,
+        event.detail?.consolidated === true && ORGANIZATIONS.some((o) => o.mainDaoId === dao.id)
+      );
+  });
+  window.addEventListener('neta:open-proposal', async (event) => {
+    const id = Number(event.detail?.id);
+    if (!Number.isFinite(id)) return;
+    let item = state.chainProposals.find((proposal) => Number(proposal.id) === id);
+    if (!item) {
+      await load();
+      item = state.chainProposals.find((proposal) => Number(proposal.id) === id);
+    }
+    if (item) selectChain(item);
+    else status(`ON-CHAIN PROPOSAL A${id} NOT FOUND`, true);
+  });
+  window.addEventListener('neta:relay-open', async (event) => {
+    const id = Number(event.detail?.proposalId),
+      dao = DAOS.find((item) => item.id === event.detail?.dao);
+    if (!dao || !Number.isFinite(id)) return;
+    if (state.dao.id !== dao.id || state.scope.consolidated) await selectDao(dao);
+    let item = state.chainProposals.find((proposal) => Number(proposal.id) === id);
+    if (!item) {
+      await load();
+      item = state.chainProposals.find((proposal) => Number(proposal.id) === id);
+    }
+    if (item) selectChain(item);
+    else status(`PROPOSAL #${id} NOT FOUND`, true);
+  });
+  window.addEventListener('keplr_keystorechange', () => {
+    clearWallet();
+    status('WALLET CHANGED · RECONNECT TO VERIFY ACCESS');
+    renderActions();
+    renderComments();
+  });
+  load()
+    .then(newDraft)
+    .catch((e) => {
+      newDraft();
+      status(e.message || String(e), true);
+    });
 })();
-

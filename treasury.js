@@ -1,131 +1,816 @@
-(async()=>{
-  const { consolidateSnapshots, consolidateHistory, assertDistinctAccounts, validateSnapshot } = await import("./treasury-consolidation.mjs?v=20261006-9");
-  const { selectionParams } = await import("./dao-hierarchy.mjs?v=20261006-1");
-  const { eventTags } = await import("./treasury-event-tags.mjs?v=20261006-9");
-  const { validateEventFeed } = await import("./treasury-generic-accounting.mjs?v=20261006-9");
-  const $=selector=>document.querySelector(selector),assets=$("#treasury-assets"),total=$("#treasury-total"),updated=$("#treasury-updated"),status=$("#treasury-live-status"),warning=$("#treasury-warning"),refresh=$("#treasury-refresh"),explorer=$("#treasury-explorer"),policy=$("#treasury-policy"),periodLabel=$("#treasury-period-label"),periodChange=$("#treasury-period-change"),periodPercent=$("#treasury-period-percent"),netFlow=$("#treasury-net-flow"),marketEffect=$("#treasury-market-effect"),chart=$("#treasury-history-chart"),historyEmpty=$("#treasury-history-empty"),ranges=$("#treasury-history-ranges"),eventsList=$("#treasury-events"),eventsToggle=$("#treasury-events-toggle"),eventFilters=$("#treasury-event-filters"),eventCount=$("#treasury-event-count");
-  if(!assets)return;
-  const SVG="http://www.w3.org/2000/svg",money=value=>value===null||value===undefined||!Number.isFinite(Number(value))?"—":new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:2,signDisplay:Number(value)===0?"never":"auto"}).format(Number(value)),amount=value=>new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(value)),node=(tag,className,text)=>{const element=document.createElement(tag);if(className)element.className=className;if(text!==undefined)element.textContent=text;return element},svg=(tag,attributes={})=>{const element=document.createElementNS(SVG,tag);Object.entries(attributes).forEach(([key,value])=>element.setAttribute(key,String(value)));return element};
-  let loadEpoch=0,loadController=null,selectedScope=window.NETA_DAO_SCOPE||null;
-  let selectedDao=window.NETA_SELECTED_DAO||"neta-operations",selectedDays=30,historyRows=[],treasuryEvents=[],eventsExpanded=false,eventFilter="all",eventsWarning="",eventAccounting=null;
-  function underlying(item){const wrap=node("div","lp-underlyings");wrap.append(node("span",null,"CONTAINS"));item.underlyings.forEach(part=>{const row=node("div","lp-underlying"),name=node("strong",null,part.symbol),quantity=node("small",null,`${amount(part.amount)} ${part.symbol}`),value=node("b",null,money(part.usd_value));row.append(name,quantity,value);wrap.append(row)});return wrap}
-  function renderAsset(item,totalUsd){const row=node("article",`asset-row live ${item.type}`),dot=node("i",`asset-dot ${item.symbol.toLowerCase().replace(/[^a-z0-9]+/g,"-")}`),identity=node("div"),name=node("strong",null,item.position?`${item.symbol} · ${item.position}`:item.symbol),chain=(item.source_chain||"juno").toUpperCase(),origin=item.type==="lp"?"JUNO · LP TOKENS":item.origin==="IBC"?`${chain} · IBC · ${item.base_denom||item.symbol}`:`${chain} · ${item.key?.startsWith("cw20:")?"CW20":"NATIVE"}`,quantity=node("small",null,`${item.amount==null?`${item.raw_amount||"Unknown"} raw units · decimals unverified`:amount(item.amount)} ${item.type==="lp"?"LP TOKENS":item.symbol} · ${origin}`),value=node("b",null,money(item.usd_value)),change=node("span",null,item.change_24h===null||item.change_24h===undefined?item.type==="lp"?"UNDERLYING VALUE":"—":`${Number(item.change_24h)>=0?"+":""}${Number(item.change_24h).toFixed(2)}%`),bar=node("div","asset-bar"),fill=node("i"),custody=node("small","asset-custody",item.custody_address?`CUSTODY · ${chain} · ${item.custody_address}`:`CUSTODY · ${chain} · NATIVE MODULE`);row.tabIndex=0;row.setAttribute("aria-label",`${item.symbol}, ${money(item.usd_value)}, ${custody.textContent}`);if(Number(item.change_24h)>0)change.className="positive";if(Number(item.change_24h)<0)change.className="negative";fill.style.width=`${totalUsd&&item.usd_value?Math.max(1,Number(item.usd_value)/totalUsd*100):0}%`;bar.append(fill);identity.append(name,quantity,custody);if(item.unit_name)identity.append(node("small","asset-unit",item.unit_name));row.append(dot,identity,value,change,bar);if(item.type==="lp"&&Array.isArray(item.underlyings))row.append(underlying(item));return row}
-  function renderAssets(items,totalUsd,warnings=[],policyText=""){const sorted=items.slice().sort((a,b)=>Number(b.usd_value||-1)-Number(a.usd_value||-1)),primary=sorted.filter(item=>item.usd_value!==null&&item.usd_value!==undefined&&Number(item.usd_value)>=50),minor=sorted.filter(item=>!primary.includes(item));assets.replaceChildren(...primary.map(item=>renderAsset(item,totalUsd)));warning.hidden=true;policy.hidden=true;if(minor.length||warnings.length||policyText){const details=node("details","minor-assets"),knownValue=minor.reduce((sum,item)=>sum+Number(item.usd_value||0),0),label=minor.length?`${minor.length} SMALL / UNPRICED ASSETS · ${money(knownValue)}`:"TREASURY DETAILS",summary=node("summary",null,`${label} · SHOW DETAILS`);details.append(summary);if(minor.length){const list=node("div","minor-assets-list");minor.forEach(item=>list.append(renderAsset(item,totalUsd)));details.append(list)}if(policyText){policy.textContent=policyText;policy.hidden=false;details.append(policy)}if(warnings.length){warning.textContent=warnings.join(" · ");warning.hidden=false;details.append(warning)}assets.append(details)}}
-  function comparableValuation(rows){
-    if(!rows.length)return true;
-    const coverage=row=>{
-      if(!Array.isArray(row.assets)||!row.assets.length)return null;
-      const missing=[];
-      for(const item of row.assets){
-        if(item.usd_value==null||!Number.isFinite(Number(item.usd_value)))missing.push(item.key);
-        for(const part of item.underlyings||[])if(part.usd_value==null)missing.push(`${item.key}/${part.key||part.symbol}`);
+(async () => {
+  const { consolidateSnapshots, consolidateHistory, assertDistinctAccounts, validateSnapshot } =
+    await import('./treasury-consolidation.mjs?v=20261006-9');
+  const { selectionParams } = await import('./dao-hierarchy.mjs?v=20261006-1');
+  const { eventTags } = await import('./treasury-event-tags.mjs?v=20261006-9');
+  const { validateEventFeed } = await import('./treasury-generic-accounting.mjs?v=20261006-9');
+  const $ = (selector) => document.querySelector(selector),
+    assets = $('#treasury-assets'),
+    total = $('#treasury-total'),
+    updated = $('#treasury-updated'),
+    status = $('#treasury-live-status'),
+    warning = $('#treasury-warning'),
+    refresh = $('#treasury-refresh'),
+    explorer = $('#treasury-explorer'),
+    policy = $('#treasury-policy'),
+    periodLabel = $('#treasury-period-label'),
+    periodChange = $('#treasury-period-change'),
+    periodPercent = $('#treasury-period-percent'),
+    netFlow = $('#treasury-net-flow'),
+    marketEffect = $('#treasury-market-effect'),
+    chart = $('#treasury-history-chart'),
+    historyEmpty = $('#treasury-history-empty'),
+    ranges = $('#treasury-history-ranges'),
+    eventsList = $('#treasury-events'),
+    eventsToggle = $('#treasury-events-toggle'),
+    eventFilters = $('#treasury-event-filters'),
+    eventCount = $('#treasury-event-count');
+  if (!assets) return;
+  const SVG = 'http://www.w3.org/2000/svg',
+    money = (value) =>
+      value === null || value === undefined || !Number.isFinite(Number(value))
+        ? '—'
+        : new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            maximumFractionDigits: 2,
+            signDisplay: Number(value) === 0 ? 'never' : 'auto'
+          }).format(Number(value)),
+    amount = (value) =>
+      new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+        Number(value)
+      ),
+    node = (tag, className, text) => {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text !== undefined) element.textContent = text;
+      return element;
+    },
+    svg = (tag, attributes = {}) => {
+      const element = document.createElementNS(SVG, tag);
+      Object.entries(attributes).forEach(([key, value]) =>
+        element.setAttribute(key, String(value))
+      );
+      return element;
+    };
+  let loadEpoch = 0,
+    loadController = null,
+    selectedScope = window.NETA_DAO_SCOPE || null;
+  let selectedDao = window.NETA_SELECTED_DAO || 'neta-operations',
+    selectedDays = 30,
+    historyRows = [],
+    treasuryEvents = [],
+    eventsExpanded = false,
+    eventFilter = 'all',
+    eventsWarning = '',
+    eventAccounting = null;
+  function underlying(item) {
+    const wrap = node('div', 'lp-underlyings');
+    wrap.append(node('span', null, 'CONTAINS'));
+    item.underlyings.forEach((part) => {
+      const row = node('div', 'lp-underlying'),
+        name = node('strong', null, part.symbol),
+        quantity = node('small', null, `${amount(part.amount)} ${part.symbol}`),
+        value = node('b', null, money(part.usd_value));
+      row.append(name, quantity, value);
+      wrap.append(row);
+    });
+    return wrap;
+  }
+  function renderAsset(item, totalUsd) {
+    const row = node('article', `asset-row live ${item.type}`),
+      dot = node('i', `asset-dot ${item.symbol.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`),
+      identity = node('div'),
+      name = node(
+        'strong',
+        null,
+        item.position ? `${item.symbol} · ${item.position}` : item.symbol
+      ),
+      chain = (item.source_chain || 'juno').toUpperCase(),
+      origin =
+        item.type === 'lp'
+          ? 'JUNO · LP TOKENS'
+          : item.origin === 'IBC'
+            ? `${chain} · IBC · ${item.base_denom || item.symbol}`
+            : `${chain} · ${item.key?.startsWith('cw20:') ? 'CW20' : 'NATIVE'}`,
+      quantity = node(
+        'small',
+        null,
+        `${item.amount == null ? `${item.raw_amount || 'Unknown'} raw units · decimals unverified` : amount(item.amount)} ${item.type === 'lp' ? 'LP TOKENS' : item.symbol} · ${origin}`
+      ),
+      value = node('b', null, money(item.usd_value)),
+      change = node(
+        'span',
+        null,
+        item.change_24h === null || item.change_24h === undefined
+          ? item.type === 'lp'
+            ? 'UNDERLYING VALUE'
+            : '—'
+          : `${Number(item.change_24h) >= 0 ? '+' : ''}${Number(item.change_24h).toFixed(2)}%`
+      ),
+      bar = node('div', 'asset-bar'),
+      fill = node('i'),
+      custody = node(
+        'small',
+        'asset-custody',
+        item.custody_address
+          ? `CUSTODY · ${chain} · ${item.custody_address}`
+          : `CUSTODY · ${chain} · NATIVE MODULE`
+      );
+    row.tabIndex = 0;
+    row.setAttribute(
+      'aria-label',
+      `${item.symbol}, ${money(item.usd_value)}, ${custody.textContent}`
+    );
+    if (Number(item.change_24h) > 0) change.className = 'positive';
+    if (Number(item.change_24h) < 0) change.className = 'negative';
+    fill.style.width = `${totalUsd && item.usd_value ? Math.max(1, (Number(item.usd_value) / totalUsd) * 100) : 0}%`;
+    bar.append(fill);
+    identity.append(name, quantity, custody);
+    if (item.unit_name) identity.append(node('small', 'asset-unit', item.unit_name));
+    row.append(dot, identity, value, change, bar);
+    if (item.type === 'lp' && Array.isArray(item.underlyings)) row.append(underlying(item));
+    return row;
+  }
+  function renderAssets(items, totalUsd, warnings = [], policyText = '') {
+    const sorted = items
+        .slice()
+        .sort((a, b) => Number(b.usd_value || -1) - Number(a.usd_value || -1)),
+      primary = sorted.filter(
+        (item) =>
+          item.usd_value !== null && item.usd_value !== undefined && Number(item.usd_value) >= 50
+      ),
+      minor = sorted.filter((item) => !primary.includes(item));
+    assets.replaceChildren(...primary.map((item) => renderAsset(item, totalUsd)));
+    warning.hidden = true;
+    policy.hidden = true;
+    if (minor.length || warnings.length || policyText) {
+      const details = node('details', 'minor-assets'),
+        knownValue = minor.reduce((sum, item) => sum + Number(item.usd_value || 0), 0),
+        label = minor.length
+          ? `${minor.length} SMALL / UNPRICED ASSETS · ${money(knownValue)}`
+          : 'TREASURY DETAILS',
+        summary = node('summary', null, `${label} · SHOW DETAILS`);
+      details.append(summary);
+      if (minor.length) {
+        const list = node('div', 'minor-assets-list');
+        minor.forEach((item) => list.append(renderAsset(item, totalUsd)));
+        details.append(list);
+      }
+      if (policyText) {
+        policy.textContent = policyText;
+        policy.hidden = false;
+        details.append(policy);
+      }
+      if (warnings.length) {
+        warning.textContent = warnings.join(' · ');
+        warning.hidden = false;
+        details.append(warning);
+      }
+      assets.append(details);
+    }
+  }
+  function comparableValuation(rows) {
+    if (!rows.length) return true;
+    const coverage = (row) => {
+      if (!Array.isArray(row.assets) || !row.assets.length) return null;
+      const missing = [];
+      for (const item of row.assets) {
+        if (item.usd_value == null || !Number.isFinite(Number(item.usd_value)))
+          missing.push(item.key);
+        for (const part of item.underlyings || [])
+          if (part.usd_value == null) missing.push(`${item.key}/${part.key || part.symbol}`);
       }
       return JSON.stringify(missing.sort());
     };
-    const first=coverage(rows[0]);return first!==null&&rows.every(row=>coverage(row)===first);
+    const first = coverage(rows[0]);
+    return first !== null && rows.every((row) => coverage(row) === first);
   }
-  function economicAssets(row){const grouped=new Map;(row.assets||[]).forEach(item=>{if(item.usd_value===null||item.usd_value===undefined)return;const key=`${item.source_chain||""}:${item.key}`,current=grouped.get(key)||{amount:0,value:0},quantity=Number(item.amount||0),value=Number(item.usd_value||0);current.amount+=quantity;current.value+=value;grouped.set(key,current)});for(const value of grouped.values())value.price=value.amount?value.value/value.amount:null;return grouped}
-  function attribution(rows){let price=0;const intervals=[];for(let index=1;index<rows.length;index++){const previous=rows[index-1],current=rows[index],before=economicAssets(previous),after=economicAssets(current);let market=0;for(const [key,item] of before){const next=after.get(key);if(next&&Number.isFinite(item.price)&&Number.isFinite(next.price))market+=item.amount*(next.price-item.price)}const change=Number(current.total_usd)-Number(previous.total_usd),flow=change-market;price+=market;intervals.push({generated_at:current.generated_at,change,market,flow})}return{change:Number(rows.at(-1).total_usd)-Number(rows[0].total_usd),priceEffect:price,netFlow:intervals.reduce((sum,item)=>sum+item.flow,0),intervals}}
-  function filteredHistory(){const rows=historyRows.slice().sort((a,b)=>Date.parse(a.generated_at)-Date.parse(b.generated_at));if(selectedDays==="all"||!rows.length)return rows;const cutoff=Date.parse(rows.at(-1).generated_at)-Number(selectedDays)*86400000;return rows.filter(row=>Date.parse(row.generated_at)>=cutoff)}
-  function setSignedClass(element,value){element.classList.remove("positive","negative");if(Number(value)>0)element.classList.add("positive");if(Number(value)<0)element.classList.add("negative")}
-  function renderHistoryMetrics(rows){periodLabel.textContent=`${selectedDays==="all"?"ALL-TIME":selectedDays+"D"} CHANGE`;if(rows.length<2||!comparableValuation(rows)){[periodChange,netFlow,marketEffect].forEach(element=>{element.textContent="—";element.classList.remove("positive","negative")});periodPercent.textContent=rows.length<2?`${rows.length} OF 2 DAILY SNAPSHOTS COLLECTED`:"VALUATION COVERAGE CHANGED · COMPARISON UNAVAILABLE";return}const result=attribution(rows),opening=Number(rows[0].total_usd),percent=opening?result.change/opening*100:0;periodChange.textContent=money(result.change);periodPercent.textContent=`${percent>=0?"+":""}${percent.toFixed(2)}% · ${rows.length} DAILY SNAPSHOTS`;netFlow.textContent=money(result.netFlow);marketEffect.textContent=money(result.priceEffect);setSignedClass(periodChange,result.change);setSignedClass(periodPercent,percent);setSignedClass(netFlow,result.netFlow);setSignedClass(marketEffect,result.priceEffect)}
-  function renderChart(rows){chart.replaceChildren();if(rows.length>=2&&!comparableValuation(rows)){historyEmpty.hidden=false;historyEmpty.textContent="VALUATION COVERAGE CHANGED · Missing prices are not treasury outflows. History comparison is unavailable for this range.";return}if(rows.length<2){historyEmpty.hidden=false;historyEmpty.textContent=rows.length?"HISTORY STARTED · A SECOND DAILY SNAPSHOT IS REQUIRED FOR CHANGE ATTRIBUTION":"NO DAILY HISTORY YET · THE FIRST VERIFIED DAILY SNAPSHOT WILL APPEAR AUTOMATICALLY";return}historyEmpty.hidden=true;const result=attribution(rows),values=rows.map(row=>Number(row.total_usd)),pricePath=[values[0]];result.intervals.forEach(item=>pricePath.push(pricePath.at(-1)+item.market));const all=[...values,...pricePath],min=Math.min(...all),max=Math.max(...all),pad=Math.max((max-min)*.12,max*.01,1),lo=min-pad,hi=max+pad,left=70,right=735,top=24,bottom=252,x=index=>left+(right-left)*(index/(rows.length-1)),y=value=>bottom-(value-lo)/(hi-lo)*(bottom-top),path=series=>series.map((value,index)=>`${index?"L":"M"}${x(index).toFixed(1)} ${y(value).toFixed(1)}`).join(" ");for(let step=0;step<4;step++){const value=lo+(hi-lo)*step/3,line=svg("line",{x1:left,y1:y(value),x2:right,y2:y(value),class:"history-gridline"}),label=svg("text",{x:8,y:y(value)+4,class:"history-axis-label"});label.textContent=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",notation:"compact",maximumFractionDigits:1}).format(value);chart.append(line,label)}chart.append(svg("path",{d:`${path(values)} L${right} ${bottom} L${left} ${bottom} Z`,class:"history-area"}),svg("path",{d:path(values),class:"history-total-line"}),svg("path",{d:path(pricePath),class:"history-price-line"}));result.intervals.forEach((item,index)=>{if(Math.abs(item.flow)<.01)return;const mark=svg("circle",{cx:x(index+1),cy:y(values[index+1]),r:5,class:"history-flow-mark"}),title=svg("title");title.textContent=`${new Date(item.generated_at).toLocaleDateString()}: ${money(item.flow)} net flow`;mark.append(title);chart.append(mark)});[0,Math.floor((rows.length-1)/2),rows.length-1].forEach(index=>{const label=svg("text",{x:x(index),y:283,class:"history-axis-label","text-anchor":index===0?"start":index===rows.length-1?"end":"middle"});label.textContent=new Date(rows[index].generated_at).toLocaleDateString([],{day:"2-digit",month:"short"}).toUpperCase();chart.append(label)})}
-  function renderHistory(){const rows=filteredHistory();renderHistoryMetrics(rows);renderChart(rows)}
-  const shortAddress=value=>value&&value.length>18?`${value.slice(0,10)}…${value.slice(-6)}`:value||"UNKNOWN",technicalEvent=event=>(event.movements||[]).some(item=>String(item.denom||"").includes("testingaten"));
-  function openProposal(id,daoId){document.querySelector('[data-workspace-view="governance"]')?.click();window.dispatchEvent(new CustomEvent(daoId?"neta:relay-open":"neta:open-proposal",{detail:daoId?{dao:daoId,proposalId:Number(id)}:{id:Number(id)}}))}
-  function renderEvent(event){const technical=technicalEvent(event),row=node("article",`event-row ${event.type}${technical?" technical":""}`),when=node("time",null,event.timestamp?new Date(event.timestamp).toLocaleDateString([],{day:"2-digit",month:"short",year:"numeric"}).toUpperCase():"HISTORICAL"),block=node("small",null,event.timestamp?new Date(event.timestamp).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):`BLOCK ${new Intl.NumberFormat("en-US").format(event.height)}`),type=node("span",null,technical?"UNPRICED INFLOW":event.type==="inflow"?"INFLOW":event.type==="transfer"?"TRANSFER":"PAYMENT"),detail=node("div"),title=node("strong",null,event.title),meta=node("small"),actions=node("div","event-actions"),movement=(event.movements||[])[0],direction=event.type==="inflow"?"FROM":"TO",counterparty=movement?.counterparty,chain=event.chain_name||((event.chain_id||"").startsWith("osmosis")?"Osmosis":"Juno"),account=document.createElement("a"),tx=document.createElement("a");row.dataset.eventType=event.type;when.append(block);account.textContent=`${direction} ${shortAddress(counterparty)}`;account.href=(event.chain_id||"").startsWith("osmosis")?`https://www.mintscan.io/osmosis/address/${counterparty}`:`https://atomscan.com/juno/accounts/${counterparty}`;account.target="_blank";account.rel="noopener";meta.append(account,document.createTextNode(` · ${chain.toUpperCase()} · CONFIRMED`));detail.append(title);const tags=node("div","event-accounting-tags");for(const tag of eventTags(event,event._accounting||eventAccounting,window.NetaDaoDirectory.find(d=>d.id===(event._daoId||selectedDao)))){tags.append(node("span","event-accounting-tag",tag))}if(event._unitName)tags.prepend(node("span","event-accounting-tag",event._unitName));if(event._internal)tags.append(node("span","event-accounting-tag","Internal transfer · outside operating P&L"));detail.append(tags);if(event.proposal_title)detail.append(node("small","event-proposal-title",`PROPOSAL A${event.proposal_id} · ${event.proposal_title}`));if(["block-distribution","staking-accrual"].includes(event.evidence?.kind)){meta.replaceChildren(document.createTextNode(`JUNO · BLOCKS ${event.evidence.start.height}–${event.evidence.end.height}`));const amounts=(event.movements||[]).map(m=>m.amount?`${new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(m.amount))} ${m.asset}`:`${m.raw_amount} ${m.denom} (base units)`);detail.append(node("small",null,amounts.join(" · ")+(event.movements.every(m=>m.usd_value!==null)?` · $${event.movements.reduce((sum,m)=>sum+Number(m.usd_value),0).toFixed(2)} historical reference`:" · USD partly unavailable")))}detail.append(meta);tx.textContent=["block-distribution","staking-accrual"].includes(event.evidence?.kind)?"BLOCK ↗":"TX ↗";tx.href=event.explorer_url;tx.target="_blank";tx.rel="noopener";actions.append(tx);if(event.proposal_id){const proposal=node("button",null,`A${event.proposal_id} ↗`);proposal.type="button";proposal.title=event.proposal_title||`Proposal A${event.proposal_id}`;proposal.addEventListener("click",()=>openProposal(event.proposal_id,event._daoId));actions.prepend(proposal)}row.append(when,type,detail,actions);return row}
-  function renderEvents(){if(!eventsList)return;if(!window.NetaDaoDirectory.find(d=>d.id===selectedDao)?.events){eventsList.replaceChildren(node("div","events-empty","TRANSACTION-BACKED EVENTS ARE NOT CONNECTED FOR THIS DAO"));eventsToggle.hidden=true;eventFilters.hidden=true;eventCount.textContent="";return}eventsToggle.hidden=!treasuryEvents.length;const monetary=treasuryEvents.filter(event=>["inflow","payment","transfer"].includes(event.type)&&event.movements?.length),latest=monetary.filter(event=>!technicalEvent(event)),filtered=eventFilter==="all"?monetary:monetary.filter(event=>event.type===eventFilter),visible=eventsExpanded?filtered:latest.slice(0,3);eventsList.replaceChildren(...visible.map(renderEvent));if(eventsWarning)eventsList.prepend(node("p","treasury-warning",eventsWarning));if(!visible.length&&!eventsWarning)eventsList.append(node("div","events-empty","NO VERIFIED EVENTS MATCH THIS FILTER"));eventsToggle.textContent=eventsExpanded?"SHOW LATEST":"VIEW ALL";eventFilters.hidden=!eventsExpanded||!treasuryEvents.length;eventCount.textContent=`${filtered.length} OF ${monetary.length} VERIFIED EVENTS`}
-  async function loadOrganization(get,epoch,scope){
+  function economicAssets(row) {
+    const grouped = new Map();
+    (row.assets || []).forEach((item) => {
+      if (item.usd_value === null || item.usd_value === undefined) return;
+      const key = `${item.source_chain || ''}:${item.key}`,
+        current = grouped.get(key) || { amount: 0, value: 0 },
+        quantity = Number(item.amount || 0),
+        value = Number(item.usd_value || 0);
+      current.amount += quantity;
+      current.value += value;
+      grouped.set(key, current);
+    });
+    for (const value of grouped.values())
+      value.price = value.amount ? value.value / value.amount : null;
+    return grouped;
+  }
+  function attribution(rows) {
+    let price = 0;
+    const intervals = [];
+    for (let index = 1; index < rows.length; index++) {
+      const previous = rows[index - 1],
+        current = rows[index],
+        before = economicAssets(previous),
+        after = economicAssets(current);
+      let market = 0;
+      for (const [key, item] of before) {
+        const next = after.get(key);
+        if (next && Number.isFinite(item.price) && Number.isFinite(next.price))
+          market += item.amount * (next.price - item.price);
+      }
+      const change = Number(current.total_usd) - Number(previous.total_usd),
+        flow = change - market;
+      price += market;
+      intervals.push({ generated_at: current.generated_at, change, market, flow });
+    }
+    return {
+      change: Number(rows.at(-1).total_usd) - Number(rows[0].total_usd),
+      priceEffect: price,
+      netFlow: intervals.reduce((sum, item) => sum + item.flow, 0),
+      intervals
+    };
+  }
+  function filteredHistory() {
+    const rows = historyRows
+      .slice()
+      .sort((a, b) => Date.parse(a.generated_at) - Date.parse(b.generated_at));
+    if (selectedDays === 'all' || !rows.length) return rows;
+    const cutoff = Date.parse(rows.at(-1).generated_at) - Number(selectedDays) * 86400000;
+    return rows.filter((row) => Date.parse(row.generated_at) >= cutoff);
+  }
+  function setSignedClass(element, value) {
+    element.classList.remove('positive', 'negative');
+    if (Number(value) > 0) element.classList.add('positive');
+    if (Number(value) < 0) element.classList.add('negative');
+  }
+  function renderHistoryMetrics(rows) {
+    periodLabel.textContent = `${selectedDays === 'all' ? 'ALL-TIME' : selectedDays + 'D'} CHANGE`;
+    if (rows.length < 2 || !comparableValuation(rows)) {
+      [periodChange, netFlow, marketEffect].forEach((element) => {
+        element.textContent = '—';
+        element.classList.remove('positive', 'negative');
+      });
+      periodPercent.textContent =
+        rows.length < 2
+          ? `${rows.length} OF 2 DAILY SNAPSHOTS COLLECTED`
+          : 'VALUATION COVERAGE CHANGED · COMPARISON UNAVAILABLE';
+      return;
+    }
+    const result = attribution(rows),
+      opening = Number(rows[0].total_usd),
+      percent = opening ? (result.change / opening) * 100 : 0;
+    periodChange.textContent = money(result.change);
+    periodPercent.textContent = `${percent >= 0 ? '+' : ''}${percent.toFixed(2)}% · ${rows.length} DAILY SNAPSHOTS`;
+    netFlow.textContent = money(result.netFlow);
+    marketEffect.textContent = money(result.priceEffect);
+    setSignedClass(periodChange, result.change);
+    setSignedClass(periodPercent, percent);
+    setSignedClass(netFlow, result.netFlow);
+    setSignedClass(marketEffect, result.priceEffect);
+  }
+  function renderChart(rows) {
+    chart.replaceChildren();
+    if (rows.length >= 2 && !comparableValuation(rows)) {
+      historyEmpty.hidden = false;
+      historyEmpty.textContent =
+        'VALUATION COVERAGE CHANGED · Missing prices are not treasury outflows. History comparison is unavailable for this range.';
+      return;
+    }
+    if (rows.length < 2) {
+      historyEmpty.hidden = false;
+      historyEmpty.textContent = rows.length
+        ? 'HISTORY STARTED · A SECOND DAILY SNAPSHOT IS REQUIRED FOR CHANGE ATTRIBUTION'
+        : 'NO DAILY HISTORY YET · THE FIRST VERIFIED DAILY SNAPSHOT WILL APPEAR AUTOMATICALLY';
+      return;
+    }
+    historyEmpty.hidden = true;
+    const result = attribution(rows),
+      values = rows.map((row) => Number(row.total_usd)),
+      pricePath = [values[0]];
+    result.intervals.forEach((item) => pricePath.push(pricePath.at(-1) + item.market));
+    const all = [...values, ...pricePath],
+      min = Math.min(...all),
+      max = Math.max(...all),
+      pad = Math.max((max - min) * 0.12, max * 0.01, 1),
+      lo = min - pad,
+      hi = max + pad,
+      left = 70,
+      right = 735,
+      top = 24,
+      bottom = 252,
+      x = (index) => left + (right - left) * (index / (rows.length - 1)),
+      y = (value) => bottom - ((value - lo) / (hi - lo)) * (bottom - top),
+      path = (series) =>
+        series
+          .map(
+            (value, index) => `${index ? 'L' : 'M'}${x(index).toFixed(1)} ${y(value).toFixed(1)}`
+          )
+          .join(' ');
+    for (let step = 0; step < 4; step++) {
+      const value = lo + ((hi - lo) * step) / 3,
+        line = svg('line', {
+          x1: left,
+          y1: y(value),
+          x2: right,
+          y2: y(value),
+          class: 'history-gridline'
+        }),
+        label = svg('text', { x: 8, y: y(value) + 4, class: 'history-axis-label' });
+      label.textContent = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        notation: 'compact',
+        maximumFractionDigits: 1
+      }).format(value);
+      chart.append(line, label);
+    }
+    chart.append(
+      svg('path', {
+        d: `${path(values)} L${right} ${bottom} L${left} ${bottom} Z`,
+        class: 'history-area'
+      }),
+      svg('path', { d: path(values), class: 'history-total-line' }),
+      svg('path', { d: path(pricePath), class: 'history-price-line' })
+    );
+    result.intervals.forEach((item, index) => {
+      if (Math.abs(item.flow) < 0.01) return;
+      const mark = svg('circle', {
+          cx: x(index + 1),
+          cy: y(values[index + 1]),
+          r: 5,
+          class: 'history-flow-mark'
+        }),
+        title = svg('title');
+      title.textContent = `${new Date(item.generated_at).toLocaleDateString()}: ${money(item.flow)} net flow`;
+      mark.append(title);
+      chart.append(mark);
+    });
+    [0, Math.floor((rows.length - 1) / 2), rows.length - 1].forEach((index) => {
+      const label = svg('text', {
+        x: x(index),
+        y: 283,
+        class: 'history-axis-label',
+        'text-anchor': index === 0 ? 'start' : index === rows.length - 1 ? 'end' : 'middle'
+      });
+      label.textContent = new Date(rows[index].generated_at)
+        .toLocaleDateString([], { day: '2-digit', month: 'short' })
+        .toUpperCase();
+      chart.append(label);
+    });
+  }
+  function renderHistory() {
+    const rows = filteredHistory();
+    renderHistoryMetrics(rows);
+    renderChart(rows);
+  }
+  const shortAddress = (value) =>
+      value && value.length > 18 ? `${value.slice(0, 10)}…${value.slice(-6)}` : value || 'UNKNOWN',
+    technicalEvent = (event) =>
+      (event.movements || []).some((item) => String(item.denom || '').includes('testingaten'));
+  function openProposal(id, daoId) {
+    document.querySelector('[data-workspace-view="governance"]')?.click();
+    window.dispatchEvent(
+      new CustomEvent(daoId ? 'neta:relay-open' : 'neta:open-proposal', {
+        detail: daoId ? { dao: daoId, proposalId: Number(id) } : { id: Number(id) }
+      })
+    );
+  }
+  function renderEvent(event) {
+    const technical = technicalEvent(event),
+      row = node('article', `event-row ${event.type}${technical ? ' technical' : ''}`),
+      when = node(
+        'time',
+        null,
+        event.timestamp
+          ? new Date(event.timestamp)
+              .toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })
+              .toUpperCase()
+          : 'HISTORICAL'
+      ),
+      block = node(
+        'small',
+        null,
+        event.timestamp
+          ? new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : `BLOCK ${new Intl.NumberFormat('en-US').format(event.height)}`
+      ),
+      type = node(
+        'span',
+        null,
+        technical
+          ? 'UNPRICED INFLOW'
+          : event.type === 'inflow'
+            ? 'INFLOW'
+            : event.type === 'transfer'
+              ? 'TRANSFER'
+              : 'PAYMENT'
+      ),
+      detail = node('div'),
+      title = node('strong', null, event.title),
+      meta = node('small'),
+      actions = node('div', 'event-actions'),
+      movement = (event.movements || [])[0],
+      direction = event.type === 'inflow' ? 'FROM' : 'TO',
+      counterparty = movement?.counterparty,
+      chain =
+        event.chain_name || ((event.chain_id || '').startsWith('osmosis') ? 'Osmosis' : 'Juno'),
+      account = document.createElement('a'),
+      tx = document.createElement('a');
+    row.dataset.eventType = event.type;
+    when.append(block);
+    account.textContent = `${direction} ${shortAddress(counterparty)}`;
+    account.href = (event.chain_id || '').startsWith('osmosis')
+      ? `https://www.mintscan.io/osmosis/address/${counterparty}`
+      : `https://atomscan.com/juno/accounts/${counterparty}`;
+    account.target = '_blank';
+    account.rel = 'noopener';
+    meta.append(account, document.createTextNode(` · ${chain.toUpperCase()} · CONFIRMED`));
+    detail.append(title);
+    const tags = node('div', 'event-accounting-tags');
+    for (const tag of eventTags(
+      event,
+      event._accounting || eventAccounting,
+      window.NetaDaoDirectory.find((d) => d.id === (event._daoId || selectedDao))
+    )) {
+      tags.append(node('span', 'event-accounting-tag', tag));
+    }
+    if (event._unitName) tags.prepend(node('span', 'event-accounting-tag', event._unitName));
+    if (event._internal)
+      tags.append(
+        node('span', 'event-accounting-tag', 'Internal transfer · outside operating P&L')
+      );
+    detail.append(tags);
+    if (event.proposal_title)
+      detail.append(
+        node(
+          'small',
+          'event-proposal-title',
+          `PROPOSAL A${event.proposal_id} · ${event.proposal_title}`
+        )
+      );
+    if (['block-distribution', 'staking-accrual'].includes(event.evidence?.kind)) {
+      meta.replaceChildren(
+        document.createTextNode(
+          `JUNO · BLOCKS ${event.evidence.start.height}–${event.evidence.end.height}`
+        )
+      );
+      const amounts = (event.movements || []).map((m) =>
+        m.amount
+          ? `${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(m.amount))} ${m.asset}`
+          : `${m.raw_amount} ${m.denom} (base units)`
+      );
+      detail.append(
+        node(
+          'small',
+          null,
+          amounts.join(' · ') +
+            (event.movements.every((m) => m.usd_value !== null)
+              ? ` · $${event.movements.reduce((sum, m) => sum + Number(m.usd_value), 0).toFixed(2)} historical reference`
+              : ' · USD partly unavailable')
+        )
+      );
+    }
+    detail.append(meta);
+    tx.textContent = ['block-distribution', 'staking-accrual'].includes(event.evidence?.kind)
+      ? 'BLOCK ↗'
+      : 'TX ↗';
+    tx.href = event.explorer_url;
+    tx.target = '_blank';
+    tx.rel = 'noopener';
+    actions.append(tx);
+    if (event.proposal_id) {
+      const proposal = node('button', null, `A${event.proposal_id} ↗`);
+      proposal.type = 'button';
+      proposal.title = event.proposal_title || `Proposal A${event.proposal_id}`;
+      proposal.addEventListener('click', () => openProposal(event.proposal_id, event._daoId));
+      actions.prepend(proposal);
+    }
+    row.append(when, type, detail, actions);
+    return row;
+  }
+  function renderEvents() {
+    if (!eventsList) return;
+    if (!window.NetaDaoDirectory.find((d) => d.id === selectedDao)?.events) {
+      eventsList.replaceChildren(
+        node('div', 'events-empty', 'TRANSACTION-BACKED EVENTS ARE NOT CONNECTED FOR THIS DAO')
+      );
+      eventsToggle.hidden = true;
+      eventFilters.hidden = true;
+      eventCount.textContent = '';
+      return;
+    }
+    eventsToggle.hidden = !treasuryEvents.length;
+    const monetary = treasuryEvents.filter(
+        (event) => ['inflow', 'payment', 'transfer'].includes(event.type) && event.movements?.length
+      ),
+      latest = monetary.filter((event) => !technicalEvent(event)),
+      filtered =
+        eventFilter === 'all' ? monetary : monetary.filter((event) => event.type === eventFilter),
+      visible = eventsExpanded ? filtered : latest.slice(0, 3);
+    eventsList.replaceChildren(...visible.map(renderEvent));
+    if (eventsWarning) eventsList.prepend(node('p', 'treasury-warning', eventsWarning));
+    if (!visible.length && !eventsWarning)
+      eventsList.append(node('div', 'events-empty', 'NO VERIFIED EVENTS MATCH THIS FILTER'));
+    eventsToggle.textContent = eventsExpanded ? 'SHOW LATEST' : 'VIEW ALL';
+    eventFilters.hidden = !eventsExpanded || !treasuryEvents.length;
+    eventCount.textContent = `${filtered.length} OF ${monetary.length} VERIFIED EVENTS`;
+  }
+  async function loadOrganization(get, epoch, scope) {
     assertDistinctAccounts(scope.units);
-    const sources=await Promise.all(scope.units.map(async dao=>{
-      const [data,history,events,ledger]=await Promise.all([
-        get(dao.snapshot).catch(()=>null),get(dao.history).catch(()=>null),
-        get(dao.events).catch(()=>null),get(dao.accountingSource.file).catch(()=>null)]);
-      return {dao,data,history,events,ledger};
-    }));
-    if(epoch!==loadEpoch)return;
-    const consolidated=consolidateSnapshots(sources),detail={dao:scope.dao,organization:scope.organization,consolidated:true,
-      sources:sources.map(s=>({dao:s.dao,data:s.ledger,error:s.ledger?"":"Accounting source unavailable"}))};
-    window.NetaTreasuryAccounting=detail;window.dispatchEvent(new CustomEvent("neta:treasury-accounting",{detail}));
-    const cards=$("#treasury-units");cards.replaceChildren();cards.hidden=false;
-    for(const source of consolidated.components){
-      const card=node("article","treasury-unit"),link=node("a",null,source.dao.unitName+" ↗");
-      link.href=`index.html?${selectionParams({...scope,dao:source.dao,consolidated:false},new URLSearchParams(location.search))}#treasury`;
-      card.append(link,node("strong",null,source.error?" · Unavailable":` · ${money(source.data.total_usd)}`));
-      card.append(node("small",null,source.error||`${source.data.status}${source.stale?" · STALE":""} · ${new Date(source.data.generated_at).toLocaleString()} · ${source.data.price_source}`));
-      for(const account of source.dao.accountingSource.treasuries)card.append(node("small",null,`${account.chain_id} · ${account.address}`));
-      if(source.dao.parentRelationship==="organizational")card.append(node("small",null,`Organizational SubDAO of ${scope.organization.name}`));
+    const sources = await Promise.all(
+      scope.units.map(async (dao) => {
+        const [data, history, events, ledger] = await Promise.all([
+          get(dao.snapshot).catch(() => null),
+          get(dao.history).catch(() => null),
+          get(dao.events).catch(() => null),
+          get(dao.accountingSource.file).catch(() => null)
+        ]);
+        return { dao, data, history, events, ledger };
+      })
+    );
+    if (epoch !== loadEpoch) return;
+    const consolidated = consolidateSnapshots(sources),
+      detail = {
+        dao: scope.dao,
+        organization: scope.organization,
+        consolidated: true,
+        sources: sources.map((s) => ({
+          dao: s.dao,
+          data: s.ledger,
+          error: s.ledger ? '' : 'Accounting source unavailable'
+        }))
+      };
+    window.NetaTreasuryAccounting = detail;
+    window.dispatchEvent(new CustomEvent('neta:treasury-accounting', { detail }));
+    const cards = $('#treasury-units');
+    cards.replaceChildren();
+    cards.hidden = false;
+    for (const source of consolidated.components) {
+      const card = node('article', 'treasury-unit'),
+        link = node('a', null, source.dao.unitName + ' ↗');
+      link.href = `index.html?${selectionParams({ ...scope, dao: source.dao, consolidated: false }, new URLSearchParams(location.search))}#treasury`;
+      card.append(
+        link,
+        node('strong', null, source.error ? ' · Unavailable' : ` · ${money(source.data.total_usd)}`)
+      );
+      card.append(
+        node(
+          'small',
+          null,
+          source.error ||
+            `${source.data.status}${source.stale ? ' · STALE' : ''} · ${new Date(source.data.generated_at).toLocaleString()} · ${source.data.price_source}`
+        )
+      );
+      for (const account of source.dao.accountingSource.treasuries)
+        card.append(node('small', null, `${account.chain_id} · ${account.address}`));
+      if (source.dao.parentRelationship === 'organizational')
+        card.append(node('small', null, `Organizational SubDAO of ${scope.organization.name}`));
       cards.append(card);
     }
-    const policyText="Organizational consolidation of Main and the configured SubDAOs across their custody chains. Each address and LP position is counted once. DAO-owned delegated stake and claimable rewards are included where connected; staked member tokens are excluded. Missing valuations are not zero. Snapshots may have different observation times.";
-    renderAssets(consolidated.assets,consolidated.total_usd,consolidated.warnings,policyText);
-    total.textContent=money(consolidated.total_usd);$("#treasury-total-label").textContent="CONSOLIDATED PRICED ASSETS SUBTOTAL";
-    status.textContent=`PARTIAL · ${consolidated.loaded}/${sources.length} UNITS AVAILABLE${consolidated.components.some(c=>c.stale)?" · STALE BALANCES":""}`;
-    updated.textContent=consolidated.oldest?`OLDEST BALANCE SNAPSHOT ${new Date(consolidated.oldest).toLocaleString()} · DATES & SOURCES BELOW`:"BALANCE SOURCES UNAVAILABLE";
-    explorer.hidden=true;
-    historyRows=consolidateHistory(consolidated.components);
-    $("#treasury-history-method").textContent="METHOD: Combined daily snapshots only where every unit has data on the same UTC date. Observation times can differ. Price effects use separate custody positions; holdings changes are estimates, not transaction-derived P&L. No missing-unit interpolation.";
-    const accounts=assertDistinctAccounts(scope.units),warnings=[];
-    treasuryEvents=[];
-    for(const source of sources){
-      if(!validateEventFeed(source.events,source.dao)){warnings.push(`${source.dao.unitName}: transaction source unavailable; activity is not zero.`);continue}
-      if(source.events.status!=="PARTIAL"&&source.events.status!=="LIVE")warnings.push(`${source.dao.unitName}: retained transaction evidence; refresh unavailable.`);
-      warnings.push(...(source.events.warnings||[]).map(w=>`${source.dao.unitName}: ${w}`));
-      treasuryEvents.push(...source.events.events.map(event=>({...event,_daoId:source.dao.id,_unitName:source.dao.unitName,_accounting:source.ledger,
-        _internal:!!event.tx_hash && !event.reward_withdrawals?.length && (event.movements||[]).some(m=>accounts.has(`${event.chain_id}:${m.counterparty}`))})));
+    const policyText =
+      'Organizational consolidation of Main and the configured SubDAOs across their custody chains. Each address and LP position is counted once. DAO-owned delegated stake and claimable rewards are included where connected; staked member tokens are excluded. Missing valuations are not zero. Snapshots may have different observation times.';
+    renderAssets(consolidated.assets, consolidated.total_usd, consolidated.warnings, policyText);
+    total.textContent = money(consolidated.total_usd);
+    $('#treasury-total-label').textContent = 'CONSOLIDATED PRICED ASSETS SUBTOTAL';
+    status.textContent = `PARTIAL · ${consolidated.loaded}/${sources.length} UNITS AVAILABLE${consolidated.components.some((c) => c.stale) ? ' · STALE BALANCES' : ''}`;
+    updated.textContent = consolidated.oldest
+      ? `OLDEST BALANCE SNAPSHOT ${new Date(consolidated.oldest).toLocaleString()} · DATES & SOURCES BELOW`
+      : 'BALANCE SOURCES UNAVAILABLE';
+    explorer.hidden = true;
+    historyRows = consolidateHistory(consolidated.components);
+    $('#treasury-history-method').textContent =
+      'METHOD: Combined daily snapshots only where every unit has data on the same UTC date. Observation times can differ. Price effects use separate custody positions; holdings changes are estimates, not transaction-derived P&L. No missing-unit interpolation.';
+    const accounts = assertDistinctAccounts(scope.units),
+      warnings = [];
+    treasuryEvents = [];
+    for (const source of sources) {
+      if (!validateEventFeed(source.events, source.dao)) {
+        warnings.push(
+          `${source.dao.unitName}: transaction source unavailable; activity is not zero.`
+        );
+        continue;
+      }
+      if (source.events.status !== 'PARTIAL' && source.events.status !== 'LIVE')
+        warnings.push(
+          `${source.dao.unitName}: retained transaction evidence; refresh unavailable.`
+        );
+      warnings.push(...(source.events.warnings || []).map((w) => `${source.dao.unitName}: ${w}`));
+      treasuryEvents.push(
+        ...source.events.events.map((event) => ({
+          ...event,
+          _daoId: source.dao.id,
+          _unitName: source.dao.unitName,
+          _accounting: source.ledger,
+          _internal:
+            !!event.tx_hash &&
+            !event.reward_withdrawals?.length &&
+            (event.movements || []).some((m) => accounts.has(`${event.chain_id}:${m.counterparty}`))
+        }))
+      );
     }
-    treasuryEvents.sort((a,b)=>(Date.parse(b.timestamp)||0)-(Date.parse(a.timestamp)||0));
-    eventsWarning=warnings.join(" · ");$(".treasury-events-note").textContent="Main + SubDAO transaction records · unit shown on each event · internal transfers are not operating income or expenses.";
-    renderHistory();renderEvents();
+    treasuryEvents.sort((a, b) => (Date.parse(b.timestamp) || 0) - (Date.parse(a.timestamp) || 0));
+    eventsWarning = warnings.join(' · ');
+    $('.treasury-events-note').textContent =
+      'Main + SubDAO transaction records · unit shown on each event · internal transfers are not operating income or expenses.';
+    renderHistory();
+    renderEvents();
   }
-  async function load(){
-    const epoch=++loadEpoch;loadController?.abort();const controller=new AbortController();loadController=controller;
-    const timer=setTimeout(()=>controller.abort(),15000),dao=window.NetaDaoDirectory.find(d=>d.id===selectedDao);
-    if(!dao)return;
-    const scope=selectedScope;$("#treasury-units").hidden=true;explorer.hidden=false;
-    const community=dao.id==="juno",mainDao=dao.id==="neta",delegation=dao.id==="juno-delegation";
-    explorer.href=community?"https://juno-api.polkachu.com/cosmos/distribution/v1beta1/community_pool":`https://atomscan.com/juno/accounts/${dao.core}`;
-    explorer.textContent=community?"VIEW COMMUNITY POOL SOURCE ↗":"VIEW TREASURY ↗";
-    const policyText=delegation?"Delegation Programme: available bank assets, DAO-owned delegated stake, unbonding, claimable rewards and DAO-listed CW20s. Redelegations are counted within delegated stake. Accrued rewards are holdings, not booked income. Unlisted contracts and other DeFi positions are not automatically discovered.":community?"Juno Community Pool balances from the native distribution module; IBC assets remain separate positions.":mainDao?"NETA main DAO core holdings on Juno. Member staking is excluded. Coverage includes native coins, configured CW20 tokens and eight configured WYND LPs; other contracts are not automatically discovered.":"Consolidated Juno DAO core and DAO-controlled Osmosis Polytone proxy. Focus an asset to inspect custody; LPs are valued once from underlying reserves.";
-    $(".treasury-events-note").textContent=delegation?"Delegation Programme · daily staking accrual and recorded transactions · claims do not add revenue again":community?"Native Juno Community Pool · Community Tax block allocations since 1 October 2026 · historical USD references; other module accounting remains partial":mainDao?"NETA DAO core · supported native and verified NETA CW20 transfers · historical coverage is incomplete":"Juno Operations core + Osmosis Polytone proxy · confirmed native movements · technical unpriced tokens excluded from latest view";
-    $("#treasury-history-method").textContent="METHOD: Price effect revalues opening quantities at closing prices. The remainder is estimated holdings flow, not transaction-derived cash flow."+(dao.id==="neta-operations"?" Juno core and Osmosis proxy holdings are consolidated.":" Only the selected treasury is included.");
-    const accounting=(data=null,error="",loading=false)=>{const detail={dao,data,error,loading};window.NetaTreasuryAccounting=detail;window.dispatchEvent(new CustomEvent("neta:treasury-accounting",{detail}))};
-    accounting(null,"",true);eventAccounting=null;
-    refresh.disabled=true;status.textContent=`REFRESHING ${dao.name.toUpperCase()} SNAPSHOT`;
-    total.textContent="—";assets.replaceChildren(node("div","treasury-loading","LOADING SELECTED TREASURY…"));warning.hidden=true;policy.hidden=true;
-    historyRows=[];treasuryEvents=[];eventsWarning="Loading transaction coverage…";renderHistory();renderEvents();
-    const get=async file=>{const response=await fetch(`data/treasury/${file}?t=${Date.now()}`,{cache:"no-store",signal:controller.signal});if(!response.ok)throw Error(`HTTP ${response.status}`);return response.json()};
-    try{
-      if(scope?.consolidated){await loadOrganization(get,epoch,scope);return}
-      const [data,history,eventData,accountingData]=await Promise.all([
-        get(dao.snapshot),get(dao.history).catch(()=>({snapshots:[]})),
-        dao.events?get(dao.events).catch(()=>({status:"UNAVAILABLE",events:[],warnings:["Transaction source could not be loaded. This does not mean there were no transfers."]})):Promise.resolve({events:[]}),
-        dao.accountingSource?get(dao.accountingSource.file).catch(()=>null):Promise.resolve(null)
+  async function load() {
+    const epoch = ++loadEpoch;
+    loadController?.abort();
+    const controller = new AbortController();
+    loadController = controller;
+    const timer = setTimeout(() => controller.abort(), 15000),
+      dao = window.NetaDaoDirectory.find((d) => d.id === selectedDao);
+    if (!dao) return;
+    const scope = selectedScope;
+    $('#treasury-units').hidden = true;
+    explorer.hidden = false;
+    const community = dao.id === 'juno',
+      mainDao = dao.id === 'neta',
+      delegation = dao.id === 'juno-delegation';
+    explorer.href = community
+      ? 'https://juno-api.polkachu.com/cosmos/distribution/v1beta1/community_pool'
+      : `https://atomscan.com/juno/accounts/${dao.core}`;
+    explorer.textContent = community ? 'VIEW COMMUNITY POOL SOURCE ↗' : 'VIEW TREASURY ↗';
+    const policyText = delegation
+      ? 'Delegation Programme: available bank assets, DAO-owned delegated stake, unbonding, claimable rewards and DAO-listed CW20s. Redelegations are counted within delegated stake. Accrued rewards are holdings, not booked income. Unlisted contracts and other DeFi positions are not automatically discovered.'
+      : community
+        ? 'Juno Community Pool balances from the native distribution module; IBC assets remain separate positions.'
+        : mainDao
+          ? 'NETA main DAO core holdings on Juno. Member staking is excluded. Coverage includes native coins, configured CW20 tokens and eight configured WYND LPs; other contracts are not automatically discovered.'
+          : 'Consolidated Juno DAO core and DAO-controlled Osmosis Polytone proxy. Focus an asset to inspect custody; LPs are valued once from underlying reserves.';
+    $('.treasury-events-note').textContent = delegation
+      ? 'Delegation Programme · daily staking accrual and recorded transactions · claims do not add revenue again'
+      : community
+        ? 'Native Juno Community Pool · Community Tax block allocations since 1 October 2026 · historical USD references; other module accounting remains partial'
+        : mainDao
+          ? 'NETA DAO core · supported native and verified NETA CW20 transfers · historical coverage is incomplete'
+          : 'Juno Operations core + Osmosis Polytone proxy · confirmed native movements · technical unpriced tokens excluded from latest view';
+    $('#treasury-history-method').textContent =
+      'METHOD: Price effect revalues opening quantities at closing prices. The remainder is estimated holdings flow, not transaction-derived cash flow.' +
+      (dao.id === 'neta-operations'
+        ? ' Juno core and Osmosis proxy holdings are consolidated.'
+        : ' Only the selected treasury is included.');
+    const accounting = (data = null, error = '', loading = false) => {
+      const detail = { dao, data, error, loading };
+      window.NetaTreasuryAccounting = detail;
+      window.dispatchEvent(new CustomEvent('neta:treasury-accounting', { detail }));
+    };
+    accounting(null, '', true);
+    eventAccounting = null;
+    refresh.disabled = true;
+    status.textContent = `REFRESHING ${dao.name.toUpperCase()} SNAPSHOT`;
+    total.textContent = '—';
+    assets.replaceChildren(node('div', 'treasury-loading', 'LOADING SELECTED TREASURY…'));
+    warning.hidden = true;
+    policy.hidden = true;
+    historyRows = [];
+    treasuryEvents = [];
+    eventsWarning = 'Loading transaction coverage…';
+    renderHistory();
+    renderEvents();
+    const get = async (file) => {
+      const response = await fetch(`data/treasury/${file}?t=${Date.now()}`, {
+        cache: 'no-store',
+        signal: controller.signal
+      });
+      if (!response.ok) throw Error(`HTTP ${response.status}`);
+      return response.json();
+    };
+    try {
+      if (scope?.consolidated) {
+        await loadOrganization(get, epoch, scope);
+        return;
+      }
+      const [data, history, eventData, accountingData] = await Promise.all([
+        get(dao.snapshot),
+        get(dao.history).catch(() => ({ snapshots: [] })),
+        dao.events
+          ? get(dao.events).catch(() => ({
+              status: 'UNAVAILABLE',
+              events: [],
+              warnings: [
+                'Transaction source could not be loaded. This does not mean there were no transfers.'
+              ]
+            }))
+          : Promise.resolve({ events: [] }),
+        dao.accountingSource
+          ? get(dao.accountingSource.file).catch(() => null)
+          : Promise.resolve(null)
       ]);
-      if(epoch!==loadEpoch)return;
-      accounting(accountingData,dao.accountingSource&&!accountingData?"Accounting source could not be loaded; totals unavailable.":"");eventAccounting=accountingData;
-      validateSnapshot(data,dao);
-      if(mainDao&&(data.chain_id!==dao.network||data.treasury_address!==dao.core||data.treasury_type!=="dao-core"))throw Error("Treasury identity mismatch");
-      historyRows=Array.isArray(history.snapshots)&&(!(mainDao||delegation)||history.chain_id===dao.network&&history.treasury_address===dao.core)?history.snapshots.slice():[];
-      const eventIdentity=validateEventFeed(eventData,dao);
-      treasuryEvents=eventIdentity&&Array.isArray(eventData.events)?eventData.events:[];
-      eventsWarning=!eventIdentity?"Transaction history unavailable · source identity could not be verified. This is not a zero-activity record.":eventData.status==="UNAVAILABLE"?"Transaction history unavailable · public historical index could not be verified. Any previously verified records below are retained; no complete activity or revenue total can be inferred.":(eventData.warnings||[]).join(" · ");
-      const day=data.generated_at.slice(0,10),currentHistory={generated_at:data.generated_at,height:data.height,status:data.status,total_usd:data.total_usd,assets:data.assets};
-      historyRows=historyRows.filter(row=>String(row.generated_at||"").slice(0,10)!==day);historyRows.push(currentHistory);
-      renderAssets(data.assets,Number(data.total_usd||0),data.warnings||[],policyText);total.textContent=money(data.total_usd);
-      $("#treasury-total-label").textContent=data.status==="PARTIAL"?"PRICED ASSETS SUBTOTAL":"CURRENT TREASURY VALUE";
-      status.textContent=`${data.status} · ${community?"JUNO COMMUNITY POOL":dao.name.toUpperCase()} · BLOCK ${new Intl.NumberFormat("en-US").format(data.height)}`;
-      updated.textContent=`BALANCES ${new Date(data.generated_at).toLocaleString([], {dateStyle:"medium",timeStyle:"short"})} · PRICES ${data.price_source}`;
-      renderHistory();renderEvents();
-    }catch(error){
-      if(epoch!==loadEpoch)return;
-      accounting(null,"Accounting refresh unavailable; no complete period totals can be inferred.");
-      assets.replaceChildren(node("div","treasury-loading error",`TREASURY DATA UNAVAILABLE · ${error.message}`));total.textContent="—";status.textContent="LIVE DATA UNAVAILABLE";updated.textContent="LAST VERIFIED SNAPSHOT COULD NOT BE LOADED";warning.hidden=true;policy.hidden=true;historyRows=[];treasuryEvents=[];eventsWarning="Transaction history unavailable";renderHistory();renderEvents();
-    }finally{clearTimeout(timer);if(epoch===loadEpoch){refresh.disabled=false;loadController=null}}
+      if (epoch !== loadEpoch) return;
+      accounting(
+        accountingData,
+        dao.accountingSource && !accountingData
+          ? 'Accounting source could not be loaded; totals unavailable.'
+          : ''
+      );
+      eventAccounting = accountingData;
+      validateSnapshot(data, dao);
+      if (
+        mainDao &&
+        (data.chain_id !== dao.network ||
+          data.treasury_address !== dao.core ||
+          data.treasury_type !== 'dao-core')
+      )
+        throw Error('Treasury identity mismatch');
+      historyRows =
+        Array.isArray(history.snapshots) &&
+        (!(mainDao || delegation) ||
+          (history.chain_id === dao.network && history.treasury_address === dao.core))
+          ? history.snapshots.slice()
+          : [];
+      const eventIdentity = validateEventFeed(eventData, dao);
+      treasuryEvents = eventIdentity && Array.isArray(eventData.events) ? eventData.events : [];
+      eventsWarning = !eventIdentity
+        ? 'Transaction history unavailable · source identity could not be verified. This is not a zero-activity record.'
+        : eventData.status === 'UNAVAILABLE'
+          ? 'Transaction history unavailable · public historical index could not be verified. Any previously verified records below are retained; no complete activity or revenue total can be inferred.'
+          : (eventData.warnings || []).join(' · ');
+      const day = data.generated_at.slice(0, 10),
+        currentHistory = {
+          generated_at: data.generated_at,
+          height: data.height,
+          status: data.status,
+          total_usd: data.total_usd,
+          assets: data.assets
+        };
+      historyRows = historyRows.filter(
+        (row) => String(row.generated_at || '').slice(0, 10) !== day
+      );
+      historyRows.push(currentHistory);
+      renderAssets(data.assets, Number(data.total_usd || 0), data.warnings || [], policyText);
+      total.textContent = money(data.total_usd);
+      $('#treasury-total-label').textContent =
+        data.status === 'PARTIAL' ? 'PRICED ASSETS SUBTOTAL' : 'CURRENT TREASURY VALUE';
+      status.textContent = `${data.status} · ${community ? 'JUNO COMMUNITY POOL' : dao.name.toUpperCase()} · BLOCK ${new Intl.NumberFormat('en-US').format(data.height)}`;
+      updated.textContent = `BALANCES ${new Date(data.generated_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} · PRICES ${data.price_source}`;
+      renderHistory();
+      renderEvents();
+    } catch (error) {
+      if (epoch !== loadEpoch) return;
+      accounting(
+        null,
+        'Accounting refresh unavailable; no complete period totals can be inferred.'
+      );
+      assets.replaceChildren(
+        node('div', 'treasury-loading error', `TREASURY DATA UNAVAILABLE · ${error.message}`)
+      );
+      total.textContent = '—';
+      status.textContent = 'LIVE DATA UNAVAILABLE';
+      updated.textContent = 'LAST VERIFIED SNAPSHOT COULD NOT BE LOADED';
+      warning.hidden = true;
+      policy.hidden = true;
+      historyRows = [];
+      treasuryEvents = [];
+      eventsWarning = 'Transaction history unavailable';
+      renderHistory();
+      renderEvents();
+    } finally {
+      clearTimeout(timer);
+      if (epoch === loadEpoch) {
+        refresh.disabled = false;
+        loadController = null;
+      }
+    }
   }
-  eventsToggle?.addEventListener("click",()=>{eventsExpanded=!eventsExpanded;if(!eventsExpanded){eventFilter="all";eventFilters.querySelectorAll("button[data-event-filter]").forEach((button,index)=>{button.classList.toggle("active",index===0);button.setAttribute("aria-pressed",String(index===0))})}renderEvents()});
-  eventFilters?.querySelectorAll("button[data-event-filter]").forEach(button=>button.addEventListener("click",()=>{eventFilter=button.dataset.eventFilter;eventsExpanded=true;eventFilters.querySelectorAll("button[data-event-filter]").forEach(item=>{const active=item===button;item.classList.toggle("active",active);item.setAttribute("aria-pressed",String(active))});renderEvents()}));
-  ranges?.addEventListener("click",event=>{const button=event.target.closest("button[data-days]");if(!button)return;selectedDays=button.dataset.days==="all"?"all":Number(button.dataset.days);ranges.querySelectorAll("button").forEach(item=>item.classList.toggle("active",item===button));renderHistory()});
-  window.addEventListener("neta:dao-change",event=>{selectedDao=event.detail.id;selectedScope=event.detail.scope||null;load()});refresh.addEventListener("click",load);load();setInterval(load,60000);
+  eventsToggle?.addEventListener('click', () => {
+    eventsExpanded = !eventsExpanded;
+    if (!eventsExpanded) {
+      eventFilter = 'all';
+      eventFilters.querySelectorAll('button[data-event-filter]').forEach((button, index) => {
+        button.classList.toggle('active', index === 0);
+        button.setAttribute('aria-pressed', String(index === 0));
+      });
+    }
+    renderEvents();
+  });
+  eventFilters?.querySelectorAll('button[data-event-filter]').forEach((button) =>
+    button.addEventListener('click', () => {
+      eventFilter = button.dataset.eventFilter;
+      eventsExpanded = true;
+      eventFilters.querySelectorAll('button[data-event-filter]').forEach((item) => {
+        const active = item === button;
+        item.classList.toggle('active', active);
+        item.setAttribute('aria-pressed', String(active));
+      });
+      renderEvents();
+    })
+  );
+  ranges?.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-days]');
+    if (!button) return;
+    selectedDays = button.dataset.days === 'all' ? 'all' : Number(button.dataset.days);
+    ranges
+      .querySelectorAll('button')
+      .forEach((item) => item.classList.toggle('active', item === button));
+    renderHistory();
+  });
+  window.addEventListener('neta:dao-change', (event) => {
+    selectedDao = event.detail.id;
+    selectedScope = event.detail.scope || null;
+    load();
+  });
+  refresh.addEventListener('click', load);
+  load();
+  setInterval(load, 60000);
 })();
-

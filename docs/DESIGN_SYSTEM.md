@@ -502,6 +502,40 @@ Conversations group by account, with chronological entries in the reader and
 assignment/blocking in contextual controls. Do not publish fixture inboxes. See
 DAO_MAILBOX_IMPLEMENTATION_2026-10-06.md for remaining activation requirements.
 
+## Personal recovery Inbox — gated candidate, 2026-10-06
+
+The unmounted personal component reuses graphite/mint tokens, labelled recovery,
+contact and message fields, literal-text history and a focusable inline review.
+Keep device/backup and contact-permission controls in native disclosures; retain
+visible pending recovery and read-only/backup-pending/error states. Generate and
+acknowledge a separately saved recovery code before creating a profile. Never
+render the code after successful unlock/create/restore or on wallet invalidation.
+Reviews summarize action, network, wallet and recipient; full transaction details
+are collapsed. Every chain action needs a distinct review and Keplr confirmation.
+Restoring does not enable sending. This component is tested separately and does
+not mount itself in production or activate mainnet SEND.
+
+
+## Personal Inbox workspace host — gated source, 2026-10-06
+
+Use the existing Inbox card and shared wallet header. A reviewed release supplies
+an explicit Open personal inbox action; Compose focuses/opens that same section.
+Keep backup authorization visible before setup/unlock/restore; device tools stay
+in a disclosure. Disconnect or leaving Inbox clears the plaintext section and
+requires deliberate reopening. The connected wallet chain must be Juno mainnet.
+The private history is currently a separate section, above the DAO/name updates;
+their filters and counts do not index it yet. Do not imply unified private unread
+counts. The default source pin is null and keeps the disabled preview intact.
+
+
+## Personal mailbox owner deployment — 2026-10-06
+
+The separate operator page reuses the Names deployment page foundations and
+graphite/mint tokens. Keep upload/create reviews distinct; show mainnet, real JUNO
+fees, owner upgrade authority and reviewed artifact identity. Retain a visible
+pending-transaction recovery section and public receipt export. Disconnect/account
+changes clear reviews while preserving journals. This page does not activate
+public messaging or create a backup service; no new main navigation item.
 
 ## Personal mainnet owner deployment — 2026-10-07
 
@@ -510,6 +544,27 @@ and styles. Keep Juno mainnet, owner upgrade authority, separate upload/create
 reviews, real network fees and recovery/export visible. Connecting and reviewing
 never sign. Preserve exact-intent journals across account changes and reloads.
 Publishing this helper does not activate private Inbox sending or DAO writes.
+
+## Personal Inbox simplification — candidate, 2026-10-07
+
+Use one compact entry card inside the existing Inbox. Detect local/remote state;
+show only create, unlock or restore as appropriate. Code-saving confirmation and
+wallet reviews remain explicit. Keep maintenance under Device and backup, bound
+history height and offer renewal/recovery only when needed. Names resolve to an
+address shown in the review; contact invitations never grant permission. Automatic
+receive/reconciliation must stop when locked, busy, hidden, disposed or in error.
+No passkey unlock or unattended signing is implied by this UI.
+
+## Restricted personal pilot page — 2026-10-07
+
+Use a separate operator URL while the public Inbox release remains null. Reuse the
+Community Tools/Faucet header, one wallet connection and the existing personal
+Inbox component, with graphite/mint foundations. Show private pilot, Juno mainnet,
+explicit fees and sender-only name eligibility. Keep recovery guidance collapsed;
+do not add a second wallet selector or an automatic registration flow. Client-side
+participant filtering complements the independently enforced server allowlist and
+wallet signatures; it is not a substitute for backend authorization. Disconnect,
+wallet change and leaving the page clear plaintext while retaining saved journals.
 
 ## Compact Juno participation tracker — owner correction, 2026-10-07
 

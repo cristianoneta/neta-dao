@@ -1,15 +1,15 @@
 # Documentation map
 
-Updated 2026-10-06. Use current documents for decisions and dated evidence for
+Updated 2026-10-07. Use current documents for decisions and dated evidence for
 provenance. Do not read every historical handoff as an independent to-do list.
 
 | Purpose | Owning document |
 | --- | --- |
-| Next chat, current priority, preservation rules | [Root HANDOFF](../HANDOFF.md), [2026-10-06 checkpoint](HANDOFF_NEXT_CHAT_2026-10-06.md) |
+| Next chat, current priority, preservation rules | [Root HANDOFF](../HANDOFF.md), [7 October continuation](HANDOFF_NEXT_CHAT_2026-10-07.md) |
 | Connected features, deployment boundaries and source map | [CURRENT_STATE](CURRENT_STATE.md) |
 | Open work across modules | [PROJECT_CHECKPOINT](../PROJECT_CHECKPOINT.md) |
 | Verification commands and repository overview | [Root README](../README.md) |
-| Latest maintenance scope and findings | [2026-10-04 review](MAINTENANCE_CHECKPOINT_2026-10-04.md) |
+| Latest maintenance scope and findings | [review remediation](REPO_REMEDIATION_2026-10-07.md) |
 | NNS mainnet continuation and preserved UNI-7 evidence | [NNS handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md) |
 | Existing/fresh UNI-7 test procedure | [Owner runbook](NNS_UNI7_OWNER_TEST_2026-10-04.md) |
 | Shared Treasury price snapshots and mainnet preparation | [NNS pricing runbook](../names/README.md) |

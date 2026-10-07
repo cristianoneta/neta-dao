@@ -1,0 +1,48 @@
+name: Repository checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths-ignore: ['data/**', 'docs/**', '**/*.md']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: repository-checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  general:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - run: npm ci --prefix faucet --ignore-scripts
+      - run: node scripts/format-sources.mjs
+      - run: node scripts/check-repository.mjs
+      - run: node scripts/build-personal-pilot.mjs --check
+      - run: node --test tests/*.test.mjs
+      - run: python3 -m unittest discover -s tests -p 'test_*.py'
+  contracts:
+    uses: ./.github/workflows/contract-ci.yml
+  wasm:
+    uses: ./.github/workflows/build-testnet-wasm.yml
+  browser:
+    uses: ./.github/workflows/relay-crypto-browser.yml
+  faucet:
+    uses: ./.github/workflows/faucet-ci.yml
+  backup:
+    uses: ./.github/workflows/relay-backup-ci.yml
+  names:
+    uses: ./.github/workflows/nns-quote-ci.yml
+  required:
+    name: Required repository checks
+    if: always()
+    needs: [general, contracts, wasm, browser, faucet, backup, names]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: node -e 'const jobs=JSON.parse(process.env.RESULTS); if(Object.values(jobs).some(j=>j.result!=="success")) process.exit(1)'

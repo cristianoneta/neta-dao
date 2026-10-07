@@ -1,0 +1,57 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /faucet
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+  - package-ecosystem: npm
+    directory: /relay-backup
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+  - package-ecosystem: npm
+    directory: /spikes/relay-corecrypto
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+  - package-ecosystem: cargo
+    directory: /contracts/neta-proposal-workshop
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+  - package-ecosystem: cargo
+    directory: /contracts/workshop-access-mock
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+  - package-ecosystem: cargo
+    directory: /contracts/neta-names
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+  - package-ecosystem: cargo
+    directory: /contracts/neta-validator-profiles
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+  - package-ecosystem: cargo
+    directory: /contracts/neta-names-v2
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+  - package-ecosystem: cargo
+    directory: /contracts/neta-names-test-token
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+  - package-ecosystem: cargo
+    directory: /contracts/neta-relay-mailbox
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3

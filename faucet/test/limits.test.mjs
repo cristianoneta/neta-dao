@@ -48,3 +48,19 @@ test('operator limits fail closed on zero, invalid, or above-ceiling settings',(
   for(const value of ['0','-1','NaN','1.2','50001',''])assert.throws(()=>readLimits({FAUCET_REQUESTS_PER_MONTH:value}));
   assert.equal(readLimits({FAUCET_REQUESTS_PER_MONTH:'10'}).requestsPerMonth,10);
 });
+
+test('only verified fresh claims consume persistent work budgets across restart',async()=>{
+  const dir=mkdtempSync(join(tmpdir(),'verified-budget-')),file=join(dir,'ledger.sqlite');
+  const adapter={lookup:async()=>null,prepare:async()=>{throw Error('RPC failed');}};
+  const options={domain:'test',verify:async(_a,_m,s)=>s===true,limits:{requestsPerDay:1}};
+  let ledger=new FaucetLedger(file,adapter,options);
+  try{
+    const a=ledger.challenge('alice'),b=ledger.challenge('bob');
+    await assert.rejects(ledger.claim({...a,signature:false}),/signature is invalid/);
+    assert.equal(ledger.db.prepare('SELECT COUNT(*) AS n FROM request_usage').get().n,0);
+    await assert.rejects(ledger.claim({...a,signature:true}),/RPC failed/);
+    assert.equal((await ledger.claim({...a,signature:true})).status,'failed');
+    ledger.close();ledger=new FaucetLedger(file,adapter,options);
+    await assert.rejects(ledger.claim({...b,signature:true}),/day request limit/);
+  }finally{ledger.close();rmSync(dir,{recursive:true,force:true});}
+});

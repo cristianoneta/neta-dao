@@ -1,5 +1,12 @@
 # RELAY implementation inventory and next work
 
+Owner update 2026-10-06: prepare personal mainnet messaging first, then shared DAO
+recovery, direct mainnet DAO testing and payment requests. No separate live UNI-7
+round is required by the revised sequence. Active .neta sender ownership replaces
+the old 5-NETA policy. Current implementation/remaining work is in
+[personal-mainnet preparation](PERSONAL_MESSAGING_MAINNET_2026-10-06.md).
+The older sequence below is historical and does not supersede that owner decision.
+
 Reviewed 2026-10-02. [CURRENT_STATE.md](CURRENT_STATE.md) owns the deployment and
 code inventory; [RELAY_SECURITY_ARCHITECTURE.md](RELAY_SECURITY_ARCHITECTURE.md)
 owns requirements. This is implementation planning, not an audit or release approval.
@@ -60,9 +67,9 @@ These boundaries must remain visible; do not claim transparent crash recovery.
 5. **Main application integration.** Review production runtime/license/build/CSP,
    client failure UX and recovery gates before enabling its SEND. A local unlock
    code does not meet the automatic backup requirement.
-6. **Mainnet separately.** Implement a reviewed 5-active-NETA policy and contract;
-   the current UNI-7-only crate has no configurable mainnet mode or stake query.
-   Require independent review/audit and explicit activation approval.
+6. **Mainnet (updated 6 October).** v0.4 candidate has explicit mainnet mode and
+   active .neta sender policy, without a staking requirement. Finish the personal
+   client/recovery gates and independent review before the owner-signed deployment.
 
 ## Reproduce existing checks
 
