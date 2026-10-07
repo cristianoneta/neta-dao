@@ -28,6 +28,10 @@ reward_feed,reward_ledger=a.project(dao,reward_feed,bank_build(dao,reward_feed),
 print(json.dumps({'feed':feed,'ledger':ledger,'rewardFeed':reward_feed,'rewardLedger':reward_ledger}))
 `],{cwd:fileURLToPath(root),encoding:'utf8',maxBuffer:16*1024*1024}));
 const source=preview.ledger;
+// Bot snapshots may retain valid receipts while a live provider is unavailable.
+// Such evidence must still render, but an unavailable refresh cannot imply zero.
+const communityReady=source.block_coverage.status==='CURRENT'&&source.refresh_status==='completed';
+const rewardsReady=preview.rewardLedger.accrual_coverage.status==='CURRENT'&&preview.rewardLedger.refresh_status==='completed';
 assert.equal(source.schema_version,3);assert.ok(source.entries.some(r=>r.category==='community_tax'&&Number(r.usd_value)>0));
 const server=http.createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;const projected=path==='/data/treasury/juno-community-accounting.json'?preview.ledger:path==='/data/treasury/juno-community-events.json'?preview.feed:path==='/data/treasury/juno-delegation-events.json'?preview.rewardFeed:path==='/data/treasury/juno-delegation-accounting.json'?preview.rewardLedger:null;res.writeHead(200,{'content-type':/\.m?js$/.test(path)?'text/javascript':path.endsWith('.css')?'text/css':path.endsWith('.json')?'application/json':'text/html'}).end(projected?JSON.stringify(projected):await readFile(new URL('.'+path,root)));}catch{res.writeHead(404).end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -47,7 +51,8 @@ try{
  assert.match(await page.locator('#treasury-events').innerText(),/Income · Community Tax/);
  assert.match(await page.locator('#treasury-events').innerText(),/JUNO/);
  assert.equal(await page.locator('#treasury-events a').filter({hasText:'TX ↗'}).count(),0);
- if(source.block_coverage.status==='CURRENT' && source.refresh_status==='completed') {assert.match(await page.locator('.pnl-result').innerText(),/\$/);assert.match(await page.locator('#pnl-account-other_income').textContent(),/\$0\.00/);}
+ if(communityReady) {assert.match(await page.locator('.pnl-result').innerText(),/\$/);assert.match(await page.locator('#pnl-account-other_income').textContent(),/\$0\.00/);}
+ else {assert.doesNotMatch(await page.locator('.pnl-result').innerText(),/\$/);assert.doesNotMatch(await page.locator('#pnl-account-other_income').textContent(),/\$/);}
  await page.locator('#treasury-events-toggle').click();assert.ok(await page.locator('#treasury-events .event-row').count()>0);
  const screenshots=process.env.NNS_SCREENSHOT_DIR;
  if(screenshots)await mkdir(screenshots,{recursive:true});
@@ -64,12 +69,19 @@ try{
  await page.getByRole('button',{name:'+ Income',exact:true}).click();
  assert.match(await page.locator('#pnl-basis').innerText(),/Daily staking accrual/);
  assert.match(await page.locator('#pnl-coverage').innerText(),/Rewards since 2026-10-06/);
- assert.match(await page.locator('#pnl-account-other_income').innerText(),/\$0\.00/);
- assert.match(await page.locator('.pnl-result').innerText(),/\$/);
+ if(rewardsReady){
+  assert.match(await page.locator('#pnl-account-other_income').innerText(),/\$0\.00/);
+  assert.match(await page.locator('.pnl-result').innerText(),/\$/);
+ }else{
+  assert.doesNotMatch(await page.locator('#pnl-account-other_income').innerText(),/\$/);
+  assert.doesNotMatch(await page.locator('.pnl-result').innerText(),/\$/);
+  assert.match(await page.locator('#pnl-coverage').innerText(),/unavailable|incomplete/i);
+ }
  if(screenshots) await page.locator('#treasury-pnl').screenshot({path:`${screenshots}/delegation-accrual-320.png`});
  await page.goto(`http://127.0.0.1:${server.address().port}/index.html?dao=juno#treasury`);
  await page.waitForFunction(()=>document.querySelector('#pnl-coverage')?.textContent.includes('Consolidated'));
- assert.match(await page.locator('.pnl-result').innerText(),/\$/);
+ if(communityReady&&rewardsReady)assert.match(await page.locator('.pnl-result').innerText(),/\$/);
+ else {assert.doesNotMatch(await page.locator('.pnl-result').innerText(),/\$/);assert.match(await page.locator('#pnl-coverage').innerText(),/incomplete/);}
  await page.locator('#treasury-events-toggle').click();
  assert.doesNotMatch(await page.locator('#treasury-events .event-row').filter({hasText:'Income · Staking rewards'}).first().innerText(),/Internal transfer/);
  if(screenshots) await page.locator('#treasury-pnl').screenshot({path:`${screenshots}/consolidated-accrual-320.png`});
