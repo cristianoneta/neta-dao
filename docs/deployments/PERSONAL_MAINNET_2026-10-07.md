@@ -48,7 +48,15 @@ receiving/reading one's own messages does not require a name.
 **Do not upload or instantiate again.** Keep the owner's original browser journals
 and recovery state. The live setup helper can verify/export this existing contract.
 
-## Next: existing Render service
+## Render follow-up completed — 7 October, 11:15 UTC
+
+The existing service now runs the reviewed candidate with backups enabled for
+the owner only. See [the hosted record](RELAY_SHARED_RENDER_2026-10-07.md) for
+verified settings and HTTP checks. The two-wallet/recovery gates remain open.
+The following section records the earlier preparation state and is superseded
+by that hosted record.
+
+## Earlier preparation: existing Render service
 
 Continue application work in draft PR #195 at
 `052e736a87d44bbe3743524b1a547822bc6dbf81` (five passing hosted workflows).
