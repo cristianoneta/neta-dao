@@ -13,8 +13,8 @@
   "adapter": "treasury-receipts",
   "status": "PARTIAL",
   "refresh_status": "completed",
-  "checked_at": "2026-10-07T09:59:51.791104Z",
-  "last_success_at": "2026-10-07T09:59:51.766658Z",
+  "checked_at": "2026-10-07T10:22:29.744363Z",
+  "last_success_at": "2026-10-07T10:22:29.720193Z",
   "sources": [
     {
       "adapter": "cosmos-rest-receipts",
@@ -29,9 +29,9 @@
         "timestamp": "2026-09-30T11:15:50.297962745Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42453432,
-      "last_scanned_height": 42453951,
-      "anchor_hash": "006B4D6BB1CA274FA0BB089918BC687F4D6F6DD420E67F0CFF59CD3A6FDA14CE",
+      "scan_start_height": 42453851,
+      "last_scanned_height": 42454372,
+      "anchor_hash": "F26CAF360304DB71AD7E2C4928C879558FA41C3CED6975DBCA814923F82EE083",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
@@ -96,7 +96,7 @@
   "execution_candidates": [],
   "warnings": [
     "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses.",
-    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2, \"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42453974)\", \"details\":[]}"
+    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2, \"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42454393)\", \"details\":[]}"
   ],
   "entries": [
     {
