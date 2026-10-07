@@ -8,7 +8,8 @@ It does not authorize a plan upgrade or activating an unverified mailbox.
 
 ## Implemented source
 
-The candidate remains in PR #195 until release/deployment evidence is complete.
+The maintained candidate is integrated by remediation PR #224; CURRENT_STATE owns
+its actual publication/deployment status. PR #195 is the historical development PR.
 Public deployment/release pins stay null; this work makes no wallet transaction.
 
 - Inbox entry checks for an existing local encrypted checkpoint, then the remote
@@ -95,7 +96,7 @@ itself receives no signing adapter, mnemonic or user decryption code; that does
 not establish an OS security boundary inside the shared process.
 
 Existing limits remain: 8 MiB per encrypted envelope, 256 MiB aggregate live
-backup envelopes, four concurrent backup requests and at most ten pilot wallets.
+backup envelopes, four anonymous plus four authenticated concurrent backup requests (one per wallet in the authenticated lane) and at most ten pilot wallets.
 JSON/database/WAL overhead also consumes RAM/disk. Measure actual Render metrics
 before broadening the pilot; no capacity or hard billing-cap guarantee is made.
 No extra base compute/disk charge is expected **if the current plan and disk remain

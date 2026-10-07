@@ -3,7 +3,10 @@
 All executable PRs run `Repository checks` with an always-reported
 **Required repository checks** result. Configure that exact check as required in
 GitHub's branch rules. Current connected GitHub tools cannot administer rules;
-the observed main branch was unprotected on 7 October. CI existing is not the same
+the observed main branch was unprotected on 7 October. Account for the existing
+bot snapshot writers when enabling rules: use a narrowly scoped approved bot bypass
+or move those writers to reviewed data PRs first, otherwise snapshots will stop.
+CI existing is not the same
 as branch protection being enabled.
 
 ## Publish

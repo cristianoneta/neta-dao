@@ -8,11 +8,11 @@ services:
     runtime: node
     region: frankfurt
     plan: 0.5c-512mb
-    rootDir: relay-backup
+    rootDir: .
     numInstances: 1
     autoDeployTrigger: "off"
-    buildCommand: npm ci --omit=dev --ignore-scripts
-    startCommand: npm start
+    buildCommand: npm ci --prefix relay-backup --omit=dev --ignore-scripts
+    startCommand: node relay-backup/server.mjs
     healthCheckPath: /health
     disk:
       name: relay-backup-data
