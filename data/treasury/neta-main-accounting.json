@@ -8,7 +8,7 @@
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
   "refresh_status": "unavailable",
-  "checked_at": "2026-10-07T07:21:16.083948Z",
+  "checked_at": "2026-10-07T07:48:59.473900Z",
   "last_success_at": "2026-10-07T06:53:49.239269Z",
   "source": {
     "provider": "https://juno.api.m.stavr.tech",
