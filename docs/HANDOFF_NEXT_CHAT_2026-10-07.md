@@ -1,10 +1,22 @@
 # Next-chat handoff — dao.netareborn.com — 7 October 2026
 
-## Published checkpoint — 7 October 2026, 11:38 Berlin
+## Verified continuation checkpoint — 7 October 2026, 12:10 Berlin
 
-The owner accepted automatic updates and requested this handoff. Community Tools
-work is complete for this session; continue the personal-messaging release steps
-below unless the owner gives a new priority.
+The owner requested another handoff refresh after the chat became unusable and
+attached the preceding conversation. The existing PR #212 handoff already included
+the later Stakeflow/POSTHUMAN follow-up; preserve that newer evidence rather than
+reverting to the attachment's earlier snapshot. This continuation changes docs only.
+
+GitHub was rechecked at 12:10 Berlin: PR #195 is still the only open PR, still
+draft at `39feff397f600a25057087285e7710d032326aca`; issue #119 remains open.
+The latest archived scan and successful scheduled publication are recorded below.
+No new owner deployment receipt, live backup verification or two-wallet pilot
+evidence was supplied. Continue the personal-messaging release steps below.
+
+**Header scope to retain:** the owner's wording was the Faucet header on “allen
+Unterseiten”. Verified implementation covers the four Community Tools pages.
+A domain-wide check of the other standalone pages/workspace remains a UI follow-up;
+do not silently treat Community Tools coverage as proof of a site-wide rollout.
 
 ### Live navigation and display
 
@@ -40,7 +52,7 @@ Its stale header time must never be substituted for the signature time.
 | Shutting down - REDELEGATE ASAP | 11:22:06 | 42,453,271 |
 
 Source: `data/validator-upgrades/juno-v31.json`, collected at
-`2026-10-07T09:33:50.032105Z`: contiguous coverage through **42,453,480**,
+`2026-10-07T09:57:31.825652Z`: contiguous coverage through **42,453,915**,
 **20/25 first signatures**. The two matching RPC observers are PublicNode and
 STAVR. This count is historical evidence coverage, not a current signing count.
 The five still without an archived first signature at that checkpoint were
@@ -99,9 +111,15 @@ was recovered for the missing times during the follow-up research.
   returning validator. Pages **`37601479514` succeeded** for that data commit.
   The preceding Pages run `37601406309` was cancelled/superseded, not the final
   publication result.
-- Final publication/evidence was verified through GitHub Actions and the committed
-  archive. Direct web retrieval was unavailable in this follow-up; do not claim
-  a fresh production-browser or independent cryptographic signature audit.
+- Fresh 12:10 Berlin repository check: scheduled history run `37603987812`
+  succeeded and published `bfcc2afb210fbd763c19e7bd31d7ca9080dcc377`;
+  its Pages run `37604149174` succeeded. The latest inspected main head was
+  `592beb63251a070afea4b1d04aa3a1bd50f0e069`, with successful Pages
+  `37604415482`. The archive still has 20 observed first signatures, with the
+  same five unknown records, now scanned through 42,453,915.
+- Publication/evidence was verified through GitHub Actions and the committed
+  archive. No fresh production-browser or independent cryptographic signature
+  audit was performed during this documentation refresh.
 
 ### Still-open work
 
@@ -114,8 +132,10 @@ recovery. Integrate newer main changes deliberately before continuing.
 Issue **#119** remains partly relevant for incomplete Treasury/expense coverage,
 unknown IBC decimals and DAO-write/validator-E2E follow-ups. Its unactivated-NNS
 wording predates the verified launch and October-only accounting scope. Do not
-close it wholesale or merge PR #195 as part of the tracker. PR #209 was closed
-as superseded; #208, #210 and #211 are merged.
+close it wholesale or merge PR #195 as part of the tracker. A later issue-maintenance
+pass should replace the stale NNS wording with the remaining concrete acceptance
+criteria; this documentation refresh does not edit the issue itself. PR #209 was
+closed as superseded; #208, #210, #211 and the previous handoff PR #212 are merged.
 
 This is the current continuation entry point. It supersedes the status and next-step
 instructions in the [6 October handoff](HANDOFF_NEXT_CHAT_2026-10-06.md), which is
@@ -155,7 +175,7 @@ generated Treasury/member snapshots and all existing candidate changes.
 | Live shared Render backup deployment and two-wallet pilot | Still unverified; source implementation is not live-service evidence |
 | Public personal messaging and DAO writes | Inactive; `PERSONAL_MAINNET_DEPLOYMENT` and `PERSONAL_MAINNET_RELEASE` remain `null` |
 
-Main was read at `ffc2059bdb05480ccd7a39bbe918b28b06ecefbb` during this handoff.
+Main was read at `592beb63251a070afea4b1d04aa3a1bd50f0e069` during this refresh.
 Scheduled data commits may advance main. The latest verified tracker/data
 publication and observation limits are recorded at the top of this file.
 
@@ -206,7 +226,8 @@ prevote support alone is not a committed block.
 
 The tracker:
 - Refreshes every 30 seconds while open and visible; offers manual refresh and an
-  auto-refresh toggle. It is not an unattended monitoring service.
+  auto-refresh toggle. This describes the original live-round view; unattended
+  archive collection was subsequently added as documented at the top.
 - Shows PublicNode and STAVR independently, including prevotes/precommits and each
   validator's voting power. Never combines votes across nodes, heights or rounds.
 - Shows unavailable observers without treating failed reads as zero participation.
