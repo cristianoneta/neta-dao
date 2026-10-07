@@ -9,6 +9,9 @@ on:
       - 'relay-backup/**'
       - 'relay-personal-*.mjs'
       - 'relay-personal-*.html'
+      - 'relay-personal-pilot.js'
+      - 'assets/relay-personal-pilot-signing.js'
+      - 'scripts/build-personal-pilot.mjs'
       - 'juno-consensus-*.mjs'
       - 'juno-upgrade-status.*'
       - 'juno-upgrade-history.mjs'
@@ -82,6 +85,8 @@ jobs:
       - run: node browser-personal-browser.mjs
       - run: node browser-personal-ux.mjs
       - run: node browser-personal-deploy.mjs
+      - run: node ../../scripts/build-personal-pilot.mjs --check
+      - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-personal-pilot.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-juno-consensus.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/dao-inbox-screenshots" node browser-dao-inbox.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-dao-hierarchy.mjs

@@ -555,6 +555,17 @@ address shown in the review; contact invitations never grant permission. Automat
 receive/reconciliation must stop when locked, busy, hidden, disposed or in error.
 No passkey unlock or unattended signing is implied by this UI.
 
+## Restricted personal pilot page — 2026-10-07
+
+Use a separate operator URL while the public Inbox release remains null. Reuse the
+Community Tools/Faucet header, one wallet connection and the existing personal
+Inbox component, with graphite/mint foundations. Show private pilot, Juno mainnet,
+explicit fees and sender-only name eligibility. Keep recovery guidance collapsed;
+do not add a second wallet selector or an automatic registration flow. Client-side
+participant filtering complements the independently enforced server allowlist and
+wallet signatures; it is not a substitute for backend authorization. Disconnect,
+wallet change and leaving the page clear plaintext while retaining saved journals.
+
 ## Compact Juno participation tracker — owner correction, 2026-10-07
 
 Use one compact participation summary and one validator list; keep per-observer

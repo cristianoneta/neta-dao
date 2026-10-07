@@ -1,5 +1,125 @@
 # Next-chat handoff — dao.netareborn.com — 7 October 2026
 
+## Two-wallet backup admission — 7 October 2026
+
+The owner explicitly approved the second wallet's own encrypted-backup access:
+`juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`. Render deploy
+`dep-db32r1qd0e5s73eu9kcg` is live on the same reviewed `052e736` application;
+health, wallet-scoped challenge and unauthenticated rejection were verified.
+The allowlist now contains exactly the owner and this Faucet wallet. Do not ask
+for this permission again or read/export its existing Faucet mnemonic. A separate
+restricted pilot page is being prepared and browser-tested on PR #195. No real
+wallet signature, backup upload, message, restore or device rotation is claimed.
+Public release pins remain null. The following owner-only statements are historical.
+
+
+## Shared Render backup deployed — 7 October 2026, 13:15 Berlin
+
+The existing `neta-junox-faucet` service now runs candidate commit
+`052e736a87d44bbe3743524b1a547822bc6dbf81`, first verified disabled and then enabled
+for the owner wallet only. The original service/plan/disk and Faucet identity,
+balance and 25-JUNOX/day policy are retained. Hosted HTTPS health, exact-origin
+CORS, admission checks and invalid-authentication rejection passed. No real
+backup was uploaded and no mainnet messaging transaction was made.
+
+Read [the hosted deployment record](deployments/RELAY_SHARED_RENDER_2026-10-07.md) for exact settings, deploy IDs and
+public HTTP evidence. Render is connected; workspace `netadao` is already
+confirmed. Environment updates automatically deploy, despite automatic Git
+push deployments being off. No further browser login is needed for MCP-supported
+operations. Do not recreate or upgrade the service.
+
+Next: obtain the second consenting Juno wallet, prepare a reviewed restricted
+pilot client, then valid wallet authentication, encrypted backup/restart/off-service
+restore and the real two-wallet messaging/recovery lifecycle. Both public release
+pins remain null and PR #195 remains draft/unmerged. Backend deployment is not
+public messaging activation. Older missing-Render instructions below are history.
+
+## Owner deployment completed — next step is the shared Render backup
+
+This section supersedes the earlier missing-receipt and owner-upload instructions.
+The owner supplied the successful public receipt export. The two transactions,
+raw signed intents, downloaded code bytes, contract identity, administrator and
+policy were independently verified through **both PolkaChu and STAVR**.
+
+- Code ID: **5170**.
+- Contract: `juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6`.
+- Creator/upgrade admin: `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.
+- WASM: `835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708`.
+- Store transaction: `9282A17189A199D7EAC4F07F99D00B3654287D83F361A932E84842A6ABB59385`, height 42,454,656.
+- Instantiate transaction: `198BFC83E6056EB285ECE3F9C5B19C3B54F68A91468592F1A32BBC65C488ECC9`, height 42,454,685.
+- Policy: `juno-1`, reviewed NNS registry, `dao_enabled:false`.
+
+Read [the deployment record](deployments/PERSONAL_MAINNET_2026-10-07.md) for the
+unmodified receipt JSON, independent checks and exact candidate Render settings.
+**Do not ask the owner to upload or instantiate again.** Preserve existing journals.
+PR #195 stays draft at `052e736a87d44bbe3743524b1a547822bc6dbf81`, with its five
+successful application workflows. Both application pins remain null pending the
+reviewed service/release setup; recording a real contract is not public activation.
+
+The user installed Render during this continuation; installation was confirmed.
+Its management tools were not exposed inside the already-running turn. Discover
+the newly connected capabilities on the next turn; do not request reinstallation.
+No dashboard configuration was inspected/changed and no Render deploy was started.
+Read-only `/status` was ready at 10:41 UTC; `/health` returned 404.
+
+Next: inspect the **existing** `neta-junox-faucet` service, preserve its plan/disk,
+mnemonic secret configuration and payout data, then apply the reviewed root/build/
+start settings with RELAY disabled first. The implementation is on PR #195, not
+main; select a deliberate reviewed candidate commit for the service deployment.
+Use this verified mailbox for configuration. Obtain the second consenting pilot
+wallet before the two-wallet test. Verify actual origin/authentication/quotas,
+Faucet continuity, restart persistence and off-service exports before release.
+Continue DAO inbox/recovery and payment requests only after personal messaging.
+
+## Personal messaging continuation — integration and preflight complete
+
+This section supersedes the earlier PR-head and next-step status below. The owner
+authorized continuation after reviewing the plan. PR #195 remains **draft and
+unmerged**, now at `052e736a87d44bbe3743524b1a547822bc6dbf81`.
+
+- Integrated main through `65da24148d215f96ab7dd682418f204dd6d0b2b9` (PR #213).
+  Resolved the two conflicts by preserving both the shared-backup and Community
+  Tools CI triggers, and both sets of design guidance. The merged generated-data
+  tree exactly matched that main checkpoint. Later scheduled data commits must
+  still be preserved at final integration; do not repeatedly chase them as code changes.
+- All five hosted workflows passed for this application head: browser
+  `37606695121`, frontend/contracts `37606695238`, Faucet/signing `37606695132`,
+  reproducible WASM `37606695050`, encrypted backup `37606695257`.
+  Local validation: 200 root Node tests, 66 Faucet/signing tests and ten backup
+  tests passed; both signing bundles rebuilt byte-identically. The local Chromium
+  download was unusable, so complete browser regression evidence is the successful
+  hosted workflow, including personal recovery, UX, deployment and crash tests.
+- Read-only provider probes at 10:18 UTC (12:18 Berlin) returned fresh `juno-1`
+  blocks from both configured verification REST providers. PolkaChu RPC was
+  synchronized; WhisperNode RPC returned HTTP 502. No endpoint configuration changed.
+  Follow-up at 10:23 UTC returned matching height **42,454,404**, block time
+  `2026-10-07T10:22:59.346290381Z`, from PolkaChu and STAVR, both with
+  `Access-Control-Allow-Origin: *`. An intervening probe returned a transient 403;
+  these successful observations are dated evidence, not a permanent availability guarantee.
+- At 10:20 UTC, all seven checked public deployment files matched main exactly:
+  the HTML/controller/core, network policy, Names networks, signing bundle and
+  v0.4 WASM. The WASM remains
+  `835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708`.
+  The public owner page was also inspected in a desktop browser. No owner wallet
+  was connected and no local transaction journal was inspected in that browser.
+
+**Next owner action:** open the existing
+[deployment page](https://dao.netareborn.com/relay-personal-deploy.html) in the
+same browser/profile used for the earlier attempt, reload, connect the agreed
+owner wallet and use **Check pending transaction** if a saved attempt is present.
+Recovery never resubmits. A proven not-broadcast/no-pending state permits the
+next reviewed upload; an unknown outcome remains locked. Upload and creation
+still require separate explicit Keplr confirmations. Export the real public
+receipt JSON, then independently verify it before setting any deployment pin.
+
+Both personal deployment/release pins remain null. Actual owner receipts, live
+shared Render backup/persistence, off-service exports, the consenting two-wallet
+pilot and remaining release/security gates are still outstanding. No mainnet
+activation, Render configuration or fee-bearing transaction occurred here.
+Continue with personal messaging, then DAO shared inbox/recovery, then payment
+requests/invoices and Treasury linkage. The broader Faucet-header follow-up and
+issue #119 remain separate; neither was completed by this integration.
+
 ## Verified continuation checkpoint — 7 October 2026, 12:10 Berlin
 
 The owner requested another handoff refresh after the chat became unusable and

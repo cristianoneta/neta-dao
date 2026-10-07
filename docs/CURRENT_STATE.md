@@ -1,5 +1,75 @@
 # NETA DAO code-backed current state
 
+## Two-wallet backup admission — 7 October 2026
+
+The owner explicitly approved the second wallet's own encrypted-backup access:
+`juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`. Render deploy
+`dep-db32r1qd0e5s73eu9kcg` is live on the same reviewed `052e736` application;
+health, wallet-scoped challenge and unauthenticated rejection were verified.
+The allowlist now contains exactly the owner and this Faucet wallet. Do not ask
+for this permission again or read/export its existing Faucet mnemonic. A separate
+restricted pilot page is being prepared and browser-tested on PR #195. No real
+wallet signature, backup upload, message, restore or device rotation is claimed.
+Public release pins remain null. The following owner-only statements are historical.
+
+
+## Shared Render backup deployed — 7 October 2026, 13:15 Berlin
+
+The existing `neta-junox-faucet` service now runs candidate commit
+`052e736a87d44bbe3743524b1a547822bc6dbf81`, first verified disabled and then enabled
+for the owner wallet only. The original service/plan/disk and Faucet identity,
+balance and 25-JUNOX/day policy are retained. Hosted HTTPS health, exact-origin
+CORS, admission checks and invalid-authentication rejection passed. No real
+backup was uploaded and no mainnet messaging transaction was made.
+
+Read [the hosted deployment record](deployments/RELAY_SHARED_RENDER_2026-10-07.md) for exact settings, deploy IDs and
+public HTTP evidence. Render is connected; workspace `netadao` is already
+confirmed. Environment updates automatically deploy, despite automatic Git
+push deployments being off. No further browser login is needed for MCP-supported
+operations. Do not recreate or upgrade the service.
+
+Next: obtain the second consenting Juno wallet, prepare a reviewed restricted
+pilot client, then valid wallet authentication, encrypted backup/restart/off-service
+restore and the real two-wallet messaging/recovery lifecycle. Both public release
+pins remain null and PR #195 remains draft/unmerged. Backend deployment is not
+public messaging activation. Older missing-Render instructions below are history.
+
+## Mainnet mailbox deployed — 7 October 2026
+
+Code **5170** and mailbox
+`juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6` are deployed
+and independently verified on PolkaChu and STAVR. The owner wallet remains upgrade
+administrator; WASM, exact transaction intents and the mainnet/NNS/DAO-disabled
+policy match. [Deployment evidence and next settings](deployments/PERSONAL_MAINNET_2026-10-07.md).
+The real owner-receipt gate is complete. Public messaging remains inactive and
+both application pins remain null pending service/release setup; PR #195 is draft.
+
+Render installation is confirmed. Its management tools were not available within
+the already-running turn, so the existing service was not reconfigured/redeployed.
+Public Faucet `/status` was ready and backup `/health` returned 404 at 10:41 UTC.
+Next: existing-service backup setup, a second consenting pilot wallet, real hosted
+persistence/recovery checks and remaining release gates. Do not repeat the owner's
+upload/instantiation or ask for another Render installation.
+
+## Personal messaging continuation — 7 October 2026
+
+PR #195 remains draft/unmerged at `052e736a87d44bbe3743524b1a547822bc6dbf81`,
+now integrating main through PR #213. All five hosted workflows passed, including
+the full browser recovery/UX/deployment suite; local root/Faucet/backup tests passed
+(200/66/10) and signing bundles rebuilt byte-identically.
+
+Both configured verification REST providers returned fresh matching height
+42,454,404 at 10:23 UTC; PolkaChu RPC worked, WhisperNode returned 502. Seven public
+deployment assets matched main, and the owner page was inspected in a desktop
+browser without wallet interaction. No owner receipt, Render update or mainnet
+activation occurred. Both personal pins remain null.
+
+Next: owner resumes the saved deployment in the original browser using **Check
+pending transaction** before another reviewed action; then verify real receipts,
+configure/test the existing shared Render backup and complete the two-wallet pilot.
+See [the current handoff](HANDOFF_NEXT_CHAT_2026-10-07.md) for exact evidence and
+remaining gates. The following older status entries do not supersede this checkpoint.
+
 ## Latest verified checkpoint — 7 October 2026, 12:10 Berlin
 
 The owner requested a fresh handoff after another stalled chat. Read
