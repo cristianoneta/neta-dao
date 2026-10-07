@@ -1,5 +1,5 @@
 import {CONSENSUS_OBSERVERS,JUNO_UPGRADE_HEIGHT,parseConsensus,percent,observationsAgree} from './juno-consensus-core.mjs';
-const $=id=>document.getElementById(id),names=new Map();let snapshots=[],busy=false,namesLoaded=0;
+const $=id=>document.getElementById(id),names=new Map();let snapshots=[],busy=false,namesLoaded=0,namesSnapshotLoaded=false,namesLoading=false;
 const pct=(p,t)=>percent(p,t).toFixed(2)+'%';
 const el=(tag,text,className)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(className)n.className=className;return n;};
 async function get(url){const r=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();if(d.error)throw Error(d.error.message||'RPC error');return d;}
@@ -11,7 +11,14 @@ async function observer(source){
   return {source,consensus:parseConsensus(dump),latest,blockTime,fetched:Date.now()};
 }
 async function loadNames(){
-  if(Date.now()-namesLoaded<1800000)return;
+  if(namesLoading||Date.now()-namesLoaded<1800000)return;namesLoading=true;
+  if(!namesSnapshotLoaded){
+    namesSnapshotLoaded=true;
+    try{const saved=await get('data/juno-validator-names-2026-10-07.json');
+      if(saved.chainId==='juno-1'&&Array.isArray(saved.validators))for(const row of saved.validators){if(/^[A-F0-9]{40}$/.test(row.address)&&typeof row.name==='string')names.set(row.address,row.name.slice(0,160));}
+      $('names-state').textContent='Names from the 7 October 2026 snapshot; checking current metadata…';renderRows();
+    }catch{}
+  }
   try{
     const found=new Map();let key='';
     for(let page=0;page<10;page++){
@@ -25,7 +32,8 @@ async function loadNames(){
       key=d.pagination?.next_key;if(!key)break;if(page===9)throw Error('Validator name pagination incomplete.');
     }
     names.clear();for(const [address,name] of found)names.set(address,name);namesLoaded=Date.now();$('names-state').textContent='Validator names from STAVR staking metadata; matched by consensus public key.';
-  }catch{$('names-state').textContent=names.size?'Previously loaded names retained. Current metadata is unavailable.':'Names unavailable. Consensus addresses are shown instead.';}
+  }catch{$('names-state').textContent=names.size?(namesLoaded?'Previously loaded names retained. Current metadata is unavailable.':'Names from the 7 October 2026 snapshot. Current metadata is unavailable; voting power and votes still come from the selected observer.'):'Names unavailable. Consensus addresses are shown instead.';}
+  finally{namesLoading=false;}
   renderRows();
 }
 function voteCell(v){const cell=el('td',v.kind==='block'?'For block':v.kind==='nil'?'Nil vote':'No vote observed','vote-'+v.kind);if(v.block)cell.append(el('small',v.block));return cell;}
@@ -33,7 +41,7 @@ function renderRows(){
   const snapshot=snapshots[Number($('observer').value)],body=$('validators');body.replaceChildren();
   if(!snapshot?.consensus){$('round').textContent='This observer is unavailable. Choose the other observer or refresh.';return;}
   const c=snapshot.consensus;$('round').textContent=`Height ${c.height.toLocaleString('en-US')} · round ${c.round} · ${c.rows.length} validators · observed ${new Date(snapshot.fetched).toLocaleTimeString()}`;
-  for(const row of c.rows){const tr=el('tr'),name=el('td',names.get(row.address)||row.address.slice(0,12)+'…');name.title=row.address;name.append(el('small',row.address.slice(0,12)+'…'));tr.append(name,el('td',pct(row.power,c.total)),voteCell(row.prevote),voteCell(row.precommit));body.append(tr);}
+  for(const row of c.rows){const tr=el('tr'),known=names.get(row.address),name=el('td',known||row.address.slice(0,12)+'…');name.title=row.address;if(known)name.append(el('small',row.address.slice(0,12)+'…'));tr.append(name,el('td',pct(row.power,c.total)),voteCell(row.prevote),voteCell(row.precommit));body.append(tr);}
 }
 function render(){
   const root=$('observers');root.replaceChildren();

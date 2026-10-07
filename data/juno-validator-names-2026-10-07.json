@@ -1,0 +1,107 @@
+{
+  "chainId": "juno-1",
+  "observedAt": "2026-10-07T07:34:50.561951+00:00",
+  "source": "https://juno.api.m.stavr.tech/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED&pagination.limit=100",
+  "validators": [
+    {
+      "address": "D8D80BD5D6D758C3014374AA8EEC545F46686151",
+      "name": "Crosnest"
+    },
+    {
+      "address": "B67DDDDF3392C5980B4E0868CC1770BE9118FE65",
+      "name": "Shutting down - REDELEGATE ASAP"
+    },
+    {
+      "address": "2586F90EE50AFDB92FBEB01A026E66FAFD00096D",
+      "name": "NodesHub"
+    },
+    {
+      "address": "B57D60F0B3E0F9548D1C60385D46584356DD61DC",
+      "name": "BlueStake 🚀 | 100% insurance"
+    },
+    {
+      "address": "A3F728A1BEF2B4860A7B8104C9CE56ACFFC85561",
+      "name": "Stake&Relax 🦥"
+    },
+    {
+      "address": "980644C9C8033945BA54EF32C053C395D0269EEA",
+      "name": "The_Cybernetics"
+    },
+    {
+      "address": "F9D7C618E5E46C3B942EC35BCC8145BA3DB8423F",
+      "name": "Shutting Down - Redelegate"
+    },
+    {
+      "address": "D226E146E35E3097E53C09147F5F6E89E4C83EFF",
+      "name": "GATA HUB"
+    },
+    {
+      "address": "CB55FF4C609E11A0C417D95A0F697F3B33284BA6",
+      "name": "Validatus"
+    },
+    {
+      "address": "FDA22C79E4C93CBEACD0297036F7650839D6223D",
+      "name": "ECO Stake 🌱 | REStake.app"
+    },
+    {
+      "address": "33E7D788A563CF87FA86AA63817A198A43364EDE",
+      "name": "Kleomedes"
+    },
+    {
+      "address": "E85369365EFAF2003506117F8BEC27AD5B03D4A6",
+      "name": "Cosmos Spaces ☮️ 💜 ⚛️"
+    },
+    {
+      "address": "011CA32A120D5F8007BE9D2AA60C1C7AE8F02634",
+      "name": "polkachu.com"
+    },
+    {
+      "address": "468F19774D884937ECAC184F1704B280A52684C5",
+      "name": "Tessellated"
+    },
+    {
+      "address": "5CAB7FDB5BF71DA91A39C46A130FEF51868ADDCC",
+      "name": "owlstake"
+    },
+    {
+      "address": "ED5A383F89D74B59E040E1D33E78C9EF5323FD53",
+      "name": "Secure Secrets"
+    },
+    {
+      "address": "B2F50E82D354517E17E37178A0D4A8A9644C4D4D",
+      "name": "Allnodes"
+    },
+    {
+      "address": "596CC5372AC7DF5E8F80D4F73F84A1B3E835EA6A",
+      "name": "Silk Nodes"
+    },
+    {
+      "address": "72C874A2BC59B8E3316DDE995CB9368E79529A3E",
+      "name": "Cogwheel ⚙️"
+    },
+    {
+      "address": "7F530838B75FD46D07133BFAE4383AA2123C96A2",
+      "name": "Stakeflow"
+    },
+    {
+      "address": "31E927F677282369B7E57D39FF9C47E3845BFDEA",
+      "name": "Kintsugi Nodes"
+    },
+    {
+      "address": "1B431E63CC50C7BA283AC9E2F0A13FDD1FC86F74",
+      "name": "0base.vc"
+    },
+    {
+      "address": "6FD2BA3BA00E6AB6BF43B0A7FBE486C541288F99",
+      "name": "Yurbason"
+    },
+    {
+      "address": "0F1ED70645D475745565C702588BD1EEBA62C28B",
+      "name": "POSTHUMAN 🧬 StakeDrop"
+    },
+    {
+      "address": "1FF354C5F1F9112F7EF36642369861814B85ECEA",
+      "name": "🔥STAVR🔥 REStake ON✅"
+    }
+  ]
+}

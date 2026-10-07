@@ -27,7 +27,9 @@ automatic-refresh checkbox. Unavailable observers lose their current metrics;
 they do not silently become zero participation. Each source has its own results
 and validator list. Names are fetched from the bonded validator metadata at STAVR
 and matched using SHA-256 of the Ed25519 consensus public key, truncated to 20 bytes.
-Raw consensus addresses remain available when names cannot be loaded.
+A dated 25-validator name snapshot is bundled as a fallback when metadata fails;
+the UI labels its date and never uses that snapshot for voting power or votes.
+Raw consensus addresses remain available when neither source has a name.
 
 Sources:
 - https://juno-rpc.publicnode.com/consensus_state
