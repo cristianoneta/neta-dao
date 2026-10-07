@@ -8,9 +8,9 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub mod dao;
+pub mod policy;
 
 const CONTRACT: &str = "neta-relay-mailbox";
-const CHAIN: &str = "uni-7";
 const MAX_PREKEYS: usize = 16;
 const MAX_BUNDLE: usize = 1024;
 const MAX_CIPHERTEXT: usize = 4096;
@@ -29,8 +29,11 @@ const BLOCKED: Map<(&Addr, &Addr), bool> = Map::new("blocked");
 const NEXT_SEQUENCE: Item<u64> = Item::new("next_sequence");
 const LAST_SEND: Map<&Addr, u64> = Map::new("last_send");
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct InstantiateMsg {}
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, JsonSchema)]
+#[serde(default)]
+pub struct InstantiateMsg {
+    pub mainnet: bool,
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Prekey {
@@ -83,6 +86,8 @@ pub struct Message {
 pub enum ExecuteMsg {
     Dao(dao::Execute),
     Register {
+        #[serde(default)]
+        expected_previous_generation: Option<u64>,
         device_id: String,
         protocol_version: u16,
         fingerprint: String,
@@ -94,6 +99,8 @@ pub enum ExecuteMsg {
         prekeys: Vec<Prekey>,
     },
     SendInitial {
+        #[serde(default)]
+        sender_generation: Option<u64>,
         recipient: String,
         recipient_generation: u64,
         prekey_id: u16,
@@ -101,6 +108,8 @@ pub enum ExecuteMsg {
         ciphertext: Binary,
     },
     Send {
+        #[serde(default)]
+        sender_generation: Option<u64>,
         recipient: String,
         recipient_generation: u64,
         message_id: String,
@@ -122,6 +131,7 @@ pub enum ExecuteMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Dao(dao::Query),
+    Config {},
     Device {
         address: String,
     },
@@ -157,7 +167,7 @@ pub struct InboxResponse {
 pub enum Error {
     #[error("{0}")]
     Std(#[from] StdError),
-    #[error("UNI-7 only")]
+    #[error("mailbox network or deployment owner mismatch")]
     Network,
     #[error("funds are not accepted")]
     Funds,
@@ -193,14 +203,6 @@ fn no_funds(info: &MessageInfo) -> Result<(), Error> {
     }
 }
 
-fn network(env: &Env) -> Result<(), Error> {
-    if env.block.chain_id == CHAIN {
-        Ok(())
-    } else {
-        Err(Error::Network)
-    }
-}
-
 fn hex_id(value: &str, len: usize) -> bool {
     value.len() == len
         && value
@@ -223,13 +225,13 @@ fn validate_prekeys(prekeys: &[Prekey], required: bool) -> Result<(), Error> {
 
 #[entry_point]
 pub fn instantiate(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    _msg: InstantiateMsg,
+    msg: InstantiateMsg,
 ) -> Result<Response, Error> {
-    network(&env)?;
     no_funds(&info)?;
+    policy::init(deps.branch(), &env, &info.sender, msg.mainnet)?;
     NEXT_SEQUENCE.save(deps.storage, &0)?;
     dao::init(deps.storage, &info.sender)?;
     cw2::set_contract_version(deps.storage, CONTRACT, env!("CARGO_PKG_VERSION"))?;
@@ -243,11 +245,20 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, Error> {
-    network(&env)?;
+    let policy = policy::network(deps.as_ref(), &env)?;
     no_funds(&info)?;
     match msg {
-        ExecuteMsg::Dao(msg) => dao::execute(deps, env, info, msg),
+        ExecuteMsg::Dao(msg) => {
+            if !policy.dao_enabled {
+                return Err(StdError::generic_err(
+                    "DAO mailboxes not enabled in personal mainnet release",
+                )
+                .into());
+            }
+            dao::execute(deps, env, info, msg)
+        }
         ExecuteMsg::Register {
+            expected_previous_generation,
             device_id,
             protocol_version,
             fingerprint,
@@ -268,6 +279,12 @@ pub fn execute(
                 Some(old) => old.generation.checked_add(1).ok_or(Error::Sequence)?,
                 None => 1,
             };
+            let previous_generation = generation - 1;
+            if expected_previous_generation.map_or(policy.chain_id == "juno-1", |expected| {
+                expected != previous_generation
+            }) {
+                return Err(Error::DeviceChanged);
+            }
             IDENTITIES.save(
                 deps.storage,
                 (&info.sender, generation),
@@ -359,6 +376,7 @@ pub fn execute(
             Ok(Response::new().add_attribute("action", "set_block"))
         }
         ExecuteMsg::SendInitial {
+            sender_generation,
             recipient,
             recipient_generation,
             prekey_id,
@@ -370,11 +388,13 @@ pub fn execute(
             info,
             recipient,
             recipient_generation,
+            sender_generation,
             message_id,
             ciphertext,
             Some(prekey_id),
         ),
         ExecuteMsg::Send {
+            sender_generation,
             recipient,
             recipient_generation,
             message_id,
@@ -385,6 +405,7 @@ pub fn execute(
             info,
             recipient,
             recipient_generation,
+            sender_generation,
             message_id,
             ciphertext,
             None,
@@ -399,11 +420,12 @@ fn send(
     info: MessageInfo,
     recipient: String,
     recipient_generation: u64,
+    sender_generation: Option<u64>,
     message_id: String,
     ciphertext: Binary,
     prekey_id: Option<u16>,
 ) -> Result<Response, Error> {
-    dao::active_name(deps.as_ref(), &env, &info.sender, false)?;
+    policy::sender(deps.as_ref(), &env, &info.sender)?;
     if !hex_id(&message_id, 64) || !(16..=MAX_CIPHERTEXT).contains(&ciphertext.len()) {
         return Err(Error::Message);
     }
@@ -415,6 +437,11 @@ fn send(
         return Err(Error::Blocked);
     }
     let sender_device = DEVICES.load(deps.storage, &info.sender)?;
+    if sender_generation.map_or(env.block.chain_id == "juno-1", |expected| {
+        expected != sender_device.generation
+    }) {
+        return Err(Error::DeviceChanged);
+    }
     let mut receiver = DEVICES.load(deps.storage, &recipient)?;
     if !sender_device.active || !receiver.active || receiver.generation != recipient_generation {
         return Err(Error::DeviceChanged);
@@ -475,10 +502,9 @@ fn send(
 
 #[entry_point]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
-    if env.block.chain_id != CHAIN {
-        return Err(StdError::generic_err("UNI-7 only"));
-    }
+    policy::network(deps, &env).map_err(|e| StdError::generic_err(e.to_string()))?;
     match msg {
+        QueryMsg::Config {} => to_json_binary(&policy::config(deps)?),
         QueryMsg::Dao(msg) => dao::query(deps, msg),
         QueryMsg::Device { address } => {
             let address = deps.api.addr_validate(&address)?;

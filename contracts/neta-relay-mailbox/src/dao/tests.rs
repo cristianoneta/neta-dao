@@ -33,7 +33,7 @@ fn setup() -> (DepsOwned, Arc<Mutex<Chain>>) {
         deps.as_mut(),
         env(),
         mock_info("registrar", &[]),
-        InstantiateMsg {},
+        InstantiateMsg::default(),
     )
     .unwrap();
     let state = Arc::new(Mutex::new(Chain {
@@ -104,6 +104,7 @@ fn setup() -> (DepsOwned, Arc<Mutex<Chain>>) {
             env(),
             mock_info(who, &[]),
             ExecuteMsg::Register {
+                expected_previous_generation: None,
                 device_id: format!("{who}-device"),
                 protocol_version: 1,
                 fingerprint: "ab".repeat(32),

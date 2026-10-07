@@ -7,6 +7,8 @@ on:
       - "contracts/**"
       - "assets/names-testnet/**"
       - "assets/names-mainnet/**"
+      - "assets/relay-mainnet/**"
+      - "relay-personal-network.mjs"
       - "names/mainnet-artifacts.mjs"
       - "names-v2-artifacts.mjs"
       - ".github/workflows/build-testnet-wasm.yml"
@@ -38,6 +40,9 @@ jobs:
           shipped="assets/names-testnet/${file}"
           if [ "$artifact" = neta-names-v2 ]; then shipped="assets/names-mainnet/neta_names_v2_v031.wasm"; fi
           cmp "contracts/${artifact}/target/wasm32-unknown-unknown/release/${file}" "$shipped"
+      - name: Verify shipped personal mailbox artifact
+        if: matrix.contract == 'neta-relay-mailbox'
+        run: cmp contracts/neta-relay-mailbox/target/wasm32-unknown-unknown/release/neta_relay_mailbox.wasm assets/relay-mainnet/neta_relay_mailbox_v04.wasm
       - name: Stage artifact
         run: |
           mkdir -p artifacts

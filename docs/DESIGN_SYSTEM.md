@@ -501,3 +501,12 @@ independent of mailbox access. On small screens the heading/select may wrap.
 Conversations group by account, with chronological entries in the reader and
 assignment/blocking in contextual controls. Do not publish fixture inboxes. See
 DAO_MAILBOX_IMPLEMENTATION_2026-10-06.md for remaining activation requirements.
+
+
+## Personal mainnet owner deployment — 2026-10-07
+
+The standalone owner setup page reuses the existing Names deployment foundations
+and styles. Keep Juno mainnet, owner upgrade authority, separate upload/create
+reviews, real network fees and recovery/export visible. Connecting and reviewing
+never sign. Preserve exact-intent journals across account changes and reloads.
+Publishing this helper does not activate private Inbox sending or DAO writes.
