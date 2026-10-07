@@ -1,9 +1,12 @@
 import {CONSENSUS_OBSERVERS,JUNO_UPGRADE_HEIGHT,parseConsensus,parseCommitWindow,percent,observationsAgree,commitWindowsAgree} from './juno-consensus-core.mjs?v=3';
-import {parseUpgradeHistory,duration} from './juno-upgrade-history.mjs';
+import {parseUpgradeHistory,duration,observationWindow,withinObservationWindow} from './juno-upgrade-history.mjs?v=2';
 import {parseReadiness,readinessTimeline,firstParticipation} from './juno-upgrade-readiness.mjs?v=2';
 let readiness=null,readinessError='';
 const $=id=>document.getElementById(id),names=new Map();let snapshots=[],busy=false,namesLoaded=0,namesSnapshotLoaded=false,namesLoading=false,history=null,historyError='',historyFetched=0;
 const upgrade={id:document.body.dataset.upgrade||'juno-v31',chainId:'juno-1',height:Number(document.body.dataset.upgradeHeight)||JUNO_UPGRADE_HEIGHT};
+const closed=document.body.dataset.tracking==='closed',windowSeconds=Number(document.body.dataset.trackingWindowSeconds);
+const windowRecord=record=>closed?(history?withinObservationWindow(record,observationWindow(history,windowSeconds)):null):record;
+const participation=address=>windowRecord(firstParticipation(address,readiness,history));
 const pct=(p,t)=>percent(p,t).toFixed(2)+'%',number=n=>n.toLocaleString('en-US');
 const el=(tag,text,className)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(className)n.className=className;return n;};
 async function get(url){const r=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();if(d.error)throw Error(d.error.message||'RPC error');return d;}
@@ -32,9 +35,10 @@ async function loadNames(){
     namesSnapshotLoaded=true;
     try{const saved=await get('/data/juno-validator-names-2026-10-07.json');
       if(saved.chainId==='juno-1'&&Array.isArray(saved.validators))for(const row of saved.validators){if(/^[A-F0-9]{40}$/.test(row.address)&&typeof row.name==='string')names.set(row.address,row.name.slice(0,160));}
-      $('names-state').textContent='Names from the 7 October 2026 snapshot; checking current metadata…';render();
+      $('names-state').textContent=closed?'Names from the 7 October 2026 snapshot.':'Names from the 7 October 2026 snapshot; checking current metadata…';render();
     }catch{}
   }
+  if(closed){namesLoading=false;namesLoaded=Date.now();if(!names.size)$('names-state').textContent='Names unavailable. Consensus addresses are shown instead.';return;}
   try{
     const found=new Map();let key='';
     for(let page=0;page<10;page++){
@@ -54,7 +58,7 @@ async function loadNames(){
 }
 async function loadHistory(){
  if(Date.now()-historyFetched<300000)return;historyFetched=Date.now();
- try{history=parseUpgradeHistory(await get('/data/validator-upgrades/'+upgrade.id+'.json'),upgrade);historyError='';}
+ try{const next=parseUpgradeHistory(await get('/data/validator-upgrades/'+upgrade.id+'.json'),upgrade);if(closed){observationWindow(next,windowSeconds);if(!next.validators.every(v=>/^[1-9][0-9]*$/.test(v.power)))throw Error('Missing historical voting power.');}history=next;historyError='';}
  catch{historyError=history?'History refresh unavailable; last checked record retained.':'First-signature history unavailable.';}
  try{readiness=parseReadiness(await get('/data/validator-upgrades/'+upgrade.id+'-readiness.json'),upgrade);readinessError='';}
  catch{readinessError=readiness?'Readiness refresh unavailable; saved evidence retained.':'Pre-restart vote history unavailable.';}
@@ -62,31 +66,32 @@ async function loadHistory(){
 }
 function historyCell(address){
  if($('timing').value==='votes'){
-  const cell=el('td',undefined,'first-signature'),record=firstParticipation(address,readiness,history);
+  const cell=el('td',undefined,'first-signature'),record=participation(address);
   if(record){
    const commit=record.evidence==='commit',value=el(commit?'a':'span','≤ '+duration(record.secondsFromHalt));
    if(commit){value.href=CONSENSUS_OBSERVERS[0].url+'/commit?height='+record.height;value.target='_blank';value.rel='noopener noreferrer';}
    cell.append(value,el('small','By '+new Date(record.timestamp).toLocaleTimeString()+' · '+(commit?'Block signature':(record.block?'Block':'Nil')+' '+record.kind)));
    cell.title='Participation evidenced by '+new Date(record.timestamp).toLocaleString()+'. Actual readiness may be earlier; validator-reported time.'+(commit?' First included signature at height '+number(record.height)+'.':' Earliest saved consensus vote.');
   }
-  else cell.append(el('span','Not captured'),el('small','Readiness time unknown'));
+  else if(closed&&history&&observationWindow(history,windowSeconds).coverageComplete)cell.append(el('span','No upgrade evidenced within 5h'),el('small','Monitoring ended'));
+  else cell.append(el('span','Not captured'),el('small',closed?'Archive coverage incomplete':'Readiness time unknown'));
   return cell;
  }
- const cell=el('td',undefined,'first-signature'),record=history?.records.get(address);
+ const cell=el('td',undefined,'first-signature'),record=windowRecord(history?.records.get(address));
  if(record){
   const link=el('a',duration(record.secondsFromHalt));link.href=CONSENSUS_OBSERVERS[0].url+'/commit?height='+record.height;link.target='_blank';link.rel='noopener noreferrer';cell.append(link,el('small',record.blocksAfterRestart===0?'First resumed block':'+'+record.blocksAfterRestart+' blocks'));
   cell.title='First included signature '+new Date(record.timestamp).toLocaleString()+' · height '+number(record.height);
- }else{cell.append(el('span',history?(history.records.has(address)?'Not observed':'Not in upgrade set'):'—'));}
+ }else{cell.append(el('span',closed&&history&&observationWindow(history,windowSeconds).coverageComplete?(participation(address)?'No block signature within 5h':'No upgrade evidenced within 5h'):history?(history.records.has(address)?'Not observed':'Not in upgrade set'):'—'));if(closed)cell.append(el('small','Monitoring ended'));}
  return cell;
 }
 function evidenceTime(address){
- const record=$('timing').value==='votes'?firstParticipation(address,readiness,history):history?.records.get(address);
+ const record=$('timing').value==='votes'?participation(address):windowRecord(history?.records.get(address));
  return record?Date.parse(record.timestamp):Infinity;
 }
 function renderHistory(){
  const votes=$('timing').value==='votes';$('timing-heading').textContent=votes?'First participation evidence':'First block signature';
  const addresses=new Set([...(readiness?.records.keys()||[]),...(history?.records.keys()||[])]),counts={consensus:0,commit:0};
- for(const address of addresses){const record=firstParticipation(address,readiness,history);if(record)counts[record.evidence]++;}
+ for(const address of addresses){const record=participation(address);if(record)counts[record.evidence]++;}
  $('history-state').textContent=votes?(readiness||history?`Partial evidence · ${counts.consensus} consensus votes · ${counts.commit} block signatures. ≤ means participating by this time; readiness may be earlier.${readinessError?' '+readinessError:''}${historyError?' '+historyError:''}`:readinessError||historyError||'Loading participation evidence…'):(history?`First signatures: scanned through ${number(history.scannedThrough)} · delays include the shared network halt.${historyError?' '+historyError:''}`:historyError||'Loading first-signature history…');
  $('history-details').textContent=history?`Halt reference: ${new Date(history.halt.time).toLocaleString()}. First resumed signature: ${history.firstResumedSignatureTime?new Date(history.firstResumedSignatureTime).toLocaleString():'not observed'}. Archive checked ${new Date(history.updatedAt).toLocaleString()}. The scan starts at the first post-upgrade block and does not skip gaps. PublicNode and STAVR must agree on each canonical commit.`:'';
  $('readiness-timeline').hidden=!readiness;
@@ -101,7 +106,37 @@ function selected(){
  const resumed=snapshots.some(s=>s.latest>upgrade.height+1);
  return snapshots.filter(s=>s.commits||(!resumed&&s.consensus)).sort((a,b)=>Number(Boolean(b.commits))-Number(Boolean(a.commits))||Number(a.catchingUp)-Number(b.catchingUp)||b.blockTime-a.blockTime)[0];
 }
+function renderArchive(){
+ const body=$('validators');body.replaceChildren();renderHistory();
+ $('network-state').textContent='Monitoring ended · five hours after the upgrade halt';
+ $('participation-table').classList.add('archived');$('participation-table').classList.remove('committed');
+ $('observer').closest('label').hidden=true;$('observers').replaceChildren();
+ $('power-label').textContent='Participation evidenced within 5h';$('count-label').textContent='Validators observed';$('missing-label').textContent='No evidence within 5h';
+ $('sample-heading').textContent='Evidence';$('filter').options[1].textContent='Observed within 5h';$('filter').options[2].textContent='No evidence within 5h';
+ $('scope').textContent='“No upgrade evidenced within 5h” means no saved consensus vote or block signature in this window. It does not establish the installed software version.';
+ $('empty').hidden=true;
+ if(!history){
+  for(const id of ['power','count','missing'])$(id).textContent='—';$('power-bar').hidden=true;
+  $('basis').textContent=historyError||'Loading the archived five-hour observation window…';$('quality').textContent='';$('agreement').textContent='Live monitoring is disabled.';return;
+ }
+ const window=observationWindow(history,windowSeconds),total=history.validators.reduce((sum,v)=>sum+BigInt(v.power),0n);
+ const rows=history.validators.map(v=>({...v,record:participation(v.address)})),observed=rows.filter(v=>v.record),power=observed.reduce((sum,v)=>sum+BigInt(v.power),0n);
+ $('power').textContent=pct(power,total);$('count').textContent=observed.length+' / '+rows.length;$('missing').textContent=pct(total-power,total);
+ $('power-bar').hidden=false;$('power-bar').value=percent(power,total);$('power-bar').setAttribute('aria-label','Voting power with saved participation evidence within five hours');
+ $('basis').textContent='Closed observation window · '+new Date(window.start).toLocaleString()+' – '+new Date(window.end).toLocaleTimeString()+' · '+Intl.DateTimeFormat().resolvedOptions().timeZone;
+ $('quality').textContent=window.coverageComplete?'Archive covers the full five-hour window. No further monitoring.':'Archive coverage incomplete; missing evidence cannot establish a five-hour absence.';
+ $('quality').className=window.coverageComplete?'muted':'muted warning';$('agreement').textContent='Archived canonical commits were cross-checked with PublicNode and STAVR. No live requests.';
+ $('history-state').textContent='Archived five-hour result · '+$('history-state').textContent;
+ rows.sort((a,b)=>($('sort').value==='response'?evidenceTime(a.address)-evidenceTime(b.address):Number(Boolean(a.record))-Number(Boolean(b.record)))||(BigInt(a.power)>BigInt(b.power)?-1:BigInt(a.power)<BigInt(b.power)?1:a.address.localeCompare(b.address)));
+ for(const row of rows){
+  const active=Boolean(row.record),filter=$('filter').value;if(filter==='signed'&&!active||filter==='missing'&&active)continue;
+  const tr=el('tr'),name=el('td',names.get(row.address)||row.address.slice(0,12)+'…');name.title=row.address;
+  tr.append(name,el('td',pct(row.power,total)),el('td',active?'Observed':'Not evidenced','status vote-'+(active?'block':'missing')),el('td',active?(row.record.evidence==='commit'?'Block':'Vote'):'—'),historyCell(row.address));body.append(tr);
+ }
+ $('empty').hidden=body.children.length>0;
+}
 function render(){
+ if(closed){renderArchive();return;}
  const s=selected(),body=$('validators');body.replaceChildren();renderHistory();
  const available=snapshots.filter(s=>s.commits||s.consensus),both=available.length===2;
  const agree=both&&(available[0].commits?commitWindowsAgree(available[0].commits,available[1].commits):observationsAgree(available[0].consensus,available[1].consensus));
@@ -152,6 +187,7 @@ function render(){
  $('empty').hidden=body.children.length>0;
 }
 async function refresh(){
+ if(closed){if(busy)return;busy=true;$('refresh').disabled=true;historyFetched=0;try{await Promise.all([loadNames(),loadHistory()]);$('updated').textContent=history?'Archive saved '+new Date(history.updatedAt).toLocaleString():'Archive unavailable.';}finally{busy=false;$('refresh').disabled=false;}return;}
  if(busy)return;busy=true;$('refresh').disabled=true;$('updated').textContent='Checking both sources…';
  try{
   const states=await Promise.all(CONSENSUS_OBSERVERS.map(async source=>{try{return await status(source);}catch(error){return {source,error:error.message};}}));
@@ -164,6 +200,6 @@ async function refresh(){
 }
 $('refresh').addEventListener('click',refresh);$('observer').addEventListener('change',render);$('filter').addEventListener('change',render);
 $('timing').addEventListener('change',render);$('sort').addEventListener('change',render);
-setInterval(()=>{if(document.hidden)return;if($('auto').checked)void refresh();else render();},30000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('auto').checked)void refresh();});
+if(!closed){setInterval(()=>{if(document.hidden)return;if($('auto').checked)void refresh();else render();},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('auto').checked)void refresh();});}
 void refresh();

@@ -1,7 +1,7 @@
 name: Pre-restart validator votes
 on:
-  schedule:
-    - cron: '*/5 * * * *'
+  # No active upgrade window. Juno v31 monitoring is closed; retain manual/CI
+  # entry points for a future explicitly configured upgrade.
   workflow_dispatch:
   pull_request:
     paths: ['scripts/observe_validator_readiness.mjs', 'juno-upgrade-readiness.mjs', 'tests/juno-upgrade-readiness.test.mjs', 'data/validator-upgrades/*-readiness.json', '.github/workflows/validator-readiness.yml']

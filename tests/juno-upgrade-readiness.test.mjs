@@ -25,7 +25,7 @@ test('round changes preserve first evidence and never add powers across rounds',
 test('future capture is off without an explicit bounded UTC tracking window',()=>{
  const now=Date.parse('2026-10-07T07:00:00Z');assert.equal(inTrackingWindow(upgrade,now),false);
  const u={...upgrade,readinessWindow:{start:'2026-10-07T06:00:00Z',end:'2026-10-07T09:00:00Z'}};
- assert.equal(inTrackingWindow(u,now),true);assert.equal(inTrackingWindow(u,Date.parse('2026-10-07T09:00:00Z')),false);
+ assert.equal(inTrackingWindow(u,now),true);assert.equal(inTrackingWindow({...u,collect:false},now),false);assert.equal(inTrackingWindow({...u,tracking:{status:'closed'}},now),false);assert.equal(inTrackingWindow(u,Date.parse('2026-10-07T09:00:00Z')),false);
  u.readinessWindow.end='2026-10-10T09:00:00Z';assert.equal(inTrackingWindow(u,now),false);
 });
 

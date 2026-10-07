@@ -145,6 +145,9 @@ def collect(upgrade, path, max_blocks=200, seconds=120):
     prior = json.loads(path.read_text()) if path.exists() else None
     if prior:
         validate_checkpoint(prior,upgrade)
+    if upgrade.get('collect') is False or upgrade.get('tracking', {}).get('status') == 'closed':
+        return prior  # Closed events never make RPC calls or rewrite their archive.
+    if prior:
         if prior['complete']: return prior
     halt = checked_commit(pair('commit?height='+str(upgrade['height'])),upgrade['height'],upgrade['chainId'])
     halt_anchor = {'height':upgrade['height'],'hash':halt['commit']['block_id']['hash'],'time':halt['header']['time']}
