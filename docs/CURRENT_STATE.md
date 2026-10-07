@@ -27,10 +27,15 @@ auto-refresh timer or visibility-triggered refresh. Reload archive is manual.
 Do not restart v31 monitoring to fill the remaining nulls. A future upgrade needs
 its own explicitly configured tracking window and deliberate scheduling.
 
-The original archives are preserved unchanged. Canonical coverage reaches block
-42,456,613 at 12:10:03 UTC, beyond the cutoff; saved at 12:10:48 UTC. Later evidence
-is excluded from the closed result. `complete: false` still means not every
-validator has a first signature; it does not mean monitoring remains active.
+The archives are retained without truncation. One collector already running from
+before closure (run `37622850249`) finished at 14:42:55 Berlin and published bot
+commit `9e41bb61c1a7896b7ee907e1bbfa8b3be544afcb`. Final canonical coverage reaches
+block 42,457,317 at 12:41:51 UTC. It recorded 0base.vc at 14:16:08 CEST, **5h 19m 37s**
+after the halt; this is outside the cutoff and correctly excluded. The closed
+result therefore remains 22/25 with all three notes. That old run and the
+post-closure no-op collector have both completed; no collector remains active.
+`complete: false` still means not every validator has a first signature; it does
+not mean monitoring remains active. The recovered pre-restart vote archive is unchanged.
 If archive coverage is missing, the UI states that limitation instead of assigning
 a five-hour absence.
 
