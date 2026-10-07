@@ -12,8 +12,8 @@
   "accounting_start": "2026-10-01T00:00:00Z",
   "adapter": "native-community-pool",
   "status": "PARTIAL",
-  "refresh_status": "completed",
-  "checked_at": "2026-10-07T06:50:37.451284Z",
+  "refresh_status": "unavailable",
+  "checked_at": "2026-10-07T07:15:42.199860Z",
   "last_success_at": "2026-10-07T06:50:36.056137Z",
   "sources": [
     {
@@ -61,7 +61,9 @@
     "basis": "Distribution rewards including minted inflation and transaction fees; the current rate is not historical revenue."
   },
   "warnings": [
-    "Older governance page unavailable (HTTPError); recent observed proposals retained, catalogue coverage incomplete.",
+    "Community Pool refresh failed; previous evidence retained.",
+    "https://juno.api.m.stavr.tech: ValueError: Stale chain tip",
+    "https://juno-api.polkachu.com: HTTPError: HTTP Error 502: Bad Gateway",
     "Recorded totals include tax allocations and reviewed transactions. No unmatched distribution outflows were found. Zero other income means no other recorded income; unmeasured withdrawal dust and validator-removal remainders are excluded. Full module balance reconciliation remains incomplete."
   ],
   "entries": [
@@ -11388,7 +11390,7 @@
   "movement_review": {
     "accounting_start": "2026-10-01T00:00:00Z",
     "status": "PARTIAL",
-    "event_refresh_status": "PARTIAL",
+    "event_refresh_status": "UNAVAILABLE",
     "matched_receipts": 0,
     "unmatched_receipt_ids": [],
     "unreviewed_movements": 0,

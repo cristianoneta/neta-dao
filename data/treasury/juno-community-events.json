@@ -8,9 +8,9 @@
     }
   ],
   "accounting_start": "2026-10-01T00:00:00Z",
-  "status": "PARTIAL",
+  "status": "UNAVAILABLE",
   "generated_at": "2026-10-07T06:50:36.056137Z",
-  "checked_at": "2026-10-07T06:50:36.056137Z",
+  "checked_at": "2026-10-07T07:15:41.450673Z",
   "last_success_at": "2026-10-07T06:50:36.056137Z",
   "sources": [
     {
@@ -18559,7 +18559,9 @@
     "Recorded totals include tax allocations and reviewed transactions. No unmatched distribution outflows were found. Zero other income means no other recorded income; unmeasured withdrawal dust and validator-removal remainders are excluded. Full module balance reconciliation remains incomplete."
   ],
   "warnings": [
-    "Older governance page unavailable (HTTPError); recent observed proposals retained, catalogue coverage incomplete.",
+    "Community Pool refresh failed; previous evidence retained.",
+    "https://juno.api.m.stavr.tech: ValueError: Stale chain tip",
+    "https://juno-api.polkachu.com: HTTPError: HTTP Error 502: Bad Gateway",
     "Recorded totals include tax allocations and reviewed transactions. No unmatched distribution outflows were found. Zero other income means no other recorded income; unmeasured withdrawal dust and validator-removal remainders are excluded. Full module balance reconciliation remains incomplete."
   ]
 }

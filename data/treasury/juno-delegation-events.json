@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "accounting_start": "2026-10-01T00:00:00Z",
-  "status": "PARTIAL",
+  "status": "UNAVAILABLE",
   "generated_at": "2026-10-07T06:50:48.682922Z",
   "treasuries": [
     {
@@ -164,8 +164,9 @@
     ]
   },
   "warnings": [
-    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses.",
-    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2,\"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42451866)\",\"details\":[]}"
+    "Receipt refresh unavailable; previous evidence retained.",
+    "Receipt refresh unavailable; https://juno.api.m.stavr.tech: ValueError: Stale chain tip | https://juno-api.polkachu.com: HTTPError: HTTP Error 502: Bad Gateway",
+    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2, \"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42452000)\", \"details\":[]}"
   ],
   "events": [
     {
@@ -314,5 +315,6 @@
     "last_success_at": "2026-10-06T15:38:21.698285Z",
     "intervals": 1,
     "status": "UNAVAILABLE"
-  }
+  },
+  "checked_at": "2026-10-07T07:15:50.326578Z"
 }

@@ -1938,7 +1938,7 @@
       "source": "https://osmosis-api.polkachu.com"
     }
   ],
-  "status": "PARTIAL",
+  "status": "UNAVAILABLE",
   "treasuries": [
     {
       "address": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
@@ -1950,7 +1950,7 @@
     }
   ],
   "warnings": [
-    "Exact block timestamp unavailable from public RPC archives for 57 historical events.",
-    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses."
-  ]
+    "Latest collector failed; prior evidence retained."
+  ],
+  "checked_at": "2026-10-07T07:15:42.191347Z"
 }
