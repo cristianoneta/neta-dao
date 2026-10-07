@@ -1,5 +1,22 @@
 # NETA DAO handoff
 
+## Personal messaging continuation — 7 October 2026
+
+Read the newest section of [the current handoff](docs/HANDOFF_NEXT_CHAT_2026-10-07.md).
+PR #195 now integrates main through PR #213 at application head
+`052e736a87d44bbe3743524b1a547822bc6dbf81`; all five hosted workflows passed.
+Local root/Faucet/backup tests passed (200/66/10). Both verification REST providers
+returned the same fresh Juno block at 10:23 UTC; primary PolkaChu RPC works,
+WhisperNode returned 502. Seven served deployment files matched main exactly.
+The published owner page was inspected without connecting a wallet.
+
+Next: resume the saved attempt in the owner's original browser via **Check pending
+transaction**, then obtain and verify the actual upload/creation receipts.
+PR #195 stays draft/unmerged and both personal pins remain null. Live shared Render
+backup, off-service recovery and the two-wallet pilot still need evidence. Preserve
+later scheduled snapshots at final integration. Older PR-head/status entries below
+are historical; DAO inboxes and payment requests remain subsequent work.
+
 ## Latest verified checkpoint — 7 October 2026, 12:10 Berlin
 
 The owner requested a fresh handoff after another stalled chat. Read

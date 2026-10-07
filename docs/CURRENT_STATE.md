@@ -1,5 +1,24 @@
 # NETA DAO code-backed current state
 
+## Personal messaging continuation — 7 October 2026
+
+PR #195 remains draft/unmerged at `052e736a87d44bbe3743524b1a547822bc6dbf81`,
+now integrating main through PR #213. All five hosted workflows passed, including
+the full browser recovery/UX/deployment suite; local root/Faucet/backup tests passed
+(200/66/10) and signing bundles rebuilt byte-identically.
+
+Both configured verification REST providers returned fresh matching height
+42,454,404 at 10:23 UTC; PolkaChu RPC worked, WhisperNode returned 502. Seven public
+deployment assets matched main, and the owner page was inspected in a desktop
+browser without wallet interaction. No owner receipt, Render update or mainnet
+activation occurred. Both personal pins remain null.
+
+Next: owner resumes the saved deployment in the original browser using **Check
+pending transaction** before another reviewed action; then verify real receipts,
+configure/test the existing shared Render backup and complete the two-wallet pilot.
+See [the current handoff](HANDOFF_NEXT_CHAT_2026-10-07.md) for exact evidence and
+remaining gates. The following older status entries do not supersede this checkpoint.
+
 ## Latest verified checkpoint — 7 October 2026, 12:10 Berlin
 
 The owner requested a fresh handoff after another stalled chat. Read

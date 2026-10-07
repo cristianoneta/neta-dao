@@ -1,5 +1,54 @@
 # Next-chat handoff — dao.netareborn.com — 7 October 2026
 
+## Personal messaging continuation — integration and preflight complete
+
+This section supersedes the earlier PR-head and next-step status below. The owner
+authorized continuation after reviewing the plan. PR #195 remains **draft and
+unmerged**, now at `052e736a87d44bbe3743524b1a547822bc6dbf81`.
+
+- Integrated main through `65da24148d215f96ab7dd682418f204dd6d0b2b9` (PR #213).
+  Resolved the two conflicts by preserving both the shared-backup and Community
+  Tools CI triggers, and both sets of design guidance. The merged generated-data
+  tree exactly matched that main checkpoint. Later scheduled data commits must
+  still be preserved at final integration; do not repeatedly chase them as code changes.
+- All five hosted workflows passed for this application head: browser
+  `37606695121`, frontend/contracts `37606695238`, Faucet/signing `37606695132`,
+  reproducible WASM `37606695050`, encrypted backup `37606695257`.
+  Local validation: 200 root Node tests, 66 Faucet/signing tests and ten backup
+  tests passed; both signing bundles rebuilt byte-identically. The local Chromium
+  download was unusable, so complete browser regression evidence is the successful
+  hosted workflow, including personal recovery, UX, deployment and crash tests.
+- Read-only provider probes at 10:18 UTC (12:18 Berlin) returned fresh `juno-1`
+  blocks from both configured verification REST providers. PolkaChu RPC was
+  synchronized; WhisperNode RPC returned HTTP 502. No endpoint configuration changed.
+  Follow-up at 10:23 UTC returned matching height **42,454,404**, block time
+  `2026-10-07T10:22:59.346290381Z`, from PolkaChu and STAVR, both with
+  `Access-Control-Allow-Origin: *`. An intervening probe returned a transient 403;
+  these successful observations are dated evidence, not a permanent availability guarantee.
+- At 10:20 UTC, all seven checked public deployment files matched main exactly:
+  the HTML/controller/core, network policy, Names networks, signing bundle and
+  v0.4 WASM. The WASM remains
+  `835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708`.
+  The public owner page was also inspected in a desktop browser. No owner wallet
+  was connected and no local transaction journal was inspected in that browser.
+
+**Next owner action:** open the existing
+[deployment page](https://dao.netareborn.com/relay-personal-deploy.html) in the
+same browser/profile used for the earlier attempt, reload, connect the agreed
+owner wallet and use **Check pending transaction** if a saved attempt is present.
+Recovery never resubmits. A proven not-broadcast/no-pending state permits the
+next reviewed upload; an unknown outcome remains locked. Upload and creation
+still require separate explicit Keplr confirmations. Export the real public
+receipt JSON, then independently verify it before setting any deployment pin.
+
+Both personal deployment/release pins remain null. Actual owner receipts, live
+shared Render backup/persistence, off-service exports, the consenting two-wallet
+pilot and remaining release/security gates are still outstanding. No mainnet
+activation, Render configuration or fee-bearing transaction occurred here.
+Continue with personal messaging, then DAO shared inbox/recovery, then payment
+requests/invoices and Treasury linkage. The broader Faucet-header follow-up and
+issue #119 remain separate; neither was completed by this integration.
+
 ## Verified continuation checkpoint — 7 October 2026, 12:10 Berlin
 
 The owner requested another handoff refresh after the chat became unusable and
