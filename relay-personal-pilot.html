@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://neta-junox-faucet.onrender.com https://juno-api.polkachu.com https://juno.api.m.stavr.tech https://juno-rpc.polkachu.com https://rpc-juno.whispernode.com; img-src 'self' data:; font-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Personal Inbox pilot · NETA Reborn</title><link rel="icon" href="favicon.ico">
+<link rel="stylesheet" href="neta-ui.css"><link rel="stylesheet" href="juno-faucet.css">
+<link rel="stylesheet" href="community-tools-header.css"><link rel="stylesheet" href="relay-personal-inbox.css">
+<link rel="stylesheet" href="relay-personal-pilot.css">
+<script defer src="assets/relay-personal-pilot-signing.js?v=20261007-1"></script>
+<script type="module" src="relay-personal-pilot.js?v=20261007-1"></script>
+</head><body>
+<a class="skip-link" href="#pilot-main">Skip to content</a>
+<header class="gov-header faucet-header">
+  <a class="gov-brand" href="index.html">NETA REBORN</a><span class="faucet-header-label">PERSONAL INBOX PILOT</span>
+  <a class="faucet-dao-promo" href="index.html#relay">
+    <img src="assets/design/assembly-plaza.webp" width="76" height="76" alt="">
+    <span class="faucet-dao-copy"><strong>dao.netareborn.com</strong><span>Back to your workspace</span></span><span class="faucet-dao-arrow" aria-hidden="true">↗</span>
+  </a>
+  <div class="gov-controls"><span class="community-network">JUNO MAINNET</span><button id="pilot-connect" type="button" aria-describedby="pilot-status">Connect Keplr</button><button id="pilot-disconnect" type="button" hidden>Disconnect</button></div>
+</header>
+<main id="pilot-main" class="pilot-shell">
+  <header><p class="eyebrow">PRIVATE TWO-WALLET PILOT</p><h1>Your encrypted inbox.</h1>
+  <p>Test registration, contact permission, messages and recovery with the two participating wallets. Each transaction has its own review and Keplr confirmation. Real JUNO network fees apply.</p>
+  <p>Receiving and reading your messages do not require a .neta name. Sending requires an active owned name and the recipient’s permission.</p></header>
+  <p id="pilot-wallet" class="wallet-address"></p><p id="pilot-status" role="status" aria-live="polite">Connect Keplr to begin.</p>
+  <div id="pilot-inbox" hidden></div>
+  <details class="pilot-notes"><summary>Pilot notes and recovery</summary>
+    <p>Save your generated messaging recovery code separately before registering. Keep this browser’s site data and pending actions. An uncertain transaction must be checked, not sent again.</p>
+    <p>This pilot is still testing backup and recovery. Backups contain encrypted data; your wallet signature permits access to your own backup. Restoring in another browser opens history read-only until you explicitly confirm a new messaging device.</p>
+    <p>The public Inbox and shared DAO mailboxes remain inactive. The backup service currently admits only the two pilot wallets.</p>
+  </details>
+</main></body></html>

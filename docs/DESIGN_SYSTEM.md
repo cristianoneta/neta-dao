@@ -542,3 +542,14 @@ separate from block agreement, and current signing distinct from responsiveness.
 The chronological power buildup belongs in a compact closed disclosure; measure
 and sort controls stay conventional native selects. Preserve the optional first
 block-signature view as separate evidence, never a readiness substitute.
+
+## Restricted personal pilot page — 2026-10-07
+
+Use a separate operator URL while the public Inbox release remains null. Reuse the
+Community Tools/Faucet header, one wallet connection and the existing personal
+Inbox component, with graphite/mint foundations. Show private pilot, Juno mainnet,
+explicit fees and sender-only name eligibility. Keep recovery guidance collapsed;
+do not add a second wallet selector or an automatic registration flow. Client-side
+participant filtering complements the independently enforced server allowlist and
+wallet signatures; it is not a substitute for backend authorization. Disconnect,
+wallet change and leaving the page clear plaintext while retaining saved journals.
