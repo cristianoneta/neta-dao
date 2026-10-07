@@ -9,7 +9,7 @@ had become unusable. This update changes documentation only.
 
 - Repository: https://github.com/cristianoneta/neta-dao
 - Live workspace: https://dao.netareborn.com/
-- **Juno upgrade status:** https://dao.netareborn.com/juno-upgrade-status.html
+- **Juno upgrade status:** https://dao.netareborn.com/community-tools/validator-upgrades/juno-v31/
 - **Owner mailbox deployment:** https://dao.netareborn.com/relay-personal-deploy.html
 - **Continue personal messaging in draft [PR #195](https://github.com/cristianoneta/neta-dao/pull/195)**,
   branch `codex/personal-messaging-recovery-mainnet`, verified application head
@@ -43,6 +43,19 @@ tracker. This documentation session independently verified GitHub merge/Pages/CI
 records, not a new browser session or current chain recovery.
 
 ## Juno v31 interruption and tracker
+
+**Community Tools follow-up:** the owner approved publication on 7 October.
+The hub is `/community-tools/`, with Juno Faucet and Validator Upgrade Status
+as children, and a permanent v31 upgrade detail page. The shared footer now says
+Community Tools. The first-signature column measures observed signing delay from
+the halt plus block offset after restart, not actual binary readiness.
+
+**Tracker follow-up:** the owner reported advancing blocks but all-zero live-round
+votes. The compact correction uses five canonical committed blocks for participation,
+with one summary/list and collapsed source details. See the correction section in
+[JUNO_UPGRADE_MONITOR_2026-10-07.md](JUNO_UPGRADE_MONITOR_2026-10-07.md).
+The original round-only UI description below is historical. A missing signature
+does not prove a failed upgrade; current values must come from a fresh observation.
 
 During the prior session, independent public nodes remained at committed height
 **42,452,000**, block time **2026-10-07 06:56:31 UTC (08:56:31 Berlin)**, the scheduled

@@ -4,7 +4,7 @@ import http from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
 import {chromium} from 'playwright';
 const root=new URL('../../',import.meta.url);
-const server=http.createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;if(path.includes('..'))throw Error();const body=await readFile(new URL('.'+path,root));res.writeHead(200,{'content-type':/\.m?js$/.test(path)?'text/javascript':path.endsWith('.css')?'text/css':'text/html'}).end(body);}catch{res.writeHead(404).end();}});
+const server=http.createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname.replace(/\/$/,'/index.html');if(path.includes('..'))throw Error();const body=await readFile(new URL('.'+path,root));res.writeHead(200,{'content-type':/\.m?js$/.test(path)?'text/javascript':path.endsWith('.css')?'text/css':'text/html'}).end(body);}catch{res.writeHead(404).end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 const address='juno1qurswpc8qurswpc8qurswpc8qurswpc89pyp8a';
 const apiOrigin='https://neta-junox-faucet.onrender.com';
@@ -36,7 +36,7 @@ try{
  // Preserve coverage for independently available donations when payouts are unconfigured.
  await context.route('**/juno-faucet-config.mjs*',route=>route.fulfill({contentType:'text/javascript',body:`export const FAUCET={api:null,address:${JSON.stringify(faucetAddress)}};`}));
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('Page error:',e.message);});page.on('console',m=>{if(m.type()==='error')console.error(m.text());});
- await page.goto(origin+'/juno-faucet.html');await page.getByText('Live UNI-7 data',{exact:false}).waitFor({timeout:10000}).catch(async e=>{console.error(await page.locator('#chain-status').innerText());throw e;});
+ await page.goto(origin+'/juno-faucet.html');await page.waitForURL('**/community-tools/juno-faucet/');await page.getByText('Live UNI-7 data',{exact:false}).waitFor({timeout:10000}).catch(async e=>{console.error(await page.locator('#chain-status').innerText());throw e;});
  assert.match(await page.locator('#faucet-status').innerText(),/not active/);assert.equal(await page.locator('#request').isDisabled(),true);
  assert.equal(await page.locator('#donate').isDisabled(),true);
  assert.match(await page.locator('#faucet-balance').innerText(),new RegExp(faucetAddress));
