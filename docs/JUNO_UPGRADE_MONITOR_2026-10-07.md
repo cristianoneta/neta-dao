@@ -124,7 +124,10 @@ an existing first observation, interprets nil as a block signature, or overwrite
 corrupt saved evidence. Each actual JSON record includes its transaction-independent
 commit hash, signature and timestamp. This is RPC-checked evidence, not local
 Ed25519 signature verification. The half-hour workflow continues partial scans,
-publishing only `data/validator-upgrades/*.json`; completed histories require no
+with a 120-second scan budget and a 1,000-block cap so ordinary block production
+does not permanently outrun a 200-block-per-half-hour limit. A slow or unavailable
+provider can still delay the archive; the scanned-through watermark remains visible.
+It publishes only `data/validator-upgrades/*.json`; completed histories require no
 further node requests. Source disagreement stops at the last accepted prefix.
 The browser reads this separate dated history at most every five minutes and never
 turns an unavailable archive into zero delay. Current participation remains the
@@ -142,5 +145,14 @@ Verification includes the real first canonical v31 commit's schema, six collecto
 unit tests, three browser-history parser tests, the existing core/frontend/faucet
 checks, the expanded tracker browser regression, legacy redirects and the faucet
 browser regression under its new path. Desktop, tablet and narrow layouts were
-reviewed. Browser transaction tests remain simulated; publication evidence follows
-only after CI and deployment are verified.
+reviewed. Browser transaction tests remain simulated; the live publication evidence
+is recorded separately below.
+
+Publication verified: PR #208 merged as `d8172c1d383761ac069d328388ca99127194b933`
+after all four hosted checks passed. Pages run `37596259987` succeeded. The first
+production collector run `37596259838` advanced to height 42,452,320, recording
+16 of 25 first signatures (including GATA HUB at 42,452,230). Its data commit
+`80b369e9770aaa20545f8731da27357210715422` triggered successful Pages run
+`37596335635`; the public JSON and live browser both showed that checkpoint.
+At 08:50 UTC the independent live window showed 17/25 and 76.68% signing power,
+both sources agreeing. Those are dated observations, not fixed status values.

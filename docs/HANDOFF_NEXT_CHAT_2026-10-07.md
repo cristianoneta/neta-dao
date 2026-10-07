@@ -30,6 +30,7 @@ generated Treasury/member snapshots and all existing candidate changes.
 | Large-WASM HTTP 400 correction | PR #204 merged as `1ef796b54c1302407bf2478b2f6301b8b3ce1d46` |
 | Visible wallet/network errors and bounded RPC connection | PR #205 merged as `69f6241c743374927f2eb3c3047c10434d2dba1e`; Pages run `37588644835` succeeded |
 | Read-only Juno validator consensus tracker | PR #206 merged as `8a58a1b7813beef265f6627bdb31806b361e76a8`; Pages run `37589754547` succeeded |
+| Community Tools, compact participation tracker and signature history | PR #208 merged as `d8172c1d383761ac069d328388ca99127194b933`; four PR checks passed, Pages `37596259987` succeeded; live UI and first automated archive publication verified |
 | Full personal messaging and shared Faucet backup integration | PR #195 is **open, draft and unmerged**; all five workflows pass at the application head above |
 | Real personal-mailbox upload/instantiate receipts | Still unrecorded; do not invent a code ID, address or successful owner transaction |
 | Live shared Render backup deployment and two-wallet pilot | Still unverified; source implementation is not live-service evidence |
@@ -49,6 +50,10 @@ The hub is `/community-tools/`, with Juno Faucet and Validator Upgrade Status
 as children, and a permanent v31 upgrade detail page. The shared footer now says
 Community Tools. The first-signature column measures observed signing delay from
 the halt plus block offset after restart, not actual binary readiness.
+Published and checked live at 08:50 UTC: 17/25 validators, 76.68% signing power,
+both observers agreeing. The separate archive had reached 42,452,320 with 16
+first signatures; the bounded collector continues automatically. These are dated
+observations; fetch fresh data before drawing conclusions about a validator.
 
 **Tracker follow-up:** the owner reported advancing blocks but all-zero live-round
 votes. The compact correction uses five canonical committed blocks for participation,
