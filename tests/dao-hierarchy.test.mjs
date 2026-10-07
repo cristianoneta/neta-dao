@@ -28,8 +28,10 @@ test('formal NETA hierarchy is explicit, Main first; legacy and canonical links 
  assert.equal(resolveSelection(new URLSearchParams(),organizations,daos).consolidated,true);
 });
 test('consolidation preserves custody positions, missing units, stale dates and rejects overlaps',()=>{
- const sources=units.map(dao=>({dao,data:read(dao.snapshot),history:read(dao.history)}));
+ // Bot snapshots advance daily; pin only the fixture clock for freshness checks.
+ const sources=units.map(dao=>({dao,data:{...read(dao.snapshot),generated_at:new Date(now).toISOString()},history:read(dao.history)}));
  const result=consolidateSnapshots(sources,now);
+ assert.ok(result.components.every(s=>!s.stale));
  assert.equal(result.loaded,2);assert.equal(result.assets.length,sources.reduce((n,s)=>n+s.data.assets.length,0));
  assert.ok(result.assets.some(a=>a.unit_name==='Operations'&&a.source_chain==='osmosis'));
  assert.ok(result.assets.some(a=>a.unit_name==='Main'));
