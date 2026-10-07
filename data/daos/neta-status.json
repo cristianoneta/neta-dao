@@ -1,12 +1,12 @@
 {
   "accounting": {
-    "status": "unavailable"
+    "status": "completed"
   },
   "balances": {
     "status": "completed"
   },
   "events": {
-    "status": "unavailable"
+    "status": "completed"
   },
-  "checked_at": "2026-10-07T07:49:17.870766+00:00"
+  "checked_at": "2026-10-07T08:22:05.084334+00:00"
 }

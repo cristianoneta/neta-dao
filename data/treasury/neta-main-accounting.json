@@ -7,19 +7,17 @@
   "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "PARTIAL",
-  "refresh_status": "unavailable",
-  "checked_at": "2026-10-07T07:48:59.473900Z",
-  "last_success_at": "2026-10-07T06:53:49.239269Z",
+  "refresh_status": "completed",
+  "checked_at": "2026-10-07T08:21:39.895918Z",
+  "last_success_at": "2026-10-07T08:21:39.895918Z",
   "source": {
     "provider": "https://juno.api.m.stavr.tech",
-    "through_height": 42451914,
+    "through_height": 42452335,
     "indexed_transactions": 4
   },
   "warnings": [
     "Whole-Treasury history and expense classification are incomplete. Totals, result and missing categories are unavailable, not zero.",
-    "NNS values are a subtotal of matched receipts, not a guarantee of complete registry history.",
-    "https://juno.api.m.stavr.tech: receipt refresh unavailable (ValueError); existing evidence retained.",
-    "https://juno-api.polkachu.com: receipt refresh unavailable (HTTPError); existing evidence retained."
+    "NNS values are a subtotal of matched receipts, not a guarantee of complete registry history."
   ],
   "entries": [
     {
@@ -56,7 +54,7 @@
   "movement_review": {
     "accounting_start": "2026-10-01T00:00:00Z",
     "status": "PARTIAL",
-    "event_refresh_status": "UNAVAILABLE",
+    "event_refresh_status": "PARTIAL",
     "matched_receipts": 1,
     "unmatched_receipt_ids": [],
     "unreviewed_movements": 0,

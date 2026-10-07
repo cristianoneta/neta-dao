@@ -1,6 +1,6 @@
 {
   "accounting_start": "2026-10-01T00:00:00Z",
-  "checked_at": "2026-10-07T07:49:00.190660Z",
+  "checked_at": "2026-10-07T08:21:44.198981Z",
   "cursor": {
     "chains": [
       {
@@ -14,7 +14,7 @@
         "accounting_start": "2026-10-01T00:00:00Z",
         "adapter": "cosmos-rest-receipts",
         "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
-        "anchor_hash": "EEED7742DB09F1E398313B28CB3901BD60C901E68A7EDB7D992CCE16467CEB29",
+        "anchor_hash": "0B76D04FAE7C3E136B0F34FC0603C25EC30C3CE355178A1AA34559FAA45410DC",
         "chain_id": "juno-1",
         "coverage": "provider-index-only",
         "historical_missing_transactions": 0,
@@ -22,7 +22,7 @@
         "incremental": true,
         "indexed_transactions": 0,
         "last_full_replay_day": "2026-10-07",
-        "last_scanned_height": 42451915,
+        "last_scanned_height": 42452335,
         "query_keys": [
           "wasm._contract_address",
           "transfer.sender",
@@ -68,7 +68,7 @@
           ]
         ],
         "range_capable": true,
-        "scan_start_height": 42451109,
+        "scan_start_height": 42451815,
         "source": "https://juno.api.m.stavr.tech"
       }
     ],
@@ -122,8 +122,8 @@
       "type": "inflow"
     }
   ],
-  "generated_at": "2026-10-07T06:53:52.382444Z",
-  "last_success_at": "2026-10-07T06:53:52.382444Z",
+  "generated_at": "2026-10-07T08:21:44.198949Z",
+  "last_success_at": "2026-10-07T08:21:44.198949Z",
   "nns": {
     "accounting_file": "neta-main-accounting.json",
     "note": "Matched NNS receipts are collected separately; historical events alone do not establish complete naming revenue.",
@@ -144,7 +144,7 @@
       "accounting_start": "2026-10-01T00:00:00Z",
       "adapter": "cosmos-rest-receipts",
       "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
-      "anchor_hash": "EEED7742DB09F1E398313B28CB3901BD60C901E68A7EDB7D992CCE16467CEB29",
+      "anchor_hash": "0B76D04FAE7C3E136B0F34FC0603C25EC30C3CE355178A1AA34559FAA45410DC",
       "chain_id": "juno-1",
       "coverage": "provider-index-only",
       "historical_missing_transactions": 0,
@@ -152,7 +152,7 @@
       "incremental": true,
       "indexed_transactions": 0,
       "last_full_replay_day": "2026-10-07",
-      "last_scanned_height": 42451915,
+      "last_scanned_height": 42452335,
       "query_keys": [
         "wasm._contract_address",
         "transfer.sender",
@@ -198,11 +198,11 @@
         ]
       ],
       "range_capable": true,
-      "scan_start_height": 42451109,
+      "scan_start_height": 42451815,
       "source": "https://juno.api.m.stavr.tech"
     }
   ],
-  "status": "UNAVAILABLE",
+  "status": "PARTIAL",
   "treasuries": [
     {
       "address": "juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6",
@@ -210,7 +210,6 @@
     }
   ],
   "warnings": [
-    "Historical transaction source unavailable; retained records are not a complete history.",
-    "Receipt refresh unavailable; https://juno.api.m.stavr.tech: ValueError: Stale chain tip | https://juno-api.polkachu.com: HTTPError: HTTP Error 502: Bad Gateway"
+    "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses."
   ]
 }
