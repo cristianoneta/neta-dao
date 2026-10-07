@@ -1,0 +1,158 @@
+{
+  "observedAt": "2026-10-07T11:15:31.284418+00:00",
+  "origin": "https://neta-junox-faucet.onrender.com",
+  "serviceId": "srv-db10ddc9v7es73dbg45g",
+  "applicationCommit": "052e736a87d44bbe3743524b1a547822bc6dbf81",
+  "enabledDeploy": "dep-db32ib67bikc73bf5qkg",
+  "allPassed": true,
+  "checks": [
+    {
+      "check": "unchanged-faucet-identity-policy-and-balance",
+      "passed": true,
+      "status": 200,
+      "body": {
+        "chainId": "uni-7",
+        "address": "juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt",
+        "amount": "25000000",
+        "intervalSeconds": 86400,
+        "balance": "498156614",
+        "ready": true,
+        "protection": "usage-guards-v1",
+        "confirmation": "uni7-exact-hash-v1",
+        "gasPolicy": "bank-send-gas-v1",
+        "pause": null
+      },
+      "cors": "https://dao.netareborn.com",
+      "allowMethods": null,
+      "allowHeaders": null,
+      "cacheControl": "no-store",
+      "contentType": "application/json"
+    },
+    {
+      "check": "backup-health-over-verified-https",
+      "passed": true,
+      "status": 200,
+      "body": {
+        "ok": true
+      },
+      "cors": null,
+      "allowMethods": null,
+      "allowHeaders": null,
+      "cacheControl": "no-store",
+      "contentType": "application/json"
+    },
+    {
+      "check": "exact-origin-cors-preflight",
+      "passed": true,
+      "status": 204,
+      "body": null,
+      "cors": "https://dao.netareborn.com",
+      "allowMethods": "GET, POST, PUT",
+      "allowHeaders": "Content-Type, Authorization",
+      "cacheControl": null,
+      "contentType": null
+    },
+    {
+      "check": "other-origin-preflight-denied",
+      "passed": true,
+      "status": 403,
+      "body": {
+        "error": "Origin denied"
+      },
+      "cors": null,
+      "allowMethods": null,
+      "allowHeaders": null,
+      "cacheControl": "no-store",
+      "contentType": "application/json"
+    },
+    {
+      "check": "missing-origin-denied",
+      "passed": true,
+      "status": 403,
+      "body": {
+        "error": "Origin denied"
+      },
+      "cors": null,
+      "allowMethods": null,
+      "allowHeaders": null,
+      "cacheControl": "no-store",
+      "contentType": "application/json"
+    },
+    {
+      "check": "unauthenticated-backup-read-denied",
+      "passed": true,
+      "status": 401,
+      "body": {
+        "error": "Authentication required"
+      },
+      "cors": "https://dao.netareborn.com",
+      "allowMethods": null,
+      "allowHeaders": null,
+      "cacheControl": "no-store",
+      "contentType": "application/json"
+    },
+    {
+      "check": "invalid-token-write-denied",
+      "passed": true,
+      "status": 401,
+      "body": {
+        "error": "Authentication required"
+      },
+      "cors": "https://dao.netareborn.com",
+      "allowMethods": null,
+      "allowHeaders": null,
+      "cacheControl": "no-store",
+      "contentType": "application/json"
+    },
+    {
+      "check": "nonallowlisted-wallet-denied",
+      "passed": true,
+      "status": 429,
+      "body": {
+        "error": "Invalid wallet or challenge capacity"
+      },
+      "cors": "https://dao.netareborn.com",
+      "allowMethods": null,
+      "allowHeaders": null,
+      "cacheControl": "no-store",
+      "contentType": "application/json",
+      "expectedStatus": 429,
+      "note": "Initial smoke assertion expected 400; source inspection confirms the shared error text contains capacity and maps this refusal to 429. Original observed response retained."
+    },
+    {
+      "check": "owner-challenge-binds-exact-origins-chain-mailbox-wallet",
+      "passed": true,
+      "status": 200,
+      "body": {
+        "message": {
+          "purpose": "NETA RELAY encrypted backup access v1",
+          "domain": "https://neta-junox-faucet.onrender.com",
+          "origin": "https://dao.netareborn.com",
+          "scope": "[\"juno-1\",\"juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6\",\"juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57\"]",
+          "expires": 1791371843323
+        },
+        "expires": 1791371843323,
+        "nonceOmitted": true
+      },
+      "cors": "https://dao.netareborn.com",
+      "allowMethods": null,
+      "allowHeaders": null,
+      "cacheControl": "no-store",
+      "contentType": "application/json"
+    },
+    {
+      "check": "invalid-owner-signature-denied",
+      "passed": true,
+      "status": 401,
+      "body": {
+        "error": "Invalid wallet proof"
+      },
+      "cors": "https://dao.netareborn.com",
+      "allowMethods": null,
+      "allowHeaders": null,
+      "cacheControl": "no-store",
+      "contentType": "application/json"
+    }
+  ],
+  "limits": "No valid wallet signature, authenticated backup write, quota exhaustion, stored-envelope restart recovery, or off-service export was performed. No chain transaction or faucet claim was submitted."
+}

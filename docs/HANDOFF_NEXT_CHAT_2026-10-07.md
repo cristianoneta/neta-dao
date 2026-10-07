@@ -1,5 +1,26 @@
 # Next-chat handoff — dao.netareborn.com — 7 October 2026
 
+## Shared Render backup deployed — 7 October 2026, 13:15 Berlin
+
+The existing `neta-junox-faucet` service now runs candidate commit
+`052e736a87d44bbe3743524b1a547822bc6dbf81`, first verified disabled and then enabled
+for the owner wallet only. The original service/plan/disk and Faucet identity,
+balance and 25-JUNOX/day policy are retained. Hosted HTTPS health, exact-origin
+CORS, admission checks and invalid-authentication rejection passed. No real
+backup was uploaded and no mainnet messaging transaction was made.
+
+Read [the hosted deployment record](deployments/RELAY_SHARED_RENDER_2026-10-07.md) for exact settings, deploy IDs and
+public HTTP evidence. Render is connected; workspace `netadao` is already
+confirmed. Environment updates automatically deploy, despite automatic Git
+push deployments being off. No further browser login is needed for MCP-supported
+operations. Do not recreate or upgrade the service.
+
+Next: obtain the second consenting Juno wallet, prepare a reviewed restricted
+pilot client, then valid wallet authentication, encrypted backup/restart/off-service
+restore and the real two-wallet messaging/recovery lifecycle. Both public release
+pins remain null and PR #195 remains draft/unmerged. Backend deployment is not
+public messaging activation. Older missing-Render instructions below are history.
+
 ## Owner deployment completed — next step is the shared Render backup
 
 This section supersedes the earlier missing-receipt and owner-upload instructions.
