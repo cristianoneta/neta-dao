@@ -36,6 +36,19 @@ wallet-change/disconnect invalidation, stale connection cleanup, preserved local
 journals and desktop/tablet/mobile layouts. Wallet/network actions in these checks
 are simulated; they are not real mainnet pilot evidence.
 
+## First real registration — 7 October 2026, 14:00 Berlin
+
+The user's screenshot shows **Inbox ready · encrypted backup confirmed**.
+A read-only STAVR contract query at 12:00 UTC returned the Faucet wallet's device
+at generation 1; the owner wallet's device query returned null. This confirms
+Faucet registration through one provider. The screenshot is client acknowledgement
+of encrypted backup; it is not an independent durability/restart/restore test.
+No secret recovery code was present in the screenshot.
+
+Next: register the owner's inbox, then let the Faucet recipient allow that
+registered owner, then send the first owner-to-Faucet message. Do not ask the
+Faucet wallet to register again. Existing encrypted state must be unlocked.
+
 ## User's first real test
 
 1. Open the pilot page in a Keplr browser and select the Faucet wallet
@@ -46,13 +59,16 @@ are simulated; they are not real mainnet pilot evidence.
    Do not share it in chat, logs or screenshots. Choose **Create inbox**, inspect
    the registration review, and confirm the transaction in Keplr if correct.
    Keplr displays the real JUNO network fee.
-3. After confirmed registration, set the owner address as the contact and choose
+3. Switch to the owner's wallet and create/register its own inbox with its own
+   separately saved recovery code. Both participants must have an active registered
+   device before consent: permission is bound to both device generations.
+4. Switch back to the Faucet wallet and unlock its existing inbox using its own
+   recovery code. Set the owner address as the contact and choose
    **Contact permissions → Allow messages**. Review and confirm in Keplr.
-4. In the owner's wallet/browser, create or unlock its own inbox with its own
-   recovery code. Send one short test message to the Faucet address, which must
-   have allowed the owner first. Sending requires an active owned .neta name;
+5. Switch to the owner, unlock its existing inbox and send one short test message
+   to the Faucet address. Sending requires an active owned .neta name;
    the unnamed receiving wallet needs none.
-5. On the recipient, check and read the message, reload/unlock, then retain the
+6. On the recipient, check and read the message, reload/unlock, then retain the
    same message after another read. Save only public transaction receipts and
    non-secret success/error observations.
 
@@ -66,9 +82,11 @@ wallet is not already in the user's own Keplr, the user must arrange wallet acce
 
 The two-wallet service admission and unauthenticated transport checks passed;
 see [the hosted service record](RELAY_SHARED_RENDER_2026-10-07.md).
-Real backup authentication/write/read, restart persistence of stored encrypted
-blobs, off-service snapshot/restore, hosted revision/quota behavior, and the real
-send/read/reload/new-browser restore/device-rotation lifecycle remain unproven.
+The first Faucet registration is now observed on-chain and the user's client
+acknowledges its encrypted backup. Independent verification of hosted authenticated
+write/read, restart persistence of stored encrypted blobs, off-service snapshot/
+restore, hosted revision/quota behavior, and the real send/read/reload/new-browser
+restore/device-rotation lifecycle still remain.
 No real wallet signature or mainnet transaction was made by the assistant.
 The temporary admission list is a private-pilot restriction; the intended public
 registration model is wallet self-service with signatures and quotas.
