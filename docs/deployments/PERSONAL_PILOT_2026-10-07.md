@@ -36,6 +36,26 @@ wallet-change/disconnect invalidation, stale connection cleanup, preserved local
 journals and desktop/tablet/mobile layouts. Wallet/network actions in these checks
 are simulated; they are not real mainnet pilot evidence.
 
+## Real send/read/reload checkpoint — 7 October 2026, 14:17 Berlin
+
+- At 12:05 UTC, STAVR returned active generation-1 devices for both pilot wallets.
+- At 12:08 UTC, the Faucet recipient's consent for the owner returned [1,1].
+- At 14:11 Berlin, the user supplied UI text showing a decrypted incoming message
+  from the owner and an acknowledged encrypted backup. At 14:13 the user confirmed
+  the message remained readable after reloading and reopening the recipient inbox.
+- At 14:17, the user explicitly deferred further fresh-browser testing. The
+  preceding attempted browser change was not established as a genuinely separate
+  profile and did not establish read-only restore or rotation. Do not mark it passed
+  or repeatedly ask the user to perform it now.
+
+The basic mainnet send/receive/local-reopen test is successful based on the user's
+visible result and confirmation. Public contract device/consent observations came
+from one provider. Exact message transaction receipts and independent hosted
+durability evidence were not collected. No private message body, recovery code,
+wallet secret or authenticated backup bundle is included in this public record.
+The deferred check does not change the two-wallet service admission or public
+release flags. Proceed with DAO recovery implementation; retain these follow-ups.
+
 ## First real registration — 7 October 2026, 14:00 Berlin
 
 The user's screenshot shows **Inbox ready · encrypted backup confirmed**.
@@ -82,11 +102,14 @@ wallet is not already in the user's own Keplr, the user must arrange wallet acce
 
 The two-wallet service admission and unauthenticated transport checks passed;
 see [the hosted service record](RELAY_SHARED_RENDER_2026-10-07.md).
-The first Faucet registration is now observed on-chain and the user's client
-acknowledges its encrypted backup. Independent verification of hosted authenticated
-write/read, restart persistence of stored encrypted blobs, off-service snapshot/
-restore, hosted revision/quota behavior, and the real send/read/reload/new-browser
-restore/device-rotation lifecycle still remain.
+Both devices and recipient consent are observed on-chain. The user confirmed
+successful send/read/reload and the client acknowledged encrypted backup.
+Independent hosted authenticated write/read evidence, restart persistence of
+stored encrypted blobs, off-service snapshot/restore and hosted revision/quota
+behavior remain open. Fresh-browser read-only restore and device rotation are
+explicitly deferred by the owner. A reply test is also outstanding; the receiving
+Faucet wallet has no verified active sender name. Do not represent these remaining
+items as completed or require another immediate browser test.
 No real wallet signature or mainnet transaction was made by the assistant.
 The temporary admission list is a private-pilot restriction; the intended public
 registration model is wallet self-service with signatures and quotas.

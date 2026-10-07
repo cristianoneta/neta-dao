@@ -1,5 +1,39 @@
 # NETA DAO handoff
 
+## Personal mainnet send/read/reload passed; browser restore deferred — 7 October 2026, 14:17 Berlin
+
+Both owner and Faucet devices were active at generation 1 (read-only STAVR query,
+12:05 UTC). Faucet-to-owner receiving permission returned [1,1] at 12:08 UTC.
+The user then confirmed readable receipt of the owner's encrypted message in the
+Faucet inbox at 14:11 Berlin and confirmed it remained readable after reload at
+14:13. The UI acknowledged encrypted backup. Message plaintext and recovery codes
+are deliberately not recorded in this public handoff. Exact messaging transaction
+receipts have not yet been collected; distinguish user-observed decryption/reload
+from independently verified contract device/consent state.
+
+At 14:17 the owner explicitly deferred the fresh-browser test. Do not keep asking
+them to repeat it. Fresh-profile read-only restore and reviewed device rotation
+remain open, not passed; automated candidate coverage is separate from real-user
+evidence. Hosted restart persistence, off-service snapshots/restores, and remaining
+release checks are also still open. No new activation is implied: the two-wallet
+pilot is live, public Inbox pins remain null, and PR #195 remains draft/unmerged.
+
+Continue the agreed DAO track: coherent multi-recipient outbound/inbound recovery,
+authenticated archive/cursors/history, prekey refill and rotation; reuse personal
+recovery infrastructure and preserve existing journals. Then a reviewed direct
+mainnet DAO pilot, as the owner previously chose, rather than repeating obsolete
+UNI-7 deployment instructions. DAO reception stays opt-in with a compact Inbox
+selector and one shared open/assigned/answered conversation. Payment requests,
+invoices, milestone evidence and Treasury/proposal linkage follow. Existing code
+5170 has DAO writes disabled; any DAO deployment/migration needs explicit reviewed
+wallet/governance actions and preservation of current personal state.
+
+[Current pilot evidence](docs/deployments/PERSONAL_PILOT_2026-10-07.md).
+Older missing-owner, missing-message and mandatory-next-browser-test instructions
+below are historical; retain their uncompleted evidence limits without repeating
+already completed setup.
+
+
 ## First Faucet inbox registered — 7 October 2026, 14:00 Berlin
 
 The user completed the Faucet inbox registration. STAVR returned its device at
