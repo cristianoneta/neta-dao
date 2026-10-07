@@ -62,6 +62,21 @@ A changed review, account, stale/wrong chain, provider failure, code mismatch,
 missing upgrade admin, policy mismatch or ambiguous event fails closed. Recovery
 uses exact signed intent receipts and never broadcasts automatically.
 
+## Upload size and recovery correction — 7 October 2026
+
+Large WASM uploads now use gzip transport; the original artifact checksum is
+unchanged. The earlier raw RELAY simulation exceeded the RPC's request-body limit
+and returned HTTP 400 before signing. Gzip was verified with a read-only mainnet
+simulation. The actual signed message and all on-chain receipts must still match
+the reviewed uncompressed code exactly; old raw attempts remain recoverable.
+
+After the fix is published, reload/reconnect and use **Check pending transaction**
+to settle the saved attempt. Only a proven not-broadcast result permits a new
+review. An unknown signed/broadcast outcome remains locked; never erase storage.
+
+The owner clarified that `.neta` is required only for sending. An unnamed wallet
+can register, grant contact permission, receive and read its own encrypted messages.
+
 ## Backup service decision and configuration
 
 Owner update, 7 October: use the existing `neta-junox-faucet` Render service for the

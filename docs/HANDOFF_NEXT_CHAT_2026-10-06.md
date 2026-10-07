@@ -1,5 +1,36 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Upload HTTP 400 fix and sender-only name requirement — 7 October 2026
+
+The owner hit HTTP 400 after reviewing the personal mailbox upload. A read-only
+mainnet simulation reproduced it: the 513,331-byte raw WASM becomes a 1,027,263-byte
+hex-encoded ABCI request; PolkaChu returns `request body too large`. The same code
+with gzip is 127,833 bytes, yields a 256,267-byte request and simulates successfully
+(2,913,204 gas at the observed block). No probe signed or broadcast anything.
+
+The shared signing bridge now compresses large store-code messages before fee
+simulation and signing, checks decompressed code byte-for-byte with a bounded
+reader, and still recovers legacy raw transactions. Pending request identities,
+signed-byte journals and the reviewed WASM checksum stay unchanged. No dependency
+was added. A failed HTTP simulation explicitly explains that no broadcast occurred;
+only recorded evidence can settle the attempt through **Check pending transaction**.
+Reload the owner page after the fixed bundle is published, reconnect the same
+wallet and recover the existing attempt before reviewing another upload. Never
+clear site data or repeat an unknown transaction. Confirm the public Pages artifact
+and CI before directing the owner to retry.
+
+Owner clarification: **only sending requires an active owned .neta name**.
+Registration, contact permission, receiving and reading one's own messages do not.
+An additional contract regression demonstrates an unnamed recipient receiving
+and querying ciphertext, while unnamed sending is rejected. Plaintext remains
+protected by the recipient's messaging keys; no public-read change is introduced.
+The contract production source and v0.4 WASM are unchanged; only its tests changed.
+
+Local verification: 159 root Node tests, 62 Faucet/signing tests, 33 mailbox tests,
+the owner-page browser regression and the new real-bundle browser gzip/recovery
+test. Live owner deployment and the actual receipt JSON are still outstanding.
+The shared Faucet backup decision, inactive public release and PR #195 remain.
+
 ## Shared pilot and simpler Inbox — 7 October 2026
 
 Owner decision: use the existing `neta-junox-faucet` Render service for RELAY
