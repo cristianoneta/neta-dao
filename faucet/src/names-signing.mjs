@@ -39,6 +39,32 @@ function message(r){
   if(r.kind==='instantiate')return {typeUrl:INSTANTIATE,value:MsgInstantiateContract.fromPartial({sender:r.owner,admin:r.migrationAdmin||'',codeId:BigInt(r.codeId),label:r.label,msg:encoder.encode(JSON.stringify(r.msg)),funds:[]})};
   return {typeUrl:TYPE,value:MsgExecuteContract.fromPartial({sender:r.owner,contract:r.contract,msg:encoder.encode(JSON.stringify(r.msg)),funds:[]})};
 }
+async function uploadMessage(r){
+  const m=message(r);
+  // ABCI simulation hex-encodes the protobuf request. Large raw WASM can exceed
+  // the RPC's 1 MB JSON limit before Keplr opens. CosmWasm accepts gzip code.
+  if(r.kind==='store'&&m.value.wasmByteCode.length>400000){
+    const stream=new Blob([m.value.wasmByteCode]).stream().pipeThrough(new CompressionStream('gzip'));
+    const compressed=new Uint8Array(await new Response(stream).arrayBuffer());
+    if(compressed.length<m.value.wasmByteCode.length)m.value.wasmByteCode=compressed;
+  }
+  return m;
+}
+async function matchesCompressedStore(actual,expected){
+  const decoded=MsgStoreCode.decode(actual),compressed=decoded.wasmByteCode;
+  if(compressed[0]!==31||compressed[1]!==139||compressed.length>expected.wasmByteCode.length+256)return false;
+  // Check canonical fields too: no alternate sender, permissions or hidden fields.
+  if(!same(actual,MsgStoreCode.encode({...expected,wasmByteCode:compressed}).finish()))return false;
+  const reader=new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();
+  let offset=0;
+  try{
+    while(true){const {done,value}=await reader.read();if(done)break;
+      if(offset+value.length>expected.wasmByteCode.length||!same(value,expected.wasmByteCode.subarray(offset,offset+value.length))){await reader.cancel();return false;}
+      offset+=value.length;
+    }
+    return offset===expected.wasmByteCode.length;
+  }catch{return false;}finally{reader.releaseLock();}
+}
 function save(storage,key,row){const raw=JSON.stringify(row);storage.setItem(key,raw);if(storage.getItem(key)!==raw)throw Error('Names transaction record could not be verified.');}
 function recordedRequest(r){if(r.kind!=='store')return r;const copy={...r};delete copy.wasm;return copy;}
 function rowFor(storage,r,chainId){
@@ -48,11 +74,14 @@ function rowFor(storage,r,chainId){
   return row;
 }
 // Check actual protobuf payload; a successful hash from another action is insufficient.
-export function matchTransaction(bytes,r){
+export async function matchTransaction(bytes,r){
   requestValid(r);
   const raw=TxRaw.decode(bytes),body=TxBody.decode(raw.bodyBytes),auth=AuthInfo.decode(raw.authInfoBytes),expected=message(r);
   if(body.messages.length!==1||body.messages[0].typeUrl!==expected.typeUrl||body.memo!==r.memo||body.extensionOptions.length||body.nonCriticalExtensionOptions.length||body.timeoutHeight!==0n||raw.signatures.length!==1||auth.signerInfos.length!==1)throw Error('Transaction does not match this Names intent.');
-  if(!same(body.messages[0].value,codecs[expected.typeUrl].encode(expected.value).finish()))throw Error('Transaction payload does not match this Names intent.');
+  const exact=same(body.messages[0].value,codecs[expected.typeUrl].encode(expected.value).finish());
+  // Old uncompressed signed attempts remain recoverable. Compressed attempts
+  // must expand byte-for-byte to the same reviewed WASM; never re-sign recovery.
+  if(!exact&&!(r.kind==='store'&&await matchesCompressedStore(body.messages[0].value,expected.value)))throw Error('Transaction payload does not match this Names intent.');
   return raw;
 }
 function feeMatches(raw,fee){
@@ -74,7 +103,7 @@ export function createBridge({chainId='uni-7',client,lookup,assertWallet,verifyD
     if(!/^[A-F0-9]{64}$/.test(hashValue))throw Error('Invalid transaction hash.');
     const found=await lookup(hashValue);
     if(!found||found.hash!==hashValue||!found.tx||hash(found.tx)!==hashValue||!Number.isSafeInteger(found.height)||found.height<1||!Number.isInteger(found.code)||found.code<0)throw Error('Transaction outcome is still unknown.');
-    matchTransaction(found.tx,r);
+    await matchTransaction(found.tx,r);
     return {transactionHash:hashValue,chainId,height:found.height,code:found.code,intentMatched:true,events:found.events||[]};
   }
   async function execute(request,{beforeSign=async()=>{}}={}){
@@ -97,7 +126,7 @@ export function createBridge({chainId='uni-7',client,lookup,assertWallet,verifyD
         let signed;
         try {
           signed=await client.sign(sender,messages,fee,memo);
-          const bytes=TxRaw.encode(signed).finish();matchTransaction(bytes,r);feeMatches(signed,fee);
+          const bytes=TxRaw.encode(signed).finish();await matchTransaction(bytes,r);feeMatches(signed,fee);
           // Account changes while the wallet popup is open must not broadcast.
           await assertWallet(r.owner);
           await beforeSign();
@@ -125,10 +154,18 @@ export function createBridge({chainId='uni-7',client,lookup,assertWallet,verifyD
     try {
       await verifyDeployment();await assertWallet(r.owner);
       if(await client.getChainId()!==chainId)throw Error('Names network mismatch.');
-      const gas=await client.simulate(r.owner,[message(r)],r.memo),maximum=r.kind==='store'?10000000:2000000;
+      const preparedMessage=await uploadMessage(r);
+      let gas;
+      try{gas=await client.simulate(r.owner,[preparedMessage],r.memo);}
+      catch(error){
+        const http=/^Bad status on response: (\d{3})$/.exec(error.message||'');
+        if(http)throw Error('Fee simulation failed before signing (HTTP '+http[1]+'). No broadcast was sent. Use Check pending transaction, then review a new attempt.',{cause:error});
+        throw error;
+      }
+      const maximum=r.kind==='store'?10000000:2000000;
       if(!Number.isSafeInteger(gas)||gas<=0||gas>maximum)throw Error('Transaction gas exceeds the Names limit.');
       const fee=calculateFee(Math.max(250000,Math.ceil(gas*1.8)),GasPrice.fromString(network.gasPrice));
-      return await journalBroadcast(proxy,r.owner,[message(r)],fee,r.memo,{storage,locks});
+      return await journalBroadcast(proxy,r.owner,[preparedMessage],fee,r.memo,{storage,locks});
     }
     catch(error){
       // Before client.sign, this attempt has not produced any broadcast bytes.

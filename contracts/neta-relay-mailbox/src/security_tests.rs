@@ -518,3 +518,72 @@ fn nns_eligibility_gates_sending_not_registration_or_historical_storage() {
     grant(&mut deps, 11);
     rejected_unchanged(&mut deps, "alice", packet(1, 11, false));
 }
+
+#[test]
+fn unnamed_recipient_can_register_consent_receive_and_read_but_cannot_send() {
+    let mut deps = fixture();
+    deps.querier.update_wasm(|q| {
+        let WasmQuery::Smart { contract_addr, msg } = q else {
+            panic!("unexpected query");
+        };
+        assert_eq!(contract_addr, policy::REGISTRY);
+        let json = match from_json::<RegistryQuery>(msg).unwrap() {
+            RegistryQuery::NameOf { address } => {
+                assert_eq!(address, "alice", "recipient must never need a name");
+                r#"{"address":"alice","name":"alice.neta"}"#.to_string()
+            }
+            RegistryQuery::Identity { name } => {
+                assert_eq!(name, "alice.neta");
+                format!(
+                    r#"{{"name":"alice.neta","owner":"alice","expires_at":{}}}"#,
+                    main_env().block.time.seconds() + 100_000
+                )
+            }
+        };
+        SystemResult::Ok(ContractResult::Ok(Binary::from(json.into_bytes())))
+    });
+    execute(
+        deps.as_mut(),
+        main_env(),
+        mock_info("unnamed", &[]),
+        main_register("unnamed", 0),
+    )
+    .unwrap();
+    grant(&mut deps, 1);
+    execute(
+        deps.as_mut(),
+        main_env(),
+        mock_info("alice", &[]),
+        packet(1, 1, true),
+    )
+    .unwrap();
+    // Reading ciphertext has no registry dependency, including during an outage.
+    registry(&mut deps, RegistryCase::Unavailable);
+    let inbox: InboxResponse = from_json(
+        query(
+            deps.as_ref(),
+            main_env(),
+            QueryMsg::Inbox {
+                address: "bob".into(),
+                after: None,
+                limit: Some(10),
+            },
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(inbox.messages.len(), 1);
+    assert_eq!(inbox.messages[0].ciphertext, ciphertext());
+    registry(&mut deps, RegistryCase::Missing);
+    rejected_unchanged(
+        &mut deps,
+        "bob",
+        ExecuteMsg::Send {
+            sender_generation: Some(1),
+            recipient: "alice".into(),
+            recipient_generation: 1,
+            message_id: message_id(2),
+            ciphertext: ciphertext(),
+        },
+    );
+}
