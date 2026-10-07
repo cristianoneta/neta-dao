@@ -1,6 +1,6 @@
 import {CONSENSUS_OBSERVERS,JUNO_UPGRADE_HEIGHT,parseConsensus,parseCommitWindow,percent,observationsAgree,commitWindowsAgree} from './juno-consensus-core.mjs?v=3';
 import {parseUpgradeHistory,duration} from './juno-upgrade-history.mjs';
-import {parseReadiness,readinessTimeline} from './juno-upgrade-readiness.mjs';
+import {parseReadiness,readinessTimeline,firstParticipation} from './juno-upgrade-readiness.mjs?v=2';
 let readiness=null,readinessError='';
 const $=id=>document.getElementById(id),names=new Map();let snapshots=[],busy=false,namesLoaded=0,namesSnapshotLoaded=false,namesLoading=false,history=null,historyError='',historyFetched=0;
 const upgrade={id:document.body.dataset.upgrade||'juno-v31',chainId:'juno-1',height:Number(document.body.dataset.upgradeHeight)||JUNO_UPGRADE_HEIGHT};
@@ -62,8 +62,13 @@ async function loadHistory(){
 }
 function historyCell(address){
  if($('timing').value==='votes'){
-  const cell=el('td',undefined,'first-signature'),record=readiness?.records.get(address);
-  if(record){cell.append(el('span',duration(record.secondsFromHalt)),el('small',new Date(record.timestamp).toLocaleTimeString()+' · '+(record.block?'Block':'Nil')+' '+record.kind));cell.title='Earliest vote in the saved evidence. Validator-reported timestamp; not exact software readiness.';}
+  const cell=el('td',undefined,'first-signature'),record=firstParticipation(address,readiness,history);
+  if(record){
+   const commit=record.evidence==='commit',value=el(commit?'a':'span','≤ '+duration(record.secondsFromHalt));
+   if(commit){value.href=CONSENSUS_OBSERVERS[0].url+'/commit?height='+record.height;value.target='_blank';value.rel='noopener noreferrer';}
+   cell.append(value,el('small','By '+new Date(record.timestamp).toLocaleTimeString()+' · '+(commit?'Block signature':(record.block?'Block':'Nil')+' '+record.kind)));
+   cell.title='Participation evidenced by '+new Date(record.timestamp).toLocaleString()+'. Actual readiness may be earlier; validator-reported time.'+(commit?' First included signature at height '+number(record.height)+'.':' Earliest saved consensus vote.');
+  }
   else cell.append(el('span','Not captured'),el('small','Readiness time unknown'));
   return cell;
  }
@@ -74,9 +79,15 @@ function historyCell(address){
  }else{cell.append(el('span',history?(history.records.has(address)?'Not observed':'Not in upgrade set'):'—'));}
  return cell;
 }
+function evidenceTime(address){
+ const record=$('timing').value==='votes'?firstParticipation(address,readiness,history):history?.records.get(address);
+ return record?Date.parse(record.timestamp):Infinity;
+}
 function renderHistory(){
- const votes=$('timing').value==='votes';$('timing-heading').textContent=votes?'First consensus vote':'First block signature';
- $('history-state').textContent=votes?(readiness?`Partial pre-restart evidence · ${readiness.records.size} validators captured · vote times, not exact installation times.${readinessError?' '+readinessError:''}`:readinessError||'Loading pre-restart votes…'):(history?`First signatures: scanned through ${number(history.scannedThrough)} · delays include the shared network halt.${historyError?' '+historyError:''}`:historyError||'Loading first-signature history…');
+ const votes=$('timing').value==='votes';$('timing-heading').textContent=votes?'First participation evidence':'First block signature';
+ const addresses=new Set([...(readiness?.records.keys()||[]),...(history?.records.keys()||[])]),counts={consensus:0,commit:0};
+ for(const address of addresses){const record=firstParticipation(address,readiness,history);if(record)counts[record.evidence]++;}
+ $('history-state').textContent=votes?(readiness||history?`Partial evidence · ${counts.consensus} consensus votes · ${counts.commit} block signatures. ≤ means participating by this time; readiness may be earlier.${readinessError?' '+readinessError:''}${historyError?' '+historyError:''}`:readinessError||historyError||'Loading participation evidence…'):(history?`First signatures: scanned through ${number(history.scannedThrough)} · delays include the shared network halt.${historyError?' '+historyError:''}`:historyError||'Loading first-signature history…');
  $('history-details').textContent=history?`Halt reference: ${new Date(history.halt.time).toLocaleString()}. First resumed signature: ${history.firstResumedSignatureTime?new Date(history.firstResumedSignatureTime).toLocaleString():'not observed'}. Archive checked ${new Date(history.updatedAt).toLocaleString()}. The scan starts at the first post-upgrade block and does not skip gaps. PublicNode and STAVR must agree on each canonical commit.`:'';
  $('readiness-timeline').hidden=!readiness;
  if(readiness){
@@ -104,7 +115,7 @@ function render(){
  if(!s?.commits&&!s?.consensus){
   $('network-state').textContent='Current participation unavailable';for(const id of ['power','count','missing'])$(id).textContent='—';
   $('basis').textContent='Block data could not be checked. Refresh to retry; missing data is not zero participation.';$('power-bar').hidden=true;
-  if(readiness&&$('filter').value==='all')for(const row of [...readiness.latest.rows].sort((a,b)=>(Date.parse(readiness.records.get(a.address)?.timestamp)||Infinity)-(Date.parse(readiness.records.get(b.address)?.timestamp)||Infinity))){const tr=el('tr');tr.append(el('td',names.get(row.address)||row.address.slice(0,12)),el('td',pct(row.power,readiness.latest.total)),el('td','Live unavailable'),el('td','—'),historyCell(row.address));body.append(tr);}
+  if(readiness&&$('filter').value==='all')for(const row of [...readiness.latest.rows].sort((a,b)=>evidenceTime(a.address)-evidenceTime(b.address))){const tr=el('tr');tr.append(el('td',names.get(row.address)||row.address.slice(0,12)),el('td',pct(row.power,readiness.latest.total)),el('td','Live unavailable'),el('td','—'),historyCell(row.address));body.append(tr);}
   return;
  }
  const c=s.commits||s.consensus,stale=Date.now()-(s.commits?.blockTime||s.blockTime)>120000||s.catchingUp;
@@ -131,7 +142,7 @@ function render(){
  }
  $('filter').options[1].textContent=s.commits?'Signed':'Vote observed';$('filter').options[2].textContent=s.commits?'No block signature':'Not yet observed';
  const filter=$('filter').value;
- rows.sort((a,b)=>($('sort').value==='response'?(Date.parse(readiness?.records.get(a.address)?.timestamp)||Infinity)-(Date.parse(readiness?.records.get(b.address)?.timestamp)||Infinity):Number(a.active)-Number(b.active))||(BigInt(a.power)>BigInt(b.power)?-1:BigInt(a.power)<BigInt(b.power)?1:a.address.localeCompare(b.address)));
+ rows.sort((a,b)=>($('sort').value==='response'?evidenceTime(a.address)-evidenceTime(b.address):Number(a.active)-Number(b.active))||(BigInt(a.power)>BigInt(b.power)?-1:BigInt(a.power)<BigInt(b.power)?1:a.address.localeCompare(b.address)));
  for(const row of rows){
   if(filter==='signed'&&!row.active||filter==='missing'&&row.active)continue;
   const tr=el('tr'),name=el('td',names.get(row.address)||row.address.slice(0,12)+'…');name.title=row.address;

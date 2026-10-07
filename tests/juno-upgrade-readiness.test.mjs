@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-import {parseReadiness,readinessTimeline} from '../juno-upgrade-readiness.mjs';
+import {parseReadiness,readinessTimeline,firstParticipation} from '../juno-upgrade-readiness.mjs';
 import {addCapture,inTrackingWindow} from '../scripts/observe_validator_readiness.mjs';
 const saved=JSON.parse(readFileSync(new URL('../data/validator-upgrades/juno-v31-readiness.json',import.meta.url))),upgrade={id:'juno-v31',chainId:'juno-1',height:42452000};
 test('recovered pre-quorum evidence distinguishes participation, nil and agreement',()=>{
@@ -27,4 +27,20 @@ test('future capture is off without an explicit bounded UTC tracking window',()=
  const u={...upgrade,readinessWindow:{start:'2026-10-07T06:00:00Z',end:'2026-10-07T09:00:00Z'}};
  assert.equal(inTrackingWindow(u,now),true);assert.equal(inTrackingWindow(u,Date.parse('2026-10-07T09:00:00Z')),false);
  u.readinessWindow.end='2026-10-10T09:00:00Z';assert.equal(inTrackingWindow(u,now),false);
+});
+
+test('participation evidence preserves early votes and fills only from real signatures',()=>{
+ const vote={timestamp:'2026-10-07T07:08:04Z',secondsFromHalt:693,kind:'prevote'};
+ const late={timestamp:'2026-10-07T09:15:14Z',secondsFromHalt:8323,height:42453157};
+ const readiness={records:new Map([['early',vote]])};
+ const history={records:new Map([['early',late],['late',late],['unknown',null]])};
+ assert.deepEqual(firstParticipation('early',readiness,history),{...vote,evidence:'consensus'});
+ assert.deepEqual(firstParticipation('late',readiness,history),{...late,evidence:'commit'});
+ assert.equal(firstParticipation('unknown',readiness,history),null);
+ assert.equal(firstParticipation('absent',readiness,history),null);
+ assert.equal(firstParticipation('late',null,history).evidence,'commit');
+ assert.equal(firstParticipation('early',readiness,null).evidence,'consensus');
+ const earlier={timestamp:'2026-10-07T07:00:00Z',secondsFromHalt:208};
+ history.records.set('early',earlier);
+ assert.deepEqual(firstParticipation('early',readiness,history),{...earlier,evidence:'commit'});
 });

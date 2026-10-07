@@ -39,3 +39,11 @@ export function readinessTimeline(capture){
   return {...e,observed:observed.toString(),agreement:agreement.toString()};
  });
 }
+
+// Both sources establish participation BY a recorded time, never exact readiness.
+// Prefer the earliest available timestamp; an archive gap must remain unknown.
+export function firstParticipation(address,readiness,history){
+ const vote=readiness?.records.get(address),commit=history?.records.get(address);
+ if(vote&&(!commit||Date.parse(vote.timestamp)<=Date.parse(commit.timestamp)))return {...vote,evidence:'consensus'};
+ return commit?{...commit,evidence:'commit'}:null;
+}
