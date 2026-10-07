@@ -1,10 +1,10 @@
 name: UNI-7 faucet checks
 on:
   pull_request:
-    paths: ['juno-faucet*', 'names-v2*', 'names/networks.mjs', 'names/mainnet-deploy-core.mjs', 'names/mainnet-config.mjs', 'assets/names-signing.js', 'faucet/**', 'assets/faucet-signing.js', 'tests/juno-faucet.test.mjs', 'spikes/relay-corecrypto/browser-faucet.mjs', '.github/workflows/faucet-ci.yml']
+    paths: ['juno-faucet*', 'names-v2*', 'names/networks.mjs', 'names/mainnet-deploy-core.mjs', 'names/mainnet-config.mjs', 'assets/names-signing.js', 'faucet/**', 'assets/faucet-signing.js', 'tests/juno-faucet.test.mjs', 'spikes/relay-corecrypto/browser-faucet.mjs', 'spikes/relay-corecrypto/browser-store-code.mjs', '.github/workflows/faucet-ci.yml']
   push:
     branches: [main]
-    paths: ['juno-faucet*', 'names-v2*', 'names/networks.mjs', 'names/mainnet-deploy-core.mjs', 'names/mainnet-config.mjs', 'assets/names-signing.js', 'faucet/**', 'assets/faucet-signing.js', 'tests/juno-faucet.test.mjs', 'spikes/relay-corecrypto/browser-faucet.mjs', '.github/workflows/faucet-ci.yml']
+    paths: ['juno-faucet*', 'names-v2*', 'names/networks.mjs', 'names/mainnet-deploy-core.mjs', 'names/mainnet-config.mjs', 'assets/names-signing.js', 'faucet/**', 'assets/faucet-signing.js', 'tests/juno-faucet.test.mjs', 'spikes/relay-corecrypto/browser-faucet.mjs', 'spikes/relay-corecrypto/browser-store-code.mjs', '.github/workflows/faucet-ci.yml']
 permissions:
   contents: read
 jobs:
@@ -27,3 +27,4 @@ jobs:
       - run: npm ci --prefix spikes/relay-corecrypto
       - run: cd spikes/relay-corecrypto && npx playwright install --with-deps chromium
       - run: node spikes/relay-corecrypto/browser-faucet.mjs
+      - run: node spikes/relay-corecrypto/browser-store-code.mjs

@@ -34,8 +34,8 @@ test('Names bridge persists exact bytes, confirms protobuf intent and shares the
  assert.equal(receipt.intentMatched,true);assert.equal(receipt.chainId,'uni-7');
  assert.equal(h.signs(),1);assert.equal(h.broadcasts(),1);assert.equal(h.map.has('neta-pending-tx-v1:uni-7:'+owner),false);
  const row=JSON.parse(h.storage.getItem(attemptKey(owner,r.intentId)));assert.equal(row.status,'included');assert.equal(row.hash,receipt.transactionHash);
- assert.doesNotThrow(()=>matchTransaction(h.found().tx,r));
- assert.throws(()=>matchTransaction(h.found().tx,{...r,msg:{cancel_commit:{hash:'ab'.repeat(32)}}}),/payload/);
+ await assert.doesNotReject(()=>matchTransaction(h.found().tx,r));
+ await assert.rejects(()=>matchTransaction(h.found().tx,{...r,msg:{cancel_commit:{hash:'ab'.repeat(32)}}}),/payload/);
  await assert.rejects(h.bridge().execute(r),/already exists/);assert.equal(h.signs(),1);
 });
 test('lost broadcast response stays locked across reload; exact inclusion alone releases it',async()=>{
