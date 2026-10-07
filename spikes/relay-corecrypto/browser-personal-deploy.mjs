@@ -14,7 +14,7 @@ try{
  await context.route('**/assets/names-signing.js*',r=>r.fulfill({contentType:'text/javascript',body:`
  const {owner,address}=window.fixture;
  const receipt=r=>({chainId:'juno-1',intentMatched:true,code:0,height:123,transactionHash:(r.kind==='store'?'A':'B').repeat(64),events:[r.kind==='store'?{type:'store_code',attributes:[{key:'code_id',value:'321'}]}:{type:'instantiate',attributes:[{key:'_contract_address',value:address}]}]});
- window.NetaNamesSigning={validAddress:s=>s===address,connect:async()=>({disconnect(){}}),createBridge:opts=>({execute:async r=>{await opts.verifyDeployment();localStorage.setItem('writes',Number(localStorage.getItem('writes')||0)+1);if(window.loseResponse)throw Error('UNKNOWN');return receipt(r);},recover:async r=>{await opts.verifyDeployment();return receipt(r);}})};
+ window.NetaNamesSigning={validAddress:s=>s===address,connect:async()=>{if(window.rpcDown)throw Error('HTTP 502');return {disconnect(){}};},createBridge:opts=>({execute:async r=>{await opts.verifyDeployment();localStorage.setItem('writes',Number(localStorage.getItem('writes')||0)+1);if(window.loseResponse)throw Error('UNKNOWN');return receipt(r);},recover:async r=>{await opts.verifyDeployment();return receipt(r);}})};
  `}));
  await context.route('https://**/*',async route=>{const p=new URL(route.request().url()).pathname;let data;
   if(p.endsWith('node_info'))data={default_node_info:{network:'juno-1'}};
@@ -25,6 +25,13 @@ try{
   await route.fulfill({json:data});
  });
  await page.goto(origin+'/relay-personal-deploy.html');assert.equal(await page.locator('[data-kind=store]').isDisabled(),true);
+ await page.evaluate(()=>window.rpcDown=true);await page.locator('#connect').click();
+ await page.waitForFunction(()=>document.querySelector('#connection-status').textContent.includes('Keplr connected, but'));
+ assert.equal(await page.locator('#connect').isEnabled(),true);assert.equal(await page.locator('[data-kind=store]').isDisabled(),true);
+ assert.equal(await page.locator('#connect').evaluate(e=>e.closest('section').contains(document.getElementById('connection-status'))),true);
+ assert.equal(await page.evaluate(()=>localStorage.getItem('writes')),null);
+ await page.setViewportSize({width:390,height:1000});await page.screenshot({path:'/tmp/personal-connect-error.png',fullPage:true});
+ await page.evaluate(()=>window.rpcDown=false);
  await page.locator('#connect').click();await page.waitForFunction(()=>!document.querySelector('[data-kind=store]').disabled);
  assert.equal(await page.evaluate(()=>localStorage.getItem('writes')),null);
  await page.locator('[data-kind=store]').click();await page.waitForFunction(()=>!document.querySelector('#confirm').disabled);

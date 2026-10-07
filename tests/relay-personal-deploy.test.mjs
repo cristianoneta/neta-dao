@@ -59,3 +59,27 @@ test('late connection cancellation disposes RPC client and never returns owner s
  await assert.rejects(connectPersonalSetup({keplr,bundle:{...f.bundle,connect:async()=>{current=false;return {disconnect(){disposed++;}};}},storage:f.storage,locks,fetcher:f.fetcher,assertCurrent:()=>{if(!current)throw Error('session changed');}}),/session changed/);
  assert.equal(disposed,1);assert.equal(f.writes,0);
 });
+test('RPC outage is distinguished from Keplr authorization and preserves the journal',async()=>{
+ const f=fixture();f.lost=true;await assert.rejects(f.setup.execute(await f.setup.prepare('store')),/UNKNOWN/);
+ const saved=f.storage.getItem(f.setup.key),status=[];let enabled=0,attempts=0;
+ const keplr={enable:async()=>{enabled++;},getOfflineSigner:()=>({getAccounts:async()=>[{address:owner}]})};
+ await assert.rejects(connectPersonalSetup({keplr,bundle:{...f.bundle,connect:async()=>{attempts++;throw Error('HTTP 502');}},storage:f.storage,locks,fetcher:f.fetcher,onStatus:s=>status.push(s)}),/Keplr connected.*Juno.*unavailable/);
+ assert.equal(enabled,1);assert.equal(attempts,2);assert.match(status[0],/Confirm.*Keplr/);assert.match(status.at(-1),/Owner wallet verified.*2\/2/);
+ assert.equal(f.storage.getItem(f.setup.key),saved);assert.equal(f.writes,1);
+});
+test('a stalled RPC yields to fallback and its late client is disposed without signing',async()=>{
+ const f=fixture();let finish,attempts=0,lateDisposed=0,disposed=0;
+ const keplr={enable:async()=>{},getOfflineSigner:()=>({getAccounts:async()=>[{address:owner}]})};
+ const bundle={...f.bundle,connect:async()=>++attempts===1?new Promise(resolve=>{finish=resolve;}):{disconnect(){disposed++;}}};
+ const session=await connectPersonalSetup({keplr,bundle,storage:f.storage,locks,fetcher:f.fetcher,connectionTimeoutMs:10});
+ finish({disconnect(){lateDisposed++;}});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(attempts,2);assert.equal(lateDisposed,1);assert.equal(f.writes,0);session.disconnect();assert.equal(disposed,1);
+});
+test('a reachable RPC cannot bypass stale Juno data or either receipt provider',async()=>{
+ for(const bad of ['stale','provider']){
+  const f=fixture();f.bad=bad;let disposed=0;
+  const keplr={enable:async()=>{},getOfflineSigner:()=>({getAccounts:async()=>[{address:owner}]})};
+  await assert.rejects(connectPersonalSetup({keplr,bundle:{...f.bundle,connect:async()=>({disconnect(){disposed++;}})},storage:f.storage,locks,fetcher:f.fetcher}),/Keplr connected, but Juno verification failed/);
+  assert.equal(disposed,1);assert.equal(f.writes,0);assert.equal(f.map.size,0);
+ }
+});

@@ -5,16 +5,17 @@ function clear(){review=null;$('review').hidden=true;$('review-text').textConten
 function render(){
  let s;try{s=session?.setup.state();}catch(e){$('status').textContent=e.message;}
  $('connect').disabled=busy||!!session;$('disconnect').hidden=!session&&!busy;
- $('wallet').textContent=session?session.owner:'Wallet not connected.';
+ $('connect').textContent=busy&&!session?'Connecting…':'Connect Keplr · Juno mainnet';
+ $('wallet').textContent=session?session.owner:busy?'Connection in progress…':'Juno setup not connected.';
  $('registry-state').textContent=s?.codeId?`Code ${s.codeId}${s.address?' · '+s.address:' · ready to create'}`:'Not deployed in this browser.';
  $('pending').textContent=s?.pending?`${s.pending.kind} · outcome pending`:session?'No pending deployment.':'No wallet connected.';
  for(const b of document.querySelectorAll('[data-kind]'))b.disabled=busy||!s||!!s.pending||(b.dataset.kind==='store'?!!s.codeId:!s.codeId||!!s.address);
  $('confirm').disabled=busy||!review||!session;$('recover').disabled=busy||!s?.pending;$('download').disabled=busy||!s?.address||!!s?.pending;$('recovery-hash').disabled=busy;
 }
-async function run(fn){if(busy)return;busy=true;render();try{await fn();}catch(e){$('status').textContent=e.message;}finally{busy=false;render();}}
-function disconnected(){epoch++;session?.disconnect();session=null;clear();$('status').textContent='Disconnected. Deployment and transaction records are preserved.';render();}
+async function run(fn,status=$('status')){if(busy)return;busy=true;render();try{await fn();}catch(e){status.textContent=e.message;}finally{busy=false;render();}}
+function disconnected(){epoch++;session?.disconnect();session=null;clear();$('connection-status').textContent='Disconnected. Deployment and transaction records are preserved.';render();}
 $('owner').textContent=PERSONAL_MAINNET_OWNER;
-$('connect').addEventListener('click',()=>run(async()=>{const started=epoch;const candidate=await connectPersonalSetup({assertCurrent:()=>{if(started!==epoch)throw Error('Wallet connection changed.');}});if(started!==epoch){candidate.disconnect();throw Error('Wallet connection changed.');}session=candidate;$('status').textContent='Connected. Review one action at a time.';}));
+$('connect').addEventListener('click',()=>run(async()=>{const started=epoch;const candidate=await connectPersonalSetup({assertCurrent:()=>{if(started!==epoch)throw Error('Wallet connection changed.');},onStatus:message=>{$('connection-status').textContent=message;}});if(started!==epoch){candidate.disconnect();throw Error('Wallet connection changed.');}session=candidate;$('connection-status').textContent='Connected. Juno verified. Review one action at a time.';},$('connection-status')));
 $('disconnect').addEventListener('click',disconnected);window.addEventListener('keplr_keystorechange',disconnected);
 for(const b of document.querySelectorAll('[data-kind]'))b.addEventListener('click',()=>run(async()=>{clear();const current=session,prepared=await current.setup.prepare(b.dataset.kind);if(current!==session)throw Error('Wallet connection changed.');review={current,prepared};$('review-text').textContent=`Network: Juno mainnet · juno-1\nUpgrade authority: owner wallet ${PERSONAL_MAINNET_OWNER}\nReviewed WASM SHA-256: ${PERSONAL_MAINNET_WASM}\n${JSON.stringify(prepared.request,null,2)}`;$('review').hidden=false;$('review-heading').focus();}));
 const result=r=>r.notBroadcast?'No broadcast was sent. A new attempt requires a new review.':r.code===0?'Confirmed on Juno mainnet · '+r.transactionHash:'Included transaction failed (code '+r.code+'). Review any new attempt separately.';
