@@ -19,3 +19,17 @@ export function duration(seconds){
  const h=Math.floor(seconds/3600),m=Math.floor(seconds%3600/60),s=Math.floor(seconds%60);
  return (h?h+'h ':'')+(m||h?m+'m ':'')+s+'s';
 }
+
+// A closed observation window is separate from finding every validator. The
+// original archive is retained even when its scan continued beyond the deadline.
+export function observationWindow(history,seconds){
+ if(!Number.isSafeInteger(seconds)||seconds<=0||seconds>86400)throw Error('Invalid observation window.');
+ const start=Date.parse(history?.halt?.time),end=start+seconds*1000;
+ if(!Number.isFinite(start)||!Number.isFinite(end))throw Error('Missing halt anchor.');
+ return {start,end,seconds,coverageComplete:Date.parse(history.scannedBlockTime)>=end};
+}
+export function withinObservationWindow(record,window){
+ if(!record)return null;
+ const at=Date.parse(record.timestamp);
+ return Number.isFinite(at)&&at>=window.start&&at<=window.end?record:null;
+}

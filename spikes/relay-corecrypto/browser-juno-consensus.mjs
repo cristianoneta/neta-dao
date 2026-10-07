@@ -9,6 +9,11 @@ let failing=false,oneFailed=false,diverge=false,stale=false,waiting=false,histor
 const shotDir=process.env.NNS_SCREENSHOT_DIR||'/tmp/juno-compact';await mkdir(shotDir,{recursive:true});
 try{
  browser=await chromium.launch({headless:true,...(process.env.RELAY_CHROMIUM_PATH?{executablePath:process.env.RELAY_CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage']}:{})});const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ // Keep coverage of the reusable live tracker; this event's real HTML is now closed.
+ await page.route('**/community-tools/validator-upgrades/juno-v31/',async route=>{
+  const html=await readFile(new URL('community-tools/validator-upgrades/juno-v31/index.html',root),'utf8');
+  await route.fulfill({contentType:'text/html',body:html.replace(' data-tracking="closed" data-tracking-window-seconds="18000"','').replace('class="auto" hidden','class="auto"').replace('type="checkbox" disabled','type="checkbox" checked')});
+ });
  const historyNow=Date.now();
  const historyFixture={schema:1,upgradeId:'juno-v31',chainId:'juno-1',upgradeHeight:42452000,halt:{height:42452000,hash:'A'.repeat(64),time:new Date(historyNow-120000).toISOString()},scannedThrough:42452150,scannedHash:'B'.repeat(64),updatedAt:new Date(historyNow).toISOString(),firstResumedSignatureTime:new Date(historyNow-30000).toISOString(),validators,firstSignatures:Object.fromEntries(validators.map((v,i)=>[v.address,i<23?{height:42452001,blockHash:'C'.repeat(64),timestamp:new Date(historyNow-30000).toISOString(),secondsFromHalt:90,blocksAfterRestart:0,signature:Buffer.alloc(64).toString('base64')}:null])),complete:false};
  await page.route('**/data/validator-upgrades/juno-v31.json',route=>historyAvailable?route.fulfill({json:historyFixture}):route.fulfill({status:503,body:'History unavailable fixture'}));
@@ -48,5 +53,24 @@ try{
  await page.goto('http://127.0.0.1:'+server.address().port+'/community-tools/');assert.equal(await page.locator('.gov-header .faucet-dao-promo').count(),1);assert.equal(await page.locator('.tool-card').count(),2);await page.getByRole('link',{name:/Validator Upgrade Status/}).click();assert.match(page.url(),/validator-upgrades\/$/);assert.equal(await page.getByRole('link',{name:/Juno v31/}).getAttribute('href'),'/community-tools/validator-upgrades/juno-v31/');
  for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:900});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:shotDir+'/upgrade-list-'+width+'.png',fullPage:true});}
  await page.goto('http://127.0.0.1:'+server.address().port+'/community-tools/');for(const width of [1440,390,320]){await page.setViewportSize({width,height:900});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:shotDir+'/community-tools-'+width+'.png',fullPage:true});}
+ const archived=await browser.newPage(),external=[];archived.on('pageerror',e=>errors.push(e.message));
+ await archived.clock.install();await archived.route('https://**/*',route=>{external.push(route.request().url());return route.abort();});
+ const archiveUrl='http://127.0.0.1:'+server.address().port+'/community-tools/validator-upgrades/juno-v31/';
+ await archived.goto(archiveUrl);await archived.waitForFunction(()=>document.getElementById('count').textContent==='22 / 25'&&!document.getElementById('refresh').disabled);
+ assert.match(await archived.locator('#network-state').innerText(),/Monitoring ended/);assert.equal(await archived.locator('#auto').isVisible(),false);
+ assert.match(await archived.locator('#quality').innerText(),/full five-hour window/);assert.match(await archived.locator('#basis').innerText(),/Closed observation window/);
+ await archived.locator('#filter').selectOption('missing');assert.equal(await archived.locator('#validators tr').count(),3);
+ for(const name of ['Shutting Down - Redelegate','Secure Secrets','0base.vc'])assert.match(await archived.locator('#validators').innerText(),new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+ assert.equal(await archived.getByText('No upgrade evidenced within 5h',{exact:true}).count(),3);
+ await archived.locator('#filter').selectOption('signed');assert.equal(await archived.locator('#validators tr').count(),22);
+ await archived.locator('#filter').selectOption('all');await archived.locator('#sort').selectOption('response');assert.match(await archived.locator('#validators tr').first().innerText(),/The_Cybernetics/);await archived.locator('#sort').selectOption('status');
+ await archived.locator('#timing').selectOption('commits');assert.equal(await archived.getByText('No upgrade evidenced within 5h',{exact:true}).count(),3);await archived.locator('#timing').selectOption('votes');
+ for(const width of [1440,768,390,320]){await archived.setViewportSize({width,height:1000});assert.ok(await archived.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await archived.screenshot({path:shotDir+'/juno-closed-'+width+'.png',fullPage:true});}
+ await archived.locator('#refresh').click();await archived.waitForFunction(()=>!document.getElementById('refresh').disabled);await archived.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await archived.clock.runFor(61000);assert.deepEqual(external,[],'closed page never polls RPC or live staking metadata');
+ const realHistory=JSON.parse(await readFile(new URL('data/validator-upgrades/juno-v31.json',root),'utf8'));
+ await archived.route('**/data/validator-upgrades/juno-v31.json',route=>route.fulfill({json:{...realHistory,scannedBlockTime:'2026-10-07T11:00:00Z'}}));
+ await archived.reload();await archived.waitForFunction(()=>!document.getElementById('refresh').disabled);assert.match(await archived.locator('#quality').innerText(),/coverage incomplete/);assert.equal(await archived.getByText('No upgrade evidenced within 5h',{exact:true}).count(),0);
+ await archived.route('**/data/validator-upgrades/juno-v31.json',route=>route.fulfill({status:503,body:'Unavailable archive fixture'}));
+ await archived.reload();await archived.waitForFunction(()=>!document.getElementById('refresh').disabled);assert.equal(await archived.locator('#count').innerText(),'—');assert.equal(await archived.locator('#validators tr').count(),0);assert.deepEqual(external,[]);assert.deepEqual(errors,[]);await archived.close();
  console.log('Juno compact tracker: canonical five-block window, empty-round regression, filters, source disagreement/fallback, stale/missing data, dated names and 320–1440px passed. Mock RPC; no wallet or transaction.');
 }finally{await browser?.close();await new Promise(r=>server.close(r));}

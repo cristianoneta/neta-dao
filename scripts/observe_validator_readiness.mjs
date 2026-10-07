@@ -8,6 +8,7 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function get(url){const r=await fetch(url,{signal:AbortSignal.timeout(10000),headers:{'User-Agent':'NETA-Upgrade-Observer/1.0'}});if(!r.ok)throw Error('RPC '+r.status);const d=await r.json();if(d.error)throw Error('RPC response error');return d;}
 export function inTrackingWindow(upgrade,now=Date.now()){
+ if(upgrade.collect===false||upgrade.tracking?.status==='closed')return false;
  const w=upgrade.readinessWindow,start=Date.parse(w?.start),end=Date.parse(w?.end);
  return Number.isFinite(start)&&Number.isFinite(end)&&end>start&&end-start<=24*3600000&&now>=start&&now<end;
 }

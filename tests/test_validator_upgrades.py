@@ -3,6 +3,9 @@ import copy
 import importlib.util
 from pathlib import Path
 import unittest
+import json
+import tempfile
+from unittest.mock import patch
 from datetime import datetime, timezone, timedelta
 
 spec=importlib.util.spec_from_file_location('upgrades',Path(__file__).resolve().parents[1]/'scripts/update_validator_upgrades.py')
@@ -43,6 +46,15 @@ class UpgradeHistoryTests(unittest.TestCase):
     def test_nil_does_not_set_first_block_signature(self):
         state,block,validators=self.fixture();block['commit']['signatures'][2]['block_id_flag']=3
         out=u.consume(state,block,validators);self.assertIsNone(out['firstSignatures'][validators[2]['address']])
+    def test_closed_collection_never_requests_rpc_or_rewrites_saved_history(self):
+        state,_,_=self.fixture()
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'archive.json';path.write_text(json.dumps(state));before=path.read_bytes()
+            for flag in [{'collect':False},{'collect':True,'tracking':{'status':'closed'}}]:
+                upgrade={'id':'juno-v31','height':42452000,'chainId':'juno-1',**flag}
+                with patch.object(u,'pair',side_effect=AssertionError('Closed event requested RPC')):
+                    self.assertEqual(u.collect(upgrade,path),state)
+                self.assertEqual(path.read_bytes(),before)
     def test_corrupt_checkpoint_is_rejected(self):
         state,block,validators=self.fixture();out=u.consume(state,block,validators);upgrade={'id':'juno-v31','height':42452000,'chainId':'juno-1'}
         u.validate_checkpoint(out,upgrade)
