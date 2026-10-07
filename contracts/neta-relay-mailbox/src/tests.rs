@@ -2,6 +2,9 @@ use super::*;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{from_json, Coin, OwnedDeps};
 
+#[path = "security_tests.rs"]
+mod security;
+
 fn env() -> Env {
     let mut env = mock_env();
     env.block.chain_id = "uni-7".into();
