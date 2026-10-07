@@ -9,7 +9,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
-    "@ubjs/core": "0.31.0-5",
+    "@ubjs/core": "0.31.0-6",
     "@ubjs/node": "0.31.0-5",
     "@wireapp/core-crypto": "10.5.3"
   },
