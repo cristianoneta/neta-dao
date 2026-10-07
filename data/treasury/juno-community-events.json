@@ -10,7 +10,7 @@
   "accounting_start": "2026-10-01T00:00:00Z",
   "status": "UNAVAILABLE",
   "generated_at": "2026-10-07T06:50:36.056137Z",
-  "checked_at": "2026-10-07T07:15:41.450673Z",
+  "checked_at": "2026-10-07T07:37:49.457116Z",
   "last_success_at": "2026-10-07T06:50:36.056137Z",
   "sources": [
     {

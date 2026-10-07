@@ -3,7 +3,7 @@
     {
       "amount": "686.021124",
       "base_denom": "ubtsg",
-      "change_24h": 9.560377620365056,
+      "change_24h": 9.614875368317815,
       "custody_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
       "decimals": 6,
       "ibc_path": "transfer/channel-17/ubtsg",
@@ -14,13 +14,13 @@
       "source_chain": "juno",
       "symbol": "BTSG",
       "type": "token",
-      "usd_price": "0.00053196",
-      "usd_value": "0.36493579712304"
+      "usd_price": "0.00053132",
+      "usd_value": "0.36449674360368"
     },
     {
       "amount": "2.096638",
       "base_denom": "uatom",
-      "change_24h": -4.920239028169152,
+      "change_24h": -4.920988293566566,
       "custody_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
       "decimals": 6,
       "ibc_path": "transfer/channel-1/uatom",
@@ -37,7 +37,7 @@
     {
       "amount": "0.001403",
       "base_denom": "uusdc",
-      "change_24h": -0.001987511800002784,
+      "change_24h": -0.005595302938209603,
       "custody_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
       "decimals": 6,
       "ibc_path": null,
@@ -48,13 +48,13 @@
       "source_chain": "juno",
       "symbol": "USDC",
       "type": "token",
-      "usd_price": "0.999929",
-      "usd_value": "0.001402900387"
+      "usd_price": "0.999887",
+      "usd_value": "0.001402841461"
     },
     {
       "amount": "2916586.37162",
       "base_denom": "ujuno",
-      "change_24h": -0.9783354347921186,
+      "change_24h": -0.714410970442413,
       "custody_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
       "decimals": 6,
       "ibc_path": null,
@@ -65,13 +65,13 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00887661",
-      "usd_value": "25889.3997521858082"
+      "usd_price": "0.00887631",
+      "usd_value": "25888.5247762743222"
     },
     {
       "amount": "14999522.938954",
       "base_denom": "ujuno",
-      "change_24h": -0.9783354347921186,
+      "change_24h": -0.714410970442413,
       "custody_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
       "decimals": 6,
       "ibc_path": null,
@@ -82,13 +82,13 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00887661",
-      "usd_value": "133144.91531514846594"
+      "usd_price": "0.00887631",
+      "usd_value": "133140.41545826677974"
     },
     {
       "amount": "0.140151",
       "base_denom": "uatom",
-      "change_24h": -4.920239028169152,
+      "change_24h": -4.920988293566566,
       "custody_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
       "decimals": 6,
       "ibc_path": "transfer/channel-1/uatom",
@@ -105,7 +105,7 @@
     {
       "amount": "3835476.710753",
       "base_denom": "ujuno",
-      "change_24h": -0.9783354347921186,
+      "change_24h": -0.714410970442413,
       "custody_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
       "decimals": 6,
       "ibc_path": null,
@@ -116,14 +116,14 @@
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00887661",
-      "usd_value": "34046.03092543718733"
+      "usd_price": "0.00887631",
+      "usd_value": "34044.88028242396143"
     }
   ],
   "balance_height_pinned": true,
   "balance_source": "https://juno.api.m.stavr.tech",
   "chain_id": "juno-1",
-  "checked_at": "2026-10-07T07:15:48.677392Z",
+  "checked_at": "2026-10-07T07:37:55.041004Z",
   "cw20_tokens_checked": [],
   "dao_id": "juno-delegation",
   "generated_at": "2026-10-07T06:55:40.325099171Z",
@@ -148,7 +148,7 @@
     "withdraw_address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0"
   },
   "status": "LIVE",
-  "total_usd": "193084.53724065897151",
+  "total_usd": "193078.01132574012805",
   "treasury_accounts": [
     {
       "address": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",

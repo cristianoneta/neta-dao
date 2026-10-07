@@ -17,7 +17,7 @@
   "adapter": "treasury-receipts",
   "status": "PARTIAL",
   "refresh_status": "unavailable",
-  "checked_at": "2026-10-07T07:15:42.193737Z",
+  "checked_at": "2026-10-07T07:37:50.074403Z",
   "last_success_at": "2026-10-07T06:50:37.428430Z",
   "sources": [
     {
