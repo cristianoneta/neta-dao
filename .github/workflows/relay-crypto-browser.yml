@@ -11,6 +11,8 @@ on:
       - 'juno-consensus-*.mjs'
       - 'juno-upgrade-status.*'
       - 'juno-upgrade-history.mjs'
+      - 'juno-upgrade-readiness.mjs'
+      - 'data/validator-upgrades/*-readiness.json'
       - 'community-tools/**'
       - 'community-tools*.css'
       - 'community-*.mjs'
@@ -74,7 +76,7 @@ jobs:
       - run: npm run test:browser
       - run: node browser-uni7-lab.mjs
       - run: node browser-personal-deploy.mjs
-      - run: node browser-juno-consensus.mjs
+      - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-juno-consensus.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/dao-inbox-screenshots" node browser-dao-inbox.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-dao-hierarchy.mjs
       - run: node browser-workspace-security.mjs

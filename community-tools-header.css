@@ -1,0 +1,18 @@
+.faucet-header { grid-template-columns:auto auto minmax(0,1fr) auto; grid-template-areas:"brand label promo controls"; gap:20px; }
+.faucet-header .gov-brand { grid-area:brand; }
+.faucet-header .gov-controls { grid-area:controls; }
+.faucet-header-label { color:var(--neta-text-secondary); font-size:12px; letter-spacing:.1em; }
+.faucet-header-label { grid-area:label; }
+.faucet-dao-promo { grid-area:promo; justify-self:center; display:flex; align-items:center; gap:12px; max-width:370px; min-width:0; min-height:72px; padding:0 12px 0 4px; border:1px solid color-mix(in srgb,var(--neta-accent) 25%,var(--neta-border)); border-radius:10px; background:var(--neta-surface); color:var(--neta-text); text-decoration:none; }
+.faucet-dao-promo:hover { border-color:var(--neta-accent); background:var(--neta-surface-raised); }
+.faucet-dao-promo img { width:76px; height:76px; object-fit:contain; flex:none; }
+.faucet-dao-copy { display:flex; flex-direction:column; gap:4px; min-width:0; }
+.faucet-dao-copy strong { font-size:14px; font-weight:650; }
+.faucet-dao-copy > span { font-size:12px; color:var(--neta-text-secondary); }
+.faucet-dao-arrow { font-size:20px; color:var(--neta-accent); flex:none; }
+
+.gov-header.faucet-header{display:grid;margin:0;flex-direction:initial;font-family:var(--neta-font)}
+.community-network{font-size:12px;letter-spacing:.04em;color:var(--neta-text-secondary);white-space:nowrap}
+@media(max-width:1200px){.faucet-header-label{display:none}.gov-header.faucet-header{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"brand promo controls"}}
+@media(max-width:1000px){.gov-header.faucet-header{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"brand controls" "promo promo"}.faucet-dao-promo{width:100%}}
+@media(max-width:640px){.gov-header.faucet-header{padding:12px 16px;gap:12px;grid-template-columns:minmax(0,1fr);grid-template-areas:"brand" "controls" "promo"}.faucet-header .gov-brand{font-size:16px}.faucet-header .gov-controls{grid-area:controls;justify-content:flex-start;flex-wrap:wrap;gap:8px}.faucet-header .gov-controls button{min-width:0;width:auto;max-width:none}.faucet-dao-promo{gap:8px;min-height:64px;padding-right:8px}.faucet-dao-promo img{width:56px;height:56px}}
