@@ -51,7 +51,7 @@
     {
       "amount": "460.900000000000000000",
       "base_denom": "axlDAI",
-      "change_24h": -0.00199546637452473,
+      "change_24h": 0.007896666124991068,
       "custody_address": null,
       "decimals": 18,
       "ibc_path": null,
@@ -61,8 +61,8 @@
       "source_chain": "juno",
       "symbol": "DAI.axl",
       "type": "token",
-      "usd_price": "1.0",
-      "usd_value": "460.9000000000000000000"
+      "usd_price": "0.999975",
+      "usd_value": "460.888477500000000000000000"
     },
     {
       "amount": null,
@@ -83,7 +83,7 @@
     {
       "amount": "11515.791275000000000000",
       "base_denom": "uusdc",
-      "change_24h": 0.0017173296386860774,
+      "change_24h": 0.0029151043302516402,
       "custody_address": null,
       "decimals": 6,
       "ibc_path": "transfer/channel-224/uusdc",
@@ -93,8 +93,8 @@
       "source_chain": "juno",
       "symbol": "USDC.n",
       "type": "token",
-      "usd_price": "0.999954",
-      "usd_value": "11515.26154860135000000000000"
+      "usd_price": "0.99993",
+      "usd_value": "11514.98516961075000000000000"
     },
     {
       "amount": null,
@@ -113,20 +113,20 @@
       "usd_value": null
     },
     {
-      "amount": "3.284522163115959742786732",
+      "amount": "3.284522232705948459973682",
       "base_denom": "uatom",
-      "change_24h": -6.449974121485257,
+      "change_24h": -5.759194347069082,
       "custody_address": null,
       "decimals": 6,
       "ibc_path": "transfer/channel-1/uatom",
       "key": "juno:native:ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
       "origin": "IBC",
-      "raw_amount": "3284522.163115959742786732",
+      "raw_amount": "3284522.232705948459973682",
       "source_chain": "juno",
       "symbol": "ATOM",
       "type": "token",
-      "usd_price": "1.7",
-      "usd_value": "5.5836876772971315627374444"
+      "usd_price": "1.71",
+      "usd_value": "5.61653301792717186655499622"
     },
     {
       "amount": null,
@@ -145,46 +145,46 @@
       "usd_value": null
     },
     {
-      "amount": "0.00421726998356150977021",
+      "amount": "0.004217269983561552957719",
       "base_denom": "uusdc",
-      "change_24h": 0.0017173296386860774,
+      "change_24h": 0.0029151043302516402,
       "custody_address": null,
       "decimals": 6,
       "ibc_path": null,
       "key": "juno:native:ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034",
       "origin": "IBC",
-      "raw_amount": "4217.269983561509770210",
+      "raw_amount": "4217.269983561552957719",
       "source_chain": "juno",
       "symbol": "USDC",
       "type": "token",
-      "usd_price": "0.999954",
-      "usd_value": "0.00421707598914226594076057034"
+      "usd_price": "0.99993",
+      "usd_value": "0.00421697477466270364901195967"
     },
     {
-      "amount": "20497054.32610298495180629115",
+      "amount": "20497109.67247419158353304810",
       "base_denom": "ujuno",
-      "change_24h": -1.3997272653027377,
+      "change_24h": -0.8879020433496994,
       "custody_address": null,
       "decimals": 6,
       "ibc_path": null,
       "key": "juno:native:ujuno",
       "origin": "Juno",
-      "raw_amount": "20497054326102.984951806291151763",
+      "raw_amount": "20497109672474.191583533048096969",
       "source_chain": "juno",
       "symbol": "JUNO",
       "type": "token",
-      "usd_price": "0.00885926",
-      "usd_value": "181588.7335090711304641394029"
+      "usd_price": "0.00888521",
+      "usd_value": "182121.1238329644117999236743"
     }
   ],
   "balance_source": "https://juno-api.polkachu.com",
   "chain_id": "juno-1",
-  "generated_at": "2026-10-07T05:21:09.125579Z",
-  "height": 42449752,
+  "generated_at": "2026-10-07T05:45:12.769859Z",
+  "height": 42450318,
   "price_source": "CoinGecko",
   "schema_version": 1,
   "status": "PARTIAL",
-  "total_usd": "193570.4829624257667379680811",
+  "total_usd": "194102.6182300678636344938783",
   "treasury_address": null,
   "treasury_type": "community-pool",
   "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.",
