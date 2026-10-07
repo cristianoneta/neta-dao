@@ -13,8 +13,8 @@
   "adapter": "treasury-receipts",
   "status": "PARTIAL",
   "refresh_status": "completed",
-  "checked_at": "2026-10-07T00:21:06.162525Z",
-  "last_success_at": "2026-10-07T00:21:06.161907Z",
+  "checked_at": "2026-10-07T00:54:10.930607Z",
+  "last_success_at": "2026-10-07T00:54:10.897561Z",
   "sources": [
     {
       "adapter": "cosmos-rest-receipts",
@@ -29,12 +29,12 @@
         "timestamp": "2026-09-30T11:15:50.297962745Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42227913,
-      "last_scanned_height": 42442701,
-      "anchor_hash": "2C88FD5FFF1FF5F3F4AFC7CDFF450EEF541B0EB360FC0B64976FC2A35A3929B3",
-      "incremental": false,
+      "scan_start_height": 42442601,
+      "last_scanned_height": 42443477,
+      "anchor_hash": "8DB8AF55DE020A9277CA41D3BBAC4C748B7D57195097A544B098615EBCABF02F",
+      "incremental": true,
       "range_capable": true,
-      "indexed_transactions": 1,
+      "indexed_transactions": 0,
       "historical_missing_transactions": 0,
       "historical_missing_tx_hashes": [],
       "last_full_replay_day": "2026-10-07",
@@ -96,7 +96,7 @@
   "execution_candidates": [],
   "warnings": [
     "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses.",
-    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2,\"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42442724)\",\"details\":[]}"
+    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2,\"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42443501)\",\"details\":[]}"
   ],
   "entries": [
     {

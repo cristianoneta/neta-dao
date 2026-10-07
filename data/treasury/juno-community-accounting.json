@@ -13,8 +13,8 @@
   "adapter": "native-community-pool",
   "status": "PARTIAL",
   "refresh_status": "completed",
-  "checked_at": "2026-10-07T00:20:56.491785Z",
-  "last_success_at": "2026-10-07T00:20:54.760472Z",
+  "checked_at": "2026-10-07T00:54:01.263352Z",
+  "last_success_at": "2026-10-07T00:53:59.259819Z",
   "sources": [
     {
       "adapter": "cosmos-rest-receipts",
@@ -29,10 +29,10 @@
         "timestamp": "2026-09-30T10:14:02.896994123Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42226530,
-      "last_scanned_height": 42442696,
-      "anchor_hash": "0FE53128A5BBF405B74041BF204F5A051A5D482216056635ADD692112EE4B2E0",
-      "incremental": false,
+      "scan_start_height": 42442596,
+      "last_scanned_height": 42443473,
+      "anchor_hash": "948D976A4E3ECF7155F7CF347DDB5495D78D87943BE0ECE102B532D5DCA33004",
+      "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
       "historical_missing_transactions": 0,
@@ -56,7 +56,7 @@
   "execution_candidates": [],
   "community_tax": {
     "rate": "0.100000000000000000",
-    "observed_at": "2026-10-07T00:20:54.760472Z",
+    "observed_at": "2026-10-07T00:53:59.259819Z",
     "source": "https://juno.api.m.stavr.tech/cosmos/distribution/v1beta1/params",
     "basis": "Distribution rewards including minted inflation and transaction fees; the current rate is not historical revenue."
   },
@@ -10599,6 +10599,55 @@
         "results_sha256": "be3f0ce4d1908153f771d37a0a5bb230e1aabef4528bde331a41c5fdd267d2ca",
         "method": "fee-collector-transfers-minus-validator-rewards"
       }
+    },
+    {
+      "id": "juno-1:distribution:42442695-42443471:0",
+      "chain_id": "juno-1",
+      "treasury_address": "juno1jv65s3grqf6v6jl3dp4t6c9t9rk99cd83d88wr",
+      "tx_hash": null,
+      "timestamp": "2026-10-07T00:52:56.240708415Z",
+      "height": 42443471,
+      "message_index": 0,
+      "denom": "ujuno",
+      "asset": "JUNO",
+      "amount": "76.069895500000007741538994",
+      "decimals": 6,
+      "direction": "in",
+      "raw_amount": "76069895.500000007741538994",
+      "counterparty": "juno17xpfvakm2amg962yls6f84z3kell8c5lxtqmvp",
+      "classification": "community_tax",
+      "category": "community_tax",
+      "usd_value": "0.694098411641149104",
+      "receipt_id": "juno-1:distribution:42442695-42443471:0",
+      "valuation": {
+        "usd_price": "0.009124482255153736",
+        "timestamp_ms": 1791331200000,
+        "day": "2026-10-07",
+        "denom": "ujuno",
+        "coin_id": "juno-network",
+        "decimals": 6,
+        "symbol": "JUNO",
+        "source": "https://api.coingecko.com/api/v3/coins/juno-network/market_chart/range?vs_currency=usd&from=1791324000&to=1791338400",
+        "method": "historical-daily-opening-reference",
+        "fetched_at": "2026-10-07T00:20:56.821321Z"
+      },
+      "evidence": {
+        "kind": "block-distribution",
+        "source": "https://juno.rpc.m.stavr.tech",
+        "start": {
+          "height": 42442695,
+          "timestamp": "2026-10-07T00:19:54.10707467Z",
+          "hash": "B1346CBF8FCC88A295E63DCBF4433699844D5C42C9B5001A425D8D52526E1624"
+        },
+        "end": {
+          "height": 42443471,
+          "timestamp": "2026-10-07T00:52:56.240708415Z",
+          "hash": "1289B746E0725E23C03E4F5BED5785986851A8EBAE8B0FED45A3A33F82ED269C"
+        },
+        "blocks": 777,
+        "results_sha256": "40233b4cbcf7b029e2391cdcb0dc59fea1d1d24395bbb2383e6ce2a92b05870f",
+        "method": "fee-collector-transfers-minus-validator-rewards"
+      }
     }
   ],
   "movement_review": {
@@ -10616,24 +10665,24 @@
     "source": "https://juno.rpc.m.stavr.tech",
     "accounting_start": "2026-10-01T00:00:00Z",
     "from_height": 42244897,
-    "through_height": 42442694,
-    "through_time": "2026-10-07T00:19:51.466286243Z",
-    "target_height": 42442694,
+    "through_height": 42443471,
+    "through_time": "2026-10-07T00:52:56.240708415Z",
+    "target_height": 42443471,
     "status": "CURRENT",
-    "blocks": 197798,
-    "ranges": 215,
+    "blocks": 198575,
+    "ranges": 216,
     "module_transfer_blocks": 0,
-    "transaction_blocks": 2566
+    "transaction_blocks": 2569
   },
   "recorded_cash_review": {
     "method": "distribution-outflows-less-reward-withdrawals",
     "from_height": 42244897,
-    "through_height": 42442694,
-    "transactions_checked": 2585,
+    "through_height": 42443471,
+    "transactions_checked": 2588,
     "unresolved": [],
     "status": "reviewed",
     "scope": "Recorded activity only; unmeasured withdrawal dust and validator-removal remainders are excluded."
   },
   "valuation_policy": "Historical daily opening USD reference, fixed per UTC day. Indicative conversion; not an executed payment rate.",
-  "block_last_success_at": "2026-10-07T00:20:49.710705Z"
+  "block_last_success_at": "2026-10-07T00:53:53.455335Z"
 }
