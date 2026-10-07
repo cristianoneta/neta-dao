@@ -2,8 +2,8 @@
 
 ## Owner deployment publication — 7 October 2026
 
-The owner asked to continue with the reviewed owner deployment page. A separate
-publication branch, `codex/personal-deploy-publish-20261007`, extracts the v0.4
+The owner asked to continue with the reviewed owner deployment page. [PR #200](https://github.com/cristianoneta/neta-dao/pull/200), merged as
+`0a6de50a878ce38f2b60d2a8a8dc03ddb5dfd301`, publishes the v0.4
 contract/source, artifact and standalone setup helper from PR #195 onto current
 main. The shared signing bundle and production Inbox are unchanged. This avoids
 publishing the unfinished personal runtime while making owner deployment concrete.
@@ -18,9 +18,13 @@ latter simulates chain/signing and covers reload/recovery, wallet invalidation,
 public export, keyboard focus and 1440/768/390/320 px; desktop/mobile screenshots
 were inspected. The artifact hash remains
 `835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708`.
-GitHub checks and HTTPS publication still need confirmation before using the page.
+All three PR checks passed: browser **37576257783**, frontend/contracts
+**37576257803**, and reproducible WASM **37576257837**. Pages **37576743695**
+succeeded. Eight served files, including the WASM, matched source SHA-256.
+The [owner deployment page](https://dao.netareborn.com/relay-personal-deploy.html)
+is now live. Source publication is complete; no owner transaction has been made.
 
-Next: verify publication, then use `relay-personal-deploy.html` with the owner
+Next: use the live `relay-personal-deploy.html` page with the owner
 wallet. Upload and instantiate are separate Keplr confirmations; save the exported
 public JSON and independently recheck its exact transactions/code/address. Do not
 repeat an unresolved action or clear site data. Provider/budget agreement and a

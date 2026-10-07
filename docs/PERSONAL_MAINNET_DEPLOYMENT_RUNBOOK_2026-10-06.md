@@ -7,11 +7,11 @@ owner deployment candidate, not a completed production rollout.
 ## Publication split — 7 October 2026
 
 The standalone owner helper, exact v0.4 artifact/source and null release modules
-are prepared for separate publication from current main on
-`codex/personal-deploy-publish-20261007`. The public Inbox and shared signing
+were published separately in [PR #200](https://github.com/cristianoneta/neta-dao/pull/200),
+merged as `0a6de50a878ce38f2b60d2a8a8dc03ddb5dfd301`. The public Inbox and shared signing
 bundle remain unchanged; PR #195 still holds the unmerged personal runtime.
-Wait for the publication checkpoint and served-file verification before directing
-the owner to the production URL. No real chain receipt or backup service exists.
+All three PR checks passed and Pages run 37576743695 succeeded. Eight served
+files matched source SHA-256. Use the [verified owner page](https://dao.netareborn.com/relay-personal-deploy.html). No real chain receipt or backup service exists.
 
 ## Reviewed source and identities
 
