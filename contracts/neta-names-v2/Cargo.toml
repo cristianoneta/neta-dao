@@ -16,7 +16,7 @@ sha2 = "0.10"
 
 [dev-dependencies]
 cw-multi-test = "0.20.1"
-cw20 = "1.1.2"
+cw20 = "2.0.0"
 cw20-base = { version = "1.1.2", features = ["library"] }
 ed25519-zebra = "3.1.0"
 neta-validator-profiles = { path = "../neta-validator-profiles" }
