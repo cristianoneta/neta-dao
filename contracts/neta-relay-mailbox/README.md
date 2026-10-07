@@ -1,13 +1,19 @@
-# NETA RELAY mailbox — v0.3 source candidate
+# Personal-mainnet source candidate — v0.4
 
-The deployed UNI-7 instance below is still v0.1. v0.3 has not been deployed;
-no existing instance or artifact is replaced. See
-[DAO inbox implementation](../../docs/DAO_MAILBOX_IMPLEMENTATION_2026-10-06.md)
-for implemented authority, NNS binding, shared encrypted records and explicit
-recovery/deployment gates. The candidate remains hardcoded to UNI-7. A new
-instance must retain the owner-selected upgrade admin. No migration is supplied.
+Owner decision 6 October 2026: personal messaging is tested on mainnet before
+shared DAO mailboxes. An active sender-owned .neta name replaces the earlier
+5-NETA staking condition. No stake query or extra application fee exists.
+Mainnet instantiation is explicit (`mainnet: true`), owner-controlled, and binds
+the production NNS registry immediately. All DAO execute routes stay disabled
+in this first personal-mainnet candidate. No deployment or migration is implied.
 
-# NETA RELAY mailbox (UNI-7 prototype)
+See [personal messaging preparation](../../docs/PERSONAL_MESSAGING_MAINNET_2026-10-06.md)
+for the artifact, implemented recovery and remaining backup/client/review gates.
+The deployed v0.1 UNI-7 address/artifact below is preserved. The historical v0.3
+DAO source introduced shared mailbox support; v0.4 is its undeployed successor.
+New instances must retain the owner's explicit upgrade administrator.
+
+## Historical UNI-7 prototype
 
 The contract is a public, testnet-only store for one active device per wallet,
 bounded public Proteus prekeys and opaque ciphertext. It does **not** encrypt
@@ -35,4 +41,4 @@ belongs in execute data or events. A device reset cannot restore old history.
 This is a deployed testnet prototype, not an audited mainnet contract. Still required before production integration: actual gas and storage measurements, Keplr transaction
 tests with two wallets, session envelope binding and client outbox recovery,
 device-loss UX, production distribution/license and independent security review. GPL CoreCrypto is already shipped for the isolated lab; mock browser integration passed, but real two-wallet E2E remains unrecorded. Mainnet
-needs a new separately reviewed implementation with the 5 actively staked NETA policy. This crate has a hardcoded UNI-7 guard, no network-config parameter and no stake query.
+uses the new explicit v0.4 mode described above, with active .neta sender ownership and no staking gate. Production recovery, client integration and deployment evidence are still required.

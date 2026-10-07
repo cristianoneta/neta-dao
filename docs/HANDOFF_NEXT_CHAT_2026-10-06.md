@@ -1,5 +1,34 @@
 # Next-chat handoff — dao.netareborn.com
 
+## Owner deployment publication — 7 October 2026
+
+The owner asked to continue with the reviewed owner deployment page. A separate
+publication branch, `codex/personal-deploy-publish-20261007`, extracts the v0.4
+contract/source, artifact and standalone setup helper from PR #195 onto current
+main. The shared signing bundle and production Inbox are unchanged. This avoids
+publishing the unfinished personal runtime while making owner deployment concrete.
+
+The setup retains the two explicit wallet confirmations, owner upgrade authority,
+exact-intent recovery without resending and two-provider receipt verification.
+Both personal deployment/release pins remain null. No contract, real signature,
+backup service, cost or public messaging activation was created by this work.
+
+Local checks: 159 root Node tests and the owner browser regression passed. The
+latter simulates chain/signing and covers reload/recovery, wallet invalidation,
+public export, keyboard focus and 1440/768/390/320 px; desktop/mobile screenshots
+were inspected. The artifact hash remains
+`835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708`.
+GitHub checks and HTTPS publication still need confirmation before using the page.
+
+Next: verify publication, then use `relay-personal-deploy.html` with the owner
+wallet. Upload and instantiate are separate Keplr confirmations; save the exported
+public JSON and independently recheck its exact transactions/code/address. Do not
+repeat an unresolved action or clear site data. Provider/budget agreement and a
+second consenting pilot wallet remain open. The full personal runtime still lives
+in draft PR #195; integrate current main into it before continuing. After personal
+mainnet evidence: DAO shared recovery/inbox, then payment requests/invoices and
+Treasury linkage.
+
 ## Overnight continuation — 6 October 2026, owner deployment and real backup transport
 
 Continue **draft [PR #195](https://github.com/cristianoneta/neta-dao/pull/195)** on

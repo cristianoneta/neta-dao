@@ -4,6 +4,15 @@ Prepared on 6 October 2026 in draft PR #195. No mainnet contract, backup service
 real-wallet signature or recurring cost has been created. This is a runnable
 owner deployment candidate, not a completed production rollout.
 
+## Publication split — 7 October 2026
+
+The standalone owner helper, exact v0.4 artifact/source and null release modules
+are prepared for separate publication from current main on
+`codex/personal-deploy-publish-20261007`. The public Inbox and shared signing
+bundle remain unchanged; PR #195 still holds the unmerged personal runtime.
+Wait for the publication checkpoint and served-file verification before directing
+the owner to the production URL. No real chain receipt or backup service exists.
+
 ## Reviewed source and identities
 
 - Continue `codex/personal-messaging-recovery-mainnet`; do not rebuild from main.

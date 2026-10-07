@@ -204,6 +204,12 @@ fn next(value: u64) -> Result<u64, Error> {
 pub fn init(storage: &mut dyn cosmwasm_std::Storage, owner: &Addr) -> StdResult<()> {
     ADMIN.save(storage, owner)
 }
+pub fn bind_initial_registry(
+    storage: &mut dyn cosmwasm_std::Storage,
+    registry: Addr,
+) -> StdResult<()> {
+    REGISTRY.save(storage, &registry)
+}
 pub fn active_name(deps: Deps, env: &Env, address: &Addr, required: bool) -> Result<(), Error> {
     let Some(registry) = REGISTRY.may_load(deps.storage)? else {
         return if required {

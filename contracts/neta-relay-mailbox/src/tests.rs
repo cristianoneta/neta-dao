@@ -27,6 +27,7 @@ fn ciphertext() -> Binary {
 }
 fn register(id: &str, prekeys: Vec<Prekey>) -> ExecuteMsg {
     ExecuteMsg::Register {
+        expected_previous_generation: None,
         device_id: id.into(),
         protocol_version: 1,
         fingerprint: "ab".repeat(32),
@@ -44,7 +45,7 @@ fn setup() -> OwnedDeps<
         deps.as_mut(),
         env(),
         mock_info("creator", &[]),
-        InstantiateMsg {},
+        InstantiateMsg::default(),
     )
     .unwrap();
     execute(
@@ -78,6 +79,7 @@ fn setup() -> OwnedDeps<
 
 fn send_initial(id: u8, key: u16, generation: u64) -> ExecuteMsg {
     ExecuteMsg::SendInitial {
+        sender_generation: None,
         recipient: "bob".into(),
         recipient_generation: generation,
         prekey_id: key,
@@ -211,6 +213,7 @@ fn device_rotation_rejects_stale_sends_and_revocation() {
     )
     .unwrap();
     let followup = ExecuteMsg::Send {
+        sender_generation: None,
         recipient: "bob".into(),
         recipient_generation: 2,
         message_id: message_id(2),
@@ -275,6 +278,7 @@ fn consumed_ids_cannot_be_republished_and_blocks_work() {
             env(),
             mock_info("alice", &[]),
             ExecuteMsg::Send {
+                sender_generation: None,
                 recipient: "bob".into(),
                 recipient_generation: 1,
                 message_id: message_id(2),
@@ -288,6 +292,7 @@ fn consumed_ids_cannot_be_republished_and_blocks_work() {
         later(10),
         mock_info("alice", &[]),
         ExecuteMsg::Send {
+            sender_generation: None,
             recipient: "bob".into(),
             recipient_generation: 1,
             message_id: message_id(2),
@@ -443,4 +448,259 @@ fn recipient_consent_cannot_be_granted_by_sender_and_rotation_invalidates_it() {
     )
     .unwrap();
     assert_eq!(identity.unwrap().device_id, "alice-device");
+}
+
+#[test]
+fn mainnet_requires_explicit_mode_owner_and_keeps_dao_closed() {
+    let mut deps = mock_dependencies();
+    let mut main = env();
+    main.block.chain_id = "juno-1".into();
+    assert!(instantiate(
+        deps.as_mut(),
+        main.clone(),
+        mock_info(policy::OWNER, &[]),
+        InstantiateMsg::default()
+    )
+    .is_err());
+    assert!(instantiate(
+        deps.as_mut(),
+        main.clone(),
+        mock_info("other", &[]),
+        InstantiateMsg { mainnet: true }
+    )
+    .is_err());
+    instantiate(
+        deps.as_mut(),
+        main.clone(),
+        mock_info(policy::OWNER, &[]),
+        InstantiateMsg { mainnet: true },
+    )
+    .unwrap();
+    let config: policy::Config =
+        from_json(query(deps.as_ref(), main.clone(), QueryMsg::Config {}).unwrap()).unwrap();
+    assert_eq!(config.chain_id, "juno-1");
+    assert_eq!(config.nns_registry.as_deref(), Some(policy::REGISTRY));
+    assert!(execute(
+        deps.as_mut(),
+        main.clone(),
+        mock_info(policy::OWNER, &[]),
+        ExecuteMsg::Dao(dao::Execute::BindRegistry {
+            address: "otherregistry".into()
+        })
+    )
+    .is_err());
+    assert!(query(deps.as_ref(), env(), QueryMsg::Config {}).is_err());
+}
+
+#[test]
+fn mainnet_requires_current_active_name_but_never_queries_stake() {
+    use cosmwasm_std::{ContractResult, SystemResult, WasmQuery};
+    let mut main = env();
+    main.block.chain_id = "juno-1".into();
+    for (active, transferred, missing, unavailable, pass) in [
+        (false, false, false, false, false),
+        (true, true, false, false, false),
+        (true, false, true, false, false),
+        (true, false, false, true, false),
+        (true, false, false, false, true),
+    ] {
+        let mut deps = mock_dependencies();
+        instantiate(
+            deps.as_mut(),
+            main.clone(),
+            mock_info(policy::OWNER, &[]),
+            InstantiateMsg { mainnet: true },
+        )
+        .unwrap();
+        let expires = if active {
+            main.block.time.seconds() + 1000
+        } else {
+            main.block.time.seconds()
+        };
+        deps.querier.update_wasm(move |query| {
+            if let WasmQuery::Smart { contract_addr, msg } = query {
+                assert_eq!(
+                    contract_addr,
+                    policy::REGISTRY,
+                    "No staking query is authorized"
+                );
+                if unavailable {
+                    return SystemResult::Ok(ContractResult::Err("registry unavailable".into()));
+                }
+                let raw = String::from_utf8(msg.to_vec()).unwrap();
+                let response = if raw.contains("name_of") {
+                    if missing {
+                        "{\"address\":\"alice\",\"name\":null}".into()
+                    } else {
+                        "{\"address\":\"alice\",\"name\":\"alice\"}".into()
+                    }
+                } else {
+                    let owner = if transferred {
+                        "different-owner"
+                    } else {
+                        "alice"
+                    };
+                    format!("{{\"name\":\"alice\",\"owner\":\"{owner}\",\"expires_at\":{expires}}}")
+                };
+                SystemResult::Ok(ContractResult::Ok(Binary::from(response.into_bytes())))
+            } else {
+                SystemResult::Ok(ContractResult::Err("unexpected query".into()))
+            }
+        });
+        for who in ["alice", "bob"] {
+            execute(
+                deps.as_mut(),
+                main.clone(),
+                mock_info(who, &[]),
+                match register(who, vec![prekey(1)]) {
+                    ExecuteMsg::Register {
+                        device_id,
+                        protocol_version,
+                        fingerprint,
+                        prekeys,
+                        ..
+                    } => ExecuteMsg::Register {
+                        expected_previous_generation: Some(0),
+                        device_id,
+                        protocol_version,
+                        fingerprint,
+                        prekeys,
+                    },
+                    _ => unreachable!(),
+                },
+            )
+            .unwrap();
+        }
+        execute(
+            deps.as_mut(),
+            main.clone(),
+            mock_info("bob", &[]),
+            ExecuteMsg::AllowSender {
+                address: "alice".into(),
+                recipient_generation: 1,
+                sender_generation: 1,
+                allowed: true,
+            },
+        )
+        .unwrap();
+        if pass {
+            assert_eq!(
+                execute(
+                    deps.as_mut(),
+                    main.clone(),
+                    mock_info("alice", &[]),
+                    send_initial(9, 1, 1)
+                ),
+                Err(Error::DeviceChanged)
+            );
+        }
+        let result = execute(
+            deps.as_mut(),
+            main.clone(),
+            mock_info("alice", &[]),
+            match send_initial(1, 1, 1) {
+                ExecuteMsg::SendInitial {
+                    recipient,
+                    recipient_generation,
+                    prekey_id,
+                    message_id,
+                    ciphertext,
+                    ..
+                } => ExecuteMsg::SendInitial {
+                    sender_generation: Some(1),
+                    recipient,
+                    recipient_generation,
+                    prekey_id,
+                    message_id,
+                    ciphertext,
+                },
+                _ => unreachable!(),
+            },
+        );
+        assert_eq!(result.is_ok(), pass, "{result:?}");
+        assert_eq!(
+            DEVICES
+                .load(&deps.storage, &Addr::unchecked("bob"))
+                .unwrap()
+                .prekeys
+                .len(),
+            if pass { 0 } else { 1 }
+        );
+    }
+}
+
+#[test]
+fn reviewed_generations_fence_stale_transactions_without_consuming_prekeys() {
+    let mut deps = setup();
+    let alice = Addr::unchecked("alice");
+    let bob = Addr::unchecked("bob");
+    let stale_register = ExecuteMsg::Register {
+        expected_previous_generation: Some(0),
+        device_id: "stale".into(),
+        protocol_version: 1,
+        fingerprint: "cd".repeat(32),
+        prekeys: vec![prekey(8)],
+    };
+    assert_eq!(
+        execute(
+            deps.as_mut(),
+            env(),
+            mock_info("alice", &[]),
+            stale_register
+        ),
+        Err(Error::DeviceChanged)
+    );
+    assert_eq!(DEVICES.load(&deps.storage, &alice).unwrap().generation, 1);
+    let before = DEVICES.load(&deps.storage, &bob).unwrap();
+    for initial in [true, false] {
+        let msg = if initial {
+            ExecuteMsg::SendInitial {
+                sender_generation: Some(2),
+                recipient: "bob".into(),
+                recipient_generation: 1,
+                prekey_id: 1,
+                message_id: message_id(55),
+                ciphertext: ciphertext(),
+            }
+        } else {
+            ExecuteMsg::Send {
+                sender_generation: Some(2),
+                recipient: "bob".into(),
+                recipient_generation: 1,
+                message_id: message_id(55),
+                ciphertext: ciphertext(),
+            }
+        };
+        assert_eq!(
+            execute(deps.as_mut(), env(), mock_info("alice", &[]), msg),
+            Err(Error::DeviceChanged)
+        );
+        assert_eq!(DEVICES.load(&deps.storage, &bob).unwrap(), before);
+        assert!(!SENT_IDS.has(&deps.storage, (&alice, &message_id(55))));
+        assert_eq!(NEXT_SEQUENCE.load(&deps.storage).unwrap(), 0);
+    }
+}
+
+#[test]
+fn mainnet_register_requires_explicit_previous_generation() {
+    let mut deps = mock_dependencies();
+    let mut main = env();
+    main.block.chain_id = "juno-1".into();
+    instantiate(
+        deps.as_mut(),
+        main.clone(),
+        mock_info(policy::OWNER, &[]),
+        InstantiateMsg { mainnet: true },
+    )
+    .unwrap();
+    assert_eq!(
+        execute(
+            deps.as_mut(),
+            main,
+            mock_info("alice", &[]),
+            register("alice", vec![prekey(1)])
+        ),
+        Err(Error::DeviceChanged)
+    );
+    assert!(!DEVICES.has(&deps.storage, &Addr::unchecked("alice")));
 }
