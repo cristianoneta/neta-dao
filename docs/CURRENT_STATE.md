@@ -1,5 +1,22 @@
 # NETA DAO code-backed current state
 
+## Mainnet mailbox deployed — 7 October 2026
+
+Code **5170** and mailbox
+`juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6` are deployed
+and independently verified on PolkaChu and STAVR. The owner wallet remains upgrade
+administrator; WASM, exact transaction intents and the mainnet/NNS/DAO-disabled
+policy match. [Deployment evidence and next settings](deployments/PERSONAL_MAINNET_2026-10-07.md).
+The real owner-receipt gate is complete. Public messaging remains inactive and
+both application pins remain null pending service/release setup; PR #195 is draft.
+
+Render installation is confirmed. Its management tools were not available within
+the already-running turn, so the existing service was not reconfigured/redeployed.
+Public Faucet `/status` was ready and backup `/health` returned 404 at 10:41 UTC.
+Next: existing-service backup setup, a second consenting pilot wallet, real hosted
+persistence/recovery checks and remaining release gates. Do not repeat the owner's
+upload/instantiation or ask for another Render installation.
+
 ## Personal messaging continuation — 7 October 2026
 
 PR #195 remains draft/unmerged at `052e736a87d44bbe3743524b1a547822bc6dbf81`,

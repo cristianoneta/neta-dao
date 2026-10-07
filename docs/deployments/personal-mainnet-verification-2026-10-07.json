@@ -1,0 +1,142 @@
+{
+  "kind": "personal-mainnet-independent-verification",
+  "schema": 1,
+  "suppliedReceiptFileSha256": "7062e398fbd76022819db88053e6a55114389ea5c67e3fcf07cf13a6199b2a2f",
+  "deployment": {
+    "chainId": "juno-1",
+    "contract": "juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6",
+    "creator": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+    "admin": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+    "codeId": 5170,
+    "codeHash": "835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708",
+    "label": "NETA RELAY personal v0.4 · Juno mainnet"
+  },
+  "policy": {
+    "chain_id": "juno-1",
+    "nns_registry": "juno1pc8wrq89ljuhu2qt6rtk5lkkrptxajtf3un5llu8prg7r4z50vlszfhhza",
+    "dao_enabled": false
+  },
+  "observations": [
+    {
+      "provider": "https://juno-api.polkachu.com",
+      "observedAt": "Wed, 07 Oct 2026 10:42:03 GMT",
+      "latestBlock": {
+        "height": "42454775",
+        "time": "2026-10-07T10:41:53.799602277Z"
+      },
+      "codeBytesHash": "835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708",
+      "creatorMatches": true,
+      "upgradeAdminMatches": true,
+      "policyMatches": true,
+      "transactions": [
+        {
+          "kind": "store",
+          "hash": "9282A17189A199D7EAC4F07F99D00B3654287D83F361A932E84842A6ABB59385",
+          "height": 42454656,
+          "timestamp": "2026-10-07T10:35:54Z",
+          "code": 0,
+          "fee": {
+            "amount": [
+              {
+                "denom": "ujuno",
+                "amount": "393283"
+              }
+            ],
+            "gas_limit": "5243768",
+            "payer": "",
+            "granter": ""
+          },
+          "rawTransactionHashMatches": true,
+          "includedInBlock": true,
+          "messageMatches": true,
+          "exactSignedIntentMatches": true
+        },
+        {
+          "kind": "instantiate",
+          "hash": "198BFC83E6056EB285ECE3F9C5B19C3B54F68A91468592F1A32BBC65C488ECC9",
+          "height": 42454685,
+          "timestamp": "2026-10-07T10:37:23Z",
+          "code": 0,
+          "fee": {
+            "amount": [
+              {
+                "denom": "ujuno",
+                "amount": "26583"
+              }
+            ],
+            "gas_limit": "354429",
+            "payer": "",
+            "granter": ""
+          },
+          "rawTransactionHashMatches": true,
+          "includedInBlock": true,
+          "messageMatches": true,
+          "exactSignedIntentMatches": true
+        }
+      ]
+    },
+    {
+      "provider": "https://juno.api.m.stavr.tech",
+      "observedAt": "Wed, 07 Oct 2026 10:42:03 GMT",
+      "latestBlock": {
+        "height": "42454775",
+        "time": "2026-10-07T10:41:53.799602277Z"
+      },
+      "codeBytesHash": "835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708",
+      "creatorMatches": true,
+      "upgradeAdminMatches": true,
+      "policyMatches": true,
+      "transactions": [
+        {
+          "kind": "store",
+          "hash": "9282A17189A199D7EAC4F07F99D00B3654287D83F361A932E84842A6ABB59385",
+          "height": 42454656,
+          "timestamp": "2026-10-07T10:35:54Z",
+          "code": 0,
+          "fee": {
+            "amount": [
+              {
+                "denom": "ujuno",
+                "amount": "393283"
+              }
+            ],
+            "gas_limit": "5243768",
+            "payer": "",
+            "granter": ""
+          },
+          "rawTransactionHashMatches": true,
+          "includedInBlock": true,
+          "messageMatches": true,
+          "exactSignedIntentMatches": true
+        },
+        {
+          "kind": "instantiate",
+          "hash": "198BFC83E6056EB285ECE3F9C5B19C3B54F68A91468592F1A32BBC65C488ECC9",
+          "height": 42454685,
+          "timestamp": "2026-10-07T10:37:23Z",
+          "code": 0,
+          "fee": {
+            "amount": [
+              {
+                "denom": "ujuno",
+                "amount": "26583"
+              }
+            ],
+            "gas_limit": "354429",
+            "payer": "",
+            "granter": ""
+          },
+          "rawTransactionHashMatches": true,
+          "includedInBlock": true,
+          "messageMatches": true,
+          "exactSignedIntentMatches": true
+        }
+      ]
+    }
+  ],
+  "publicMessagingActivated": false,
+  "limits": [
+    "The initial not-broadcast record is retained as client-exported history; only the two confirmed transactions were independently verified.",
+    "Two-provider block/transaction observations are not an independent light-client proof or a backup/pilot verification."
+  ]
+}

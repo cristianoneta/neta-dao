@@ -1,5 +1,42 @@
 # Next-chat handoff — dao.netareborn.com — 7 October 2026
 
+## Owner deployment completed — next step is the shared Render backup
+
+This section supersedes the earlier missing-receipt and owner-upload instructions.
+The owner supplied the successful public receipt export. The two transactions,
+raw signed intents, downloaded code bytes, contract identity, administrator and
+policy were independently verified through **both PolkaChu and STAVR**.
+
+- Code ID: **5170**.
+- Contract: `juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6`.
+- Creator/upgrade admin: `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.
+- WASM: `835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708`.
+- Store transaction: `9282A17189A199D7EAC4F07F99D00B3654287D83F361A932E84842A6ABB59385`, height 42,454,656.
+- Instantiate transaction: `198BFC83E6056EB285ECE3F9C5B19C3B54F68A91468592F1A32BBC65C488ECC9`, height 42,454,685.
+- Policy: `juno-1`, reviewed NNS registry, `dao_enabled:false`.
+
+Read [the deployment record](deployments/PERSONAL_MAINNET_2026-10-07.md) for the
+unmodified receipt JSON, independent checks and exact candidate Render settings.
+**Do not ask the owner to upload or instantiate again.** Preserve existing journals.
+PR #195 stays draft at `052e736a87d44bbe3743524b1a547822bc6dbf81`, with its five
+successful application workflows. Both application pins remain null pending the
+reviewed service/release setup; recording a real contract is not public activation.
+
+The user installed Render during this continuation; installation was confirmed.
+Its management tools were not exposed inside the already-running turn. Discover
+the newly connected capabilities on the next turn; do not request reinstallation.
+No dashboard configuration was inspected/changed and no Render deploy was started.
+Read-only `/status` was ready at 10:41 UTC; `/health` returned 404.
+
+Next: inspect the **existing** `neta-junox-faucet` service, preserve its plan/disk,
+mnemonic secret configuration and payout data, then apply the reviewed root/build/
+start settings with RELAY disabled first. The implementation is on PR #195, not
+main; select a deliberate reviewed candidate commit for the service deployment.
+Use this verified mailbox for configuration. Obtain the second consenting pilot
+wallet before the two-wallet test. Verify actual origin/authentication/quotas,
+Faucet continuity, restart persistence and off-service exports before release.
+Continue DAO inbox/recovery and payment requests only after personal messaging.
+
 ## Personal messaging continuation — integration and preflight complete
 
 This section supersedes the earlier PR-head and next-step status below. The owner

@@ -1,0 +1,686 @@
+{
+  "kind": "personal-mainnet-deployment-receipts",
+  "deployment": {
+    "chainId": "juno-1",
+    "contract": "juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6",
+    "creator": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+    "admin": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+    "codeId": 5170,
+    "codeHash": "835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708",
+    "label": "NETA RELAY personal v0.4 · Juno mainnet"
+  },
+  "policy": {
+    "chain_id": "juno-1",
+    "nns_registry": "juno1pc8wrq89ljuhu2qt6rtk5lkkrptxajtf3un5llu8prg7r4z50vlszfhhza",
+    "dao_enabled": false
+  },
+  "observations": [
+    {
+      "provider": "https://juno-api.polkachu.com",
+      "height": "42454689",
+      "time": "2026-10-07T10:37:38.185157110Z",
+      "policy": {
+        "chain_id": "juno-1",
+        "nns_registry": "juno1pc8wrq89ljuhu2qt6rtk5lkkrptxajtf3un5llu8prg7r4z50vlszfhhza",
+        "dao_enabled": false
+      }
+    },
+    {
+      "provider": "https://juno.api.m.stavr.tech",
+      "height": "42454689",
+      "time": "2026-10-07T10:37:38.185157110Z",
+      "policy": {
+        "chain_id": "juno-1",
+        "nns_registry": "juno1pc8wrq89ljuhu2qt6rtk5lkkrptxajtf3un5llu8prg7r4z50vlszfhhza",
+        "dao_enabled": false
+      }
+    }
+  ],
+  "history": [
+    {
+      "request": {
+        "owner": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+        "kind": "store",
+        "checksum": "835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708",
+        "memo": "Upload NETA RELAY personal v0.4 on Juno mainnet",
+        "intentId": "e92e39744c443ff2b771e7a1889515da"
+      },
+      "receipt": {
+        "notBroadcast": true,
+        "intentMatched": true
+      }
+    },
+    {
+      "request": {
+        "owner": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+        "kind": "store",
+        "checksum": "835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708",
+        "memo": "Upload NETA RELAY personal v0.4 on Juno mainnet",
+        "intentId": "cc587254ee8d9b94b33f5abd09f9b7db"
+      },
+      "receipt": {
+        "transactionHash": "9282A17189A199D7EAC4F07F99D00B3654287D83F361A932E84842A6ABB59385",
+        "chainId": "juno-1",
+        "height": 42454656,
+        "code": 0,
+        "intentMatched": true,
+        "events": [
+          {
+            "type": "coin_spent",
+            "attributes": [
+              {
+                "key": "spender",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "393283ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "coin_received",
+            "attributes": [
+              {
+                "key": "receiver",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "393283ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "transfer",
+            "attributes": [
+              {
+                "key": "recipient",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "sender",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "393283ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "message",
+            "attributes": [
+              {
+                "key": "sender",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "tx",
+            "attributes": [
+              {
+                "key": "fee",
+                "value": "393283ujuno",
+                "index": true
+              },
+              {
+                "key": "fee_payer",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "tx",
+            "attributes": [
+              {
+                "key": "acc_seq",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57/39",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "tx",
+            "attributes": [
+              {
+                "key": "signature",
+                "value": "ahn/VG3rmwWd+Wfj4c5FekDRf+3PFu8EsNIb0BzolfAppxk02kbdtwc7/dnKruFStu461NKQ5DUZwOdoUo3exA==",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "message",
+            "attributes": [
+              {
+                "key": "action",
+                "value": "/cosmwasm.wasm.v1.MsgStoreCode",
+                "index": true
+              },
+              {
+                "key": "sender",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+                "index": true
+              },
+              {
+                "key": "module",
+                "value": "wasm",
+                "index": true
+              },
+              {
+                "key": "msg_index",
+                "value": "0",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "store_code",
+            "attributes": [
+              {
+                "key": "code_checksum",
+                "value": "835323a60b0d418d0ef88e1fe12c02f8d65cc5c84fcf593135fdb18977f86708",
+                "index": true
+              },
+              {
+                "key": "code_id",
+                "value": "5170",
+                "index": true
+              },
+              {
+                "key": "msg_index",
+                "value": "0",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "coin_spent",
+            "attributes": [
+              {
+                "key": "spender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "218562ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "coin_received",
+            "attributes": [
+              {
+                "key": "receiver",
+                "value": "juno17xpfvakm2amg962yls6f84z3kell8c5lxtqmvp",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "218562ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "transfer",
+            "attributes": [
+              {
+                "key": "recipient",
+                "value": "juno17xpfvakm2amg962yls6f84z3kell8c5lxtqmvp",
+                "index": true
+              },
+              {
+                "key": "sender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "218562ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "message",
+            "attributes": [
+              {
+                "key": "sender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "coin_spent",
+            "attributes": [
+              {
+                "key": "spender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "174721ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "coin_received",
+            "attributes": [
+              {
+                "key": "receiver",
+                "value": "juno1yfx5x9cs3nvncprlw0kuw2cgs9qq38uqvnlck7",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "174721ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "transfer",
+            "attributes": [
+              {
+                "key": "recipient",
+                "value": "juno1yfx5x9cs3nvncprlw0kuw2cgs9qq38uqvnlck7",
+                "index": true
+              },
+              {
+                "key": "sender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "174721ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "message",
+            "attributes": [
+              {
+                "key": "sender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "fee_pay",
+            "attributes": [
+              {
+                "key": "fee",
+                "value": "218562ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "tip_pay",
+            "attributes": [
+              {
+                "key": "tip",
+                "value": "174721ujuno",
+                "index": true
+              },
+              {
+                "key": "tip_payee",
+                "value": "juno1yfx5x9cs3nvncprlw0kuw2cgs9qq38uqvnlck7",
+                "index": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "owner": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+        "kind": "instantiate",
+        "codeId": 5170,
+        "migrationAdmin": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+        "label": "NETA RELAY personal v0.4 · Juno mainnet",
+        "msg": {
+          "mainnet": true
+        },
+        "memo": "Instantiate NETA RELAY personal v0.4 on Juno mainnet",
+        "intentId": "3610183d28f58765b2f583cf8545fc6a"
+      },
+      "receipt": {
+        "transactionHash": "198BFC83E6056EB285ECE3F9C5B19C3B54F68A91468592F1A32BBC65C488ECC9",
+        "chainId": "juno-1",
+        "height": 42454685,
+        "code": 0,
+        "intentMatched": true,
+        "events": [
+          {
+            "type": "coin_spent",
+            "attributes": [
+              {
+                "key": "spender",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "26583ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "coin_received",
+            "attributes": [
+              {
+                "key": "receiver",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "26583ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "transfer",
+            "attributes": [
+              {
+                "key": "recipient",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "sender",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "26583ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "message",
+            "attributes": [
+              {
+                "key": "sender",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "tx",
+            "attributes": [
+              {
+                "key": "fee",
+                "value": "26583ujuno",
+                "index": true
+              },
+              {
+                "key": "fee_payer",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "tx",
+            "attributes": [
+              {
+                "key": "acc_seq",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57/40",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "tx",
+            "attributes": [
+              {
+                "key": "signature",
+                "value": "SxQTPCCzf6cF7Yqbgfy3p7qxPZ/RZHBmjE41f4JW6nUj/2r5Nb6HIeK/QkbSlyQ7aMC3mX+WrKXDcTjvZ1cAYQ==",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "message",
+            "attributes": [
+              {
+                "key": "action",
+                "value": "/cosmwasm.wasm.v1.MsgInstantiateContract",
+                "index": true
+              },
+              {
+                "key": "sender",
+                "value": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+                "index": true
+              },
+              {
+                "key": "module",
+                "value": "wasm",
+                "index": true
+              },
+              {
+                "key": "msg_index",
+                "value": "0",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "instantiate",
+            "attributes": [
+              {
+                "key": "_contract_address",
+                "value": "juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6",
+                "index": true
+              },
+              {
+                "key": "code_id",
+                "value": "5170",
+                "index": true
+              },
+              {
+                "key": "msg_index",
+                "value": "0",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "wasm",
+            "attributes": [
+              {
+                "key": "_contract_address",
+                "value": "juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6",
+                "index": true
+              },
+              {
+                "key": "action",
+                "value": "instantiate",
+                "index": true
+              },
+              {
+                "key": "msg_index",
+                "value": "0",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "coin_spent",
+            "attributes": [
+              {
+                "key": "spender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "14834ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "coin_received",
+            "attributes": [
+              {
+                "key": "receiver",
+                "value": "juno17xpfvakm2amg962yls6f84z3kell8c5lxtqmvp",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "14834ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "transfer",
+            "attributes": [
+              {
+                "key": "recipient",
+                "value": "juno17xpfvakm2amg962yls6f84z3kell8c5lxtqmvp",
+                "index": true
+              },
+              {
+                "key": "sender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "14834ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "message",
+            "attributes": [
+              {
+                "key": "sender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "coin_spent",
+            "attributes": [
+              {
+                "key": "spender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "11749ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "coin_received",
+            "attributes": [
+              {
+                "key": "receiver",
+                "value": "juno1x8u2ypdr35802tjyjqyxan8x85fzxe6sfjk5v7",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "11749ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "transfer",
+            "attributes": [
+              {
+                "key": "recipient",
+                "value": "juno1x8u2ypdr35802tjyjqyxan8x85fzxe6sfjk5v7",
+                "index": true
+              },
+              {
+                "key": "sender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              },
+              {
+                "key": "amount",
+                "value": "11749ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "message",
+            "attributes": [
+              {
+                "key": "sender",
+                "value": "juno13pxn9n3qw79e03844rdadagmg0nshmwfgj08r9",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "fee_pay",
+            "attributes": [
+              {
+                "key": "fee",
+                "value": "14834ujuno",
+                "index": true
+              }
+            ]
+          },
+          {
+            "type": "tip_pay",
+            "attributes": [
+              {
+                "key": "tip",
+                "value": "11749ujuno",
+                "index": true
+              },
+              {
+                "key": "tip_payee",
+                "value": "juno1x8u2ypdr35802tjyjqyxan8x85fzxe6sfjk5v7",
+                "index": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "activated": false
+}

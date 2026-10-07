@@ -1,5 +1,22 @@
 # NETA DAO handoff
 
+## Mainnet mailbox deployed and independently verified — 7 October 2026
+
+The owner completed upload and instantiation. Code **5170**, contract
+`juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6`, owner
+upgrade administration, reviewed WASM and DAO-disabled policy were verified on
+both configured Juno providers, including exact signed transaction bytes.
+See [the deployment record](docs/deployments/PERSONAL_MAINNET_2026-10-07.md)
+for the original public receipts, verification, transactions and Render settings.
+**Do not repeat deployment.** Older missing-receipt/owner-action instructions below
+are superseded. Public messaging is still inactive; PR #195 remains draft.
+
+Next: inspect/configure the existing Faucet Render service, then hosted backup
+checks and the consenting two-wallet pilot. The user has already installed Render;
+installation was confirmed, but management functions were not exposed in the prior
+running turn. Discover its tools again on continuation, without requesting another
+installation. No service changes or deployments occurred in this checkpoint.
+
 ## Personal messaging continuation — 7 October 2026
 
 Read the newest section of [the current handoff](docs/HANDOFF_NEXT_CHAT_2026-10-07.md).
