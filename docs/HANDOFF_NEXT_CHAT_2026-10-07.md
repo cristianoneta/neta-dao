@@ -1,32 +1,121 @@
 # Next-chat handoff — dao.netareborn.com — 7 October 2026
 
-## Owner correction: readiness before quorum — 7 October, 10:55 Berlin
+## Published checkpoint — 7 October 2026, 11:38 Berlin
 
-The first committed signature is **not** the requested upgrade responsiveness
-metric. A recovered pair of `/dump_consensus_state` captures from 07:32 UTC
-survives locally and is preserved without peer data in
-`data/validator-upgrades/juno-v31-readiness.json`. Both agree at 42,452,001,
-round 0: 14 validators had prevoted (64.53% power), 54.77% for the same block.
-Kintsugi's reported prevote time is 07:08:04.799998078 UTC (11m33s after the
-halt reference). Polkachu is absent in this snapshot; its readiness time is
-unknown, not inferred from a later commit or ranked last.
+The owner accepted automatic updates and requested this handoff. Community Tools
+work is complete for this session; continue the personal-messaging release steps
+below unless the owner gives a new priority.
 
-The follow-up defaults to First consensus vote, with partial-coverage labels,
-optional first-block-signature view, earliest-vote sorting and an expandable
-same-round timeline. Live signing remains a separate current window. The
-Faucet header is shared by every Community Tools page; the tracker uses a
-read-only mainnet label, with no wallet action. A bounded future collector needs
-an explicit UTC `readinessWindow` in the registry and archives during the halt.
-Historical v31 coverage cannot be recreated by enabling it now. See the tracker
-document for evidence, timing limitations and future setup. This section records
-the prepared correction; verify its PR/Pages result before calling it live.
+### Live navigation and display
 
-The owner also asked whether open work remains relevant: draft PR #195 still
-contains unfinished RELAY recovery/shared-backup/pilot work. Issue #119 remains
-partly relevant (incomplete Treasury coverage/expenses, unknown IBC decimals and
-DAO write/validator-E2E follow-ups), but its unactivated-NNS wording predates the
-verified mainnet launch and the October-only accounting decision. Do not close
-these as completed or merge #195 as part of Community Tools.
+- Hub: https://dao.netareborn.com/community-tools/
+- Faucet: https://dao.netareborn.com/community-tools/juno-faucet/
+- Upgrade list: https://dao.netareborn.com/community-tools/validator-upgrades/
+- Juno v31: https://dao.netareborn.com/community-tools/validator-upgrades/juno-v31/
+- All Community Tools pages share the Faucet-style header. Read-only pages have
+  their own network label and no wallet action. The workspace footer says
+  Community Tools; old root faucet/tracker URLs redirect while retaining query/hash.
+- The default **First participation evidence** column chooses the earliest saved
+  consensus vote or canonical block signature. It labels the evidence type, local
+  clock time and ≤ delay from the halt: participating **by** this time, possibly
+  ready earlier. Missing prevotes no longer hide known signature evidence.
+  The optional **First block signature** view remains separate.
+- Current status, signed-block count and voting power use the last five canonical
+  blocks, one block behind the tip, with source agreement/fallback labels.
+  Missing current votes/signatures or failed RPC calls never establish failed upgrades.
+
+### Timing evidence and its limits
+
+The halt reference is height 42,452,000 at 08:56:31 Berlin (06:56:31 UTC).
+The first resumed block, 42,452,001, has signatures around 09:53:30 Berlin.
+Its stale header time must never be substituted for the signature time.
+
+| Validator | First included block signature, 7 October, Berlin | Height |
+| --- | --- | ---: |
+| BlueStake | 09:53:30 — first resumed block | 42,452,001 |
+| GATA HUB | 10:11:49 | 42,452,230 |
+| Polkachu | 10:23:19 | 42,452,371 |
+| Stakeflow | 11:15:14 | 42,453,157 |
+| POSTHUMAN | 11:22:06 | 42,453,271 |
+| Shutting down - REDELEGATE ASAP | 11:22:06 | 42,453,271 |
+
+Source: `data/validator-upgrades/juno-v31.json`, collected at
+`2026-10-07T09:33:50.032105Z`: contiguous coverage through **42,453,480**,
+**20/25 first signatures**. The two matching RPC observers are PublicNode and
+STAVR. This count is historical evidence coverage, not a current signing count.
+The five still without an archived first signature at that checkpoint were
+Stake&Relax, 0base.vc, Validatus, Shutting Down - Redelegate and Secure Secrets.
+Later automatic collections may supersede this dated list.
+
+BlueStake participated in the first resumed commit. GATA HUB, Polkachu,
+Stakeflow and POSTHUMAN first appear later; restart quorum was achieved without
+their included signatures. This alone does **not** establish installation time
+or prove those validators upgraded after restart. The owner reports Stakeflow
+acknowledged a late upgrade; no operator-post URL was independently verified.
+
+Preserve the recovered 09:32 Berlin two-source consensus snapshot:
+`data/validator-upgrades/juno-v31-readiness.json`. It establishes 14 prevoters,
+64.53% participating power and 54.77% agreement on one block at height 42,452,001,
+round 0, without precommit quorum. Kintsugi's archived prevote is 09:08:04 Berlin,
++11m33s; The_Cybernetics is +10s. Nil counts as participation, not block agreement.
+These validator-reported vote times are earlier evidence than restart signatures.
+Coverage is partial: missing intervals, validator clocks and commit inclusion
+prevent a definitive responsiveness ranking. Do not merge power across rounds
+or infer exact readiness from an absent vote. No earlier public operator evidence
+was recovered for the missing times during the follow-up research.
+
+### Automatic updates — confirmed with the owner
+
+- Current status, blocks and voting power refresh every **30 seconds while the
+  page is visible and Auto is enabled**. Manual refresh is available.
+- `.github/workflows/validator-upgrades.yml` collects first signatures every
+  **ten minutes**, whether or not anyone has the page open. It scans a contiguous
+  sequence using matching canonical commits, with a 120-second / 1,000-block cap.
+- The browser reloads saved signature/readiness history at most every **five
+  minutes** during refresh. New historical timestamps therefore appear later than
+  live status; scheduler, node and Pages delays can extend the wait.
+- First evidence is retained permanently when a validator later stops signing.
+  Unknown is never a fabricated zero. No manual entry is needed for later arrivals.
+- For future upgrades, create the registry/detail entry and configure an explicit
+  UTC `readinessWindow` of at most 24 hours **before** the halt. The separate
+  pre-quorum observer schedules every five minutes and samples every 20 seconds
+  for up to 250 seconds in that window. v31 has no active window; enabling one now
+  cannot reconstruct the lost interval. Before a later upgrade, stop/freeze the
+  previous collector and deliberately freeze/relabel its live panel.
+
+### Publication and validation
+
+- PR #210 merged as `93dd8a27dd240f7cc7714913c30f0186c8649874`; Pages
+  `37599340713` succeeded (shared header, recovered votes, future capture support).
+- PR #211 merged as `5ad9fb14bf72daf1ec65341c41d75c687e22cfac`. All five checks
+  passed for head `75df611aeec0728012b787dc35793b8c84670a33`:
+  browser `37601087695`, frontend `37601087674`, Faucet `37601087715`,
+  pre-restart votes `37601087705`, signature history `37601087728`.
+  Tests cover earliest-evidence selection, unknown records and missing sources;
+  the browser regression checks Stakeflow's fallback link, preserved early votes,
+  live failure states and layouts from 320 to 1440 px using mocked RPC data.
+- Production collector `37601407504` succeeded and published
+  `ad4bdb481f861f14f64707d5277d0ae125dd2791`, including POSTHUMAN and the additional
+  returning validator. Pages **`37601479514` succeeded** for that data commit.
+  The preceding Pages run `37601406309` was cancelled/superseded, not the final
+  publication result.
+- Final publication/evidence was verified through GitHub Actions and the committed
+  archive. Direct web retrieval was unavailable in this follow-up; do not claim
+  a fresh production-browser or independent cryptographic signature audit.
+
+### Still-open work
+
+Draft PR **#195** remains open at
+`39feff397f600a25057087285e7710d032326aca`; continue its personal RELAY
+recovery, shared Faucet backup and real mainnet pilot work. Its previous five
+checks passed, but that does not establish actual owner deployment or live Render
+recovery. Integrate newer main changes deliberately before continuing.
+
+Issue **#119** remains partly relevant for incomplete Treasury/expense coverage,
+unknown IBC decimals and DAO-write/validator-E2E follow-ups. Its unactivated-NNS
+wording predates the verified launch and October-only accounting scope. Do not
+close it wholesale or merge PR #195 as part of the tracker. PR #209 was closed
+as superseded; #208, #210 and #211 are merged.
 
 This is the current continuation entry point. It supersedes the status and next-step
 instructions in the [6 October handoff](HANDOFF_NEXT_CHAT_2026-10-06.md), which is
@@ -59,17 +148,16 @@ generated Treasury/member snapshots and all existing candidate changes.
 | Visible wallet/network errors and bounded RPC connection | PR #205 merged as `69f6241c743374927f2eb3c3047c10434d2dba1e`; Pages run `37588644835` succeeded |
 | Read-only Juno validator consensus tracker | PR #206 merged as `8a58a1b7813beef265f6627bdb31806b361e76a8`; Pages run `37589754547` succeeded |
 | Community Tools, compact participation tracker and signature history | PR #208 merged as `d8172c1d383761ac069d328388ca99127194b933`; four PR checks passed, Pages `37596259987` succeeded; live UI and first automated archive publication verified |
+| Recovered pre-quorum evidence and shared Community Tools header | PR #210 merged; Pages `37599340713` succeeded |
+| Combined participation evidence and ten-minute archive updates | PR #211 merged; five checks passed, production collector and Pages `37601479514` succeeded |
 | Full personal messaging and shared Faucet backup integration | PR #195 is **open, draft and unmerged**; all five workflows pass at the application head above |
 | Real personal-mailbox upload/instantiate receipts | Still unrecorded; do not invent a code ID, address or successful owner transaction |
 | Live shared Render backup deployment and two-wallet pilot | Still unverified; source implementation is not live-service evidence |
 | Public personal messaging and DAO writes | Inactive; `PERSONAL_MAINNET_DEPLOYMENT` and `PERSONAL_MAINNET_RELEASE` remain `null` |
 
-Main was read at `8302850becdc803821cdf48c8a4a21009d7a921f`; its Pages run
-[`37590198709`](https://github.com/cristianoneta/neta-dao/actions/runs/37590198709)
-also succeeded. Scheduled snapshot commits may advance main after this checkpoint.
-The preceding chat reported checking the served wallet assets and opening the live
-tracker. This documentation session independently verified GitHub merge/Pages/CI
-records, not a new browser session or current chain recovery.
+Main was read at `ffc2059bdb05480ccd7a39bbe918b28b06ecefbb` during this handoff.
+Scheduled data commits may advance main. The latest verified tracker/data
+publication and observation limits are recorded at the top of this file.
 
 ## Juno v31 interruption and tracker
 
@@ -226,14 +314,3 @@ Keep PR #195 draft until its remaining release work is resolved deliberately.
 
 The older handoff retains Treasury, NNS, governance and wider roadmap details.
 This checkpoint does not complete unrelated backlogs or change application behavior.
-
-## Follow-up: late participation evidence
-
-Owner reported late Stakeflow and POSTHUMAN upgrades. The default v31 table now
-combines earliest saved consensus votes with canonical first block signatures,
-labels all times as participation upper bounds (≤), and retains explicit source
-types. BlueStake signed the first resumed block; GATA HUB, Polkachu and Stakeflow
-first appear later in the gap-free commit archive. This alone does not prove
-installation happened after restart. Preserve the 14 pre-quorum vote records.
-The collector cadence is ten minutes; timestamps for newly returning validators
-must come from matched canonical commits. See JUNO_UPGRADE_MONITOR_2026-10-07.md.
