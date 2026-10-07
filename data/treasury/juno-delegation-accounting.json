@@ -13,8 +13,8 @@
   "adapter": "treasury-receipts",
   "status": "PARTIAL",
   "refresh_status": "completed",
-  "checked_at": "2026-10-07T01:15:48.979372Z",
-  "last_success_at": "2026-10-07T01:15:48.955180Z",
+  "checked_at": "2026-10-07T01:45:22.416310Z",
+  "last_success_at": "2026-10-07T01:45:22.397442Z",
   "sources": [
     {
       "adapter": "cosmos-rest-receipts",
@@ -29,9 +29,9 @@
         "timestamp": "2026-09-30T11:15:50.297962745Z",
         "kind": "scan-floor-before-start"
       },
-      "scan_start_height": 42443377,
-      "last_scanned_height": 42443987,
-      "anchor_hash": "02D6DE4487327C49A431E015368BABB9D890CFBB03A4B426116A1BDE74552C97",
+      "scan_start_height": 42443887,
+      "last_scanned_height": 42444683,
+      "anchor_hash": "B46AC51E6FEA5237D86B63498E30BDDA75FB818F8014D5EB4FB9589AC4800B35",
       "incremental": true,
       "range_capable": true,
       "indexed_transactions": 0,
@@ -96,7 +96,7 @@
   "execution_candidates": [],
   "warnings": [
     "Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses.",
-    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2,\"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42444011)\",\"details\":[]}"
+    "Daily staking refresh failed; prior evidence retained: HTTP 500 /cosmos/distribution/v1beta1/delegators/juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0/rewards: {\"code\":2,\"message\":\"codespace sdk code 38: not found: failed to load state at height 42442228; version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height (latest height: 42444706)\",\"details\":[]}"
   ],
   "entries": [
     {
