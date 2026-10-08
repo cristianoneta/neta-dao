@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { BackupStore, MAX_BACKUP_BYTES } from './store.mjs';
 import { validWallet, verifyOwnership } from './auth.mjs';
+import { webOrigins } from '../service/web-origins.mjs';
 const token = () => randomBytes(32).toString('hex');
 export function backupServer({
   store,
@@ -16,9 +17,11 @@ export function backupServer({
   allowedWallets,
   bodyTimeoutMs = 5000
 }) {
+  const allowedOrigins = webOrigins(origin);
+  webOrigins(domain);
   if (
-    !/^https:\/\/[^/]+$/.test(origin) ||
-    !/^https:\/\/[^/]+$/.test(domain) ||
+    typeof domain !== 'string' ||
+    domain.includes(',') ||
     chain !== 'juno-1' ||
     !/^juno1[023456789acdefghjklmnpqrstuvwxyz]{58}$/.test(contract || '')
   )
@@ -55,12 +58,13 @@ export function backupServer({
       json(res, 200, { ok: true });
       return;
     }
-    if (req.headers.origin !== origin) {
+    const requestOrigin = req.headers.origin;
+    res.setHeader('vary', 'Origin');
+    if (!allowedOrigins.has(requestOrigin)) {
       json(res, 403, { error: 'Origin denied' });
       return;
     }
-    res.setHeader('access-control-allow-origin', origin);
-    res.setHeader('vary', 'Origin');
+    res.setHeader('access-control-allow-origin', requestOrigin);
     if (req.method === 'OPTIONS') {
       res.setHeader('access-control-allow-methods', 'GET, POST, PUT');
       res.setHeader('access-control-allow-headers', 'Content-Type, Authorization');
@@ -82,7 +86,7 @@ export function backupServer({
     let session = null;
     if (isBackup) {
       session = sessions.get((req.headers.authorization || '').replace(/^Bearer /, ''));
-      if (!session || session.expires <= now()) {
+      if (!session || session.expires <= now() || session.origin !== requestOrigin) {
         json(res, 401, { error: 'Authentication required' });
         return;
       }
@@ -124,15 +128,24 @@ export function backupServer({
         const message = JSON.stringify({
           purpose: 'NETA RELAY encrypted backup access v1',
           domain,
-          origin,
+          origin: requestOrigin,
           scope,
           nonce,
           expires
         });
-        challenges.set(nonce, { wallet: body.wallet, scope, message, expires });
+        challenges.set(nonce, {
+          wallet: body.wallet,
+          scope,
+          message,
+          expires,
+          origin: requestOrigin
+        });
         json(res, 200, { nonce, message, expires });
       } else if (req.url === '/v1/auth' && req.method === 'POST') {
         const challenge = challenges.get(body.nonce);
+        // A challenge from one allowed site cannot be redeemed or consumed by
+        // another. Its signed message and resulting session stay origin-bound.
+        if (!challenge || challenge.origin !== requestOrigin) throw Error('Invalid wallet proof');
         challenges.delete(body.nonce);
         if (
           !challenge ||
@@ -143,7 +156,12 @@ export function backupServer({
           throw Error('Invalid wallet proof');
         const accessToken = token(),
           expires = now() + 15 * 60000;
-        sessions.set(accessToken, { scope: challenge.scope, expires, requests: 0 });
+        sessions.set(accessToken, {
+          scope: challenge.scope,
+          expires,
+          requests: 0,
+          origin: requestOrigin
+        });
         json(res, 200, { accessToken, expires, scope: challenge.scope });
       } else if (req.url === '/v1/backup' && req.method === 'PUT')
         json(
@@ -183,7 +201,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const store = new BackupStore(process.env.RELAY_BACKUP_DB || '/var/data/relay-backup.sqlite');
   const server = backupServer({
     store,
-    origin: process.env.RELAY_WEB_ORIGIN,
+    origin: process.env.RELAY_WEB_ORIGINS || process.env.RELAY_WEB_ORIGIN,
     domain: process.env.RELAY_BACKUP_ORIGIN || process.env.RENDER_EXTERNAL_URL,
     chain: 'juno-1',
     contract: process.env.RELAY_MAILBOX_CONTRACT,

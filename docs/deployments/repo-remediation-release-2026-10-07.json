@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "tag": "repo-cleanup-2026-10-07",
+  "applicationCommit": "f5b21a50c67570a710b2641c8d58c78ec6dfdcbc",
+  "checkedHead": "5d8101733e54e8f3768175aa4c1c7fe1ec00fc50",
+  "sourceCheckRun": 37632083116,
+  "integrationPR": 224,
+  "pagesRun": 37632923865,
+  "backend": {
+    "service": "srv-db10ddc9v7es73dbg45g",
+    "deploy": "dep-db350qflk1mc739f4gng",
+    "commit": "f5b21a50c67570a710b2641c8d58c78ec6dfdcbc",
+    "status": "live",
+    "finishedAt": "2026-10-07T14:01:30.961001Z",
+    "deploymentBranch": "codex/personal-messaging-recovery-mainnet"
+  },
+  "contract": {
+    "chain": "juno-1",
+    "codeId": 5170,
+    "address": "juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6"
+  },
+  "backupEnvelopeVersion": 1,
+  "publicInboxEnabled": false,
+  "pilotManifest": "personal-pilot-artifacts-2026-10-07.json",
+  "localTests": {
+    "rootNode": 206,
+    "python": 84,
+    "faucet": 67,
+    "names": 22,
+    "backup": 12
+  },
+  "frontendArtifacts": {
+    "index.html": "32bf9e09bd87ecd837e2bb6e647f5c607cbb1324f4dfd4afd93b2049f5bc0ff8",
+    "neta-governance.js": "90969bc37e507fb0cd76da03556f598d7311892509cf7d3f26ade0e9fb757ebc",
+    "treasury.js": "5406fc52f5b6ea4c567550096f13154719fd5924219227a6088231fc0e4c441b",
+    "relay.js": "eb540281c567a3fe4eb23f7962fbe1a31461eaab0105a8628913afbe48e3cdb5",
+    "src/governance/comments.mjs": "be3cd34e57100d92d197df913ff3035ea506d92e69d53221d139ab645e384c6f"
+  },
+  "rollbackApplicationCommit": "052e736a87d44bbe3743524b1a547822bc6dbf81",
+  "remaining": [
+    "Hosted independent backup export/restore and retention operation",
+    "GitHub branch-rule enforcement with snapshot bot compatibility",
+    "Edge frame-ancestors and X-Frame-Options configuration",
+    "Render settings branch switch from preserved deployment branch to main"
+  ]
+}

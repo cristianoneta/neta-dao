@@ -2,6 +2,7 @@ import http from 'node:http';
 import { clientThrottle, readJson, rejectBody } from '../../service/http-guards.mjs';
 import { AMOUNT } from './ledger.mjs';
 import { validAddress } from './chain.mjs';
+import { webOrigins } from '../../service/web-origins.mjs';
 
 export function createFaucetServer({
   ledger,
@@ -11,6 +12,7 @@ export function createFaucetServer({
   now = Date.now,
   backup = null
 }) {
+  const allowedOrigins = webOrigins(origin);
   const admitCheap = clientThrottle({ now, maximum: 60 }),
     admitClaim = clientThrottle({ now, maximum: 30 });
   let active = 0,
@@ -53,9 +55,9 @@ export function createFaucetServer({
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    if (req.headers.origin === origin) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Vary', 'Origin');
+    res.setHeader('Vary', 'Origin');
+    if (allowedOrigins.has(req.headers.origin)) {
+      res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
     }
     const respond = (code, data) => {
       if (!res.headersSent && !res.destroyed) {
@@ -82,7 +84,8 @@ export function createFaucetServer({
       active++;
       admitted = true;
       if (req.method === 'OPTIONS') {
-        if (req.headers.origin !== origin) return respond(403, { error: 'Origin not allowed.' });
+        if (!allowedOrigins.has(req.headers.origin))
+          return respond(403, { error: 'Origin not allowed.' });
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
         return respond(204);
@@ -109,7 +112,8 @@ export function createFaucetServer({
       }
       if (req.method !== 'POST' || !['/challenge', '/claim'].includes(url.pathname))
         return respond(404, { error: 'Not found.' });
-      if (req.headers.origin !== origin) return respond(403, { error: 'Origin not allowed.' });
+      if (!allowedOrigins.has(req.headers.origin))
+        return respond(403, { error: 'Origin not allowed.' });
       if (!req.headers['content-type']?.startsWith('application/json'))
         return respond(415, { error: 'JSON required.' });
       const body = await readJson(req);

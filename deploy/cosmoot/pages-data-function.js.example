@@ -1,0 +1,5 @@
+// Historical preparation example. The release source now lives at
+// functions/data/[[path]].js; scripts/build-pages.mjs compiles and records it.
+import paths from '../../deploy/cosmoot/snapshot-paths.json';
+import { snapshotProxy } from '../../service/snapshot-proxy.mjs';
+export const onRequest = snapshotProxy(paths);

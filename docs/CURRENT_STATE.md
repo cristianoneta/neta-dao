@@ -1,8 +1,44 @@
-# Current state — NETA DAO
+# Current state — Cosmoot / NETA DAO
 
-Updated 7 October 2026. This is the current status source. Dated documents are
-evidence at their timestamps, not competing next-step lists.
-The remediation branch is a source candidate until its PR and deployments are verified.
+Updated 8 October 2026. This is the current feature/deployment/evidence matrix.
+
+## Current architecture
+
+Owner-approved on 8 October: GitHub primary for source/CI; Cloudflare for
+`cosmoot.com` and `dao.netareborn.com`; OVH for bounded collectors and eventual
+Faucet/encrypted-backup hosting; GitLab dormant reserve; Render retained until
+verified state migration. See [HANDOFF](../HANDOFF.md) for immediate work.
+
+The return source imports GitLab `b00683c4` onto GitHub main `f5b21a50`, preserving
+GitHub history and all newer public snapshots. Dependabot version PRs are paused,
+legacy data/bot writers removed, source CI remains complete and a manual protected
+Cloudflare release is prepared. Admin setting changes and Cloudflare credential
+configuration require separate verification; code does not configure them.
+The original 32 Dependabot proposals are recorded in the maintenance inventory,
+without applying their package upgrades or dismissing security alerts.
+
+## Deployment evidence
+
+- Cloudflare's last verified production release is GitLab main `ec077488`, pipeline
+  2923507334, deployment d89506f6. Both domains were owner-confirmed active with SSL.
+- GitLab pipeline 2925921267 passed bootstrap, backend and Pages packaging for
+  `c21183bf` at 09:59:30 UTC. No Pages proxy publication occurred in that run.
+- The compiled allowlisted proxy and 196-file artifact passed synthetic GET/HEAD,
+  credential stripping and static-fallback checks. Live both-domain acceptance is
+  still pending. Direct assistant HTTP requests returned 403 without proving a
+  public outage; verify from the owner's normal connection or VPS.
+- OVH VPS-1 costs EUR 5.34/month per the owner's order: 2 vCPU, 4 GB RAM, 40 GB NVMe,
+  Ubuntu 24.04 in Erith. Key-only SSH, firewall, Docker, Python and Node were checked.
+  Source `08cc957`, a seeded public generation and inactive systemd units are
+  installed. The snapshot-only Caddy edge serves `data.cosmoot.com`.
+- The owner verified all 26 public file hashes and four private/unlisted 404 paths.
+  A later assistant check matched 18 files with eight timeouts; no mismatch was seen.
+  Seeded snapshots are not evidence of fresh collection. Timers remain inactive.
+- Render `/health` returned 200 with `{"ok":true}` on 8 October. Last deployment
+  evidence remains `f5b21a5`; current branch/auto-deploy settings were not rechecked.
+  No production database export, hosted restore or backend cutover has occurred.
+- The original NNS price key and independent encrypted backup remain missing.
+  Do not rotate authority, extend expired prices or run a second payout writer.
 
 | Feature | Code | Deployment / activation | Evidence and remaining boundary |
 | --- | --- | --- | --- |

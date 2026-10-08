@@ -1,3 +1,7 @@
+> Historical initial deployment record. The current backend is `f5b21a5` from PR #224,
+> live 7 October at 14:01 UTC. See [current release receipt](repo-remediation-release-2026-10-07.json).
+> Earlier missing-send/registration statements below are historical; the pilot evidence owns those results.
+
 # Shared Render backup — hosted checkpoint, 7 October 2026
 
 The existing Faucet service now runs the reviewed personal RELAY backup candidate.

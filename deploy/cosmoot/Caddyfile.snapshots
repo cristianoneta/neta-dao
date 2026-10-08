@@ -1,0 +1,12 @@
+# Merge into Caddyfile only after seeding a complete public generation and mounting
+# /srv/cosmoot/public-snapshots:/snapshots:ro in the edge service.
+data.cosmoot.com {
+    root * /snapshots/current
+    @snapshots path /data/*
+    handle @snapshots {
+        header Cache-Control "public, max-age=60, s-maxage=60"
+        header X-Content-Type-Options nosniff
+        file_server
+    }
+    respond 404
+}

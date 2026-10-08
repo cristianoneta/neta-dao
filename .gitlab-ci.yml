@@ -1,0 +1,77 @@
+# Dormant recovery configuration. GitHub is primary; no GitLab pipeline runs.
+# Reactivation requires a reviewed change to these rules, not just a manual click.
+workflow:
+  rules:
+    - when: never
+
+stages: [verify, package, deploy]
+default:
+  image: node:24.19.0-bookworm
+  interruptible: true
+  timeout: 15m
+
+bootstrap-checks:
+  stage: verify
+  script:
+    - node scripts/check-repository.mjs
+    - node --test tests/*.test.mjs
+    - python3 -m unittest discover -s tests -p 'test_*.py'
+    - node --test names/tests/*.test.mjs
+
+backend-checks:
+  stage: verify
+  script:
+    - npm ci --prefix faucet --omit=dev --ignore-scripts --no-audit --no-fund
+    - npm ci --prefix relay-backup --omit=dev --ignore-scripts --no-audit --no-fund
+    - node --test faucet/test/*.test.mjs relay-backup/test/*.test.mjs
+
+static-package:
+  stage: package
+  needs: [bootstrap-checks, backend-checks]
+  script:
+    - node scripts/build-pages.mjs
+    - node scripts/check-static.mjs --require-worker
+    - node scripts/check-pages-worker.mjs
+  artifacts:
+    name: cosmoot-static-$CI_COMMIT_SHORT_SHA
+    paths:
+      - dist/static/
+      - dist/static-manifest.json
+    expire_in: 14 days
+
+deploy-cloudflare:
+  stage: deploy
+  needs:
+    - job: static-package
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
+      when: manual
+      allow_failure: false
+    - when: never
+  resource_group: cosmoot-production
+  interruptible: false
+  environment:
+    name: production
+    url: https://cosmoot.com
+  variables:
+    WRANGLER_SEND_METRICS: "false"
+  script:
+    - |
+      node --input-type=module <<'NODE'
+      import { readFileSync } from 'node:fs';
+      const manifest = JSON.parse(readFileSync('dist/static-manifest.json', 'utf8'));
+      if (manifest.sourceCommit !== process.env.CI_COMMIT_SHA || manifest.workingTree !== 'clean')
+        throw Error('Deployment requires the clean artifact from this pipeline commit.');
+      for (const name of ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN']) {
+        if (!process.env[name]) throw Error(`Missing protected production variable: ${name}`);
+      }
+      NODE
+    - node scripts/check-static.mjs --require-worker
+    - |
+      current_main=$(git ls-remote --exit-code origin "refs/heads/$CI_DEFAULT_BRANCH" | cut -f1)
+      if [ "$current_main" != "$CI_COMMIT_SHA" ]; then
+        echo "The default branch changed. Start a pipeline for its current commit."
+        exit 1
+      fi
+    - npx --yes wrangler@4.148.0 pages deploy dist/static --no-bundle --project-name cosmoot --branch "$CI_DEFAULT_BRANCH" --commit-hash "$CI_COMMIT_SHA" --commit-dirty=false

@@ -1,0 +1,10 @@
+[Unit]
+Description=Cosmoot Treasury every 15 minutes
+[Timer]
+OnCalendar=*-*-* *:00,15,30,45:00 UTC
+Unit=cosmoot-collect@treasury.service
+AccuracySec=15s
+RandomizedDelaySec=20s
+Persistent=false
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,78 @@
+# Prepared template; no resource creation or deployment has occurred.
+name: cosmoot
+services:
+  edge:
+    image: caddy:2-alpine
+    profiles: [backend]
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+    mem_limit: 256m
+    cpus: 0.5
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+
+  backend:
+    profiles: [backend]
+    build:
+      context: ../..
+      dockerfile: faucet/Dockerfile
+    restart: unless-stopped
+    env_file: ./cosmoot.env
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8787"
+      FAUCET_DB: /data/faucet.sqlite
+      FAUCET_MNEMONIC_FILE: /run/secrets/faucet_mnemonic
+      RELAY_BACKUP_DIRECTORY: /data/relay-backup
+    # Refuse a fresh ledger. The original identity AND its complete payout journal
+    # must be migrated together; an empty volume must never reset existing limits.
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        test -s /data/faucet.sqlite || { echo 'Restore the existing faucet ledger first.' >&2; exit 1; }
+        if [ "$${RELAY_BACKUP_ENABLED:-false}" = true ]; then
+          test -s /data/relay-backup/relay-backup.sqlite || { echo 'Restore the existing encrypted backup database first.' >&2; exit 1; }
+        fi
+        exec node faucet/service/server.mjs
+    volumes:
+      - type: bind
+        source: /srv/cosmoot/state
+        target: /data
+        bind: {create_host_path: false}
+    secrets: [faucet_mnemonic]
+    read_only: true
+    tmpfs: [/tmp:size=16m,mode=1777]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 1.0
+    healthcheck:
+      # /health describes backup availability and intentionally returns 503 while
+      # backups are disabled during restore. This checks process readiness only.
+      test: ["CMD", "node", "-e", "const s=require('node:net').connect(8787,'127.0.0.1');s.setTimeout(3000);s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));s.on('timeout',()=>process.exit(1));"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+
+secrets:
+  faucet_mnemonic:
+    file: /etc/cosmoot/faucet-mnemonic
+volumes:
+  caddy_data:
+  caddy_config:

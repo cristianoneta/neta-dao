@@ -1,24 +1,65 @@
-# NETA DAO handoff
+# Cosmoot handoff
 
-Updated 7 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the only
-current feature/deployment/evidence matrix. [Release procedure](docs/RELEASES.md)
-and [review remediation](docs/REPO_REMEDIATION_2026-10-07.md) own this cleanup's evidence.
+Updated 8 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) and the
+[OVH checkpoint](docs/OVH_SETUP_2026-10-08.md) before changes.
 
-## Next work
+## Owner decision and source of truth
 
-1. Finish review-remediation CI and publish the reviewed source/backend together.
-   Keep the existing Render service, disk, Faucet identity and two admitted wallets.
-   Public Inbox pins stay null. Record actual deployment SHAs; source is not deployment.
-2. Hosted backup durability: use an isolated test identity and off-service export,
-   restart and isolated restore. The local drill is not hosted evidence. Existing
-   user backups and recovery codes must not be read or replaced.
-3. Continue DAO multi-recipient recovery, authenticated history/cursors and prekey
-   lifecycle, then the reviewed direct-mainnet DAO pilot. DAO receiving is opt-in,
-   with one shared conversation and a compact Inbox selector. Code 5170 has DAO
-   writes disabled; deployment/migration requires reviewed wallet/governance actions.
-4. Payment requests, invoices, milestone evidence and Treasury/proposal linkage follow.
-5. Automatic future Juno-upgrade tracking remains planned. Requirements are retained
-   in [the dedicated specification](docs/JUNO_UPGRADE_AUTOMATION.md); v31 stays closed.
+The owner approved GitHub as the primary development/CI platform, Cloudflare for
+both website domains, OVH for collectors and the eventual backend, GitLab as a
+quiet reserve, and removal of Render only after verified state migration.
+Related work belongs in one branch and PR. Automatic version-update PR waves and
+scheduled production-data commits are no longer permitted.
+
+The migration source is the complete GitLab branch at `b00683c4`, transferred onto
+GitHub main `f5b21a50` without replacing its history. The return branch is
+`deployment/github-primary-20261008`. Preserve all imported source and public data.
+GitLab MR !2 is the earlier migration record, not a second active development track.
+Do not reactivate GitLab releases or copy old GitHub data over newer snapshots.
+
+## Automation changes in this source
+
+- Dependabot version-update limits are zero; security alerts/updates and the weekly
+  read-only security audit remain. The [32-PR maintenance inventory](docs/DEPENDENCY_MAINTENANCE_2026-10-08.md)
+  preserves proposed updates for deliberate review; none are silently merged.
+- The three scheduled data writers and three obsolete bot-writing workflows are
+  removed. Collectors live on OVH, where timers remain inactive until acceptance.
+- One repository-check workflow runs for PR changes. No duplicate post-merge push
+  run. Markdown-only changes report the required result without large builds;
+  source/data/manifests keep full checks. WASM jobs have a parallel limit of two.
+- Live-chain inspection and historical release tagging are manual only.
+- `.github/workflows/cloudflare-release.yml` is manually dispatched with the exact
+  main SHA. Packaging defaults to no deploy; publication requires protected main,
+  full passing checks, configured Cloudflare secrets and unchanged current main.
+- The GitLab pipeline definition in this source is dormant. This does not prove
+  GitLab's existing default branch or account settings have already been updated.
+
+## Operational boundaries and next steps
+
+1. Verify the return PR and its exact CI head before merge. Check GitHub Pages is
+   retired at the account setting and main requires `Required repository checks`.
+   The connector supports code/PRs but not these administrative writes. A GitHub
+   browser sign-in is needed if there is no authenticated settings session.
+2. Configure the existing Cloudflare deployment credential privately for GitHub;
+   it is currently configured in GitLab, not verified in GitHub. Do not display,
+   rotate or transfer secrets in chat. Run the deliberate Pages release and check
+   `X-Cosmoot-Snapshot: server`, bytes and failure fallback on both website origins.
+   The frontend currently still serves the prior static Cloudflare release.
+3. Continue SSH one command per reply. Codex has no authenticated VPS SSH access.
+   OVH source export `08cc957` and the pinned snapshot-only Caddy edge are installed;
+   the owner's 26-file hash and four-private-path checks passed earlier on 8 October.
+   No fresh collector run, active timer or backend install is claimed.
+4. Keep Render running. Recover the original NNS price key privately, arrange an
+   independent encrypted backup, export/restore both existing databases and the
+   Faucet identity, and follow [BACKEND_MIGRATION](BACKEND_MIGRATION.md). Preserve
+   payout journals and quotas; never initialize empty production state.
+5. Resume hosted backup recovery, DAO multi-recipient messaging and payment-request
+   work only after infrastructure acceptance. Future Juno upgrade tracking remains
+   specified in [JUNO_UPGRADE_AUTOMATION](docs/JUNO_UPGRADE_AUTOMATION.md); v31 is closed.
+
+The earlier GitLab pipeline 2925921267 passed all three check/package jobs for
+`c21183bf`; it did not publish the proxy. Read [the reassessment](docs/GITHUB_REOPENING_2026-10-08.md)
+for pre-return evidence. A merged source change is not a live deployment.
 
 ## Preserved decisions
 
