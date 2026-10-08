@@ -35,7 +35,15 @@ try {
   assert.equal(combined.services.backend.environment.FAUCET_PAUSED, 'true');
   assert.equal(combined.services.backend.environment.RELAY_BACKUP_ENABLED, 'false');
   assert.deepEqual(combined.services.backend.cap_drop, ['ALL']);
+  // A comma in an unquoted YAML flow item becomes a second, invalid mount.
+  const backendTmpfs = combined.services.backend.tmpfs;
+  assert.deepEqual(backendTmpfs, ['/tmp:size=16m,mode=1777'],
+    'Keep backend tmpfs options in one absolute mount specification');
   execFileSync('docker', ['run', '--rm', '--entrypoint', 'caddy', '-v', `${directory}:/etc/caddy:ro`,
     edge.image, 'validate', '--config', '/etc/caddy/Caddyfile'], { stdio: 'inherit' });
+  // Validate mounts with Docker itself; Compose config alone accepts relative targets.
+  execFileSync('docker', ['run', '--rm', '--network', 'none', '--read-only', '--cap-drop', 'ALL',
+    '--security-opt', 'no-new-privileges', '--entrypoint', '/bin/true',
+    ...backendTmpfs.flatMap(mount => ['--tmpfs', mount]), edge.image], { stdio: 'inherit' });
   console.log('Combined edge configuration preserves public data and certificate storage.');
 } finally { await rm(directory, { recursive: true, force: true }); }
