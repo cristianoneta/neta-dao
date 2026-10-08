@@ -276,10 +276,6 @@ Read AGENTS.md, HANDOFF.md, docs/CURRENT_STATE.md; UI work also DESIGN_SYSTEM.md
 Use isolated worktrees, branch/PR and inspect relevant CI before merging.
 Preserve all existing dirty worktrees and bot treasury data. Local working changes
 may already be published through GitHub Git Data APIs despite local dirty status.
-Current continuation workspace:
- /workspace/scratch/4e363f4326f5/neta-faucet-backend
-Previous implementation workspace:
- /workspace/scratch/653b51d03138/neta-wallet-controls
-Earlier worktrees neta-faucet-guards, neta-faucet-hosting,
-neta-faucet-wallet-fix contain published dirty changes; do not reset them.
+Local workspace coordinates are retained privately. Preserve earlier dirty
+worktrees; published changes may still appear uncommitted locally.
 Mainnet messaging and other inactive feature gates stay disabled.

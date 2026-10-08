@@ -20,6 +20,11 @@ actual restore operation explicitly; keep legitimate security terminology and
 document limitations. Do not mass-edit historical records or rewrite Git history
 to avoid classification. GitHub Support's 8 October account finding is recorded in
 docs/GITHUB_REOPENING_2026-10-08.md; the specific flagged PR is still unidentified.
+Follow docs/DOCUMENTATION_PRIVACY.md. Keep actual operator inventories, host access
+commands, provider resource IDs, private backup locations/receipts and private file
+references outside Git, PR descriptions, commit messages and CI output. Public
+handoffs contain project status and generic procedures only. Consult the owner's
+private operations handoff for host actions; never infer live access from a template.
 Inspect applicable CI and verify deployments after integration. Never enable mainnet
 messaging or discard pending crypto/transaction journals as part of UI work.
 

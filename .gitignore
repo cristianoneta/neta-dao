@@ -19,3 +19,19 @@ names/runtime/
 # Generated static exports and Cosmoot host-local settings.
 dist/
 deploy/cosmoot/cosmoot.env
+
+# Private operator records and exported credentials/backups stay outside Git.
+private-operations/
+private-ops/
+COSMOOT_HANDOFF_*.md
+COSMOOT_PRIVATE_*
+Cosmoot_Datenbanken_*
+*.gpg
+*.pem
+*.key
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+!.env.*.example

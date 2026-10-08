@@ -1,11 +1,13 @@
 # Documentation map
 
-Updated 2026-10-07. Use current documents for decisions and dated evidence for
+Updated 2026-10-08. Use current documents for decisions and dated evidence for
 provenance. Do not read every historical handoff as an independent to-do list.
 
 | Purpose | Owning document |
 | --- | --- |
-| Next chat, current priority, preservation rules | [Root HANDOFF](../HANDOFF.md), [7 October continuation](HANDOFF_NEXT_CHAT_2026-10-07.md) |
+| Next chat, current priority, preservation rules | [Root HANDOFF](../HANDOFF.md) |
+| Public/private publication boundary | [Documentation privacy](DOCUMENTATION_PRIVACY.md) |
+| Public migration progress and generic host procedure | [Host checkpoint](OVH_SETUP_2026-10-08.md), [backend migration](../BACKEND_MIGRATION.md) |
 | Connected features, deployment boundaries and source map | [CURRENT_STATE](CURRENT_STATE.md) |
 | Open work across modules | [PROJECT_CHECKPOINT](../PROJECT_CHECKPOINT.md) |
 | Verification commands and repository overview | [Root README](../README.md) |
@@ -32,7 +34,9 @@ provenance. Do not read every historical handoff as an independent to-do list.
 Dated security, valuation, onboarding, UI-review and maintenance files record what
 was checked at that time. Later deployments do not retroactively change their
 original test counts or receipt evidence. Their old “next steps” are superseded
-by the current handoff. Historical files stay at existing URLs to preserve links.
+by the current handoff. Historical files stay at existing URLs to preserve links. Account-specific
+operator details may be replaced with public summaries after the originals are
+retained privately; this does not erase earlier Git history.
 
 The consolidated append-only histories are preserved under [archive](archive/).
 No transaction receipts, public manifests, security findings, generated Treasury

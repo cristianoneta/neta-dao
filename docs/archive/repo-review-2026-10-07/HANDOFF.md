@@ -1,3 +1,6 @@
+> Privacy update, 8 October 2026: provider resource identifiers are retained privately.
+> Public source commits and observed results below are unchanged.
+
 > HISTORICAL SNAPSHOT. Superseded by /docs/CURRENT_STATE.md and /HANDOFF.md. Do not execute old next steps.
 
 # NETA DAO handoff
@@ -171,7 +174,7 @@ Earlier missing-registration statements below are superseded by this checkpoint.
 The owner explicitly approved the Faucet wallet's own encrypted-backup access.
 The two admitted wallets are owner `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`
 and Faucet `juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt`. Render deployment
-`dep-db32r1qd0e5s73eu9kcg` is live with the same reviewed backend commit
+`operator-id-withheld` is live with the same reviewed backend commit
 `052e736a87d44bbe3743524b1a547822bc6dbf81`. Health, correctly scoped second-wallet
 challenge and unauthenticated rejection passed. Do not ask for this consent again.
 

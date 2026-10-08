@@ -7,8 +7,8 @@
   "integrationPR": 224,
   "pagesRun": 37632923865,
   "backend": {
-    "service": "srv-db10ddc9v7es73dbg45g",
-    "deploy": "dep-db350qflk1mc739f4gng",
+    "service": null,
+    "deploy": null,
     "commit": "f5b21a50c67570a710b2641c8d58c78ec6dfdcbc",
     "status": "live",
     "finishedAt": "2026-10-07T14:01:30.961001Z",
@@ -42,5 +42,12 @@
     "GitHub branch-rule enforcement with snapshot bot compatibility",
     "Edge frame-ancestors and X-Frame-Options configuration",
     "Render settings branch switch from preserved deployment branch to main"
-  ]
+  ],
+  "privacyRedactions": {
+    "reason": "Provider resource identifiers retained in private operator records; public observations unchanged.",
+    "fields": [
+      "backend.service",
+      "backend.deploy"
+    ]
+  }
 }

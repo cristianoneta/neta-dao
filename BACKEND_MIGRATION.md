@@ -1,88 +1,81 @@
-# Backend migration operator procedure
+# Backend migration procedure
 
-Prepared 7 October; updated 8 October 2026. Render still owns the production
-databases and signing identity. The OVH VPS is now purchased and bootstrapped;
-no production data is exported and no DNS/API change is made. Cloudflare frontend
-deployment d89506f6 already succeeded. [Host checkpoint](docs/OVH_SETUP_2026-10-08.md).
+Updated 8 October 2026. This public runbook describes the process and its safety
+boundaries. Real host access, database paths, export locations, transfer receipts
+and signing-key locations belong in the private operator handoff. The paths in
+deployment source are template defaults, not a verified live inventory.
 
-## Prepare the target and transfer
+Current progress: a preliminary encrypted database copy was transferred and
+verified. Render remains the production backend writer; Faucet identity transfer,
+application restore checks and final cutover are still open. See the
+[public checkpoint](docs/OVH_SETUP_2026-10-08.md).
 
-Use the existing Compose/Caddy configuration in `deploy/cosmoot`, Node 24 for the
-operator tool, and a reviewed source checkout. The Dockerfile's missing
-`faucet/src/transfer-fee.mjs` is corrected in this preparation branch. Docker build and
-backend container startup still need verification on the host. The snapshot-only
-Caddy edge is pinned, running and verified over HTTPS; it does not run the API.
+## Prepare and export
 
-The Render connector can inspect service metadata; it cannot execute the export
-or retrieve its private secret file. Arrange authenticated operator shell access
-and a private transfer destination before stopping any service. Never paste the
-mnemonic, database contents, recovery codes or access tokens into chat or CI logs.
+Use the reviewed Compose/Caddy configuration in `deploy/cosmoot`, Node 24 for the
+operator tool, and the private operator inventory. Confirm authenticated source
+and destination access before pausing any service. Never paste secrets, database
+contents, recovery codes or access tokens into chat, Git or CI logs.
 
-For a preliminary snapshot, run from the reviewed checkout on the source host:
+The following is a template, not a command with live paths. Supply these variables
+privately after identifying the actual source files and a new private destination:
 
 ```sh
 umask 077
+: "${COSMOOT_FAUCET_DB:?Set the source Faucet database path privately}"
+: "${COSMOOT_RELAY_DB:?Set the source encrypted-backup database path privately}"
+: "${COSMOOT_EXPORT_DIR:?Set a new private export directory}"
 node scripts/backend-state.mjs export \
-  /var/data/faucet.sqlite \
-  /var/data/relay-backup/relay-backup.sqlite \
-  /var/data/cosmoot-export-2026-10-07
-node scripts/backend-state.mjs verify /var/data/cosmoot-export-2026-10-07
+  "$COSMOOT_FAUCET_DB" "$COSMOOT_RELAY_DB" "$COSMOOT_EXPORT_DIR"
+node scripts/backend-state.mjs verify "$COSMOOT_EXPORT_DIR"
 ```
 
-The destination must not exist and its parent must exist. The tool reads both
-sources through SQLite's backup API, including committed WAL pages. Only new copies
-are normalized to standalone databases. It verifies integrity, table roles, sizes,
-checksums, row counts and a fingerprint of unresolved payout records. It retains
+The destination must not exist and its parent must exist. The tool uses SQLite's
+backup API, including committed WAL pages, then checks the new copies' integrity,
+table roles, sizes, checksums, row counts and unresolved payout records. It retains
 signed bytes, claim locks, quotas and encrypted envelope revisions. It does not
-read or transfer the signing mnemonic. Exports/manifests are private; retain their
-checksum receipt through an authenticated channel and never commit them to Git.
+read or transfer the signing mnemonic. Keep the export and its receipt private.
 
-These are two independently consistent snapshots, not an atomic pair while the
-service is writing. For the final export, quiesce **all** source writes first and
-use a new destination. `FAUCET_PAUSED=true` alone does not freeze reconciliation,
-quota writes or encrypted backup writes. Do not kill/suspend Render before the
-operator has verified that the export can still run with its disk accessible.
+These are independently consistent snapshots, not an atomic pair while the source
+is writing. For the final export, quiesce **all** source writes and use a new
+private destination. `FAUCET_PAUSED=true` alone does not freeze reconciliation,
+quota writes or encrypted backup writes. Preserve operator access to the source
+disk and export tool while quiescing the application.
 
-Transfer the complete private directory over an authenticated encrypted channel.
-Run `verify` again on the untouched target copy before starting a writer. A missing
-receipt, modified database, WAL/SHM sidecar, symlink or public permissions fail the
-check. This detects transfer damage; the manifest is not a substitute for an
-authenticated source. Preserve a separate off-server copy before target startup.
+Transfer over an authenticated encrypted channel. Verify the untouched copy on
+the target before starting a writer and retain an independently held encrypted
+copy. The tool rejects missing receipts, changed files, WAL/SHM sidecars, symlinks
+and public permissions; its manifest does not replace source authentication.
 
 ## Restore and cut over
 
-1. Restore the two verified files under `/srv/cosmoot/state/faucet.sqlite` and
-   `/srv/cosmoot/state/relay-backup/relay-backup.sqlite`, privately owned by UID 1000.
-   Never overwrite existing target state without an explicit operator decision.
-2. Transfer the existing Faucet mnemonic privately to `/etc/cosmoot/faucet-mnemonic`;
-   the application must derive the same configured public address. Preserve tighter
-   live limits and the pilot allowlist. No replacement identity or emptied ledger.
+1. Restore both verified databases to the privately reviewed target locations,
+   using the runtime ownership required by the deployment configuration. Never
+   overwrite existing state without an explicit operator decision.
+2. Privately transfer the original Faucet identity and verify the same configured
+   public address. Preserve live limits, pilot admission and unresolved journals.
+   Never generate a replacement identity or initialize an empty production ledger.
 3. Keep `FAUCET_PAUSED=true` and `RELAY_BACKUP_ENABLED=false` during initial startup.
-   Validate Compose, build the image, then check identity, process readiness, target-origin CORS
-   and origin-bound authentication. Health alone does not prove backup recovery.
-   `/health` returns 503 while backups are disabled; Compose now uses a TCP probe
-   so this intentional state does not prevent the edge proxy from starting.
-4. Use a separate synthetic identity for an off-server restore drill. Do not read or
-   replace real users' encrypted backups. The real fresh-browser drill stays deferred.
-5. Coordinate `api.cosmoot.com`, frontend endpoint/CSP and pinned artifact manifests.
-   Retain `dao.netareborn.com` for existing browser storage. Enable one writer only;
-   never re-sign an uncertain payout or clear its saved journal.
-6. Retain Render for the agreed rollback window. After new writes on the target,
-   rolling back requires migrating that newer state; an old snapshot is insufficient.
+   Validate Compose, the real application image, identity, readiness, CORS and
+   origin-bound authentication. The TCP probe only proves that the process listens;
+   `/health` intentionally returns 503 while the backup service is disabled.
+4. Use a separate synthetic identity for an isolated application restore drill.
+   Do not read or replace real users' encrypted backups. The real fresh-browser
+   drill stays deferred; infrastructure checks cannot substitute for that evidence.
+5. Coordinate the public API, frontend endpoint/CSP and pinned artifact manifests.
+   Retain the old website origin for existing browser keys/storage. Enable one
+   writer only; never re-sign an uncertain payout or clear its journal.
+6. Keep the old service through the agreed rollback window. After new target
+   writes, rollback requires migrating the newer state. Do not use an old snapshot
+   as though it includes those writes.
 
-## Preparation evidence and blockers
+## Evidence boundaries
 
-`node --test tests/backend-state.test.mjs tests/backend-image.test.mjs` passes four
-tests using synthetic databases. Real production export/restore and container
-runtime evidence remain open. No hosted CI or merge request was started for this
-preparation batch. The branch has not been pushed; local base e188db6 is content-
-equivalent to the last published release changes, not the remote merge SHA.
+Local export/image tests use synthetic data. The later preliminary production copy
+passed decryption and database/receipt verification, but application restoration,
+final quiesced export and cutover remain unverified. Recurring independent backups
+and private signing-identity backups are separate requirements.
 
-Source transfer and snapshot-only HTTPS are complete. The Pages proxy release is
-prepared locally. Backend prerequisites remain a private Render export/secret
-transfer and independent backup.
-The latest owner decision consolidates backend and collectors and removes Render
-after verified cutover. [Compact setup, prices and activation](deploy/cosmoot/README.md)
-supersedes the earlier unavailable CX33 recommendation. Branch
-`deployment/compact-server` adds both-domain authentication and safe public data
-publication; 89 Node tests and two Python publication tests pass locally.
+See [deployment templates](deploy/cosmoot/README.md) and
+[encrypted backup recovery](docs/BACKUP_RECOVERY.md). Consult the private operator
+handoff for exact commands and completed steps before resuming.

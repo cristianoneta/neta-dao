@@ -1,9 +1,9 @@
 {
   "observedAt": "2026-10-07T11:15:31.284418+00:00",
   "origin": "https://neta-junox-faucet.onrender.com",
-  "serviceId": "srv-db10ddc9v7es73dbg45g",
+  "serviceId": null,
   "applicationCommit": "052e736a87d44bbe3743524b1a547822bc6dbf81",
-  "enabledDeploy": "dep-db32ib67bikc73bf5qkg",
+  "enabledDeploy": null,
   "allPassed": true,
   "checks": [
     {
@@ -154,5 +154,12 @@
       "contentType": "application/json"
     }
   ],
-  "limits": "No valid wallet signature, authenticated backup write, quota exhaustion, stored-envelope restart recovery, or off-service export was performed. No chain transaction or faucet claim was submitted."
+  "limits": "No valid wallet signature, authenticated backup write, quota exhaustion, stored-envelope restart recovery, or off-service export was performed. No chain transaction or faucet claim was submitted.",
+  "privacyRedactions": {
+    "reason": "Provider resource identifiers retained in private operator records; public observations unchanged.",
+    "fields": [
+      "serviceId",
+      "enabledDeploy"
+    ]
+  }
 }

@@ -1,5 +1,16 @@
 # GitHub primary and Cloudflare release — 8 October 2026
 
+## Later acceptance update — 8 October 2026
+
+The operator subsequently reported a successful manual main collector run and
+HTTP 200 with the server snapshot marker for the signed NNS price on both website
+origins. The original price key was installed privately. Complete all-path byte
+acceptance and a controlled live fallback drill remain open; timers stay inactive.
+A preliminary encrypted database copy was verified, but no backend cutover or
+application-level restore is confirmed. Exact operator evidence is retained
+privately. The sections below describe their respective release-time checkpoints;
+use [CURRENT_STATE](../CURRENT_STATE.md) for current migration status.
+
 ## Source integration completed
 
 - Owner approved GitHub primary, Cloudflare websites, OVH collectors/eventual

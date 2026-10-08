@@ -98,7 +98,8 @@ Gesicherte neue Datendateien: `data/daos/neta.json`, `data/treasury/neta-main.js
 
 **Nicht mitgesichert/überschrieben:** lokal ebenfalls neu erzeugte Operations-/Community-Dateien `current.json`, `history.json`, `juno-community-pool.json`, `juno-community-history.json`. Ihre kanonischen Bot-Fortschreibungen auf main erhalten. Keine neue `neta-main-events.json` vorhanden, da die Abfrage gescheitert ist.
 
-Lokaler Arbeitsordner dieser Sitzung: `/workspace/scratch/ce995c07c462/dao-onboarding`, kein vollständiger Git-Checkout. Hilfsskripte `implement.py`, `profile-edit.py`, `events-edit.py`, `query_identity.py`, `probe_modules.py` sind temporär und gehören nicht in den PR. Im neuen Chat von GitHub klonen/abrufen; nicht auf diesen temporären Ordner vertrauen.
+Lokale Arbeitsverzeichnisse und temporäre Hilfsskripte sind privat dokumentiert.
+Für eine Fortsetzung aktuelles main abrufen und vorhandene lokale Änderungen erhalten.
 
 ## Konkrete offene Punkte – zuerst bearbeiten
 
