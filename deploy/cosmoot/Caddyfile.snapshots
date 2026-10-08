@@ -1,5 +1,5 @@
-# Merge into Caddyfile only after seeding a complete public generation and mounting
-# /srv/cosmoot/public-snapshots:/snapshots:ro in the edge service.
+# Used by the snapshot-only edge and imported by the combined API/data edge.
+# Only the allowlisted publisher output belongs in the read-only snapshots mount.
 data.cosmoot.com {
     root * /snapshots/current
     @snapshots path /data/*

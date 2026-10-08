@@ -1,0 +1,16 @@
+[Unit]
+Description=Check Cosmoot collector completion receipts
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=cosmoot-collect
+Group=cosmoot-collect
+ExecStart=/srv/cosmoot/collectors/venv/bin/python /srv/cosmoot/collectors/repo/scripts/server_job_status.py
+TimeoutStartSec=30s
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+InaccessiblePaths=/srv/cosmoot/state /etc/cosmoot

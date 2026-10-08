@@ -2,7 +2,7 @@
 name: cosmoot
 services:
   edge:
-    image: caddy:2-alpine
+    image: caddy@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
     profiles: [backend]
     restart: unless-stopped
     ports:
@@ -11,11 +11,21 @@ services:
       - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./Caddyfile.snapshots:/etc/caddy/Caddyfile.snapshots:ro
+      - type: bind
+        source: /srv/cosmoot/public-snapshots
+        target: /snapshots
+        read_only: true
+        bind: {create_host_path: false}
       - caddy_data:/data
       - caddy_config:/config
-    depends_on:
-      backend:
-        condition: service_healthy
+    # Keep public snapshots available even when the API is stopped/unhealthy.
+    read_only: true
+    tmpfs: ["/tmp:size=16m,mode=1777"]
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 128
     mem_limit: 256m
     cpus: 0.5
     logging:
@@ -41,9 +51,7 @@ services:
     command:
       - |
         test -s /data/faucet.sqlite || { echo 'Restore the existing faucet ledger first.' >&2; exit 1; }
-        if [ "$${RELAY_BACKUP_ENABLED:-false}" = true ]; then
-          test -s /data/relay-backup/relay-backup.sqlite || { echo 'Restore the existing encrypted backup database first.' >&2; exit 1; }
-        fi
+        test -s /data/relay-backup/relay-backup.sqlite || { echo 'Restore the existing encrypted backup database first.' >&2; exit 1; }
         exec node faucet/service/server.mjs
     volumes:
       - type: bind

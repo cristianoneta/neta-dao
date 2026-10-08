@@ -12,8 +12,10 @@ import subprocess
 import sys
 import time
 import importlib.util
+from server_job_status import record
 
 ROOT = Path(__file__).resolve().parents[1]
+STATE = Path("/var/lib/cosmoot-collect")
 
 
 def run(command, seconds, env):
@@ -33,6 +35,7 @@ def main():
     env = dict(os.environ, TREASURY_DAILY_SNAPSHOT="auto", PYTHONDONTWRITEBYTECODE="1")
     # Never inherit the price authority into generic collectors.
     env.pop("NNS_PRICE_SIGNING_KEY", None)
+    env.pop("CREDENTIALS_DIRECTORY", None)
     with open("/var/lib/cosmoot-collect/collector.lock", "a") as lock:
         deadline = time.monotonic() + 120
         while True:
@@ -41,6 +44,7 @@ def main():
                 break
             except BlockingIOError:
                 if time.monotonic() >= deadline:
+                    record(STATE, job, "busy")
                     raise SystemExit("Collector busy; retained prior snapshots, next timer retries.")
                 time.sleep(1)
         jobs = {
@@ -51,26 +55,33 @@ def main():
             "main": [(["scripts/update_main_dao.py"], 360)],
             "members": [(["scripts/update_members.py"], 570)],
         }
-        succeeded = True
-        for args, seconds in jobs[job]:
-            succeeded = run([sys.executable, *args], seconds, env) and succeeded
-        if job == "main":
-            credential = Path(os.environ.get("CREDENTIALS_DIRECTORY", "/nonexistent")) / "nns-price-key"
-            if credential.is_file():
-                signer_env = dict(env, NNS_PRICE_SIGNING_KEY=credential.read_text())
-                succeeded = run(["node", "names/publish-snapshot.mjs", "data/treasury/neta-main.json",
-                                 "docs/deployments/nns-mainnet.json", "data/nns/price.json"],
-                                30, signer_env) and succeeded
-            else:
-                print("Price authority missing; retaining previous signed price.", file=sys.stderr)
-                succeeded = False
-        # Publish source-status records and any successful independent collectors,
-        # preserving old data where a source failed. Never manufacture freshness.
-        spec = importlib.util.spec_from_file_location("publisher", ROOT / "scripts/publish-server-snapshots.py")
-        publisher = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(publisher)
-        publisher.publish(ROOT, "/srv/cosmoot/public-snapshots", json.loads(
-            (ROOT / "deploy/cosmoot/snapshot-paths.json").read_text()))
+        record(STATE, job, "running")
+        succeeded = False
+        try:
+            succeeded = True
+            for args, seconds in jobs[job]:
+                succeeded = run([sys.executable, *args], seconds, env) and succeeded
+            if job == "main":
+                credential = Path(os.environ.get("CREDENTIALS_DIRECTORY", "/nonexistent")) / "nns-price-key"
+                if credential.is_file():
+                    signer_env = dict(env, NNS_PRICE_SIGNING_KEY=credential.read_text())
+                    succeeded = run(["node", "names/publish-snapshot.mjs", "data/treasury/neta-main.json",
+                                     "docs/deployments/nns-mainnet.json", "data/nns/price.json"],
+                                    30, signer_env) and succeeded
+                else:
+                    print("Price authority missing; retaining previous signed price.", file=sys.stderr)
+                    succeeded = False
+            # Publish independent results without manufacturing freshness on source failure.
+            spec = importlib.util.spec_from_file_location("publisher", ROOT / "scripts/publish-server-snapshots.py")
+            publisher = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(publisher)
+            publisher.publish(ROOT, "/srv/cosmoot/public-snapshots", json.loads(
+                (ROOT / "deploy/cosmoot/snapshot-paths.json").read_text()))
+        except BaseException:
+            succeeded = False
+            raise
+        finally:
+            record(STATE, job, "succeeded" if succeeded else "failed")
         raise SystemExit(0 if succeeded else 1)
 
 

@@ -1,0 +1,9 @@
+[Unit]
+Description=Check Cosmoot collector receipts every five minutes
+[Timer]
+OnCalendar=*-*-* *:04/5:00 UTC
+Unit=cosmoot-health.service
+AccuracySec=15s
+Persistent=false
+[Install]
+WantedBy=timers.target
