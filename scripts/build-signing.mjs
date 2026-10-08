@@ -2,6 +2,11 @@ import { build } from '../faucet/node_modules/esbuild/lib/main.js';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const targets = {
+  swap: {
+    entry: 'faucet/src/wynd-swap-signing.mjs',
+    globalName: 'NetaSwapSigning',
+    outfile: 'assets/wynd-swap-signing.js'
+  },
   faucet: {
     entry: 'faucet/src/signing.js',
     globalName: 'NetaFaucetSigning',
@@ -14,7 +19,7 @@ const targets = {
   }
 };
 const target = targets[process.argv[2]];
-if (!target) throw Error('Choose faucet or names');
+if (!target) throw Error('Choose faucet, names or swap');
 await build({
   absWorkingDir: root,
   entryPoints: [target.entry],

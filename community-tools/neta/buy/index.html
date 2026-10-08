@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://juno.api.m.stavr.tech https://juno-api.polkachu.com https://juno-rest.publicnode.com https://juno.rpc.m.stavr.tech https://juno-rpc.polkachu.com https://juno-rpc.kleomedes.network https://rpc.lavenderfive.com; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <title>Buy NETA on WYND · Community Tools</title>
+  <meta name="description" content="Swap JUNO and NETA through the existing WYND pool on Juno. Live quotes, explicit transaction review and Keplr signing.">
+  <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/neta-ui.css">
+  <link rel="stylesheet" href="/community-tools.css?v=2"><link rel="stylesheet" href="/community-tools-header.css?v=1"><link rel="stylesheet" href="/buy-neta.css?v=1">
+  <script src="/buy-neta-client.js?v=1" defer></script><script src="/buy-neta-config.js?v=1" defer></script><script src="/assets/wynd-swap-signing.js?v=1" defer></script><script src="/buy-neta.js?v=1" defer></script><script type="module" src="/buy-neta-wallet.mjs?v=1"></script>
+</head>
+<body>
+<a class="tool-skip" href="#buy-main">Skip to swap</a>
+<header class="gov-header faucet-header">
+  <a class="gov-brand" href="/index.html">NETA REBORN</a><a class="faucet-header-label" href="/community-tools/">COMMUNITY TOOLS</a>
+  <a class="faucet-dao-promo" href="https://dao.netareborn.com/" target="_blank" rel="noopener noreferrer" aria-label="dao.netareborn.com — Create, Discover, Govern DAOs (opens in a new tab)"><img src="/assets/design/assembly-plaza.webp" width="76" height="76" alt=""><span class="faucet-dao-copy"><strong>dao.netareborn.com</strong><span>Create · Discover · Govern DAOs</span></span><span class="faucet-dao-arrow" aria-hidden="true">↗</span></a>
+  <div class="gov-controls"><button id="connect-wallet" class="neta-primary" type="button">Connect Keplr</button><button id="disconnect-wallet" type="button" hidden>Disconnect</button></div>
+</header>
+<main id="buy-main" class="buy-page">
+  <nav class="tool-breadcrumb" aria-label="Breadcrumb"><a href="/community-tools/">Community Tools</a><span aria-hidden="true">/</span><a href="/community-tools/#neta">NETA</a><span aria-hidden="true">/</span><span aria-current="page">Buy NETA on WYND</span></nav>
+  <header class="buy-intro"><div><p class="eyebrow">NETA · JUNO MAINNET</p><h1>Buy NETA on WYND<span>.</span></h1><p>A direct route from JUNO to NETA. Get a live quote, review your swap and confirm in your wallet.</p></div><img class="buy-token" src="/assets/neta-token.png" width="80" height="80" alt=""></header>
+  <div class="buy-layout">
+    <section class="swap-shell" aria-labelledby="swap-title">
+      <div class="swap-head"><div><p class="eyebrow">WYND · JUNO / NETA</p><h2 id="swap-title">Your swap</h2></div><button id="settings-toggle" class="settings-button" type="button" aria-expanded="false" aria-controls="slippage-settings">Slippage <span aria-hidden="true">↗</span></button></div>
+      <div id="slippage-settings" class="slippage-settings" hidden><label for="custom-slippage">Maximum slippage</label><div class="slippage-options" role="group" aria-label="Maximum slippage"><button type="button" data-slippage="1">1%</button><button type="button" data-slippage="3">3%</button><button type="button" data-slippage="5" class="selected">5%</button><div class="custom-slippage"><input id="custom-slippage" inputmode="decimal" placeholder="Custom" aria-label="Custom slippage percentage"><span>%</span></div></div><p>Default 5%; choose 0.1–10%. The swap is rejected if execution exceeds your tolerance.</p></div>
+      <div class="token-box"><div class="token-line"><label for="offer-amount">You pay</label><span id="offer-balance">Balance —</span></div><div class="amount-line"><input id="offer-amount" inputmode="decimal" autocomplete="off" maxlength="30" placeholder="0.0" aria-describedby="offer-usd quote-error"><div class="token-pill"><img id="offer-logo" src="/assets/juno-chain.png" width="28" height="28" alt=""><b id="offer-symbol">JUNO</b></div></div><div class="value-line"><span id="offer-usd">≈ $0.00</span><button id="max-button" type="button" disabled>Max</button></div></div>
+      <div class="direction-row"><button id="reverse-swap" class="reverse-button" type="button" aria-label="Reverse JUNO and NETA">↓</button></div>
+      <div class="token-box receive-box"><div class="token-line"><span>You receive</span><span>On Juno</span></div><div class="amount-line"><output id="receive-amount" aria-live="polite">0.0</output><div class="token-pill"><img id="receive-logo" src="/assets/neta-token.png" width="28" height="28" alt=""><b id="receive-symbol">NETA</b></div></div><div class="value-line"><span id="receive-usd">≈ $0.00</span><span id="quote-age">Enter an amount</span></div></div>
+      <div id="quote-error" class="quote-message" role="status" aria-live="polite">Checking the pool…</div>
+      <dl class="quote-details"><div><dt>Rate</dt><dd id="quote-rate">—</dd></div><div><dt>Price impact</dt><dd id="price-impact">—</dd></div><div><dt>Pool fee</dt><dd id="pool-fee">0.30%</dd></div><div><dt>Minimum received</dt><dd id="minimum-received">—</dd></div><div><dt>Slippage</dt><dd><button id="slippage-summary-button" class="slippage-edit" type="button" aria-controls="slippage-settings"><span id="slippage-summary">5.00%</span> <span aria-hidden="true">↗</span></button></dd></div></dl>
+      <button id="swap-action" class="swap-action neta-primary" type="button" disabled>Connect Keplr first</button><p id="wallet-note" class="wallet-note" role="status">Connect to check your balance and review a swap.</p>
+    </section>
+    <aside class="buy-context" aria-label="Pool information">
+      <section class="buy-info"><span class="tool-tag">ONE POOL. YOUR WALLET.</span><h2>JUNO in.<br> NETA out.</h2><p>This community interface connects directly to the existing WYND pool on Juno. Your wallet approves the swap and receives the tokens.</p><div class="pool-pair"><img src="/assets/juno-chain.png" width="36" height="36" alt="JUNO"><span aria-hidden="true">↔</span><img src="/assets/neta-token.png" width="36" height="36" alt="NETA"></div></section>
+      <section class="buy-limit"><h3>Small swaps, by design</h3><p>This is a low-liquidity pool. Each swap is limited to an estimated <strong>$25</strong>. Keep a little JUNO available for the network fee.</p></section>
+      <details class="pool-details"><summary>Pool &amp; contract details</summary><dl><div><dt>Network</dt><dd>Juno · juno-1</dd></div><div><dt>Contract check</dt><dd id="contract-state">Checking…</dd></div><div><dt>Quote source</dt><dd id="quote-source">Juno REST</dd></div></dl><p>The WYND contract is unchanged. This is a community interface, independent of the original WYND website.</p><a href="https://atomscan.com/juno/accounts/juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra" target="_blank" rel="noopener noreferrer">View pool contract ↗</a></details>
+      <button id="refresh-pool" class="refresh-pool" type="button">Refresh connection</button>
+    </aside>
+  </div>
+  <footer class="tool-footer"><a href="/community-tools/#neta">← NETA tools</a><span>A community tool by NETA Reborn.</span></footer>
+</main>
+<dialog id="swap-modal" aria-labelledby="swap-modal-title" aria-describedby="swap-modal-message"><div class="swap-modal-card"><p class="eyebrow">JUNO MAINNET</p><h2 id="swap-modal-title">Review your swap</h2><p id="swap-modal-state" class="swap-modal-state" role="status">Review your swap</p><dl class="swap-review"><div><dt>You pay</dt><dd id="review-pay"></dd></div><div><dt>Estimated receipt</dt><dd id="review-receive"></dd></div><div><dt>Minimum received</dt><dd id="review-minimum"></dd></div><div><dt>Network fee</dt><dd id="review-fee"></dd></div><div><dt>Your wallet</dt><dd id="review-wallet"></dd></div></dl><p id="swap-modal-message">Your quote, balance and $25 limit are checked again before Keplr opens. A network fee in JUNO applies.</p><details class="transaction-details"><summary>Transaction details</summary><pre id="swap-preview"></pre></details><div id="swap-result" class="swap-result" hidden><strong id="swap-result-label">Transaction confirmed</strong><span id="swap-result-hash"></span><a id="swap-explorer" target="_blank" rel="noopener noreferrer">View on Atomscan ↗</a></div><div class="swap-modal-actions"><button id="confirm-swap" class="neta-primary" type="button">Confirm with Keplr</button><button id="close-swap" type="button">Close</button></div></div></dialog>
+</body></html>

@@ -20,10 +20,18 @@ jobs:
       - run: npm audit --prefix faucet --audit-level=high
       - run: npm run build --prefix faucet && git diff --exit-code -- assets/faucet-signing.js
       - run: npm run build:names --prefix faucet && git diff --exit-code -- assets/names-signing.js
+      - run: node scripts/build-signing.mjs swap && git diff --exit-code -- assets/wynd-swap-signing.js
       - run: npm ci --prefix relay-backup --ignore-scripts
       - run: npm test --prefix faucet
       - run: node --test tests/juno-faucet.test.mjs
       - run: npm ci --prefix spikes/relay-corecrypto
       - run: cd spikes/relay-corecrypto && npx playwright install --with-deps chromium
       - run: node spikes/relay-corecrypto/browser-faucet.mjs
+      - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/community-tools-screenshots" node spikes/relay-corecrypto/browser-community-tools.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: community-tools-screenshots
+          path: ${{ runner.temp }}/community-tools-screenshots
+          if-no-files-found: warn
       - run: node spikes/relay-corecrypto/browser-store-code.mjs

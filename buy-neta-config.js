@@ -1,0 +1,22 @@
+Object.defineProperty(window,"NETA_SWAP_SIGNING",{
+  value:Object.freeze({
+    enabled:true,
+    publicMaxUsd:25,
+    chainId:"juno-1",
+    pair:"juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra",
+    pairCodeId:"2289",
+    neta:"juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
+    gasPrice:"0.075ujuno",
+    gasAdjustment:1.4,
+    gasCap:500000,
+    memo:"cosmoot:wynd-swap:v1",
+    rpcEndpoints:Object.freeze([
+      "https://juno.rpc.m.stavr.tech",
+      "https://juno-rpc.polkachu.com:443",
+      "https://juno-rpc.kleomedes.network",
+      "https://rpc.lavenderfive.com:443/juno",
+    ]),
+  }),
+  writable:false,
+  configurable:false,
+});
