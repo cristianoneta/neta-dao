@@ -15,3 +15,7 @@ artifacts/faucet-*.png
 names/.env*
 names/secrets/
 names/runtime/
+
+# Generated static exports and Cosmoot host-local settings.
+dist/
+deploy/cosmoot/cosmoot.env

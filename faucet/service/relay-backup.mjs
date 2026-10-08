@@ -13,7 +13,7 @@ export async function openRelayBackup(env=process.env){
   const {backupServer}=await import('../../relay-backup/server.mjs');
   const {BackupStore}=await import('../../relay-backup/store.mjs');
   // Validate admission/origin configuration before creating persistent data.
-  const config={origin:env.RELAY_WEB_ORIGIN||env.FAUCET_WEB_ORIGIN,
+  const config={origin:env.RELAY_WEB_ORIGINS||env.RELAY_WEB_ORIGIN||env.FAUCET_WEB_ORIGINS||env.FAUCET_WEB_ORIGIN,
     domain:env.RELAY_BACKUP_ORIGIN||env.FAUCET_PUBLIC_ORIGIN||env.RENDER_EXTERNAL_URL,
     chain:'juno-1',contract:env.RELAY_MAILBOX_CONTRACT,
     allowedWallets:(env.RELAY_BACKUP_WALLETS||'').split(',').map(s=>s.trim()).filter(Boolean)};

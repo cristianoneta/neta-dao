@@ -1,11 +1,5 @@
 name: NNS mainnet deployment verification
 on:
-  pull_request:
-    paths:
-      - 'docs/deployments/nns-mainnet.json'
-      - 'docs/deployments/nns-mainnet-receipts-*.json'
-      - 'names/verify-mainnet-deployment.mjs'
-      - '.github/workflows/nns-mainnet-verification.yml'
   workflow_dispatch:
 permissions:
   contents: read

@@ -4,7 +4,7 @@ import {readLimits} from './limits.mjs';
 import {createFaucetServer} from './http.mjs';
 import {openRelayBackup} from './relay-backup.mjs';
 process.umask(0o077);
-const origin=process.env.FAUCET_WEB_ORIGIN||'https://dao.netareborn.com';
+const origin=process.env.FAUCET_WEB_ORIGINS||process.env.FAUCET_WEB_ORIGIN||'https://dao.netareborn.com';
 const domain=process.env.FAUCET_PUBLIC_ORIGIN;
 if(!domain||new URL(domain).protocol!=='https:'||new URL(domain).origin!==domain)throw Error('Set FAUCET_PUBLIC_ORIGIN to the HTTPS service origin.');
 const limits=readLimits();

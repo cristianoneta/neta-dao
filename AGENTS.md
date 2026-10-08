@@ -8,6 +8,10 @@ The wizard is rejected. Design approval is not evidence of completed implementat
 
 Keep documentation accurate about what is live, testnet-only, planned or disabled.
 Preserve existing work and generated Treasury bot data; use branches and PRs.
+GitHub is primary by owner decision on 8 October 2026; GitLab is a dormant reserve.
+Batch related work into one branch/PR. Never create automatic version-update PR
+waves or use GitHub schedules for production data. Keep security alerts/audits.
+Production data belongs on OVH; code releases to Cloudflare are explicitly manual.
 Inspect applicable CI and verify deployments after integration. Never enable mainnet
 messaging or discard pending crypto/transaction journals as part of UI work.
 

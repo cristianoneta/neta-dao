@@ -1,0 +1,42 @@
+name: Tag verified release receipt
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Validate receipt and successful source checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re, urllib.request
+          receipt=json.load(open('docs/deployments/repo-remediation-release-2026-10-07.json'))
+          source=receipt['applicationCommit']; checked=receipt['checkedHead']; tag=receipt['tag']
+          assert re.fullmatch('[0-9a-f]{40}',source) and re.fullmatch('[0-9a-f]{40}',checked)
+          assert re.fullmatch('repo-cleanup-[0-9]{4}-[0-9]{2}-[0-9]{2}',tag)
+          req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/actions/runs/'+str(int(receipt['sourceCheckRun'])),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(req) as response: run=json.load(response)
+          assert run['conclusion']=='success' and run['head_sha']==checked
+          with open(os.environ['GITHUB_ENV'],'a') as output: output.write('RELEASE_SOURCE='+source+'\nRELEASE_CHECKED='+checked+'\nRELEASE_TAG='+tag+'\n')
+          PY
+      - name: Create immutable annotated source tag
+        run: |
+          set -eu
+          git merge-base --is-ancestor "$RELEASE_CHECKED" "$RELEASE_SOURCE"
+          git merge-base --is-ancestor "$RELEASE_SOURCE" HEAD
+          if git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null; then
+            test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$RELEASE_SOURCE"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag -a "$RELEASE_TAG" "$RELEASE_SOURCE" -m 'Verified repository cleanup; see release receipt for CI, frontend and backend evidence'
+          git push origin "refs/tags/$RELEASE_TAG"

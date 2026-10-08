@@ -1,0 +1,10 @@
+[Unit]
+Description=Cosmoot main DAO and signed NNS price every 30 minutes
+[Timer]
+OnCalendar=*-*-* *:07,37:00 UTC
+Unit=cosmoot-collect@main.service
+AccuracySec=15s
+RandomizedDelaySec=20s
+Persistent=false
+[Install]
+WantedBy=timers.target

@@ -20,6 +20,7 @@ jobs:
     needs: inventory
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 2
       matrix:
         contract: ${{ fromJSON(needs.inventory.outputs.contracts) }}
     steps:

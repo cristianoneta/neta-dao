@@ -5,6 +5,7 @@ COPY faucet/package*.json ./faucet/
 COPY relay-backup/package*.json ./relay-backup/
 RUN npm ci --prefix faucet --omit=dev --ignore-scripts && npm ci --prefix relay-backup --omit=dev --ignore-scripts
 COPY faucet/service ./faucet/service
+COPY faucet/src/transfer-fee.mjs ./faucet/src/transfer-fee.mjs
 COPY relay-backup/*.mjs ./relay-backup/
 COPY service ./service
 RUN mkdir /data && chown node:node /data

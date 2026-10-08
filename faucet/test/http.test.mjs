@@ -4,14 +4,32 @@ import {FaucetLedger} from '../service/ledger.mjs';
 import {createFaucetServer} from '../service/http.mjs';
 import {CONFIRMATION_VERSION} from '../service/confirmation.mjs';
 const origin='https://dao.netareborn.com';
-async function setup(t,{limits,paused=false,balance,clock}={}){
+async function setup(t,{limits,paused=false,balance,clock,origins=origin}={}){
   let calls=0;const adapter={confirmation:CONFIRMATION_VERSION,address:'juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt',balance:async()=>{calls++;return balance?balance():'100000000';},lookup:async()=>null};
   const ledger=new FaucetLedger(':memory:',adapter,{verify:async()=>false,domain:'https://faucet.test',limits,...(clock?{now:clock}:{})});
-  const server=createFaucetServer({ledger,adapter,origin,paused,...(clock?{now:clock}:{})});
+  const server=createFaucetServer({ledger,adapter,origin:origins,paused,...(clock?{now:clock}:{})});
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   t.after(async()=>{server.closeAllConnections();await new Promise(r=>server.close(r));ledger.close();});
-  return {ledger,get calls(){return calls;},get:path=>fetch(`http://127.0.0.1:${server.address().port}${path}`)};
+  return {ledger,get calls(){return calls;},get:(path,options)=>fetch(`http://127.0.0.1:${server.address().port}${path}`,options)};
 }
+test('both approved origins pass preflight and POST admission; lookalikes cannot reach the ledger',async t=>{
+  const origins=[origin,'https://cosmoot.com'];const s=await setup(t,{origins});
+  for(const allowed of origins){
+    const response=await s.get('/challenge',{method:'OPTIONS',headers:{origin:allowed}});
+    assert.equal(response.status,204);assert.equal(response.headers.get('access-control-allow-origin'),allowed);
+    assert.equal(response.headers.get('vary'),'Origin');
+    const invalid=await s.get('/challenge',{method:'POST',headers:{origin:allowed,'content-type':'application/json'},body:JSON.stringify({address:'invalid'})});
+    assert.equal(invalid.status,400);
+  }
+  for(const denied of ['https://cosmoot.com.evil.example','https://preview.cosmoot.com','http://cosmoot.com','null']){
+    for(const method of ['OPTIONS','POST']){
+      const response=await s.get('/challenge',{method,headers:{origin:denied,'content-type':'application/json'},...(method==='POST'?{body:'{}'}:{})});
+      assert.equal(response.status,403);assert.equal(response.headers.get('access-control-allow-origin'),null);
+    }
+  }
+  assert.equal(s.ledger.db.prepare('SELECT count(*) AS n FROM challenges').get().n,0);
+  assert.equal(s.ledger.db.prepare('SELECT count(*) AS n FROM claims').get().n,0);
+});
 test('cheap and invalid requests cannot exhaust persistent payout work budget',async t=>{
   const s=await setup(t,{limits:{requestsPerDay:1}});
   assert.equal((await s.get('/unknown')).status,404);

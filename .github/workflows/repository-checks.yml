@@ -1,17 +1,31 @@
 name: Repository checks
 on:
   pull_request:
-  push:
-    branches: [main]
-    paths-ignore: ['data/**', 'docs/**', '**/*.md']
   workflow_dispatch:
+  workflow_call:
 permissions:
   contents: read
 concurrency:
   group: repository-checks-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      source: ${{ steps.scope.outputs.source }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: scope
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/ci-scope.mjs
   general:
+    needs: scope
+    if: needs.scope.outputs.source == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -26,23 +40,42 @@ jobs:
       - run: node --test tests/*.test.mjs
       - run: python3 -m unittest discover -s tests -p 'test_*.py'
   contracts:
+    needs: scope
+    if: needs.scope.outputs.source == 'true'
     uses: ./.github/workflows/contract-ci.yml
   wasm:
+    needs: scope
+    if: needs.scope.outputs.source == 'true'
     uses: ./.github/workflows/build-testnet-wasm.yml
   browser:
+    needs: scope
+    if: needs.scope.outputs.source == 'true'
     uses: ./.github/workflows/relay-crypto-browser.yml
   faucet:
+    needs: scope
+    if: needs.scope.outputs.source == 'true'
     uses: ./.github/workflows/faucet-ci.yml
   backup:
+    needs: scope
+    if: needs.scope.outputs.source == 'true'
     uses: ./.github/workflows/relay-backup-ci.yml
   names:
+    needs: scope
+    if: needs.scope.outputs.source == 'true'
     uses: ./.github/workflows/nns-quote-ci.yml
   required:
     name: Required repository checks
     if: always()
-    needs: [general, contracts, wasm, browser, faucet, backup, names]
+    needs: [scope, general, contracts, wasm, browser, faucet, backup, names]
     runs-on: ubuntu-latest
     steps:
       - env:
           RESULTS: ${{ toJSON(needs) }}
-        run: node -e 'const jobs=JSON.parse(process.env.RESULTS); if(Object.values(jobs).some(j=>j.result!=="success")) process.exit(1)'
+        run: |
+          node <<'NODE'
+          const {scope, ...jobs} = JSON.parse(process.env.RESULTS);
+          const source = scope.outputs.source;
+          if (scope.result !== 'success' || !['true', 'false'].includes(source)) process.exit(1);
+          const expected = source === 'true' ? 'success' : 'skipped';
+          if (Object.values(jobs).some(job => job.result !== expected)) process.exit(1);
+          NODE

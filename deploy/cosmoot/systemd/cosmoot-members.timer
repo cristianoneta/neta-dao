@@ -1,0 +1,10 @@
+[Unit]
+Description=Cosmoot membership every 30 minutes
+[Timer]
+OnCalendar=*-*-* *:12,42:00 UTC
+Unit=cosmoot-collect@members.service
+AccuracySec=15s
+RandomizedDelaySec=20s
+Persistent=false
+[Install]
+WantedBy=timers.target

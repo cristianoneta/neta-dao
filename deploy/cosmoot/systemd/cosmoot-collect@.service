@@ -1,0 +1,37 @@
+[Unit]
+Description=Cosmoot public snapshot collector (%i)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=cosmoot-collect
+Group=cosmoot-collect
+WorkingDirectory=/srv/cosmoot/collectors/repo
+Environment=PATH=/opt/cosmoot/node/bin:/srv/cosmoot/collectors/venv/bin:/usr/bin:/bin
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/srv/cosmoot/collectors/venv/bin/python scripts/run-server-collector.py %i
+StateDirectory=cosmoot-collect
+UMask=0022
+TimeoutStartSec=20min
+TimeoutStopSec=15s
+KillMode=control-group
+# Initial budget for the purchased 2-vCPU / 4-GB host; measure live jobs before raising.
+MemoryHigh=1280M
+MemoryMax=1536M
+CPUQuota=100%
+TasksMax=96
+Nice=10
+IOSchedulingClass=idle
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+InaccessiblePaths=/srv/cosmoot/state /etc/cosmoot
+ReadWritePaths=/srv/cosmoot/collectors/repo/data /srv/cosmoot/public-snapshots

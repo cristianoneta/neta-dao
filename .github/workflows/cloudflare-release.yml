@@ -1,0 +1,74 @@
+name: Deliberate Cloudflare release
+on:
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: Exact current main SHA to verify and package
+        required: true
+        type: string
+      deploy:
+        description: Publish the checked artifact to both production domains
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: cosmoot-production
+  cancel-in-progress: false
+jobs:
+  admission:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - env:
+          EXPECTED: ${{ inputs.expected_commit }}
+          DEPLOY: ${{ inputs.deploy }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/main
+          test "$EXPECTED" = "$GITHUB_SHA"
+          if [ "$DEPLOY" = true ]; then test "$GITHUB_REF_PROTECTED" = true; fi
+  checks:
+    needs: admission
+    uses: ./.github/workflows/repository-checks.yml
+  release:
+    needs: [admission, checks]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - run: node scripts/build-pages.mjs
+      - run: node scripts/check-static.mjs --require-worker
+      - run: node scripts/check-pages-worker.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: cosmoot-pages-${{ github.sha }}
+          path: |
+            dist/static/
+            dist/static-manifest.json
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: error
+      - name: Publish the exact checked artifact
+        if: inputs.deploy
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const manifest = JSON.parse(readFileSync('dist/static-manifest.json', 'utf8'));
+          if (manifest.sourceCommit !== process.env.GITHUB_SHA || manifest.workingTree !== 'clean')
+            throw Error('A clean artifact from this exact commit is required.');
+          for (const name of ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN'])
+            if (!process.env[name]) throw Error(`Missing production configuration: ${name}`);
+          NODE
+          current_main=$(git ls-remote --exit-code origin refs/heads/main | cut -f1)
+          test "$current_main" = "$GITHUB_SHA"
+          node scripts/check-static.mjs --require-worker
+          npx --yes wrangler@4.148.0 pages deploy dist/static --no-bundle --project-name cosmoot --branch main --commit-hash "$GITHUB_SHA" --commit-dirty=false

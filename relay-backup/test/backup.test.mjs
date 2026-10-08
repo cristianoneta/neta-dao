@@ -14,6 +14,33 @@ const path='relay-'+'1'.repeat(24)+'.db';
 function snapshot(){return {version:1,scope,corecryptoVersion:'10.5.3',descriptor:{fingerprint:'a'.repeat(64),generation:1},wrappedKey:'encrypted wrapped key',path,
  blocks:[{path,offset:0,data:[1,2,3]}],archiveRecords:[{text:'Already read secret'}],sendRecords:[{state:'pending',id:'1'.repeat(64)}],transactionIntents:[{status:'unknown'}],registrationIntent:null,cursor:8};}
 const sign=async message=>{const doc={chain_id:'',account_number:'0',sequence:'0',fee:{gas:'0',amount:[]},msgs:[{type:'sign/MsgSignData',value:{signer:wallet,data:Buffer.from(message).toString('base64')}}],memo:''};return (await signing.signAmino(wallet,doc)).signature;};
+test('multiple web origins keep signed challenges and bearer sessions bound to their originating site',async()=>{
+ const origins=['https://dao.netareborn.com','https://cosmoot.com'],store=new BackupStore(':memory:');
+ const server=backupServer({store,origin:origins,domain:'https://backup.example',chain:'juno-1',contract:scopeObject.contract,allowedWallets:[wallet]});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ const request=(origin,path,method='GET',body,accessToken)=>fetch('http://127.0.0.1:'+server.address().port+path,{method,
+   headers:{origin,'content-type':'application/json',...(accessToken?{authorization:'Bearer '+accessToken}:{})},
+   ...(body?{body:JSON.stringify(body)}:{})});
+ try{
+  for(const origin of origins){
+   const other=origins.find(o=>o!==origin),preflight=await request(origin,'/v1/backup','OPTIONS');
+   assert.equal(preflight.status,204);assert.equal(preflight.headers.get('access-control-allow-origin'),origin);
+   const challenge=await(await request(origin,'/v1/challenge','POST',{wallet})).json();
+   assert.equal(JSON.parse(challenge.message).origin,origin);
+   const proof={nonce:challenge.nonce,signature:await sign(challenge.message)};
+   assert.equal((await request(other,'/v1/auth','POST',proof)).status,401);
+   const response=await request(origin,'/v1/auth','POST',proof);assert.equal(response.status,200);
+   const {accessToken}=await response.json();assert.ok(accessToken);
+   assert.equal((await request(origin,'/v1/auth','POST',proof)).status,401);
+   assert.equal((await request(other,'/v1/backup','GET',undefined,accessToken)).status,401);
+   assert.equal((await request(other,'/v1/backup','PUT',{expectedRevision:0,envelope:{}},accessToken)).status,401);
+   assert.equal((await request(origin,'/v1/backup','GET',undefined,accessToken)).status,200);
+  }
+  const denied=await request('https://cosmoot.com.evil.example','/v1/challenge','POST',{wallet});
+  assert.equal(denied.status,403);assert.equal(denied.headers.get('access-control-allow-origin'),null);
+  assert.equal(store.db.prepare('SELECT count(*) AS n FROM backups').get().n,0);
+ }finally{server.closeAllConnections();await new Promise(r=>server.close(r));store.close();}
+});
 test('complete snapshot is authenticated and all fresh restores are read-only',async()=>{
  const envelope=await sealPersonalBackup(scopeObject,3,snapshot(),code);assert.ok(!JSON.stringify(envelope).includes('Already read secret'));
  const restored=await openPersonalBackup(scopeObject,envelope,code,{minimumRevision:3,expectedDigest:await backupDigest(envelope)});

@@ -7,7 +7,7 @@ Faucet wallet. Both wallets are admitted to their own encrypted backup on the
 existing Render service. Wallet signatures, exact origin/chain/contract binding,
 per-wallet isolation and the existing storage/rate limits still apply. The public
 Inbox deployment/release pins remain null and DAO writes remain disabled.
-PR #195 remains draft; this publication does not merge the full candidate.
+PR #195 is now integrated through remediation PR #224. Public activation is unchanged.
 
 ## Source and reproducible artifacts
 
@@ -65,7 +65,7 @@ Faucet registration through one provider. The screenshot is client acknowledgeme
 of encrypted backup; it is not an independent durability/restart/restore test.
 No secret recovery code was present in the screenshot.
 
-Next: register the owner's inbox, then let the Faucet recipient allow that
+Historical next step (completed by the later checkpoint above): register the owner's inbox, then let the Faucet recipient allow that
 registered owner, then send the first owner-to-Faucet message. Do not ask the
 Faucet wallet to register again. Existing encrypted state must be unlocked.
 

@@ -1,12 +1,6 @@
 name: Juno treasury onboarding check
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/juno-onboarding-check.yml'
-      - 'scripts/update_delegation_treasury.py'
-      - 'scripts/update_treasury.py'
-      - 'data/dao-directory.json'
-      - 'data/treasury/token-registry.json'
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
