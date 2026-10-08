@@ -8,32 +8,29 @@ in the owner's private operations handoff, outside this repository.
 
 ## Current priority
 
-The backend migration is incomplete. A preliminary encrypted database export was
-verified after transfer; that verifies the copies, not application-level message
-restoration or a production cutover. Render remains the production backend writer.
-The original Faucet and NNS identities were independently backed up and verified. Consult the
-private operations handoff before resuming; do not repeat completed exports or
-create a replacement signing identity.
+The backend is active on OVH. Final source quiescence, verified database transfer,
+original identities, admission settings and target activation are confirmed in the
+private operator record. Render remains in maintenance as a rollback reserve; after
+OVH writes, its old state must not be reactivated without returning the newer records.
 
-The original NNS price key was installed and one manual main collector run was
-reported successful. The signed-price path returned the server snapshot marker
-on both website origins. All 26 live snapshot paths matched across the three origins; controlled live fallback acceptance remains open;
-collector timers remain inactive. Keep the approved 24-hour price validity and
-never re-date stale observations.
+The website release from `604cec097d08fb8ce5e64731d76c32ee6fdf682e` passed all 18
+release jobs and was published on both domains. The stable API endpoint and CORS for
+both website origins were accepted. Public mainnet messaging remains disabled.
 
-The target host passed isolated authenticated encrypted-backup restart/export/restore,
-Compose/Caddy validation and image build. The same synthetic restore passed inside
-the hardened image. Source now prepares the stable API endpoint and a maintenance
-startup that opens no databases or signing identity; these changes are not deployed.
-DNS/TLS, final quiesced export, target configuration, independent recurring backups
-and live fallback remain open.
+Independent recurring backups, the rollback window and controlled live data fallback
+remain open. The operator confirmed that all three collector schedules are active
+and enabled, with successful last runs. The installed runner predates completion
+receipts and the health service is absent; reviewed source still needs a targeted
+installation and scheduled-cycle acceptance. Follow
+[COLLECTOR_ACCEPTANCE](docs/COLLECTOR_ACCEPTANCE.md). The original identities are
+already independently backed up; do not repeat those transfers or rotate keys.
 
 ## Source and release status
 
 - GitHub is primary for source/CI. Cloudflare serves `cosmoot.com` and
-  `dao.netareborn.com`; OVH provides public snapshots and is the intended backend
-  target. GitLab is a dormant reserve. Render stays until verified migration and
-  the agreed rollback window are complete.
+  `dao.netareborn.com`; OVH provides public snapshots and the active backend.
+  GitLab is a dormant reserve. Render stays in maintenance until recurring
+  independent retention and the agreed rollback window are complete.
 - PR #257 imported the newer GitLab source without replacing GitHub history.
   PR #259 fixed the real-workerd proxy incompatibility. Exact source `153f7a8c`
   was published successfully; see [release evidence](docs/deployments/GITHUB_PRIMARY_2026-10-08.md).

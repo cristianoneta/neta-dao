@@ -13,12 +13,12 @@ See the [documentation policy](../../docs/DOCUMENTATION_PRIVACY.md).
 | GitHub | Reviewed source, CI and deliberate releases; no production-data commits |
 | GitLab | Dormant reserve, not a parallel deployment path |
 | Cloudflare Pages | Website assets and the scoped public-snapshot proxy |
-| Application host | Bounded collectors, public data edge and eventual backend |
+| Application host | Bounded collectors, public data edge and active backend |
 | Independent encrypted backups | Databases, original identities and collector checkpoints |
 
 Current operator-confirmed progress and open gates are summarized in the
 [public checkpoint](../../docs/OVH_SETUP_2026-10-08.md). Consult the private handoff
-for host actions. Render remains the backend writer until verified migration.
+for host actions. OVH is the active backend; Render remains in maintenance as a rollback reserve.
 
 ## General installation
 
@@ -51,9 +51,12 @@ Collectors now write private atomic job receipts outside the published snapshot
 tree. `scripts/server_job_status.py` returns failure for missing, failed, stale or
 stalled runs without refreshing their last-success timestamp. The optional
 `cosmoot-health` timer checks these every five minutes; install/activate it only
-after the three collectors have passed acceptance. It reports through systemd and
+after the three collectors have passed acceptance. The reviewed health template also
+checks published observation ages and child refresh results; see
+[collector acceptance](../../docs/COLLECTOR_ACCEPTANCE.md). It reports through systemd and
 the journal; no external alert recipient is configured. A successful process
-receipt does not prove freshness of every upstream source or price.
+receipt alone does not prove freshness of every upstream source or price. Published
+freshness checks remain separate from signature verification and accounting coverage.
 
 ## Snapshot publication
 

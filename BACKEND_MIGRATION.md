@@ -5,11 +5,14 @@ boundaries. Real host access, database paths, export locations, transfer receipt
 and signing-key locations belong in the private operator handoff. The paths in
 deployment source are template defaults, not a verified live inventory.
 
-Current progress: a preliminary encrypted database copy was transferred and
-verified. Original identities are backed up; isolated application restore checks
-passed on the target host and in its built image. Render remains the production
-backend writer; final quiesced export and cutover are still open. See the
-[public checkpoint](docs/OVH_SETUP_2026-10-08.md).
+Current progress: final source quiescence, independently encrypted database transfer,
+state/journal verification and OVH activation are complete. The original identities
+were retained. Isolated application restore checks passed on the target host and
+inside its built image. Render is in maintenance; never reactivate its old data after
+new OVH writes. Recurring independent retention, controlled live fallback and the
+rollback window remain open. See the [public checkpoint](docs/OVH_SETUP_2026-10-08.md).
+The following is the reusable migration procedure, not an instruction to repeat the
+completed export or import.
 
 ## Prepare and export
 
@@ -92,10 +95,11 @@ Quiesce the target and return its newer state first if rollback is necessary.
 
 ## Evidence boundaries
 
-Local export/image tests use synthetic data. The later preliminary production copy
-passed decryption and database/receipt verification, and the isolated synthetic host/container application restore passed. Final
-quiesced export, live production-state acceptance and cutover remain unverified. Recurring independent backups
-and private signing-identity backups are separate requirements.
+Local export/image tests use synthetic data. The completed private production
+migration additionally verified final database copies, unresolved journals, original
+identity and API/origin behavior. Neither these checks nor a healthy process prove a
+fresh-browser restore or recurring independent retention. Those boundaries remain
+explicit; the user has deferred the real browser drill.
 
 See [deployment templates](deploy/cosmoot/README.md) and
 [encrypted backup recovery](docs/BACKUP_RECOVERY.md). Consult the private operator

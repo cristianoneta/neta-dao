@@ -6,9 +6,9 @@ Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_P
 ## Current architecture
 
 Owner-approved on 8 October: GitHub primary for source/CI; Cloudflare for
-`cosmoot.com` and `dao.netareborn.com`; OVH for bounded collectors and eventual
-Faucet/encrypted-backup hosting; GitLab dormant reserve; Render retained until
-verified state migration. See [HANDOFF](../HANDOFF.md) for immediate work.
+`cosmoot.com` and `dao.netareborn.com`; OVH for bounded collectors and active
+Faucet/encrypted-backup hosting; GitLab dormant reserve; Render in maintenance
+pending the rollback and retention gates. See [HANDOFF](../HANDOFF.md) for immediate work.
 
 The return source imports GitLab `b00683c4` onto GitHub main `f5b21a50`, preserving
 GitHub history and all newer public snapshots. Dependabot version PRs are paused,
@@ -29,7 +29,9 @@ were closed, and no open PR remained at the completion check.
 
 ## Deployment evidence
 
-- Cloudflare's latest confirmed upload is GitHub main `153f7a8c`, release run
+- Current release `604cec097d08fb8ce5e64731d76c32ee6fdf682e` passed all 18 release jobs
+  and was published to both domains; API/CSP and both origins were accepted.
+  The earlier confirmed upload was GitHub main `153f7a8c`, release run
   37774069535, deployment `b9efb912`. The publish step passed at 12:14:25 UTC.
   The earlier `55e7a408` deployment returned 200 with `static-fallback` to owner/VPS
   checks, while OVH returned 200 in 0.186 seconds. The previous owner-confirmed
@@ -46,7 +48,8 @@ were closed, and no open PR remained at the completion check.
 - The public snapshot edge is installed. The owner verified all 26 public file
   hashes and four private/unlisted 404 paths. A later manual main collector run
   published a signed NNS price successfully. This does not establish freshness
-  of every collector or all historical accounting. Timers remain inactive.
+  of every collector or all historical accounting. Public observations now advance;
+  inspect installed timers and receipts before changing them.
 - Both production databases were exported while Render remained live. The
   preliminary encrypted copy passed transfer, decryption and database/receipt
   verification. This is not a production restore or an application message test.
@@ -55,20 +58,20 @@ were closed, and no open PR remained at the completion check.
 - Faucet/NNS identity backups were verified privately. Synthetic authenticated
   restart/export/restore passed on the target host and inside its hardened image;
   Compose/Caddy validation and image build passed too. Final quiesced export,
-  target runtime configuration, DNS/TLS and backend cutover remain open. Render
-  remains the production writer. Exact evidence is in the private operator handoff.
+  target configuration, DNS/TLS and backend cutover are complete. OVH is the active
+  writer; Render remains in maintenance. Exact evidence is in the private operator handoff.
   Do not rotate authority, extend expired prices or run a second payout writer.
 
 | Feature | Code | Deployment / activation | Evidence and remaining boundary |
 | --- | --- | --- | --- |
 | Names | Registry v0.3.1 and profiles v0.1.0 | Mainnet code 5168/5169; purchases active | First registration and fee receipt recorded; mainnet renewal/transfer and live validator E2E remain open. [Receipts](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) |
 | Personal messaging | Maintained client, builder, backup and browser suites integrated in cleanup candidate | Code 5170 deployed; separate two-wallet pilot live; public release/deployment pins null | User confirmed send/read/reload; device/consent queried through one provider. Fresh-profile restore/rotation explicitly deferred; reply and hosted durability open. [Pilot evidence](deployments/PERSONAL_PILOT_2026-10-07.md) |
-| Backup service | ADR-36, scoped encrypted envelopes, atomic revisions, local snapshot export; isolated admission lanes | Existing Faucet Render host, separate database, owner/Faucet allowlist | Backend `f5b21a5` confirmed live. Synthetic authenticated process restart/export/restore passed locally, on the target host and in its hardened image; recurring off-host retention and production cutover remain open. [Service receipt](deployments/RELAY_SHARED_RENDER_2026-10-07.md), [recovery runbook](BACKUP_RECOVERY.md) |
+| Backup service | ADR-36, scoped encrypted envelopes, atomic revisions, local snapshot export; isolated admission lanes | Active OVH backend, separate database, unchanged pilot allowlist | OVH activation and API/origin behavior confirmed. Synthetic authenticated process restart/export/restore passed locally, on the target host and in its hardened image; recurring off-host retention remains open. [Service receipt](deployments/RELAY_SHARED_RENDER_2026-10-07.md), [recovery runbook](BACKUP_RECOVERY.md) |
 | DAO inbox | Gated components and protocol groundwork | Not mounted; DAO writes disabled in code 5170 | Multi-recipient recovery/history/prekeys are next product work. [Design](DAO_MAILBOX_DESIGN_2026-10-06.md) |
 | Proposals | Local drafts, UNI-7 workshops, mainnet history, Operations voting adapter | Existing static workspace | Operations legacy finalization does not create a mainnet proposal. Native Juno submission/voting and review-to-mainnet adapter disabled. [APIs](../REVIEW_ARCHITECTURE.md) |
-| Treasury | DAO/SubDAO/consolidated assets, receipt categories, provisional P&L, Community Tax and daily staking accrual | Cloudflare static release; seeded OVH data edge; collector timers inactive | Accounting floor 1 October; explicit partial coverage; missing data is not zero. Claims do not double-count accrued rewards. [Accounting](TREASURY_ACCOUNTING_2026-10-06.md), [cutoff](TREASURY_CUTOFF_2026-10-06.md) |
+| Treasury | DAO/SubDAO/consolidated assets, receipt categories, provisional P&L, Community Tax and daily staking accrual | Cloudflare static release; OVH data edge; actual timer inventory/acceptance open | Accounting floor 1 October; explicit partial coverage; missing data is not zero. Claims do not double-count accrued rewards. [Accounting](TREASURY_ACCOUNTING_2026-10-06.md), [cutoff](TREASURY_CUTOFF_2026-10-06.md) |
 | RELAY notifications | Browser-local governance/NNS notices, favorites, unread/history | Public workspace | No push/email or cross-device notification sync. NNS notices are Messages, not a separate Names filter. |
-| Faucet | 25 JUNOX per wallet per 24h, signature proof, exact-hash payout journal | Existing Render service, manual deploy | Reward/donation evidence recorded; real payout/restart/stake/unstake evidence incomplete. Cheap HTTP traffic no longer consumes persistent claim-work quota in candidate. |
+| Faucet | 25 JUNOX per wallet per 24h, signature proof, exact-hash payout journal | Active OVH backend, deliberate deploy | Reward/donation evidence recorded; real payout/restart/stake/unstake evidence incomplete. Cheap HTTP traffic no longer consumes persistent claim-work quota in candidate. |
 | Juno v31 tracker | Closed-event static archive and boundary tests | Live, monitoring stopped | 22/25, 94.44% saved participation in the five-hour window; first votes/signatures distinct. Three missing-evidence notes, not proof of failed upgrades. [Tracker](JUNO_UPGRADE_AUTOMATION.md) |
 | Future upgrade watcher | Tested proposal/lifecycle core | Not scheduled or published | Two-source governance agreement, strict upgrade messages, immutable halt/deadline, all-baseline-signature closure and locked atomic checkpoints implemented. Network capture, runner integration and automatic pages remain open. [Specification](JUNO_UPGRADE_AUTOMATION.md) |
 | People / Delivery / payments | Membership reads; contributor/delivery plans | Members live; payment execution absent | Roles, invoices, milestone acceptance and Treasury payment linkage remain future work. |
@@ -79,7 +82,7 @@ were closed, and no open PR remained at the completion check.
   Juno `juno-1`, code 5170. [Verified deployment](deployments/PERSONAL_MAINNET_2026-10-07.md).
 - Initial upgrade/admin wallet: `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.
   Do not transfer custody, make contracts immutable or redeploy to resolve a UI issue.
-- Render remains the existing backend host. Its resource inventory is private.
+- OVH is the active backend host; Render is in maintenance. Resource inventory is private.
   No additional service is authorized by this documentation change.
 - Deployment manifests pin exact contract, source, crypto and frontend bytes.
   Static publication does not prove hosted database recovery or on-chain transactions.
@@ -87,7 +90,10 @@ were closed, and no open PR remained at the completion check.
 ## Data ownership and rules
 
 The intended OVH cadence is Operations Treasury every 15 minutes, main DAO and
-membership every 30 minutes. These timers are installed but inactive. GitHub's
+membership every 30 minutes. Public observations advance. Operator inventory confirms
+all three schedules active and enabled, with successful last runs; the installed
+runner predates completion receipts and the health service is not installed. A
+targeted source update and receipt/freshness acceptance remain open. GitHub's
 scheduled snapshot writers have been removed. The browser reads published
 snapshots, not the chain; seeded snapshots are not fresh collection evidence.
 Community/staking accounting uses its existing bounded collectors. After timer
@@ -110,12 +116,14 @@ No stale 5-NETA messaging requirement applies: only sending requires `.neta`.
 
 [Next steps](../HANDOFF.md) · [source map](SOURCE_MAP.md) · [historical inventory](archive/repo-review-2026-10-07/CURRENT_STATE.md)
 
-## Prepared cutover source (not deployed)
+## Completed cutover and remaining operating gates
 
-Faucet and the separate two-wallet pilot now target `https://api.cosmoot.com` in
-source and CSP; the browser bundle and manifest are rebuilt together. Render still
-serves the currently published website. Publish the new frontend only after target
-DNS/TLS, configuration and migrated-state acceptance. `COSMOOT_MAINTENANCE=true`
-starts a bounded HTTP responder without loading signing/database code; it is a
-source-quiescence mechanism to deploy and verify before the final export. Public
-messaging release pins, wallet allowlists and contract authorities stay unchanged.
+Faucet and the separate two-wallet pilot target `https://api.cosmoot.com` in the
+published frontend and CSP. Both website origins passed CORS/auth-boundary checks.
+OVH is the active writer; Render uses the maintenance entrypoint. Public messaging
+release pins, wallet allowlists and contract authorities are unchanged.
+
+Collector/health host acceptance, controlled live data fallback, independent recurring
+backups and the rollback window remain open. Reviewed health source now checks both
+process receipts and published observations; it has not been installed as part of this
+source change. See [COLLECTOR_ACCEPTANCE](COLLECTOR_ACCEPTANCE.md).
