@@ -1,6 +1,6 @@
 # Future Juno upgrade tracking
 
-Status: proposal/lifecycle core implemented and tested; network runner, persistence,
+Status: proposal/lifecycle core implemented and tested; network runner,
 early-vote capture and automatic page publication remain pending. Not scheduled.
 v31 remains closed.
 
@@ -15,9 +15,13 @@ height H from the committed halt anchor H-1, and freezes closure. Its synthetic
 tests cover duplicate reads, unsupported messages, cancellations, source disagreement,
 baseline changes, early completion, deadline boundaries and late records.
 
-Next, connect bounded/paginated chain transport, an atomic locked event store,
+`scripts/juno_upgrade_state.py` supplies a private, atomic, locked event store:
+concurrent updates re-read under the lock, crash-before-replace retains the prior
+checkpoint, and stale workers cannot replace closed events or change anchors.
+
+Next, connect bounded/paginated chain transport,
 pre-restart consensus capture and the existing Community Tools publication path.
-The core does not fetch, schedule, persist or publish by itself. Its `complete` input
+The lifecycle/store modules do not fetch, schedule or publish by themselves. Its `complete` input
 must be set only after complete bounded pagination; truncated or failed reads are
 not cancellation evidence. Do not add a timer until the full acceptance below passes.
 

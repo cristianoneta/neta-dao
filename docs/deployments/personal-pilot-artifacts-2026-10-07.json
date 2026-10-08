@@ -1,8 +1,8 @@
 {
   "format": "neta-personal-private-pilot-v1",
-  "sourceCommit": "a17a2bfa04fc44a87d70c96292abc01de86ee4f7",
+  "sourceCommit": "bdefafdbcd3dad3203e933ee598aa500ebaa5ec2",
   "sourceRepository": "https://github.com/cristianoneta/neta-dao",
-  "sourceBrowserRun": 37616645784,
+  "sourceBrowserRun": null,
   "publicInboxEnabled": false,
   "chainId": "juno-1",
   "codeId": 5170,
@@ -25,5 +25,9 @@
     "assets/relay-crypto/corecrypto.js": "41c255af33ec642c81a46cfec59e70f4c1a459e28affa5151689b215311b4872",
     "assets/relay-crypto/index_bg.wasm": "ba9a90a53f60ae1600f8f64364ce081995eb1e3548ef9be40fa02e7150c09d84"
   },
-  "deploymentStatus": "Prepared endpoint migration; not yet published. Historical sourceCommit/sourceBrowserRun describe the original pilot only."
+  "deploymentStatus": "Prepared API endpoint migration; not published. Current validation is recorded in the pull request checks.",
+  "originalPilot": {
+    "sourceCommit": "a17a2bfa04fc44a87d70c96292abc01de86ee4f7",
+    "sourceBrowserRun": 37616645784
+  }
 }
