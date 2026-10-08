@@ -78,15 +78,35 @@ The new regression check failed on the old bundle with `static-fallback` instead
 of `server`, then passed all cases after rebuilding with the correction. The
 three focused Node tests, compiled Node Worker check, 196-file artifact integrity
 check and repository syntax/pilot inventory checks also passed locally.
-No corrected production publication or live server marker is claimed by this
-source change. Next: integrate the fix after required CI, publish exact new main,
-then resume owner/VPS acceptance one SSH step at a time.
+
+## Corrected Worker published at 14:14 Berlin
+
+- PR [#259](https://github.com/cristianoneta/neta-dao/pull/259) merged as
+  `153f7a8c74fced500110cffef7e468c0b04e24a6` after all 16 required jobs passed in
+  [run 37770846965](https://github.com/cristianoneta/neta-dao/actions/runs/37770846965).
+  Reviewed head: `00c24cafb06783532e254228d2559e2a3b37e483`; reviewed/merged tree:
+  `6e1d498aa34690c30f064ef1d71b30b8e5f9ef26`.
+- The owner started [release 37774069535](https://github.com/cristianoneta/neta-dao/actions/runs/37774069535)
+  at 12:02:16 UTC, selecting exact main `153f7a8c` and publication enabled.
+  The admission log confirms both inputs. Main remained unchanged through upload.
+- All release jobs passed. The release job ran the new real-workerd check on the
+  exact compiled artifact, as well as Node bundle and artifact-integrity checks.
+  The actual publish step succeeded at 12:14:25 UTC / 14:14 Berlin:
+  `https://b9efb912.cosmoot.pages.dev`.
+- Artifact ID: `11549542515`; ZIP SHA-256:
+  `5102c85718b4ddd90cbf6de910899120683d483123d1b2a5e6dc7860045a25ae`.
+  The Pages workflow used `--no-bundle` to publish the checked artifact.
+
+The corrected upload supersedes `55e7a408`. Live both-domain server-marker/byte
+acceptance and a controlled fallback check remain open; seeded data is still not
+fresh collection evidence. Next: owner/VPS GET with response headers for the
+known treasury path on cosmoot.com, then complete acceptance one command per reply.
 
 ## Operational boundaries
 
 - Before this release, owner-confirmed custom-domain production was GitLab
   `ec077488`, deployment `d89506f6`. The new upload is confirmed by the publish
-  log; no new custom-domain live acceptance or live fallback drill is claimed yet.
+  logs; no corrected custom-domain live acceptance or live fallback drill is claimed yet.
 - Verify both `cosmoot.com` and `dao.netareborn.com`: server snapshot marker,
   exact public bytes, private/unlisted behavior and fallback. Synthetic Worker
   tests are not a live failure drill. Assistant HTTP 403 responses previously did
