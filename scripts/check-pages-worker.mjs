@@ -1,5 +1,5 @@
 // Exercise the actual Wrangler bundle with synthetic upstream and static assets.
-// This verifies routing/runtime behavior without contacting production or wallets.
+// Node mocks verify routing; check-pages-runtime.mjs also runs real workerd fetch.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
@@ -16,7 +16,7 @@ globalThis.fetch = async (url, options) => {
   assert.equal(new URL(url).search, '');
   assert.ok(staticPaths.has(new URL(url).pathname));
   assert.equal(options.headers, undefined);
-  assert.equal(options.redirect, 'error');
+  assert.equal(options.redirect, 'manual');
   assert.equal(options.cf.cacheTtl, 60);
   if (mode === 'offline') throw Error('Synthetic origin failure');
   if (mode === 'unavailable') return new Response(null, { status: 503 });

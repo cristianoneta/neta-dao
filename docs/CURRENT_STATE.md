@@ -16,7 +16,9 @@ Cloudflare release is prepared. PR #257 was merged as `0916bec5` after all 16 CI
 jobs passed. GitHub confirms main is protected with `Required repository checks`
 and `has_pages=false`. The owner configured the two Cloudflare secrets and release
 run `37767439816` successfully published deployment `55e7a408` at 11:13:07 UTC.
-Custom-domain live acceptance remains pending and is tracked in the
+Owner/VPS custom-domain acceptance found a persistent static fallback caused by
+an unsupported Worker fetch option. The correction requires a new release;
+live acceptance remains pending and is tracked in the
 [release evidence](deployments/GITHUB_PRIMARY_2026-10-08.md).
 The original 32 Dependabot proposals are recorded in the maintenance inventory,
 without applying their package upgrades or dismissing security alerts. All 32
@@ -26,15 +28,18 @@ were closed, and no open PR remained at the completion check.
 
 - Cloudflare's latest confirmed upload is GitHub main `0916bec5`, release run
   37767439816, deployment `55e7a408`. The actual publish step passed at 11:13:07 UTC.
-  Both custom domains returned 403 without a snapshot marker to assistant probes
-  afterwards; owner/VPS live acceptance remains open. The previous owner-confirmed
+  Owner/VPS checks subsequently returned 200 with `static-fallback` on cosmoot.com,
+  while the OVH origin returned 200 in 0.186 seconds. The previous owner-confirmed
   custom-domain release was GitLab `ec077488`, deployment `d89506f6`, with SSL.
 - GitLab pipeline 2925921267 passed bootstrap, backend and Pages packaging for
   `c21183bf` at 09:59:30 UTC. No Pages proxy publication occurred in that run.
-- The compiled allowlisted proxy and 196-file artifact passed synthetic GET/HEAD,
-  credential stripping and static-fallback checks. Live both-domain acceptance is
-  still pending. Direct assistant HTTP requests returned 403 without proving a
-  public outage; verify from the owner's normal connection or VPS.
+- Node-mocked proxy tests missed a real workerd incompatibility: fetch rejects
+  `redirect: 'error'` before contacting the origin. The corrected proxy uses
+  `manual`, with its existing non-200 rejection preserving redirect safety.
+  A regression check now exercises the compiled artifact in real workerd through
+  pinned Wrangler's Miniflare, with synthetic origin/assets. Local runtime tests
+  do not establish live acceptance; the corrected artifact must be published and
+  verified on both domains. Assistant HTTP 403 probes did not prove a public outage.
 - OVH VPS-1 costs EUR 5.34/month per the owner's order: 2 vCPU, 4 GB RAM, 40 GB NVMe,
   Ubuntu 24.04 in Erith. Key-only SSH, firewall, Docker, Python and Node were checked.
   Source `08cc957`, a seeded public generation and inactive systemd units are

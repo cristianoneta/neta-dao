@@ -8,7 +8,7 @@ test('snapshot proxy bounds destination and strips user credentials, query and r
   const proxy = snapshotProxy([path.slice(1)], async (url, options) => {
     assert.equal(url, `https://data.cosmoot.com${path}`);
     assert.equal(options.headers, undefined);
-    assert.equal(options.redirect, 'error');
+    assert.equal(options.redirect, 'manual');
     return new Response('{"fresh":true}', { headers: { 'Set-Cookie': 'private=1' } });
   });
   const response = await proxy(context(new Request(`https://cosmoot.com${path}?secret=not-forwarded`, {

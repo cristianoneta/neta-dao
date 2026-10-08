@@ -44,6 +44,7 @@ jobs:
       - run: node scripts/build-pages.mjs
       - run: node scripts/check-static.mjs --require-worker
       - run: node scripts/check-pages-worker.mjs
+      - run: npx --yes --package=wrangler@4.148.0 -c 'node scripts/check-pages-runtime.mjs'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: cosmoot-pages-${{ github.sha }}

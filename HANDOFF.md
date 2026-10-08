@@ -46,18 +46,20 @@ the completion check. See [release evidence](docs/deployments/GITHUB_PRIMARY_202
    `0916bec5` as deployment `55e7a408` at 11:13:07 UTC / 13:13 Berlin. All release
    checks and the actual publish step passed. The owner configured
    `CLOUDFLARE_ACCOUNT_ID` and a dedicated Pages-edit `CLOUDFLARE_API_TOKEN`
-   privately in GitHub; this release verified their use. Do not repeat the deploy.
+   privately in GitHub; this release verified their use. That artifact has a
+   confirmed Worker runtime defect; publish the corrected main after its PR checks.
    The connector can inspect runs but cannot start new workflow dispatches. Use
    the owner's normal browser for the start button; do not repeat failed cloud
    browser sign-in attempts or request credentials in chat.
-2. Immediate next step: from the owner's VPS, make one read-only HEAD request to
-   `https://cosmoot.com/data/treasury/neta-main.json`. Both custom domains returned
-   HTTP 403 without a snapshot marker to assistant requests after deployment;
-   this does not establish an outage for normal clients. Then check
-   `X-Cosmoot-Snapshot: server`, exact public bytes and failure fallback on both
-   website origins. Record live evidence separately
-   from the compiled Worker's synthetic tests. Keep OVH timers inactive until
-   acceptance; source integration alone did not publish the proxy.
+2. Owner/VPS HEAD and GET checks reached `cosmoot.com` with HTTP 200 but
+   `X-Cosmoot-Snapshot: static-fallback`; direct `data.cosmoot.com` returned 200
+   in 0.186 seconds. Real workerd reproduced the cause: `redirect: 'error'` is
+   unsupported and fails before the origin request. The correction uses `manual`
+   and still rejects every non-200 response. Its new real-runtime regression check
+   runs in PR CI and before release. Integrate the correction, publish the exact
+   new main, then verify `server`, bytes and fallback on both website origins.
+   Live acceptance is still open; keep OVH timers inactive. See the release record
+   for the local baseline failure and corrected-runtime evidence.
 3. Continue SSH one command per reply. Codex has no authenticated VPS SSH access.
    OVH source export `08cc957` and the pinned snapshot-only Caddy edge are installed;
    the owner's 26-file hash and four-private-path checks passed earlier on 8 October.

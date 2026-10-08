@@ -39,6 +39,8 @@ jobs:
       - run: node scripts/build-personal-pilot.mjs --check
       - run: node --test tests/*.test.mjs
       - run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - run: node scripts/build-pages.mjs
+      - run: npx --yes --package=wrangler@4.148.0 -c 'node scripts/check-pages-runtime.mjs'
   contracts:
     needs: scope
     if: needs.scope.outputs.source == 'true'
