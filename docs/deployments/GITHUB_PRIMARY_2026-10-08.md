@@ -1,0 +1,72 @@
+# GitHub primary and Cloudflare release — 8 October 2026
+
+## Source integration completed
+
+- Owner approved GitHub primary, Cloudflare websites, OVH collectors/eventual
+  backend, GitLab passive reserve and Render removal only after state migration.
+- PR [#257](https://github.com/cristianoneta/neta-dao/pull/257) imported GitLab
+  `b00683c4` without rewriting GitHub history. Merge: `0916bec559c9522642d184ef5eb51737bb75fdd1`.
+  Reviewed tree: `77b73be131caa62309334982a600f29cd85eb9f3`.
+- [CI run 37763827061](https://github.com/cristianoneta/neta-dao/actions/runs/37763827061)
+  passed all 16 jobs for head `08af63cc74119c95b29cf3317cf2a89e4148fe42`.
+  The main merge tree exactly matches that reviewed tree.
+- Repository API confirms `has_pages=false`, protected main and required GitHub
+  Actions check `Required repository checks`. Full administration-rule details
+  are inaccessible to the integration; enforcement is reported for non-admins.
+- Dependabot version limits are zero in all 11 entries. The 32 inventoried PRs
+  #225–#256 were closed without applying their upgrades. No open PR remained at
+  verification; security alerts were not dismissed. The six obsolete data/bot
+  writers are absent from main and the registered-workflow inventory. Weekly
+  read-only security audit remains. No workflow ran for the merge SHA on push.
+
+## Cloudflare release completed; custom-domain acceptance pending
+
+The owner confirmed adding `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` as
+GitHub repository secrets. The dedicated token was requested with Account /
+Cloudflare Pages / Edit for the relevant account. No secret value was received
+in chat. The successful publish step verifies their use for this release.
+
+The owner started [run 37767439816](https://github.com/cristianoneta/neta-dao/actions/runs/37767439816)
+at 11:02:26 UTC (13:02 Berlin), selecting main `0916bec5` and publication enabled.
+All release jobs passed, including the actual publish step. Cloudflare reported
+deployment complete at 11:13:07 UTC (13:13 Berlin), with immutable deployment URL
+`https://55e7a408.cosmoot.pages.dev`.
+The workflow builds a scoped 26-path Worker, checks source/artifact hashes and
+synthetic proxy/fallback behavior, then publishes the exact artifact to project
+`cosmoot` only if current main still matches and required configuration exists.
+
+The 196-file artifact passed source/build hashes and compiled Worker checks for
+all 26 GET/HEAD paths on both origins, exact bytes, private-path routing and
+synthetic outage/503 fallback. Its GitHub artifact ID is `11545707856`, ZIP SHA-256
+`d447cdc0be8bffdd114a57f2326f7b0fbf5bbb8d18524e49e4f85f1ffbaf03a3`.
+
+During release, the public OVH edge served `/data/treasury/neta-main.json` with
+HTTP 200, 3,438 bytes and SHA-256
+`1544dda3cd51c245602398ee7280645f69e6aea37fc5c0cdfb0c38cc34b0d5da`.
+This verifies reachability of seeded data, not fresh collection.
+After publication, assistant GET probes of that path on both custom domains
+returned HTTP 403, `Server: cloudflare`, text/plain and no `X-Cosmoot-Snapshot`.
+No public-client outage or bot-block cause is established by those responses.
+Next: the owner should run one read-only HEAD request from the VPS, then complete
+the remaining acceptance checks one SSH step at a time.
+
+## Operational boundaries
+
+- Before this release, owner-confirmed custom-domain production was GitLab
+  `ec077488`, deployment `d89506f6`. The new upload is confirmed by the publish
+  log; no new custom-domain live acceptance or live fallback drill is claimed yet.
+- Verify both `cosmoot.com` and `dao.netareborn.com`: server snapshot marker,
+  exact public bytes, private/unlisted behavior and fallback. Synthetic Worker
+  tests are not a live failure drill. Assistant HTTP 403 responses previously did
+  not prove a public outage; the owner's normal connection/VPS can supply evidence.
+- OVH uses source export `08cc957`, seeded snapshots and an active Caddy data edge.
+  Timers remain inactive. No SSH command, backend cutover or database change was
+  performed during GitHub integration. Continue SSH one command per reply.
+- GitHub settings show `NNS_PRICE_SIGNING_KEY` exists, last updated three days
+  before the owner's screenshot. This is metadata evidence, not proof of key
+  identity or a completed recovery. Do not expose, replace or rotate it. It has
+  not been installed on OVH.
+- Keep Render running and preserve both databases, Faucet identity, payout
+  journals and quotas. Independent encrypted backup and private state transfer
+  remain open. GitLab is a passive historical reserve; no automatic mirror or
+  second deployment path has been configured.

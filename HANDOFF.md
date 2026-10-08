@@ -17,6 +17,12 @@ GitHub main `f5b21a50` without replacing its history. The return branch is
 GitLab MR !2 is the earlier migration record, not a second active development track.
 Do not reactivate GitLab releases or copy old GitHub data over newer snapshots.
 
+GitHub return PR #257 is merged as `0916bec559c9522642d184ef5eb51737bb75fdd1`.
+Its exact reviewed tree passed all 16 required CI jobs. GitHub confirms Pages is
+disabled and main requires `Required repository checks`. All 32 old Dependabot
+version PRs were closed without applying their upgrades; no open PR remained at
+the completion check. See [release evidence](docs/deployments/GITHUB_PRIMARY_2026-10-08.md).
+
 ## Automation changes in this source
 
 - Dependabot version-update limits are zero; security alerts/updates and the weekly
@@ -36,20 +42,30 @@ Do not reactivate GitLab releases or copy old GitHub data over newer snapshots.
 
 ## Operational boundaries and next steps
 
-1. Verify the return PR and its exact CI head before merge. Check GitHub Pages is
-   retired at the account setting and main requires `Required repository checks`.
-   The connector supports code/PRs but not these administrative writes. A GitHub
-   browser sign-in is needed if there is no authenticated settings session.
-2. Configure the existing Cloudflare deployment credential privately for GitHub;
-   it is currently configured in GitLab, not verified in GitHub. Do not display,
-   rotate or transfer secrets in chat. Run the deliberate Pages release and check
-   `X-Cosmoot-Snapshot: server`, bytes and failure fallback on both website origins.
-   The frontend currently still serves the prior static Cloudflare release.
+1. Cloudflare release run `37767439816` successfully published exact main
+   `0916bec5` as deployment `55e7a408` at 11:13:07 UTC / 13:13 Berlin. All release
+   checks and the actual publish step passed. The owner configured
+   `CLOUDFLARE_ACCOUNT_ID` and a dedicated Pages-edit `CLOUDFLARE_API_TOKEN`
+   privately in GitHub; this release verified their use. Do not repeat the deploy.
+   The connector can inspect runs but cannot start new workflow dispatches. Use
+   the owner's normal browser for the start button; do not repeat failed cloud
+   browser sign-in attempts or request credentials in chat.
+2. Immediate next step: from the owner's VPS, make one read-only HEAD request to
+   `https://cosmoot.com/data/treasury/neta-main.json`. Both custom domains returned
+   HTTP 403 without a snapshot marker to assistant requests after deployment;
+   this does not establish an outage for normal clients. Then check
+   `X-Cosmoot-Snapshot: server`, exact public bytes and failure fallback on both
+   website origins. Record live evidence separately
+   from the compiled Worker's synthetic tests. Keep OVH timers inactive until
+   acceptance; source integration alone did not publish the proxy.
 3. Continue SSH one command per reply. Codex has no authenticated VPS SSH access.
    OVH source export `08cc957` and the pinned snapshot-only Caddy edge are installed;
    the owner's 26-file hash and four-private-path checks passed earlier on 8 October.
    No fresh collector run, active timer or backend install is claimed.
-4. Keep Render running. Recover the original NNS price key privately, arrange an
+4. Keep Render running. The owner's GitHub settings screenshot confirms a secret
+   named `NNS_PRICE_SIGNING_KEY` exists; its value and identity have not been read
+   or verified and it is not installed on OVH. Preserve it. Recover the original
+   NNS price key privately, arrange an
    independent encrypted backup, export/restore both existing databases and the
    Faucet identity, and follow [BACKEND_MIGRATION](BACKEND_MIGRATION.md). Preserve
    payout journals and quotas; never initialize empty production state.
