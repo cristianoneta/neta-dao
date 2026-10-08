@@ -23,6 +23,12 @@ disabled and main requires `Required repository checks`. All 32 old Dependabot
 version PRs were closed without applying their upgrades; no open PR remained at
 the completion check. See [release evidence](docs/deployments/GITHUB_PRIMARY_2026-10-08.md).
 
+At 14:02 Berlin the owner shared GitHub Support's explanation: content in an
+unspecified PR resembled scam-related asset-retrieval language. PR volume is not
+the confirmed cause. Follow the publication guidance in AGENTS.md and the
+[support clarification](docs/GITHUB_REOPENING_2026-10-08.md). The specific PR and
+passage remain unknown; account App/token/2FA review remains an owner-side step.
+
 ## Automation changes in this source
 
 - Dependabot version-update limits are zero; security alerts/updates and the weekly
@@ -42,12 +48,13 @@ the completion check. See [release evidence](docs/deployments/GITHUB_PRIMARY_202
 
 ## Operational boundaries and next steps
 
-1. Cloudflare release run `37767439816` successfully published exact main
-   `0916bec5` as deployment `55e7a408` at 11:13:07 UTC / 13:13 Berlin. All release
-   checks and the actual publish step passed. The owner configured
+1. Corrected Cloudflare release run `37774069535` successfully published exact
+   main `153f7a8c74fced500110cffef7e468c0b04e24a6` as deployment `b9efb912` at
+   12:14:25 UTC / 14:14 Berlin. All release checks and the actual publish step
+   passed, including the new real-workerd regression. The owner configured
    `CLOUDFLARE_ACCOUNT_ID` and a dedicated Pages-edit `CLOUDFLARE_API_TOKEN`
-   privately in GitHub; this release verified their use. That artifact has a
-   confirmed Worker runtime defect; publish the corrected main after its PR checks.
+   privately in GitHub; the releases verified their use. This supersedes
+   deployment `55e7a408`, whose Worker always returned the static fallback.
    The connector can inspect runs but cannot start new workflow dispatches. Use
    the owner's normal browser for the start button; do not repeat failed cloud
    browser sign-in attempts or request credentials in chat.
@@ -56,8 +63,10 @@ the completion check. See [release evidence](docs/deployments/GITHUB_PRIMARY_202
    in 0.186 seconds. Real workerd reproduced the cause: `redirect: 'error'` is
    unsupported and fails before the origin request. The correction uses `manual`
    and still rejects every non-200 response. Its new real-runtime regression check
-   runs in PR CI and before release. Integrate the correction, publish the exact
-   new main, then verify `server`, bytes and fallback on both website origins.
+   runs in PR CI and before release. PR #259 was merged after all 16 checks passed
+   and the corrected artifact is now published. Next: one read-only GET from the
+   owner's VPS to `https://cosmoot.com/data/treasury/neta-main.json`, displaying
+   headers. Require `server`, then verify bytes and fallback on both website origins.
    Live acceptance is still open; keep OVH timers inactive. See the release record
    for the local baseline failure and corrected-runtime evidence.
 3. Continue SSH one command per reply. Codex has no authenticated VPS SSH access.

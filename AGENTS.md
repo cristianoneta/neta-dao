@@ -12,6 +12,14 @@ GitHub is primary by owner decision on 8 October 2026; GitLab is a dormant reser
 Batch related work into one branch/PR. Never create automatic version-update PR
 waves or use GitHub schedules for production data. Keep security alerts/audits.
 Production data belongs on OVH; code releases to Cloudflare are explicitly manual.
+Before publishing PR/issue titles, descriptions or commit messages, review them
+for accuracy and describe the concrete component, behavior and validation. Do not
+post templated promotion, asset-return promises or requests for private wallet
+material. For message-backup work, identify the encrypted message backup and the
+actual restore operation explicitly; keep legitimate security terminology and
+document limitations. Do not mass-edit historical records or rewrite Git history
+to avoid classification. GitHub Support's 8 October account finding is recorded in
+docs/GITHUB_REOPENING_2026-10-08.md; the specific flagged PR is still unidentified.
 Inspect applicable CI and verify deployments after integration. Never enable mainnet
 messaging or discard pending crypto/transaction journals as part of UI work.
 

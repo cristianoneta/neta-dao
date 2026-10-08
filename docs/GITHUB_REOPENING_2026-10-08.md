@@ -5,6 +5,51 @@ and requested implementation at 12:11 Berlin time. HANDOFF.md owns the current
 execution state; this document preserves the preceding assessment. The owner asked to continue MR !2, reconsider the setup
 after GitHub reopened, and keep SSH instructions to one command at a time.
 
+## Support clarification received at 14:02 Berlin
+
+The owner shared GitHub Support's 8 October message, timestamped 11:41 UTC.
+Support reports detection of spam/scam patterns and identifies PR content in
+`cristianoneta/neta-dao` as the likely trigger, resembling cryptocurrency
+asset-retrieval scams. It did not identify a PR number or quote the offending
+passage. This is support-reported
+evidence, not independent access to GitHub's classifier or a confirmed compromise.
+Dependabot volume is not established as the suspension cause. The earlier limits
+still reduce unnecessary activity and maintenance burden.
+
+A read-only review covered the 90 most recent PRs (#170–#259), 60 recent main
+commits and a targeted issue search. Several PRs discuss encrypted messaging,
+backup restoration or interrupted-transaction reconciliation; those are technical
+features, not proof of the trigger. Current text may differ from what the system
+originally evaluated. The targeted issue search returned no matches; it is not
+an exhaustive review of all historic issues or comments. No exact culprit is
+claimed. Ask Support for the specific PR URL and passage before attributing it
+to a contributor or changing historical records in bulk.
+
+`AGENTS.md` now requires concrete, accurate technical titles/descriptions and
+review before publication, with no templated promotion, asset-return promises
+or requests for private wallet keys or seed phrases. Name the actual backup/data
+operation when describing restoration. This is a content-quality rule, not a prohibited-word
+list or a guarantee against false positives. Keep genuine security terminology,
+feature limitations and history. Existing workflows contain no issue/PR writer
+job; version-update PRs remain paused and read-only security checks remain active.
+
+Support also recommended reviewing authorized Apps/OAuth access, rotating any
+used personal access tokens, retaining two-factor authentication and a current
+verified email address. Those account settings are not accessible through the
+current repository connector and have not been verified or changed here. Use
+the owner's authenticated GitHub settings for that review. The support message
+does not establish leaked credentials; account-access credentials are separate
+from application signing keys and the Faucet identity. Existing PR creation,
+merges and the owner-started release already demonstrate working repository
+access; no artificial test issue or empty commit is necessary.
+
+The owner started Cloudflare release run `37774069535` for exact main
+`153f7a8c74fced500110cffef7e468c0b04e24a6` at 12:02:16 UTC / 14:02 Berlin.
+Main stayed unchanged through publication: its gate rechecked the current SHA.
+The publish step succeeded at 12:14:25 UTC as deployment `b9efb912`. This
+documentation follows the completed release; keep VPS acceptance one command at
+a time. See [release evidence](deployments/GITHUB_PRIMARY_2026-10-08.md).
+
 ## Verified evidence
 
 - GitHub repository access works again. `cristianoneta/neta-dao` is public;
