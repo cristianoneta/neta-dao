@@ -27,7 +27,8 @@ try {
     assert.equal(next.type, old.type);
     if (target === '/snapshots') {
       assert.equal(next.read_only, true);
-      assert.equal(next.bind.create_host_path, false);
+      // Compose's normalized JSON omits false-valued fields.
+      assert.notEqual(next.bind?.create_host_path, true);
     }
   }
   assert.equal(combined.services.backend.ports, undefined, 'Expose the API through the edge only');
