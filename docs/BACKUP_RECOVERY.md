@@ -35,6 +35,22 @@ A snapshot on the same disk cannot protect against loss of that disk.
 `npm test --prefix relay-backup` proves local behavior only. The owner has deferred
 real fresh-browser testing; do not label it passed or repeatedly request it.
 
+### Repeatable synthetic process drill
+
+Run `node relay-backup/drill/run.mjs` from an installed reviewed checkout. It accepts
+no database path, wallet secret or production endpoint. It creates an isolated
+temporary database, random synthetic signing identity and loopback-only child
+processes. It authenticates through ADR-36, stores an encrypted envelope, rejects
+a conflicting revision, restarts the service, rejects old bearer tokens, exports
+the live WAL state and restores the exact envelope in another process. Decryption
+must remain read-only and preserve unknown transaction and pending-send journals.
+The temporary files are removed on completion. Output contains only result flags
+and elapsed time, never the signing key, recovery code, tokens or message contents.
+
+This is application/process evidence on the machine that runs it. It does not
+prove off-host retention, target-container configuration, real browser recovery
+or production migration. Perform it on the intended host as well as locally.
+
 ## Access limitations
 
 The connected Render tools expose deployment/health/logs, but not shell/database

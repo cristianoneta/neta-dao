@@ -1,3 +1,5 @@
+import /etc/caddy/Caddyfile.snapshots
+
 api.cosmoot.com {
     header {
         X-Content-Type-Options nosniff

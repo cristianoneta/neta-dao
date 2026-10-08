@@ -47,11 +47,22 @@ capacity before accepting those defaults for an installation.
    Only its signing subprocess receives it. A missing key must leave the old price
    explicit, not rotate authority or extend an expired observation.
 
+Collectors now write private atomic job receipts outside the published snapshot
+tree. `scripts/server_job_status.py` returns failure for missing, failed, stale or
+stalled runs without refreshing their last-success timestamp. The optional
+`cosmoot-health` timer checks these every five minutes; install/activate it only
+after the three collectors have passed acceptance. It reports through systemd and
+the journal; no external alert recipient is configured. A successful process
+receipt does not prove freshness of every upstream source or price.
+
 ## Snapshot publication
 
 `compose.snapshots.yaml` runs only the public data edge during backend migration.
-When adopting the final Compose setup, preserve its public-snapshot mount and
-certificate volumes; do not start a competing proxy on the same ports. Review
+The combined setup imports the same snapshot routes, preserves its read-only
+public-snapshot mount and uses the same pinned edge image and certificate volumes.
+The edge does not depend on backend health: an API failure must not take down
+public data. Both restored databases are required even while backup writes are
+disabled. Do not start a competing proxy on the same ports. Review
 Docker-published ports independently of host firewall assumptions.
 
 The publisher validates allowlisted JSON/gzip, atomically changes the current
