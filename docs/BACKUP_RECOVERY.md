@@ -1,7 +1,8 @@
 # Encrypted backup recovery runbook
 
-Status: local snapshot/restart/isolated-restore tests exist. Hosted durability,
-external retention and real fresh-profile restore are not yet established.
+Status: synthetic authenticated restart/export/restore passed locally, on the target
+host and in its hardened image. Production database migration is separately verified.
+Recurring independent retention and real fresh-profile restore are not established.
 Do not use the operator's or Faucet wallet's recovery code for infrastructure tests.
 
 ## Recovery targets before public release

@@ -1,6 +1,10 @@
 import importlib.util
+import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
+import time
 import unittest
 
 spec = importlib.util.spec_from_file_location('status', Path(__file__).resolve().parents[1] / 'scripts/server_job_status.py')
@@ -30,6 +34,19 @@ class CollectorStatus(unittest.TestCase):
             self.assertFalse(status.check(directory, now=1)['ok'])
             (Path(directory) / 'main.json').write_text('[]')
             self.assertFalse(status.check(directory, now=10001)['ok'])
+
+    def test_combined_cli_fails_when_processes_succeed_but_published_data_is_missing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            for job in status.JOBS:
+                status.record(directory, job, 'succeeded', now=int(time.time()))
+            result = subprocess.run([sys.executable, str(Path(__file__).resolve().parents[1] / 'scripts/server_job_status.py'),
+                                     '--directory', directory, '--snapshot-root', str(Path(directory) / 'missing')],
+                                    capture_output=True, text=True, timeout=5)
+            value = json.loads(result.stdout)
+            self.assertEqual(result.returncode, 1)
+            self.assertTrue(value['processes']['ok'])
+            self.assertFalse(value['published']['ok'])
+            self.assertFalse(value['ok'])
 
 
 if __name__ == '__main__':

@@ -69,7 +69,12 @@ def check(directory, *, now=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--directory", default="/var/lib/cosmoot-collect")
+    parser.add_argument("--snapshot-root", help="Also check published observations and refresh results")
     args = parser.parse_args()
     result = check(args.directory)
+    if args.snapshot_root:
+        from server_source_status import check as check_sources
+        result = {"ok": result["ok"], "processes": result, "published": check_sources(args.snapshot_root)}
+        result["ok"] = result["ok"] and result["published"]["ok"]
     print(json.dumps(result))
     raise SystemExit(0 if result["ok"] else 1)
