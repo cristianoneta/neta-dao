@@ -208,12 +208,9 @@ npm ci --prefix spikes/relay-corecrypto
 CHROMIUM_PATH=/tmp/chromium node spikes/relay-corecrypto/browser-faucet.mjs
 ```
 
-Worktree used in this chat: `/workspace/scratch/e4c6a6dfca53/neta-faucet`.
-Original repo: `/workspace/scratch/dc97368bd6c9/neta-dao`; it has an existing dirty
-`data/daos/neta.json` from an older collector. That file was preserved untouched;
-this feature used an isolated worktree. Preserve Treasury/membership bot commits.
-Fetch current main before continuing. Git fetch works, local git push has no
-credentials; use the GitHub connector Git Data/PR tools if this remains true.
+Local workspace and access details are retained in private operator records.
+Preserve existing uncommitted collector changes and Treasury/membership bot commits.
+Fetch current main into an isolated checkout before continuing.
 Do not claim a local commit or prepared patch is a live release.
 
 ## Other continuity (do not regress)

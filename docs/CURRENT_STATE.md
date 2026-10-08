@@ -1,6 +1,7 @@
 # Current state — Cosmoot / NETA DAO
 
-Updated 8 October 2026. This is the current feature/deployment/evidence matrix.
+Updated 8 October 2026. This is the public feature/deployment/evidence matrix.
+Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 ## Current architecture
 
@@ -19,7 +20,8 @@ run `37767439816` successfully published deployment `55e7a408` at 11:13:07 UTC.
 Owner/VPS custom-domain acceptance found a persistent static fallback caused by
 an unsupported Worker fetch option. PR #259 corrected it and passed all 16 checks;
 release `37774069535` published exact main `153f7a8c` as deployment `b9efb912` at
-12:14:25 UTC. Corrected live acceptance remains pending and is tracked in the
+12:14:25 UTC. A later operator check reported the signed-price server marker
+on both website origins; complete live byte/fallback acceptance remains open in the
 [release evidence](deployments/GITHUB_PRIMARY_2026-10-08.md).
 The original 32 Dependabot proposals are recorded in the maintenance inventory,
 without applying their package upgrades or dismissing security alerts. All 32
@@ -41,19 +43,18 @@ were closed, and no open PR remained at the completion check.
   pinned Wrangler's Miniflare, with synthetic origin/assets. Local runtime tests
   and release checks passed. The corrected artifact is published; verify its live
   behavior on both domains. Assistant HTTP 403 probes did not prove a public outage.
-- OVH VPS-1 costs EUR 5.34/month per the owner's order: 2 vCPU, 4 GB RAM, 40 GB NVMe,
-  Ubuntu 24.04 in Erith. Key-only SSH, firewall, Docker, Python and Node were checked.
-  Source `08cc957`, a seeded public generation and inactive systemd units are
-  installed. The snapshot-only Caddy edge serves `data.cosmoot.com`.
-- The owner verified all 26 public file hashes and four private/unlisted 404 paths.
-  A later assistant check matched 18 files with eight timeouts; no mismatch was seen.
-  Seeded snapshots are not evidence of fresh collection. Timers remain inactive.
-- Render `/health` returned 200 with `{"ok":true}` on 8 October. Last deployment
-  evidence remains `f5b21a5`; current branch/auto-deploy settings were not rechecked.
-  No production database export, hosted restore or backend cutover has occurred.
-- GitHub has an existing secret named `NNS_PRICE_SIGNING_KEY`, confirmed by the
-  owner's settings screenshot. Its value/identity has not been verified or moved
-  to OVH; independent encrypted backup and private key recovery remain open.
+- The public snapshot edge is installed. The owner verified all 26 public file
+  hashes and four private/unlisted 404 paths. A later manual main collector run
+  published a signed NNS price successfully. This does not establish freshness
+  of every collector or all historical accounting. Timers remain inactive.
+- Both production databases were exported while Render remained live. The
+  preliminary encrypted copy passed transfer, decryption and database/receipt
+  verification. This is not a production restore or an application message test.
+- The original NNS price key was installed and checked privately. Its separate
+  encrypted backup is not covered by the database archive.
+- Faucet identity backup/transfer, a final export with all source writes stopped,
+  a synthetic application restore drill and backend cutover remain open. Render
+  remains the production writer. Exact evidence is in the private operator handoff.
   Do not rotate authority, extend expired prices or run a second payout writer.
 
 | Feature | Code | Deployment / activation | Evidence and remaining boundary |
@@ -76,8 +77,8 @@ were closed, and no open PR remained at the completion check.
   Juno `juno-1`, code 5170. [Verified deployment](deployments/PERSONAL_MAINNET_2026-10-07.md).
 - Initial upgrade/admin wallet: `juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57`.
   Do not transfer custody, make contracts immutable or redeploy to resolve a UI issue.
-- Render: `srv-db10ddc9v7es73dbg45g`, Frankfurt, one instance, existing 1-GB
-  `/var/data` disk. No additional service is authorized by this cleanup.
+- Render remains the existing backend host. Its resource inventory is private.
+  No additional service is authorized by this documentation change.
 - Deployment manifests pin exact contract, source, crypto and frontend bytes.
   Static publication does not prove hosted database recovery or on-chain transactions.
 

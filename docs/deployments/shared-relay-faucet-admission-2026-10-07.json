@@ -1,6 +1,6 @@
 {
   "observedAt": "2026-10-07T11:34:43.999179+00:00",
-  "deploy": "dep-db32r1qd0e5s73eu9kcg",
+  "deploy": null,
   "wallet": "juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt",
   "checks": [
     {
@@ -47,5 +47,11 @@
         "pause": null
       }
     }
-  ]
+  ],
+  "privacyRedactions": {
+    "reason": "Provider resource identifiers retained in private operator records; public observations unchanged.",
+    "fields": [
+      "deploy"
+    ]
+  }
 }

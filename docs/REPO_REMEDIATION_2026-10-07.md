@@ -1,3 +1,6 @@
+> Privacy update, 8 October 2026: provider resource identifiers are retained privately.
+> Public source commits and observed results below are unchanged.
+
 # Repository review remediation — 7 October 2026
 
 Implementation based on the owner's six-page review (15:08 Berlin).
@@ -27,7 +30,7 @@ available. A successful test is not a hosted recovery or independent full audit.
 
 PR #224 merged as `f5b21a50c67570a710b2641c8d58c78ec6dfdcbc` after all 15 jobs
 (including required summary and seven WASM builds) passed in run 37632083116.
-Pages run 37632923865 passed. Render deploy `dep-db350qflk1mc739f4gng` is live
+Pages run 37632923865 passed. Render deploy `operator-id-withheld` is live
 at the same commit (14:01:30 UTC); startup logs confirm the original Faucet identity
 and no backup-start failure. Backup health returned HTTP 200. A subsequent direct
 status/auth probe was blocked by the execution network, so no fresh authenticated
