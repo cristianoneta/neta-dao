@@ -9,7 +9,8 @@ export function snapshotProxy(paths, fetcher = fetch) {
     try {
       const upstream = await fetcher(`https://data.cosmoot.com${path}`, {
         method: request.method,
-        redirect: 'error',
+        // workerd supports manual/follow only; the status check rejects redirects.
+        redirect: 'manual',
         signal: AbortSignal.timeout(4000),
         cf: { cacheEverything: true, cacheTtl: 60 }
       });

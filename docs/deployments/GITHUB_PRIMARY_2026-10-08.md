@@ -47,8 +47,40 @@ This verifies reachability of seeded data, not fresh collection.
 After publication, assistant GET probes of that path on both custom domains
 returned HTTP 403, `Server: cloudflare`, text/plain and no `X-Cosmoot-Snapshot`.
 No public-client outage or bot-block cause is established by those responses.
-Next: the owner should run one read-only HEAD request from the VPS, then complete
-the remaining acceptance checks one SSH step at a time.
+
+## Owner/VPS acceptance found a Worker runtime defect
+
+The owner's subsequent terminal output established:
+
+- At 11:19:21 UTC, HEAD on cosmoot.com returned 200 with
+  `X-Cosmoot-Snapshot: static-fallback`.
+- At 11:20:22 UTC, direct HEAD on data.cosmoot.com returned 200 from Caddy,
+  3,438 bytes and total time 0.185872 seconds.
+- At 11:21:47 UTC, a normal GET on cosmoot.com returned 200, 3,438 bytes and
+  `static-fallback` in 0.230678 seconds. Fast fallback alone did not prove its cause.
+
+The compiled Worker was then exercised in actual workerd, using Miniflare bundled
+with the pinned Wrangler 4.148.0 and synthetic origin/assets. workerd rejected
+`redirect: 'error'`: it accepts only `follow` and `manual`. The rejection occurred
+before outbound I/O, and the proxy's catch returned the static asset. The existing
+Node fetch mocks accepted the unsupported option, so the original CI missed it.
+
+The correction changes the option to `manual`; the existing exact-200 condition
+continues to reject redirects without following their destinations. The new
+`scripts/check-pages-runtime.mjs` runs the compiled artifact in workerd, exercises
+all 26 GET/HEAD paths on both domains, exact bytes and credential/query stripping,
+and verifies original static fallback for 301/302/303/307/308/503 responses without
+following redirects. Private/unlisted paths and writes must make no origin calls.
+The test uses synthetic assets; their 404 results are not live Pages 404 evidence.
+Both PR checks and the release workflow now run this runtime check.
+
+The new regression check failed on the old bundle with `static-fallback` instead
+of `server`, then passed all cases after rebuilding with the correction. The
+three focused Node tests, compiled Node Worker check, 196-file artifact integrity
+check and repository syntax/pilot inventory checks also passed locally.
+No corrected production publication or live server marker is claimed by this
+source change. Next: integrate the fix after required CI, publish exact new main,
+then resume owner/VPS acceptance one SSH step at a time.
 
 ## Operational boundaries
 
