@@ -1,6 +1,17 @@
 # GitHub primary and Cloudflare release — 8 October 2026
 
-## Later acceptance update — 8 October 2026
+## Current operating update — 8 October 2026
+
+The later website release from `604cec097d08fb8ce5e64731d76c32ee6fdf682e` passed all
+18 release jobs and was published on both domains. Backend cutover and both API
+origins were accepted; OVH is active and the owner has retired Render. Reviewed
+collector receipt/freshness code is installed, sequential manual runs passed and
+the health timer is enabled. Two scheduled cycles, controlled live fallback and
+recurring independent retention remain open. Exact host/backup evidence stays in
+the private operator handoff. The following sections are historical checkpoints;
+use [CURRENT_STATE](../CURRENT_STATE.md) for current status.
+
+## Earlier acceptance update — 8 October 2026
 
 The operator subsequently reported a successful manual main collector run and
 HTTP 200 with the server snapshot marker for the signed NNS price on both website

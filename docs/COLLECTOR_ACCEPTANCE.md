@@ -72,4 +72,7 @@ RTO 4 hours, seven daily and four weekly encrypted copies. Do not claim these ta
 are met until scheduled transfer, retained generations and a timed independent
 restore are verified. Select the independent destination privately before creating
 a schedule; no new paid service or deletion of an existing backup is implied.
-Keep Render in maintenance until the rollback window and these gates are resolved.
+The owner has retired Render. The current independently held encrypted database
+copy remains a manual backup; configured provider backup is a separate protection
+and does not prove application restore or independent retention. Future recovery
+must use the latest verified state. No external alert delivery is configured.

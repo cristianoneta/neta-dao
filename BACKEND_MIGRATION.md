@@ -8,9 +8,10 @@ deployment source are template defaults, not a verified live inventory.
 Current progress: final source quiescence, independently encrypted database transfer,
 state/journal verification and OVH activation are complete. The original identities
 were retained. Isolated application restore checks passed on the target host and
-inside its built image. Render is in maintenance; never reactivate its old data after
-new OVH writes. Recurring independent retention, controlled live fallback and the
-rollback window remain open. See the [public checkpoint](docs/OVH_SETUP_2026-10-08.md).
+inside its built image. The owner subsequently retired Render. A current encrypted
+database copy is held independently; recurring independent retention and controlled
+live fallback remain open. Any future host recovery must preserve the latest OVH
+state. See the [public checkpoint](docs/OVH_SETUP_2026-10-08.md).
 The following is the reusable migration procedure, not an instruction to repeat the
 completed export or import.
 
