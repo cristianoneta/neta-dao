@@ -13,7 +13,7 @@ test('pilot binds real reviewed deployment and does not activate public messagin
   assert.equal(profile.admin,receipts.deployment.admin);
   assert.equal(profile.codeHash,receipts.deployment.codeHash);
   assert.equal(PERSONAL_MAINNET_DEPLOYMENT,null);assert.equal(PERSONAL_MAINNET_RELEASE,null);
-  assert.equal(PERSONAL_PILOT.backupUrl,'https://neta-junox-faucet.onrender.com');
+  assert.equal(PERSONAL_PILOT.backupUrl,'https://api.cosmoot.com');
   assert.equal(profile.policy.dao_enabled,false);
 });
 test('pilot accepts only both explicit participants, with immutable configuration',()=>{

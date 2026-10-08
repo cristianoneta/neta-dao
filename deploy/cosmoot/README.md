@@ -78,7 +78,8 @@ and timestamps with `X-Cosmoot-Snapshot: static-fallback`.
 
 The manual GitHub release publishes the checked bundle with `--no-bundle`.
 Real-workerd tests cover both origins, exact bytes, rejected redirects and static
-fallback. Live all-path and controlled-fallback acceptance remain separate gates.
+fallback. Live all-path byte acceptance passed; controlled-fallback acceptance
+remains open.
 Check both website origins before enabling collectors and retain the approved
 24-hour NNS validity. Never re-enable the removed GitHub data writers in parallel.
 
@@ -93,3 +94,12 @@ verified and backed up. Documentation changes do not deploy the application.
 Do not run untrusted CI jobs beside production keys or expose a host Docker socket
 to a runner. Any separate runner arrangement needs reviewed isolation and measured
 capacity; these deployment templates do not authorize an additional paid service.
+
+## Repeatable isolated host acceptance
+
+From an unchanged reviewed checkout with Node 24 and Docker, run
+`bash scripts/backend-host-check.sh`. It installs only the pinned backup test
+dependencies, validates public templates, builds a commit-tagged image and runs
+synthetic restore/maintenance checks with no external container network or
+production mounts. It never runs Compose up, opens public ports, activates timers
+or reads an operator environment/key file. A passing check is not a cutover.

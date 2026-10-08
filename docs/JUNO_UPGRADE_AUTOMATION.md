@@ -1,14 +1,29 @@
 # Future Juno upgrade tracking
 
-Status: planned, not implemented or scheduled. v31 remains closed.
+Status: proposal/lifecycle core implemented and tested; network runner,
+early-vote capture and automatic page publication remain pending. Not scheduled.
+v31 remains closed.
 
 ## Owner requirement: automatic future upgrade tracking — 7 October 2026, 14:51 Berlin
 
 The owner wants the completed v31 workflow reused for every future Juno software
-upgrade, and explicitly requested this requirement in the handoff. **Planned next
-tracker work; not implemented or scheduled yet.** v31 remains closed. Do not claim
-that future proposals are already being watched. The next tracker task is to
-build this proposal-driven lifecycle, rather than manually configuring v32/v33.
+upgrade, and explicitly requested this requirement in the handoff. **Prepared core, not a running watcher.** v31 remains closed. Do not claim
+that future proposals are already being watched. `scripts/juno_upgrade_lifecycle.py`
+recognizes modern/legacy upgrade messages, requires two configured same-height
+governance sources, reconciles approved plans and revisions, separates execution
+height H from the committed halt anchor H-1, and freezes closure. Its synthetic
+tests cover duplicate reads, unsupported messages, cancellations, source disagreement,
+baseline changes, early completion, deadline boundaries and late records.
+
+`scripts/juno_upgrade_state.py` supplies a private, atomic, locked event store:
+concurrent updates re-read under the lock, crash-before-replace retains the prior
+checkpoint, and stale workers cannot replace closed events or change anchors.
+
+Next, connect bounded/paginated chain transport,
+pre-restart consensus capture and the existing Community Tools publication path.
+The lifecycle/store modules do not fetch, schedule or publish by themselves. Its `complete` input
+must be set only after complete bounded pagination; truncated or failed reads are
+not cancellation evidence. Do not add a timer until the full acceptance below passes.
 
 Required behavior:
 

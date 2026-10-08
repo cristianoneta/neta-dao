@@ -11,15 +11,22 @@ in the owner's private operations handoff, outside this repository.
 The backend migration is incomplete. A preliminary encrypted database export was
 verified after transfer; that verifies the copies, not application-level message
 restoration or a production cutover. Render remains the production backend writer.
-The existing Faucet identity still needs private backup and transfer. Consult the
+The original Faucet and NNS identities were independently backed up and verified. Consult the
 private operations handoff before resuming; do not repeat completed exports or
 create a replacement signing identity.
 
 The original NNS price key was installed and one manual main collector run was
 reported successful. The signed-price path returned the server snapshot marker
-on both website origins. Complete live byte/fallback acceptance remains open;
+on both website origins. All 26 live snapshot paths matched across the three origins; controlled live fallback acceptance remains open;
 collector timers remain inactive. Keep the approved 24-hour price validity and
 never re-date stale observations.
+
+The target host passed isolated authenticated encrypted-backup restart/export/restore,
+Compose/Caddy validation and image build. The same synthetic restore passed inside
+the hardened image. Source now prepares the stable API endpoint and a maintenance
+startup that opens no databases or signing identity; these changes are not deployed.
+DNS/TLS, final quiesced export, target configuration, independent recurring backups
+and live fallback remain open.
 
 ## Source and release status
 
@@ -56,7 +63,7 @@ never re-date stale observations.
 5. Preserve pending transaction/crypto journals and wallet/chain binding. Do not
    silently rotate keys, resubmit uncertain transactions, change live payout limits
    or enable public messaging. No new paid service or plan upgrade is authorized.
-6. Juno v31 observation is closed. Future tracking remains a specification in
+6. Juno v31 observation is closed. A tested future-upgrade lifecycle core now implements proposal identity, plan reconciliation, fixed halt windows and immutable closure. Network collection, persistent scheduling and automatic publication remain open in
    [JUNO_UPGRADE_AUTOMATION](docs/JUNO_UPGRADE_AUTOMATION.md); missing signatures
    are not proof of a failed software upgrade.
 

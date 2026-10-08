@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 const root=new URL('../',import.meta.url);
-test('published private pilot artifacts match the reviewed source manifest',async()=>{
+test('private pilot artifacts match the reviewed source manifest',async()=>{
   const manifest=JSON.parse(await readFile(new URL('docs/deployments/personal-pilot-artifacts-2026-10-07.json',root),'utf8'));
   assert.match(manifest.sourceCommit,/^[a-f0-9]{40}$/);
   assert.equal(manifest.publicInboxEnabled,false);
