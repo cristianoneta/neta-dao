@@ -9,7 +9,7 @@ export const PERSONAL_PILOT = Object.freeze({
     contract:'juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6',
     creator:PERSONAL_MAINNET_OWNER,admin:PERSONAL_MAINNET_OWNER,codeHash:PERSONAL_MAINNET_WASM,
     label:'NETA RELAY personal v0.4 · Juno mainnet'}),
-  backupUrl:'https://neta-junox-faucet.onrender.com',
+  backupUrl:'https://api.cosmoot.com',
   wallets:Object.freeze([PERSONAL_MAINNET_OWNER,'juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt'])
 });
 

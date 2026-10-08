@@ -7,15 +7,15 @@
   "chainId": "juno-1",
   "codeId": 5170,
   "contract": "juno1dvmms7su8zfqu4gxxmrkqhzpxr5v3sh8hzfxe8ypsgfegc22lggq5jfjx6",
-  "backupOrigin": "https://neta-junox-faucet.onrender.com",
+  "backupOrigin": "https://api.cosmoot.com",
   "wallets": [
     "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
     "juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt"
   ],
   "artifacts": {
-    "relay-personal-pilot.html": "68421d691ac5fe623e97a283e8ca7ffbfd782a764b81ffcc62ef6a98b740f97f",
+    "relay-personal-pilot.html": "139c72facb83b0b9783164f0a32795b021ad42083ba100ef64398e9bd882f790",
     "relay-personal-pilot.css": "965f52ed71fa25918750a94aa1fcb0ac6578f2722b7987a0f2716586a666bbaf",
-    "relay-personal-pilot.js": "da1ffbdcb434fb8a91b561b1d16c5e9a49c90720c79cf9ddb1db8a8192ae2c9d",
+    "relay-personal-pilot.js": "0c24a2348bc2eefce27f56fd1c2c2eeb648907c5c426b003ec39818df0a1b885",
     "assets/relay-personal-pilot-signing.js": "6d9b9480b37989a0b80f193c1bcb2bc6b51aaa4a66a055796572876f9cfbd531",
     "relay-personal-inbox.css": "15d29684ae4d594ec3ad739cf5a4cad48b518cbb4b5763f49a0688d6c758e922",
     "relay-personal-runtime.html": "7e757ce0e5743d732cf3e353ceb667dc110d3b2b0fc66952c879afd52d3ec39c",
@@ -24,5 +24,6 @@
   "existingCryptoArtifacts": {
     "assets/relay-crypto/corecrypto.js": "41c255af33ec642c81a46cfec59e70f4c1a459e28affa5151689b215311b4872",
     "assets/relay-crypto/index_bg.wasm": "ba9a90a53f60ae1600f8f64364ce081995eb1e3548ef9be40fa02e7150c09d84"
-  }
+  },
+  "deploymentStatus": "Prepared endpoint migration; not yet published. Historical sourceCommit/sourceBrowserRun describe the original pilot only."
 }

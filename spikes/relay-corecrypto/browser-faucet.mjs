@@ -7,7 +7,7 @@ const root=new URL('../../',import.meta.url);
 const server=http.createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname.replace(/\/$/,'/index.html');if(path.includes('..'))throw Error();const body=await readFile(new URL('.'+path,root));res.writeHead(200,{'content-type':/\.m?js$/.test(path)?'text/javascript':path.endsWith('.css')?'text/css':'text/html'}).end(body);}catch{res.writeHead(404).end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 const address='juno1qurswpc8qurswpc8qurswpc8qurswpc89pyp8a';
-const apiOrigin='https://neta-junox-faucet.onrender.com';
+const apiOrigin='https://api.cosmoot.com';
 const faucetAddress='juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt';
 const recoveryBytes=Buffer.from('synthetic recovery fixture'),recoveryHash=createHash('sha256').update(recoveryBytes).digest('hex').toUpperCase();
 let browser;

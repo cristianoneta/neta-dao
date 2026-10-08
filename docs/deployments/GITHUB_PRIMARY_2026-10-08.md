@@ -4,10 +4,11 @@
 
 The operator subsequently reported a successful manual main collector run and
 HTTP 200 with the server snapshot marker for the signed NNS price on both website
-origins. The original price key was installed privately. Complete all-path byte
-acceptance and a controlled live fallback drill remain open; timers stay inactive.
-A preliminary encrypted database copy was verified, but no backend cutover or
-application-level restore is confirmed. Exact operator evidence is retained
+origins. All 26 public files subsequently matched across the three origins.
+Original Faucet/NNS identities were backed up privately. The controlled live
+fallback drill remains open; timers stay inactive. A preliminary encrypted database
+copy was verified, and synthetic application restore passed on the target host and
+in its hardened image. No production cutover is confirmed. Exact operator evidence is retained
 privately. The sections below describe their respective release-time checkpoints;
 use [CURRENT_STATE](../CURRENT_STATE.md) for current migration status.
 
@@ -108,7 +109,9 @@ check and repository syntax/pilot inventory checks also passed locally.
   `5102c85718b4ddd90cbf6de910899120683d483123d1b2a5e6dc7860045a25ae`.
   The Pages workflow used `--no-bundle` to publish the checked artifact.
 
-The corrected upload supersedes `55e7a408`. Live both-domain server-marker/byte
+At release time, the corrected upload superseded `55e7a408`. The following
+paragraph and operational boundaries record that historical checkpoint; the later
+acceptance update at the top is authoritative. Live both-domain server-marker/byte
 acceptance and a controlled fallback check remain open; seeded data is still not
 fresh collection evidence. Next: owner/VPS GET with response headers for the
 known treasury path on cosmoot.com, then complete acceptance one command per reply.

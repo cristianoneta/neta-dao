@@ -21,7 +21,7 @@ Owner/VPS custom-domain acceptance found a persistent static fallback caused by
 an unsupported Worker fetch option. PR #259 corrected it and passed all 16 checks;
 release `37774069535` published exact main `153f7a8c` as deployment `b9efb912` at
 12:14:25 UTC. A later operator check reported the signed-price server marker
-on both website origins; complete live byte/fallback acceptance remains open in the
+on both website origins. All 26 public files subsequently matched across the three origins; controlled fallback acceptance remains open in the
 [release evidence](deployments/GITHUB_PRIMARY_2026-10-08.md).
 The original 32 Dependabot proposals are recorded in the maintenance inventory,
 without applying their package upgrades or dismissing security alerts. All 32
@@ -42,7 +42,7 @@ were closed, and no open PR remained at the completion check.
   A regression check now exercises the compiled artifact in real workerd through
   pinned Wrangler's Miniflare, with synthetic origin/assets. Local runtime tests
   and release checks passed. The corrected artifact is published; verify its live
-  behavior on both domains. Assistant HTTP 403 probes did not prove a public outage.
+  behavior on both domains; the owner confirmed all-path byte equality. Controlled fallback remains open. Assistant HTTP 403 probes did not prove a public outage.
 - The public snapshot edge is installed. The owner verified all 26 public file
   hashes and four private/unlisted 404 paths. A later manual main collector run
   published a signed NNS price successfully. This does not establish freshness
@@ -52,8 +52,10 @@ were closed, and no open PR remained at the completion check.
   verification. This is not a production restore or an application message test.
 - The original NNS price key was installed and checked privately. Its separate
   encrypted backup is not covered by the database archive.
-- Faucet identity backup/transfer, a final export with all source writes stopped,
-  a synthetic application restore drill and backend cutover remain open. Render
+- Faucet/NNS identity backups were verified privately. Synthetic authenticated
+  restart/export/restore passed on the target host and inside its hardened image;
+  Compose/Caddy validation and image build passed too. Final quiesced export,
+  target runtime configuration, DNS/TLS and backend cutover remain open. Render
   remains the production writer. Exact evidence is in the private operator handoff.
   Do not rotate authority, extend expired prices or run a second payout writer.
 
@@ -61,14 +63,14 @@ were closed, and no open PR remained at the completion check.
 | --- | --- | --- | --- |
 | Names | Registry v0.3.1 and profiles v0.1.0 | Mainnet code 5168/5169; purchases active | First registration and fee receipt recorded; mainnet renewal/transfer and live validator E2E remain open. [Receipts](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) |
 | Personal messaging | Maintained client, builder, backup and browser suites integrated in cleanup candidate | Code 5170 deployed; separate two-wallet pilot live; public release/deployment pins null | User confirmed send/read/reload; device/consent queried through one provider. Fresh-profile restore/rotation explicitly deferred; reply and hosted durability open. [Pilot evidence](deployments/PERSONAL_PILOT_2026-10-07.md) |
-| Backup service | ADR-36, scoped encrypted envelopes, atomic revisions, local snapshot export; isolated admission lanes | Existing Faucet Render host, separate database, owner/Faucet allowlist | Backend `f5b21a5` confirmed live. Synthetic authenticated process restart/export/restore passes locally; off-host retention and target-container acceptance remain open. [Service receipt](deployments/RELAY_SHARED_RENDER_2026-10-07.md), [recovery runbook](BACKUP_RECOVERY.md) |
+| Backup service | ADR-36, scoped encrypted envelopes, atomic revisions, local snapshot export; isolated admission lanes | Existing Faucet Render host, separate database, owner/Faucet allowlist | Backend `f5b21a5` confirmed live. Synthetic authenticated process restart/export/restore passed locally, on the target host and in its hardened image; recurring off-host retention and production cutover remain open. [Service receipt](deployments/RELAY_SHARED_RENDER_2026-10-07.md), [recovery runbook](BACKUP_RECOVERY.md) |
 | DAO inbox | Gated components and protocol groundwork | Not mounted; DAO writes disabled in code 5170 | Multi-recipient recovery/history/prekeys are next product work. [Design](DAO_MAILBOX_DESIGN_2026-10-06.md) |
 | Proposals | Local drafts, UNI-7 workshops, mainnet history, Operations voting adapter | Existing static workspace | Operations legacy finalization does not create a mainnet proposal. Native Juno submission/voting and review-to-mainnet adapter disabled. [APIs](../REVIEW_ARCHITECTURE.md) |
 | Treasury | DAO/SubDAO/consolidated assets, receipt categories, provisional P&L, Community Tax and daily staking accrual | Cloudflare static release; seeded OVH data edge; collector timers inactive | Accounting floor 1 October; explicit partial coverage; missing data is not zero. Claims do not double-count accrued rewards. [Accounting](TREASURY_ACCOUNTING_2026-10-06.md), [cutoff](TREASURY_CUTOFF_2026-10-06.md) |
 | RELAY notifications | Browser-local governance/NNS notices, favorites, unread/history | Public workspace | No push/email or cross-device notification sync. NNS notices are Messages, not a separate Names filter. |
 | Faucet | 25 JUNOX per wallet per 24h, signature proof, exact-hash payout journal | Existing Render service, manual deploy | Reward/donation evidence recorded; real payout/restart/stake/unstake evidence incomplete. Cheap HTTP traffic no longer consumes persistent claim-work quota in candidate. |
 | Juno v31 tracker | Closed-event static archive and boundary tests | Live, monitoring stopped | 22/25, 94.44% saved participation in the five-hour window; first votes/signatures distinct. Three missing-evidence notes, not proof of failed upgrades. [Tracker](JUNO_UPGRADE_AUTOMATION.md) |
-| Future upgrade watcher | Requirements only | Not scheduled or implemented | Proposal/plan validation, permanent pages, halt-anchored five-hour window and all-validator early closure. [Specification](JUNO_UPGRADE_AUTOMATION.md) |
+| Future upgrade watcher | Tested proposal/lifecycle core | Not scheduled or published | Two-source governance agreement, strict upgrade messages, immutable halt/deadline and all-baseline-signature closure implemented. Network capture, restart-safe runner and automatic pages remain open. [Specification](JUNO_UPGRADE_AUTOMATION.md) |
 | People / Delivery / payments | Membership reads; contributor/delivery plans | Members live; payment execution absent | Roles, invoices, milestone acceptance and Treasury payment linkage remain future work. |
 
 ## Deployment identity and custody
@@ -107,3 +109,13 @@ signed snapshot has a 24-hour validity without a new TWAP/liquidity gate.
 No stale 5-NETA messaging requirement applies: only sending requires `.neta`.
 
 [Next steps](../HANDOFF.md) · [source map](SOURCE_MAP.md) · [historical inventory](archive/repo-review-2026-10-07/CURRENT_STATE.md)
+
+## Prepared cutover source (not deployed)
+
+Faucet and the separate two-wallet pilot now target `https://api.cosmoot.com` in
+source and CSP; the browser bundle and manifest are rebuilt together. Render still
+serves the currently published website. Publish the new frontend only after target
+DNS/TLS, configuration and migrated-state acceptance. `COSMOOT_MAINTENANCE=true`
+starts a bounded HTTP responder without loading signing/database code; it is a
+source-quiescence mechanism to deploy and verify before the final export. Public
+messaging release pins, wallet allowlists and contract authorities stay unchanged.

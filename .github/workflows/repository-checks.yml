@@ -41,6 +41,13 @@ jobs:
       - run: python3 -m unittest discover -s tests -p 'test_*.py'
       - run: node scripts/check-backend-deployment.mjs
       - run: docker build --tag cosmoot-backend-ci --file faucet/Dockerfile .
+      - name: Verify image maintenance without network, keys or production state
+        run: >-
+          docker run --rm --network none --read-only --cap-drop ALL
+          --security-opt no-new-privileges --memory 512m --pids-limit 64
+          --tmpfs /tmp:rw,nosuid,nodev,size=64m,mode=1777
+          -v "$PWD/faucet/test/maintenance.test.mjs:/app/faucet/test/maintenance.test.mjs:ro"
+          cosmoot-backend-ci node --test faucet/test/maintenance.test.mjs
       - run: node scripts/build-pages.mjs
       - run: npx --yes --package=wrangler@4.148.0 -c 'node scripts/check-pages-runtime.mjs'
   contracts:
