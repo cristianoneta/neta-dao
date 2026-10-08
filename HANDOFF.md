@@ -10,18 +10,18 @@ in the owner's private operations handoff, outside this repository.
 
 The backend is active on OVH. Final source quiescence, verified database transfer,
 original identities, admission settings and target activation are confirmed in the
-private operator record. Render remains in maintenance as a rollback reserve; after
-OVH writes, its old state must not be reactivated without returning the newer records.
+private operator record. The owner has retired Render; it is no longer a rollback
+reserve. Any future host recovery must preserve the latest OVH state.
 
 The website release from `604cec097d08fb8ce5e64731d76c32ee6fdf682e` passed all 18
 release jobs and was published on both domains. The stable API endpoint and CORS for
 both website origins were accepted. Public mainnet messaging remains disabled.
 
-Independent recurring backups, the rollback window and controlled live data fallback
-remain open. The operator confirmed that all three collector schedules are active
-and enabled, with successful last runs. The installed runner predates completion
-receipts and the health service is absent; reviewed source still needs a targeted
-installation and scheduled-cycle acceptance. Follow
+Independent recurring backups and controlled live data fallback remain open. The
+operator confirmed all three collector schedules active and enabled. The reviewed
+receipt/freshness checks are installed, sequential manual collector runs passed,
+and the health service passed before its timer was enabled. Two actual scheduled
+cycles still require acceptance. Follow
 [COLLECTOR_ACCEPTANCE](docs/COLLECTOR_ACCEPTANCE.md). The original identities are
 already independently backed up; do not repeat those transfers or rotate keys.
 
@@ -29,8 +29,8 @@ already independently backed up; do not repeat those transfers or rotate keys.
 
 - GitHub is primary for source/CI. Cloudflare serves `cosmoot.com` and
   `dao.netareborn.com`; OVH provides public snapshots and the active backend.
-  GitLab is a dormant reserve. Render stays in maintenance until recurring
-  independent retention and the agreed rollback window are complete.
+  GitLab is a dormant reserve. Render has been retired by the owner. A current
+  encrypted database copy is held independently; recurring retention is still open.
 - PR #257 imported the newer GitLab source without replacing GitHub history.
   PR #259 fixed the real-workerd proxy incompatibility. Exact source `153f7a8c`
   was published successfully; see [release evidence](docs/deployments/GITHUB_PRIMARY_2026-10-08.md).
@@ -47,8 +47,8 @@ already independently backed up; do not repeat those transfers or rotate keys.
    the existing Faucet identity, payout journals, quotas and admission settings.
    A fresh final export must follow quiescence of all source writes. Never start
    a second production writer or silently initialize empty production state.
-2. Finish reviewed runtime configuration and synthetic application restore checks
-   before cutover. Complete independent identity backups and recurring retention.
+2. Runtime configuration, synthetic application restore and independent identity
+   backups are confirmed. Complete recurring independent database retention.
    A process health check is not proof of application recovery.
 3. Continue personal-message durability, DAO multi-recipient messaging and payment
    requests after infrastructure acceptance. Both personal devices are registered;

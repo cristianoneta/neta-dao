@@ -18,7 +18,10 @@ See the [documentation policy](../../docs/DOCUMENTATION_PRIVACY.md).
 
 Current operator-confirmed progress and open gates are summarized in the
 [public checkpoint](../../docs/OVH_SETUP_2026-10-08.md). Consult the private handoff
-for host actions. OVH is the active backend; Render remains in maintenance as a rollback reserve.
+for host actions. OVH is the active backend; the owner has retired Render. The
+collector/health update is installed and manual acceptance passed; two actual
+scheduled collector cycles remain to be verified. The installation instructions
+below are reusable templates, not instructions to repeat completed host work.
 
 ## General installation
 
