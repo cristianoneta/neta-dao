@@ -30,7 +30,8 @@ devices; the native governance module has no unique-review constraint.
 Once submitted, the UI links to `proposal=<id>`. A contributor can choose an
 amount or the remaining deposit. `MsgDeposit` sends funds directly from their
 wallet to native Juno governance. Target, minimum contribution, deadline and burn
-rules are queried from the chain. Two-source identity, deposit and parameter
+rules are queried from the chain. This view supports ordinary proposals only;
+expedited proposals are rejected rather than applying ordinary deposit parameters. Two-source identity, deposit and parameter
 checks repeat before signing and broadcasting; a changed total requires another
 review. The sender's balance must cover the contribution and simulated fee.
 The UI closes contributions once the target is reached or the deposit phase ends.

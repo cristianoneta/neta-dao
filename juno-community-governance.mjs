@@ -189,6 +189,7 @@ export async function findReviewSubmission(endpoints, content, options = {}) {
   return results[0];
 }
 export function fundingTerms(proposal, params, now = Date.now()) {
+  if (proposal?.expedited) throw Error('Expedited proposal funding is not supported in this view.');
   if (!positive(proposal?.id)) throw Error('Invalid proposal ID.');
   const terms = depositTerms(params);
   for (const key of ['burn_vote_veto', 'burn_vote_quorum', 'burn_proposal_deposit_prevote'])

@@ -95,6 +95,7 @@ test('a copied review marker cannot substitute different executable content', as
 test('funding allows partial or remaining contributions and respects minimum, deadline and status', () => {
   const p = chainProposal(),
     terms = fundingTerms(p, params);
+  assert.throws(() => fundingTerms({ ...p, expedited: true }, params), /Expedited/);
   assert.equal(terms.minimum, '50000000');
   assert.equal(terms.remaining, '4000000000');
   assert.equal(validateContribution('50000000', terms), '50000000');
