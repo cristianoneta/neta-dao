@@ -242,3 +242,8 @@ body.revision-dialog-open { overflow:hidden; }
 @media(max-width:700px){.asset-custody{display:block!important;color:var(--muted)!important}}
 @media(max-width:900px){.gov-intro #new-draft{align-self:flex-start}}
 @media(max-width:700px){.concept-hero h1,.gov-intro h1,.home-hero h1{font-size:clamp(30px,8vw,40px)}.concept-badge{min-width:0}.gov-intro #new-draft{width:100%}}
+
+.planner-proposal-context { padding:16px; margin-bottom:20px; border:1px solid var(--neta-border); border-radius:8px; background:var(--neta-surface); color:var(--neta-text-secondary); font-size:14px; line-height:1.6; }
+.planner-proposal-context[hidden] { display:none; }
+.planner-proposal-context p { margin:0 0 8px; }
+.planner-proposal-context a { color:var(--neta-accent); }

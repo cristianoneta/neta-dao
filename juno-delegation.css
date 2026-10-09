@@ -665,3 +665,46 @@
     white-space: normal;
   }
 }
+
+/* All four criteria have the same hierarchy and alignment. */
+.criterion {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--neta-border);
+}
+.criterion h4 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 650;
+}
+.criterion h4 span {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border: 1px solid var(--neta-control-border);
+  border-radius: 50%;
+  font-size: 13px;
+}
+.criterion p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+.criterion .field-help {
+  font-size: 13px;
+}
+.criterion label {
+  margin-top: 12px;
+}
+.claim-rewards {
+  padding: 20px 0 8px;
+  border-top: 1px solid var(--neta-border);
+  margin-top: 20px;
+}
+.claim-rewards button {
+  width: 100%;
+}

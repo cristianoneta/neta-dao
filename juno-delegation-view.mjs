@@ -28,7 +28,7 @@ export function stakeShare(raw, total) {
 }
 export function rowStatus(v) {
   if (v.reasons.some((r) => r.startsWith('Manual exclusion:'))) return 'Manually excluded';
-  if (!v.active || v.jailed) return 'Not active / jailed';
+  if (v.jailed) return 'Jailed';
   if (v.reasons.includes('Commission above limit')) return 'Commission above limit';
   if (!v.eligible) return 'Evidence review required';
   if (v.capacityRaw === '0') return 'No capacity under the limit';
@@ -52,20 +52,13 @@ export function selectRows(result, { query = '', filter = 'all', sort = 'change'
   const abs = (n) => (n < 0n ? -n : n);
   return result.rows
     .filter((v) => {
-      if (
-        !(
-          v.active ||
-          BigInt(v.currentRaw) > 0n ||
-          result.policy.exclusions.some((e) => e.validator === v.address)
-        )
-      )
-        return false;
       if (!`${v.name} ${v.address}`.toLowerCase().includes(q)) return false;
       if (filter === 'receiving') return BigInt(v.targetRaw) > 0n;
       if (filter === 'cap') return v.eligible && v.capReached;
-      if (filter === 'review') return v.active && v.upgrade.status !== 'observed';
+      if (filter === 'review') return !v.jailed && v.upgrade.status !== 'observed';
       if (filter === 'excluded') return !v.eligible;
-      if (filter === 'inactive') return !v.active;
+      if (filter === 'inactive') return v.jailed;
+      if (filter === 'standby') return !v.active && !v.jailed;
       return true;
     })
     .sort((a, b) => {

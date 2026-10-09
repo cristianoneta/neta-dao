@@ -37,15 +37,15 @@ test('filters explain review cases and retain affected inactive positions withou
   const result = simulate(p, s, amount('2500'), e),
     original = JSON.stringify(result);
   assert.deepEqual(
-    selectRows(result, { filter: 'inactive' }).map((v) => v.address),
+    selectRows(result, { filter: 'standby' }).map((v) => v.address),
     [s.validators[0].address]
   );
   assert.deepEqual(
     selectRows(result, { filter: 'review' }).map((v) => v.address),
     [s.validators[1].address]
   );
-  assert.equal(selectRows(result, { filter: 'excluded' }).length, 3);
-  assert.equal(selectRows(result, { filter: 'receiving' }).length, 22);
+  assert.equal(selectRows(result, { filter: 'excluded' }).length, 2);
+  assert.equal(selectRows(result, { filter: 'receiving' }).length, 23);
   assert.equal(selectRows(result, { query: s.validators[2].address.toUpperCase() }).length, 1);
   assert.equal(selectRows(result, { query: 'does not exist' }).length, 0);
   assert.equal(rowStatus(result.rows[1]), 'Evidence review required');

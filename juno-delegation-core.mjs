@@ -17,6 +17,11 @@ const operator =
 const raw = (value) => typeof value === 'string' && /^(0|[1-9]\d{0,29})$/.test(value);
 const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const sum = (values) => values.reduce((a, b) => a + b, 0n);
+export const LIQUID_RESERVE = 50000000n;
+export function suggestedBudget(data) {
+  const total = sum(data.validators.map((v) => BigInt(v.currentRaw))) + BigInt(data.liquidRaw);
+  return total > LIQUID_RESERVE ? ((total - LIQUID_RESERVE) / 100000000n) * 100000000n : 0n;
+}
 export function amount(value) {
   if (typeof value !== 'string' || !/^(0|[1-9]\d{0,20})(\.\d{1,6})?$/.test(value))
     throw Error('Enter a JUNO amount with up to six decimal places.');
@@ -29,11 +34,12 @@ export function units(value) {
 }
 export function defaultPolicy() {
   return {
-    schema: 1,
+    schema: 2,
     chainId: 'juno-1',
     programme: PROGRAMME,
     method: 'equal-capped-v1',
-    activeOnly: true,
+    eligibility: 'non-jailed-with-participation-evidence',
+    liquidReserveRaw: LIQUID_RESERVE.toString(),
     factorTenths: 15,
     commissionMaxBps: 1000,
     upgrade: {
@@ -51,11 +57,12 @@ export function defaultPolicy() {
 export function policy(input) {
   const p = structuredClone(input);
   if (
-    p?.schema !== 1 ||
+    p?.schema !== 2 ||
     p.chainId !== 'juno-1' ||
     p.programme !== PROGRAMME ||
     p.method !== 'equal-capped-v1' ||
-    p.activeOnly !== true ||
+    p.eligibility !== 'non-jailed-with-participation-evidence' ||
+    p.liquidReserveRaw !== LIQUID_RESERVE.toString() ||
     !Number.isInteger(p.factorTenths) ||
     p.factorTenths < 10 ||
     p.factorTenths > 20 ||
@@ -205,6 +212,8 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence) {
     totalCurrent = sum(s.validators.map((v) => BigInt(v.currentRaw)));
   if (typeof budget !== 'bigint' || budget <= 0n || budget > totalCurrent + BigInt(s.liquidRaw))
     throw Error('Programme amount must be positive and covered by delegated plus liquid JUNO.');
+  if (budget > totalCurrent + BigInt(s.liquidRaw) - LIQUID_RESERVE)
+    throw Error('Keep at least 50 JUNO outside the target allocation as the liquid reserve.');
   if (!evidence?.records || !evidence.window?.coverageComplete)
     throw Error('The upgrade observation window is incomplete.');
   const excluded = new Map(p.exclusions.map((e) => [e.validator, e.reason])),
@@ -216,7 +225,8 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence) {
         evidence: null
       },
       reasons = [];
-    if (!v.active || v.jailed) reasons.push('Not active / jailed');
+    // `active` is consensus-set membership, not proof that a standby node is offline.
+    if (v.jailed) reasons.push('Jailed');
     if (p.commissionMaxBps !== null && v.commissionBps > p.commissionMaxBps)
       reasons.push('Commission above limit');
     if (excluded.has(v.address)) reasons.push(`Manual exclusion: ${excluded.get(v.address)}`);
@@ -234,15 +244,28 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence) {
       base: BigInt(v.tokensRaw) - BigInt(v.currentRaw)
     };
   });
-  const base = sum(rows.filter((v) => v.active).map((v) => v.base));
+  const projectedSet = (targets) =>
+    rows
+      .filter((v) => !v.jailed && v.base + (targets.get(v.address) ?? 0n) > 0n)
+      .sort(
+        (a, b) =>
+          compare(
+            b.base + (targets.get(b.address) ?? 0n),
+            a.base + (targets.get(a.address) ?? 0n)
+          ) ||
+          Number(b.active) - Number(a.active) ||
+          compare(a.address, b.address)
+      )
+      .slice(0, s.activeCount);
+  const base = sum(projectedSet(new Map()).map((v) => v.base));
   let allocated = budget,
     targets = new Map(),
-    denominator;
+    denominator = base + budget,
+    capacityDenominator = denominator;
   // Unallocated cash is not bonded stake. Recompute capacity until the bonded
   // denominator agrees with the allocation; never count the old programme twice.
   for (let iteration = 0; iteration < 2000; iteration++) {
-    denominator = base + allocated;
-    const ceiling = (denominator * cap.numerator) / cap.denominator;
+    const ceiling = (capacityDenominator * cap.numerator) / cap.denominator;
     targets = equalCapped(
       allocated,
       rows
@@ -250,17 +273,22 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence) {
         .map((v) => ({ address: v.address, capacity: ceiling > v.base ? ceiling - v.base : 0n }))
     );
     const next = sum([...targets.values()]);
-    if (next === allocated) break;
+    denominator = sum(projectedSet(targets).map((v) => v.base + (targets.get(v.address) ?? 0n)));
+    if (next === allocated && denominator >= capacityDenominator) break;
     allocated = next;
+    // Only tighten the bound. Set changes must never inflate recipients' capacity.
+    if (denominator < capacityDenominator) capacityDenominator = denominator;
     if (iteration === 1999)
       throw Error('Capacity calculation did not converge; no allocation exported.');
   }
+  const projectedMembers = new Set(projectedSet(targets).map((v) => v.address));
   const result = rows.map((v) => {
     const target = targets.get(v.address) ?? 0n;
-    const ceiling = (denominator * cap.numerator) / cap.denominator;
+    const ceiling = (capacityDenominator * cap.numerator) / cap.denominator;
     const capacity = v.eligible && ceiling > v.base ? ceiling - v.base : 0n;
     return {
       ...v,
+      projectedActive: projectedMembers.has(v.address),
       base: v.base.toString(),
       targetRaw: target.toString(),
       capacityRaw: capacity.toString(),
@@ -278,10 +306,11 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence) {
     allocatedRaw: allocated.toString(),
     unallocatedRaw: (budget - allocated).toString(),
     releasedRaw: (totalCurrent > budget ? totalCurrent - budget : 0n).toString(),
+    retainedRaw: (totalCurrent + BigInt(s.liquidRaw) - allocated).toString(),
     projectedBondedRaw: denominator.toString(),
     cap: { numerator: cap.numerator.toString(), denominator: cap.denominator.toString() },
     eligibleCount: result.filter((v) => v.eligible).length,
-    evidenceReviewCount: result.filter((v) => v.active && v.upgrade.status !== 'observed').length,
+    evidenceReviewCount: result.filter((v) => !v.jailed && v.upgrade.status !== 'observed').length,
     rows: result,
     executionEnabled: false
   };

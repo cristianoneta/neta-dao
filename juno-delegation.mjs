@@ -1,3 +1,4 @@
+import { ruleProposal, claimProposal, savePlannerProposal } from './planner-proposal-draft.mjs';
 import {
   defaultPolicy,
   policy,
@@ -7,7 +8,9 @@ import {
   amount,
   units,
   fingerprint,
-  capFraction
+  capFraction,
+  suggestedBudget,
+  LIQUID_RESERVE
 } from './juno-delegation-core.mjs';
 
 import {
@@ -20,7 +23,7 @@ import {
 } from './juno-delegation-view.mjs';
 
 const $ = (id) => document.getElementById(id),
-  key = 'cosmoot:juno:delegation:rule-draft:v1';
+  key = 'cosmoot:juno:delegation:rule-draft:v2';
 let rules = defaultPolicy(),
   data = null,
   evidence = null,
@@ -79,7 +82,7 @@ function invalidate(
   expanded.clear();
   for (const id of [
     'export-json',
-    'export-markdown',
+    'publish-proposal',
     'review-proposal',
     'previous-page',
     'next-page'
@@ -138,7 +141,7 @@ function renderRules() {
   $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
   const cap = data ? capFraction(rules, data.activeCount) : null;
   $('cap-description').textContent = cap
-    ? `Maximum projected voting power: ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}% with ${data.activeCount} active validators.`
+    ? `Maximum projected voting power: ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}% with ${data.activeCount} consensus validators.`
     : 'The voting power limit will appear after data loads.';
   $('cap-formula').textContent = cap
     ? `Cap = min(30%, ${(rules.factorTenths / 10).toFixed(1)} × 100% / ${data.activeCount}) = ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}%. The full active consensus set is used.`
@@ -180,6 +183,7 @@ async function load() {
   if (loading) return;
   loading = true;
   $('refresh').disabled = true;
+  $('claim-rewards').disabled = true;
   $('simulate').disabled = true;
   invalidate('Loading a new snapshot…');
   $('snapshot-status').textContent = 'Loading programme snapshot…';
@@ -205,10 +209,10 @@ async function load() {
       ? 'Snapshot older than one hour · historical simulation only'
       : 'Programme snapshot available · read-only';
     $('snapshot-detail').textContent =
-      `${new Date(data.blockTime).toLocaleString()} · ${data.activeCount} active validators`;
+      `${new Date(data.blockTime).toLocaleString()} · ${data.activeCount} consensus validators`;
     $('snapshot-source').textContent =
       `Block ${data.height.toLocaleString('en-US')} · ${new URL(data.source).hostname} · collected ${new Date(data.collectedAt).toLocaleString()}`;
-    $('programme-amount').value = units(sumCurrent());
+    $('programme-amount').value = String(suggestedBudget(data) / 1000000n);
     $('current-total').textContent = formatAmount(sumCurrent());
     const held = data.validators.filter((v) => BigInt(v.currentRaw) > 0n),
       inactive = held.filter((v) => !v.active),
@@ -217,12 +221,12 @@ async function load() {
     const outsidePercent =
       current > 0n ? (Number((outside * 10000n) / current) / 100).toFixed(2) : '0.00';
     $('current-breakdown').textContent =
-      `Current positions: ${fmt(current - outside)} JUNO across ${held.length - inactive.length} active validators; ${fmt(outside)} JUNO across ${inactive.length} validators outside the active set (${outsidePercent}%). These positions are not automatically unbonding funds.`;
+      `Current positions: ${fmt(current - outside)} JUNO across ${held.length - inactive.length} consensus validators; ${fmt(outside)} JUNO across ${inactive.length} validators outside the active set (${outsidePercent}%). These positions are not automatically unbonding funds.`;
     $('upgrade-window').textContent =
       `Halt: ${new Date(evidence.window.start).toISOString()} · inclusive deadline: ${new Date(evidence.window.end).toISOString()} · ${evidence.records.size} historical validators · window scan ${evidence.window.coverageComplete ? 'complete' : 'incomplete'}. Consensus captures provide additional partial evidence.`;
-    $('active-total').textContent = `${data.activeCount} active validators`;
+    $('active-total').textContent = `${data.activeCount} consensus validators`;
     $('available-funds').textContent =
-      `Delegated ${formatAmount(sumCurrent())} + spendable ${formatAmount(data.liquidRaw)} JUNO. Rewards and unbonding funds are excluded. Up to six decimal places.`;
+      `Delegated ${formatAmount(sumCurrent())} + spendable ${formatAmount(data.liquidRaw)} JUNO. Suggested total includes both, keeps 50 JUNO in reserve and rounds down to 100 JUNO. Unclaimed rewards and unbonding funds are excluded. You can edit the amount.`;
     $('validator-options').replaceChildren(
       ...data.validators.map((v) => {
         const option = node('option', v.name);
@@ -230,6 +234,16 @@ async function load() {
         return option;
       })
     );
+    $('reserve-note').textContent =
+      BigInt(data.liquidRaw) < LIQUID_RESERVE
+        ? 'Less than 50 JUNO is currently spendable. A lower target does not create immediate liquidity; any unstaking must complete before the reserve is available.'
+        : 'At least 50 JUNO remains available outside the allocation; rounding can leave more.';
+    $('claim-rewards').disabled = stale || !held.length;
+    $('claim-rewards-help').textContent = stale
+      ? 'Refresh current programme data before preparing a rewards proposal.'
+      : !held.length
+        ? 'No current programme delegations to claim from.'
+        : 'Opens a prepared draft on our proposal page. After approval and execution, refresh the data to include claimed rewards.';
     $('simulate').disabled = false;
     renderRules();
     tell(
@@ -246,8 +260,11 @@ async function load() {
       'The dedicated collector must publish a validated snapshot before allocations can be calculated.';
     $('snapshot-source').textContent = 'No usable programme snapshot.';
     $('current-total').textContent = '—';
+    $('programme-amount').value = '';
+    $('reserve-note').textContent = '';
+    $('claim-rewards-help').textContent = 'Load a valid current programme snapshot first.';
     $('current-breakdown').textContent =
-      'Current active / inactive delegation breakdown is unavailable.';
+      'Current consensus-set delegation breakdown is unavailable.';
     $('upgrade-window').textContent =
       'Archive coverage could not be loaded with the programme snapshot.';
     $('active-total').textContent = 'Active set pending';
@@ -276,7 +293,7 @@ function renderTable() {
   for (const v of shown) {
     const row = node('tr', '', 'allocation-row'),
       name = node('td', '', 'validator-cell');
-    const isReview = v.active && v.upgrade.status !== 'observed';
+    const isReview = !v.jailed && v.upgrade.status !== 'observed';
     name.append(
       node('strong', v.name || 'Unnamed validator', 'validator-name'),
       node('span', rowStatus(v), 'row-status' + (isReview ? ' needs-review' : ''))
@@ -297,16 +314,16 @@ function renderTable() {
       else expanded.add(v.address);
     });
     name.append(toggle);
-    const currentShare = v.active ? stakeShare(v.tokensRaw, bonded) : 'Outside active set';
-    const projectedShare = v.active
+    const currentShare = v.active ? stakeShare(v.tokensRaw, bonded) : 'Outside consensus set';
+    const projectedShare = v.projectedActive
       ? stakeShare(v.projectedRaw, result.projectedBondedRaw)
-      : 'Outside projected set';
+      : 'Outside projected consensus set';
     row.append(
       name,
       node('td', formatAmount(v.currentRaw), 'numeric'),
       node('td', formatAmount(v.targetRaw), 'numeric target-amount'),
       node('td', formatChange(v.deltaRaw), 'numeric'),
-      node('td', v.active ? `${currentShare} → ${projectedShare}` : 'Outside active set', 'numeric')
+      node('td', `${currentShare} → ${projectedShare}`, 'numeric')
     );
     content.colSpan = 5;
     content.append(node('p', allocationReason(v)), node('p', v.address, 'detail-address'));
@@ -369,7 +386,10 @@ function renderProposal(result) {
       'Distribution',
       'Equal amounts, with excess redistributed within the voting power limit. No separate minimum or maximum per validator.'
     ],
-    ['Eligibility', 'Active, non-jailed Juno mainnet validators.'],
+    [
+      'Eligibility',
+      'Non-jailed Juno validators with participation evidence, inside or outside the consensus set. Current uptime outside that set remains unverified.'
+    ],
     [
       'Voting power',
       `min(30%, ${(p.factorTenths / 10).toFixed(1)} × 100% / active validator count). At this snapshot: ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}%. Exclusions do not reduce the count.`
@@ -396,6 +416,10 @@ function renderProposal(result) {
         : 'None.'
     ],
     [
+      'Liquid reserve',
+      'Keep at least 50 JUNO outside the target allocation. The suggested total includes available JUNO and rounds down to whole hundreds.'
+    ],
+    [
       'Future changes',
       'Changes to criteria, cap, method or exclusions require a new rule approval.'
     ]
@@ -410,7 +434,7 @@ function renderProposal(result) {
   $('proposal-impact').textContent =
     `${formatAmount(result.allocatedRaw)} JUNO allocated to ${result.rows.filter((v) => BigInt(v.targetRaw) > 0n).length} validators. ${formatAmount(result.unallocatedRaw)} JUNO unallocated. This is an example, not an execution instruction.`;
   $('proposal-evidence').textContent =
-    `${result.evidenceReviewCount} active validators need evidence review.${BigInt(result.releasedRaw) > 0n ? ` ${formatAmount(result.releasedRaw)} JUNO would leave the current allocation.` : ''} Review these cases before putting the rules to the community.`;
+    `${result.evidenceReviewCount} validators need evidence review.${BigInt(result.releasedRaw) > 0n ? ` ${formatAmount(result.releasedRaw)} JUNO would leave the current allocation.` : ''} Review these cases before putting the rules to the community.`;
   $('proposal-snapshot').textContent =
     `Block ${data.height.toLocaleString('en-US')} · ${new Date(data.blockTime).toLocaleString()} · ${freshness() > 3600000 ? 'Historical snapshot: refresh before requesting approval.' : 'Refresh the data before voting and again before execution.'}`;
 }
@@ -435,7 +459,7 @@ function renderResult(result) {
     `${recipients.length} validators receive an allocation: ${recipients.length - capped.length} receive the equal share and ${capped.length} are limited by voting power. ${noCapacity.length} otherwise eligible validators have no capacity under the limit.${roundedToZero.length ? ` ${roundedToZero.length} receive no allocation after micro-JUNO rounding.` : ''}`;
   $('evidence-review').hidden = result.evidenceReviewCount === 0;
   $('evidence-review-text').textContent =
-    `${result.evidenceReviewCount} active validators need participation evidence review.`;
+    `${result.evidenceReviewCount} validators need participation evidence review.`;
   const notes = [
     'Target is the total programme delegation after redistribution. Projected stake shares are estimates.'
   ];
@@ -497,11 +521,11 @@ async function runSimulation() {
     $('rule-fingerprint').textContent =
       `Rule SHA-256: ${policyHash} · Snapshot SHA-256: ${snapshotHash}`;
     $('export-json').disabled = false;
-    $('export-markdown').disabled = false;
+    $('publish-proposal').disabled = false;
     $('review-proposal').disabled = false;
     setStep('simulation');
     tell(
-      'Simulation complete. Review eligibility, remaining funds and the changes before downloading the rule draft.'
+      'Simulation complete. Review eligibility, remaining funds and the changes before opening the prepared proposal.'
     );
   } catch (error) {
     tell(error.message, 'error');
@@ -516,19 +540,6 @@ function download(name, body, type) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-function markdown(packageData) {
-  const r = packageData.simulation,
-    p = packageData.rule;
-  return `# Juno Delegation Programme — RULE APPROVAL DRAFT\n\nStatus: NOT SUBMITTED. No on-chain approval or execution authorization.\n\nRule SHA-256: ${packageData.policyHash}\nSnapshot SHA-256: ${packageData.snapshotHash}\nUpgrade evidence SHA-256: ${packageData.evidenceHash}\n\n## Rules proposed for approval\n\n- Chain: juno-1; programme: ${p.programme}\n- Equal distribution, with excess redistributed within the cap. No separate per-validator minimum or maximum.\n- Active, non-jailed mainnet validators only.\n- Cap: min(30%, ${(p.factorTenths / 10).toFixed(1)} × 100% / actual active consensus validator count). Programme exclusions do not change the count.\n- Commission: ${p.commissionMaxBps === null ? 'no filter' : p.commissionMaxBps / 100 + '% maximum'}.\n- Juno v31: participation evidence within five hours after the archived halt. Missing or late observations are unresolved installation evidence, not proof of a late software upgrade.\n- Criteria, cap, algorithm and exclusion-list changes each require a new rule approval.\n\nExact policy:\n\n\`\`\`json\n${JSON.stringify(p, null, 2)}\n\`\`\`\n\n## Illustrative simulation (not an execution instruction)\n\nBlock: ${packageData.snapshot.height}; block time: ${packageData.snapshot.blockTime}.\nSource: ${packageData.snapshot.source}. Refresh before voting and again before execution.\nProgramme amount: ${units(r.budgetRaw)} JUNO.\nAllocated: ${units(r.allocatedRaw)} JUNO; unallocated: ${units(r.unallocatedRaw)} JUNO.\nReleased from prior allocation: ${units(r.releasedRaw)} JUNO.\nEligible: ${r.eligibleCount}; active validators requiring evidence review: ${r.evidenceReviewCount}.\n\nProjected shares remove old programme stake before adding targets and exclude unallocated cash from bonded stake. They estimate consensus voting power. The review JSON contains every validator, amount and source record.\n\n| Validator address | Current JUNO | Target JUNO | Change JUNO |\n| --- | ---: | ---: | ---: |\n${r.rows
-    .filter((v) => v.active || BigInt(v.currentRaw))
-    .map(
-      (v) =>
-        `| ${v.address} | ${units(v.currentRaw)} | ${units(v.targetRaw)} | ${BigInt(v.deltaRaw) < 0n ? '-' + units(-BigInt(v.deltaRaw)) : units(v.deltaRaw)} |`
-    )
-    .join(
-      '\n'
-    )}\n\n## Approval and execution\n\nThis download does not grant approval. On-chain approval verification and the programme authority adapter are not connected. Execution requires a separate proposal referencing the approved rule and exact data and transaction set, with redelegation constraints checked.\n\n## V2 — inactive\n\n30-day uptime, finer upgrade responsiveness, testnet and governance participation, and verified public RPC reliability. RPC scoring should use independent probes, sufficient coverage and an approved observation window, without counting duplicate endpoints, chain halts or monitoring gaps as validator merit or failure. Scoring thresholds and weights require a new rule approval.\n`;
 }
 $('factor').addEventListener('input', () => {
   $('factor-error').hidden = true;
@@ -636,13 +647,23 @@ $('export-json').addEventListener('click', () => {
       'application/json'
     );
 });
-$('export-markdown').addEventListener('click', () => {
-  if (review)
-    download(
-      `juno-rule-proposal-${review.policyHash.slice(0, 12)}.md`,
-      markdown(review),
-      'text/markdown'
-    );
+function openProposal(value) {
+  const url = savePlannerProposal(localStorage, value);
+  location.assign(url);
+}
+$('publish-proposal').addEventListener('click', () => {
+  try {
+    if (review) openProposal(ruleProposal(review));
+  } catch (error) {
+    tell(error.message, 'error');
+  }
+});
+$('claim-rewards').addEventListener('click', () => {
+  try {
+    if (data && !loading) openProposal(claimProposal(data));
+  } catch (error) {
+    tell(error.message, 'error');
+  }
 });
 document.querySelectorAll('[data-step]').forEach((link) =>
   link.addEventListener('click', (event) => {
@@ -685,6 +706,10 @@ setStep(initialStep === 'roadmap' ? 'rules' : initialStep, false);
 if (initialStep === 'roadmap') $('roadmap').open = true;
 try {
   const saved = localStorage.getItem(key);
+  if (!saved && localStorage.getItem('cosmoot:juno:delegation:rule-draft:v1')) {
+    $('draft-status').textContent =
+      'Eligibility updated · review new rules; earlier draft preserved';
+  }
   if (saved) {
     rules = policy(JSON.parse(saved));
     $('draft-status').textContent = 'Local draft restored · unapproved';

@@ -1,4 +1,7 @@
 (async () => {
+  const { readPlannerProposal, PLANNER_DRAFT_PREFIX } = await import(
+    './planner-proposal-draft.mjs'
+  );
   const { normalizedComment } = await import('./src/governance/comments.mjs');
   const { unitsFor, resolveSelection, selectionParams } = await import(
     './dao-hierarchy.mjs?v=20261006-structure-1'
@@ -49,6 +52,17 @@
     storedScope()
   );
   const initialDao = initialScope.dao;
+  let plannerDraft = null,
+    plannerDraftError = null;
+  try {
+    plannerDraft = readPlannerProposal(
+      localStorage,
+      new URLSearchParams(location.search),
+      initialDao.id
+    );
+  } catch (error) {
+    plannerDraftError = error.message;
+  }
   let CONTRACT =
       initialDao.workshopContract ||
       (initialDao.mode === 'native-gov' ? storedReviewContract() : null),
@@ -331,6 +345,7 @@
     state.scope = { organization, units: unitsFor(organization, DAOS), dao, consolidated };
     const url = new URL(window.location.href);
     selectionParams(state.scope, url.searchParams);
+    if (plannerDraft && dao.id !== plannerDraft.daoId) url.searchParams.delete('plannerDraft');
     history.replaceState(null, '', url);
     try {
       localStorage.setItem(DAO_STORAGE_KEY, dao.id);
@@ -487,11 +502,17 @@
     }
     throw new Error('PAGINATION SAFETY LIMIT REACHED');
   }
-  const draftKey = () => `neta-governance-local-draft:${state.dao.id}`;
+  const draftKey = () =>
+    plannerDraft && state.dao.id === plannerDraft.daoId
+      ? `${PLANNER_DRAFT_PREFIX}${plannerDraft.id}:revision`
+      : `neta-governance-local-draft:${state.dao.id}`;
   function localDraft() {
     try {
       return JSON.parse(
         localStorage.getItem(draftKey()) ||
+          (plannerDraft && state.dao.id === plannerDraft.daoId
+            ? JSON.stringify(plannerDraft.values)
+            : null) ||
           (state.dao.id === 'neta-operations'
             ? localStorage.getItem('neta-governance-local-draft')
             : null) ||
@@ -1257,6 +1278,7 @@
         : `${days ? `${days}D ` : ''}${hours}H ${minutes % 60}M REMAINING · ENDS ${new Date(target).toLocaleString()}`;
   }
   function selectChain(item) {
+    $('#planner-proposal-context').hidden = true;
     clearInterval(state.countdown);
     state.selected = { ...item, key: `chain:${item.id}`, source: 'chain' };
     state.revisions = [];
@@ -1326,6 +1348,17 @@
     updateWorkflow(draft ? 2 : 1);
     renderList();
     renderActions();
+    renderPlannerContext();
+  }
+  function renderPlannerContext() {
+    const panel = $('#planner-proposal-context');
+    const current = plannerDraft && state.dao.id === plannerDraft.daoId && !state.selected;
+    panel.hidden = !current && !plannerDraftError;
+    $('#planner-proposal-context-text').textContent =
+      plannerDraftError ||
+      (current
+        ? `${plannerDraft.kind === 'CLAIM_REWARDS' ? 'Rewards claim' : 'Allocation rules'} draft from the planner · not submitted. Existing drafts are preserved. Public review and on-chain submission for this DAO are not connected yet.`
+        : '');
   }
   function saveLocal() {
     const button = $('#save-local'),
@@ -1622,7 +1655,14 @@
     }, 0);
   $('#gov-connect').onclick = connect;
   $('#gov-disconnect').onclick = disconnectWallet;
-  $('#new-draft').onclick = newDraft;
+  $('#new-draft').onclick = () => {
+    plannerDraft = null;
+    plannerDraftError = null;
+    const url = new URL(location.href);
+    url.searchParams.delete('plannerDraft');
+    history.replaceState(null, '', url);
+    newDraft();
+  };
   $('#save-local').onclick = saveLocal;
   $('#proposal-details-toggle').onclick = () => setDetails($('#proposal-details').hidden);
   $('#cancel-reply').onclick = resetCommentForm;
@@ -1856,6 +1896,14 @@
         localStorage.removeItem(draftKey());
         if (state.dao.id === 'neta-operations')
           localStorage.removeItem('neta-governance-local-draft');
+        if (plannerDraft && state.dao.id === plannerDraft.daoId) {
+          localStorage.removeItem(PLANNER_DRAFT_PREFIX + plannerDraft.id);
+          plannerDraft = null;
+          const url = new URL(location.href);
+          url.searchParams.delete('plannerDraft');
+          history.replaceState(null, '', url);
+          renderPlannerContext();
+        }
         setValues({});
         updateWorkflow(1);
         renderList();
@@ -2003,10 +2051,13 @@
     renderActions();
     renderComments();
   });
+  if (plannerDraft || plannerDraftError) newDraft();
   load()
-    .then(newDraft)
+    .then(() => {
+      if (!plannerDraft && !plannerDraftError) newDraft();
+    })
     .catch((e) => {
-      newDraft();
+      if (!plannerDraft && !plannerDraftError) newDraft();
       status(e.message || String(e), true);
     });
 })();
