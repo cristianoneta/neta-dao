@@ -184,3 +184,18 @@ test('seeded scenarios conserve the budget and respect every recipient cap', () 
     assert.equal(r.executionEnabled, false);
   }
 });
+
+test('contract operator addresses remain visible in current positions', () => {
+  const s = fixture();
+  s.validators[0].address =
+    'junovaloper185hgkqs8q8ysnc8cvkgd8j2knnq2m0ah6ae73gntv9ampgwpmrxqlfzywn';
+  assert.equal(snapshot(s).validators[0].address, s.validators[0].address);
+});
+test('the halt anchor and unknown-evidence handling are part of the proposed rule', () => {
+  const p = defaultPolicy();
+  p.upgrade.haltTime = '2026-10-07T07:53:29Z';
+  assert.throws(() => policy(p));
+  const q = defaultPolicy();
+  q.upgrade.unknownHandling = 'eligible';
+  assert.throws(() => policy(q));
+});

@@ -229,7 +229,13 @@ function renderResult(result) {
       status.append(
         node(
           'span',
-          v.eligible ? 'Eligible' : v.reasons.join(' · '),
+          v.eligible
+            ? v.capReached
+              ? v.capacityRaw === '0'
+                ? 'Eligible · no capacity under cap'
+                : 'Eligible · cap reached'
+              : 'Eligible'
+            : v.reasons.join(' · '),
           v.eligible ? 'eligible-label' : 'review-label'
         )
       );

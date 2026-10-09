@@ -257,10 +257,14 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence) {
   }
   const result = rows.map((v) => {
     const target = targets.get(v.address) ?? 0n;
+    const ceiling = (denominator * cap.numerator) / cap.denominator;
+    const capacity = v.eligible && ceiling > v.base ? ceiling - v.base : 0n;
     return {
       ...v,
       base: v.base.toString(),
       targetRaw: target.toString(),
+      capacityRaw: capacity.toString(),
+      capReached: v.eligible && target === capacity,
       deltaRaw: (target - BigInt(v.currentRaw)).toString(),
       projectedRaw: (v.base + target).toString()
     };

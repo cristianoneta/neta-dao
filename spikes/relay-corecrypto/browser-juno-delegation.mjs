@@ -8,6 +8,9 @@ const root = new URL('../../', import.meta.url),
 const sample = fixture();
 sample.validators.forEach((v, i) => {
   v.consensusAddress = history.validators[i].address;
+  // Exercise programme-sized numbers, including micro-unit precision.
+  v.tokensRaw = String(BigInt(v.tokensRaw) * 6000n);
+  v.currentRaw = String(BigInt(v.currentRaw) * 6000n + 123456n);
 });
 sample.validators[0].name = '<img src=x onerror=alert(1)> Fixture';
 const server = http.createServer(async (req, res) => {
