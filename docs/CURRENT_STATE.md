@@ -31,9 +31,10 @@ were closed, and no open PR remained at the completion check.
 
 - The Juno Delegation Programme planner and dedicated same-origin snapshot were
   accepted live from release `885beb9ac6adbb175997dd8bf8ae4e00d23e66ef` on 9 October.
-  The staged UI was subsequently published from `5d14ce24`. A new candidate adds
-  equal criteria styling, a liquid reserve, standby eligibility and local claim/rule
-  proposal handoff. The collector and unconnected on-chain boundaries are unchanged. See
+  The staged UI was subsequently published from `5d14ce24`; criteria, reserve and
+  local draft handoff shipped as `ba65ba30` (manual run 37936517683, all 18 jobs
+  successful, 9 October 13:36 UTC). A new candidate corrects the handoff to Juno
+  native governance with a guarded submission adapter. It has not been released. See
   [planner status](JUNO_DELEGATION_PROGRAMME.md).
 
 - Daily staking accrual remains unavailable in the live accounting feed, while
@@ -78,13 +79,13 @@ were closed, and no open PR remained at the completion check.
 
 | Feature | Code | Deployment / activation | Evidence and remaining boundary |
 | --- | --- | --- | --- |
-| Juno Delegation Programme planner | Shared Community Tools UI; capped equal simulation, exclusions, snapshot collector and rule-draft exports | Three-stage UI and snapshot live; criteria/proposal handoff candidate | Original live simulation accepted on both domains; on-chain approval verifier and execution adapter remain open. [Scope and rollout](JUNO_DELEGATION_PROGRAMME.md) |
+| Juno Delegation Programme planner | Shared Community Tools UI; capped equal simulation, exclusions, snapshot collector and rule-draft exports | Criteria, reserve and local drafts live; native governance handoff/submission candidate | Original live simulation accepted on both domains; on-chain approval verifier and execution adapter remain open. [Scope and rollout](JUNO_DELEGATION_PROGRAMME.md) |
 | Community Tools | Project menu for Juno / NETA; Buy NETA on WYND adapted from Rescue NETA | Project menu and all four tools published | Existing Juno routes retained; native/CW20 swap, contract allowlist, $25 cap and pending journal retained. Signing and browser checks passed; desktop/mobile screenshots inspected. The published hub was checked during the original planner release. [Details](COMMUNITY_TOOLS.md) |
 | Names | Registry v0.3.1 and profiles v0.1.0 | Mainnet code 5168/5169; purchases active | First registration and fee receipt recorded; mainnet renewal/transfer and live validator E2E remain open. [Receipts](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) |
 | Personal messaging | Maintained client, builder, backup and browser suites integrated in cleanup candidate | Code 5170 deployed; separate two-wallet pilot live; public release/deployment pins null | User confirmed send/read/reload; device/consent queried through one provider. Fresh-profile restore/rotation explicitly deferred; reply and hosted durability open. [Pilot evidence](deployments/PERSONAL_PILOT_2026-10-07.md) |
 | Backup service | ADR-36, scoped encrypted envelopes, atomic revisions, local snapshot export; isolated admission lanes | Active OVH backend, separate database, unchanged pilot allowlist | OVH activation and API/origin behavior confirmed. Synthetic authenticated process restart/export/restore passed locally, on the target host and in its hardened image; recurring off-host retention remains open. [Service receipt](deployments/RELAY_SHARED_RENDER_2026-10-07.md), [recovery runbook](BACKUP_RECOVERY.md) |
 | DAO inbox | Gated components and protocol groundwork | Not mounted; DAO writes disabled in code 5170 | Multi-recipient recovery/history/prekeys are next product work. [Design](DAO_MAILBOX_DESIGN_2026-10-06.md) |
-| Proposals | Local drafts, UNI-7 workshops, mainnet history, Operations voting adapter | Existing static workspace | Operations legacy finalization does not create a mainnet proposal. Native Juno submission/voting and review-to-mainnet adapter disabled. [APIs](../REVIEW_ARCHITECTURE.md) |
+| Proposals | Local drafts, UNI-7 workshops, mainnet history, Operations voting adapter | Existing static workspace | Operations legacy finalization does not create a mainnet proposal. Native Juno voting and general review-to-mainnet adapter disabled. A separate planner-only native submission candidate is prepared; live wallet acceptance remains open. [APIs](../REVIEW_ARCHITECTURE.md) |
 | Treasury | DAO/SubDAO/consolidated assets, receipt categories, provisional P&L, Community Tax and daily staking accrual | Cloudflare static release; OVH data edge; collectors and health installed, scheduled-cycle acceptance open | Accounting floor 1 October; explicit partial coverage; missing data is not zero. Claims do not double-count accrued rewards. [Accounting](TREASURY_ACCOUNTING_2026-10-06.md), [cutoff](TREASURY_CUTOFF_2026-10-06.md) |
 | RELAY notifications | Browser-local governance/NNS notices, favorites, unread/history | Public workspace | No push/email or cross-device notification sync. NNS notices are Messages, not a separate Names filter. |
 | Faucet | 25 JUNOX per wallet per 24h, signature proof, exact-hash payout journal | Active OVH backend, deliberate deploy | Reward/donation evidence recorded; real payout/restart/stake/unstake evidence incomplete. Cheap HTTP traffic no longer consumes persistent claim-work quota in candidate. |

@@ -249,15 +249,123 @@ try {
   );
   assert.equal(await page.locator('#governance-view').isVisible(), true);
   assert.equal(await page.locator('#subdao-select').inputValue(), 'juno-delegation');
-  assert.equal(JSON.parse(await page.locator('#proposal-actions').inputValue()).length, 25);
-  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  const govMessages = JSON.parse(await page.locator('#proposal-actions').inputValue());
+  assert.equal(govMessages.length, 1);
+  assert.equal(govMessages[0]['@type'], '/cosmwasm.wasm.v1.MsgExecuteContract');
+  assert.equal(govMessages[0].msg.execute_admin_msgs.msgs.length, 25);
+  assert.match(
+    await page.locator('#planner-proposal-context-text').innerText(),
+    /Juno native governance/
+  );
+  assert.match(await page.locator('.testnet-pill').innerText(), /JUNO MAINNET · GOVERNANCE/);
+  assert.equal(await page.locator('#planner-native-panel').isVisible(), true);
+  assert.equal(await page.locator('#native-funding-panel').isVisible(), false);
+  assert.equal(await page.locator('#primary-action').innerText(), 'CONNECT KEPLR · JUNO');
   assert.equal(
     await page.evaluate(
       () => JSON.parse(localStorage.getItem('neta-governance-local-draft:juno-delegation')).title
     ),
     'Preserved draft'
   );
+  // A mainnet wallet and the native proposal adapter are mocked: never sign or broadcast.
+  const proposer = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
+  await page.route('https://**', (route) => {
+    const url = route.request().url();
+    let body = { data: { proposals: [] } };
+    if (url.endsWith('/latest'))
+      body = {
+        block: {
+          header: { chain_id: 'juno-1', height: '42500123', time: new Date().toISOString() }
+        }
+      };
+    else if (url.includes('/params/'))
+      body = {
+        params: {
+          min_deposit: [{ denom: 'ujuno', amount: '1000000000' }],
+          min_initial_deposit_ratio: '0.1'
+        }
+      };
+    else if (url.includes('/spendable_balances/'))
+      body = { balance: { denom: 'ujuno', amount: '2000000000' } };
+    else if (url.includes('/module_accounts/gov'))
+      body = { account: { name: 'gov', base_account: { address: govMessages[0].sender } } };
+    else if (url.includes('/smart/')) body = { data: govMessages[0].sender };
+    else if (url.includes('/contract/')) body = { contract_info: { code_id: '4047' } };
+    else if (url.includes('/withdraw_address')) body = { withdraw_address: sample.programme };
+    else if (url.includes('/delegations/'))
+      body = {
+        delegation_responses: sample.validators.map((v) => ({
+          delegation: { delegator_address: sample.programme, validator_address: v.address },
+          balance: { denom: 'ujuno', amount: v.currentRaw }
+        })),
+        pagination: {}
+      };
+    return route.fulfill({
+      contentType: 'application/json',
+      headers: { 'x-cosmos-block-height': '42500123' },
+      body: JSON.stringify(body)
+    });
+  });
+  await page.evaluate((proposer) => {
+    window.__plannerEnabledChains = [];
+    window.keplr = {
+      enable: async (chain) => window.__plannerEnabledChains.push(chain),
+      getOfflineSigner: () => ({
+        getAccounts: async () => [{ address: proposer }],
+        signDirect: async () => {
+          throw Error('unexpected signature');
+        }
+      }),
+      signDirect: async () => {
+        throw Error('unexpected signature');
+      }
+    };
+    window.NetaJunoGovernance = {
+      connect: async () => ({ disconnect() {} }),
+      simulate: async () => 100000,
+      fixedFee: () => ({ gas: '140000', amount: [{ denom: 'ujuno', amount: '10500' }] }),
+      submit: async () => {
+        throw Error('unexpected submission');
+      }
+    };
+  }, proposer);
+  await page.locator('#primary-action').click();
+  await page.waitForFunction(
+    () => document.getElementById('primary-action').textContent === 'REVIEW JUNO PROPOSAL'
+  );
+  assert.deepEqual(await page.evaluate(() => window.__plannerEnabledChains), ['juno-1']);
+  await page.locator('#primary-action').click();
+  await page.waitForFunction(() => !document.getElementById('planner-native-review').hidden);
+  assert.equal(await page.locator('#planner-native-deposit').inputValue(), '100');
+  assert.match(
+    await page.locator('#planner-native-review-text').innerText(),
+    /Estimated fee: 0.0105 JUNO/
+  );
+  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  await page.locator('#planner-native-confirm').check();
+  assert.equal(await page.locator('#primary-action').isDisabled(), false);
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+      true
+    );
+    assert.equal(
+      await page.locator('#proposal-title').inputValue(),
+      'Juno Delegation Programme — claim staking rewards'
+    );
+    if (process.env.NNS_SCREENSHOT_DIR)
+      await page.screenshot({
+        path: `${process.env.NNS_SCREENSHOT_DIR}/juno-native-claim-${width}.png`,
+        fullPage: true
+      });
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.locator('#proposal-title').fill('Edited claim draft');
+  assert.equal(await page.locator('#planner-native-review').isVisible(), false);
+  assert.equal(await page.locator('#primary-action').innerText(), 'REVIEW JUNO PROPOSAL');
+  await page.evaluate(() => window.dispatchEvent(new Event('keplr_keystorechange')));
+  assert.equal(await page.locator('#primary-action').innerText(), 'CONNECT KEPLR · JUNO');
   await page.locator('#save-local').click();
   await page.reload();
   await page.waitForFunction(
@@ -276,7 +384,7 @@ try {
   );
   assert.deepEqual(JSON.parse(await page.locator('#proposal-actions').inputValue()), []);
   assert.match(await page.locator('#proposal-body').inputValue(), /Rule SHA-256:/);
-  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  assert.equal(await page.locator('#primary-action').innerText(), 'CONNECT KEPLR · JUNO');
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
   await page.locator('#programme-amount').fill('99999999');

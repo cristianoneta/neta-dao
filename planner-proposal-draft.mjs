@@ -1,10 +1,12 @@
 import { PROGRAMME, policy, snapshot, units } from './juno-delegation-core.mjs';
 
+import { rewardMessages } from './juno-governance-core.mjs';
+
 export const PLANNER_DRAFT_PREFIX = 'cosmoot:juno:planner-proposal:';
 const identifier = /^[a-f0-9-]{36}$/;
 export function validatePlannerDraft(value) {
   if (
-    value?.schema !== 1 ||
+    ![1, 2].includes(value?.schema) ||
     value.daoId !== 'juno-delegation' ||
     value.chainId !== 'juno-1' ||
     value.programme !== PROGRAMME ||
@@ -28,11 +30,18 @@ export function validatePlannerDraft(value) {
   }
   if (!Array.isArray(JSON.parse(value.values.actions_json)))
     throw Error('Invalid proposal actions.');
-  return structuredClone(value);
+  const checked = structuredClone(value);
+  if (checked.schema === 1 && checked.kind === 'CLAIM_REWARDS') {
+    checked.values = upgradeLegacyPlannerValues(checked.values, checked.kind);
+  }
+  checked.schema = 2;
+  checked.governanceDaoId = 'juno';
+  return checked;
 }
 function draft(kind, title, summary, body, actions = []) {
   return validatePlannerDraft({
-    schema: 1,
+    schema: 2,
+    governanceDaoId: 'juno',
     daoId: 'juno-delegation',
     chainId: 'juno-1',
     programme: PROGRAMME,
@@ -51,7 +60,7 @@ export function ruleProposal(review) {
     'RULE_APPROVAL',
     'Juno Delegation Programme — allocation rules',
     'Approve the allocation criteria. The illustrated distribution is not authorization to delegate or redelegate funds.',
-    `# Proposed allocation rules\n\nStatus: local draft, not submitted or approved.\nChain: juno-1\nProgramme: ${PROGRAMME}\n\n` +
+    `# Proposed allocation rules\n\nDecision requested: approve allocation rules. Execution: none.\nChain: juno-1\nDecision and submission: Juno native governance\nTopic: Delegation Programme\nProgramme: ${PROGRAMME}\n\n` +
       `- Equal allocation within the voting power cap.\n- Non-jailed validators with participation evidence; membership of the current consensus set is not required. Absence from that set is not evidence of an offline node.\n- Cap: min(30%, ${p.factorTenths / 10} × 100% / full consensus validator count).\n- Commission: ${p.commissionMaxBps === null ? 'no limit' : p.commissionMaxBps / 100 + '% maximum'}.\n- Juno v31 participation within five hours of the halt is required. Missing evidence remains unresolved, not proof of downtime.\n- Keep at least 50 JUNO outside the allocation as the liquid reserve.\n- Changes to criteria or exclusions require a new community approval.\n\n` +
       `## Exact policy\n\n\`\`\`json\n${JSON.stringify(p, null, 2)}\n\`\`\`\n\n` +
       `## Illustrative distribution\n\nBudget: ${units(r.budgetRaw)} JUNO\nAllocated: ${units(r.allocatedRaw)} JUNO\nUnallocated: ${units(r.unallocatedRaw)} JUNO\nSnapshot block: ${s.height}\nSnapshot time: ${s.blockTime}\nRule SHA-256: ${review.policyHash}\nSnapshot SHA-256: ${review.snapshotHash}\nEvidence SHA-256: ${review.evidenceHash}\n\nKeep the full planner review-data export alongside this proposal. Refresh evidence before voting. A later allocation proposal needs verified on-chain rule approval, authority, fresh balances, consensus-set and redelegation checks. This draft contains no execution messages.`
@@ -68,14 +77,12 @@ export function claimProposal(input, now = Date.now()) {
     .filter((v) => BigInt(v.currentRaw) > 0n)
     .sort((a, b) => a.address.localeCompare(b.address));
   if (!validators.length) throw Error('No current programme delegations to claim from.');
-  const actions = validators.map((v) => ({
-    distribution: { withdraw_delegator_reward: { validator: v.address } }
-  }));
+  const actions = rewardMessages(validators.map((v) => v.address));
   return draft(
     'CLAIM_REWARDS',
     'Juno Delegation Programme — claim staking rewards',
     'Claim staking rewards from the programme’s current delegations, then refresh the available balance before planning allocations.',
-    `# Claim programme staking rewards\n\nStatus: local draft, not submitted or executed.\nChain: juno-1\nExecuting account: ${PROGRAMME}\n\nPrepare ${actions.length} reward-withdrawal actions for the programme delegations recorded at block ${s.height} (${s.blockTime}). Include jailed and standby validators with recorded delegations; allocation exclusions do not exclude reward claims.\n\nThe actions must be executed by the programme account through its verified governance authority. They do not delegate, redelegate or change the withdrawal address. Confirm the current withdrawal address belongs to the programme treasury before submission; this snapshot does not verify that address or claimable amounts. Refresh the delegation list, verify the contract’s supported messages and simulate fees/message limits before submission.\n\nAfter the proposal has passed and execution is confirmed, return to the planner and refresh programme data. Only the confirmed spendable balance is included in a new allocation. Keep at least 50 JUNO liquid and round the suggested allocation down to whole hundreds. No reward amount is assumed by this draft.`,
+    `# Claim programme staking rewards\n\nDecision requested: claim programme staking rewards through Juno governance.\nChain: juno-1\nDecision and submission: Juno native governance\nTopic: Delegation Programme\nExecuting account: ${PROGRAMME}\n\nAsk Juno governance to execute ${validators.length} reward-withdrawal actions through the programme contract’s execute_admin_msgs entry point for the programme delegations recorded at block ${s.height} (${s.blockTime}). Include jailed and standby validators with recorded delegations; allocation exclusions do not exclude reward claims.\n\nJuno stakers decide this native governance proposal. The proposer submits it from their own wallet; after approval, the Juno governance module instructs the programme contract to execute the withdrawals. Membership of the Delegation DAO is not required to submit this proposal. They do not delegate, redelegate or change the withdrawal address. Confirm the current withdrawal address belongs to the programme treasury before submission; this snapshot does not verify that address or claimable amounts. Refresh the delegation list, verify the contract’s supported messages and simulate fees/message limits before submission.\n\nAfter the proposal has passed and execution is confirmed, return to the planner and refresh programme data. Only the confirmed spendable balance is included in a new allocation. Keep at least 50 JUNO liquid and round the suggested allocation down to whole hundreds. No reward amount is assumed by this draft.`,
     actions
   );
 }
@@ -97,5 +104,21 @@ export function readPlannerProposal(storage, params, daoId) {
     throw Error(
       'Planner draft unavailable in this browser. Return to the planner to prepare it again.'
     );
-  return { id, ...validatePlannerDraft(JSON.parse(source)) };
+  const parsed = JSON.parse(source);
+  return { id, ...validatePlannerDraft(parsed), legacy: parsed.schema === 1 };
+}
+
+export function upgradeLegacyPlannerValues(values, kind) {
+  if (kind !== 'CLAIM_REWARDS') return values;
+  const old = JSON.parse(values.actions_json);
+  if (old[0]?.['@type']) return values;
+  const validators = old.map((v) => v?.distribution?.withdraw_delegator_reward?.validator);
+  const expected = validators.map((validator) => ({
+    distribution: { withdraw_delegator_reward: { validator } }
+  }));
+  if (JSON.stringify(old) !== JSON.stringify(expected))
+    throw Error(
+      'Legacy rewards actions were modified. Review the saved draft before preparing a new claim.'
+    );
+  return { ...values, actions_json: JSON.stringify(rewardMessages(validators), null, 2) };
 }

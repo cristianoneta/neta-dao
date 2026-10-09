@@ -247,3 +247,9 @@ body.revision-dialog-open { overflow:hidden; }
 .planner-proposal-context[hidden] { display:none; }
 .planner-proposal-context p { margin:0 0 8px; }
 .planner-proposal-context a { color:var(--neta-accent); }
+
+#planner-native-review-text { white-space:pre-line; overflow-wrap:anywhere; }
+#planner-native-panel input:not([type="checkbox"]) { max-width:24rem; }
+.planner-native-confirm { display:flex; align-items:flex-start; gap:10px; font-size:14px; line-height:1.6; }
+.planner-native-confirm input { width:auto; flex:0 0 auto; margin-top:5px; }
+#planner-native-panel[hidden], #planner-native-review[hidden], .deliverables-panel[hidden] { display:none; }
