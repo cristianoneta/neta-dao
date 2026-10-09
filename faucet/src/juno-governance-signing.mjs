@@ -3,8 +3,9 @@ import { toHex } from '@cosmjs/encoding';
 import { Registry } from '@cosmjs/proto-signing';
 import { SigningStargateClient, defaultRegistryTypes, GasPrice } from '@cosmjs/stargate';
 import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
-import { MsgSubmitProposal } from 'cosmjs-types/cosmos/gov/v1/tx';
+import { MsgSubmitProposal, MsgDeposit } from 'cosmjs-types/cosmos/gov/v1/tx';
 import { TxBody, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { DEPOSIT } from '../../juno-community-governance.mjs';
 import { EXECUTE, SUBMIT, claimValidators } from '../../juno-governance-core.mjs';
 import { journalBroadcast } from './broadcast-journal.mjs';
 export { fixedFee } from './wynd-swap-fee.mjs';
@@ -17,7 +18,7 @@ export function message(content, sender, deposit) {
     value: MsgSubmitProposal.fromPartial({
       title: content.title,
       summary: content.summary,
-      metadata: '',
+      metadata: content.metadata || '',
       expedited: false,
       proposer: sender,
       initialDeposit: [{ denom: 'ujuno', amount: deposit }],
@@ -45,6 +46,7 @@ export async function connect(endpoints, signer) {
         registry: new Registry([
           ...defaultRegistryTypes,
           [SUBMIT, MsgSubmitProposal],
+          [DEPOSIT, MsgDeposit],
           [EXECUTE, MsgExecuteContract]
         ]),
         gasPrice: GasPrice.fromString('0.075ujuno')
@@ -77,11 +79,11 @@ export async function connect(endpoints, signer) {
 export const simulate = (client, content, sender, deposit) =>
   client.simulate(sender, [message(content, sender, deposit)], '');
 const same = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-export async function submit(
+async function signReviewed(
   client,
-  content,
+  msg,
+  encoder,
   sender,
-  deposit,
   fee,
   { assertWallet, beforeSign, beforeBroadcast, journalOptions } = {}
 ) {
@@ -91,8 +93,8 @@ export async function submit(
     typeof beforeBroadcast !== 'function'
   )
     throw Error('Proposal review guards are required.');
-  const expected = message(content, sender, deposit),
-    bytes = MsgSubmitProposal.encode(expected.value).finish();
+  const expected = msg,
+    bytes = encoder.encode(expected.value).finish();
   const proxy = {
     getChainId: async () => {
       const chain = await client.getChainId();
@@ -108,7 +110,7 @@ export async function submit(
         auth = AuthInfo.decode(signed.authInfoBytes);
       if (
         body.messages.length !== 1 ||
-        body.messages[0].typeUrl !== SUBMIT ||
+        body.messages[0].typeUrl !== msg.typeUrl ||
         !same(body.messages[0].value, bytes) ||
         body.memo !== '' ||
         body.timeoutHeight !== 0n ||
@@ -140,3 +142,30 @@ export async function submit(
   };
   return journalBroadcast(proxy, sender, [expected], fee, '', journalOptions);
 }
+
+export function submit(client, content, sender, deposit, fee, options) {
+  return signReviewed(
+    client,
+    message(content, sender, deposit),
+    MsgSubmitProposal,
+    sender,
+    fee,
+    options
+  );
+}
+export function depositMessage(proposalId, sender, amount) {
+  if (!/^[1-9]\d*$/.test(String(proposalId)) || !/^[1-9]\d*$/.test(amount))
+    throw Error('Invalid proposal contribution.');
+  return {
+    typeUrl: DEPOSIT,
+    value: MsgDeposit.fromPartial({
+      proposalId: BigInt(proposalId),
+      depositor: sender,
+      amount: [{ denom: 'ujuno', amount }]
+    })
+  };
+}
+export const simulateDeposit = (client, id, sender, amount) =>
+  client.simulate(sender, [depositMessage(id, sender, amount)], '');
+export const contribute = (client, id, sender, amount, fee, options) =>
+  signReviewed(client, depositMessage(id, sender, amount), MsgDeposit, sender, fee, options);

@@ -1,3 +1,4 @@
+import { verifyReview, findReviewSubmission, canonical } from './juno-community-governance.mjs';
 import {
   preflight,
   proposalContent,
@@ -15,6 +16,8 @@ export function nativePlanner({
   connectWallet,
   rests,
   rpcs,
+  reviewRests,
+  onSubmitted,
   status,
   busy,
   rerender
@@ -76,10 +79,12 @@ export function nativePlanner({
       (!!previous && previous.state !== 'broadcast') ||
       (!!reviewed && !$('#planner-native-confirm').checked);
     $('#planner-native-deposit').disabled = working || !!previous;
+    $('#planner-native-inputs').hidden = !!previous;
+    $('#planner-native-heading').textContent = 'Submit finalized proposal';
     $('#planner-native-confirm').disabled = working;
     $('#action-hint').textContent = previous
       ? `${previous.state === 'included' ? 'Proposal submission confirmed. This does not mean the proposal passed or rewards were claimed.' : previous.state === 'failed' ? `Transaction failed (code ${previous.code}). No proposal was created; review the failure before preparing a new draft.` : 'This draft has a saved submission attempt. Check its status without signing again.'}${previous.hash ? ' · TX ' + previous.hash : ''}`
-      : 'Submit to Juno native governance from your wallet. Juno stakers vote; Delegation DAO membership is not required.';
+      : 'Anyone can submit this finalized review with their own wallet. The submitter pays the initial deposit and fee; the review author stays unchanged.';
   }
   const current = (epoch, fingerprint, sender, id) => {
     if (
@@ -137,14 +142,29 @@ export function nativePlanner({
     busy(true);
     render();
     try {
+      if (!draft().review)
+        throw Error('Publish and finalize the community review before mainnet submission.');
       const epoch = generation,
         sender = address(),
         fingerprint = JSON.stringify(values()),
-        content = proposalContent(draft().kind, values());
+        expectedReview = draft().review,
+        content = {
+          ...proposalContent(draft().kind, values()),
+          metadata: expectedReview.content.metadata
+        };
+      if (canonical(content) !== canonical(expectedReview.content))
+        throw Error('The proposal differs from the finalized review.');
       await wallet(sender);
       if (!reviewed) {
         localStorage.setItem(`cosmoot:juno:planner-proposal:${draft().id}:revision`, fingerprint);
         status('CHECKING JUNO GOVERNANCE, DEPOSIT AND PROGRAMME AUTHORITY…');
+        await verifyReview(reviewRests, expectedReview);
+        const existing = await findReviewSubmission(rests, content);
+        current(epoch, fingerprint, sender, id);
+        if (existing.length) {
+          await onSubmitted(existing[0]);
+          return;
+        }
         const proof = await preflight(rests, content, sender);
         current(epoch, fingerprint, sender, id);
         const field = $('#planner-native-deposit');
@@ -168,7 +188,7 @@ export function nativePlanner({
         await wallet(sender);
         if (BigInt(proof.balance) < BigInt(deposit) + BigInt(fee.amount[0].amount))
           throw Error('Insufficient spendable JUNO for the reviewed deposit and fee.');
-        reviewed = { epoch, fingerprint, sender, id, content, deposit, fee, proof };
+        reviewed = { epoch, fingerprint, sender, id, content, deposit, fee, proof, expectedReview };
         $('#planner-native-review-text').textContent =
           `Juno mainnet · ${sender}\nInitial deposit: ${displayJuno(deposit)} JUNO · Estimated fee: ${displayJuno(fee.amount[0].amount)} JUNO\n` +
           `Total deposit needed for voting: ${displayJuno(proof.terms.total)} JUNO · Verified at block ${proof.height}.\n` +
@@ -187,6 +207,12 @@ export function nativePlanner({
         const guard = async () => {
           current(review.epoch, review.fingerprint, review.sender, review.id);
           if (receipt()) throw Error('A submission is already recorded for this draft.');
+          await verifyReview(reviewRests, review.expectedReview);
+          if ((await findReviewSubmission(rests, review.content)).length)
+            throw Error(
+              'This review already has an on-chain proposal. Refresh to open its funding.'
+            );
+          current(review.epoch, review.fingerprint, review.sender, review.id);
           if (Date.now() - review.proof.checkedAt > 120000)
             throw Error('Proposal review expired. Review fresh chain data again.');
         };
@@ -214,7 +240,8 @@ export function nativePlanner({
               {
                 assertWallet: () => wallet(review.sender),
                 beforeSign: guard,
-                beforeBroadcast: (hash) => {
+                beforeBroadcast: async (hash) => {
+                  await guard();
                   current(review.epoch, review.fingerprint, review.sender, review.id);
                   saveReceipt(review.id, { state: 'broadcast', hash, proposer: review.sender });
                 }
@@ -229,8 +256,11 @@ export function nativePlanner({
           proposer: review.sender
         };
         saveReceipt(review.id, record);
-        if (active() && draft()?.id === review.id)
+        if (active() && draft()?.id === review.id) {
           status(`JUNO PROPOSAL SUBMITTED · TX ${result.transactionHash}`);
+          const existing = await findReviewSubmission(rests, review.content);
+          if (existing.length) await onSubmitted(existing[0]);
+        }
       }
     } catch (error) {
       invalidate();

@@ -1,10 +1,10 @@
 # Juno Delegation Programme
 
-9 October 2026. Native Juno governance and Community Tools balances are published
-from `e5ffabab3324a2c4d7a8e5705d5ae24d5b216351` (manual run 37946802277,
-all 18 jobs successful). A live claim-entry defect was subsequently reproduced;
-the correction below is a candidate pending CI and manual release. Rule approval
-verification and allocation execution remain unconnected.
+9 October 2026. Native Juno governance, long-validator claim entry and current
+rewards are published through `ef7873b1` (manual run 37963591472, all 18 jobs
+successful). Both domains passed claim handoff acceptance without submitting a
+transaction. The next candidate adds [shared review and deposits](JUNO_COMMUNITY_FUNDING.md).
+Rule approval verification and allocation execution remain unconnected.
 
 ## Claim entry and current rewards correction
 
@@ -26,8 +26,8 @@ separately. This is not historical daily accrual or spendable balance.
 Missing/incomplete/stale reward data is unavailable, not zero. The holdings
 format's PARTIAL status describes USD valuation, so a missing price suppresses
 USD only. Refresh reloads rewards with planner data; open tabs expire observations
-without resetting edited allocations. The draft repeats the snapshot estimate
-and warns that the eventual execution amount can differ. Rewards do not enter
+without resetting edited allocations. The new draft contains only the claim purpose and effect; snapshot estimates
+remain in the planner. Rewards do not enter
 the allocation budget until confirmed execution and a refreshed balance.
 
 Validation: 248 root Node tests, five signing tests and existing Treasury rounding
@@ -170,7 +170,7 @@ Revisions persist under that draft's unique key; New draft returns to the ordina
 saved draft. The live `ba65ba30` version still labels the target as a read-only DAO.
 The candidate corrects that boundary as described next.
 
-## Native governance correction — release candidate
+## Native governance submission
 
 Delegation Programme remains the subject/scope. Submission and the community
 vote belong to **Juno native governance**, not the legacy programme proposal
@@ -196,7 +196,7 @@ authorizes `execute_admin_msgs` through that internal admin; Cosmos SDK's
 requires the governance module as the sole signer of executable proposal messages.
 Historical evidence is not treated as a current authorization check.
 
-The candidate requires complete preflights from at least two independent Juno API
+Submission requires complete preflights from at least two independent Juno API
 origins, requesting a fresh pinned height within each source: correct
 chain/recent block, gov module account, code/internal admin, unpaused state, programme withdrawal
 address, complete delegation pagination, native deposit parameters and proposer
@@ -221,8 +221,9 @@ Reloads preserve the attempt, and status lookup never signs or broadcasts. Confi
 submission is distinct from a passed proposal and future rewards execution.
 Only direct-signing Keplr
 accounts are supported. No live wallet signature or proposal submission is claimed.
-Generic UNI-7 review, native voting, allocation execution and rule-approval
-verification for allocations are unchanged.
+Shared UNI-7 review precedes new programme submissions in the new candidate.
+Native voting, allocation execution and rule-approval verification for allocations
+remain unchanged.
 
 
 ## V2 — visible, inactive

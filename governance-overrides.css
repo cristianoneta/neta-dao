@@ -253,3 +253,20 @@ body.revision-dialog-open { overflow:hidden; }
 .planner-native-confirm { display:flex; align-items:flex-start; gap:10px; font-size:14px; line-height:1.6; }
 .planner-native-confirm input { width:auto; flex:0 0 auto; margin-top:5px; }
 #planner-native-panel[hidden], #planner-native-review[hidden], .deliverables-panel[hidden] { display:none; }
+
+/* Shared review has no mainnet funding form. Transaction fields appear after finalization. */
+.governance-funding-body { padding:24px; display:grid; gap:16px; }
+.governance-funding-body p { margin:0; }
+.governance-funding-body label:not(.planner-native-confirm) { display:block; margin-bottom:8px; font-size:14px; }
+.governance-funding-body input:not([type="checkbox"]) { width:100%; min-width:0; max-width:30rem; box-sizing:border-box; }
+.governance-funding-body .field-help { color:var(--neta-text-secondary); font-size:14px; line-height:1.6; margin-top:8px; overflow-wrap:anywhere; }
+.governance-funding-amount { display:flex; align-items:center; flex-wrap:wrap; gap:12px; }
+.governance-funding-amount input { flex:1 1 200px; }
+#planner-native-review, #proposal-funding-review { border-top:1px solid var(--neta-border); padding-top:16px; margin-top:16px; }
+#proposal-funding-review-text { white-space:pre-line; overflow-wrap:anywhere; margin-bottom:16px; }
+#proposal-funding-action { margin-top:16px; }
+#proposal-funding-total { font-size:20px; font-variant-numeric:tabular-nums; }
+#proposal-funding-panel[hidden], #proposal-funding-form[hidden], #proposal-funding-review[hidden], #shared-review-link[hidden], #planner-native-inputs[hidden] { display:none; }
+#shared-review-link { margin:16px 0; overflow-wrap:anywhere; }
+#shared-review-author { display:block; color:var(--neta-text-secondary); font-size:14px; margin-top:8px; }
+@media (max-width:640px) { .governance-funding-body { padding:16px; } .governance-funding-amount { align-items:stretch; } .governance-funding-amount button { width:100%; } }

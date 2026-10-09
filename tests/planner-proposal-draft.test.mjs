@@ -26,7 +26,9 @@ test('claims include all positions, including jailed/standby, with no transfers 
   assert.equal(actions[0].sender, GOVERNANCE);
   assert.equal(d.governanceDaoId, 'juno');
   assert.deepEqual(new Set(claimValidators(actions)), new Set(s.validators.map((v) => v.address)));
-  assert.match(d.values.body, /withdrawal address/);
+  assert.match(d.values.body, /Existing delegations remain unchanged/);
+  assert.ok(d.values.body.split(/\s+/).length < 65);
+  assert.doesNotMatch(d.values.body, /snapshot|execute_admin_msgs|reserve|wallet|deposit/i);
   s.blockTime = new Date(Date.now() - 3600001).toISOString();
   assert.throws(() => claimProposal(s), /Refresh/);
   s.blockTime = new Date(Date.now() + 600000).toISOString();

@@ -35,8 +35,11 @@ were closed, and no open PR remained at the completion check.
   local draft handoff shipped as `ba65ba30` (manual run 37936517683, all 18 jobs
   successful, 9 October 13:36 UTC). Native governance and Community Tools balances
   shipped as `e5ffabab` in manual run 37946802277, all 18 jobs successful. A live
-  claim click then exposed rejection of long DAO validator addresses. The current
-  candidate corrects that check and adds local feedback and timestamped rewards. See
+  claim click then exposed rejection of long DAO validator addresses. Release `ef7873b1` corrected that check and added local feedback and timestamped
+  rewards (manual run 37963591472, all 18 jobs successful). Both domains passed
+  claim handoff acceptance without submitting a transaction. The next candidate
+  adds shared review, third-party submission and native deposit contributions;
+  see [review and deposits](JUNO_COMMUNITY_FUNDING.md). See
   [planner status](JUNO_DELEGATION_PROGRAMME.md).
 
 - Daily staking accrual remains unavailable in the live accounting feed, while
