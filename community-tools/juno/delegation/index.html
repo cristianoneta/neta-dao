@@ -117,14 +117,26 @@
                 maximum programme amount per validator.
               </p>
             </details>
-            <label for="commission">Maximum commission</label
-            ><select id="commission">
-              <option value="1000">10% · proposed default</option>
-              <option value="500">5%</option>
-              <option value="2000">20%</option>
-              <option value="10000">100%</option>
-              <option value="none">No commission filter</option>
-            </select>
+            <label for="commission">Maximum commission · %</label>
+            <input
+              id="commission"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              value="10"
+              inputmode="numeric"
+              aria-describedby="commission-help commission-error"
+            />
+            <p id="commission-help" class="field-help">
+              Whole numbers from 0 to 100. Proposed default: 10%.
+            </p>
+            <p id="commission-error" class="field-error" hidden>
+              Enter a whole-number commission limit from 0 to 100.
+            </p>
+            <label class="check-option" for="no-commission-limit"
+              ><input id="no-commission-limit" type="checkbox" />No commission limit</label
+            >
             <div class="fixed-rule">
               <strong>Juno v31 participation within five hours</strong>
               <p>

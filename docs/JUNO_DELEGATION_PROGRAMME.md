@@ -16,7 +16,9 @@ The owner approved a three-stage layout on 9 October: **Set rules → Review
 distribution → Review proposal**, with each stage directly accessible. Keep the
 shared graphite/mint tokens, typography and assembly-plaza identity. The first
 stage groups criteria, amount and optional manual exclusions, with a keyboard
-slider and an exact numeric factor input. Local storage saves rules only, not the
+slider and an exact numeric factor input. Commission accepts whole percentages
+from 0 to 100 (default 10), with a separate no-limit checkbox. Invalid, empty or
+fractional values block simulation and saving; exports retain basis-point units. Local storage saves rules only, not the
 amount or simulation. The V2 roadmap is collapsed and explicitly inactive.
 
 The simulation leads with allocated funds, actual recipients and unallocated

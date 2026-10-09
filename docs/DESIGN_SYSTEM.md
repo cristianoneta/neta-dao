@@ -624,7 +624,8 @@ and proposal review. Keep the existing graphite/mint foundations, assembly-plaza
 identity and English product language. Use a compact header and source summary.
 Group eligibility controls and programme amount; move optional exclusions, formula
 details and the inactive roadmap into disclosures. Provide both a slider and an
-exact numeric field for the factor.
+exact numeric field for the factor. Commission uses a freely editable whole-number
+percentage (0–100, default 10) plus a separate no-limit checkbox; no preset dropdown.
 
 Prioritize allocated funds, recipient count and unallocated funds. Distinguish
 recipients from eligible validators with no capacity. Give unresolved evidence an

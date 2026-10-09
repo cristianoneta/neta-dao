@@ -236,6 +236,25 @@
   min-height: 36px;
   padding: 8px 0;
 }
+.delegation-hub .check-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin: 8px 0 0;
+  font-weight: 400;
+}
+.delegation-hub .check-option input {
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
+  flex: none;
+  accent-color: var(--neta-accent);
+}
+.delegation-hub input:disabled {
+  opacity: 0.5;
+}
 .factor-control {
   display: flex;
   align-items: center;

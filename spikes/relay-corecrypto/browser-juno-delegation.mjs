@@ -83,6 +83,31 @@ try {
   await page.locator('#save-draft').click();
   assert.match(await page.locator('#feedback').textContent(), /before saving/);
   await page.locator('#factor-number').fill('1.5');
+  assert.equal(await page.locator('#commission').inputValue(), '10');
+  for (const value of ['0', '13', '100']) {
+    await page.locator('#commission').fill(value);
+    assert.equal(await page.locator('#commission-error').isVisible(), false);
+    assert.ok(
+      (await page.locator('#rule-summary').textContent()).includes(`commission ≤${value}%`)
+    );
+  }
+  for (const value of ['13.5', '-1', '101', '']) {
+    await page.locator('#commission').fill(value);
+    assert.equal(await page.locator('#commission-error').isVisible(), true);
+    await page.locator('#save-draft').click();
+    assert.match(await page.locator('#feedback').textContent(), /whole-number commission/);
+    await page.locator('#simulate').click();
+    assert.equal(await page.locator('#export-json').isDisabled(), true);
+    assert.match(await page.locator('#feedback').textContent(), /whole-number commission/);
+  }
+  await page.locator('#commission').fill('13');
+  await page.locator('#no-commission-limit').check();
+  assert.equal(await page.locator('#commission').isDisabled(), true);
+  assert.match(await page.locator('#rule-summary').textContent(), /no commission filter/);
+  await page.locator('#no-commission-limit').uncheck();
+  assert.equal(await page.locator('#commission').inputValue(), '13');
+  assert.equal(await page.locator('#commission').isEnabled(), true);
+  await page.locator('#commission').fill('19');
   await simulate();
   assert.equal(await page.locator('#simulation').isVisible(), true);
   assert.equal(await page.locator('#rules').isVisible(), false);
@@ -92,10 +117,7 @@ try {
     0,
     'validator names are rendered as text'
   );
-  assert.equal(
-    await page.locator('.execution-details button').isDisabled(),
-    true
-  );
+  assert.equal(await page.locator('.execution-details button').isDisabled(), true);
   assert.equal(await page.locator('#allocation-rows .allocation-row').count(), 10);
   assert.match(await page.locator('#table-count').textContent(), /1–10 of 25/);
   await page.locator('#next-page').click();
@@ -148,6 +170,7 @@ try {
   await page.reload();
   await ready();
   assert.equal(await page.locator('#exclusions li').count(), 1);
+  assert.equal(await page.locator('#commission').inputValue(), '19');
   await simulate();
   await page.locator('#review-proposal').click();
   assert.equal(await page.locator('#proposal-review').isVisible(), true);
@@ -162,6 +185,7 @@ try {
   assert.equal(review.proposalType, 'RULE_APPROVAL');
   assert.equal(review.status, 'DRAFT_NOT_SUBMITTED');
   assert.equal(review.rule.exclusions[0].validator, selected.address);
+  assert.equal(review.rule.commissionMaxBps, 1900);
   assert.equal(review.approval, null);
   assert.equal(review.execution.enabled, false);
   assert.deepEqual(review.execution.messages, []);
@@ -223,7 +247,7 @@ try {
   }
   assert.deepEqual(errors, []);
   console.log(
-    'Juno delegation browser: stage navigation, exact controls, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all three stages at four viewports passed.'
+    'Juno delegation browser: stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all three stages at four viewports passed.'
   );
 } finally {
   await browser?.close();

@@ -112,16 +112,30 @@ function renderRuleSummary() {
   $('rule-summary').textContent =
     `Equal allocation · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
 }
+function commissionValid() {
+  const input = $('commission');
+  return (
+    $('no-commission-limit').checked ||
+    (input.value !== '' && input.checkValidity() && Number.isInteger(Number(input.value)))
+  );
+}
+function showCommissionError() {
+  const valid = commissionValid();
+  $('commission-error').hidden = valid;
+  $('commission').setAttribute('aria-invalid', String(!valid));
+}
+function restoreCommissionInput() {
+  const unlimited = rules.commissionMaxBps === null;
+  $('no-commission-limit').checked = unlimited;
+  $('commission').disabled = unlimited;
+  $('commission').value = unlimited ? '10' : String(rules.commissionMaxBps / 100);
+  showCommissionError();
+}
 function renderRules() {
   $('factor').value = rules.factorTenths;
   $('factor').setAttribute('aria-valuetext', (rules.factorTenths / 10).toFixed(1) + ' times');
   $('factor-number').value = (rules.factorTenths / 10).toFixed(1);
   $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
-  const commission = rules.commissionMaxBps === null ? 'none' : String(rules.commissionMaxBps);
-  if (![...$('commission').options].some((o) => o.value === commission)) {
-    $('commission').append(new Option(`${Number(commission) / 100}%`, commission));
-  }
-  $('commission').value = commission;
   const cap = data ? capFraction(rules, data.activeCount) : null;
   $('cap-description').textContent = cap
     ? `Maximum projected voting power: ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}% with ${data.activeCount} active validators.`
@@ -442,6 +456,10 @@ async function runSimulation() {
     if (!data || !evidence) throw Error('Load programme data first.');
     if (!$('factor-number').checkValidity() || !$('factor-number').value)
       throw Error('Enter a factor from 1.0 to 2.0 in steps of 0.1.');
+    if (!commissionValid())
+      throw Error(
+        'Enter a whole-number commission limit from 0 to 100, or select no commission limit.'
+      );
     invalidate('Calculating the proposed allocation…');
     const token = revision;
     const result = simulate(rules, data, amount($('programme-amount').value.trim()), evidence);
@@ -532,10 +550,17 @@ $('factor-number').addEventListener('input', () => {
   renderRules();
   $('factor-number').value = currentInput;
 });
-$('commission').addEventListener('change', () => {
-  rules.commissionMaxBps = $('commission').value === 'none' ? null : Number($('commission').value);
+function updateCommission() {
+  $('commission').disabled = $('no-commission-limit').checked;
+  showCommissionError();
+  if (commissionValid())
+    rules.commissionMaxBps = $('no-commission-limit').checked
+      ? null
+      : Number($('commission').value) * 100;
   invalidate();
-});
+}
+$('commission').addEventListener('input', updateCommission);
+$('no-commission-limit').addEventListener('change', updateCommission);
 $('programme-amount').addEventListener('input', () => invalidate());
 $('add-exclusion').addEventListener('click', () => {
   try {
@@ -574,6 +599,11 @@ $('save-draft').addEventListener('click', () => {
       $('factor-number').focus();
       return;
     }
+    if (!commissionValid()) {
+      tell('Enter a whole-number commission limit from 0 to 100 before saving the rules.', 'error');
+      $('commission').focus();
+      return;
+    }
     localStorage.setItem(key, JSON.stringify(policy(rules)));
     $('draft-status').textContent = 'Saved locally · unapproved';
     tell(
@@ -585,6 +615,7 @@ $('save-draft').addEventListener('click', () => {
 });
 $('reset-draft').addEventListener('click', () => {
   rules = defaultPolicy();
+  restoreCommissionInput();
   $('factor-error').hidden = true;
   $('factor-number').removeAttribute('aria-invalid');
   try {
@@ -661,5 +692,6 @@ try {
 } catch {
   tell('Saved draft is invalid or unavailable. Default rules loaded.');
 }
+restoreCommissionInput();
 renderRules();
 load();
