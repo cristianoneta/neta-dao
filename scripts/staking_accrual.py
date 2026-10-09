@@ -3,6 +3,7 @@ from collections import defaultdict
 from decimal import Decimal, localcontext, ROUND_DOWN
 from datetime import datetime, timedelta, timezone
 import json
+import time
 from pathlib import Path
 from community_block_ledger import attributes, coins, header, first_at, instant, stamp, write, DISTRIBUTION
 
@@ -106,15 +107,13 @@ def interval(opening, closing, claims):
 
 
 def closing_sample(dao, base, opening, target):
-    from update_dao_directory import get
     from update_delegation_treasury import staking_positions
+    from staking_reward_rpc import historical_rewards, RPC
     first = first_at(target, opening, header())
     anchor = header(first['height'] - 1)
-    response = get(base, '/cosmos/distribution/v1beta1/delegators/' + dao['core'] + '/rewards', anchor['height'])
-    owner = get(base, '/cosmos/distribution/v1beta1/delegators/' + dao['core'] + '/withdraw_address', anchor['height'])
-    if owner['withdraw_address'] != ADDRESS: raise ValueError('Reward withdrawal owner changed')
+    response = historical_rewards(dao['core'], anchor['height'])
     rewards = staking_positions([], [], response, ADDRESS)['rewards']
-    return {**anchor, 'boundary_at': target, 'rewards': totals(rewards), 'source': base, 'method': 'withdrawable-rewards-truncated-per-validator'}
+    return {**anchor, 'boundary_at': target, 'rewards': totals(rewards), 'source': RPC, 'method': 'withdrawable-rewards-truncated-per-validator'}
 
 
 def validate(data):
@@ -128,17 +127,24 @@ def validate(data):
     return previous
 
 
-def collect(dao, snapshot, events, path=OUT):
+def next_boundary(opening):
+    return (instant(opening.get('boundary_at', opening['timestamp'])).date() + timedelta(days=1)).isoformat() + 'T00:00:00Z'
+
+
+def collect(dao, snapshot, events, path=OUT, *, max_intervals=3, max_seconds=90):
+    if type(max_intervals) is not int or not 1 <= max_intervals <= 7 or not 0 < max_seconds <= 120:
+        raise ValueError('Invalid reward catch-up budget')
+    if dao['core'] != ADDRESS or snapshot.get('chain_id') != 'juno-1' or snapshot.get('treasury_address') != ADDRESS:
+        raise ValueError('Reward snapshot identity mismatch')
+    latest = instant(snapshot['generated_at'])
+    deadline = time.monotonic() + max_seconds
     today = datetime.now(timezone.utc).date().isoformat()
+    created = not path.exists()
     if path.exists():
         data = json.loads(path.read_text()); opening = validate(data)
         for row in data['intervals']:
             if claim_rows(events, row['start'], row['end']) != row['claims']:
                 raise ValueError('Recorded reward claims changed; retained accrual requires reconciliation')
-        if data.get('last_sample_day') == today: return data
-        target = (instant(opening.get('boundary_at', opening['timestamp'])).date() + timedelta(days=1)).isoformat() + 'T00:00:00Z'
-        if instant(target) >= instant(snapshot['generated_at']): return data
-        closing = closing_sample(dao, snapshot['balance_source'], opening, target)
     else:
         history = json.loads((ROOT / 'data/treasury/juno-delegation-history.json').read_text())
         candidates = [r for r in history['snapshots'] if START <= r['generated_at'] < snapshot['generated_at']]
@@ -146,14 +152,32 @@ def collect(dao, snapshot, events, path=OUT):
         opening = sample({**archived, 'chain_id': 'juno-1', 'treasury_address': ADDRESS})
         data = {'schema_version':1, 'chain_id':'juno-1', 'treasury_address':ADDRESS,
                 'accounting_start':START, 'opening':opening, 'intervals':[]}
-        closing = sample(snapshot)
-    sources = events.get('sources', [])
-    if events.get('status') != 'PARTIAL' or len(sources) != 1 or sources[0].get('last_scanned_height', 0) < closing['height']:
-        raise ValueError('Receipt scan does not cover the reward sample')
-    if closing['height'] > opening['height']:
+    for _ in range(max_intervals):
+        target = next_boundary(opening)
+        if instant(target) >= latest:
+            # Preserve the original first, intraday checkpoint without booking
+            # an opening balance as income. Later runs close UTC days only.
+            if not created or data['intervals'] or snapshot['height'] <= opening['height']:
+                break
+            closing = sample(snapshot)
+        else:
+            if time.monotonic() >= deadline:
+                break
+            closing = closing_sample(dao, snapshot['balance_source'], opening, target)
+        sources = events.get('sources', [])
+        if events.get('status') != 'PARTIAL' or len(sources) != 1 or sources[0].get('last_scanned_height', 0) < closing['height']:
+            raise ValueError('Receipt scan does not cover the reward sample')
         data['intervals'].append(interval(opening, closing, claim_rows(events, opening, closing)))
-    data.update(last_sample_day=today, last_success_at=stamp())
-    validate(data); write(path, data)
+        opening = closing
+        data.update(last_sample_day=today, last_success_at=stamp(),
+                    catchup_pending=instant(next_boundary(opening)) < latest)
+        # Commit each verified day. A later provider failure cannot erase it;
+        # the following timer run resumes from this exact checkpoint.
+        validate(data); write(path, data)
+    if created and not path.exists():
+        data.update(last_sample_day=today, last_success_at=stamp(), catchup_pending=instant(next_boundary(opening)) < latest)
+        validate(data); write(path, data)
+    data['catchup_pending'] = instant(next_boundary(opening)) < latest
     return data
 
 

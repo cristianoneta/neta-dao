@@ -12,6 +12,7 @@ import time
 
 MAX_BYTES = 25 * 1024 * 1024
 CADENCES = {"treasury": 35 * 60, "main": 65 * 60, "members": 65 * 60}
+ACCRUAL_MAX_AGE = 26 * 60 * 60
 SOURCES = {
     "data/treasury/current.json": "treasury",
     "data/treasury/juno-community-pool.json": "treasury",
@@ -118,6 +119,27 @@ def check(root, *, now=None):
             issues.append("invalid-price-validity")
         elif now >= expires:
             issues.append("price-expired")
+    except (OSError, ValueError, TypeError, OverflowError):
+        issues.append("snapshot-unavailable")
+    rows.append({"path": name, "ok": not issues, "issues": issues, "warnings": []})
+    name, issues = "data/treasury/juno-delegation-accounting.json", []
+    try:
+        value = read_object(root, name)
+        issues += age_issues(timestamp(value.get("checked_at")), now, CADENCES["treasury"])
+        if value.get("chain_id") != "juno-1" or value.get("dao_id") != "juno-delegation" or value.get("schema_version") != 4:
+            issues.append("invalid-source-identity")
+        if value.get("accrual_refresh_status") != "completed":
+            issues.append("staking-accrual-refresh-unavailable")
+        coverage = value.get("accrual_coverage")
+        if not isinstance(coverage, dict) or coverage.get("status") != "CURRENT":
+            issues.append("staking-accrual-coverage-unavailable")
+        if not isinstance(coverage, dict):
+            raise ValueError("staking coverage missing")
+        if (type(coverage.get("intervals")) is not int or coverage["intervals"] < 1
+                or type(coverage.get("through_height")) is not int or coverage["through_height"] < 1):
+            issues.append("staking-accrual-evidence-missing")
+        issues += ["staking-accrual:" + issue for issue in age_issues(
+            timestamp(coverage.get("through_time")), now, ACCRUAL_MAX_AGE)]
     except (OSError, ValueError, TypeError, OverflowError):
         issues.append("snapshot-unavailable")
     rows.append({"path": name, "ok": not issues, "issues": issues, "warnings": []})

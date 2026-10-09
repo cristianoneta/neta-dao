@@ -27,6 +27,10 @@ class PublishedFreshness(unittest.TestCase):
         self.put('data/daos/membership-status.json', {'checked_at': stamp, 'daos': {
             name: {'status': 'completed'} for name in ('neta', 'neta-operations', 'juno')}})
         self.price(NOW, NOW + 86400)
+        self.put('data/treasury/juno-delegation-accounting.json', dict(
+            schema_version=4, chain_id='juno-1', dao_id='juno-delegation', checked_at=stamp,
+            accrual_refresh_status='completed', accrual_coverage=dict(
+                status='CURRENT', through_time=stamp, through_height=42, intervals=1)))
 
     def put(self, name, value):
         path = self.root / name
@@ -48,6 +52,18 @@ class PublishedFreshness(unittest.TestCase):
         result = status.check(self.root, now=NOW)
         self.assertTrue(result['ok'])
         self.assertIn('partial-valuation', result['sources'][0]['warnings'])
+
+    def test_fresh_holdings_cannot_hide_failed_or_stale_staking_accrual(self):
+        name = 'data/treasury/juno-delegation-accounting.json'
+        self.edit(name, accrual_refresh_status='unavailable')
+        self.assertIn('staking-accrual-refresh-unavailable', self.issues(name))
+        self.assertFalse(status.check(self.root, now=NOW)['ok'])
+        self.edit(name, accrual_refresh_status='completed', accrual_coverage=dict(
+            status='CURRENT', through_time=datetime.fromtimestamp(NOW-26*3600-1, timezone.utc).isoformat(),
+            through_height=42, intervals=1))
+        self.assertIn('staking-accrual:stale-observation', self.issues(name))
+        self.edit(name, accrual_refresh_status='catching_up')
+        self.assertIn('staking-accrual-refresh-unavailable', self.issues(name))
 
     def test_fresh_check_time_cannot_hide_retained_old_data(self):
         self.edit('data/daos/neta.json', generated_at=datetime.fromtimestamp(NOW-3901, timezone.utc).isoformat())

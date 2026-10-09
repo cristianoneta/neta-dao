@@ -46,12 +46,13 @@ Mainnet messaging gates are unchanged. No real purchase is part of automated QA.
   existing Juno pages at desktop and mobile sizes. The first run exposed an
   asynchronous navigation assertion and a genuine partial-verification race.
   Price and pool reads now publish success together; stale pricing cannot be
-  overwritten by a later pool response. Inspect the final head artifacts before
-  release. Local Chromium installation is unavailable in this environment.
-- Before integration, complete browser checks and visual review, inspect existing
-  Juno tool pages for shared-CSS regressions, and verify current read-only provider
-  availability. Then pass required CI and use the deliberate Cloudflare release
-  workflow. A branch or PR is not a production deployment.
+  overwritten by a later pool response. Final purchase/hub screenshots from run
+  37885814168 were inspected, as were the unchanged Juno pages' regression
+  screenshots. Local Chromium installation is unavailable in this environment.
+- Browser and visual review are complete. Read-only checks verified current
+  pair/code/fee/token identity and Juno RPC availability. Required CI remains the
+  integration gate; use the deliberate Cloudflare release workflow and inspect
+  both live domains afterward. A merged PR is not a production deployment.
 
 WYND spread reference: `wynddao/wynddex`, `contracts/pair/src/contract.rs` and
 `packages/wyndex/src/pair/utils.rs` (`assert_max_spread`). This source comparison does

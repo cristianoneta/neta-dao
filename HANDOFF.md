@@ -1,6 +1,6 @@
 # Cosmoot public handoff
 
-Updated 8 October 2026. This file contains public project status and development
+Updated 9 October 2026. This file contains public project status and development
 boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 [documentation policy](docs/DOCUMENTATION_PRIVACY.md) and applicable AGENTS.md.
 Operator access, private backup locations and exact continuation commands belong
@@ -15,10 +15,12 @@ shared graphite/mint style. This is a release candidate, not a published feature
 See [COMMUNITY_TOOLS](docs/COMMUNITY_TOOLS.md) for provenance and remaining checks.
 
 Juno Delegation Programme holdings refresh, but daily staking accrual is stalled:
-the historical rewards query at height 42442228 reports pruned state. Preserve the
-last verified interval; another timer run alone cannot restore the missing history.
-A verified archival provider, bounded catch-up and explicit accrual health reporting
-remain open. Do not replace missing daily evidence with current unclaimed rewards.
+the historical REST query at height 42442228 reports pruned state. The existing RPC
+reproduced the retained checkpoint and three missing daily boundaries. A reviewed
+historical adapter, bounded resumable catch-up and accounting health check are
+prepared; they are not installed on the collector and no live backfill is claimed.
+See [STAKING_REWARDS_CATCHUP](docs/STAKING_REWARDS_CATCHUP.md). Preserve verified
+intervals; do not replace missing daily evidence with current unclaimed rewards.
 
 The backend is active on OVH. Final source quiescence, verified database transfer,
 original identities, admission settings and target activation are confirmed in the

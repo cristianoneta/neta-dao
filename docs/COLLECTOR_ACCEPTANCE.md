@@ -38,6 +38,13 @@ not changes to the signed NNS price's 24-hour validity. An old price can still b
 valid for purchase while collection is unhealthy. Expiry stays anchored to the
 original observation; no date or signature is changed by these checks.
 
+The 9 October candidate adds an eleventh source: delegation accounting. It requires
+a fresh 35-minute observation, completed accrual, CURRENT coverage, positive
+interval/height evidence and a closing timestamp no older than 26 hours. Fresh
+holdings cannot conceal failed or incomplete rewards. This candidate still needs
+installation and scheduled-cycle acceptance; the existing installed checker does
+not yet establish this condition. See [STAKING_REWARDS_CATCHUP](STAKING_REWARDS_CATCHUP.md).
+
 PARTIAL asset valuation remains a warning, rather than being mislabeled stale.
 Missing/failed child refreshes, incomplete membership, stale/future observations
 and missing/corrupt files fail the check. Success proves neither signature validity,

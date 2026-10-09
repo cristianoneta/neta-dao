@@ -159,7 +159,7 @@ def run():
     from community_statement import prices_for
     try:
         accrued = accrue(dao, snapshot, bank_feed)
-        ledger['accrual_refresh_status'] = 'completed'
+        ledger['accrual_refresh_status'] = 'catching_up' if accrued.get('catchup_pending') else 'completed'
     except Exception as error:
         accrued = json.loads(archive.read_text()) if archive.exists() else None
         ledger['accrual_refresh_status'] = 'unavailable'
@@ -167,12 +167,15 @@ def run():
     if accrued:
         events, ledger = project(dao, bank_feed, ledger, accrued, prices_for(accrued['intervals'], PRICES))
         if ledger['accrual_refresh_status'] != 'completed':
-            ledger['accrual_coverage']['status'] = 'UNAVAILABLE'
-            events['accrual_coverage']['status'] = 'UNAVAILABLE'
+            coverage_status = 'CATCHING_UP' if ledger['accrual_refresh_status'] == 'catching_up' else 'UNAVAILABLE'
+            ledger['accrual_coverage']['status'] = coverage_status
+            events['accrual_coverage']['status'] = coverage_status
         atomic(path, events)
     atomic(ledger_path, ledger)
     print(json.dumps({'snapshot': snapshot, 'events_status': events['status'], 'events': len(events['events']),
-                      'accounting_status': ledger['refresh_status']}))
+                      'accounting_status': ledger['refresh_status'], 'accrual_status': ledger['accrual_refresh_status']}))
+    if ledger['accrual_refresh_status'] != 'completed':
+        raise RuntimeError('Daily staking accrual incomplete; verified checkpoints and independent holdings retained.')
 
 
 if __name__ == '__main__': run()

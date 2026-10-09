@@ -48,7 +48,9 @@ class Accrual(unittest.TestCase):
   data={'schema_version':1,'chain_id':'juno-1','treasury_address':ADDRESS,'opening':a,'intervals':[interval(a,b,[])],'last_sample_day':datetime.now(timezone.utc).date().isoformat()}
   with TemporaryDirectory() as tmp, patch('staking_accrual.closing_sample',side_effect=AssertionError('unnecessary query')):
    p=Path(tmp)/'daily.json';p.write_text(json.dumps(data))
-   self.assertEqual(collect(DAO,{}, {'events':[]},p),data)
+   snapshot={'chain_id':'juno-1','treasury_address':ADDRESS,'height':300,'generated_at':'2026-10-06T20:00:00Z'}
+   self.assertEqual(collect(DAO,snapshot, {'events':[]},p),{**data,'catchup_pending':False})
+   self.assertEqual(json.loads(p.read_text()),data)
  def test_zero_expense_review_rejects_extra_outflow_and_cross_message_masking(self):
   tx=[ev('transfer',sender=DISTRIBUTION,recipient='a',amount='20ujuno',msg_index=0),ev('withdraw_rewards',amount='20ujuno',msg_index=0)]
   row={'id':'juno-1:distribution:1-1','start':{'height':1,'timestamp':START},'end':{'height':1},'blocks':1,'module_transfers':[],'transaction_evidence':[{'height':1,'transactions':[{'tx_index':0,'events':tx}]}]}
