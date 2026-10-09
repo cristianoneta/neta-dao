@@ -52,7 +52,8 @@ def main():
                          (["scripts/community_block_ledger.py", "--seconds", "180"], 210),
                          (["scripts/update_generic_accounting.py", "--collect"], 240),
                          (["scripts/update_delegation_treasury.py"], 300)],
-            "main": [(["scripts/update_main_dao.py"], 360)],
+            "main": [(["scripts/update_main_dao.py"], 360),
+                     (["scripts/update_delegation_planner.py"], 165)],
             "members": [(["scripts/update_members.py"], 570)],
         }
         record(STATE, job, "running")

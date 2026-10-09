@@ -1,5 +1,6 @@
 [
   "data/daos/juno.json",
+  "data/daos/juno-delegation-planner.json",
   "data/daos/membership-status.json",
   "data/daos/neta-operations.json",
   "data/daos/neta-status.json",

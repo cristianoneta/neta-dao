@@ -57,3 +57,11 @@ Mainnet messaging gates are unchanged. No real purchase is part of automated QA.
 WYND spread reference: `wynddao/wynddex`, `contracts/pair/src/contract.rs` and
 `packages/wyndex/src/pair/utils.rs` (`assert_max_spread`). This source comparison does
 not substitute for the configured on-chain pair/code/fee checks.
+
+## Delegation Programme addition — 9 October 2026
+
+The Juno project section now includes `/community-tools/juno/delegation/`, using
+the same header, design tokens and card language. This is a planning build with
+real snapshot inputs, current/target comparison and rule-proposal draft downloads.
+Execution remains unavailable pending verified governance integration. See
+[the implementation and rollout boundary](JUNO_DELEGATION_PROGRAMME.md).

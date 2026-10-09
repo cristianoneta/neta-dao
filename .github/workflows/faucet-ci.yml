@@ -28,6 +28,7 @@ jobs:
       - run: cd spikes/relay-corecrypto && npx playwright install --with-deps chromium
       - run: node spikes/relay-corecrypto/browser-faucet.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/community-tools-screenshots" node spikes/relay-corecrypto/browser-community-tools.mjs
+      - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/community-tools-screenshots" node spikes/relay-corecrypto/browser-juno-delegation.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

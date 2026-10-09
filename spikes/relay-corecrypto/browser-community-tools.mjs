@@ -44,11 +44,11 @@ try{
   const shots=process.env.NNS_SCREENSHOT_DIR;if(shots)await mkdir(shots,{recursive:true});
   const screenshot=async name=>{if(shots){await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`${shots}/${name}.png`,fullPage:!name.includes('review')});}};
   await page.goto(origin+'/community-tools/');
-  assert.equal(await page.locator('.tool-card:visible').count(),3);
+  assert.equal(await page.locator('.tool-card:visible').count(),4);
   await page.locator('[data-project-link="juno"]').click();
   await page.waitForFunction(()=>document.querySelector('[data-project-link="juno"]').getAttribute('aria-current')==='true');
-  assert.equal(await page.locator('.tool-card:visible').count(),2);
-  assert.deepEqual(await page.locator('.tool-card:visible h3').allTextContents(),['Juno Faucet','Validator Upgrade Status']);
+  assert.equal(await page.locator('.tool-card:visible').count(),3);
+  assert.deepEqual(await page.locator('.tool-card:visible h3').allTextContents(),['Juno Faucet','Validator Upgrade Status','Delegation Programme']);
   await page.locator('[data-project-link="neta"]').click();
   await page.waitForFunction(()=>document.querySelector('[data-project-link="neta"]').getAttribute('aria-current')==='true');
   assert.equal(await page.locator('.tool-card:visible').count(),1);
