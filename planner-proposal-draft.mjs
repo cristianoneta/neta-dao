@@ -1,7 +1,6 @@
 import { PROGRAMME, policy, snapshot, units } from './juno-delegation-core.mjs';
 
 import { rewardMessages } from './juno-governance-core.mjs';
-import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 
 export const PLANNER_DRAFT_PREFIX = 'cosmoot:juno:planner-proposal:';
 const identifier = /^[a-f0-9-]{36}$/;
@@ -79,17 +78,11 @@ export function claimProposal(input, now = Date.now(), rewardsSource = null) {
     .sort((a, b) => a.address.localeCompare(b.address));
   if (!validators.length) throw Error('No current programme delegations to claim from.');
   const actions = rewardMessages(validators.map((v) => v.address));
-  let estimate =
-    'The current claimable reward estimate is unavailable. Refresh rewards data before deciding whether to submit.';
-  try {
-    const rewards = claimRewardsOverview(rewardsSource, s, now);
-    estimate = `Estimated claimable staking rewards: ${units(rewards.amountRaw)} JUNO${rewards.usd === null ? '' : ` (approximately USD ${rewards.usd.toFixed(2)})`}. Rewards snapshot: ${rewards.observedAt}, block ${rewards.height}${rewards.priceObservedAt ? `; indicative USD price snapshot: ${rewards.priceObservedAt}` : ''}. The amount can change before governance execution.`;
-  } catch {}
   return draft(
     'CLAIM_REWARDS',
     'Juno Delegation Programme — claim staking rewards',
-    `Claim staking rewards from the programme’s current delegations. ${estimate}`,
-    `# Claim programme staking rewards\n\nDecision requested: claim programme staking rewards through Juno governance.\nChain: juno-1\nDecision and submission: Juno native governance\nTopic: Delegation Programme\nExecuting account: ${PROGRAMME}\n\nAsk Juno governance to execute ${validators.length} reward-withdrawal actions through the programme contract’s execute_admin_msgs entry point for the programme delegations recorded at block ${s.height} (${s.blockTime}). Include jailed and standby validators with recorded delegations; allocation exclusions do not exclude reward claims.\n\nJuno stakers decide this native governance proposal. The proposer submits it from their own wallet; after approval, the Juno governance module instructs the programme contract to execute the withdrawals. Membership of the Delegation DAO is not required to submit this proposal. They do not delegate, redelegate or change the withdrawal address. Confirm the current withdrawal address belongs to the programme treasury before submission; the planner snapshot does not verify that address. ${estimate} Refresh the delegation list, verify the contract’s supported messages and simulate fees/message limits before submission.\n\nAfter the proposal has passed and execution is confirmed, return to the planner and refresh programme data. Only the confirmed spendable balance is included in a new allocation. Keep at least 50 JUNO liquid and round the suggested allocation down to whole hundreds. The estimate is informational and never added to the allocation budget before confirmed execution.`,
+    `This proposal claims the accrued staking rewards from the Juno Delegation Programme’s ${validators.length} listed validator positions and makes them available in the programme treasury.`,
+    'Existing delegations remain unchanged. No tokens are delegated, redelegated or transferred to another recipient.',
     actions
   );
 }

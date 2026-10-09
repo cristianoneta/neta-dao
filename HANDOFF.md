@@ -8,24 +8,22 @@ in the owner's private operations handoff, outside this repository.
 
 ## Current priority
 
-Release `e5ffabab3324a2c4d7a8e5705d5ae24d5b216351` is published by manual
-run [37946802277](https://github.com/cristianoneta/neta-dao/actions/runs/37946802277),
-with all 18 jobs successful. The owner reported a remaining claim-entry failure.
-A live click reproduced `Invalid programme reward validators.`: the native claim
-adapter rejected long DAO validator addresses already supported by the planner.
+Release `ef7873b191afa26911363967edbd927eacf061a6` is published by manual
+run [37963591472](https://github.com/cristianoneta/neta-dao/actions/runs/37963591472),
+with all 18 jobs successful. Both domains were checked: the claim button opens
+the populated draft and current rewards, USD estimate and timestamp are visible.
+No transaction was submitted during acceptance.
 
-The current correction shares the planner's 20-/32-byte address shape check,
-retains all held positions, and puts errors beside the actual button. Draft
-storage must survive readback before navigation. The existing holdings snapshot
-supplies claimable JUNO, optional indicative USD and source time; unavailable or
-stale observations never imply zero. The estimate also enters the prepared draft.
-These corrections require CI and a separate manual website release before live
-acceptance. No wallet transaction or collector change is needed for this UI fix.
+The next candidate adds shared UNI-7 review before native submission. Any wallet
+can submit a finalized, hash-verified programme review with its own initial
+deposit and fee. Once the native proposal exists, other wallets can contribute
+part or all of the remaining deposit directly to Juno governance. Review has no
+funding panel, pledges or escrow. Claim prose explains only the action and effect;
+current estimates stay in the planner. CI and a manual website release remain
+required. See [review and deposits](docs/JUNO_COMMUNITY_FUNDING.md).
 
-Native claims remain Juno governance decisions under the Delegation Programme
-topic, with two-source preflight, explicit deposit/fee review and persistent
-transaction journals. Stricter standby selection, verified rule approval,
-allocation execution and native voting remain separate work.
+Stricter standby selection, verified rule approval, allocation execution and native
+voting remain separate work. No live signing or deposit is claimed for this candidate.
 
 The current development priority is the Juno **Delegation Programme** planner,
 placed under Community Tools → Juno. Its first implementation adds capped equal
@@ -41,7 +39,7 @@ V1 decisions, inactive V2 scope, arithmetic and rollout requirements.
 The owner requested project sections in Community Tools: Juno owns the existing
 Faucet and Validator Upgrade Status; NETA adds **Buy NETA on WYND**. The
 released site contains the menu and a port of the old Rescue NETA functionality
-in the shared graphite/mint style. The criteria and reserve revisions are live; native planner proposal submission is published; the claim-entry correction is the new candidate.
+in the shared graphite/mint style. The criteria and reserve revisions are live; native planner proposal submission is published; the shared-review and deposit flow is the new candidate.
 See [COMMUNITY_TOOLS](docs/COMMUNITY_TOOLS.md) for provenance and remaining checks.
 
 Juno Delegation Programme holdings refresh, but daily staking accrual is stalled:

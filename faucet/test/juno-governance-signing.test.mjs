@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TxRaw, TxBody, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { MsgSubmitProposal } from 'cosmjs-types/cosmos/gov/v1/tx';
+import { MsgSubmitProposal, MsgDeposit } from 'cosmjs-types/cosmos/gov/v1/tx';
 import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
 import { sha256 } from '@cosmjs/crypto';
 import { toHex } from '@cosmjs/encoding';
-import { message, submit } from '../src/juno-governance-signing.mjs';
+import { message, submit, depositMessage, contribute } from '../src/juno-governance-signing.mjs';
 import { GOVERNANCE, SUBMIT, rewardMessages } from '../../juno-governance-core.mjs';
 const sender = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
 const content = {
@@ -126,4 +126,78 @@ test('failure to persist the draft association prevents broadcast and keeps the 
   assert.equal(h.rows.size, 1);
   await assert.rejects(h.run(), /UNKNOWN/);
   assert.equal(h.signs(), 1);
+});
+test('a sponsor signs their own proposer/deposit while the shared review identity stays intact', () => {
+  const metadata = 'cosmoot:review:uni-7:contract:17:' + 'a'.repeat(64);
+  const p = message({ ...content, metadata }, sender, '5000000000');
+  assert.equal(p.value.metadata, metadata);
+  assert.equal(p.value.proposer, sender);
+  assert.equal(p.value.initialDeposit[0].amount, '5000000000');
+});
+test('contribution serialization and signing bind depositor, proposal ID, amount, fee and pending receipt', async () => {
+  for (const mode of ['ok', 'id', 'amount', 'sender', 'lost', 'fee']) {
+    const rows = new Map();
+    let broadcasts = 0,
+      signs = 0,
+      saved = false;
+    const storage = {
+      getItem: (k) => rows.get(k) ?? null,
+      setItem: (k, v) => rows.set(k, v),
+      removeItem: (k) => rows.delete(k)
+    };
+    const client = {
+      getChainId: async () => 'juno-1',
+      getTx: async () => null,
+      sign: async (_sender, [m], exactFee, memo) => {
+        signs++;
+        assert.equal(m.value.proposalId, 901n);
+        assert.equal(m.value.depositor, sender);
+        if (mode === 'id') m.value.proposalId = 902n;
+        if (mode === 'amount') m.value.amount[0].amount = '5000000000';
+        if (mode === 'sender') m.value.depositor = 'different';
+        return TxRaw.fromPartial({
+          bodyBytes: TxBody.encode(
+            TxBody.fromPartial({
+              messages: [{ typeUrl: m.typeUrl, value: MsgDeposit.encode(m.value).finish() }],
+              memo
+            })
+          ).finish(),
+          authInfoBytes: AuthInfo.encode(
+            AuthInfo.fromPartial({
+              signerInfos: [{ sequence: 1n }],
+              fee: { gasLimit: BigInt(exactFee.gas), amount: mode === 'fee' ? [] : exactFee.amount }
+            })
+          ).finish(),
+          signatures: [new Uint8Array(64)]
+        });
+      },
+      broadcastTx: async (bytes) => {
+        assert.equal(saved, true);
+        broadcasts++;
+        if (mode === 'lost') throw Error('Lost response');
+        return { transactionHash: toHex(sha256(bytes)).toUpperCase(), height: 42, code: 0 };
+      }
+    };
+    const run = () =>
+      contribute(client, '901', sender, '50000000', fee, {
+        assertWallet: async () => {},
+        beforeSign: async () => {},
+        beforeBroadcast: async () => {
+          saved = true;
+        },
+        journalOptions: { storage, locks: { request: async (_key, _opts, fn) => fn({}) } }
+      });
+    if (mode === 'ok') {
+      await run();
+      assert.equal(broadcasts, 1);
+    } else {
+      await assert.rejects(run());
+      assert.equal(broadcasts, mode === 'lost' ? 1 : 0);
+    }
+    if (mode === 'lost') {
+      await assert.rejects(run(), /UNKNOWN/);
+      assert.equal(signs, 1);
+    }
+  }
+  assert.throws(() => depositMessage('0', sender, '1'));
 });

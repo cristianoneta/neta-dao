@@ -4,6 +4,7 @@ import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { fixture } from '../../tests/fixtures/delegation-planner.mjs';
 import { rewardsFixture } from '../../tests/fixtures/claim-rewards.mjs';
+import { exerciseReviewFunding } from './exercise-review-funding.mjs';
 const root = new URL('../../', import.meta.url),
   history = JSON.parse(await readFile(new URL('data/validator-upgrades/juno-v31.json', root)));
 const sample = fixture();
@@ -43,7 +44,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-let browser;
+let browser, diagnosticPage;
 try {
   browser = await chromium.launch({
     headless: true,
@@ -52,6 +53,7 @@ try {
   const page = await browser.newPage({ serviceWorkers: 'block' }),
     errors = [],
     origin = `http://127.0.0.1:${server.address().port}`;
+  diagnosticPage = page;
   page.on('pageerror', (error) => errors.push(error.message));
   // Every external response is synthetic, including early history requests.
   await page.route(/^https?:\/\/(?!127\.0\.0\.1[:/])/, (route) =>
@@ -324,7 +326,11 @@ try {
     document.getElementById('proposal-title').value.includes('claim staking rewards')
   );
   assert.equal(await page.locator('#governance-view').isVisible(), true);
-  assert.match(await page.locator('#proposal-summary').inputValue(), /3837025.339927 JUNO/);
+  assert.match(
+    await page.locator('#proposal-summary').inputValue(),
+    /claims the accrued staking rewards/
+  );
+  assert.doesNotMatch(await page.locator('#proposal-body').inputValue(), /USD|snapshot|Estimated/);
   assert.equal(await page.locator('#subdao-select').inputValue(), 'juno-delegation');
   const govMessages = JSON.parse(await page.locator('#proposal-actions').inputValue());
   assert.equal(govMessages.length, 1);
@@ -341,201 +347,7 @@ try {
     await page.locator('#planner-proposal-context-text').innerText(),
     /Juno native governance/
   );
-  assert.match(await page.locator('.testnet-pill').innerText(), /JUNO MAINNET · GOVERNANCE/);
-  assert.equal(await page.locator('#planner-native-panel').isVisible(), true);
-  assert.equal(await page.locator('#native-funding-panel').isVisible(), false);
-  assert.equal(await page.locator('#primary-action').innerText(), 'CONNECT KEPLR · JUNO');
-  assert.equal(
-    await page.evaluate(
-      () => JSON.parse(localStorage.getItem('neta-governance-local-draft:juno-delegation')).title
-    ),
-    'Preserved draft'
-  );
-  // A mainnet wallet and the native proposal adapter are mocked: never sign or broadcast.
-  const proposer = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
-  const preflightQueries = [];
-  let pauseProgramme = false,
-    txStatus = 'unknown';
-  const testHash = 'A'.repeat(64);
-  await page.route(/^https:\/\//, (route) => {
-    const url = route.request().url();
-    preflightQueries.push(new URL(url).pathname);
-    let body = { data: { proposals: [] } };
-    if (url.endsWith('/latest'))
-      body = {
-        block: {
-          header: { chain_id: 'juno-1', height: '42500123', time: new Date().toISOString() }
-        }
-      };
-    else if (url.includes('/params/'))
-      body = {
-        params: {
-          min_deposit: [{ denom: 'ujuno', amount: '1000000000' }],
-          min_initial_deposit_ratio: '0.1'
-        }
-      };
-    else if (url.includes('/spendable_balances/'))
-      body = { balance: { denom: 'ujuno', amount: '2000000000' } };
-    else if (url.includes('/module_accounts/gov'))
-      body = { account: { name: 'gov', base_account: { address: govMessages[0].sender } } };
-    else if (url.includes('/smart/'))
-      body = {
-        data: url.endsWith(btoa('{"pause_info":{}}'))
-          ? pauseProgramme
-            ? { paused: { expiration: { at_height: 99999999 } } }
-            : { unpaused: {} }
-          : govMessages[0].sender
-      };
-    else if (url.includes('/contract/')) body = { contract_info: { code_id: '4047' } };
-    else if (url.includes('/withdraw_address')) body = { withdraw_address: sample.programme };
-    else if (url.includes('/txs/')) {
-      if (txStatus === 'unknown') return route.fulfill({ status: 404, body: 'not found' });
-      body = { tx_response: { txhash: testHash, height: '42500124', code: 0 } };
-    } else if (url.includes('/delegations/'))
-      body = {
-        delegation_responses: sample.validators.map((v) => ({
-          delegation: { delegator_address: sample.programme, validator_address: v.address },
-          balance: { denom: 'ujuno', amount: v.currentRaw }
-        })),
-        pagination: {}
-      };
-    return route.fulfill({
-      contentType: 'application/json',
-      headers: {
-        'x-cosmos-block-height': '42500123',
-        'access-control-allow-origin': '*',
-        'access-control-allow-headers': 'x-cosmos-block-height, content-type',
-        'access-control-allow-methods': 'GET, OPTIONS'
-      },
-      body: JSON.stringify(body)
-    });
-  });
-  const mockWallet = (proposer) => {
-    window.__plannerEnabledChains = [];
-    window.__plannerSubmitCount = 0;
-    window.__plannerSubmitMode = 'unexpected';
-    window.keplr = {
-      enable: async (chain) => window.__plannerEnabledChains.push(chain),
-      getOfflineSigner: () => ({
-        getAccounts: async () => [{ address: proposer }],
-        signDirect: async () => {
-          throw Error('unexpected signature');
-        }
-      }),
-      signDirect: async () => {
-        throw Error('unexpected signature');
-      }
-    };
-    window.NetaJunoGovernance = {
-      connect: async () => ({ disconnect() {} }),
-      simulate: async () => 100000,
-      fixedFee: () => ({ gas: '140000', amount: [{ denom: 'ujuno', amount: '10500' }] }),
-      submit: async (_client, _content, _sender, _deposit, _fee, guards) => {
-        window.__plannerSubmitCount++;
-        if (window.__plannerSubmitMode !== 'lost') throw Error('unexpected submission');
-        await guards.beforeSign();
-        await guards.assertWallet();
-        await guards.beforeBroadcast('A'.repeat(64));
-        throw Error('Synthetic lost response; outcome unknown');
-      }
-    };
-  };
-  await page.evaluate(mockWallet, proposer);
-  await page.locator('#primary-action').click();
-  await page.waitForFunction(
-    () => document.getElementById('primary-action').textContent === 'REVIEW JUNO PROPOSAL'
-  );
-  assert.deepEqual(await page.evaluate(() => window.__plannerEnabledChains), ['juno-1']);
-  pauseProgramme = true;
-  await page.locator('#primary-action').click();
-  await page.waitForFunction(() => document.getElementById('gov-status').dataset.state === 'error');
-  assert.match(await page.locator('#gov-status').innerText(), /pause state requires review/);
-  assert.equal(await page.locator('#planner-native-review').isVisible(), false);
-  pauseProgramme = false;
-  await page.locator('#primary-action').click();
-  await page.waitForFunction(
-    () =>
-      !document.getElementById('planner-native-review').hidden ||
-      document.getElementById('gov-status').dataset.state === 'error'
-  );
-  assert.equal(
-    await page.locator('#planner-native-review').isVisible(),
-    true,
-    await page.locator('#gov-status').innerText()
-  );
-  assert.ok(
-    preflightQueries.some((path) => path.includes('/delegations/')),
-    'Live preflight must be served by the synthetic API'
-  );
-  assert.equal(await page.locator('#planner-native-deposit').inputValue(), '100');
-  assert.match(
-    await page.locator('#planner-native-review-text').innerText(),
-    /Estimated fee: 0.0105 JUNO/
-  );
-  assert.equal(await page.locator('#primary-action').isDisabled(), true);
-  await page.locator('#planner-native-confirm').check();
-  assert.equal(await page.locator('#primary-action').isDisabled(), false);
-  for (const width of [1440, 768, 390, 320]) {
-    await page.setViewportSize({ width, height: 1000 });
-    assert.equal(
-      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
-      true
-    );
-    assert.equal(
-      await page.locator('#proposal-title').inputValue(),
-      'Juno Delegation Programme — claim staking rewards'
-    );
-    if (process.env.NNS_SCREENSHOT_DIR)
-      await page.screenshot({
-        path: `${process.env.NNS_SCREENSHOT_DIR}/juno-native-claim-${width}.png`,
-        fullPage: true
-      });
-  }
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.locator('#proposal-title').fill('Edited claim draft');
-  assert.equal(await page.locator('#planner-native-review').isVisible(), false);
-  assert.equal(await page.locator('#primary-action').innerText(), 'REVIEW JUNO PROPOSAL');
-  await page.evaluate(() => window.dispatchEvent(new Event('keplr_keystorechange')));
-  assert.equal(await page.locator('#primary-action').innerText(), 'CONNECT KEPLR · JUNO');
-  await page.locator('#save-local').click();
-  await page.reload();
-  await page.waitForFunction(
-    () => document.getElementById('proposal-title').value === 'Edited claim draft'
-  );
-  await page.evaluate(mockWallet, proposer);
-  await page.locator('#primary-action').click();
-  await page.waitForFunction(
-    () => document.getElementById('primary-action').textContent === 'REVIEW JUNO PROPOSAL'
-  );
-  await page.locator('#primary-action').click();
-  await page.waitForFunction(() => !document.getElementById('planner-native-review').hidden);
-  await page.locator('#planner-native-confirm').check();
-  await page.evaluate(() => (window.__plannerSubmitMode = 'lost'));
-  await page.locator('#primary-action').click();
-  await page.waitForFunction(
-    () => document.getElementById('primary-action').textContent === 'CHECK SUBMISSION STATUS'
-  );
-  assert.equal(await page.evaluate(() => window.__plannerSubmitCount), 1);
-  await page.locator('#primary-action').click();
-  await page.waitForFunction(() =>
-    document.getElementById('gov-status').textContent.includes('still unconfirmed')
-  );
-  assert.equal(await page.evaluate(() => window.__plannerSubmitCount), 1);
-  await page.reload();
-  await page.waitForFunction(
-    () => document.getElementById('primary-action').textContent === 'CHECK SUBMISSION STATUS'
-  );
-  txStatus = 'included';
-  await page.locator('#primary-action').click();
-  await page.waitForFunction(
-    () => document.getElementById('primary-action').textContent === 'SUBMISSION CONFIRMED'
-  );
-  assert.equal(await page.locator('#primary-action').isDisabled(), true);
-  assert.match(await page.locator('#action-hint').innerText(), /does not mean the proposal passed/);
-  await page.reload();
-  await page.waitForFunction(
-    () => document.getElementById('primary-action').textContent === 'SUBMISSION CONFIRMED'
-  );
+  await exerciseReviewFunding(page, origin, sample, govMessages);
   await page.locator('#new-draft').click();
   assert.equal(await page.locator('#proposal-title').inputValue(), 'Preserved draft');
   await page.goto(origin + '/community-tools/juno/delegation/');
@@ -549,7 +361,7 @@ try {
   );
   assert.deepEqual(JSON.parse(await page.locator('#proposal-actions').inputValue()), []);
   assert.match(await page.locator('#proposal-body').inputValue(), /Rule SHA-256:/);
-  assert.equal(await page.locator('#primary-action').innerText(), 'CONNECT KEPLR · JUNO');
+  assert.equal(await page.locator('#primary-action').innerText(), 'PUBLISH FOR REVIEW');
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
   await page.locator('#programme-amount').fill('99999999');
@@ -581,6 +393,16 @@ try {
   console.log(
     'Juno delegation browser: stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all three stages at four viewports passed.'
   );
+} catch (error) {
+  if (diagnosticPage && !diagnosticPage.isClosed()) {
+    console.error('Browser failure state:', await diagnosticPage.locator('body').innerText());
+    if (process.env.NNS_SCREENSHOT_DIR)
+      await diagnosticPage.screenshot({
+        path: `${process.env.NNS_SCREENSHOT_DIR}/juno-delegation-failure.png`,
+        fullPage: true
+      });
+  }
+  throw error;
 } finally {
   await browser?.close();
   await new Promise((resolve) => server.close(resolve));
