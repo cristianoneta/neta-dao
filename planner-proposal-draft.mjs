@@ -1,3 +1,4 @@
+import { claimMessages } from './juno-governance-core.mjs';
 import { PROGRAMME, policy, snapshot, units } from './juno-delegation-core.mjs';
 
 export const PLANNER_DRAFT_PREFIX = 'cosmoot:juno:planner-proposal:';
@@ -28,7 +29,26 @@ export function validatePlannerDraft(value) {
   }
   if (!Array.isArray(JSON.parse(value.values.actions_json)))
     throw Error('Invalid proposal actions.');
-  return structuredClone(value);
+  const result = structuredClone(value);
+  const actions = JSON.parse(result.values.actions_json);
+  // Upgrade only the previous exact withdrawal-only draft format; retain text.
+  if (
+    result.kind === 'CLAIM_REWARDS' &&
+    actions.length &&
+    actions.every(
+      (a) =>
+        Object.keys(a).join() === 'distribution' &&
+        Object.keys(a.distribution || {}).join() === 'withdraw_delegator_reward' &&
+        Object.keys(a.distribution.withdraw_delegator_reward || {}).join() === 'validator'
+    )
+  ) {
+    result.values.actions_json = JSON.stringify(
+      claimMessages(actions.map((a) => a.distribution.withdraw_delegator_reward.validator)),
+      null,
+      2
+    );
+  }
+  return result;
 }
 function draft(kind, title, summary, body, actions = []) {
   return validatePlannerDraft({
@@ -68,14 +88,12 @@ export function claimProposal(input, now = Date.now()) {
     .filter((v) => BigInt(v.currentRaw) > 0n)
     .sort((a, b) => a.address.localeCompare(b.address));
   if (!validators.length) throw Error('No current programme delegations to claim from.');
-  const actions = validators.map((v) => ({
-    distribution: { withdraw_delegator_reward: { validator: v.address } }
-  }));
+  const actions = claimMessages(validators.map((v) => v.address));
   return draft(
     'CLAIM_REWARDS',
     'Juno Delegation Programme — claim staking rewards',
     'Claim staking rewards from the programme’s current delegations, then refresh the available balance before planning allocations.',
-    `# Claim programme staking rewards\n\nStatus: local draft, not submitted or executed.\nChain: juno-1\nExecuting account: ${PROGRAMME}\n\nPrepare ${actions.length} reward-withdrawal actions for the programme delegations recorded at block ${s.height} (${s.blockTime}). Include jailed and standby validators with recorded delegations; allocation exclusions do not exclude reward claims.\n\nThe actions must be executed by the programme account through its verified governance authority. They do not delegate, redelegate or change the withdrawal address. Confirm the current withdrawal address belongs to the programme treasury before submission; this snapshot does not verify that address or claimable amounts. Refresh the delegation list, verify the contract’s supported messages and simulate fees/message limits before submission.\n\nAfter the proposal has passed and execution is confirmed, return to the planner and refresh programme data. Only the confirmed spendable balance is included in a new allocation. Keep at least 50 JUNO liquid and round the suggested allocation down to whole hundreds. No reward amount is assumed by this draft.`,
+    `# Claim programme staking rewards\n\nStatus: local draft, not submitted or executed.\nChain: juno-1\nSubmission: Juno native governance (juno-1)\nProgramme treasury: ${PROGRAMME}\n\nPrepare ${validators.length} reward-withdrawal actions for the programme delegations recorded at block ${s.height} (${s.blockTime}). Include jailed and standby validators with recorded delegations; allocation exclusions do not exclude reward claims.\n\nJuno governance executes one contract message: execute_admin_msgs, containing the reward withdrawals. The programme account remains the delegator. They do not delegate, redelegate or change the withdrawal address. Confirm the current withdrawal address belongs to the programme treasury before submission; this snapshot does not verify that address or claimable amounts. Refresh the delegation list, verify the contract’s supported messages and simulate fees/message limits before submission.\n\nAfter the proposal has passed and execution is confirmed, return to the planner and refresh programme data. Only the confirmed spendable balance is included in a new allocation. Keep at least 50 JUNO liquid and round the suggested allocation down to whole hundreds. No reward amount is assumed by this draft.`,
     actions
   );
 }

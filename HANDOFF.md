@@ -8,12 +8,15 @@ in the owner's private operations handoff, outside this repository.
 
 ## Current priority
 
-New release candidate: the planner shows four consistent criteria, includes
-spendable funds in the rounded budget with a 50-JUNO reserve, separates validator
-eligibility from consensus membership, and opens claim/rule drafts in the existing
-proposal workspace. Existing local drafts are preserved. Programme proposal
-submission remains locked. This needs the normal manual website release only;
-no collector or host changes are required.
+New release candidate: planner reward claims and rule decisions keep their
+Delegation Programme topic while submitting through Juno native governance. The
+claim is wrapped in a governance-authorized programme admin call. Review verifies
+current authority, withdrawal destination, positions and deposit through independent
+sources, simulates submission, displays deposit/fee and requires explicit Keplr
+confirmation. Transaction journals and separate local drafts are retained.
+Local core/signing tests passed; browser CI and live acceptance remain required.
+The previous controls/handoff release ba65ba30 passed its manual release workflow.
+No host or collector update is needed. See the planner document for exact limits.
 
 The current development priority is the Juno **Delegation Programme** planner,
 placed under Community Tools → Juno. Its first implementation adds capped equal

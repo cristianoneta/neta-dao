@@ -109,11 +109,9 @@ collector, timer or signing authority. The collector remains read-only.
    constraints, message limits and the voted transaction set. Rule changes require
    step 1 again. No local toggle may manufacture approval.
 
-Allocation execution is visibly unavailable. No contract writes, submissions,
-background reallocations or new contracts are introduced. On-chain integration
-remains the next stage.
+Allocation execution is visibly unavailable. The new candidate supports explicit native proposal submission for rule approval and reward claims only. It does not delegate/redelegate, verify rule approval, introduce contracts or perform background transactions.
 
-## Revised controls and proposal handoff — release candidate
+## Revised controls and proposal handoff — live from ba65ba30
 
 The four criteria (validator status, voting power, commission, upgrade participation)
 use identical numbered headings, spacing and separators. Optional manual exclusions
@@ -137,7 +135,7 @@ complete policy and content hashes prefilled. Rule drafts carry no execution act
 The review JSON remains downloadable. Opening either button creates a distinct
 browser-local draft, keeps existing drafts intact and never signs or publishes.
 Revisions persist under that draft's unique key; New draft returns to the ordinary
-saved draft. The receiving page explicitly retains its DAO submission lock: public
+saved draft. The previous receiving page retained its DAO submission lock: public
 review and on-chain submission are not connected for this DAO yet.
 
 ## V2 — visible, inactive
@@ -203,3 +201,42 @@ exports, stale/error states and literal rendering. All three stages are checked
 at 1440/768/390/320 pixels. Presentation tests cover exact large integers, tiny
 nonzero amounts, percentage rounding, filter membership and reason labels. Browser tests run in
 the existing repository CI and upload screenshots for inspection.
+
+
+## Juno Governance submission — new candidate
+
+Delegation Programme remains the topic and selected reporting unit. Submission and
+voting belong to **Juno native governance**, not the programme DAO membership.
+The prepared claim contains one `/cosmwasm.wasm.v1.MsgExecuteContract` with the
+native governance module as sender and `execute_admin_msgs` on the programme core;
+its nested distribution messages use the programme contract as delegator. This
+uses the [DAO core admin interface](https://github.com/DA0-DA0/dao-contracts/blob/v2.6.0/contracts/dao-dao-core/src/contract.rs).
+The wallet signs `/cosmos.gov.v1.MsgSubmitProposal`, not the nested execution.
+The separate rule-approval proposal has no execution messages.
+
+Before review and again before signing, two independent public sources must agree
+on the current deposit and verify fresh Juno headers, code ID 4047, the internal
+native-governance admin and unpaused state. Claims also require the programme as
+withdrawal destination and an exact current delegation set. These are provider
+checks, not cryptographic state proofs or guarantees of future execution.
+The full current minimum deposit and simulated explicit network fee are displayed
+as costs paid by the proposer. Deposits remain subject to chain return/burn rules.
+Submission simulation does not simulate the future approved execution.
+
+Wallet/account, content or scope changes invalidate review; it expires after two
+minutes. The signed protobuf message, memo and fee must equal the reviewed values.
+The existing origin-wide pending-transaction journal prevents another signature
+when a broadcast outcome is unknown. Receipt persistence disables resubmitting
+the same local draft. Existing ordinary drafts and edits are preserved. Legacy
+withdrawal-only source drafts are wrapped without changing their prose; an older
+saved revision with incompatible actions must be regenerated through the planner.
+
+Candidate validation: 245 Node tests and five signing tests passed locally,
+including authority/destination mismatches, changed positions, modified signed
+messages/fees, wrong chain and unknown-result retry locks. The browser regression
+now covers review, deposit, wallet/edit invalidation, submission and reload using
+synthetic data and a mock wallet. Local Chromium was unavailable; CI acceptance
+is required. Direct live authority queries were unavailable in this environment;
+no live wallet transaction, current-chain acceptance or website publication is
+claimed for this candidate. Native voting and the approved-allocation adapter
+remain separate work.

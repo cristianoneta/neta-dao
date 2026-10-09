@@ -19,7 +19,10 @@ test('claims include all positions, including jailed/standby, with no transfers 
   s.activeCount--;
   s.validators[1].jailed = true;
   const d = claimProposal(s),
-    actions = JSON.parse(d.values.actions_json);
+    messages = JSON.parse(d.values.actions_json),
+    actions = messages[0].msg.execute_admin_msgs.msgs;
+  assert.equal(messages.length, 1);
+  assert.equal(messages[0]['@type'], '/cosmwasm.wasm.v1.MsgExecuteContract');
   assert.equal(actions.length, 25);
   assert.ok(actions.every((v) => Object.keys(v).join() === 'distribution'));
   assert.deepEqual(

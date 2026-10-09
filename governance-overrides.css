@@ -247,3 +247,8 @@ body.revision-dialog-open { overflow:hidden; }
 .planner-proposal-context[hidden] { display:none; }
 .planner-proposal-context p { margin:0 0 8px; }
 .planner-proposal-context a { color:var(--neta-accent); }
+
+.juno-submit-summary { white-space:pre-line; overflow-wrap:anywhere; }
+.juno-submit-buttons { display:flex; flex-wrap:wrap; gap:12px; }
+.planner-loading .proposal-workspace::before { content:'Loading your prepared proposal…'; display:block; padding:16px; color:var(--neta-text-secondary); }
+.planner-loading #primary-action { visibility:hidden; }

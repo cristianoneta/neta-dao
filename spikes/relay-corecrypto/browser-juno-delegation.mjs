@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { GOV } from '../../juno-governance-core.mjs';
+import { PROGRAMME } from '../../juno-delegation-core.mjs';
 import { fixture } from '../../tests/fixtures/delegation-planner.mjs';
 const root = new URL('../../', import.meta.url),
   history = JSON.parse(await readFile(new URL('data/validator-upgrades/juno-v31.json', root)));
@@ -225,12 +227,56 @@ try {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await step('rules');
   // Exercise both actual links into the existing proposal workspace.
-  await page.route('https://**', (route) =>
+  let governanceMode = 'valid';
+  await page.addInitScript(() => {
+    const address = 'juno1' + 'q'.repeat(38),
+      signer = { getAccounts: async () => [{ address }] };
+    window.keplr = {
+      enable: async (chain) => {
+        window.testChain = chain;
+      },
+      getOfflineSigner: () => signer,
+      getOfflineSignerAuto: async () => signer,
+      getKey: async () => ({ bech32Address: address })
+    };
+  });
+  await page.route('**/assets/juno-governance-signing.js', (route) =>
     route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({ data: { proposals: [] } })
+      contentType: 'text/javascript',
+      body: `window.JunoGovernanceSigning={connect:async()=>({client:{disconnect(){}}}),simulate:async()=>150000,fixedFee:()=>({gas:'210000',amount:[{denom:'ujuno',amount:'15750'}]}),execute:async(client,sender,kind,values,deposit,fee,memo,options)=>{await options.assertWallet();window.testSubmission={sender,kind,values,deposit,fee};return {transactionHash:'A'.repeat(64),height:42500100,code:0}}};`
     })
   );
+  await page.route('https://**', (route) => {
+    const url = route.request().url();
+    let data = { data: { proposals: [] } };
+    if (url.includes('/blocks/latest'))
+      data = { block: { header: { chain_id: 'juno-1', time: new Date().toISOString() } } };
+    else if (url.includes('/module_accounts/gov'))
+      data = { account: { name: 'gov', base_account: { address: GOV } } };
+    else if (url.includes('/gov/v1/params/'))
+      data = {
+        params: {
+          min_deposit: [{ denom: 'ujuno', amount: '1000000000' }],
+          voting_period: '432000s'
+        }
+      };
+    else if (url.endsWith('/withdraw_address'))
+      data = { withdraw_address: governanceMode === 'valid' ? PROGRAMME : GOV };
+    else if (url.includes('/staking/v1beta1/delegations/'))
+      data = {
+        delegation_responses: sample.validators.map((v) => ({
+          delegation: { delegator_address: PROGRAMME, validator_address: v.address },
+          balance: { denom: 'ujuno', amount: v.currentRaw }
+        })),
+        pagination: { next_key: null }
+      };
+    else if (url.includes('/contract/' + PROGRAMME + '/smart/')) {
+      const q = JSON.parse(Buffer.from(url.split('/').at(-1), 'base64').toString());
+      data = { data: q.admin ? GOV : q.pause_info ? { unpaused: {} } : { proposals: [] } };
+    } else if (url.endsWith('/contract/' + PROGRAMME))
+      data = { contract_info: { code_id: '4047' } };
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify(data) });
+  });
   await page.evaluate(() =>
     localStorage.setItem(
       'neta-governance-local-draft:juno-delegation',
@@ -249,8 +295,14 @@ try {
   );
   assert.equal(await page.locator('#governance-view').isVisible(), true);
   assert.equal(await page.locator('#subdao-select').inputValue(), 'juno-delegation');
-  assert.equal(JSON.parse(await page.locator('#proposal-actions').inputValue()).length, 25);
-  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  assert.equal(
+    JSON.parse(await page.locator('#proposal-actions').inputValue())[0].msg.execute_admin_msgs.msgs
+      .length,
+    25
+  );
+  assert.equal(await page.locator('#primary-action').isDisabled(), false);
+  assert.equal(await page.locator('#primary-action').textContent(), 'REVIEW JUNO PROPOSAL');
+  assert.match(await page.locator('#planner-proposal-context').textContent(), /Juno Governance/);
   assert.equal(
     await page.evaluate(
       () => JSON.parse(localStorage.getItem('neta-governance-local-draft:juno-delegation')).title
@@ -263,6 +315,59 @@ try {
   await page.waitForFunction(
     () => document.getElementById('proposal-title').value === 'Edited claim draft'
   );
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(() => window.NetaWorkspaceWallet.getSession().chainId === 'juno-1');
+  assert.equal(await page.evaluate(() => window.testChain), 'juno-1');
+  governanceMode = 'redirected';
+  await page.locator('#primary-action').click();
+  await page.waitForFunction(() =>
+    document.querySelector('[data-submit-status]').textContent.includes('Two independent')
+  );
+  assert.equal(await page.locator('[data-submit-confirm]').isDisabled(), true);
+  governanceMode = 'valid';
+  await page.locator('#primary-action').click();
+  await page.waitForFunction(() => !document.querySelector('[data-submit-confirm]').disabled);
+  assert.match(
+    await page.locator('[data-submit-summary]').textContent(),
+    /Deposit: 1000.000000 JUNO/
+  );
+  assert.match(await page.locator('[data-submit-summary]').textContent(), /25 reward withdrawals/);
+  assert.doesNotMatch(await page.locator('#gov-status').textContent(), /ON-CHAIN ACTION VERIFIED/);
+  await page.locator('#proposal-summary').fill('Edited after review');
+  assert.equal(await page.locator('[data-submit-confirm]').isDisabled(), true);
+  await page.locator('#primary-action').click();
+  await page.waitForFunction(() => !document.querySelector('[data-submit-confirm]').disabled);
+  await page.evaluate(() => dispatchEvent(new Event('keplr_keystorechange')));
+  assert.equal(await page.locator('[data-submit-confirm]').isDisabled(), true);
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(() => window.NetaWorkspaceWallet.getSession().chainId === 'juno-1');
+  await page.locator('#primary-action').click();
+  await page.waitForFunction(() => !document.querySelector('[data-submit-confirm]').disabled);
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      true
+    );
+    if (process.env.NNS_SCREENSHOT_DIR) {
+      await mkdir(process.env.NNS_SCREENSHOT_DIR, { recursive: true });
+      await page
+        .locator('#juno-submit-panel')
+        .screenshot({ path: `${process.env.NNS_SCREENSHOT_DIR}/juno-submit-${width}.png` });
+    }
+  }
+  await page.locator('[data-submit-confirm]').click();
+  await page.waitForFunction(() => window.testSubmission);
+  assert.equal((await page.evaluate(() => window.testSubmission)).kind, 'CLAIM_REWARDS');
+  await page.waitForFunction(() =>
+    document.querySelector('[data-submit-status]').textContent.includes('Submitted to Juno')
+  );
+  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  await page.reload();
+  await page.waitForFunction(
+    () => document.getElementById('primary-action').textContent === 'SUBMITTED TO JUNO GOVERNANCE'
+  );
+  assert.equal(await page.locator('#primary-action').isDisabled(), true);
   await page.locator('#new-draft').click();
   assert.equal(await page.locator('#proposal-title').inputValue(), 'Preserved draft');
   await page.goto(origin + '/community-tools/juno/delegation/');
@@ -276,7 +381,9 @@ try {
   );
   assert.deepEqual(JSON.parse(await page.locator('#proposal-actions').inputValue()), []);
   assert.match(await page.locator('#proposal-body').inputValue(), /Rule SHA-256:/);
-  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  assert.equal(await page.locator('#primary-action').isDisabled(), false);
+  assert.equal(await page.locator('#primary-action').textContent(), 'REVIEW JUNO PROPOSAL');
+  assert.match(await page.locator('#planner-proposal-context').textContent(), /Juno Governance/);
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
   await page.locator('#programme-amount').fill('99999999');

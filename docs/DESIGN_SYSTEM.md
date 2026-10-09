@@ -649,3 +649,15 @@ suggests a whole hundred. Place the mint Create claim rewards proposal button
 inside this card. Publish proposal opens the existing scoped proposal workspace
 with a prepared draft. Distinguish preparing/opening a draft from publishing or
 executing it; preserve existing drafts and all current submission locks.
+
+
+## Planner native governance review — candidate, 2026-10-09
+
+Keep Delegation Programme as the topic and clearly label Juno Governance as the
+submission/voting destination. Prefill title, summary, body and the native action.
+Use the existing graphite/mint proposal workspace and shared wallet connection.
+Review Juno proposal opens an inline, focusable review with proposer, full minimum
+deposit, simulated network fee and claim count; a separate explicit Keplr button
+submits. Editing, disconnecting or switching context invalidates that review.
+Loading and unknown transaction results must stay visible; submission is not claim
+execution. Keep generated actions read-only and ordinary saved drafts separate.

@@ -243,7 +243,7 @@ async function load() {
       ? 'Refresh current programme data before preparing a rewards proposal.'
       : !held.length
         ? 'No current programme delegations to claim from.'
-        : 'Opens a prepared draft on our proposal page. After approval and execution, refresh the data to include claimed rewards.';
+        : 'Opens a prepared Juno Governance proposal under Delegation Programme. Review, then submit with Keplr. After approval and execution, refresh the data to include claimed rewards.';
     $('simulate').disabled = false;
     renderRules();
     tell(

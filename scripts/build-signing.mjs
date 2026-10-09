@@ -2,6 +2,11 @@ import { build } from '../faucet/node_modules/esbuild/lib/main.js';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const targets = {
+  governance: {
+    entry: 'faucet/src/juno-governance-signing.mjs',
+    globalName: 'JunoGovernanceSigning',
+    outfile: 'assets/juno-governance-signing.js'
+  },
   swap: {
     entry: 'faucet/src/wynd-swap-signing.mjs',
     globalName: 'NetaSwapSigning',

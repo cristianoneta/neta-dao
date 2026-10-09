@@ -51,7 +51,8 @@
   const initialDao = initialScope.dao;
   let plannerDraft = null,
     plannerDraftError = null,
-    PLANNER_DRAFT_PREFIX = null;
+    PLANNER_DRAFT_PREFIX = null,
+    nativeSubmission = null;
   const plannerParams = new URLSearchParams(location.search);
   if (plannerParams.has('plannerDraft')) {
     try {
@@ -161,8 +162,26 @@
       ? $('#nns-network')?.value || 'juno-1'
       : null;
   }
+  function plannerContext() {
+    return plannerDraft && state.dao.id === plannerDraft.daoId && !state.selected
+      ? plannerDraft
+      : null;
+  }
+  function plannerReceipt() {
+    if (!plannerContext()) return null;
+    try {
+      return JSON.parse(
+        localStorage.getItem(PLANNER_DRAFT_PREFIX + plannerDraft.id + ':submitted') || 'null'
+      );
+    } catch {
+      return null;
+    }
+  }
   function walletChain() {
     return (
+      (plannerContext() && document.body.dataset.workspaceView === 'governance'
+        ? 'juno-1'
+        : null) ||
       namesChain() ||
       (document.body.dataset.workspaceView === 'relay' &&
       document.body.dataset.relayPanel === 'inbox'
@@ -179,11 +198,13 @@
         : namesChain() === 'juno-1'
           ? 'JUNO MAINNET · NAMES'
           : 'UNI-7 TESTNET'
-      : state.dao.mode === 'dao-readonly'
-        ? 'JUNO MAINNET · READ ONLY'
-        : state.dao.mode === 'native-gov'
-          ? 'MAINNET DATA · UNI-7 REVIEW'
-          : 'UNI-7 TESTNET';
+      : plannerContext()
+        ? 'JUNO MAINNET · GOVERNANCE'
+        : state.dao.mode === 'dao-readonly'
+          ? 'JUNO MAINNET · READ ONLY'
+          : state.dao.mode === 'native-gov'
+            ? 'MAINNET DATA · UNI-7 REVIEW'
+            : 'UNI-7 TESTNET';
   }
   window.addEventListener('hashchange', renderNetwork);
   window.addEventListener('neta:relay-panel', renderNetwork);
@@ -226,6 +247,7 @@
     }
   }
   function clearWallet() {
+    nativeSubmission?.invalidate();
     state.walletEpoch += 1;
     state.requestEpoch += 1;
     state.connecting = false;
@@ -340,6 +362,7 @@
       closeDaoOptions();
       return;
     }
+    nativeSubmission?.invalidate();
     const organization = ORGANIZATIONS.find((o) => o.id === dao.organizationId);
     state.scope = { organization, units: unitsFor(organization, DAOS), dao, consolidated };
     const url = new URL(window.location.href);
@@ -1002,6 +1025,31 @@
     $('#discard-action').hidden = !!selected && !canWithdraw;
     $('#discard-action').textContent = selected ? 'DISCARD / WITHDRAW' : 'DISCARD DRAFT';
     setEditable(!selected || (discussion && member));
+    const planner = plannerContext();
+    $('#juno-submit-panel').hidden = !planner;
+    if (planner) {
+      $('#native-funding-panel').hidden = true;
+      $('#native-review-setup').hidden = true;
+      $('#proposal-actions').disabled = true;
+      $('#add-action').hidden = true;
+      $('.deliverables-panel').hidden = true;
+      $('#proposal-accounting').hidden = true;
+      $('.accounting-help').hidden = true;
+      const receipt = plannerReceipt();
+      $('#primary-action').textContent = receipt
+        ? 'SUBMITTED TO JUNO GOVERNANCE'
+        : 'REVIEW JUNO PROPOSAL';
+      $('#primary-action').disabled = state.busy || !!receipt;
+      $('#action-hint').textContent = receipt
+        ? `Submitted transaction: ${receipt.transactionHash}. Submission is not execution.`
+        : 'Topic: Delegation Programme. Submit and vote through Juno Governance. Review the current deposit and fee before confirming with Keplr on mainnet.';
+      return;
+    }
+    $('#add-action').hidden = false;
+    $('.deliverables-panel').hidden = false;
+    $('#proposal-accounting').hidden = false;
+    $('.accounting-help').hidden = false;
+
     if (!selected) {
       $('#action-hint').textContent = needsSetup
         ? canSetup
@@ -1277,6 +1325,8 @@
         : `${days ? `${days}D ` : ''}${hours}H ${minutes % 60}M REMAINING · ENDS ${new Date(target).toLocaleString()}`;
   }
   function selectChain(item) {
+    nativeSubmission?.invalidate();
+    $('#juno-submit-panel').hidden = true;
     $('#planner-proposal-context').hidden = true;
     clearInterval(state.countdown);
     state.selected = { ...item, key: `chain:${item.id}`, source: 'chain' };
@@ -1325,6 +1375,7 @@
     state.countdown = setInterval(updateCountdown, 30000);
   }
   function newDraft() {
+    nativeSubmission?.invalidate();
     clearInterval(state.countdown);
     state.selected = null;
     state.revisions = [];
@@ -1356,7 +1407,7 @@
     $('#planner-proposal-context-text').textContent =
       plannerDraftError ||
       (current
-        ? `${plannerDraft.kind === 'CLAIM_REWARDS' ? 'Rewards claim' : 'Allocation rules'} draft from the planner · not submitted. Existing drafts are preserved. Public review and on-chain submission for this DAO are not connected yet.`
+        ? `${plannerDraft.kind === 'CLAIM_REWARDS' ? 'Rewards claim' : 'Allocation rules'} · Topic: Delegation Programme · Submission and voting: Juno Governance (juno-1). Prepared locally; review before submitting. Existing drafts are preserved.`
         : '');
   }
   function saveLocal() {
@@ -1446,7 +1497,7 @@
     button.textContent = 'CHECK KEPLR';
     try {
       await task();
-      status('ON-CHAIN ACTION VERIFIED');
+      if (!plannerContext()) status('ON-CHAIN ACTION VERIFIED');
       return true;
     } catch (e) {
       status(e.message || String(e), true);
@@ -1555,7 +1606,11 @@
   }
   async function connect() {
     if (state.busy || state.connecting) return;
-    if (state.dao.mode === 'dao-readonly' && document.body.dataset.workspaceView !== 'relay') {
+    if (
+      state.dao.mode === 'dao-readonly' &&
+      !plannerContext() &&
+      document.body.dataset.workspaceView !== 'relay'
+    ) {
       status(
         'This DAO is read-only. Explore active members under People; wallet connection is not required.'
       );
@@ -1602,7 +1657,11 @@
           : null;
       if (!current()) return;
       state.access = access;
-      if (dao.mode === 'native-gov') {
+      if (plannerContext()) {
+        status(
+          'CONNECTED · JUNO MAINNET · Review the proposal, deposit and fee before submitting.'
+        );
+      } else if (dao.mode === 'native-gov') {
         const neta = Number(access?.active_neta_stake || 0) / 1e6,
           junox = Number(access?.active_native_stake || 0) / 1e6;
         status(
@@ -1655,6 +1714,8 @@
   $('#gov-connect').onclick = connect;
   $('#gov-disconnect').onclick = disconnectWallet;
   $('#new-draft').onclick = () => {
+    if (state.busy) return;
+    nativeSubmission?.invalidate();
     plannerDraft = null;
     plannerDraftError = null;
     const url = new URL(location.href);
@@ -1687,6 +1748,12 @@
   };
   $('#primary-action').onclick = (e) =>
     run(e.currentTarget, async () => {
+      if (plannerContext()) {
+        if (plannerReceipt()) throw Error('This draft has already been submitted.');
+        if (!state.address || state.walletChain !== 'juno-1')
+          throw Error('Connect Keplr on Juno mainnet first.');
+        return nativeSubmission.prepare();
+      }
       const native = state.dao.mode === 'native-gov';
       if (!state.selected) {
         const v = values();
@@ -2050,7 +2117,33 @@
     renderActions();
     renderComments();
   });
+  if (plannerDraft) {
+    const { mountSubmission } = await import('./juno-governance-submit.mjs');
+    nativeSubmission = mountSubmission({
+      panel: $('#juno-submit-panel'),
+      context: plannerContext,
+      values,
+      session: () => ({ address: state.address, chainId: state.walletChain }),
+      busy: (value) => {
+        state.busy = value;
+        renderWallet();
+        renderActions();
+      },
+      done: (id, receipt) => {
+        try {
+          localStorage.setItem(PLANNER_DRAFT_PREFIX + id + ':submitted', JSON.stringify(receipt));
+        } catch {
+          status(
+            'Submitted, but the receipt could not be saved locally. Record transaction ' +
+              receipt.transactionHash,
+            true
+          );
+        }
+      }
+    });
+  }
   if (plannerDraft || plannerDraftError) newDraft();
+  document.body.classList.remove('planner-loading');
   load()
     .then(() => {
       if (!plannerDraft && !plannerDraftError) newDraft();
