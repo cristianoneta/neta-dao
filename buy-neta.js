@@ -36,7 +36,7 @@
   const client=new window.NetaCosmosClient(LCD_ENDPOINTS);
   let offer="JUNO",slippage=5,junoUsd=null,pool=null,contractValid=false;
   let quote=null,requestId=0,debounceTimer=null,refreshTimer=null,ageTimer=null,balanceRaw=null;
-  let signing=false,previewIntent=null,balanceRequest=0;
+  let signing=false,previewIntent=null,balanceRequest=0,marketRevision=0;
 
   const other=symbol=>symbol==="JUNO"?"NETA":"JUNO";
   const asNumber=raw=>Number(raw)/10**DECIMALS;
@@ -89,6 +89,7 @@
     const address=window.NETA_WALLET_STATE?.address;
     if(!SIGNING?.enabled||!signingConfigValid)return{ok:false,label:"SWAP SIGNING IS DISABLED"};
     if(!address)return{ok:false,label:"Connect Keplr first"};
+    if(!contractValid)return{ok:false,label:"Pool verification required"};
     if(!quote)return{ok:false,label:"Enter an amount"};
     if(balanceRaw===null)return{ok:false,label:"Balance unavailable"};
     if(quote.raw>balanceRaw)return{ok:false,label:`INSUFFICIENT ${offer} BALANCE`};
@@ -108,7 +109,7 @@
     const stamp=Date.parse(market.generated_at||"");
     if(market.chain_id!=="juno-1"||market.dao_id!=="juno-delegation"||!["LIVE","PARTIAL"].includes(market.status)||!Number.isFinite(Number(juno?.usd_price))||Number(juno.usd_price)<=0||!Number.isFinite(stamp)||stamp>Date.now()+60000)throw new Error("Invalid USD price snapshot");
     if(Date.now()-stamp>36*60*60*1000)throw new Error("USD price snapshot is stale");
-    junoUsd=Number(juno.usd_price);
+    return Number(juno.usd_price);
   }
 
   async function validateContract(){
@@ -120,9 +121,28 @@
     const listed=new Set((pairInfo.asset_infos||[]).map(queryInfo));
     if(listed.size!==2||[...expectedAssets].some(key=>!listed.has(key)))throw new Error("PAIR ASSETS DO NOT MATCH JUNO / NETA");
     if(String(pairInfo.fee_config?.total_fee_bps)!=="30")throw new Error("PAIR FEE DOES NOT MATCH 0.30%");
-    pool=livePool;contractValid=true;
-    dom.contractState.textContent="Verified";dom.contractState.dataset.ok="true";
-    dom.source.textContent=client.preferredEndpoint?.replace("https://","").toUpperCase()||"JUNO LCD";
+    return {pool:livePool,source:client.preferredEndpoint};
+  }
+
+  async function loadVerifiedMarket(){
+    const revision=++marketRevision;
+    contractValid=false;junoUsd=null;pool=null;requestId++;
+    clearQuote("Checking the pool…","loading");
+    dom.contractState.textContent="Checking";dom.contractState.dataset.ok="false";
+    try{
+      // Neither independent read can publish a partial success or revive a failed check.
+      const [price,verified]=await Promise.all([loadMarket(),validateContract()]);
+      if(revision!==marketRevision)throw new Error("Pool check superseded. Refresh again.");
+      junoUsd=price;pool=verified.pool;contractValid=true;
+      dom.contractState.textContent="Verified";dom.contractState.dataset.ok="true";
+      dom.source.textContent=verified.source?.replace("https://","").toUpperCase()||"JUNO LCD";
+    }catch(error){
+      if(revision===marketRevision){
+        contractValid=false;junoUsd=null;pool=null;
+        dom.contractState.textContent="Unavailable";dom.contractState.dataset.ok="false";
+      }
+      throw error;
+    }
   }
 
   function quoteUsd(raw,symbol){const price=tokenUsd(symbol);return price===null?null:asNumber(raw)*price}
@@ -209,7 +229,7 @@
   async function freshQuoteForSigning(){
     const address=window.NETA_WALLET_STATE?.address;
     if(!address||!SIGNING?.enabled||!signingConfigValid)throw new Error("SWAP SIGNING IS NOT AVAILABLE");
-    await Promise.all([loadMarket(),validateContract()]);
+    await loadVerifiedMarket();
     const raw=parseAmount(dom.amount.value),usd=quoteUsd(raw,offer),cap=SIGNING.publicMaxUsd;
     if(usd===null||usd>cap+0.000001)throw new Error(`SWAP EXCEEDS THE $${cap} SIGNING LIMIT`);
     const available=await assetBalance(offer,address);if(raw>available)throw new Error(`INSUFFICIENT ${offer} BALANCE`);
@@ -337,10 +357,9 @@
   ageTimer=setInterval(renderAge,1000);addEventListener("pagehide",()=>{clearInterval(ageTimer);clearTimeout(refreshTimer)});
 
   renderDirection();
-  function refreshPool(){return Promise.all([loadMarket(),validateContract()]).then(()=>{
+  function refreshPool(){return loadVerifiedMarket().then(()=>{
     setMessage("Pool verified. Enter an amount to get a quote.","ok");if(dom.amount.value)scheduleQuote();
   }).catch(error=>{
-    contractValid=false;dom.contractState.textContent="Unavailable";dom.contractState.dataset.ok="false";
     clearQuote(`SAFETY CHECK FAILED: ${(error.message||String(error)).toUpperCase()}`,"error");
   });}
   document.querySelector("#refresh-pool").addEventListener("click",refreshPool);
