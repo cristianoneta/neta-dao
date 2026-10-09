@@ -12,7 +12,9 @@ The current development priority is the Juno **Delegation Programme** planner,
 placed under Community Tools → Juno. Its first implementation adds capped equal
 allocation, explicit v31 evidence review, manual exclusions, current-versus-target
 comparison and downloadable rule drafts using the shared UI. The collector and
-snapshot path are prepared; installation and website release are not claimed.
+snapshot path are live from release `885beb9a`. The owner-approved three-stage
+UI revision is a release candidate: rules, searchable distribution review and a
+proposal preview, with detailed evidence and exact values available on demand.
 On-chain approval verification and execution proposals remain the next stage.
 See [JUNO_DELEGATION_PROGRAMME](docs/JUNO_DELEGATION_PROGRAMME.md) for the current
 V1 decisions, inactive V2 scope, arithmetic and rollout requirements.

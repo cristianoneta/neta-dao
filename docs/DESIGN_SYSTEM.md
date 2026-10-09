@@ -615,3 +615,22 @@ do not add a second wallet selector or an automatic registration flow. Client-si
 participant filtering complements the independently enforced server allowlist and
 wallet signatures; it is not a substitute for backend authorization. Disconnect,
 wallet change and leaving the page clear plaintext while retaining saved journals.
+
+
+## Delegation planner review flow — candidate, 2026-10-09
+
+Owner-approved direction: three directly accessible stages for rules, distribution
+and proposal review. Keep the existing graphite/mint foundations, assembly-plaza
+identity and English product language. Use a compact header and source summary.
+Group eligibility controls and programme amount; move optional exclusions, formula
+details and the inactive roadmap into disclosures. Provide both a slider and an
+exact numeric field for the factor.
+
+Prioritize allocated funds, recipient count and unallocated funds. Distinguish
+recipients from eligible validators with no capacity. Give unresolved evidence an
+explicit review action. The comparison supports search, filters, sorting and
+pagination, with expandable reasons and exact values. Display two decimals in the
+comparison while retaining six in details and exports; a nonzero amount must not
+look like zero. Avoid inner vertical scrolling. Preserve current and projected
+stake shares and all approval/execution boundaries. Preview the complete proposed
+rules before offering downloads. Calculation behavior is unchanged.

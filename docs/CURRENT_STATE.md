@@ -29,6 +29,12 @@ were closed, and no open PR remained at the completion check.
 
 ## Deployment evidence
 
+- The Juno Delegation Programme planner and dedicated same-origin snapshot were
+  accepted live from release `885beb9ac6adbb175997dd8bf8ae4e00d23e66ef` on 9 October.
+  A staged UI revision is a release candidate; the allocation engine, collector
+  and unconnected approval/execution boundaries are unchanged. See
+  [planner status](JUNO_DELEGATION_PROGRAMME.md).
+
 - Daily staking accrual remains unavailable in the live accounting feed, while
   holdings continue to refresh. Historical RPC responses reproduced the retained
   checkpoint and three missing UTC boundaries. A strict height-pinned adapter,

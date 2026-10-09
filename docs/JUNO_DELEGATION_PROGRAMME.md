@@ -1,8 +1,9 @@
-# Juno Delegation Programme — first implementation
+# Juno Delegation Programme
 
-9 October 2026. Development branch; not published or activated. This first build
-delivers the rules, simulation, comparison and proposal-draft stage. It does not
-claim completion of the on-chain approval and execution workflow.
+9 October 2026. The original planner and dedicated snapshot are live from release
+`885beb9ac6adbb175997dd8bf8ae4e00d23e66ef`. The staged UI described below is a
+release candidate. Rules, simulation and proposal drafts are available; on-chain
+approval verification and execution remain unconnected.
 
 ## Placement and interface
 
@@ -11,11 +12,29 @@ hub. It reuses `neta-ui.css`, `community-tools.css`, `community-tools-header.css
 and the existing assembly-plaza header asset. There is no new theme, wallet
 connection, framework or sidebar. English matches the existing application.
 
-The page separates rules, simulation, proposals and the inactive V2 roadmap.
+The owner approved a three-stage layout on 9 October: **Set rules → Review
+distribution → Review proposal**, with each stage directly accessible. Keep the
+shared graphite/mint tokens, typography and assembly-plaza identity. The first
+stage groups criteria, amount and optional manual exclusions, with a keyboard
+slider and an exact numeric factor input. Local storage saves rules only, not the
+amount or simulation. The V2 roadmap is collapsed and explicitly inactive.
+
+The simulation leads with allocated funds, actual recipients and unallocated
+funds. Eligible validators with no capacity are distinguished from recipients.
+Evidence-review cases have an explicit notice and a filter. The comparison has
+name/address search, status filters, deterministic sorting and ten rows per page;
+there is no nested vertical scroll. Each row expands to explain its target,
+provide exact amounts, validator identity and participation evidence. The compact
+table shows two decimal places; nonzero values that would round to zero use
+`<0.01`. Full six-decimal values remain in details and downloads. Stake-share
+percentages are rounded for display only. The allocation engine is unchanged.
+
 The current-position summary separates active and inactive recipients; the table
 compares both current and projected stake shares. A collapsed historical note
 explains the 2025-1 points system without importing it into the new allocation.
-Local draft storage never confers approval. Updating inputs invalidates the old
+The final stage reviews the exact rules and illustrative impact before downloads;
+future execution prerequisites are secondary details. Local draft storage never
+confers approval. Updating inputs invalidates the old
 simulation and downloads. Missing data disables calculation; old data is labelled
 historical. Names and exclusion reasons are rendered as text.
 
@@ -61,20 +80,20 @@ delegations, spendable balance and redelegation records. Pagination, response si
 and overall duration are bounded. It replaces the JSON atomically only after a
 complete successful collection. Failed collection retains the old timestamp.
 
-Prepared output: `data/daos/juno-delegation-planner.json`. It is added to the public
+Published output: `data/daos/juno-delegation-planner.json`. It is included in the public
 snapshot allowlist and the existing hourly `main` collector job (165-second
 process bound). Source health checks both block and collection timestamps. The
 frontend uses the existing same-origin snapshot proxy, without direct browser RPC
 fan-out. No production snapshot or synthetic live fallback is committed here.
 
-Before activating this revision on the collector host, generate and inspect the
-new snapshot with the collector's existing service identity, then run the regular
-publication under the common lock. The publisher requires every allowlisted file:
+The original collector installation and website rollout were accepted on 9 October.
+For future collector revisions, generate and inspect the snapshot with the existing
+service identity, then run publication under the common lock. The publisher requires every allowlisted file:
 a missing initial planner snapshot must not replace a good public generation.
 Verify the new path, identities, receipt and freshness on the data origin and
 both website origins. Then use the established deliberate website release flow.
-No host installation, timer activation or website deployment was performed by this
-code change. The collector remains a read-only process with no signing authority.
+This UI revision needs only the established manual website release. It changes no
+collector, timer or signing authority. The collector remains read-only.
 
 ## Two separate community decisions
 
@@ -150,6 +169,9 @@ The focused Node suite exercises conservation, cap limits, exclusions, incomplet
 evidence, budget reduction, deterministic rounding and 100 seeded allocation
 scenarios. Python tests cover key mapping, commission rounding, duplicates,
 unknown delegation identities, owner mismatches and overcounting. The dedicated
-Playwright flow checks persistence, invalidation, full JSON exports, stale/error
-states, literal rendering and 1440/768/390/320-pixel layouts. Browser tests run in
+Playwright flow checks stage navigation, linked factor controls, search, filters,
+pagination, per-validator details, exclusions, persistence, invalidation, full JSON
+exports, stale/error states and literal rendering. All three stages are checked
+at 1440/768/390/320 pixels. Presentation tests cover exact large integers, tiny
+nonzero amounts, percentage rounding, filter membership and reason labels. Browser tests run in
 the existing repository CI and upload screenshots for inspection.
