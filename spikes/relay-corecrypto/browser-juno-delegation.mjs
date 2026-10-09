@@ -111,10 +111,21 @@ try {
   if (shots) await mkdir(shots, { recursive: true });
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
+    await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
     assert.ok(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
       `page overflow at ${width}`
     );
+    for (const id of ['current-total', 'allocated-total'])
+      assert.equal(
+        await page.locator('#' + id).evaluate((el) => {
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          return range.getClientRects().length;
+        }),
+        1,
+        `Exact JUNO total wraps at ${width}`
+      );
     if (shots)
       await page.screenshot({ path: `${shots}/juno-delegation-${width}.png`, fullPage: true });
   }
