@@ -210,6 +210,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   const shot = async (name) => {
     if (process.env.NNS_SCREENSHOT_DIR) {
       await mkdir(process.env.NNS_SCREENSHOT_DIR, { recursive: true });
+      await page.evaluate(() => scrollTo(0, 0));
       await page.screenshot({
         path: `${process.env.NNS_SCREENSHOT_DIR}/${name}.png`,
         fullPage: true
@@ -271,7 +272,10 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
       if (k.startsWith('cosmoot:juno:planner-proposal:')) localStorage.removeItem(k);
   });
   await page.goto(sharedUrl);
+  await page.reload();
   await primary('CONNECT KEPLR · JUNO');
+  assert.equal(await page.locator('#planner-proposal-context').isVisible(), false);
+  assert.equal(await page.locator('#discussion-panel').isVisible(), false);
   await wallet(sponsor);
   await page.locator('#primary-action').click();
   await primary('REVIEW JUNO PROPOSAL');
@@ -307,6 +311,8 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   );
   assert.equal(submits, 1);
   assert.match(page.url(), /proposal=900/);
+  assert.match(await page.locator('#action-hint').innerText(), /FUNDING/);
+  assert.doesNotMatch(await page.locator('body').innerText(), /UNDEFINED/);
   // Opening the finalized review on another visit discovers the existing proposal.
   await page.goto(sharedUrl);
   await page.waitForFunction(() =>

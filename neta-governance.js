@@ -1105,6 +1105,7 @@
     };
   }
   function renderActions() {
+    renderPlannerContext();
     plannerGov.render();
     funding.render();
     const planner =
@@ -1145,7 +1146,9 @@
     $('#native-review-setup').hidden = !native || !!CONTRACT;
     $('#change-note-wrap').hidden = true;
     $('#revision-panel').hidden = !selected;
-    $('#discussion-panel').hidden = !selected || selected.source === 'chain';
+    $('#discussion-panel').hidden =
+      !selected || selected.source === 'chain' || (!discussion && !state.comments.length);
+    $('#comment-form').hidden = !discussion;
     $('#revision-panel').hidden = !selected || selected.source === 'chain';
     $('#save-local').hidden = !!selected;
     $('#publish-revision').hidden = !discussion;
@@ -1203,7 +1206,9 @@
       $('#action-hint').textContent =
         native && selected?.status === 'ready'
           ? 'Community review finalized. Supported programme proposals can now be submitted by any wallet.'
-          : `This proposal is in ${String(selected.status).toUpperCase()}.`;
+          : selected?.source === 'chain'
+            ? `Juno governance · ${chainLabel(selected.proposal.status)}.`
+            : `This proposal is in ${String(selected.status).toUpperCase()}.`;
       $('#primary-action').hidden = true;
     }
     $('#native-funding-panel').hidden = true;
