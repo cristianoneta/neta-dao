@@ -66,7 +66,11 @@ try {
     if (rewardsState === 'missing') return route.fulfill({ status: 503, body: 'unavailable' });
     const data = rewardsFixture(sample);
     if (rewardsState === 'stale') data.generated_at = new Date(Date.now() - 7200000).toISOString();
-    if (rewardsState === 'no-price') data.assets[0].usd_price = null;
+    if (rewardsState === 'no-price') {
+      data.assets[0].usd_price = null;
+      data.status = 'PARTIAL';
+      data.price_source = 'Unavailable';
+    }
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify(data) });
   });
   await page.route('**/data/daos/juno-delegation-planner.json', (route) => {

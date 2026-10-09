@@ -24,6 +24,8 @@ test('claim overview uses separately truncated current rewards, with optional US
   assert.match(draft.values.body, /amount can change before governance execution/);
   assert.equal(suggestedBudget(planner), before);
   source.assets[0].usd_price = null;
+  source.status = 'PARTIAL';
+  source.price_source = 'Unavailable';
   assert.equal(claimRewardsOverview(source, planner).usd, null);
   assert.equal(claimRewardsOverview(source, planner).amountRaw, result.amountRaw);
 });
@@ -33,7 +35,7 @@ test('missing, partial, stale and mismatched reward observations never become a 
     (v) => delete v.staking.rewards,
     (v) => v.staking.validator_count--,
     (v) => (v.staking.withdraw_address = 'other'),
-    (v) => (v.status = 'PARTIAL'),
+    (v) => (v.status = 'UNAVAILABLE'),
     (v) => (v.balance_height_pinned = false),
     (v) => (v.chain_id = 'uni-7'),
     (v) => (v.treasury_address = 'other'),

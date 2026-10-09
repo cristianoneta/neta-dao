@@ -19,7 +19,7 @@ export function claimRewardsOverview(treasury, input, now = Date.now()) {
     treasury.dao_id !== 'juno-delegation' ||
     treasury.treasury_address !== PROGRAMME ||
     treasury.treasury_type !== 'dao-core-staking' ||
-    treasury.status !== 'LIVE' ||
+    !['LIVE', 'PARTIAL'].includes(treasury.status) ||
     treasury.balance_height_pinned !== true ||
     !Number.isSafeInteger(treasury.height) ||
     treasury.height <= 0 ||
@@ -30,6 +30,8 @@ export function claimRewardsOverview(treasury, input, now = Date.now()) {
       planner.validators.filter((v) => BigInt(v.currentRaw) > 0n).length
   )
     throw Error('Complete programme rewards data is unavailable. Refresh data.');
+  // PARTIAL describes USD valuation in this holdings format. Quantity coverage
+  // is checked separately; unpriced assets must not hide known JUNO rewards.
   if (![treasury.generated_at, treasury.checked_at].every((v) => fresh(v, now)))
     throw Error('Rewards snapshot is older than one hour or has an invalid time. Refresh data.');
   if (!/^https:\/\//.test(treasury.balance_source || ''))

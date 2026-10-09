@@ -23,7 +23,8 @@ count and reward-asset reconciliation are checked. The collector already reads
 the full distribution response and truncates each validator's micro-unit payout
 separately. This is not historical daily accrual or spendable balance.
 
-Missing/partial/stale data is unavailable, not zero. A missing price suppresses
+Missing/incomplete/stale reward data is unavailable, not zero. The holdings
+format's PARTIAL status describes USD valuation, so a missing price suppresses
 USD only. Refresh reloads rewards with planner data; open tabs expire observations
 without resetting edited allocations. The draft repeats the snapshot estimate
 and warns that the eventual execution amount can differ. Rewards do not enter
