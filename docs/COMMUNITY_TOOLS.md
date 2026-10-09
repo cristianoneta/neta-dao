@@ -1,6 +1,6 @@
 # Community Tools project menu and WYND swap
 
-8 October 2026 — implementation candidate; not yet published.
+9 October 2026 — reviewed implementation candidate; not yet published.
 
 The owner requested Juno and NETA project sections, with future projects supported
 by the same navigation. The existing Faucet and Validator Upgrade Status retain
@@ -25,7 +25,9 @@ invalid or unavailable pricing prevents signing. This adds no scheduled collecto
 The signing bridge uses the repository's pinned CosmJS dependencies and checks
 the Juno chain, selected wallet, signed execute message, memo and explicit fee.
 Wallet changes or a fresh quote below the reviewed minimum stop the action.
-Unknown broadcast results retain the journal and block another signature. A
+The belief price includes commission because WYND checks spread against the
+pre-fee return; the review continues to display the net minimum. Unknown broadcast
+results retain the journal and block another signature. A
 successful receipt must include the expected receiving-asset event and amount.
 Mainnet messaging gates are unchanged. No real purchase is part of automated QA.
 
@@ -40,10 +42,17 @@ Mainnet messaging gates are unchanged. No real purchase is part of automated QA.
   read-only network fixtures and synthetic wallet results. It covers project
   filtering/deep links, 1440/768/390/320 layouts, review/keyboard dismissal,
   native/CW20 payloads, quote movement, rejection and stale/invalid pool sources.
-- Browser execution and visual inspection remain pending at this checkpoint:
-  local Chromium installation returned invalid/truncated ZIP files. CI includes
-  the browser check and screenshot artifact so it can be completed independently.
+- CI browser execution and screenshot review cover the hub, purchase page and
+  existing Juno pages at desktop and mobile sizes. The first run exposed an
+  asynchronous navigation assertion and a genuine partial-verification race.
+  Price and pool reads now publish success together; stale pricing cannot be
+  overwritten by a later pool response. Inspect the final head artifacts before
+  release. Local Chromium installation is unavailable in this environment.
 - Before integration, complete browser checks and visual review, inspect existing
   Juno tool pages for shared-CSS regressions, and verify current read-only provider
   availability. Then pass required CI and use the deliberate Cloudflare release
   workflow. A branch or PR is not a production deployment.
+
+WYND spread reference: `wynddao/wynddex`, `contracts/pair/src/contract.rs` and
+`packages/wyndex/src/pair/utils.rs` (`assert_max_spread`). This source comparison does
+not substitute for the configured on-chain pair/code/fee checks.

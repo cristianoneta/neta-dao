@@ -42,7 +42,7 @@ try{
   const textIs=(selector,text)=>page.waitForFunction(([s,t])=>document.querySelector(s)?.textContent===t,[selector,text]);
   const ready=()=>page.waitForFunction(()=>!document.querySelector('#swap-action').disabled);
   const shots=process.env.NNS_SCREENSHOT_DIR;if(shots)await mkdir(shots,{recursive:true});
-  const screenshot=async name=>{if(shots)await page.screenshot({path:`${shots}/${name}.png`,fullPage:true});};
+  const screenshot=async name=>{if(shots){await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`${shots}/${name}.png`,fullPage:!name.includes('review')});}};
   await page.goto(origin+'/community-tools/');
   assert.equal(await page.locator('.tool-card:visible').count(),3);
   await page.locator('[data-project-link="juno"]').click();
@@ -63,6 +63,16 @@ try{
   for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:1100});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Buy overflow ${width}`);await screenshot(`buy-neta-${width}`);}
   await page.locator('#swap-action').click();assert.equal(await page.locator('#swap-modal').isVisible(),true);
   assert.equal(await page.locator('#review-minimum').textContent(),'0.009589 NETA');
+  const nativePreview=JSON.parse(await page.locator('#swap-preview').textContent());
+  assert.equal(nativePreview.message.swap.belief_price,'98.775187672856578427','WYND spread uses the pre-commission return');
+  // Contract spread is measured before its 30-bps commission. Every execution
+  // below the displayed net minimum must fail that on-chain constraint.
+  const scale=10n**18n,belief=BigInt(nativePreview.message.swap.belief_price.replace('.',''));
+  const expected=1000000n*(scale*scale/belief)/scale;
+  for(let gross=1n;gross<=10124n;gross++){
+    const net=gross-gross*30n/10000n;
+    if(net<9589n)assert.ok((expected-gross)*scale/expected>scale/20n,'under-minimum net return must exceed max_spread');
+  }
   await screenshot('buy-neta-review-320');await page.keyboard.press('Escape');
   assert.equal(await page.locator('#swap-modal').isVisible(),false);assert.equal(await page.locator('#swap-action').evaluate(e=>e===document.activeElement),true);
   await page.locator('#offer-amount').fill('1000');await page.waitForFunction(()=>document.querySelector('#quote-error').textContent.includes('$25 LIMIT'));assert.equal(await page.locator('#swap-action').isDisabled(),true);

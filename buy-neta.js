@@ -209,7 +209,8 @@
 
   function buildTransaction(liveQuote,address){
     const maxSpread=(slippage/100).toFixed(4).replace(/0+$/,"").replace(/\.$/,"");
-    const belief=beliefPrice(liveQuote.raw,liveQuote.returned);
+    // WYND checks spread against return_amount + commission_amount (before fees).
+    const belief=beliefPrice(liveQuote.raw,liveQuote.returned+liveQuote.fee);
     if(liveQuote.offer==="JUNO")return{
       contract:PAIR,
       message:{swap:{offer_asset:{info:{native:"ujuno"},amount:String(liveQuote.raw)},ask_asset_info:{token:NETA},belief_price:belief,max_spread:maxSpread,to:address,referral_address:null,referral_commission:null}},
