@@ -8,6 +8,18 @@ in the owner's private operations handoff, outside this repository.
 
 ## Current priority
 
+The owner requested project sections in Community Tools: Juno owns the existing
+Faucet and Validator Upgrade Status; NETA adds **Buy NETA on WYND**. The current
+branch contains the menu and a port of the old Rescue NETA functionality in the
+shared graphite/mint style. This is a release candidate, not a published feature.
+See [COMMUNITY_TOOLS](docs/COMMUNITY_TOOLS.md) for provenance and remaining checks.
+
+Juno Delegation Programme holdings refresh, but daily staking accrual is stalled:
+the historical rewards query at height 42442228 reports pruned state. Preserve the
+last verified interval; another timer run alone cannot restore the missing history.
+A verified archival provider, bounded catch-up and explicit accrual health reporting
+remain open. Do not replace missing daily evidence with current unclaimed rewards.
+
 The backend is active on OVH. Final source quiescence, verified database transfer,
 original identities, admission settings and target activation are confirmed in the
 private operator record. The owner has retired Render; it is no longer a rollback

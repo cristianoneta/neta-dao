@@ -89,6 +89,13 @@ animation. Keep the existing brand name; generated mockup marks are not a new lo
 
 ## Shared shell and components
 
+Owner update 2026-10-08: Community Tools is grouped by project, initially Juno and
+NETA, with room for future chains. Keep the existing Faucet and Validator Upgrade
+Status under Juno. The NETA entry is **Buy NETA on WYND**, adapted from Rescue NETA
+on the old site. Reuse the current graphite/mint foundations and Community Tools
+header; do not import the old terminal/matrix styling. Use a readable amount and
+transaction review form, explicit wallet confirmation and responsive project cards.
+
 - Header: brand left, compact chain and searchable DAO selectors, explicit network
   state, wallet at right. Keep clear labels, sticky positioning and visible focus.
   Preserve RELAY's cross-DAO context and hidden DAO picker behavior.
