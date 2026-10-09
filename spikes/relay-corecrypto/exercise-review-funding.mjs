@@ -216,6 +216,32 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
       });
     }
   };
+  // Old direct-submit attempts remain status-only after upgrading the UI.
+  const legacyId = new URL(page.url()).searchParams.get('plannerDraft');
+  assert.ok(legacyId);
+  const legacyKey = `cosmoot:juno:planner-proposal:${legacyId}:submission`;
+  await page.evaluate(
+    (key) =>
+      localStorage.setItem(key, JSON.stringify({ state: 'broadcast', hash: 'B'.repeat(64) })),
+    legacyKey
+  );
+  await page.reload();
+  await primary('CHECK SUBMISSION STATUS');
+  assert.equal(await page.locator('#planner-native-inputs').isVisible(), false);
+  await page.locator('#primary-action').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#gov-status').textContent.includes('still unconfirmed')
+  );
+  await page.reload();
+  await primary('CHECK SUBMISSION STATUS');
+  txKnown = true;
+  await page.locator('#primary-action').click();
+  await primary('SUBMISSION CONFIRMED');
+  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  assert.equal(submits, 0);
+  // Remove only this test's fabricated legacy record to exercise a fresh draft.
+  await page.evaluate((key) => localStorage.removeItem(key), legacyKey);
+  txKnown = false;
   await page.reload();
   await primary('PUBLISH FOR REVIEW');
   assert.equal(await page.locator('#planner-native-panel').isVisible(), false);

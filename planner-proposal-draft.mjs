@@ -81,8 +81,8 @@ export function claimProposal(input, now = Date.now(), rewardsSource = null) {
   return draft(
     'CLAIM_REWARDS',
     'Juno Delegation Programme — claim staking rewards',
-    'Claim accrued staking rewards and make them available in the programme treasury.',
-    `This proposal claims the accrued staking rewards from the Juno Delegation Programme’s ${validators.length} listed validator positions and makes them available in the programme treasury.\n\nExisting delegations remain unchanged. No tokens are delegated, redelegated or transferred to another recipient.`,
+    `This proposal claims the accrued staking rewards from the Juno Delegation Programme’s ${validators.length} listed validator positions and makes them available in the programme treasury.`,
+    'Existing delegations remain unchanged. No tokens are delegated, redelegated or transferred to another recipient.',
     actions
   );
 }

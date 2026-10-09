@@ -345,11 +345,11 @@
     ];
     const nativeStages = [
       '01 DRAFT',
-      '02 REVIEW',
-      '03 SUBMIT',
-      '04 DEPOSIT',
-      '05 VOTING',
-      '06 DECISION'
+      '02 PREVIEW',
+      '03 PUBLISH REVIEW',
+      '04 DISCUSS + REVISE',
+      '05 SUBMIT + FUND',
+      '06 VOTING'
     ];
     document.querySelectorAll('.workflow [data-stage]').forEach((item) => {
       const value = Number(item.dataset.stage);
@@ -1539,7 +1539,7 @@
       ? 'This proposal is read directly from Juno native governance.'
       : `This record is read directly from the ${state.dao.name} proposal module.`;
     $('.next-actions').dataset.status = p.status === 'open' ? 'voting' : chainGroup(p.status);
-    updateWorkflow(p.status === 'deposit' ? 3 : 6);
+    updateWorkflow(p.status === 'deposit' ? 5 : 6);
     renderList();
     updateCountdown();
     state.countdown = setInterval(updateCountdown, 30000);

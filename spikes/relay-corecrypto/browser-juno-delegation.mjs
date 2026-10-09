@@ -328,7 +328,7 @@ try {
   assert.equal(await page.locator('#governance-view').isVisible(), true);
   assert.match(
     await page.locator('#proposal-summary').inputValue(),
-    /Claim accrued staking rewards/
+    /claims the accrued staking rewards/
   );
   assert.doesNotMatch(await page.locator('#proposal-body').inputValue(), /USD|snapshot|Estimated/);
   assert.equal(await page.locator('#subdao-select').inputValue(), 'juno-delegation');
