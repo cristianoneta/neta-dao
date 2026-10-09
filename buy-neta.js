@@ -322,6 +322,7 @@
 
   function selectSlippage(value){
     if(!Number.isFinite(value)||value<0.1||value>10){setMessage("SLIPPAGE MUST BE BETWEEN 0.1% AND 10%","error");return false}
+    value=Math.round(value*100)/100;
     if(value===slippage)return true;
     slippage=value;dom.slippageSummary.textContent=`${slippage.toFixed(2)}%`;
     dom.slippageButtons.forEach(button=>button.classList.toggle("selected",Number(button.dataset.slippage)===value));

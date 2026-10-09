@@ -57,6 +57,9 @@ try{
   await page.waitForFunction(()=>document.querySelector('[data-project-link="all"]').getAttribute('aria-current')==='true');
   for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:1100});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await screenshot(`community-tools-${width}`);}
   await page.goto(origin+'/community-tools/neta/buy/');await textIs('#contract-state','Verified');
+  await page.locator('#settings-toggle').click();await page.locator('#custom-slippage').fill('0.125');
+  await textIs('#slippage-summary','0.13%');
+  await page.locator('[data-slippage="5"]').click();await page.locator('#settings-toggle').click();
   await page.locator('#offer-amount').fill('1');await textIs('#receive-amount','0.010094');
   assert.equal(await page.locator('#swap-action').isDisabled(),true);
   await page.locator('#connect-wallet').click();await ready();
