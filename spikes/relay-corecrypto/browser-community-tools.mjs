@@ -45,11 +45,16 @@ try{
   const screenshot=async name=>{if(shots)await page.screenshot({path:`${shots}/${name}.png`,fullPage:true});};
   await page.goto(origin+'/community-tools/');
   assert.equal(await page.locator('.tool-card:visible').count(),3);
-  await page.locator('[data-project-link="juno"]').click();assert.equal(await page.locator('.tool-card:visible').count(),2);
+  await page.locator('[data-project-link="juno"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-project-link="juno"]').getAttribute('aria-current')==='true');
+  assert.equal(await page.locator('.tool-card:visible').count(),2);
   assert.deepEqual(await page.locator('.tool-card:visible h3').allTextContents(),['Juno Faucet','Validator Upgrade Status']);
-  await page.locator('[data-project-link="neta"]').click();assert.equal(await page.locator('.tool-card:visible').count(),1);
+  await page.locator('[data-project-link="neta"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-project-link="neta"]').getAttribute('aria-current')==='true');
+  assert.equal(await page.locator('.tool-card:visible').count(),1);
   await page.reload();assert.equal(await page.locator('[data-project-link="neta"]').getAttribute('aria-current'),'true');
   await page.locator('[data-project-link="all"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-project-link="all"]').getAttribute('aria-current')==='true');
   for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:1100});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await screenshot(`community-tools-${width}`);}
   await page.goto(origin+'/community-tools/neta/buy/');await textIs('#contract-state','Verified');
   await page.locator('#offer-amount').fill('1');await textIs('#receive-amount','0.010094');
