@@ -448,6 +448,10 @@
     state.scope = { organization, units: unitsFor(organization, DAOS), dao, consolidated };
     const url = new URL(window.location.href);
     selectionParams(state.scope, url.searchParams);
+    if (dao !== state.dao) {
+      url.searchParams.delete('review');
+      url.searchParams.delete('proposal');
+    }
     if (plannerDraft && dao.id !== plannerDraft.daoId) {
       url.searchParams.delete('plannerDraft');
       plannerDraft = null;
@@ -804,6 +808,18 @@
       throw new Error('ACTIONS MUST BE VALID JSON');
     }
     if (!Array.isArray(actions)) throw new Error('ACTIONS MUST BE A JSON ARRAY');
+    if (isNativeReview()) {
+      for (const [field, max] of [
+        ['title', 100],
+        ['summary', 300],
+        ['body', 10000],
+        ['actions_json', 20000]
+      ])
+        if ([...v[field].trim()].length > max)
+          throw new Error(
+            `${field.toUpperCase()} EXCEEDS THE SHARED REVIEW LIMIT OF ${max} CHARACTERS`
+          );
+    }
     const parts = payloadParts(v.actions_json);
     validateCategories(parts.actions, parts.accounting);
     actions
@@ -1164,7 +1180,7 @@
           ? access.missing[0]
           : 'PUBLISH FOR REVIEW';
       $('#primary-action').disabled =
-        (!isNativeReview() && state.dao.mode === 'dao-readonly' && !isNativeReview()) ||
+        (state.dao.mode === 'dao-readonly' && !isNativeReview()) ||
         (needsSetup ? !canSetup : !member) ||
         state.walletChain !== CHAIN_ID ||
         state.busy;
@@ -1772,7 +1788,6 @@
     if (state.busy || state.connecting) return;
     if (
       state.dao.mode === 'dao-readonly' &&
-      !isNativeReview() &&
       !isNativeReview() &&
       !mainnetStage() &&
       document.body.dataset.workspaceView !== 'relay'

@@ -44,7 +44,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-let browser;
+let browser, diagnosticPage;
 try {
   browser = await chromium.launch({
     headless: true,
@@ -53,6 +53,7 @@ try {
   const page = await browser.newPage({ serviceWorkers: 'block' }),
     errors = [],
     origin = `http://127.0.0.1:${server.address().port}`;
+  diagnosticPage = page;
   page.on('pageerror', (error) => errors.push(error.message));
   // Every external response is synthetic, including early history requests.
   await page.route(/^https?:\/\/(?!127\.0\.0\.1[:/])/, (route) =>
@@ -327,7 +328,7 @@ try {
   assert.equal(await page.locator('#governance-view').isVisible(), true);
   assert.match(
     await page.locator('#proposal-summary').inputValue(),
-    /claims the accrued staking rewards/
+    /Claim accrued staking rewards/
   );
   assert.doesNotMatch(await page.locator('#proposal-body').inputValue(), /USD|snapshot|Estimated/);
   assert.equal(await page.locator('#subdao-select').inputValue(), 'juno-delegation');
@@ -392,6 +393,16 @@ try {
   console.log(
     'Juno delegation browser: stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all three stages at four viewports passed.'
   );
+} catch (error) {
+  if (diagnosticPage && !diagnosticPage.isClosed()) {
+    console.error('Browser failure state:', await diagnosticPage.locator('body').innerText());
+    if (process.env.NNS_SCREENSHOT_DIR)
+      await diagnosticPage.screenshot({
+        path: `${process.env.NNS_SCREENSHOT_DIR}/juno-delegation-failure.png`,
+        fullPage: true
+      });
+  }
+  throw error;
 } finally {
   await browser?.close();
   await new Promise((resolve) => server.close(resolve));
