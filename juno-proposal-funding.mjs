@@ -100,6 +100,15 @@ export function proposalFunding({
     ])
       $('#' + id).disabled = working;
   }
+  function assertDisplayed(next) {
+    if (
+      canonical(proposalIdentity(selected()?.proposal?.raw || {})) !==
+      canonical(proposalIdentity(next.proposal))
+    )
+      throw Error(
+        'The verified proposal differs from the displayed proposal. Reload before contributing.'
+      );
+  }
   async function refresh() {
     const id = currentId(),
       generation = ++epoch;
@@ -112,6 +121,7 @@ export function proposalFunding({
     try {
       const next = await fundingProof(rests, id);
       if (generation !== epoch || currentId() !== id) return;
+      assertDisplayed(next);
       proof = next;
       render();
     } catch (error) {
@@ -171,6 +181,7 @@ export function proposalFunding({
       if (!reviewed) {
         const next = await fundingProof(rests, id, sender);
         active();
+        assertDisplayed(next);
         const raw = validateContribution(
           parseDeposit($('#proposal-funding-amount').value),
           next.terms

@@ -25,7 +25,8 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     submits = 0,
     contributions = 0,
     contributionMode = 'ok',
-    txKnown = false;
+    txKnown = false,
+    wrongDisplayed = false;
   const reviewHash = () =>
     createHash('sha256')
       .update(
@@ -106,7 +107,12 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
       body = { tx_response: { txhash: 'B'.repeat(64), height: '42500125', code: 0 } };
     } else if (url.pathname === '/cosmos/gov/v1/proposals/900') body = { proposal: native };
     else if (url.pathname === '/cosmos/gov/v1/proposals')
-      body = { proposals: native ? [native] : [], pagination: {} };
+      body = {
+        proposals: native
+          ? [{ ...native, ...(wrongDisplayed ? { title: 'Incorrect cached proposal title' } : {}) }]
+          : [],
+        pagination: {}
+      };
     return route.fulfill({ contentType: 'application/json', headers, body: JSON.stringify(body) });
   });
   await page.exposeFunction('__reviewWrite', async (sender, msg) => {
@@ -313,6 +319,17 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   assert.match(page.url(), /proposal=900/);
   assert.match(await page.locator('#action-hint').innerText(), /FUNDING/);
   assert.doesNotMatch(await page.locator('body').innerText(), /UNDEFINED/);
+  // The verified deposit target must also match the proposal shown in the page.
+  wrongDisplayed = true;
+  await page.reload();
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#gov-status')
+      .textContent.includes('differs from the displayed proposal')
+  );
+  assert.equal(await page.locator('#proposal-funding-action').isDisabled(), true);
+  assert.equal(contributions, 0);
+  wrongDisplayed = false;
   // Opening the finalized review on another visit discovers the existing proposal.
   await page.goto(sharedUrl);
   await page.waitForFunction(() =>
