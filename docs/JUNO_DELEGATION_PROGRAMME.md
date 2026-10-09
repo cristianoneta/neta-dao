@@ -167,10 +167,15 @@ authorizes `execute_admin_msgs` through that internal admin; Cosmos SDK's
 requires the governance module as the sole signer of executable proposal messages.
 Historical evidence is not treated as a current authorization check.
 
-The candidate performs a fresh height-pinned preflight on one Juno node: correct
-chain/recent block, gov module account, code/internal admin, programme withdrawal
+The candidate requires complete preflights from at least two independent Juno API
+origins, requesting a fresh pinned height within each source: correct
+chain/recent block, gov module account, code/internal admin, unpaused state, programme withdrawal
 address, complete delegation pagination, native deposit parameters and proposer
-spendable balance. Missing/mismatched evidence stops submission. The minimum
+spendable balance. Governance parameters must agree; the lower verified balance
+is used. Returned height headers are checked when exposed by the provider.
+The unpaused requirement is a conservative product gate: the contract itself permits
+its governance admin to execute while paused. Missing/mismatched evidence stops
+submission. The minimum
 initial deposit is calculated with integer rounding up. The UI shows the deposit,
 voting threshold and simulated submission fee, then requires a review checkbox
 and a separate submit click. Submission simulation does not simulate future
@@ -180,7 +185,12 @@ A second preflight precedes signing. Wallet/context/text changes invalidate the
 review; reviews expire after two minutes. The bridge verifies exact signed
 protobuf messages and fees before broadcast and uses the existing origin-wide
 pending-transaction journal. A per-draft submission receipt prevents accidental
-repeat proposals; unknown outcomes remain locked. Only direct-signing Keplr
+repeat proposals; an exclusive per-draft device lock also covers different-wallet
+attempts from other tabs. Unknown outcomes expose Check submission status, which
+only reads the saved transaction hash and requires two agreeing inclusion receipts.
+Reloads preserve the attempt, and status lookup never signs or broadcasts. Confirmed
+submission is distinct from a passed proposal and future rewards execution.
+Only direct-signing Keplr
 accounts are supported. No live wallet signature or proposal submission is claimed.
 Generic UNI-7 review, native voting, allocation execution and rule-approval
 verification for allocations are unchanged.
@@ -249,3 +259,27 @@ exports, stale/error states and literal rendering. All three stages are checked
 at 1440/768/390/320 pixels. Presentation tests cover exact large integers, tiny
 nonzero amounts, percentage rounding, filter membership and reason labels. Browser tests run in
 the existing repository CI and upload screenshots for inspection.
+
+## Allocation comparison update — candidate
+
+The distribution table includes **Total JUNO after allocation**, the validator's
+whole stake across all delegators: current validator stake minus the programme's
+current delegation plus its simulated target. It is not the programme target alone.
+The existing Sort by control offers ascending/descending total JUNO and projected
+share. Sorting uses exact integer amounts, not rounded display values. Validators
+outside the projected set have no projected voting share and appear last in both
+share sort directions. The six-column comparison scrolls within its table on small
+screens; row details preserve six-decimal precision.
+
+## Next policy revision — owner decision, not implemented
+
+Future allocation candidates must already belong to the active consensus set or
+enter it as a result of the final simulated redistribution. A standby validator
+that remains outside receives no target allocation. Replacing existing programme
+positions, recomputing the full ranking/caps and deterministic convergence belong
+in a new policy version and a new community rule approval. Do not reinterpret
+existing drafts. Protocol eligibility and current operating evidence are separate;
+non-jailed status and historical upgrade participation do not establish current
+standby operation. Operating-proof requirements still need a concrete definition.
+Claims continue to include every existing positive programme position regardless
+of eligibility for a future allocation.

@@ -8,7 +8,8 @@ import {
   depositTerms,
   parseDeposit,
   verifyProgramme,
-  preflight
+  preflight,
+  submissionReceipt
 } from '../juno-governance-core.mjs';
 import { PROGRAMME } from '../juno-delegation-core.mjs';
 import { fixture } from './fixtures/delegation-planner.mjs';
@@ -25,6 +26,7 @@ const evidence = () => ({
   account: { account: { name: 'gov', base_account: { address: GOVERNANCE } } },
   info: { contract_info: { code_id: '4047' } },
   admin: { data: GOVERNANCE },
+  paused: { data: { unpaused: {} } },
   withdraw: { withdraw_address: PROGRAMME },
   delegations: validators.map((validator_address) => ({
     delegation: { delegator_address: PROGRAMME, validator_address },
@@ -55,6 +57,8 @@ test('native claim authority and payload reject other senders, withdrawals, fund
     (v) => (v.admin.data = PROGRAMME),
     (v) => (v.account.account.name = 'bank'),
     (v) => (v.info.contract_info.code_id = '1'),
+    (v) => (v.paused.data = { paused: { expiration: { at_height: 99999999 } } }),
+    (v) => delete v.paused,
     (v) => (v.withdraw.withdraw_address = GOVERNANCE),
     (v) => v.delegations.pop(),
     (v) => (v.delegations[0].balance.amount = '0')
@@ -117,7 +121,8 @@ test('preflight pins all evidence to a fresh mainnet height and reads every dele
     else if (url.includes('/spendable_balances/'))
       body = { balance: { denom: 'ujuno', amount: '2000000000' } };
     else if (url.includes('/module_accounts/')) body = data.account;
-    else if (url.includes('/smart/')) body = data.admin;
+    else if (url.includes('/smart/'))
+      body = url.endsWith(btoa('{"pause_info":{}}')) ? data.paused : data.admin;
     else if (url.includes('/contract/')) body = data.info;
     else if (url.includes('/withdraw_address')) body = data.withdraw;
     else
@@ -126,23 +131,99 @@ test('preflight pins all evidence to a fresh mainnet height and reads every dele
         : { delegation_responses: data.delegations.slice(0, 10), pagination: { next_key: 'a+/=' } };
     return new Response(JSON.stringify(body), { headers: { 'x-cosmos-block-height': '424242' } });
   };
-  const result = await preflight(['https://node.example'], { messages }, GOVERNANCE, {
+  const nodes = ['https://one.example', 'https://two.example'];
+  const result = await preflight(nodes, { messages }, GOVERNANCE, {
     fetcher,
     now
   });
   assert.equal(result.height, '424242');
-  assert.equal(seen.length, 9);
+  assert.equal(seen.length, 20);
   assert.ok(
-    seen.slice(1).every((row) => row.options.headers['x-cosmos-block-height'] === '424242')
+    seen
+      .filter((row) => !row.url.endsWith('/latest'))
+      .every((row) => row.options.headers['x-cosmos-block-height'] === '424242')
   );
   assert.ok(seen.at(-1).url.includes('pagination.key=a%2B%2F%3D'));
+  assert.equal(result.sources.length, 2);
   await assert.rejects(
-    preflight(['https://node.example'], { messages }, GOVERNANCE, { fetcher, now: now + 120001 }),
+    preflight([nodes[0], nodes[0] + '/'], { messages }, GOVERNANCE, { fetcher, now }),
+    /Two independent/
+  );
+  await assert.rejects(
+    preflight(nodes, { messages }, GOVERNANCE, {
+      now,
+      fetcher: async (url, options) => {
+        const response = await fetcher(url, options);
+        if (url.startsWith(nodes[1]) && url.includes('/params/'))
+          return new Response(
+            JSON.stringify({ params: { ...params, min_initial_deposit_ratio: '0.2' } })
+          );
+        return response;
+      }
+    }),
+    /disagree/
+  );
+  await assert.rejects(
+    preflight(nodes, { messages }, GOVERNANCE, { fetcher, now: now + 120001 }),
     /Fresh Juno/
   );
   data.withdraw.withdraw_address = GOVERNANCE;
-  await assert.rejects(
-    preflight(['https://node.example'], { messages }, GOVERNANCE, { fetcher, now }),
-    /destination/
+  await assert.rejects(preflight(nodes, { messages }, GOVERNANCE, { fetcher, now }), /destination/);
+});
+test('unknown submissions need two matching inclusion receipts; status lookup never submits', async () => {
+  const hash = 'A'.repeat(64),
+    nodes = ['https://one.example', 'https://two.example', 'https://three.example'];
+  const calls = [];
+  const fetcher = async (url, options) => {
+    calls.push({ url, options });
+    return new Response(JSON.stringify({ tx_response: { txhash: hash, height: '42', code: 0 } }));
+  };
+  assert.deepEqual(await submissionReceipt(nodes, hash, { fetcher }), {
+    hash,
+    height: '42',
+    code: 0,
+    state: 'included'
+  });
+  assert.ok(
+    calls.every(
+      ({ url, options }) =>
+        url.endsWith('/cosmos/tx/v1beta1/txs/' + hash) && !options.body && !options.method
+    )
   );
+  for (const change of [
+    (tx) => (tx.txhash = 'B'.repeat(64)),
+    (tx) => (tx.height = '0'),
+    (tx) => (tx.code = '0')
+  ])
+    await assert.rejects(
+      submissionReceipt(nodes, hash, {
+        fetcher: async () => {
+          const tx = { txhash: hash, height: '42', code: 0 };
+          change(tx);
+          return new Response(JSON.stringify({ tx_response: tx }));
+        }
+      }),
+      /unconfirmed/
+    );
+  await assert.rejects(
+    submissionReceipt([nodes[0], nodes[0] + '/'], hash, { fetcher }),
+    /unconfirmed/
+  );
+  await assert.rejects(
+    submissionReceipt(nodes, hash, {
+      fetcher: async (url) => {
+        if (url.startsWith(nodes[1]))
+          return new Response(
+            JSON.stringify({ tx_response: { txhash: hash, height: '42', code: 12 } })
+          );
+        return fetcher(url, {});
+      }
+    }),
+    /unconfirmed/
+  );
+  const failed = await submissionReceipt(nodes, hash, {
+    fetcher: async () =>
+      new Response(JSON.stringify({ tx_response: { txhash: hash, height: '42', code: 12 } }))
+  });
+  assert.equal(failed.state, 'failed');
 });

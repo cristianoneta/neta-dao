@@ -16,8 +16,8 @@
     <link rel="stylesheet" href="/neta-ui.css" />
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
-    <link rel="stylesheet" href="/juno-delegation.css?v=2" />
-    <script type="module" src="/juno-delegation.mjs?v=2"></script>
+    <link rel="stylesheet" href="/juno-delegation.css?v=3" />
+    <script type="module" src="/juno-delegation.mjs?v=3"></script>
   </head>
   <body>
     <a class="planner-skip" href="#planner-heading">Skip to planner</a>
@@ -366,10 +366,14 @@
               <option value="name">Validator name</option>
               <option value="target">Largest target first</option>
               <option value="power">Current stake share</option>
+              <option value="total">Total JUNO after allocation · highest first</option>
+              <option value="total-asc">Total JUNO after allocation · lowest first</option>
+              <option value="projected">Projected share · highest first</option>
+              <option value="projected-asc">Projected share · lowest first</option>
             </select>
           </div>
         </div>
-        <p class="table-scroll-hint">Scroll horizontally to compare all five columns.</p>
+        <p class="table-scroll-hint">Scroll horizontally to compare all six columns.</p>
         <div
           class="table-region"
           role="region"
@@ -387,12 +391,13 @@
                 <th scope="col">Current JUNO</th>
                 <th scope="col">Target JUNO</th>
                 <th scope="col">Change JUNO</th>
+                <th scope="col">Total JUNO after allocation<br /><span>All delegators</span></th>
                 <th scope="col">Stake share<br /><span>Current → projected</span></th>
               </tr>
             </thead>
             <tbody id="allocation-rows">
               <tr>
-                <td colspan="5">Set the rules and simulate to compare allocations.</td>
+                <td colspan="6">Set the rules and simulate to compare allocations.</td>
               </tr>
             </tbody>
           </table>

@@ -649,3 +649,17 @@ suggests a whole hundred. Place the mint Create claim rewards proposal button
 inside this card. Publish proposal opens the existing scoped proposal workspace
 with a prepared draft. Distinguish preparing/opening a draft from publishing or
 executing it; preserve existing drafts and all current submission locks.
+
+
+## Planner comparison and native submission — candidate, 2026-10-09
+
+Use six columns in the allocation comparison, including Total JUNO after allocation
+across all delegators. Reuse the existing Sort by select for ascending/descending
+projected total and projected share. Retain exact details and contained horizontal
+scrolling. These controls do not change allocation policy.
+
+Native planner drafts keep Delegation Programme as their topic and show Juno
+mainnet as the submission authority. Reuse the inline review for deposit, fee and
+explicit wallet confirmation. A saved uncertain attempt offers Check submission
+status without a wallet prompt or another signature; confirmed submission is
+distinct from future governance execution.

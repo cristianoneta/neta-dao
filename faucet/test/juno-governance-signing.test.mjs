@@ -69,6 +69,7 @@ function harness(mode = '') {
     },
     beforeBroadcast: async (hash) => {
       assert.match(hash, /^[A-F0-9]{64}$/);
+      if (mode === 'storage') throw Error('Draft receipt storage failed');
       recorded = true;
     },
     journalOptions: { storage, locks: { request: async (_key, _options, run) => run({}) } }
@@ -116,4 +117,13 @@ test('unknown native submission stays locked and cannot be sent again', async ()
   assert.equal(h.rows.get(key), saved);
   assert.equal(h.signs(), 1);
   assert.equal(h.broadcasts(), 1);
+});
+test('failure to persist the draft association prevents broadcast and keeps the journal', async () => {
+  const h = harness('storage');
+  await assert.rejects(h.run(), /UNKNOWN/);
+  assert.equal(h.broadcasts(), 0);
+  assert.equal(h.signs(), 1);
+  assert.equal(h.rows.size, 1);
+  await assert.rejects(h.run(), /UNKNOWN/);
+  assert.equal(h.signs(), 1);
 });

@@ -102,7 +102,7 @@ function invalidate(
   $('table-count').textContent = 'No current simulation.';
   const row = node('tr', ''),
     cell = node('td', message);
-  cell.colSpan = 5;
+  cell.colSpan = 6;
   row.append(cell);
   $('allocation-rows').replaceChildren(row);
   renderRuleSummary();
@@ -323,15 +323,17 @@ function renderTable() {
       node('td', formatAmount(v.currentRaw), 'numeric'),
       node('td', formatAmount(v.targetRaw), 'numeric target-amount'),
       node('td', formatChange(v.deltaRaw), 'numeric'),
+      node('td', formatAmount(v.projectedRaw), 'numeric projected-total'),
       node('td', `${currentShare} → ${projectedShare}`, 'numeric')
     );
-    content.colSpan = 5;
+    content.colSpan = 6;
     content.append(node('p', allocationReason(v)), node('p', v.address, 'detail-address'));
     const exact = node('div', '', 'exact-amounts');
     exact.append(
       node('span', `Current: ${fmt(v.currentRaw)} JUNO`),
       node('span', `Target: ${fmt(v.targetRaw)} JUNO`),
-      node('span', `Change: ${formatChange(v.deltaRaw, true)} JUNO`)
+      node('span', `Change: ${formatChange(v.deltaRaw, true)} JUNO`),
+      node('span', `Total after allocation: ${fmt(v.projectedRaw)} JUNO (all delegators)`)
     );
     const facts = node('p', '', 'detail-facts');
     facts.append(
@@ -366,7 +368,7 @@ function renderTable() {
   if (!rows.length) {
     const row = node('tr', ''),
       cell = node('td', 'No validators match these filters.');
-    cell.colSpan = 5;
+    cell.colSpan = 6;
     row.append(cell);
     $('allocation-rows').append(row);
   }

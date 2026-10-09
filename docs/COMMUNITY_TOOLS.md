@@ -65,3 +65,14 @@ the same header, design tokens and card language. This is a planning build with
 real snapshot inputs, current/target comparison and rule-proposal draft downloads.
 Execution remains unavailable pending verified governance integration. See
 [the implementation and rollout boundary](JUNO_DELEGATION_PROGRAMME.md).
+
+## Pool overview — candidate, 9 October
+
+Buy NETA displays both verified pool reserves and indicative JUNO/NETA USD
+prices below the contract details. JUNO USD uses the existing timestamped
+Treasury snapshot; NETA USD is the current WYND reserve ratio times that price.
+The two observation times and the difference from an executable swap quote are
+shown explicitly. Invalid/empty reserves or a stale/unavailable price source
+clear the overview. The existing manual refresh updates all four values; a
+visible idle page also refreshes every minute. No extra price service, wallet
+permission or signing action is introduced.

@@ -405,7 +405,7 @@
 }
 .allocation-table {
   width: 100%;
-  min-width: 880px;
+  min-width: 1040px;
   border-collapse: collapse;
   background: var(--neta-surface);
   font-size: 14px;

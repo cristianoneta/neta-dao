@@ -19,6 +19,10 @@ The new candidate retains Delegation Programme as the topic but prepares a
 claim through the governance module's authorized programme execution message.
 The narrowly scoped native submission adapter checks live authority, withdrawal
 destination, delegations, deposit, wallet and fee before explicit review/signing.
+Two independent API sources are required. Uncertain attempts can be checked by
+transaction hash without signing again. The allocation table adds sortable total
+JUNO after redistribution and projected share; the stricter standby-selection
+policy remains the next separate revision, not part of this claim candidate.
 No live proposal has been submitted. Manual website release and live wallet
 acceptance remain pending; allocation execution and native voting stay disabled.
 

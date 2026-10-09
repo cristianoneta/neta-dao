@@ -1,4 +1,10 @@
-import { preflight, proposalContent, parseDeposit, displayJuno } from './juno-governance-core.mjs';
+import {
+  preflight,
+  proposalContent,
+  parseDeposit,
+  displayJuno,
+  submissionReceipt
+} from './juno-governance-core.mjs';
 
 export function nativePlanner({
   active,
@@ -18,10 +24,23 @@ export function nativePlanner({
     client = null,
     generation = 0,
     working = false;
-  const receiptKey = () => `cosmoot:juno:planner-proposal:${draft().id}:submission`;
+  const receiptKey = (id = draft().id) => `cosmoot:juno:planner-proposal:${id}:submission`;
+  const saveReceipt = (id, value) => {
+    const key = receiptKey(id),
+      record = JSON.stringify(value);
+    localStorage.setItem(key, record);
+    if (localStorage.getItem(key) !== record) throw Error('Submission record could not be saved.');
+  };
   const receipt = () => {
     try {
-      return JSON.parse(localStorage.getItem(receiptKey()) || 'null');
+      const record = JSON.parse(localStorage.getItem(receiptKey()) || 'null');
+      if (
+        record &&
+        (!['broadcast', 'included', 'failed'].includes(record.state) ||
+          !/^[A-F0-9]{64}$/.test(record.hash))
+      )
+        throw Error('Invalid receipt');
+      return record;
     } catch {
       return { state: 'unreadable' };
     }
@@ -39,27 +58,34 @@ export function nativePlanner({
     const previous = receipt(),
       button = $('#primary-action');
     button.hidden = false;
-    button.textContent = previous
-      ? 'SUBMISSION RECORDED'
-      : working
-        ? 'CHECKING JUNO…'
-        : !address() || chain() !== 'juno-1'
-          ? 'CONNECT KEPLR · JUNO'
-          : reviewed
-            ? 'SUBMIT TO JUNO GOVERNANCE'
-            : 'REVIEW JUNO PROPOSAL';
+    button.textContent = working
+      ? 'CHECKING JUNO…'
+      : previous?.state === 'broadcast'
+        ? 'CHECK SUBMISSION STATUS'
+        : previous
+          ? previous.state === 'included'
+            ? 'SUBMISSION CONFIRMED'
+            : 'SUBMISSION RECORDED'
+          : !address() || chain() !== 'juno-1'
+            ? 'CONNECT KEPLR · JUNO'
+            : reviewed
+              ? 'SUBMIT TO JUNO GOVERNANCE'
+              : 'REVIEW JUNO PROPOSAL';
     button.disabled =
-      working || !!previous || (!!reviewed && !$('#planner-native-confirm').checked);
+      working ||
+      (!!previous && previous.state !== 'broadcast') ||
+      (!!reviewed && !$('#planner-native-confirm').checked);
     $('#planner-native-deposit').disabled = working || !!previous;
     $('#planner-native-confirm').disabled = working;
     $('#action-hint').textContent = previous
-      ? `This draft already has a submission attempt${previous.hash ? ' · TX ' + previous.hash : ''}. Check its outcome before creating another proposal.`
+      ? `${previous.state === 'included' ? 'Proposal submission confirmed. This does not mean the proposal passed or rewards were claimed.' : previous.state === 'failed' ? `Transaction failed (code ${previous.code}). No proposal was created; review the failure before preparing a new draft.` : 'This draft has a saved submission attempt. Check its status without signing again.'}${previous.hash ? ' · TX ' + previous.hash : ''}`
       : 'Submit to Juno native governance from your wallet. Juno stakers vote; Delegation DAO membership is not required.';
   }
-  const current = (epoch, fingerprint, sender) => {
+  const current = (epoch, fingerprint, sender, id) => {
     if (
       generation !== epoch ||
       !active() ||
+      draft()?.id !== id ||
       sender !== address() ||
       chain() !== 'juno-1' ||
       JSON.stringify(values()) !== fingerprint
@@ -76,7 +102,33 @@ export function nativePlanner({
       throw Error('Keplr account changed. Reconnect and review again.');
   }
   async function run() {
-    if (!active() || working || receipt()) return;
+    if (!active() || working) return;
+    const previous = receipt(),
+      id = draft().id;
+    if (previous) {
+      if (previous.state !== 'broadcast') return;
+      working = true;
+      busy(true);
+      render();
+      try {
+        const result = await submissionReceipt(rests, previous.hash);
+        saveReceipt(id, { ...previous, ...result });
+        if (active() && draft()?.id === id)
+          status(
+            result.code === 0
+              ? `JUNO PROPOSAL SUBMISSION CONFIRMED · TX ${result.hash}`
+              : `TRANSACTION FAILED · CODE ${result.code} · TX ${result.hash}`,
+            result.code !== 0
+          );
+      } catch (error) {
+        if (active() && draft()?.id === id) status(error.message, true);
+      } finally {
+        working = false;
+        busy(false);
+        rerender();
+      }
+      return;
+    }
     if (!address() || chain() !== 'juno-1') {
       await connectWallet();
       return;
@@ -94,7 +146,7 @@ export function nativePlanner({
         localStorage.setItem(`cosmoot:juno:planner-proposal:${draft().id}:revision`, fingerprint);
         status('CHECKING JUNO GOVERNANCE, DEPOSIT AND PROGRAMME AUTHORITY…');
         const proof = await preflight(rests, content, sender);
-        current(epoch, fingerprint, sender);
+        current(epoch, fingerprint, sender, id);
         const field = $('#planner-native-deposit');
         if (!field.value) field.value = displayJuno(proof.terms.initial);
         const deposit = parseDeposit(field.value);
@@ -112,11 +164,11 @@ export function nativePlanner({
         });
         const gas = await NetaJunoGovernance.simulate(client, content, sender, deposit),
           fee = NetaJunoGovernance.fixedFee(gas, 1.4, '0.075ujuno', 2000000);
-        current(epoch, fingerprint, sender);
+        current(epoch, fingerprint, sender, id);
         await wallet(sender);
         if (BigInt(proof.balance) < BigInt(deposit) + BigInt(fee.amount[0].amount))
           throw Error('Insufficient spendable JUNO for the reviewed deposit and fee.');
-        reviewed = { epoch, fingerprint, sender, content, deposit, fee, proof };
+        reviewed = { epoch, fingerprint, sender, id, content, deposit, fee, proof };
         $('#planner-native-review-text').textContent =
           `Juno mainnet · ${sender}\nInitial deposit: ${displayJuno(deposit)} JUNO · Estimated fee: ${displayJuno(fee.amount[0].amount)} JUNO\n` +
           `Total deposit needed for voting: ${displayJuno(proof.terms.total)} JUNO · Verified at block ${proof.height}.\n` +
@@ -131,9 +183,10 @@ export function nativePlanner({
         const review = reviewed;
         if (!$('#planner-native-confirm').checked)
           throw Error('Confirm the proposal, deposit and fee first.');
-        current(review.epoch, review.fingerprint, review.sender);
+        current(review.epoch, review.fingerprint, review.sender, review.id);
         const guard = async () => {
-          current(review.epoch, review.fingerprint, review.sender);
+          current(review.epoch, review.fingerprint, review.sender, review.id);
+          if (receipt()) throw Error('A submission is already recorded for this draft.');
           if (Date.now() - review.proof.checkedAt > 120000)
             throw Error('Proposal review expired. Review fresh chain data again.');
         };
@@ -145,22 +198,28 @@ export function nativePlanner({
           BigInt(fresh.balance) < BigInt(review.deposit) + BigInt(review.fee.amount[0].amount)
         )
           throw Error('Governance parameters or balance changed. Review again.');
-        const result = await NetaJunoGovernance.submit(
-          client,
-          review.content,
-          review.sender,
-          review.deposit,
-          review.fee,
-          {
-            assertWallet: () => wallet(review.sender),
-            beforeSign: guard,
-            beforeBroadcast: (hash) => {
-              const key = receiptKey(),
-                record = JSON.stringify({ state: 'broadcast', hash, proposer: review.sender });
-              localStorage.setItem(key, record);
-              if (localStorage.getItem(key) !== record)
-                throw Error('Submission record could not be saved.');
-            }
+        if (!navigator.locks?.request) throw Error('A device lock is required to submit safely.');
+        const result = await navigator.locks.request(
+          receiptKey(review.id),
+          { mode: 'exclusive', ifAvailable: true },
+          async (lock) => {
+            if (!lock) throw Error('Another tab is submitting this draft.');
+            await guard();
+            return NetaJunoGovernance.submit(
+              client,
+              review.content,
+              review.sender,
+              review.deposit,
+              review.fee,
+              {
+                assertWallet: () => wallet(review.sender),
+                beforeSign: guard,
+                beforeBroadcast: (hash) => {
+                  current(review.epoch, review.fingerprint, review.sender, review.id);
+                  saveReceipt(review.id, { state: 'broadcast', hash, proposer: review.sender });
+                }
+              }
+            );
           }
         );
         const record = {
@@ -169,8 +228,9 @@ export function nativePlanner({
           height: result.height,
           proposer: review.sender
         };
-        localStorage.setItem(receiptKey(), JSON.stringify(record));
-        status(`JUNO PROPOSAL SUBMITTED · TX ${result.transactionHash}`);
+        saveReceipt(review.id, record);
+        if (active() && draft()?.id === review.id)
+          status(`JUNO PROPOSAL SUBMITTED · TX ${result.transactionHash}`);
       }
     } catch (error) {
       invalidate();
@@ -187,6 +247,11 @@ export function nativePlanner({
     $('#' + id).addEventListener('input', invalidate);
   window.addEventListener('neta:relay-panel', invalidate);
   window.addEventListener('hashchange', invalidate);
+  window.addEventListener('neta:dao-change', invalidate);
+  window.addEventListener('pagehide', invalidate);
+  window.addEventListener('storage', (event) => {
+    if (active() && event.key === receiptKey()) invalidate();
+  });
   window.addEventListener('neta:wallet-change', () => {
     client?.disconnect();
     client = null;

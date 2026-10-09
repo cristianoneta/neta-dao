@@ -86,7 +86,7 @@ export function displayJuno(raw) {
     fraction = (value % 1000000n).toString().padStart(6, '0').replace(/0+$/, '');
   return `${value / 1000000n}${fraction ? '.' + fraction : ''}`;
 }
-export function verifyProgramme({ account, info, admin, withdraw, delegations }, messages) {
+export function verifyProgramme({ account, info, admin, paused, withdraw, delegations }, messages) {
   if (
     account?.account?.base_account?.address !== GOVERNANCE ||
     account.account.name !== 'gov' ||
@@ -94,6 +94,10 @@ export function verifyProgramme({ account, info, admin, withdraw, delegations },
     admin?.data !== GOVERNANCE
   )
     throw Error('Juno governance authority over the programme could not be verified.');
+  // Conservative product gate: governance-admin execution itself can bypass a
+  // DAO pause, but an active pause requires separate operator review.
+  if (!same(paused?.data, { unpaused: {} }))
+    throw Error('Programme pause state requires review before preparing a claim.');
   if (withdraw?.withdraw_address !== PROGRAMME)
     throw Error('Programme rewards withdrawal destination is not the programme treasury.');
   const validators = claimValidators(messages);
@@ -117,7 +121,7 @@ export function verifyProgramme({ account, info, admin, withdraw, delegations },
 
 // One node and one height for each complete preflight. Fail over whole checks,
 // never assemble authority/deposit evidence from different nodes or heights.
-export async function preflight(
+async function preflightSource(
   endpoints,
   content,
   proposer,
@@ -161,10 +165,11 @@ export async function preflight(
       if (balance.balance?.denom !== 'ujuno' || !/^\d+$/.test(balance.balance?.amount))
         throw Error('Spendable JUNO balance unavailable.');
       if (content.messages.length) {
-        const [account, info, admin, withdraw] = await Promise.all([
+        const [account, info, admin, paused, withdraw] = await Promise.all([
           get('/cosmos/auth/v1beta1/module_accounts/gov'),
           get(`/cosmwasm/wasm/v1/contract/${PROGRAMME}`),
           get(`/cosmwasm/wasm/v1/contract/${PROGRAMME}/smart/${btoa('{"admin":{}}')}`),
+          get(`/cosmwasm/wasm/v1/contract/${PROGRAMME}/smart/${btoa('{"pause_info":{}}')}`),
           get(`/cosmos/distribution/v1beta1/delegators/${PROGRAMME}/withdraw_address`)
         ]);
         const delegations = [],
@@ -182,7 +187,7 @@ export async function preflight(
           if (seen.has(key) || page === 19) throw Error('Incomplete programme delegations.');
           seen.add(key);
         }
-        verifyProgramme({ account, info, admin, withdraw, delegations }, content.messages);
+        verifyProgramme({ account, info, admin, paused, withdraw, delegations }, content.messages);
       }
       return {
         height,
@@ -197,4 +202,82 @@ export async function preflight(
     }
   }
   throw last || Error('Juno preflight unavailable.');
+}
+
+const stable = (value) =>
+  JSON.stringify(value, function (key, item) {
+    return item && typeof item === 'object' && !Array.isArray(item)
+      ? Object.fromEntries(
+          Object.keys(item)
+            .sort()
+            .map((name) => [name, item[name]])
+        )
+      : item;
+  });
+function independentEndpoints(endpoints) {
+  return [
+    ...new Map(
+      endpoints.map((endpoint) => [new URL(endpoint).origin, endpoint.replace(/\/$/, '')])
+    ).values()
+  ];
+}
+export async function preflight(endpoints, content, proposer, options = {}) {
+  const results = await Promise.allSettled(
+    independentEndpoints(endpoints).map((endpoint) =>
+      preflightSource([endpoint], content, proposer, options)
+    )
+  );
+  const good = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
+  if (good.length < 2)
+    throw Error(
+      'Two independent Juno sources must verify this proposal. ' +
+        results
+          .filter((r) => r.status === 'rejected')
+          .map((r) => r.reason.message)
+          .join(' · ')
+    );
+  if (good.some((proof) => stable(proof.params) !== stable(good[0].params)))
+    throw Error('Juno sources disagree on governance parameters. Review again later.');
+  return {
+    ...good[0],
+    balance: good.reduce(
+      (min, proof) => (BigInt(proof.balance) < BigInt(min) ? proof.balance : min),
+      good[0].balance
+    ),
+    sources: good.map(({ endpoint, height }) => ({ endpoint, height }))
+  };
+}
+
+// Checking an uncertain attempt never signs, broadcasts or removes its journal.
+export async function submissionReceipt(endpoints, hash, { fetcher = fetch } = {}) {
+  if (!/^[A-F0-9]{64}$/.test(hash)) throw Error('Invalid submission transaction hash.');
+  const results = await Promise.allSettled(
+    independentEndpoints(endpoints).map(async (endpoint) => {
+      const response = await fetcher(endpoint + '/cosmos/tx/v1beta1/txs/' + hash, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(12000)
+      });
+      if (!response.ok) throw Error('Transaction lookup unavailable.');
+      const { tx_response: tx } = await response.json();
+      if (
+        tx?.txhash?.toUpperCase() !== hash ||
+        !/^[1-9]\d*$/.test(String(tx.height)) ||
+        !Number.isSafeInteger(tx.code) ||
+        tx.code < 0
+      )
+        throw Error('Transaction inclusion is unverified.');
+      return {
+        hash,
+        height: String(tx.height),
+        code: tx.code,
+        state: tx.code === 0 ? 'included' : 'failed'
+      };
+    })
+  );
+  const good = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
+  if (good.length < 2 || good.some((r) => !same(r, good[0])))
+    throw Error(
+      'Submission outcome is still unconfirmed. Check again; do not submit another proposal.'
+    );
+  return good[0];
 }
