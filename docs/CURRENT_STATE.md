@@ -33,8 +33,10 @@ were closed, and no open PR remained at the completion check.
   accepted live from release `885beb9ac6adbb175997dd8bf8ae4e00d23e66ef` on 9 October.
   The staged UI was subsequently published from `5d14ce24`; criteria, reserve and
   local draft handoff shipped as `ba65ba30` (manual run 37936517683, all 18 jobs
-  successful, 9 October 13:36 UTC). A new candidate corrects the handoff to Juno
-  native governance with a guarded submission adapter. It has not been released. See
+  successful, 9 October 13:36 UTC). Native governance and Community Tools balances
+  shipped as `e5ffabab` in manual run 37946802277, all 18 jobs successful. A live
+  claim click then exposed rejection of long DAO validator addresses. The current
+  candidate corrects that check and adds local feedback and timestamped rewards. See
   [planner status](JUNO_DELEGATION_PROGRAMME.md).
 
 - Daily staking accrual remains unavailable in the live accounting feed, while
@@ -79,7 +81,7 @@ were closed, and no open PR remained at the completion check.
 
 | Feature | Code | Deployment / activation | Evidence and remaining boundary |
 | --- | --- | --- | --- |
-| Juno Delegation Programme planner | Shared Community Tools UI; capped equal simulation, exclusions, snapshot collector and rule-draft exports | Criteria, reserve and local drafts live; native governance handoff/submission candidate | Original live simulation accepted on both domains; on-chain approval verifier and execution adapter remain open. [Scope and rollout](JUNO_DELEGATION_PROGRAMME.md) |
+| Juno Delegation Programme planner | Shared Community Tools UI; capped equal simulation, exclusions, snapshot collector and rule-draft exports | Native governance handoff/submission published; claim-entry and rewards-display correction pending release | Original live simulation accepted on both domains; on-chain approval verifier and execution adapter remain open. [Scope and rollout](JUNO_DELEGATION_PROGRAMME.md) |
 | Community Tools | Project menu for Juno / NETA; Buy NETA on WYND adapted from Rescue NETA | Project menu and all four tools published | Existing Juno routes retained; native/CW20 swap, contract allowlist, $25 cap and pending journal retained. Signing and browser checks passed; desktop/mobile screenshots inspected. The published hub was checked during the original planner release. [Details](COMMUNITY_TOOLS.md) |
 | Names | Registry v0.3.1 and profiles v0.1.0 | Mainnet code 5168/5169; purchases active | First registration and fee receipt recorded; mainnet renewal/transfer and live validator E2E remain open. [Receipts](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) |
 | Personal messaging | Maintained client, builder, backup and browser suites integrated in cleanup candidate | Code 5170 deployed; separate two-wallet pilot live; public release/deployment pins null | User confirmed send/read/reload; device/consent queried through one provider. Fresh-profile restore/rotation explicitly deferred; reply and hosted durability open. [Pilot evidence](deployments/PERSONAL_PILOT_2026-10-07.md) |

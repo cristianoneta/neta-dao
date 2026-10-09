@@ -708,3 +708,13 @@
 .claim-rewards button {
   width: 100%;
 }
+.claim-amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+#claim-rewards-feedback[data-tone='error'] {
+  color: var(--neta-danger);
+}
+#claim-rewards-feedback:empty {
+  display: none;
+}

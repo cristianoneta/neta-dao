@@ -3,9 +3,14 @@ import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { fixture } from '../../tests/fixtures/delegation-planner.mjs';
+import { rewardsFixture } from '../../tests/fixtures/claim-rewards.mjs';
 const root = new URL('../../', import.meta.url),
   history = JSON.parse(await readFile(new URL('data/validator-upgrades/juno-v31.json', root)));
 const sample = fixture();
+sample.validators[0].address =
+  'junovaloper185hgkqs8q8ysnc8cvkgd8j2knnq2m0ah6ae73gntv9ampgwpmrxqlfzywn';
+sample.validators[1].address =
+  'junovaloper1pvuxgpct3n8pk4dk2vsvuz2y9tav62ug2c8n093dhzh5qqqe3w3qzgq2d7';
 sample.validators.forEach((v, i) => {
   v.consensusAddress = history.validators[i].address;
   // Exercise programme-sized numbers, including micro-unit precision.
@@ -56,6 +61,18 @@ try {
     })
   );
   let state = 'current';
+  let rewardsState = 'current';
+  await page.route('**/data/treasury/juno-delegation.json', (route) => {
+    if (rewardsState === 'missing') return route.fulfill({ status: 503, body: 'unavailable' });
+    const data = rewardsFixture(sample);
+    if (rewardsState === 'stale') data.generated_at = new Date(Date.now() - 7200000).toISOString();
+    if (rewardsState === 'no-price') {
+      data.assets[0].usd_price = null;
+      data.status = 'PARTIAL';
+      data.price_source = 'Unavailable';
+    }
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify(data) });
+  });
   await page.route('**/data/daos/juno-delegation-planner.json', (route) => {
     if (state === 'missing') return route.fulfill({ status: 503, body: 'unavailable' });
     const data = structuredClone(sample);
@@ -78,6 +95,26 @@ try {
     await page.waitForFunction(() => !document.getElementById('export-json').disabled);
   };
   await page.goto(origin + '/community-tools/juno/delegation/');
+  await ready();
+  assert.match(
+    await page.locator('#claim-rewards-amount').textContent(),
+    /3,837,025.339927 JUNO.*33,896.32/
+  );
+  assert.match(
+    await page.locator('#claim-rewards-observed').textContent(),
+    /25 programme delegations/
+  );
+  for (const status of ['stale', 'missing', 'no-price']) {
+    rewardsState = status;
+    await page.locator('#refresh').click();
+    await ready();
+    assert.equal(await page.locator('#claim-rewards').isEnabled(), true);
+    const text = await page.locator('#claim-rewards-amount').textContent();
+    assert.equal(text.includes('$'), false);
+    assert.match(text, status === 'no-price' ? /3,837,025.339927 JUNO/ : /unavailable/);
+  }
+  rewardsState = 'current';
+  await page.locator('#refresh').click();
   await ready();
   assert.equal(await page.locator('#programme-amount').inputValue(), '15000900');
   assert.equal(await page.locator('.criterion h4').count(), 4);
@@ -265,12 +302,29 @@ try {
       })
     )
   );
+  // A storage failure must be visible beside the real button and preserve drafts.
+  await page.evaluate(() => {
+    window.originalPlannerSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key.startsWith('cosmoot:juno:planner-proposal:')) throw Error('quota');
+      return window.originalPlannerSetItem.call(this, key, value);
+    };
+  });
   await page.locator('#claim-rewards').click();
+  assert.match(await page.locator('#claim-rewards-feedback').innerText(), /could not save/);
+  assert.equal(await page.locator('#claim-rewards-feedback').isVisible(), true);
+  assert.equal(await page.locator('#claim-rewards').isEnabled(), true);
+  assert.ok(page.url().includes('/community-tools/juno/delegation/'));
+  await page.evaluate(() => {
+    Storage.prototype.setItem = window.originalPlannerSetItem;
+  });
+  await page.locator('#claim-rewards').press('Enter');
   await page.waitForURL((url) => url.hash === '#governance');
   await page.waitForFunction(() =>
     document.getElementById('proposal-title').value.includes('claim staking rewards')
   );
   assert.equal(await page.locator('#governance-view').isVisible(), true);
+  assert.match(await page.locator('#proposal-summary').inputValue(), /3837025.339927 JUNO/);
   assert.equal(await page.locator('#subdao-select').inputValue(), 'juno-delegation');
   const govMessages = JSON.parse(await page.locator('#proposal-actions').inputValue());
   assert.equal(govMessages.length, 1);
