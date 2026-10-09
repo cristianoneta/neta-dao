@@ -42,7 +42,7 @@ were closed, and no open PR remained at the completion check.
   collector installation and live acceptance remain open. No production rewards
   were backfilled by this code review. See [catch-up evidence and limits](STAKING_REWARDS_CATCHUP.md).
 
-- Current release `604cec097d08fb8ce5e64731d76c32ee6fdf682e` passed all 18 release jobs
+- Current release `885beb9ac6adbb175997dd8bf8ae4e00d23e66ef` passed all 18 release jobs
   and was published to both domains; API/CSP and both origins were accepted.
   The earlier confirmed upload was GitHub main `153f7a8c`, release run
   37774069535, deployment `b9efb912`. The publish step passed at 12:14:25 UTC.
@@ -77,8 +77,8 @@ were closed, and no open PR remained at the completion check.
 
 | Feature | Code | Deployment / activation | Evidence and remaining boundary |
 | --- | --- | --- | --- |
-| Juno Delegation Programme planner | Shared Community Tools UI; capped equal simulation, exclusions, snapshot collector and rule-draft exports | First implementation; no publication or governance activation | Real read-only snapshot collected during development; on-chain approval verifier and execution adapter remain open. [Scope and rollout](JUNO_DELEGATION_PROGRAMME.md) |
-| Community Tools | Project menu for Juno / NETA; Buy NETA on WYND adapted from Rescue NETA | Reviewed release candidate; no new publication | Existing Juno routes retained; native/CW20 swap, contract allowlist, $25 cap and pending journal retained. Signing and browser checks passed; desktop/mobile screenshots inspected. Deliberate release and live acceptance remain open. [Details](COMMUNITY_TOOLS.md) |
+| Juno Delegation Programme planner | Shared Community Tools UI; capped equal simulation, exclusions, snapshot collector and rule-draft exports | Original planner and snapshot live; staged UI release candidate | Original live simulation accepted on both domains; on-chain approval verifier and execution adapter remain open. [Scope and rollout](JUNO_DELEGATION_PROGRAMME.md) |
+| Community Tools | Project menu for Juno / NETA; Buy NETA on WYND adapted from Rescue NETA | Project menu and all four tools published | Existing Juno routes retained; native/CW20 swap, contract allowlist, $25 cap and pending journal retained. Signing and browser checks passed; desktop/mobile screenshots inspected. The published hub was checked during the original planner release. [Details](COMMUNITY_TOOLS.md) |
 | Names | Registry v0.3.1 and profiles v0.1.0 | Mainnet code 5168/5169; purchases active | First registration and fee receipt recorded; mainnet renewal/transfer and live validator E2E remain open. [Receipts](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) |
 | Personal messaging | Maintained client, builder, backup and browser suites integrated in cleanup candidate | Code 5170 deployed; separate two-wallet pilot live; public release/deployment pins null | User confirmed send/read/reload; device/consent queried through one provider. Fresh-profile restore/rotation explicitly deferred; reply and hosted durability open. [Pilot evidence](deployments/PERSONAL_PILOT_2026-10-07.md) |
 | Backup service | ADR-36, scoped encrypted envelopes, atomic revisions, local snapshot export; isolated admission lanes | Active OVH backend, separate database, unchanged pilot allowlist | OVH activation and API/origin behavior confirmed. Synthetic authenticated process restart/export/restore passed locally, on the target host and in its hardened image; recurring off-host retention remains open. [Service receipt](deployments/RELAY_SHARED_RENDER_2026-10-07.md), [recovery runbook](BACKUP_RECOVERY.md) |

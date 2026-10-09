@@ -374,6 +374,11 @@
 .table-toolbar select {
   font-size: 14px;
 }
+.table-scroll-hint {
+  display: none;
+  color: var(--neta-text-secondary);
+  font-size: 13px;
+}
 .table-region {
   overflow-x: auto;
   border: 1px solid var(--neta-border);
@@ -552,6 +557,9 @@
   color: var(--neta-text-secondary);
 }
 @media (max-width: 900px) {
+  .table-scroll-hint {
+    display: block;
+  }
   .rules-grid {
     grid-template-columns: 1fr;
   }
