@@ -12,7 +12,7 @@ export const UPGRADE = Object.freeze({
   height: 42452000,
   haltTime: '2026-10-07T06:56:31.235578431Z'
 });
-const operator =
+export const operator =
   /^junovaloper1(?:[023456789acdefghjklmnpqrstuvwxyz]{38}|[023456789acdefghjklmnpqrstuvwxyz]{58})$/;
 const raw = (value) => typeof value === 'string' && /^(0|[1-9]\d{0,29})$/.test(value);
 const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);

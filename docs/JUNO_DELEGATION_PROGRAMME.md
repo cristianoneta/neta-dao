@@ -1,10 +1,38 @@
 # Juno Delegation Programme
 
-9 October 2026. Criteria, liquid reserve and local draft handoff are live from
-`ba65ba30730c3abe30bdf9e17ebe2ec1952a4196` (manual run 37936517683). The native
-Juno governance correction below is a new candidate, not yet released. Rule
-approval verification for subsequent allocations and allocation execution remain
-unconnected.
+9 October 2026. Native Juno governance and Community Tools balances are published
+from `e5ffabab3324a2c4d7a8e5705d5ae24d5b216351` (manual run 37946802277,
+all 18 jobs successful). A live claim-entry defect was subsequently reproduced;
+the correction below is a candidate pending CI and manual release. Rule approval
+verification and allocation execution remain unconnected.
+
+## Claim entry and current rewards correction
+
+The claim adapter previously accepted only short validator addresses. This
+rejected the programme's long DAO validator positions before the draft could
+open. It now shares the planner's bounded 20-/32-byte address shape check, with
+real long-address regression cases. Claims still include held jailed and standby
+positions; allocation eligibility never removes their rewards actions.
+
+The actual button has local, focusable feedback for preparation and failures.
+Draft storage is read back before navigation and existing drafts remain intact.
+The existing same-origin holdings snapshot supplies claimable JUNO and optional
+indicative USD directly above the button. Both its observation and collection
+must be within one hour. Identity, height pinning, withdrawal target, validator
+count and reward-asset reconciliation are checked. The collector already reads
+the full distribution response and truncates each validator's micro-unit payout
+separately. This is not historical daily accrual or spendable balance.
+
+Missing/partial/stale data is unavailable, not zero. A missing price suppresses
+USD only. Refresh reloads rewards with planner data; open tabs expire observations
+without resetting edited allocations. The draft repeats the snapshot estimate
+and warns that the eventual execution amount can differ. Rewards do not enter
+the allocation budget until confirmed execution and a refreshed balance.
+
+Validation: 248 root Node tests, five signing tests and existing Treasury rounding
+tests pass locally. Browser regressions cover real long-address handoff, keyboard
+activation, storage failure, missing/stale rewards and missing price. CI and
+post-release acceptance remain required; no live signing is claimed.
 
 ## Placement and interface
 

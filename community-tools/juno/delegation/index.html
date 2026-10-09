@@ -16,8 +16,8 @@
     <link rel="stylesheet" href="/neta-ui.css" />
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
-    <link rel="stylesheet" href="/juno-delegation.css?v=3" />
-    <script type="module" src="/juno-delegation.mjs?v=3"></script>
+    <link rel="stylesheet" href="/juno-delegation.css?v=4" />
+    <script type="module" src="/juno-delegation.mjs?v=4"></script>
   </head>
   <body>
     <a class="planner-skip" href="#planner-heading">Skip to planner</a>
@@ -186,13 +186,30 @@
             </p>
             <p id="reserve-note" class="field-help"></p>
             <div class="claim-rewards">
-              <button id="claim-rewards" class="primary-action" type="button" disabled>
+              <p id="claim-rewards-amount" class="claim-amount" aria-live="polite">
+                Loading claimable staking rewards…
+              </p>
+              <p id="claim-rewards-observed" class="field-help"></p>
+              <button
+                id="claim-rewards"
+                class="primary-action"
+                type="button"
+                aria-describedby="claim-rewards-help claim-rewards-feedback"
+                disabled
+              >
                 Create claim rewards proposal
               </button>
               <p class="field-help" id="claim-rewards-help">
                 Opens a prepared draft on our proposal page. After approval and execution, refresh
                 the data to include claimed rewards.
               </p>
+              <p
+                id="claim-rewards-feedback"
+                class="field-help"
+                role="status"
+                aria-live="polite"
+                tabindex="-1"
+              ></p>
             </div>
             <p class="current-amount">
               Currently delegated <strong id="current-total">—</strong> JUNO

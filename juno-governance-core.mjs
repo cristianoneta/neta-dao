@@ -1,9 +1,8 @@
-import { PROGRAMME } from './juno-delegation-core.mjs';
+import { PROGRAMME, operator } from './juno-delegation-core.mjs';
 
 export const GOVERNANCE = 'juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730';
 export const EXECUTE = '/cosmwasm.wasm.v1.MsgExecuteContract';
 export const SUBMIT = '/cosmos.gov.v1.MsgSubmitProposal';
-const valoper = /^junovaloper1[023456789acdefghjklmnpqrstuvwxyz]{38}$/;
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 export function rewardMessages(validators) {
   if (
@@ -11,7 +10,7 @@ export function rewardMessages(validators) {
     !validators.length ||
     validators.length > 500 ||
     new Set(validators).size !== validators.length ||
-    validators.some((v) => !valoper.test(v))
+    validators.some((v) => typeof v !== 'string' || !operator.test(v))
   )
     throw Error('Invalid programme reward validators.');
   return [

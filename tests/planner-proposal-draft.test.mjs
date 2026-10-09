@@ -83,6 +83,31 @@ test('unique proposal drafts preserve previous drafts and reject mismatched or c
         draft,
         id
       ),
-    /quota/
+    /could not save.*draft/
   );
+  assert.throws(
+    () => savePlannerProposal({ getItem: () => null, setItem: () => {} }, draft, id),
+    /could not save/
+  );
+});
+test('native claims retain the long DAO validator addresses rejected by the former 20-byte-only check', () => {
+  const source = fixture();
+  const long = [
+    'junovaloper185hgkqs8q8ysnc8cvkgd8j2knnq2m0ah6ae73gntv9ampgwpmrxqlfzywn',
+    'junovaloper1pvuxgpct3n8pk4dk2vsvuz2y9tav62ug2c8n093dhzh5qqqe3w3qzgq2d7'
+  ];
+  long.forEach((v, i) => (source.validators[i].address = v));
+  const messages = JSON.parse(claimProposal(source).values.actions_json);
+  for (const address of long) assert.ok(claimValidators(messages).includes(address));
+  for (const bad of [
+    long[0] + 'q',
+    long[0].slice(0, -1),
+    long[0].replace('junovaloper', 'juno'),
+    'junovaloper1' + 'b'.repeat(58)
+  ]) {
+    const invalid = structuredClone(messages);
+    invalid[0].msg.execute_admin_msgs.msgs[0].distribution.withdraw_delegator_reward.validator =
+      bad;
+    assert.throws(() => claimValidators(invalid));
+  }
 });

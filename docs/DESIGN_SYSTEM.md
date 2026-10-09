@@ -663,3 +663,12 @@ mainnet as the submission authority. Reuse the inline review for deposit, fee an
 explicit wallet confirmation. A saved uncertain attempt offers Check submission
 status without a wallet prompt or another signature; confirmed submission is
 distinct from future governance execution.
+
+
+## Planner claim feedback and rewards — candidate, 2026-10-09
+
+Place current claimable JUNO above the claim button, with optional indicative USD
+and a compact snapshot date/block. Keep unavailable data distinct from zero and
+unclaimed rewards outside the allocation budget. Preparation and errors belong
+beside the button; errors receive focus and remain visible at narrow widths.
+Use existing graphite/mint tokens. Opening a draft requires no wallet signature.

@@ -1,4 +1,5 @@
 import { ruleProposal, claimProposal, savePlannerProposal } from './planner-proposal-draft.mjs';
+import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 import {
   defaultPolicy,
   policy,
@@ -32,6 +33,7 @@ let rules = defaultPolicy(),
   revision = 0,
   loading = false;
 let page = 0;
+let rewardsSource = null;
 const pageSize = 10,
   expanded = new Set();
 const fmt = (value) => formatAmount(value, true);
@@ -39,6 +41,41 @@ const tell = (message, tone = 'info') => {
   $('feedback').textContent = message;
   $('feedback').dataset.tone = tone;
 };
+function claimFeedback(message, tone = 'info') {
+  const target = $('claim-rewards-feedback');
+  target.textContent = message;
+  target.dataset.tone = tone;
+  if (tone === 'error') {
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ block: 'nearest' });
+  }
+}
+function renderClaimRewards() {
+  $('claim-rewards-observed').textContent = '';
+  if (!data || !rewardsSource) {
+    $('claim-rewards-amount').textContent =
+      'Claimable staking rewards unavailable. Refresh data to retry.';
+    return;
+  }
+  try {
+    const value = claimRewardsOverview(rewardsSource, data);
+    const usd =
+      value.usd === null
+        ? ''
+        : ` (≈ ${value.usd.toLocaleString('en-US', { style: 'currency', currency: 'USD' })})`;
+    $('claim-rewards-amount').textContent =
+      `Claimable staking rewards: ${fmt(value.amountRaw)} JUNO${usd}`;
+    $('claim-rewards-observed').textContent =
+      `Rewards snapshot: ${new Date(value.observedAt).toLocaleString()} · block ${value.height.toLocaleString('en-US')} · ${value.validatorCount} programme delegations, including jailed and standby positions. ` +
+      (value.priceObservedAt
+        ? `Indicative USD price snapshot: ${new Date(value.priceObservedAt).toLocaleString()}. `
+        : 'USD price unavailable. ') +
+      'Rewards stay outside the available allocation budget until claimed.';
+  } catch (error) {
+    $('claim-rewards-amount').textContent =
+      `Claimable staking rewards unavailable. ${error.message}`;
+  }
+}
 function setStep(step, focus = true) {
   if (!['rules', 'simulation', 'proposals'].includes(step)) step = 'rules';
   for (const panel of document.querySelectorAll('.planner-panel')) panel.hidden = panel.id !== step;
@@ -184,15 +221,20 @@ async function load() {
   loading = true;
   $('refresh').disabled = true;
   $('claim-rewards').disabled = true;
+  rewardsSource = null;
+  $('claim-rewards-amount').textContent = 'Loading claimable staking rewards…';
+  $('claim-rewards-observed').textContent = '';
+  claimFeedback('');
   $('simulate').disabled = true;
   invalidate('Loading a new snapshot…');
   $('snapshot-status').textContent = 'Loading programme snapshot…';
   tell('');
   try {
-    const [source, history, readiness] = await Promise.all([
+    const [source, history, readiness, rewards] = await Promise.all([
       fetchJSON('/data/daos/juno-delegation-planner.json'),
       fetchJSON('/data/validator-upgrades/juno-v31.json'),
-      fetchJSON('/data/validator-upgrades/juno-v31-readiness.json')
+      fetchJSON('/data/validator-upgrades/juno-v31-readiness.json'),
+      fetchJSON('/data/treasury/juno-delegation.json').catch(() => null)
     ]);
     const next = snapshot(source),
       nextEvidence = upgradeEvidence(history, readiness);
@@ -202,6 +244,8 @@ async function load() {
     )
       throw Error('Snapshot timestamp is in the future.');
     data = next;
+    rewardsSource = rewards;
+    renderClaimRewards();
     evidence = nextEvidence;
     archive = { history, readiness };
     const stale = freshness() > 3600000;
@@ -253,6 +297,8 @@ async function load() {
     );
   } catch (error) {
     data = null;
+    rewardsSource = null;
+    renderClaimRewards();
     evidence = null;
     archive = null;
     $('snapshot-status').textContent = 'Programme snapshot unavailable';
@@ -661,11 +707,31 @@ $('publish-proposal').addEventListener('click', () => {
   }
 });
 $('claim-rewards').addEventListener('click', () => {
+  const button = $('claim-rewards');
   try {
-    if (data && !loading) openProposal(claimProposal(data));
+    if (!data || loading) throw Error('Load current programme data first.');
+    button.disabled = true;
+    button.textContent = 'Preparing claim draft…';
+    claimFeedback('Preparing a local draft. No wallet signature is required.');
+    renderClaimRewards();
+    openProposal(claimProposal(data, Date.now(), rewardsSource));
   } catch (error) {
-    tell(error.message, 'error');
+    claimFeedback(`Could not open the claim draft. ${error.message}`, 'error');
+  } finally {
+    button.textContent = 'Create claim rewards proposal';
+    button.disabled =
+      loading ||
+      !data ||
+      freshness() > 3600000 ||
+      !data.validators.some((v) => BigInt(v.currentRaw) > 0n);
   }
+});
+// Expire observations on long-open tabs without changing edited allocation inputs.
+setInterval(() => {
+  if (!loading && !document.hidden) renderClaimRewards();
+}, 60000);
+document.addEventListener('visibilitychange', () => {
+  if (!loading && !document.hidden) renderClaimRewards();
 });
 document.querySelectorAll('[data-step]').forEach((link) =>
   link.addEventListener('click', (event) => {
