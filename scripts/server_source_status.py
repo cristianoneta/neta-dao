@@ -21,6 +21,7 @@ SOURCES = {
     "data/daos/neta.json": "members",
     "data/daos/neta-operations.json": "members",
     "data/daos/juno.json": "members",
+    "data/daos/juno-delegation-planner.json": "main",
 }
 
 
@@ -67,6 +68,13 @@ def check(root, *, now=None):
         issues, warnings = [], []
         try:
             value = read_object(root, name)
+            if name == "data/daos/juno-delegation-planner.json":
+                issues += age_issues(timestamp(value.get("blockTime")), now, CADENCES[job])
+                issues += ["collection:" + issue for issue in age_issues(timestamp(value.get("collectedAt")), now, CADENCES[job])]
+                if value.get("chainId") != "juno-1" or type(value.get("schema")) is not int or value["schema"] != 1 or value.get("programme") != "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0":
+                    issues.append("invalid-source-identity")
+                rows.append({"path": name, "ok": not issues, "issues": issues, "warnings": []})
+                continue
             issues += age_issues(timestamp(value.get("generated_at")), now, CADENCES[job])
             if value.get("chain_id") != "juno-1" or type(value.get("schema_version")) is not int or value["schema_version"] != 1:
                 issues.append("invalid-source-identity")

@@ -22,6 +22,9 @@ class PublishedFreshness(unittest.TestCase):
         for name, job in status.SOURCES.items():
             self.put(name, dict(schema_version=1, chain_id='juno-1', generated_at=stamp,
                                 status='PARTIAL', members_complete=True))
+        self.put('data/daos/juno-delegation-planner.json', dict(
+            schema=1, chainId='juno-1', blockTime=stamp, collectedAt=stamp,
+            programme='juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0'))
         self.put('data/daos/neta-status.json', dict(checked_at=stamp, **{
             name: {'status': 'completed'} for name in ('balances', 'events', 'accounting')}))
         self.put('data/daos/membership-status.json', {'checked_at': stamp, 'daos': {
@@ -68,6 +71,11 @@ class PublishedFreshness(unittest.TestCase):
     def test_fresh_check_time_cannot_hide_retained_old_data(self):
         self.edit('data/daos/neta.json', generated_at=datetime.fromtimestamp(NOW-3901, timezone.utc).isoformat())
         self.assertIn('stale-observation', self.issues('data/daos/neta.json'))
+
+    def test_planner_collection_time_cannot_hide_old_block(self):
+        name = 'data/daos/juno-delegation-planner.json'
+        self.edit(name, blockTime=datetime.fromtimestamp(NOW-3901, timezone.utc).isoformat())
+        self.assertIn('stale-observation', self.issues(name))
 
     def test_successful_process_cannot_hide_failed_child_refresh(self):
         self.edit('data/daos/neta-status.json', events={'status': 'unavailable'})
