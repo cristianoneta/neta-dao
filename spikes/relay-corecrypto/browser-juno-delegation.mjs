@@ -253,6 +253,13 @@ try {
   assert.equal(govMessages.length, 1);
   assert.equal(govMessages[0]['@type'], '/cosmwasm.wasm.v1.MsgExecuteContract');
   assert.equal(govMessages[0].msg.execute_admin_msgs.msgs.length, 25);
+  assert.deepEqual(
+    govMessages[0].msg.execute_admin_msgs.msgs.map(
+      (v) => v.distribution.withdraw_delegator_reward.validator
+    ),
+    sample.validators.map((v) => v.address).sort(),
+    'Prepared reward validators must match the programme snapshot'
+  );
   assert.match(
     await page.locator('#planner-proposal-context-text').innerText(),
     /Juno native governance/
@@ -313,6 +320,14 @@ try {
   });
   await page.evaluate((proposer) => {
     window.__plannerEnabledChains = [];
+    const originalFetch = window.fetch;
+    window.__plannerDelegationResponses = [];
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      if (String(args[0]).includes('/delegations/'))
+        window.__plannerDelegationResponses.push(await response.clone().json());
+      return response;
+    };
     window.keplr = {
       enable: async (chain) => window.__plannerEnabledChains.push(chain),
       getOfflineSigner: () => ({
@@ -348,7 +363,9 @@ try {
   assert.equal(
     await page.locator('#planner-native-review').isVisible(),
     true,
-    await page.locator('#gov-status').innerText()
+    (await page.locator('#gov-status').innerText()) +
+      '\n' +
+      JSON.stringify(await page.evaluate(() => window.__plannerDelegationResponses))
   );
   assert.equal(await page.locator('#planner-native-deposit').inputValue(), '100');
   assert.match(
