@@ -1,7 +1,4 @@
 (async () => {
-  const { readPlannerProposal, PLANNER_DRAFT_PREFIX } = await import(
-    './planner-proposal-draft.mjs'
-  );
   const { normalizedComment } = await import('./src/governance/comments.mjs');
   const { unitsFor, resolveSelection, selectionParams } = await import(
     './dao-hierarchy.mjs?v=20261006-structure-1'
@@ -53,15 +50,17 @@
   );
   const initialDao = initialScope.dao;
   let plannerDraft = null,
-    plannerDraftError = null;
-  try {
-    plannerDraft = readPlannerProposal(
-      localStorage,
-      new URLSearchParams(location.search),
-      initialDao.id
-    );
-  } catch (error) {
-    plannerDraftError = error.message;
+    plannerDraftError = null,
+    PLANNER_DRAFT_PREFIX = null;
+  const plannerParams = new URLSearchParams(location.search);
+  if (plannerParams.has('plannerDraft')) {
+    try {
+      const bridge = await import('./planner-proposal-draft.mjs');
+      PLANNER_DRAFT_PREFIX = bridge.PLANNER_DRAFT_PREFIX;
+      plannerDraft = bridge.readPlannerProposal(localStorage, plannerParams, initialDao.id);
+    } catch (error) {
+      plannerDraftError = error.message;
+    }
   }
   let CONTRACT =
       initialDao.workshopContract ||
