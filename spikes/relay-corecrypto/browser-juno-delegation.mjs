@@ -225,7 +225,7 @@ try {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await step('rules');
   // Exercise both actual links into the existing proposal workspace.
-  await page.route('https://**', (route) =>
+  await page.route(/^https:\/\//, (route) =>
     route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({ data: { proposals: [] } })
@@ -276,8 +276,10 @@ try {
   );
   // A mainnet wallet and the native proposal adapter are mocked: never sign or broadcast.
   const proposer = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
-  await page.route('https://**', (route) => {
+  const preflightQueries = [];
+  await page.route(/^https:\/\//, (route) => {
     const url = route.request().url();
+    preflightQueries.push(new URL(url).pathname);
     let body = { data: { proposals: [] } };
     if (url.endsWith('/latest'))
       body = {
@@ -320,14 +322,6 @@ try {
   });
   await page.evaluate((proposer) => {
     window.__plannerEnabledChains = [];
-    const originalFetch = window.fetch;
-    window.__plannerDelegationResponses = [];
-    window.fetch = async (...args) => {
-      const response = await originalFetch(...args);
-      if (String(args[0]).includes('/delegations/'))
-        window.__plannerDelegationResponses.push(await response.clone().json());
-      return response;
-    };
     window.keplr = {
       enable: async (chain) => window.__plannerEnabledChains.push(chain),
       getOfflineSigner: () => ({
@@ -363,9 +357,11 @@ try {
   assert.equal(
     await page.locator('#planner-native-review').isVisible(),
     true,
-    (await page.locator('#gov-status').innerText()) +
-      '\n' +
-      JSON.stringify(await page.evaluate(() => window.__plannerDelegationResponses))
+    await page.locator('#gov-status').innerText()
+  );
+  assert.ok(
+    preflightQueries.some((path) => path.includes('/delegations/')),
+    'Live preflight must be served by the synthetic API'
   );
   assert.equal(await page.locator('#planner-native-deposit').inputValue(), '100');
   assert.match(
