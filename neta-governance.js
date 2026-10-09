@@ -1494,7 +1494,7 @@
     renderWallet();
     const old = button.textContent;
     button.disabled = true;
-    button.textContent = 'CHECK KEPLR';
+    button.textContent = plannerContext() ? 'CHECKING PROPOSAL…' : 'CHECK KEPLR';
     try {
       await task();
       if (!plannerContext()) status('ON-CHAIN ACTION VERIFIED');

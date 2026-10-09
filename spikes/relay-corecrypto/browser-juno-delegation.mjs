@@ -56,7 +56,11 @@ try {
     const data = structuredClone(sample);
     if (state === 'stale') data.blockTime = new Date(Date.now() - 7200000).toISOString();
     if (state === 'wrong-chain') data.chainId = 'uni-7';
-    return route.fulfill({ contentType: 'application/json', body: JSON.stringify(data) });
+    return route.fulfill({
+      headers: { 'access-control-allow-origin': '*' },
+      contentType: 'application/json',
+      body: JSON.stringify(data)
+    });
   });
   const ready = () => page.waitForFunction(() => !document.getElementById('simulate').disabled);
   const step = async (name) => {
@@ -275,7 +279,11 @@ try {
       data = { data: q.admin ? GOV : q.pause_info ? { unpaused: {} } : { proposals: [] } };
     } else if (url.endsWith('/contract/' + PROGRAMME))
       data = { contract_info: { code_id: '4047' } };
-    return route.fulfill({ contentType: 'application/json', body: JSON.stringify(data) });
+    return route.fulfill({
+      headers: { 'access-control-allow-origin': '*' },
+      contentType: 'application/json',
+      body: JSON.stringify(data)
+    });
   });
   await page.evaluate(() =>
     localStorage.setItem(
@@ -315,18 +323,33 @@ try {
   await page.waitForFunction(
     () => document.getElementById('proposal-title').value === 'Edited claim draft'
   );
+  const waitReview = async () => {
+    try {
+      await page.waitForFunction(() => !document.querySelector('[data-submit-confirm]').disabled);
+    } catch (error) {
+      throw Error(
+        'Review did not open: ' +
+          (await page.locator('[data-submit-status]').textContent()) +
+          ' / ' +
+          errors.join(' | '),
+        { cause: error }
+      );
+    }
+  };
   await page.locator('#gov-connect').click();
   await page.waitForFunction(() => window.NetaWorkspaceWallet.getSession().chainId === 'juno-1');
   assert.equal(await page.evaluate(() => window.testChain), 'juno-1');
   governanceMode = 'redirected';
   await page.locator('#primary-action').click();
   await page.waitForFunction(() =>
-    document.querySelector('[data-submit-status]').textContent.includes('Two independent')
+    document
+      .querySelector('[data-submit-status]')
+      .textContent.includes('Rewards withdrawal destination')
   );
   assert.equal(await page.locator('[data-submit-confirm]').isDisabled(), true);
   governanceMode = 'valid';
   await page.locator('#primary-action').click();
-  await page.waitForFunction(() => !document.querySelector('[data-submit-confirm]').disabled);
+  await waitReview();
   assert.match(
     await page.locator('[data-submit-summary]').textContent(),
     /Deposit: 1000.000000 JUNO/
@@ -336,13 +359,13 @@ try {
   await page.locator('#proposal-summary').fill('Edited after review');
   assert.equal(await page.locator('[data-submit-confirm]').isDisabled(), true);
   await page.locator('#primary-action').click();
-  await page.waitForFunction(() => !document.querySelector('[data-submit-confirm]').disabled);
+  await waitReview();
   await page.evaluate(() => dispatchEvent(new Event('keplr_keystorechange')));
   assert.equal(await page.locator('[data-submit-confirm]').isDisabled(), true);
   await page.locator('#gov-connect').click();
   await page.waitForFunction(() => window.NetaWorkspaceWallet.getSession().chainId === 'juno-1');
   await page.locator('#primary-action').click();
-  await page.waitForFunction(() => !document.querySelector('[data-submit-confirm]').disabled);
+  await waitReview();
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.equal(

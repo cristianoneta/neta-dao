@@ -134,8 +134,11 @@ export function mountSubmission({ panel, context, values, session, busy, done })
         throw Error('Governance parameters changed. Review again.');
       const assertWallet = async () => {
         current(r.c, r.s, r.v, r.e);
+        if (Date.now() - r.time > 120000)
+          throw Error('Review expired. Review again before signing.');
         await wallet(r.s.address);
         current(r.c, r.s, r.v, r.e);
+        if (Date.now() - r.time > 120000) throw Error('Review expired. Nothing was broadcast.');
       };
       await assertWallet();
       const result = await r.bridge.execute(
