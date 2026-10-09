@@ -7,6 +7,7 @@ import {
   readPlannerProposal,
   PLANNER_DRAFT_PREFIX
 } from '../planner-proposal-draft.mjs';
+import { claimValidators, GOVERNANCE, EXECUTE } from '../juno-governance-core.mjs';
 import { defaultPolicy, simulate, amount } from '../juno-delegation-core.mjs';
 import { fixture, observed } from './fixtures/delegation-planner.mjs';
 const memory = () => {
@@ -20,12 +21,11 @@ test('claims include all positions, including jailed/standby, with no transfers 
   s.validators[1].jailed = true;
   const d = claimProposal(s),
     actions = JSON.parse(d.values.actions_json);
-  assert.equal(actions.length, 25);
-  assert.ok(actions.every((v) => Object.keys(v).join() === 'distribution'));
-  assert.deepEqual(
-    new Set(actions.map((v) => v.distribution.withdraw_delegator_reward.validator)),
-    new Set(s.validators.map((v) => v.address))
-  );
+  assert.equal(actions.length, 1);
+  assert.equal(actions[0]['@type'], EXECUTE);
+  assert.equal(actions[0].sender, GOVERNANCE);
+  assert.equal(d.governanceDaoId, 'juno');
+  assert.deepEqual(new Set(claimValidators(actions)), new Set(s.validators.map((v) => v.address)));
   assert.match(d.values.body, /withdrawal address/);
   s.blockTime = new Date(Date.now() - 3600001).toISOString();
   assert.throws(() => claimProposal(s), /Refresh/);

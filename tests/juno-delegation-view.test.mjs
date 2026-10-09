@@ -67,14 +67,29 @@ test('sort uses exact integer amounts and cap explanation distinguishes zero cap
       targetRaw: n,
       deltaRaw: '-' + n,
       tokensRaw: n,
+      projectedRaw: n,
+      projectedActive: true,
       capacityRaw: '0',
       capReached: true,
       upgrade: { status: 'observed' }
     }))
   };
-  for (const sort of ['change', 'target', 'power'])
+  for (const sort of ['change', 'target', 'power', 'total', 'projected'])
     assert.equal(selectRows(result, { sort })[0].name, 'Z');
   assert.equal(selectRows(result, { sort: 'name' })[0].name, 'A');
   assert.equal(rowStatus(result.rows[0]), 'No capacity under the limit');
   assert.match(allocationReason(result.rows[0]), /cannot reduce other delegators/);
+  for (const sort of ['total-asc', 'projected-asc'])
+    assert.equal(selectRows(result, { sort })[0].name, 'A');
+  const outside = {
+    ...result.rows[0],
+    address: 'outside',
+    name: 'Outside',
+    projectedActive: false,
+    projectedRaw: '99999999999999999999'
+  };
+  result.rows.push(outside);
+  assert.equal(selectRows(result, { sort: 'total' })[0].name, 'Outside');
+  for (const sort of ['projected', 'projected-asc'])
+    assert.equal(selectRows(result, { sort }).at(-1).name, 'Outside');
 });

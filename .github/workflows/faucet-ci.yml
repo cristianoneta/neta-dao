@@ -20,6 +20,7 @@ jobs:
       - run: npm audit --prefix faucet --audit-level=high
       - run: npm run build --prefix faucet && git diff --exit-code -- assets/faucet-signing.js
       - run: npm run build:names --prefix faucet && git diff --exit-code -- assets/names-signing.js
+      - run: node scripts/build-signing.mjs governance && git diff --exit-code -- assets/juno-governance-signing.js
       - run: node scripts/build-signing.mjs swap && git diff --exit-code -- assets/wynd-swap-signing.js
       - run: npm ci --prefix relay-backup --ignore-scripts
       - run: npm test --prefix faucet

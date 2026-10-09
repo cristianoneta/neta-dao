@@ -2,6 +2,11 @@ import { build } from '../faucet/node_modules/esbuild/lib/main.js';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const targets = {
+  governance: {
+    entry: 'faucet/src/juno-governance-signing.mjs',
+    globalName: 'NetaJunoGovernance',
+    outfile: 'assets/juno-governance-signing.js'
+  },
   swap: {
     entry: 'faucet/src/wynd-swap-signing.mjs',
     globalName: 'NetaSwapSigning',
@@ -19,7 +24,7 @@ const targets = {
   }
 };
 const target = targets[process.argv[2]];
-if (!target) throw Error('Choose faucet, names or swap');
+if (!target) throw Error('Choose faucet, names, swap or governance');
 await build({
   absWorkingDir: root,
   entryPoints: [target.entry],

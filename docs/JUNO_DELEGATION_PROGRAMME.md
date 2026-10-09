@@ -1,9 +1,10 @@
 # Juno Delegation Programme
 
-9 October 2026. The three-stage planner is live from release
-`5d14ce2466f9dca9b5184caf3a3b5e69abaa1215`. The revisions below are a new
-release candidate. Rules, simulation and proposal drafts are available; on-chain
-approval verification and execution remain unconnected.
+9 October 2026. Criteria, liquid reserve and local draft handoff are live from
+`ba65ba30730c3abe30bdf9e17ebe2ec1952a4196` (manual run 37936517683). The native
+Juno governance correction below is a new candidate, not yet released. Rule
+approval verification for subsequent allocations and allocation execution remain
+unconnected.
 
 ## Placement and interface
 
@@ -109,11 +110,11 @@ collector, timer or signing authority. The collector remains read-only.
    constraints, message limits and the voted transaction set. Rule changes require
    step 1 again. No local toggle may manufacture approval.
 
-Allocation execution is visibly unavailable. No contract writes, submissions,
-background reallocations or new contracts are introduced. On-chain integration
-remains the next stage.
+Allocation execution is visibly unavailable. The planner does not perform background
+reallocations or deploy contracts. Native proposal submission is a separate explicit
+review/signing step described below.
 
-## Revised controls and proposal handoff — release candidate
+## Revised controls and proposal handoff
 
 The four criteria (validator status, voting power, commission, upgrade participation)
 use identical numbered headings, spacing and separators. Optional manual exclusions
@@ -137,8 +138,63 @@ complete policy and content hashes prefilled. Rule drafts carry no execution act
 The review JSON remains downloadable. Opening either button creates a distinct
 browser-local draft, keeps existing drafts intact and never signs or publishes.
 Revisions persist under that draft's unique key; New draft returns to the ordinary
-saved draft. The receiving page explicitly retains its DAO submission lock: public
-review and on-chain submission are not connected for this DAO yet.
+saved draft. The live `ba65ba30` version still labels the target as a read-only DAO.
+The candidate corrects that boundary as described next.
+
+## Native governance correction — release candidate
+
+Delegation Programme remains the subject/scope. Submission and the community
+vote belong to **Juno native governance**, not the legacy programme proposal
+module or the UNI-7 public review contract. The composer loads Juno proposal
+history, fills title/summary/full body/actions before history requests finish,
+and displays an explicit handoff error rather than an unexplained empty form.
+Schema-1 claim drafts and their saved revisions are upgraded in memory; the
+original records and unrelated local drafts are preserved.
+
+The claim contains one `/cosmwasm.wasm.v1.MsgExecuteContract`: sender is Juno's
+governance module `juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730`, contract is the
+programme, funds are empty, and `execute_admin_msgs.msgs` contains only the
+recorded reward withdrawals. The connected user is the outer
+`/cosmos.gov.v1.MsgSubmitProposal` proposer and pays its initial deposit/fee.
+Rule approval is a text-only native proposal with no execution messages.
+
+Authority evidence: public onboarding run
+[37473502144](https://github.com/cristianoneta/neta-dao/actions/runs/37473502144)
+queried the programme's `admin` as the governance module and code ID 4047 on
+6 October. DAO DAO's [core implementation](https://github.com/DA0-DA0/dao-contracts/blob/v2.5.0/contracts/dao-dao-core/src/contract.rs)
+authorizes `execute_admin_msgs` through that internal admin; Cosmos SDK's
+[proposal keeper](https://github.com/cosmos/cosmos-sdk/blob/v0.53.7/x/gov/keeper/proposal.go)
+requires the governance module as the sole signer of executable proposal messages.
+Historical evidence is not treated as a current authorization check.
+
+The candidate requires complete preflights from at least two independent Juno API
+origins, requesting a fresh pinned height within each source: correct
+chain/recent block, gov module account, code/internal admin, unpaused state, programme withdrawal
+address, complete delegation pagination, native deposit parameters and proposer
+spendable balance. Governance parameters must agree; the lower verified balance
+is used. Returned height headers are checked when exposed by the provider.
+The unpaused requirement is a conservative product gate: the contract itself permits
+its governance admin to execute while paused. Missing/mismatched evidence stops
+submission. The minimum
+initial deposit is calculated with integer rounding up. The UI shows the deposit,
+voting threshold and simulated submission fee, then requires a review checkbox
+and a separate submit click. Submission simulation does not simulate future
+post-vote contract execution; state may change during voting.
+
+A second preflight precedes signing. Wallet/context/text changes invalidate the
+review; reviews expire after two minutes. The bridge verifies exact signed
+protobuf messages and fees before broadcast and uses the existing origin-wide
+pending-transaction journal. A per-draft submission receipt prevents accidental
+repeat proposals; an exclusive per-draft device lock also covers different-wallet
+attempts from other tabs. Unknown outcomes expose Check submission status, which
+only reads the saved transaction hash and requires two agreeing inclusion receipts.
+Reloads preserve the attempt, and status lookup never signs or broadcasts. Confirmed
+submission is distinct from a passed proposal and future rewards execution.
+Only direct-signing Keplr
+accounts are supported. No live wallet signature or proposal submission is claimed.
+Generic UNI-7 review, native voting, allocation execution and rule-approval
+verification for allocations are unchanged.
+
 
 ## V2 — visible, inactive
 
@@ -203,3 +259,27 @@ exports, stale/error states and literal rendering. All three stages are checked
 at 1440/768/390/320 pixels. Presentation tests cover exact large integers, tiny
 nonzero amounts, percentage rounding, filter membership and reason labels. Browser tests run in
 the existing repository CI and upload screenshots for inspection.
+
+## Allocation comparison update — candidate
+
+The distribution table includes **Total JUNO after allocation**, the validator's
+whole stake across all delegators: current validator stake minus the programme's
+current delegation plus its simulated target. It is not the programme target alone.
+The existing Sort by control offers ascending/descending total JUNO and projected
+share. Sorting uses exact integer amounts, not rounded display values. Validators
+outside the projected set have no projected voting share and appear last in both
+share sort directions. The six-column comparison scrolls within its table on small
+screens; row details preserve six-decimal precision.
+
+## Next policy revision — owner decision, not implemented
+
+Future allocation candidates must already belong to the active consensus set or
+enter it as a result of the final simulated redistribution. A standby validator
+that remains outside receives no target allocation. Replacing existing programme
+positions, recomputing the full ranking/caps and deterministic convergence belong
+in a new policy version and a new community rule approval. Do not reinterpret
+existing drafts. Protocol eligibility and current operating evidence are separate;
+non-jailed status and historical upgrade participation do not establish current
+standby operation. Operating-proof requirements still need a concrete definition.
+Claims continue to include every existing positive programme position regardless
+of eligibility for a future allocation.

@@ -16,7 +16,7 @@ try{
   browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
   const page=await browser.newPage(),errors=[],origin=`http://127.0.0.1:${server.address().port}`;
   page.on('pageerror',e=>errors.push(e.message));
-  let stale=false,badCode=false,returned='10094';
+  let stale=false,badCode=false,returned='10094',poolJuno='100000000000';
   await page.route('https://**/*',async route=>{
     const url=new URL(route.request().url());
     assert.equal(route.request().method(),'GET','Fixtures never submit a real transaction');
@@ -29,7 +29,7 @@ try{
       const query=JSON.parse(Buffer.from(decodeURIComponent(url.pathname.split('/smart/')[1]),'base64').toString('utf8'));
       let data={};
       if(query.pair)data={contract_addr:pair,asset_infos:[{native:'ujuno'},{token:neta}],fee_config:{total_fee_bps:30}};
-      if(query.pool)data={assets:[{info:{native:'ujuno'},amount:'100000000000'},{info:{token:neta},amount:'1000000000'}]};
+      if(query.pool)data={assets:[{info:{native:'ujuno'},amount:poolJuno},{info:{token:neta},amount:'1000000000'}]};
       if(query.balance)data={balance:'1000000'};
       if(query.simulation)data={return_amount:query.simulation.offer_asset.info.token?'983732':returned,commission_amount:'30',spread_amount:'0'};
       response={data};
@@ -57,6 +57,13 @@ try{
   await page.waitForFunction(()=>document.querySelector('[data-project-link="all"]').getAttribute('aria-current')==='true');
   for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:1100});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await screenshot(`community-tools-${width}`);}
   await page.goto(origin+'/community-tools/neta/buy/');await textIs('#contract-state','Verified');
+  assert.equal(await page.locator('#pool-juno').textContent(),'100,000');
+  assert.equal(await page.locator('#pool-neta').textContent(),'1,000');
+  assert.equal(await page.locator('#juno-usd-price').textContent(),'≈ $0.03');
+  assert.equal(await page.locator('#neta-usd-price').textContent(),'≈ $3.00');
+  assert.match(await page.locator('#price-observed').textContent(),/JUNO USD snapshot:/);
+  poolJuno='200000123456';await page.locator('#refresh-pool').click();await textIs('#pool-juno','200,000.123456');
+  assert.equal(await page.locator('#neta-usd-price').textContent(),'≈ $6.0000037');
   await page.locator('#settings-toggle').click();await page.locator('#custom-slippage').fill('0.125');
   await textIs('#slippage-summary','0.13%');
   await page.locator('[data-slippage="5"]').click();await page.locator('#settings-toggle').click();
@@ -92,6 +99,7 @@ try{
   await page.locator('#disconnect-wallet').click();assert.equal(await page.locator('#swap-action').isDisabled(),true);
   await page.locator('#connect-wallet').click();await ready();await page.evaluate(()=>dispatchEvent(new Event('keplr_keystorechange')));assert.equal(await page.locator('#swap-action').isDisabled(),true);
   stale=true;await page.reload();await textIs('#contract-state','Unavailable');assert.equal(await page.locator('#swap-action').isDisabled(),true);
+  for(const id of ['pool-juno','pool-neta','juno-usd-price','neta-usd-price'])assert.equal(await page.locator('#'+id).textContent(),'—');
   stale=false;badCode=true;await page.locator('#refresh-pool').click();await page.waitForFunction(()=>document.querySelector('#quote-error').textContent.includes('CODE ID'));
   assert.equal(await page.locator('#swap-action').isDisabled(),true);await screenshot('buy-neta-unavailable-320');
   assert.deepEqual(errors,[]);console.log('Community project navigation and WYND swap: four viewports, wallet review, quote minimum, limits, stale source and contract checks passed (synthetic transactions only).');

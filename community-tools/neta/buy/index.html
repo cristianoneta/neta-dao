@@ -7,8 +7,8 @@
   <title>Buy NETA on WYND · Community Tools</title>
   <meta name="description" content="Swap JUNO and NETA through the existing WYND pool on Juno. Live quotes, explicit transaction review and Keplr signing.">
   <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/neta-ui.css">
-  <link rel="stylesheet" href="/community-tools.css?v=2"><link rel="stylesheet" href="/community-tools-header.css?v=1"><link rel="stylesheet" href="/buy-neta.css?v=1">
-  <script src="/buy-neta-client.js?v=1" defer></script><script src="/buy-neta-config.js?v=1" defer></script><script src="/assets/wynd-swap-signing.js?v=1" defer></script><script src="/buy-neta.js?v=1" defer></script><script type="module" src="/buy-neta-wallet.mjs?v=1"></script>
+  <link rel="stylesheet" href="/community-tools.css?v=2"><link rel="stylesheet" href="/community-tools-header.css?v=1"><link rel="stylesheet" href="/buy-neta.css?v=2">
+  <script src="/buy-neta-client.js?v=1" defer></script><script src="/buy-neta-config.js?v=1" defer></script><script src="/assets/wynd-swap-signing.js?v=1" defer></script><script src="/buy-neta.js?v=2" defer></script><script type="module" src="/buy-neta-wallet.mjs?v=1"></script>
 </head>
 <body>
 <a class="tool-skip" href="#buy-main">Skip to swap</a>
@@ -35,7 +35,8 @@
       <section class="buy-info"><span class="tool-tag">ONE POOL. YOUR WALLET.</span><h2>JUNO in.<br> NETA out.</h2><p>This community interface connects directly to the existing WYND pool on Juno. Your wallet approves the swap and receives the tokens.</p><div class="pool-pair"><img src="/assets/juno-chain.png" width="36" height="36" alt="JUNO"><span aria-hidden="true">↔</span><img src="/assets/neta-token.png" width="36" height="36" alt="NETA"></div></section>
       <section class="buy-limit"><h3>Small swaps, by design</h3><p>This is a low-liquidity pool. Each swap is limited to an estimated <strong>$25</strong>. Keep a little JUNO available for the network fee.</p></section>
       <details class="pool-details"><summary>Pool &amp; contract details</summary><dl><div><dt>Network</dt><dd>Juno · juno-1</dd></div><div><dt>Contract check</dt><dd id="contract-state">Checking…</dd></div><div><dt>Quote source</dt><dd id="quote-source">Juno REST</dd></div></dl><p>The WYND contract is unchanged. This is a community interface, independent of the original WYND website.</p><a href="https://atomscan.com/juno/accounts/juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra" target="_blank" rel="noopener noreferrer">View pool contract ↗</a></details>
-      <button id="refresh-pool" class="refresh-pool" type="button">Refresh connection</button>
+      <section class="pool-overview" aria-labelledby="pool-overview-title"><h3 id="pool-overview-title">Pool overview</h3><dl><div><dt>JUNO in pool</dt><dd id="pool-juno">—</dd></div><div><dt>NETA in pool</dt><dd id="pool-neta">—</dd></div><div><dt>JUNO price · USD</dt><dd id="juno-usd-price">—</dd></div><div><dt>NETA price · USD</dt><dd id="neta-usd-price">—</dd></div></dl><p id="pool-observed" role="status">Loading pool data…</p><p id="price-observed">USD prices are indicative.</p></section>
+      <button id="refresh-pool" class="refresh-pool" type="button">Refresh pool &amp; prices</button>
     </aside>
   </div>
   <footer class="tool-footer"><a href="/community-tools/#neta">← NETA tools</a><span>A community tool by NETA Reborn.</span></footer>

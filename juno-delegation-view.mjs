@@ -65,6 +65,18 @@ export function selectRows(result, { query = '', filter = 'all', sort = 'change'
       let order = 0;
       if (sort === 'change') order = compare(abs(BigInt(b.deltaRaw)), abs(BigInt(a.deltaRaw)));
       if (sort === 'target') order = compare(BigInt(b.targetRaw), BigInt(a.targetRaw));
+      if (sort === 'total' || sort === 'total-asc')
+        order =
+          compare(BigInt(b.projectedRaw), BigInt(a.projectedRaw)) * (sort === 'total-asc' ? -1 : 1);
+      if (sort === 'projected' || sort === 'projected-asc')
+        // All projected members share the same denominator. Compare exact
+        // micro-JUNO, keeping validators without a projected share last.
+        order =
+          Number(b.projectedActive) - Number(a.projectedActive) ||
+          (a.projectedActive && b.projectedActive
+            ? compare(BigInt(b.projectedRaw), BigInt(a.projectedRaw)) *
+              (sort === 'projected-asc' ? -1 : 1)
+            : 0);
       if (sort === 'power')
         order =
           Number(b.active) - Number(a.active) ||

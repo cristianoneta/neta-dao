@@ -8,12 +8,23 @@ in the owner's private operations handoff, outside this repository.
 
 ## Current priority
 
-New release candidate: the planner shows four consistent criteria, includes
-spendable funds in the rounded budget with a 50-JUNO reserve, separates validator
-eligibility from consensus membership, and opens claim/rule drafts in the existing
-proposal workspace. Existing local drafts are preserved. Programme proposal
-submission remains locked. This needs the normal manual website release only;
-no collector or host changes are required.
+Release `ba65ba30730c3abe30bdf9e17ebe2ec1952a4196` is live from manual
+run [37936517683](https://github.com/cristianoneta/neta-dao/actions/runs/37936517683).
+All 18 jobs passed; deployment completed on 9 October at 13:36 UTC. Desktop
+rules, simulation and proposal handoff were inspected on both public domains.
+The owner identified the remaining proposal-authority defect during acceptance.
+
+The new candidate retains Delegation Programme as the topic but prepares a
+**Juno native governance** proposal. It prefills the full draft and routes the
+claim through the governance module's authorized programme execution message.
+The narrowly scoped native submission adapter checks live authority, withdrawal
+destination, delegations, deposit, wallet and fee before explicit review/signing.
+Two independent API sources are required. Uncertain attempts can be checked by
+transaction hash without signing again. The allocation table adds sortable total
+JUNO after redistribution and projected share; the stricter standby-selection
+policy remains the next separate revision, not part of this claim candidate.
+No live proposal has been submitted. Manual website release and live wallet
+acceptance remain pending; allocation execution and native voting stay disabled.
 
 The current development priority is the Juno **Delegation Programme** planner,
 placed under Community Tools → Juno. Its first implementation adds capped equal
@@ -29,7 +40,7 @@ V1 decisions, inactive V2 scope, arithmetic and rollout requirements.
 The owner requested project sections in Community Tools: Juno owns the existing
 Faucet and Validator Upgrade Status; NETA adds **Buy NETA on WYND**. The
 released site contains the menu and a port of the old Rescue NETA functionality
-in the shared graphite/mint style. The planner criteria, reserve and proposal handoff revisions are the new candidate.
+in the shared graphite/mint style. The criteria and reserve revisions are live; native planner proposal submission is the new candidate.
 See [COMMUNITY_TOOLS](docs/COMMUNITY_TOOLS.md) for provenance and remaining checks.
 
 Juno Delegation Programme holdings refresh, but daily staking accrual is stalled:

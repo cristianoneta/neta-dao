@@ -24,6 +24,9 @@
     impact:document.querySelector("#price-impact"),fee:document.querySelector("#pool-fee"),
     minimum:document.querySelector("#minimum-received"),slippageSummary:document.querySelector("#slippage-summary"),slippageSummaryButton:document.querySelector("#slippage-summary-button"),
     contractState:document.querySelector("#contract-state"),source:document.querySelector("#quote-source"),
+    poolJuno:document.querySelector("#pool-juno"),poolNeta:document.querySelector("#pool-neta"),
+    junoPrice:document.querySelector("#juno-usd-price"),netaPrice:document.querySelector("#neta-usd-price"),
+    poolObserved:document.querySelector("#pool-observed"),priceObserved:document.querySelector("#price-observed"),
     settings:document.querySelector("#slippage-settings"),settingsToggle:document.querySelector("#settings-toggle"),
     custom:document.querySelector("#custom-slippage"),slippageButtons:[...document.querySelectorAll("[data-slippage]")],
     action:document.querySelector("#swap-action"),modal:document.querySelector("#swap-modal"),
@@ -37,6 +40,7 @@
   let offer="JUNO",slippage=5,junoUsd=null,pool=null,contractValid=false;
   let quote=null,requestId=0,debounceTimer=null,refreshTimer=null,ageTimer=null,balanceRaw=null;
   let signing=false,previewIntent=null,balanceRequest=0,marketRevision=0;
+  let poolCheckedAt=null,priceTimestamp=null,marketTimer=null;
 
   const other=symbol=>symbol==="JUNO"?"NETA":"JUNO";
   const asNumber=raw=>Number(raw)/10**DECIMALS;
@@ -62,6 +66,21 @@
     const netaReserve=pool.assets.find(asset=>asset.info.token===NETA);
     if(!junoReserve||!netaReserve||Number(netaReserve.amount)<=0)return null;
     return Number(junoReserve.amount)/Number(netaReserve.amount)*junoUsd;
+  }
+
+  function renderPoolOverview(state=""){
+    const reserveText=raw=>{
+      const n=BigInt(raw),fraction=String(n%1000000n).padStart(6,"0").replace(/0+$/,"");
+      return (n/1000000n).toLocaleString("en-US")+(fraction?"."+fraction:"");
+    };
+    const priceText=value=>!Number.isFinite(value)||value<=0?"Unavailable":value<0.00000001?"< $0.00000001":"≈ "+value.toLocaleString("en-US",{style:"currency",currency:"USD",minimumFractionDigits:2,maximumFractionDigits:8});
+    const available=contractValid&&pool&&junoUsd;
+    dom.poolJuno.textContent=available?reserveText(pool.assets.find(a=>a.info.native==="ujuno").amount):"—";
+    dom.poolNeta.textContent=available?reserveText(pool.assets.find(a=>a.info.token===NETA).amount):"—";
+    dom.junoPrice.textContent=available?priceText(junoUsd):"—";
+    dom.netaPrice.textContent=available?priceText(tokenUsd("NETA")):"—";
+    dom.poolObserved.textContent=available?`Pool read ${new Date(poolCheckedAt).toLocaleString()}`:state||"Pool data unavailable. Refresh to try again.";
+    dom.priceObserved.textContent=available?`JUNO USD snapshot: ${new Date(priceTimestamp).toLocaleString()}. NETA USD is the WYND reserve ratio × JUNO USD; swap fees and price impact are not included.`:"USD prices unavailable until the pool and price snapshot are verified.";
   }
 
   function setMessage(text,state=""){
@@ -109,7 +128,7 @@
     const stamp=Date.parse(market.generated_at||"");
     if(market.chain_id!=="juno-1"||market.dao_id!=="juno-delegation"||!["LIVE","PARTIAL"].includes(market.status)||!Number.isFinite(Number(juno?.usd_price))||Number(juno.usd_price)<=0||!Number.isFinite(stamp)||stamp>Date.now()+60000)throw new Error("Invalid USD price snapshot");
     if(Date.now()-stamp>36*60*60*1000)throw new Error("USD price snapshot is stale");
-    return Number(juno.usd_price);
+    return {price:Number(juno.usd_price),timestamp:stamp};
   }
 
   async function validateContract(){
@@ -121,24 +140,31 @@
     const listed=new Set((pairInfo.asset_infos||[]).map(queryInfo));
     if(listed.size!==2||[...expectedAssets].some(key=>!listed.has(key)))throw new Error("PAIR ASSETS DO NOT MATCH JUNO / NETA");
     if(String(pairInfo.fee_config?.total_fee_bps)!=="30")throw new Error("PAIR FEE DOES NOT MATCH 0.30%");
+    if(!Array.isArray(livePool?.assets)||livePool.assets.length!==2||
+      new Set(livePool.assets.map(queryInfo)).size!==2||
+      livePool.assets.some(asset=>!expectedAssets.has(queryInfo(asset))||!/^\d{1,30}$/.test(asset.amount)||BigInt(asset.amount)<=0n))
+      throw new Error("POOL RESERVES ARE INVALID OR EMPTY");
     return {pool:livePool,source:client.preferredEndpoint};
   }
 
   async function loadVerifiedMarket(){
     const revision=++marketRevision;
     contractValid=false;junoUsd=null;pool=null;requestId++;
+    poolCheckedAt=null;priceTimestamp=null;renderPoolOverview("Refreshing pool and USD prices…");
     clearQuote("Checking the pool…","loading");
     dom.contractState.textContent="Checking";dom.contractState.dataset.ok="false";
     try{
       // Neither independent read can publish a partial success or revive a failed check.
       const [price,verified]=await Promise.all([loadMarket(),validateContract()]);
       if(revision!==marketRevision)throw new Error("Pool check superseded. Refresh again.");
-      junoUsd=price;pool=verified.pool;contractValid=true;
+      junoUsd=price.price;priceTimestamp=price.timestamp;pool=verified.pool;poolCheckedAt=Date.now();contractValid=true;
+      renderPoolOverview();
       dom.contractState.textContent="Verified";dom.contractState.dataset.ok="true";
       dom.source.textContent=verified.source?.replace("https://","").toUpperCase()||"JUNO LCD";
     }catch(error){
       if(revision===marketRevision){
         contractValid=false;junoUsd=null;pool=null;
+        renderPoolOverview();
         dom.contractState.textContent="Unavailable";dom.contractState.dataset.ok="false";
       }
       throw error;
@@ -356,7 +382,7 @@
   addEventListener("neta:wallet-connected",updateBalance);addEventListener("neta:wallet-disconnected",()=>{updateBalance();if(!signing)closePreview()});
   dom.action?.addEventListener("click",openPreview);dom.confirm?.addEventListener("click",signSwap);
   dom.close?.addEventListener("click",()=>{if(!signing)closePreview()});
-  ageTimer=setInterval(renderAge,1000);addEventListener("pagehide",()=>{clearInterval(ageTimer);clearTimeout(refreshTimer)});
+  ageTimer=setInterval(renderAge,1000);addEventListener("pagehide",()=>{clearInterval(ageTimer);clearTimeout(refreshTimer);clearInterval(marketTimer)});
 
   renderDirection();
   function refreshPool(){return loadVerifiedMarket().then(()=>{
@@ -365,5 +391,6 @@
     clearQuote(`SAFETY CHECK FAILED: ${(error.message||String(error)).toUpperCase()}`,"error");
   });}
   document.querySelector("#refresh-pool").addEventListener("click",refreshPool);
+  marketTimer=setInterval(()=>{if(!document.hidden&&!signing&&!dom.modal.open)refreshPool()},60000);
   refreshPool();
 })();
