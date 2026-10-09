@@ -72,6 +72,8 @@ try {
   };
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
+  assert.equal(await page.locator('#programme-amount').inputValue(), '15000900');
+  assert.equal(await page.locator('.criterion h4').count(), 4);
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
   await page.locator('#factor-number').fill('2');
   assert.equal(await page.locator('#factor').inputValue(), '20');
@@ -222,6 +224,61 @@ try {
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await step('rules');
+  // Exercise both actual links into the existing proposal workspace.
+  await page.route('https://**', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ data: { proposals: [] } })
+    })
+  );
+  await page.evaluate(() =>
+    localStorage.setItem(
+      'neta-governance-local-draft:juno-delegation',
+      JSON.stringify({
+        title: 'Preserved draft',
+        summary: 'Original summary',
+        body: 'Original body',
+        actions_json: '[]'
+      })
+    )
+  );
+  await page.locator('#claim-rewards').click();
+  await page.waitForURL((url) => url.hash === '#governance');
+  await page.waitForFunction(() =>
+    document.getElementById('proposal-title').value.includes('claim staking rewards')
+  );
+  assert.equal(await page.locator('#governance-view').isVisible(), true);
+  assert.equal(await page.locator('#subdao-select').inputValue(), 'juno-delegation');
+  assert.equal(JSON.parse(await page.locator('#proposal-actions').inputValue()).length, 25);
+  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  assert.equal(
+    await page.evaluate(
+      () => JSON.parse(localStorage.getItem('neta-governance-local-draft:juno-delegation')).title
+    ),
+    'Preserved draft'
+  );
+  await page.locator('#proposal-title').fill('Edited claim draft');
+  await page.locator('#save-local').click();
+  await page.reload();
+  await page.waitForFunction(
+    () => document.getElementById('proposal-title').value === 'Edited claim draft'
+  );
+  await page.locator('#new-draft').click();
+  assert.equal(await page.locator('#proposal-title').inputValue(), 'Preserved draft');
+  await page.goto(origin + '/community-tools/juno/delegation/');
+  await ready();
+  await simulate();
+  await page.locator('#review-proposal').click();
+  await page.locator('#publish-proposal').click();
+  await page.waitForURL((url) => url.hash === '#governance');
+  await page.waitForFunction(() =>
+    document.getElementById('proposal-title').value.includes('allocation rules')
+  );
+  assert.deepEqual(JSON.parse(await page.locator('#proposal-actions').inputValue()), []);
+  assert.match(await page.locator('#proposal-body').inputValue(), /Rule SHA-256:/);
+  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  await page.goto(origin + '/community-tools/juno/delegation/');
+  await ready();
   await page.locator('#programme-amount').fill('99999999');
   await page.locator('#simulate').click();
   await page.waitForFunction(() =>
@@ -234,6 +291,7 @@ try {
   await page.locator('#refresh').click();
   await ready();
   assert.match(await page.locator('#snapshot-status').textContent(), /historical/);
+  assert.equal(await page.locator('#claim-rewards').isDisabled(), true);
   await simulate();
   assert.match(await page.locator('#simulation-note').textContent(), /Historical/);
   for (state of ['wrong-chain', 'missing']) {
@@ -243,6 +301,7 @@ try {
         document.getElementById('snapshot-status').textContent === 'Programme snapshot unavailable'
     );
     assert.equal(await page.locator('#simulate').isDisabled(), true);
+    assert.equal(await page.locator('#claim-rewards').isDisabled(), true);
     assert.equal(await page.locator('#export-json').isDisabled(), true);
   }
   assert.deepEqual(errors, []);

@@ -8,12 +8,19 @@ in the owner's private operations handoff, outside this repository.
 
 ## Current priority
 
+New release candidate: the planner shows four consistent criteria, includes
+spendable funds in the rounded budget with a 50-JUNO reserve, separates validator
+eligibility from consensus membership, and opens claim/rule drafts in the existing
+proposal workspace. Existing local drafts are preserved. Programme proposal
+submission remains locked. This needs the normal manual website release only;
+no collector or host changes are required.
+
 The current development priority is the Juno **Delegation Programme** planner,
 placed under Community Tools → Juno. Its first implementation adds capped equal
 allocation, explicit v31 evidence review, manual exclusions, current-versus-target
 comparison and downloadable rule drafts using the shared UI. The collector and
 snapshot path are live from release `885beb9a`. The owner-approved three-stage
-UI revision is a release candidate: rules, searchable distribution review and a
+UI revision is live from `5d14ce24`: rules, searchable distribution review and a
 proposal preview, with detailed evidence and exact values available on demand.
 On-chain approval verification and execution proposals remain the next stage.
 See [JUNO_DELEGATION_PROGRAMME](docs/JUNO_DELEGATION_PROGRAMME.md) for the current
@@ -22,7 +29,7 @@ V1 decisions, inactive V2 scope, arithmetic and rollout requirements.
 The owner requested project sections in Community Tools: Juno owns the existing
 Faucet and Validator Upgrade Status; NETA adds **Buy NETA on WYND**. The
 released site contains the menu and a port of the old Rescue NETA functionality
-in the shared graphite/mint style. The Juno planner UI revision is the new candidate.
+in the shared graphite/mint style. The planner criteria, reserve and proposal handoff revisions are the new candidate.
 See [COMMUNITY_TOOLS](docs/COMMUNITY_TOOLS.md) for provenance and remaining checks.
 
 Juno Delegation Programme holdings refresh, but daily staking accrual is stalled:

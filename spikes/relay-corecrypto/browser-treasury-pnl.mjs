@@ -173,6 +173,7 @@ try {
   await page.evaluate(() => localStorage.setItem('neta-governance-selected-dao','juno'));
   await page.locator('#nns-back').click();
   await page.waitForFunction(() => document.querySelector('#pnl-year')?.value === '2026');
+  await page.waitForFunction(() => window.NETA_SELECTED_DAO === 'neta');
   assert.equal(await page.evaluate(() => window.NETA_SELECTED_DAO),'neta');
   assert.equal(await page.locator('#pnl-year').inputValue(),'2026');
   assert.equal(await page.locator('#pnl-month').inputValue(),'10');

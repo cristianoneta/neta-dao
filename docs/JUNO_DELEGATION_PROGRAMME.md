@@ -1,7 +1,7 @@
 # Juno Delegation Programme
 
-9 October 2026. The original planner and dedicated snapshot are live from release
-`885beb9ac6adbb175997dd8bf8ae4e00d23e66ef`. The staged UI described below is a
+9 October 2026. The three-stage planner is live from release
+`5d14ce2466f9dca9b5184caf3a3b5e69abaa1215`. The revisions below are a new
 release candidate. Rules, simulation and proposal drafts are available; on-chain
 approval verification and execution remain unconnected.
 
@@ -29,12 +29,12 @@ there is no nested vertical scroll. Each row expands to explain its target,
 provide exact amounts, validator identity and participation evidence. The compact
 table shows two decimal places; nonzero values that would round to zero use
 `<0.01`. Full six-decimal values remain in details and downloads. Stake-share
-percentages are rounded for display only. The allocation engine is unchanged.
+percentages are rounded for display only. The revised engine separates consensus membership from eligibility and projects membership after allocation.
 
-The current-position summary separates active and inactive recipients; the table
+The current-position summary separates consensus-set and outside-set positions; the table
 compares both current and projected stake shares. A collapsed historical note
 explains the 2025-1 points system without importing it into the new allocation.
-The final stage reviews the exact rules and illustrative impact before downloads;
+The final stage reviews exact rules and illustrative impact before opening the prepared proposal;
 future execution prerequisites are secondary details. Local draft storage never
 confers approval. Updating inputs invalidates the old
 simulation and downloads. Missing data disables calculation; old data is labelled
@@ -42,7 +42,7 @@ historical. Names and exclusion reasons are rendered as text.
 
 ## V1 rules and arithmetic
 
-- Equal distribution among eligible active, non-jailed Juno mainnet validators.
+- Equal distribution among non-jailed Juno validators with the required participation evidence. Current consensus-set membership is not an eligibility gate. The snapshot cannot independently establish current uptime for standby nodes; absence from the set is not proof of downtime.
 - No additional per-validator minimum or maximum amount.
 - Voting power limit: `min(30%, factor × 100% / N)`, with factor 1.0–2.0 and
   proposed default 1.5. `N` is the actual full active consensus set at the snapshot,
@@ -63,11 +63,10 @@ before adding new targets. It distributes equally, caps each recipient and
 redistributes excess. It recomputes capacity until unallocated funds are also
 removed from the projected bonded denominator. Remainders are deterministic by
 validator address. A lower programme budget separately records released funds.
-Budget cannot exceed current delegations plus spendable bank JUNO; rewards and
-unbonding balances are not counted. No funds are moved by this calculation.
+Budget cannot exceed current delegations plus spendable bank JUNO minus a 50-JUNO reserve; unclaimed rewards and unbonding balances are not counted. The default is `floor((delegated + spendable - 50) / 100) * 100` JUNO, clamped to zero, displayed without decimals. For 1,249 JUNO it suggests 1,100 JUNO. Exact manual inputs remain possible within that reserve. If spendable funds are below 50, reducing the target does not produce immediate liquidity; completion of any needed unstaking must be checked. No funds are moved by this calculation.
 
-The resulting **stake share is a voting-power estimate** for the fixed snapshot
-set. Consensus power rounding, set transitions, execution fees and available
+The resulting **stake share is a voting-power estimate** for the projected top-N non-jailed
+set. The engine excludes targets that remain outside the set from bonded totals; deterministic ties prefer existing members then operator address. Capacity bounds only tighten during iteration, so set transitions never inflate permitted stake. Consensus power rounding, actual set transitions, execution fees and available
 redelegation capacity still require a fresh transaction-level check. A validator
 whose non-programme stake is already over the limit receives no programme target;
 the programme cannot reduce stake controlled by other delegators.
@@ -99,7 +98,7 @@ collector, timer or signing authority. The collector remains read-only.
 
 ## Two separate community decisions
 
-1. **Rule approval:** export an explicitly unsubmitted Markdown proposal and a
+1. **Rule approval:** open the prepared proposal in the existing proposal workspace and retain a
    JSON review package. The package contains the exact canonical rule, complete
    source snapshot, upgrade archives, simulation rows and independent SHA-256
    identifiers. Simulation amounts illustrate impact; they do not authorize
@@ -110,9 +109,36 @@ collector, timer or signing authority. The collector remains read-only.
    constraints, message limits and the voted transaction set. Rule changes require
    step 1 again. No local toggle may manufacture approval.
 
-Execution preparation is visibly unavailable in this build. There are no wallet
-messages, contract writes, submissions, background reallocations or deployed new
-contracts. Governance integration is the next implementation stage.
+Allocation execution is visibly unavailable. No contract writes, submissions,
+background reallocations or new contracts are introduced. On-chain integration
+remains the next stage.
+
+## Revised controls and proposal handoff — release candidate
+
+The four criteria (validator status, voting power, commission, upgrade participation)
+use identical numbered headings, spacing and separators. Optional manual exclusions
+remain separate. Policy schema 2 fingerprints the eligibility change and 50-JUNO
+reserve; old v1 local drafts are preserved and never silently approved or reinterpreted.
+
+The mint **Create claim rewards proposal** button belongs in Programme amount.
+It prepares one CosmWasm `distribution.withdraw_delegator_reward` draft action for
+each positive recorded programme delegation, including jailed/standby positions.
+No destination change, stake move or known reward amount is assumed. The draft
+requires verification of the current withdrawal destination, programme authority,
+supported messages, fresh delegations and transaction limits before submission.
+Snapshots older than one hour, unavailable data and empty positions disable preparation.
+The [CosmWasm message definition](https://docs.rs/cosmwasm-std/latest/cosmwasm_std/enum.DistributionMsg.html)
+binds withdrawals to the executing contract; these are not wallet-level claims.
+After confirmed execution, refresh the planner to include the resulting spendable balance.
+
+**Publish proposal** replaces the Markdown-download primary action. It opens the
+existing Proposals page scoped to Juno → Delegation Programme with title, summary,
+complete policy and content hashes prefilled. Rule drafts carry no execution actions.
+The review JSON remains downloadable. Opening either button creates a distinct
+browser-local draft, keeps existing drafts intact and never signs or publishes.
+Revisions persist under that draft's unique key; New draft returns to the ordinary
+saved draft. The receiving page explicitly retains its DAO submission lock: public
+review and on-chain submission are not connected for this DAO yet.
 
 ## V2 — visible, inactive
 

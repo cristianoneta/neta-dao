@@ -635,3 +635,17 @@ comparison while retaining six in details and exports; a nonzero amount must not
 look like zero. Avoid inner vertical scrolling. Preserve current and projected
 stake shares and all approval/execution boundaries. Preview the complete proposed
 rules before offering downloads. Calculation behavior is unchanged.
+
+
+## Delegation planner criteria and proposals — owner update 2026-10-09
+
+Show four equally prominent numbered criteria: validator status, voting power,
+commission and upgrade participation. Use the same heading size, left edge,
+spacing and dividers. Consensus membership is informational, not an eligibility
+condition. Keep current uptime evidence limits explicit.
+
+Programme amount includes delegated and spendable funds, reserves 50 JUNO and
+suggests a whole hundred. Place the mint Create claim rewards proposal button
+inside this card. Publish proposal opens the existing scoped proposal workspace
+with a prepared draft. Distinguish preparing/opening a draft from publishing or
+executing it; preserve existing drafts and all current submission locks.

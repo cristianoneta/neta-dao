@@ -79,66 +79,83 @@
         </div>
         <div class="rules-grid">
           <article class="planner-card">
-            <h3>Eligibility &amp; voting power</h3>
-            <p>Only active, non-jailed mainnet validators can receive an allocation.</p>
-            <label for="factor">Voting power cap factor</label>
-            <div class="factor-control">
-              <input
-                id="factor"
-                type="range"
-                min="10"
-                max="20"
-                step="1"
-                value="15"
-                aria-describedby="cap-description"
-              /><label class="sr-only" for="factor-number">Exact voting power cap factor</label
-              ><input
-                id="factor-number"
-                type="number"
-                min="1"
-                max="2"
-                step="0.1"
-                value="1.5"
-                aria-describedby="factor-error"
-              /><output id="factor-value" for="factor factor-number">1.5×</output>
-            </div>
-            <p id="factor-error" class="field-error" hidden>
-              Enter a factor from 1.0 to 2.0 in steps of 0.1.
-            </p>
-            <p id="cap-description" class="cap-result">
-              The voting power limit will appear after data loads.
-            </p>
-            <details class="calculation-help">
-              <summary>How the limit is calculated</summary>
-              <p id="cap-formula">Cap = min(30%, factor × 100% / active validator count).</p>
+            <h3>Allocation criteria</h3>
+            <section class="criterion" aria-labelledby="status-criterion">
+              <h4 id="status-criterion"><span>1</span> Validator status</h4>
               <p>
-                All active validators count, including programme exclusions. The cap limits
-                projected total stake, including other delegators. There is no separate minimum or
-                maximum programme amount per validator.
+                Running, non-jailed validators may qualify inside or outside the consensus set.
+                Being outside the set is not evidence of being offline.
               </p>
-            </details>
-            <label for="commission">Maximum commission · %</label>
-            <input
-              id="commission"
-              type="number"
-              min="0"
-              max="100"
-              step="1"
-              value="10"
-              inputmode="numeric"
-              aria-describedby="commission-help commission-error"
-            />
-            <p id="commission-help" class="field-help">
-              Whole numbers from 0 to 100. Proposed default: 10%.
-            </p>
-            <p id="commission-error" class="field-error" hidden>
-              Enter a whole-number commission limit from 0 to 100.
-            </p>
-            <label class="check-option" for="no-commission-limit"
-              ><input id="no-commission-limit" type="checkbox" />No commission limit</label
-            >
-            <div class="fixed-rule">
-              <strong>Juno v31 participation within five hours</strong>
+              <p class="field-help">
+                V1 checks jail status and the archived participation criterion below. Current uptime
+                outside the set is not independently verified.
+              </p>
+            </section>
+            <section class="criterion" aria-labelledby="power-criterion">
+              <h4 id="power-criterion"><span>2</span> Voting power</h4>
+              <label for="factor">Voting power cap factor</label>
+              <div class="factor-control">
+                <input
+                  id="factor"
+                  type="range"
+                  min="10"
+                  max="20"
+                  step="1"
+                  value="15"
+                  aria-describedby="cap-description"
+                /><label class="sr-only" for="factor-number">Exact voting power cap factor</label
+                ><input
+                  id="factor-number"
+                  type="number"
+                  min="1"
+                  max="2"
+                  step="0.1"
+                  value="1.5"
+                  aria-describedby="factor-error"
+                /><output id="factor-value" for="factor factor-number">1.5×</output>
+              </div>
+              <p id="factor-error" class="field-error" hidden>
+                Enter a factor from 1.0 to 2.0 in steps of 0.1.
+              </p>
+              <p id="cap-description" class="cap-result">
+                The voting power limit will appear after data loads.
+              </p>
+              <details class="calculation-help">
+                <summary>How the limit is calculated</summary>
+                <p id="cap-formula">Cap = min(30%, factor × 100% / active validator count).</p>
+                <p>
+                  All active validators count, including programme exclusions. The cap limits
+                  projected total stake, including other delegators. There is no separate minimum or
+                  maximum programme amount per validator.
+                </p>
+              </details>
+            </section>
+            <section class="criterion" aria-labelledby="commission-criterion">
+              <h4 id="commission-criterion"><span>3</span> Commission</h4>
+              <label for="commission">Maximum commission · %</label>
+              <input
+                id="commission"
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                value="10"
+                inputmode="numeric"
+                aria-describedby="commission-help commission-error"
+              />
+              <p id="commission-help" class="field-help">
+                Whole numbers from 0 to 100. Proposed default: 10%.
+              </p>
+              <p id="commission-error" class="field-error" hidden>
+                Enter a whole-number commission limit from 0 to 100.
+              </p>
+              <label class="check-option" for="no-commission-limit"
+                ><input id="no-commission-limit" type="checkbox" />No commission limit</label
+              >
+            </section>
+            <section class="criterion" aria-labelledby="upgrade-criterion">
+              <h4 id="upgrade-criterion"><span>4</span> Upgrade participation</h4>
+              <p>Juno v31 participation within five hours</p>
               <p>
                 Archived participation is required. Missing or late evidence needs review; it does
                 not prove a late software installation.
@@ -150,7 +167,7 @@
                 </p>
                 <a href="/community-tools/validator-upgrades/juno-v31/">Open the v31 evidence ↗</a>
               </details>
-            </div>
+            </section>
           </article>
           <article class="planner-card">
             <h3>Programme amount</h3>
@@ -164,8 +181,19 @@
               aria-describedby="available-funds"
             />
             <p class="field-help" id="available-funds">
-              Defaults to current delegations. Rewards and unbonding funds are excluded.
+              Includes delegated and available JUNO, keeps at least 50 JUNO in reserve and rounds
+              down to whole hundreds.
             </p>
+            <p id="reserve-note" class="field-help"></p>
+            <div class="claim-rewards">
+              <button id="claim-rewards" class="primary-action" type="button" disabled>
+                Create claim rewards proposal
+              </button>
+              <p class="field-help" id="claim-rewards-help">
+                Opens a prepared draft on our proposal page. After approval and execution, refresh
+                the data to include claimed rewards.
+              </p>
+            </div>
             <p class="current-amount">
               Currently delegated <strong id="current-total">—</strong> JUNO
             </p>
@@ -322,12 +350,13 @@
           <div>
             <label for="validator-filter">Show</label
             ><select id="validator-filter">
-              <option value="all">All affected validators</option>
+              <option value="all">All validators</option>
               <option value="receiving">Receiving an allocation</option>
               <option value="cap">Limited by voting power</option>
               <option value="review">Evidence review required</option>
               <option value="excluded">Not eligible</option>
-              <option value="inactive">Outside the active set</option>
+              <option value="inactive">Jailed</option>
+              <option value="standby">Outside consensus set · not jailed</option>
             </select>
           </div>
           <div>
@@ -441,13 +470,14 @@
           <a href="#simulation" data-step="simulation">← Back to distribution</a>
           <div class="draft-actions">
             <button id="export-json" type="button" disabled>Download review data</button
-            ><button id="export-markdown" class="primary-action" type="button" disabled>
-              Download rule proposal
+            ><button id="publish-proposal" class="primary-action" type="button" disabled>
+              Publish proposal →
             </button>
           </div>
         </div>
         <p class="field-help">
-          Downloads are unsubmitted drafts. They do not establish on-chain approval.
+          Publish proposal opens the prepared draft on our proposal page for review. Nothing is
+          submitted automatically; on-chain approval and execution remain separate steps.
         </p>
         <details class="execution-details">
           <summary>Later: update allocations under approved rules</summary>

@@ -12,7 +12,8 @@ import {
   capFraction,
   equalCapped,
   upgradeEvidence,
-  fingerprint
+  fingerprint,
+  suggestedBudget
 } from '../juno-delegation-core.mjs';
 
 import { fixture, observed } from './fixtures/delegation-planner.mjs';
@@ -68,7 +69,7 @@ test('late observation and missing evidence remain explicit and ineligible', () 
   assert.match(r.rows[0].reasons.join(), /unverified/);
   assert.equal(r.rows[1].upgrade.status, 'unknown');
 });
-test('inactive, jailed, commission and manual exclusions prevent allocation', () => {
+test('jailed, commission and manual exclusions prevent allocation; standby remains eligible', () => {
   const s = fixture(),
     p = defaultPolicy();
   s.validators[0].active = false;
@@ -77,8 +78,10 @@ test('inactive, jailed, commission and manual exclusions prevent allocation', ()
   s.validators[2].commissionBps = 1001;
   p.exclusions = [{ chainId: 'juno-1', validator: s.validators[3].address, reason: 'CEX' }];
   const r = simulate(p, s, amount('2500'), observed(s));
-  assert.ok(r.rows.slice(0, 4).every((v) => v.targetRaw === '0'));
-  assert.equal(r.eligibleCount, 21);
+  assert.ok(r.rows.slice(1, 4).every((v) => v.targetRaw === '0'));
+  assert.equal(r.rows[0].eligible, true);
+  assert.ok(BigInt(r.rows[0].targetRaw) > 0n);
+  assert.equal(r.eligibleCount, 22);
 });
 test('unallocatable funds are not included in the bonded denominator', () => {
   const s = fixture(),
@@ -168,7 +171,7 @@ test('seeded scenarios conserve the budget and respect every recipient cap', () 
       v.currentRaw = String(rand(100000000));
       if (rand(7) === 0) v.commissionBps = 1100;
     }
-    const budget = total(s.validators.map((v) => v.currentRaw)) + BigInt(rand(1000000000)),
+    const budget = total(s.validators.map((v) => v.currentRaw)) + BigInt(rand(950000000)),
       r = simulate(p, s, budget, observed(s));
     assert.equal(total(r.rows.map((v) => v.targetRaw)) + BigInt(r.unallocatedRaw), budget);
     assert.equal(total(r.rows.map((v) => v.targetRaw)), BigInt(r.allocatedRaw));
@@ -198,4 +201,56 @@ test('the halt anchor and unknown-evidence handling are part of the proposed rul
   const q = defaultPolicy();
   q.upgrade.unknownHandling = 'eligible';
   assert.throws(() => policy(q));
+});
+
+test('default includes spendable balance, reserves fifty and rounds down to hundreds', () => {
+  const s = fixture(1);
+  s.validators[0].currentRaw = '1000000000';
+  s.liquidRaw = '249000000';
+  assert.equal(suggestedBudget(s), amount('1100'));
+  for (const [available, expected] of [
+    ['50', '1000'],
+    ['49.999999', '900'],
+    ['150', '1100'],
+    ['0', '900']
+  ]) {
+    s.liquidRaw = amount(available).toString();
+    assert.equal(suggestedBudget(s), amount(expected));
+  }
+  s.validators[0].currentRaw = '0';
+  assert.equal(suggestedBudget(s), 0n);
+  s.liquidRaw = amount('49').toString();
+  assert.equal(suggestedBudget(s), 0n);
+  assert.throws(
+    () => simulate(defaultPolicy(), fixture(), amount('3450.000001'), observed(fixture())),
+    /50 JUNO/
+  );
+  assert.throws(() => policy({ ...defaultPolicy(), schema: 1, activeOnly: true }));
+});
+
+test('standby membership is projected and never counted as bonded when outside the set', () => {
+  const s = fixture(26);
+  s.activeCount = 25;
+  s.validators[25].active = false;
+  s.validators[25].currentRaw = '0';
+  s.validators[25].tokensRaw = '1';
+  const r = simulate(defaultPolicy(), s, amount('3000'), observed(s));
+  assert.equal(r.rows[25].eligible, true);
+  assert.ok(BigInt(r.rows[25].targetRaw) > 0n);
+  assert.equal(r.rows[25].projectedActive, false);
+  assert.equal(
+    total(r.rows.filter((v) => v.projectedActive).map((v) => v.projectedRaw)),
+    BigInt(r.projectedBondedRaw)
+  );
+  for (const v of r.rows.filter((v) => BigInt(v.targetRaw) > 0n))
+    assert.ok(
+      BigInt(v.projectedRaw) * BigInt(r.cap.denominator) <=
+        BigInt(r.projectedBondedRaw) * BigInt(r.cap.numerator)
+    );
+  s.validators[25].tokensRaw = '1000000001';
+  const joined = simulate(defaultPolicy(), s, amount('3000'), observed(s));
+  assert.equal(joined.rows[25].projectedActive, true);
+  const e = observed(s);
+  e.records.delete(s.validators[25].consensusAddress);
+  assert.equal(simulate(defaultPolicy(), s, amount('3000'), e).rows[25].eligible, false);
 });
