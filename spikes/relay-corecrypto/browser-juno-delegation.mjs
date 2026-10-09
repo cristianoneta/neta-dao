@@ -302,7 +302,12 @@ try {
       };
     return route.fulfill({
       contentType: 'application/json',
-      headers: { 'x-cosmos-block-height': '42500123' },
+      headers: {
+        'x-cosmos-block-height': '42500123',
+        'access-control-allow-origin': '*',
+        'access-control-allow-headers': 'x-cosmos-block-height, content-type',
+        'access-control-allow-methods': 'GET, OPTIONS'
+      },
       body: JSON.stringify(body)
     });
   });
@@ -335,7 +340,16 @@ try {
   );
   assert.deepEqual(await page.evaluate(() => window.__plannerEnabledChains), ['juno-1']);
   await page.locator('#primary-action').click();
-  await page.waitForFunction(() => !document.getElementById('planner-native-review').hidden);
+  await page.waitForFunction(
+    () =>
+      !document.getElementById('planner-native-review').hidden ||
+      document.getElementById('gov-status').dataset.state === 'error'
+  );
+  assert.equal(
+    await page.locator('#planner-native-review').isVisible(),
+    true,
+    await page.locator('#gov-status').innerText()
+  );
   assert.equal(await page.locator('#planner-native-deposit').inputValue(), '100');
   assert.match(
     await page.locator('#planner-native-review-text').innerText(),
