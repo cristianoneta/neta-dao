@@ -57,42 +57,124 @@ try {
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify(data) });
   });
   const ready = () => page.waitForFunction(() => !document.getElementById('simulate').disabled);
+  const step = async (name) => {
+    await page.locator(`.planner-steps [data-step="${name}"]`).click();
+    assert.equal(await page.locator('#' + name).isVisible(), true);
+    assert.equal(
+      await page.locator(`.planner-steps [data-step="${name}"]`).getAttribute('aria-current'),
+      'step'
+    );
+  };
   const simulate = async () => {
+    await step('rules');
     await page.locator('#simulate').click();
     await page.waitForFunction(() => !document.getElementById('export-json').disabled);
   };
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
+  await page.locator('#factor-number').fill('2');
+  assert.equal(await page.locator('#factor').inputValue(), '20');
+  assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
+  await page.locator('#factor').press('Home');
+  assert.equal(await page.locator('#factor-number').inputValue(), '1.0');
+  await page.locator('#factor-number').fill('2.1');
+  assert.equal(await page.locator('#factor-error').isVisible(), true);
+  await page.locator('#save-draft').click();
+  assert.match(await page.locator('#feedback').textContent(), /before saving/);
+  await page.locator('#factor-number').fill('1.5');
+  assert.equal(await page.locator('#commission').inputValue(), '10');
+  for (const value of ['0', '13', '100']) {
+    await page.locator('#commission').fill(value);
+    assert.equal(await page.locator('#commission-error').isVisible(), false);
+    assert.ok(
+      (await page.locator('#rule-summary').textContent()).includes(`commission ≤${value}%`)
+    );
+  }
+  for (const value of ['13.5', '-1', '101', '']) {
+    await page.locator('#commission').fill(value);
+    assert.equal(await page.locator('#commission-error').isVisible(), true);
+    await page.locator('#save-draft').click();
+    assert.match(await page.locator('#feedback').textContent(), /whole-number commission/);
+    await page.locator('#simulate').click();
+    assert.equal(await page.locator('#export-json').isDisabled(), true);
+    assert.match(await page.locator('#feedback').textContent(), /whole-number commission/);
+  }
+  await page.locator('#commission').fill('13');
+  await page.locator('#no-commission-limit').check();
+  assert.equal(await page.locator('#commission').isDisabled(), true);
+  assert.match(await page.locator('#rule-summary').textContent(), /no commission filter/);
+  await page.locator('#no-commission-limit').uncheck();
+  assert.equal(await page.locator('#commission').inputValue(), '13');
+  assert.equal(await page.locator('#commission').isEnabled(), true);
+  await page.locator('#commission').fill('19');
   await simulate();
+  assert.equal(await page.locator('#simulation').isVisible(), true);
+  assert.equal(await page.locator('#rules').isVisible(), false);
   assert.ok(Number(await page.locator('#eligible-total').textContent()) >= 22);
   assert.equal(
     await page.locator('#allocation-rows img').count(),
     0,
     'validator names are rendered as text'
   );
+  assert.equal(await page.locator('.execution-details button').isDisabled(), true);
+  assert.equal(await page.locator('#allocation-rows .allocation-row').count(), 10);
+  assert.match(await page.locator('#table-count').textContent(), /1–10 of 25/);
+  await page.locator('#next-page').click();
+  assert.match(await page.locator('#table-count').textContent(), /11–20 of 25/);
+  await page.locator('#validator-sort').selectOption('name');
+  assert.match(await page.locator('#table-count').textContent(), /1–10 of 25/);
+  await page.locator('#validator-search').fill(sample.validators[0].address);
+  assert.equal(await page.locator('#allocation-rows .allocation-row').count(), 1);
+  assert.match(await page.locator('#allocation-rows .validator-name').textContent(), /<img src=x/);
+  await page.locator('.row-toggle').click();
+  assert.equal(await page.locator('.row-toggle').getAttribute('aria-expanded'), 'true');
+  assert.match(await page.locator('.row-detail').textContent(), /600,000.123456 JUNO/);
+  await page.locator('#validator-search').fill('no-such-validator');
+  assert.match(await page.locator('#allocation-rows').textContent(), /No validators match/);
+  await page.locator('#validator-search').fill('');
+  await page.locator('#validator-filter').selectOption('receiving');
   assert.equal(
-    await page.getByRole('button', { name: 'Prepare execution proposal' }).isDisabled(),
+    await page
+      .locator('.allocation-row .target-amount')
+      .evaluateAll((nodes) => nodes.every((el) => el.textContent !== '0.00')),
     true
   );
+  await page.locator('#validator-filter').selectOption('all');
+  if (await page.locator('#evidence-review').isVisible()) {
+    await page.locator('#show-evidence-review').click();
+    assert.equal(await page.locator('#validator-filter').inputValue(), 'review');
+    assert.equal(
+      await page.locator('#validator-filter').evaluate((el) => el === document.activeElement),
+      true
+    );
+    await page.locator('#validator-filter').selectOption('all');
+  }
   const selected = sample.validators.find(
     (v) =>
       history.firstSignatures[v.consensusAddress] &&
       history.firstSignatures[v.consensusAddress].secondsFromHalt < 18000
   );
   const before = Number(await page.locator('#eligible-total').textContent());
-  await page.locator('#excluded-validator').fill(selected.address);
+  await step('rules');
+  await page.locator('#manual-exclusions summary').click();
+  await page.locator('#excluded-validator').fill(selected.name);
   await page.locator('#excluded-reason').fill('Exchange-operated fixture');
   await page.locator('#add-exclusion').click();
   assert.equal(await page.locator('#export-json').isDisabled(), true);
   await simulate();
   assert.equal(Number(await page.locator('#eligible-total').textContent()), before - 1);
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
+  await step('rules');
   await page.locator('#save-draft').click();
   await page.reload();
   await ready();
   assert.equal(await page.locator('#exclusions li').count(), 1);
+  assert.equal(await page.locator('#commission').inputValue(), '19');
   await simulate();
+  await page.locator('#review-proposal').click();
+  assert.equal(await page.locator('#proposal-review').isVisible(), true);
+  assert.match(await page.locator('#proposal-rules').textContent(), /Exchange-operated fixture/);
   const pendingDownload = page.waitForEvent('download');
   await page.locator('#export-json').click();
   const download = await pendingDownload;
@@ -103,6 +185,7 @@ try {
   assert.equal(review.proposalType, 'RULE_APPROVAL');
   assert.equal(review.status, 'DRAFT_NOT_SUBMITTED');
   assert.equal(review.rule.exclusions[0].validator, selected.address);
+  assert.equal(review.rule.commissionMaxBps, 1900);
   assert.equal(review.approval, null);
   assert.equal(review.execution.enabled, false);
   assert.deepEqual(review.execution.messages, []);
@@ -111,24 +194,34 @@ try {
   if (shots) await mkdir(shots, { recursive: true });
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
-    await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
-    assert.ok(
-      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
-      `page overflow at ${width}`
-    );
-    for (const id of ['current-total', 'allocated-total'])
-      assert.equal(
-        await page.locator('#' + id).evaluate((el) => {
-          const range = document.createRange();
-          range.selectNodeContents(el);
-          return range.getClientRects().length;
-        }),
-        1,
-        `Exact JUNO total wraps at ${width}`
+    for (const stage of ['rules', 'simulation', 'proposals']) {
+      await step(stage);
+      await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+      assert.ok(
+        await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        `${stage} page overflow at ${width}`
       );
-    if (shots)
-      await page.screenshot({ path: `${shots}/juno-delegation-${width}.png`, fullPage: true });
+      if (stage !== 'proposals') {
+        const id = stage === 'rules' ? 'current-total' : 'allocated-total';
+        assert.equal(
+          await page.locator('#' + id).evaluate((el) => {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            return range.getClientRects().length;
+          }),
+          1,
+          `${id} wraps at ${width}`
+        );
+      }
+      if (shots)
+        await page.screenshot({
+          path: `${shots}/juno-delegation-${stage}-${width}.png`,
+          fullPage: true
+        });
+    }
   }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await step('rules');
   await page.locator('#programme-amount').fill('99999999');
   await page.locator('#simulate').click();
   await page.waitForFunction(() =>
@@ -154,7 +247,7 @@ try {
   }
   assert.deepEqual(errors, []);
   console.log(
-    'Juno delegation browser: review, exclusions, persistence, export, stale/error states and four viewports passed.'
+    'Juno delegation browser: stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all three stages at four viewports passed.'
   );
 } finally {
   await browser?.close();

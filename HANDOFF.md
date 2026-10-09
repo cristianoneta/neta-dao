@@ -12,15 +12,17 @@ The current development priority is the Juno **Delegation Programme** planner,
 placed under Community Tools → Juno. Its first implementation adds capped equal
 allocation, explicit v31 evidence review, manual exclusions, current-versus-target
 comparison and downloadable rule drafts using the shared UI. The collector and
-snapshot path are prepared; installation and website release are not claimed.
+snapshot path are live from release `885beb9a`. The owner-approved three-stage
+UI revision is a release candidate: rules, searchable distribution review and a
+proposal preview, with detailed evidence and exact values available on demand.
 On-chain approval verification and execution proposals remain the next stage.
 See [JUNO_DELEGATION_PROGRAMME](docs/JUNO_DELEGATION_PROGRAMME.md) for the current
 V1 decisions, inactive V2 scope, arithmetic and rollout requirements.
 
 The owner requested project sections in Community Tools: Juno owns the existing
-Faucet and Validator Upgrade Status; NETA adds **Buy NETA on WYND**. The current
-branch contains the menu and a port of the old Rescue NETA functionality in the
-shared graphite/mint style. This is a release candidate, not a published feature.
+Faucet and Validator Upgrade Status; NETA adds **Buy NETA on WYND**. The
+released site contains the menu and a port of the old Rescue NETA functionality
+in the shared graphite/mint style. The Juno planner UI revision is the new candidate.
 See [COMMUNITY_TOOLS](docs/COMMUNITY_TOOLS.md) for provenance and remaining checks.
 
 Juno Delegation Programme holdings refresh, but daily staking accrual is stalled:
@@ -36,8 +38,9 @@ original identities, admission settings and target activation are confirmed in t
 private operator record. The owner has retired Render; it is no longer a rollback
 reserve. Any future host recovery must preserve the latest OVH state.
 
-The website release from `604cec097d08fb8ce5e64731d76c32ee6fdf682e` passed all 18
-release jobs and was published on both domains. The stable API endpoint and CORS for
+The website release from `885beb9ac6adbb175997dd8bf8ae4e00d23e66ef` passed all 18
+release jobs and was published on both domains. The original planner and its
+same-origin data source passed live acceptance on 9 October. The stable API endpoint and CORS for
 both website origins were accepted. Public mainnet messaging remains disabled.
 
 Independent recurring backups and controlled live data fallback remain open. The

@@ -10,6 +10,15 @@ import {
   capFraction
 } from './juno-delegation-core.mjs';
 
+import {
+  formatAmount,
+  formatChange,
+  stakeShare,
+  rowStatus,
+  allocationReason,
+  selectRows
+} from './juno-delegation-view.mjs';
+
 const $ = (id) => document.getElementById(id),
   key = 'cosmoot:juno:delegation:rule-draft:v1';
 let rules = defaultPolicy(),
@@ -19,20 +28,34 @@ let rules = defaultPolicy(),
   review = null,
   revision = 0,
   loading = false;
-const fmt = (value) => {
-  let n = BigInt(value),
-    sign = n < 0n ? '−' : '';
-  if (n < 0n) n = -n;
-  const [whole, fraction] = units(n).split('.');
-  return (
-    sign +
-    BigInt(whole).toLocaleString('en-US') +
-    (fraction.replace(/0+$/, '') ? '.' + fraction.replace(/0+$/, '') : '')
-  );
-};
-const tell = (message) => {
+let page = 0;
+const pageSize = 10,
+  expanded = new Set();
+const fmt = (value) => formatAmount(value, true);
+const tell = (message, tone = 'info') => {
   $('feedback').textContent = message;
+  $('feedback').dataset.tone = tone;
 };
+function setStep(step, focus = true) {
+  if (!['rules', 'simulation', 'proposals'].includes(step)) step = 'rules';
+  for (const panel of document.querySelectorAll('.planner-panel')) panel.hidden = panel.id !== step;
+  for (const link of document.querySelectorAll('.planner-steps [data-step]')) {
+    if (link.dataset.step === step) link.setAttribute('aria-current', 'step');
+    else link.removeAttribute('aria-current');
+  }
+  if (location.hash !== '#' + step) history.replaceState(null, '', '#' + step);
+  if (focus) {
+    const heading = $(
+      step === 'rules'
+        ? 'rules-title'
+        : step === 'simulation'
+          ? 'simulation-title'
+          : 'proposals-title'
+    );
+    heading.focus({ preventScroll: true });
+    heading.scrollIntoView({ block: 'start' });
+  }
+}
 const node = (tag, text, className) => {
   const el = document.createElement(tag);
   el.textContent = text;
@@ -46,35 +69,84 @@ function freshness() {
     : Infinity;
 }
 function invalidate(
-  message = 'Rules or amount changed. Simulate again to refresh the comparison.'
+  message = 'Rules or amount changed. Simulate again to refresh this comparison.'
 ) {
   revision++;
+  if (message.startsWith('Rules or amount changed'))
+    $('draft-status').textContent = 'Draft changed · save rules to keep them locally';
   review = null;
-  $('export-json').disabled = true;
-  $('export-markdown').disabled = true;
+  page = 0;
+  expanded.clear();
+  for (const id of [
+    'export-json',
+    'export-markdown',
+    'review-proposal',
+    'previous-page',
+    'next-page'
+  ])
+    $(id).disabled = true;
   $('simulation-state').textContent = 'Not simulated';
-  $('eligible-total').textContent = '—';
-  $('allocated-total').textContent = '—';
-  $('unallocated-total').textContent = '—';
+  for (const id of ['eligible-total', 'recipient-total', 'allocated-total', 'unallocated-total'])
+    $(id).textContent = '—';
+  $('unallocated-total').parentElement.classList.remove('attention');
   $('rule-fingerprint').textContent = 'Simulate to identify this exact rule and data version.';
+  $('allocation-explanation').textContent = message;
+  $('simulation-note').textContent =
+    'This is a target distribution, not an immediate redelegation transaction.';
+  $('evidence-review').hidden = true;
+  $('proposal-review').hidden = true;
+  $('proposal-empty').hidden = false;
+  $('table-count').textContent = 'No current simulation.';
   const row = node('tr', ''),
     cell = node('td', message);
-  cell.colSpan = 7;
+  cell.colSpan = 5;
   row.append(cell);
   $('allocation-rows').replaceChildren(row);
+  renderRuleSummary();
+}
+function renderRuleSummary() {
+  const cap = data ? capFraction(rules, data.activeCount) : null;
+  const capText = cap
+    ? ((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2) + '%'
+    : 'pending';
+  $('rule-summary').textContent =
+    `Equal allocation · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
+}
+function commissionValid() {
+  const input = $('commission');
+  return (
+    $('no-commission-limit').checked ||
+    (input.value !== '' && input.checkValidity() && Number.isInteger(Number(input.value)))
+  );
+}
+function showCommissionError() {
+  const valid = commissionValid();
+  $('commission-error').hidden = valid;
+  $('commission').setAttribute('aria-invalid', String(!valid));
+}
+function restoreCommissionInput() {
+  const unlimited = rules.commissionMaxBps === null;
+  $('no-commission-limit').checked = unlimited;
+  $('commission').disabled = unlimited;
+  $('commission').value = unlimited ? '10' : String(rules.commissionMaxBps / 100);
+  showCommissionError();
 }
 function renderRules() {
   $('factor').value = rules.factorTenths;
+  $('factor').setAttribute('aria-valuetext', (rules.factorTenths / 10).toFixed(1) + ' times');
+  $('factor-number').value = (rules.factorTenths / 10).toFixed(1);
   $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
-  const commission = rules.commissionMaxBps === null ? 'none' : String(rules.commissionMaxBps);
-  if (![...$('commission').options].some((o) => o.value === commission)) {
-    $('commission').append(new Option(`${Number(commission) / 100}%`, commission));
-  }
-  $('commission').value = commission;
   const cap = data ? capFraction(rules, data.activeCount) : null;
   $('cap-description').textContent = cap
+    ? `Maximum projected voting power: ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}% with ${data.activeCount} active validators.`
+    : 'The voting power limit will appear after data loads.';
+  $('cap-formula').textContent = cap
     ? `Cap = min(30%, ${(rules.factorTenths / 10).toFixed(1)} × 100% / ${data.activeCount}) = ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}%. The full active consensus set is used.`
     : 'Cap = min(30%, factor × 100% / active validator count).';
+  renderRuleSummary();
+  $('exclusion-count').textContent = rules.exclusions.length
+    ? `· ${rules.exclusions.length}`
+    : '· none';
   $('exclusions').replaceChildren();
   $('empty-exclusions').hidden = rules.exclusions.length > 0;
   for (const exclusion of rules.exclusions) {
@@ -133,9 +205,11 @@ async function load() {
       ? 'Snapshot older than one hour · historical simulation only'
       : 'Programme snapshot available · read-only';
     $('snapshot-detail').textContent =
-      `Block ${data.height.toLocaleString('en-US')} · ${new Date(data.blockTime).toLocaleString()} · ${data.activeCount} active validators · ${new URL(data.source).hostname}`;
+      `${new Date(data.blockTime).toLocaleString()} · ${data.activeCount} active validators`;
+    $('snapshot-source').textContent =
+      `Block ${data.height.toLocaleString('en-US')} · ${new URL(data.source).hostname} · collected ${new Date(data.collectedAt).toLocaleString()}`;
     $('programme-amount').value = units(sumCurrent());
-    $('current-total').textContent = fmt(sumCurrent());
+    $('current-total').textContent = formatAmount(sumCurrent());
     const held = data.validators.filter((v) => BigInt(v.currentRaw) > 0n),
       inactive = held.filter((v) => !v.active),
       outside = inactive.reduce((sum, v) => sum + BigInt(v.currentRaw), 0n),
@@ -148,7 +222,7 @@ async function load() {
       `Halt: ${new Date(evidence.window.start).toISOString()} · inclusive deadline: ${new Date(evidence.window.end).toISOString()} · ${evidence.records.size} historical validators · window scan ${evidence.window.coverageComplete ? 'complete' : 'incomplete'}. Consensus captures provide additional partial evidence.`;
     $('active-total').textContent = `${data.activeCount} active validators`;
     $('available-funds').textContent =
-      `Delegated ${fmt(sumCurrent())} + spendable ${fmt(data.liquidRaw)} JUNO. Rewards and unbonding funds are excluded.`;
+      `Delegated ${formatAmount(sumCurrent())} + spendable ${formatAmount(data.liquidRaw)} JUNO. Rewards and unbonding funds are excluded. Up to six decimal places.`;
     $('validator-options').replaceChildren(
       ...data.validators.map((v) => {
         const option = node('option', v.name);
@@ -170,6 +244,7 @@ async function load() {
     $('snapshot-status').textContent = 'Programme snapshot unavailable';
     $('snapshot-detail').textContent =
       'The dedicated collector must publish a validated snapshot before allocations can be calculated.';
+    $('snapshot-source').textContent = 'No usable programme snapshot.';
     $('current-total').textContent = '—';
     $('current-breakdown').textContent =
       'Current active / inactive delegation breakdown is unavailable.';
@@ -178,100 +253,213 @@ async function load() {
     $('active-total').textContent = 'Active set pending';
     $('available-funds').textContent = 'No usable programme snapshot.';
     renderRules();
-    tell(error.message);
+    tell(error.message, 'error');
   } finally {
     loading = false;
     $('refresh').disabled = false;
   }
 }
-function renderResult(result) {
-  const currentBonded = data.validators
+function renderTable() {
+  if (!review) return;
+  const result = review.simulation;
+  const rows = selectRows(result, {
+    query: $('validator-search').value,
+    filter: $('validator-filter').value,
+    sort: $('validator-sort').value
+  });
+  page = Math.min(page, Math.max(0, Math.ceil(rows.length / pageSize) - 1));
+  const bonded = data.validators
     .filter((v) => v.active)
     .reduce((sum, v) => sum + BigInt(v.tokensRaw), 0n);
-  $('eligible-total').textContent = result.eligibleCount;
-  $('allocated-total').textContent = fmt(result.allocatedRaw);
-  $('unallocated-total').textContent = fmt(result.unallocatedRaw);
-  $('simulation-state').textContent = 'Draft simulation';
-  const notes = [
-    `${result.evidenceReviewCount} active validators need evidence review.`,
-    `${data.redelegations.length} existing redelegation records need execution review.`,
-    'Projected shares use a fixed validator set and are estimates.'
-  ];
-  if (BigInt(result.releasedRaw))
-    notes.push(
-      `${fmt(result.releasedRaw)} JUNO would leave the current programme allocation; no unstaking transaction is prepared.`
+  const shown = rows.slice(page * pageSize, (page + 1) * pageSize);
+  $('allocation-rows').replaceChildren();
+  for (const v of shown) {
+    const row = node('tr', '', 'allocation-row'),
+      name = node('td', '', 'validator-cell');
+    const isReview = v.active && v.upgrade.status !== 'observed';
+    name.append(
+      node('strong', v.name || 'Unnamed validator', 'validator-name'),
+      node('span', rowStatus(v), 'row-status' + (isReview ? ' needs-review' : ''))
     );
-  if (freshness() > 3600000) notes.push('Historical snapshot: refresh before approval.');
-  $('simulation-note').textContent = notes.join(' ');
-  const rows = [...result.rows]
-    .filter(
-      (v) =>
-        v.active ||
-        BigInt(v.currentRaw) > 0n ||
-        rules.exclusions.some((e) => e.validator === v.address)
-    )
-    .sort(
-      (a, b) =>
-        Number(b.eligible) - Number(a.eligible) ||
-        a.name.localeCompare(b.name) ||
-        a.address.localeCompare(b.address)
+    const toggle = node('button', 'Why this amount?', 'row-toggle'),
+      detail = node('tr', '', 'row-detail'),
+      content = node('td', '');
+    toggle.type = 'button';
+    detail.id = 'detail-' + v.address;
+    detail.hidden = !expanded.has(v.address);
+    toggle.setAttribute('aria-expanded', String(!detail.hidden));
+    toggle.setAttribute('aria-controls', detail.id);
+    toggle.setAttribute('aria-label', `Why this amount for ${v.name || v.address}?`);
+    toggle.addEventListener('click', () => {
+      detail.hidden = !detail.hidden;
+      toggle.setAttribute('aria-expanded', String(!detail.hidden));
+      if (detail.hidden) expanded.delete(v.address);
+      else expanded.add(v.address);
+    });
+    name.append(toggle);
+    const currentShare = v.active ? stakeShare(v.tokensRaw, bonded) : 'Outside active set';
+    const projectedShare = v.active
+      ? stakeShare(v.projectedRaw, result.projectedBondedRaw)
+      : 'Outside projected set';
+    row.append(
+      name,
+      node('td', formatAmount(v.currentRaw), 'numeric'),
+      node('td', formatAmount(v.targetRaw), 'numeric target-amount'),
+      node('td', formatChange(v.deltaRaw), 'numeric'),
+      node('td', v.active ? `${currentShare} → ${projectedShare}` : 'Outside active set', 'numeric')
     );
-  $('allocation-rows').replaceChildren(
-    ...rows.map((v) => {
-      const row = node('tr', ''),
-        name = node('td', ''),
-        status = node('td', '');
-      name.append(
-        node('strong', v.name || 'Unnamed validator'),
-        node('small', v.address),
-        node('small', `${(v.commissionBps / 100).toFixed(2)}% commission`)
-      );
-      status.append(
+    content.colSpan = 5;
+    content.append(node('p', allocationReason(v)), node('p', v.address, 'detail-address'));
+    const exact = node('div', '', 'exact-amounts');
+    exact.append(
+      node('span', `Current: ${fmt(v.currentRaw)} JUNO`),
+      node('span', `Target: ${fmt(v.targetRaw)} JUNO`),
+      node('span', `Change: ${formatChange(v.deltaRaw, true)} JUNO`)
+    );
+    const facts = node('p', '', 'detail-facts');
+    facts.append(
+      node('span', `Commission: ${(v.commissionBps / 100).toFixed(2)}%`),
+      node('span', `Stake share: ${currentShare} → ${projectedShare}`)
+    );
+    if (v.eligible)
+      facts.append(node('span', `Capacity under the cap: ${fmt(v.capacityRaw)} JUNO`));
+    content.append(exact, facts);
+    if (v.upgrade.timestamp)
+      content.append(
         node(
-          'span',
-          v.eligible
-            ? v.capReached
-              ? v.capacityRaw === '0'
-                ? 'Eligible · no capacity under cap'
-                : 'Eligible · cap reached'
-              : 'Eligible'
-            : v.reasons.join(' · '),
-          v.eligible ? 'eligible-label' : 'review-label'
+          'p',
+          `First recorded ${v.upgrade.evidence}: ${new Date(v.upgrade.timestamp).toISOString()}`,
+          'field-help'
         )
       );
-      if (v.upgrade.timestamp)
-        status.append(
-          node(
-            'small',
-            `First recorded ${v.upgrade.evidence}: ${new Date(v.upgrade.timestamp).toISOString()}`
-          )
-        );
-      const denominator = BigInt(result.projectedBondedRaw),
-        share =
-          v.active && denominator > 0n
-            ? Number((BigInt(v.projectedRaw) * 10000n) / denominator) / 100
-            : null;
-      row.append(
-        name,
-        status,
-        node('td', fmt(v.currentRaw)),
-        node('td', fmt(v.targetRaw)),
-        node('td', (BigInt(v.deltaRaw) > 0n ? '+' : '') + fmt(v.deltaRaw)),
+    if (v.upgrade.status !== 'observed')
+      content.append(
         node(
-          'td',
-          v.active && currentBonded > 0n
-            ? (Number((BigInt(v.tokensRaw) * 10000n) / currentBonded) / 100).toFixed(2) + '%'
-            : 'Outside active set'
-        ),
-        node('td', share === null ? 'Outside projected active set' : share.toFixed(2) + '%')
+          'p',
+          'Participation within five hours is not established. A missing or later observation does not prove a late software installation.',
+          'field-help'
+        )
       );
+    const link = node('a', 'Review the v31 evidence ↗');
+    link.href = '/community-tools/validator-upgrades/juno-v31/';
+    content.append(link);
+    detail.append(content);
+    $('allocation-rows').append(row, detail);
+  }
+  if (!rows.length) {
+    const row = node('tr', ''),
+      cell = node('td', 'No validators match these filters.');
+    cell.colSpan = 5;
+    row.append(cell);
+    $('allocation-rows').append(row);
+  }
+  $('table-count').textContent = rows.length
+    ? `${page * pageSize + 1}–${Math.min((page + 1) * pageSize, rows.length)} of ${rows.length} validators · amounts rounded to two decimals`
+    : 'No matching validators.';
+  $('previous-page').disabled = page === 0;
+  $('next-page').disabled = (page + 1) * pageSize >= rows.length;
+}
+function renderProposal(result) {
+  $('proposal-empty').hidden = true;
+  $('proposal-review').hidden = false;
+  const p = result.policy,
+    cap = capFraction(p, data.activeCount);
+  const entries = [
+    [
+      'Distribution',
+      'Equal amounts, with excess redistributed within the voting power limit. No separate minimum or maximum per validator.'
+    ],
+    ['Eligibility', 'Active, non-jailed Juno mainnet validators.'],
+    [
+      'Voting power',
+      `min(30%, ${(p.factorTenths / 10).toFixed(1)} × 100% / active validator count). At this snapshot: ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}%. Exclusions do not reduce the count.`
+    ],
+    [
+      'Commission',
+      p.commissionMaxBps === null
+        ? 'No commission filter.'
+        : `${p.commissionMaxBps / 100}% maximum.`
+    ],
+    [
+      'v31 participation',
+      'Archived participation within five hours of the halt. Unresolved evidence receives no target and remains a review case.'
+    ],
+    [
+      'Manual exclusions',
+      p.exclusions.length
+        ? p.exclusions
+            .map(
+              (e) =>
+                `${data.validators.find((v) => v.address === e.validator)?.name || e.validator} (${e.validator}): ${e.reason}`
+            )
+            .join(' · ')
+        : 'None.'
+    ],
+    [
+      'Future changes',
+      'Changes to criteria, cap, method or exclusions require a new rule approval.'
+    ]
+  ];
+  $('proposal-rules').replaceChildren(
+    ...entries.map(([label, value]) => {
+      const row = node('div', '');
+      row.append(node('dt', label), node('dd', value));
       return row;
     })
   );
+  $('proposal-impact').textContent =
+    `${formatAmount(result.allocatedRaw)} JUNO allocated to ${result.rows.filter((v) => BigInt(v.targetRaw) > 0n).length} validators. ${formatAmount(result.unallocatedRaw)} JUNO unallocated. This is an example, not an execution instruction.`;
+  $('proposal-evidence').textContent =
+    `${result.evidenceReviewCount} active validators need evidence review.${BigInt(result.releasedRaw) > 0n ? ` ${formatAmount(result.releasedRaw)} JUNO would leave the current allocation.` : ''} Review these cases before putting the rules to the community.`;
+  $('proposal-snapshot').textContent =
+    `Block ${data.height.toLocaleString('en-US')} · ${new Date(data.blockTime).toLocaleString()} · ${freshness() > 3600000 ? 'Historical snapshot: refresh before requesting approval.' : 'Refresh the data before voting and again before execution.'}`;
+}
+function renderResult(result) {
+  const recipients = result.rows.filter((v) => BigInt(v.targetRaw) > 0n),
+    capped = recipients.filter((v) => v.capReached),
+    noCapacity = result.rows.filter((v) => v.eligible && v.capacityRaw === '0');
+  $('eligible-total').textContent = result.eligibleCount;
+  $('recipient-total').textContent = recipients.length;
+  $('allocated-total').textContent = formatAmount(result.allocatedRaw);
+  $('unallocated-total').textContent = formatAmount(result.unallocatedRaw);
+  $('unallocated-total').parentElement.classList.toggle(
+    'attention',
+    BigInt(result.unallocatedRaw) > 0n
+  );
+  $('simulation-state').textContent =
+    freshness() > 3600000 ? 'Historical simulation' : 'Draft simulation';
+  const roundedToZero = result.rows.filter(
+    (v) => v.eligible && v.capacityRaw !== '0' && v.targetRaw === '0'
+  );
+  $('allocation-explanation').textContent =
+    `${recipients.length} validators receive an allocation: ${recipients.length - capped.length} receive the equal share and ${capped.length} are limited by voting power. ${noCapacity.length} otherwise eligible validators have no capacity under the limit.${roundedToZero.length ? ` ${roundedToZero.length} receive no allocation after micro-JUNO rounding.` : ''}`;
+  $('evidence-review').hidden = result.evidenceReviewCount === 0;
+  $('evidence-review-text').textContent =
+    `${result.evidenceReviewCount} active validators need participation evidence review.`;
+  const notes = [
+    'Target is the total programme delegation after redistribution. Projected stake shares are estimates.'
+  ];
+  if (data.redelegations.length)
+    notes.push(`${data.redelegations.length} existing redelegation records need execution review.`);
+  if (BigInt(result.releasedRaw))
+    notes.push(
+      `${formatAmount(result.releasedRaw)} JUNO would leave the current programme allocation; no unstaking transaction is prepared.`
+    );
+  if (freshness() > 3600000) notes.push('Historical snapshot: refresh before approval.');
+  $('simulation-note').textContent = notes.join(' ');
+  renderRuleSummary();
+  renderTable();
+  renderProposal(result);
 }
 async function runSimulation() {
   try {
     if (!data || !evidence) throw Error('Load programme data first.');
+    if (!$('factor-number').checkValidity() || !$('factor-number').value)
+      throw Error('Enter a factor from 1.0 to 2.0 in steps of 0.1.');
+    if (!commissionValid())
+      throw Error(
+        'Enter a whole-number commission limit from 0 to 100, or select no commission limit.'
+      );
     invalidate('Calculating the proposed allocation…');
     const token = revision;
     const result = simulate(rules, data, amount($('programme-amount').value.trim()), evidence);
@@ -310,11 +498,13 @@ async function runSimulation() {
       `Rule SHA-256: ${policyHash} · Snapshot SHA-256: ${snapshotHash}`;
     $('export-json').disabled = false;
     $('export-markdown').disabled = false;
+    $('review-proposal').disabled = false;
+    setStep('simulation');
     tell(
       'Simulation complete. Review eligibility, remaining funds and the changes before downloading the rule draft.'
     );
   } catch (error) {
-    tell(error.message);
+    tell(error.message, 'error');
   }
 }
 function download(name, body, type) {
@@ -341,24 +531,54 @@ function markdown(packageData) {
     )}\n\n## Approval and execution\n\nThis download does not grant approval. On-chain approval verification and the programme authority adapter are not connected. Execution requires a separate proposal referencing the approved rule and exact data and transaction set, with redelegation constraints checked.\n\n## V2 — inactive\n\n30-day uptime, finer upgrade responsiveness, testnet and governance participation, and verified public RPC reliability. RPC scoring should use independent probes, sufficient coverage and an approved observation window, without counting duplicate endpoints, chain halts or monitoring gaps as validator merit or failure. Scoring thresholds and weights require a new rule approval.\n`;
 }
 $('factor').addEventListener('input', () => {
+  $('factor-error').hidden = true;
+  $('factor-number').removeAttribute('aria-invalid');
   rules.factorTenths = Number($('factor').value);
   invalidate();
   renderRules();
 });
-$('commission').addEventListener('change', () => {
-  rules.commissionMaxBps = $('commission').value === 'none' ? null : Number($('commission').value);
+$('factor-number').addEventListener('input', () => {
   invalidate();
+  const valid = $('factor-number').value !== '' && $('factor-number').checkValidity();
+  $('factor-error').hidden = valid;
+  $('factor-number').setAttribute('aria-invalid', String(!valid));
+  if (!valid) return;
+  rules.factorTenths = Math.round(Number($('factor-number').value) * 10);
+  $('factor').value = rules.factorTenths;
+  $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
+  const currentInput = $('factor-number').value;
+  renderRules();
+  $('factor-number').value = currentInput;
 });
+function updateCommission() {
+  $('commission').disabled = $('no-commission-limit').checked;
+  showCommissionError();
+  if (commissionValid())
+    rules.commissionMaxBps = $('no-commission-limit').checked
+      ? null
+      : Number($('commission').value) * 100;
+  invalidate();
+}
+$('commission').addEventListener('input', updateCommission);
+$('no-commission-limit').addEventListener('change', updateCommission);
 $('programme-amount').addEventListener('input', () => invalidate());
 $('add-exclusion').addEventListener('click', () => {
   try {
+    let validator = $('excluded-validator').value.trim();
+    if (!validator.startsWith('junovaloper1')) {
+      const matches =
+        data?.validators.filter((v) => v.name.toLowerCase() === validator.toLowerCase()) || [];
+      if (matches.length !== 1)
+        throw Error('Select one validator by its address; the name is missing or ambiguous.');
+      validator = matches[0].address;
+    }
     rules = policy({
       ...rules,
       exclusions: [
         ...rules.exclusions,
         {
           chainId: 'juno-1',
-          validator: $('excluded-validator').value.trim(),
+          validator,
           reason: $('excluded-reason').value.trim()
         }
       ]
@@ -369,20 +589,35 @@ $('add-exclusion').addEventListener('click', () => {
     renderRules();
     tell('Exclusion added to the rule draft. A new rule approval is required.');
   } catch (error) {
-    tell(error.message);
+    tell(error.message, 'error');
   }
 });
 $('save-draft').addEventListener('click', () => {
   try {
+    if (!$('factor-number').checkValidity() || !$('factor-number').value) {
+      tell('Enter a factor from 1.0 to 2.0 before saving the rules.', 'error');
+      $('factor-number').focus();
+      return;
+    }
+    if (!commissionValid()) {
+      tell('Enter a whole-number commission limit from 0 to 100 before saving the rules.', 'error');
+      $('commission').focus();
+      return;
+    }
     localStorage.setItem(key, JSON.stringify(policy(rules)));
     $('draft-status').textContent = 'Saved locally · unapproved';
-    tell('Draft saved on this device. It has not been submitted or approved.');
+    tell(
+      'Rule draft saved on this device. The amount and simulation are not saved. The rules have not been submitted or approved.'
+    );
   } catch {
     tell('Draft could not be saved on this device.');
   }
 });
 $('reset-draft').addEventListener('click', () => {
   rules = defaultPolicy();
+  restoreCommissionInput();
+  $('factor-error').hidden = true;
+  $('factor-number').removeAttribute('aria-invalid');
   try {
     localStorage.removeItem(key);
   } catch {}
@@ -409,6 +644,45 @@ $('export-markdown').addEventListener('click', () => {
       'text/markdown'
     );
 });
+document.querySelectorAll('[data-step]').forEach((link) =>
+  link.addEventListener('click', (event) => {
+    event.preventDefault();
+    setStep(link.dataset.step);
+  })
+);
+$('review-proposal').addEventListener('click', () => {
+  if (review) setStep('proposals');
+});
+for (const id of ['validator-search', 'validator-filter', 'validator-sort'])
+  $(id).addEventListener(id === 'validator-search' ? 'input' : 'change', () => {
+    page = 0;
+    renderTable();
+  });
+$('previous-page').addEventListener('click', () => {
+  page--;
+  renderTable();
+});
+$('next-page').addEventListener('click', () => {
+  page++;
+  renderTable();
+});
+$('show-evidence-review').addEventListener('click', () => {
+  $('validator-search').value = '';
+  $('validator-filter').value = 'review';
+  page = 0;
+  renderTable();
+  $('validator-filter').focus();
+});
+window.addEventListener('hashchange', () => {
+  if (location.hash === '#roadmap') {
+    setStep('rules');
+    $('roadmap').open = true;
+    $('roadmap').scrollIntoView({ block: 'start' });
+  } else setStep(location.hash.slice(1));
+});
+const initialStep = location.hash.slice(1);
+setStep(initialStep === 'roadmap' ? 'rules' : initialStep, false);
+if (initialStep === 'roadmap') $('roadmap').open = true;
 try {
   const saved = localStorage.getItem(key);
   if (saved) {
@@ -418,5 +692,6 @@ try {
 } catch {
   tell('Saved draft is invalid or unavailable. Default rules loaded.');
 }
+restoreCommissionInput();
 renderRules();
 load();
