@@ -1,6 +1,6 @@
 # Current state — Cosmoot / NETA DAO
 
-Updated 8 October 2026. This is the public feature/deployment/evidence matrix.
+Updated 9 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 ## Current architecture
@@ -28,6 +28,13 @@ without applying their package upgrades or dismissing security alerts. All 32
 were closed, and no open PR remained at the completion check.
 
 ## Deployment evidence
+
+- Daily staking accrual remains unavailable in the live accounting feed, while
+  holdings continue to refresh. Historical RPC responses reproduced the retained
+  checkpoint and three missing UTC boundaries. A strict height-pinned adapter,
+  resumable catch-up and explicit accounting health check are prepared and tested;
+  collector installation and live acceptance remain open. No production rewards
+  were backfilled by this code review. See [catch-up evidence and limits](STAKING_REWARDS_CATCHUP.md).
 
 - Current release `604cec097d08fb8ce5e64731d76c32ee6fdf682e` passed all 18 release jobs
   and was published to both domains; API/CSP and both origins were accepted.
@@ -64,7 +71,7 @@ were closed, and no open PR remained at the completion check.
 
 | Feature | Code | Deployment / activation | Evidence and remaining boundary |
 | --- | --- | --- | --- |
-| Community Tools | Project menu for Juno / NETA; Buy NETA on WYND candidate adapted from Rescue NETA | Candidate only; no new publication | Existing Juno routes retained; native/CW20 swap, contract allowlist, $25 cap and pending journal retained. Signing unit checks pass; browser/layout review and release acceptance remain open. [Details](COMMUNITY_TOOLS.md) |
+| Community Tools | Project menu for Juno / NETA; Buy NETA on WYND adapted from Rescue NETA | Reviewed release candidate; no new publication | Existing Juno routes retained; native/CW20 swap, contract allowlist, $25 cap and pending journal retained. Signing and browser checks passed; desktop/mobile screenshots inspected. Deliberate release and live acceptance remain open. [Details](COMMUNITY_TOOLS.md) |
 | Names | Registry v0.3.1 and profiles v0.1.0 | Mainnet code 5168/5169; purchases active | First registration and fee receipt recorded; mainnet renewal/transfer and live validator E2E remain open. [Receipts](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) |
 | Personal messaging | Maintained client, builder, backup and browser suites integrated in cleanup candidate | Code 5170 deployed; separate two-wallet pilot live; public release/deployment pins null | User confirmed send/read/reload; device/consent queried through one provider. Fresh-profile restore/rotation explicitly deferred; reply and hosted durability open. [Pilot evidence](deployments/PERSONAL_PILOT_2026-10-07.md) |
 | Backup service | ADR-36, scoped encrypted envelopes, atomic revisions, local snapshot export; isolated admission lanes | Active OVH backend, separate database, unchanged pilot allowlist | OVH activation and API/origin behavior confirmed. Synthetic authenticated process restart/export/restore passed locally, on the target host and in its hardened image; recurring off-host retention remains open. [Service receipt](deployments/RELAY_SHARED_RENDER_2026-10-07.md), [recovery runbook](BACKUP_RECOVERY.md) |
