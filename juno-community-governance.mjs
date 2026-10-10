@@ -1,3 +1,4 @@
+import { governanceFetch } from './governance-chain-read.mjs';
 import { claimValidators, depositTerms, proposalContent } from './juno-governance-core.mjs';
 
 export const REVIEW_CONTRACT = 'juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw';
@@ -66,7 +67,7 @@ export async function finalizedReview(proposal, revision) {
   };
 }
 
-async function reader(endpoint, chain, { fetcher = fetch, now = Date.now() } = {}) {
+async function reader(endpoint, chain, { fetcher = governanceFetch, now = Date.now() } = {}) {
   let height;
   const get = async (path) => {
     const response = await fetcher(endpoint + path, {
@@ -74,7 +75,7 @@ async function reader(endpoint, chain, { fetcher = fetch, now = Date.now() } = {
       signal: AbortSignal.timeout(12000),
       headers: height ? { 'x-cosmos-block-height': height } : {}
     });
-    if (!response.ok) throw Error('Chain data is unavailable.');
+    if (!response.ok) throw Error(`Chain query failed (HTTP ${response.status}).`);
     const returned = response.headers.get('x-cosmos-block-height');
     if (height && returned && returned !== height) throw Error('Chain query height mismatch.');
     return response.json();
@@ -93,10 +94,20 @@ async function reader(endpoint, chain, { fetcher = fetch, now = Date.now() } = {
   height = String(header.height);
   return { get, height, endpoint, checkedAt: now };
 }
-async function quorum(endpoints, read, same) {
-  const results = await Promise.allSettled(endpointsOf(endpoints).map(read));
+async function quorum(endpoints, read, same, label = 'Chain verification') {
+  const sources = endpointsOf(endpoints);
+  const results = await Promise.allSettled(sources.map(read));
   const good = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
-  if (good.length < 2) throw Error('Two independent chain sources must verify this action.');
+  if (good.length < 2) {
+    const failures = results.flatMap((r, i) =>
+      r.status === 'rejected'
+        ? [`${new URL(sources[i]).hostname}: ${r.reason?.message || 'Request unavailable'}`]
+        : []
+    );
+    throw Error(
+      `${label} unavailable: ${good.length} of 2 independent sources verified. Please retry. ${failures.join(' · ')}`
+    );
+  }
   if (good.some((v) => canonical(same(v)) !== canonical(same(good[0]))))
     throw Error('Chain sources disagree. Refresh and review again.');
   return good;
@@ -123,10 +134,24 @@ export async function verifyReview(endpoints, expected, options = {}) {
       });
       return finalizedReview(proposal, revisions?.[0]);
     },
-    (v) => v
+    (v) => v,
+    'UNI-7 finalized review verification'
   );
   if (canonical(good[0]) !== canonical(expected))
     throw Error('The finalized community review changed. Reopen it.');
+  return good[0];
+}
+export async function submissionTerms(endpoints, options = {}) {
+  const good = await quorum(
+    endpoints,
+    async (endpoint) => {
+      const source = await reader(endpoint, 'juno-1', options);
+      const { params } = await source.get('/cosmos/gov/v1/params/deposit');
+      return { terms: depositTerms(params), checkedAt: source.checkedAt };
+    },
+    (v) => v.terms,
+    'Juno deposit verification'
+  );
   return good[0];
 }
 function decodedMessages(messages) {

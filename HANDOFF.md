@@ -8,18 +8,31 @@ in the owner's private operations handoff, outside this repository.
 
 ## Current priority
 
-PR #275 is published from `06bc871860d59d04347b53286fd7756c292c0dad` by manual
-run [37979266882](https://github.com/cristianoneta/neta-dao/actions/runs/37979266882),
-with all 18 jobs successful. The owner successfully published a UNI-7 review.
+PR #276 was published from `e30336128fc1c6f2e3afa549d4a79694a6e00242` by manual
+release [38037267610](https://github.com/cristianoneta/neta-dao/actions/runs/38037267610),
+with all 18 jobs successful. The owner finalized a review and then encountered a
+source-verification error before native submission.
 
-The next candidate fixes publication feedback, direct review transition, copy-link
-feedback and exact-transaction status recovery. It adds public mainnet .neta author
-names, Roman numbering for new programme reward reviews, Cosmoot attribution in
-new proposal text, and discoverable author-only withdrawal during discussion.
-Confirmed outcomes remain recorded across failed view reads and reloads. Existing
-reviews are not renamed or rewritten. See [review and deposits](docs/JUNO_COMMUNITY_FUNDING.md).
-Full CI and a separate manual website release are required. No live signing,
-withdrawal, mainnet proposal or contribution was performed during development.
+The new candidate moves submission to the bottom of the finalized review. Two
+buttons use the verified chain minimum and full voting deposit (currently 1,000
+and 5,000 JUNO). A click verifies content, duplicate submissions, authority,
+balance and fee, then asks for Keplr confirmation without another form step.
+The author can withdraw READY reviews on UNI-7 before native submission;
+existing history, journals and status-only recovery remain intact.
+
+Pinned governance reads now use an allowlisted, read-only same-origin Pages
+route. Provider identities, block heights, freshness and two-source agreement
+remain checked. Browser preflight rejection of the custom height header no
+longer blocks these reads. The route cannot sign, broadcast, accept arbitrary
+upstream URLs, follow redirects, or fall back to static chain data. Read errors
+are displayed beside the deposit buttons. See [review and deposits](docs/JUNO_COMMUNITY_FUNDING.md).
+
+Local validation: 268 Node tests, complete synthetic planner/review/funding browser
+flow at four widths, source/static checks, and real workerd transport tests pass.
+Full PR CI and a separate manual production release remain required. No real
+wallet signature, withdrawal, native proposal or deposit was performed by the agent.
+A genuine testnet governance lifecycle through execution, then production-domain
+acceptance, remains necessary before declaring the whole flow mainnet-ready.
 
 Stricter standby selection, verified rule approval, allocation execution and native
 voting remain separate work. No live signing or deposit is claimed for this candidate.

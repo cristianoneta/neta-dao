@@ -42,7 +42,7 @@
     RESTS = ['https://juno.test.api.nodeshub.online', 'https://juno.api.t.stavr.tech'];
   const MAINNET_RESTS = [
       'https://juno-api.polkachu.com',
-      'https://juno-api.lavenderfive.com',
+      'https://rest.lavenderfive.com/juno',
       'https://juno.api.m.stavr.tech'
     ],
     MAINNET_RPCS = ['https://juno-rpc.polkachu.com', 'https://rpc-juno.whispernode.com'],
@@ -195,6 +195,7 @@
     rests: MAINNET_RESTS,
     rpcs: MAINNET_RPCS,
     reviewRests: RESTS,
+    blocked: () => state.busy,
     onSubmitted: openSubmittedProposal,
     status,
     busy: (value) => {
@@ -1285,8 +1286,9 @@
       access = native && state.address ? nativeAccess() : null,
       needsSetup = native && !CONTRACT,
       canSetup = needsSetup && state.address === TEST_ADMIN,
+      withdrawable = discussion || (native && selected?.status === 'ready'),
       canWithdraw =
-        discussion &&
+        withdrawable &&
         selected?.source === 'workshop' &&
         selected.author === state.address &&
         (native || state.address === state.configOwner),
@@ -1308,15 +1310,15 @@
       : 'STRICTLY > 10 NETA STAKED';
     $('#primary-action').hidden = !!selected && !discussion;
     $('#discard-action').hidden =
-      !!selected && !(discussion && selected.source === 'workshop' && native) && !canWithdraw;
+      !!selected && !(withdrawable && selected.source === 'workshop' && native) && !canWithdraw;
     $('#discard-action').textContent = selected ? 'WITHDRAW REVIEW' : 'DISCARD DRAFT';
     $('#discard-action').disabled =
       state.busy ||
-      (!!selected && (!canWithdraw || state.walletChain !== CHAIN_ID || pendingReview()));
+      (!!selected && (!canWithdraw || pendingReview() || (sharedFinal && plannerGov.hasReceipt())));
     $('#discard-action').title =
       selected && !canWithdraw
         ? 'Only the draft author can withdraw this review. Connect the author wallet on UNI-7.'
-        : 'Withdraw this review while keeping its public history.';
+        : 'Withdraw this review on UNI-7 before mainnet submission, keeping its public history.';
     setEditable(!state.busy && (!selected || (discussion && member)));
     if (!selected) {
       $('#action-hint').textContent = needsSetup
@@ -2042,7 +2044,7 @@
       );
     return CONTRACT;
   }
-  async function connect() {
+  async function connect(request = null) {
     if (state.busy || state.connecting) return;
     if (
       state.dao.mode === 'dao-readonly' &&
@@ -2058,9 +2060,10 @@
     const epoch = ++state.walletEpoch,
       dao = state.dao,
       contract = CONTRACT,
-      requestedChain = walletChain();
+      contextChain = walletChain(),
+      requestedChain = request === CHAIN_ID ? request : contextChain;
     const current = () =>
-      epoch === state.walletEpoch && dao === state.dao && requestedChain === walletChain();
+      epoch === state.walletEpoch && dao === state.dao && contextChain === walletChain();
     state.connecting = true;
     renderWallet();
     status('CONNECTING · CHECK KEPLR');
@@ -2096,7 +2099,7 @@
           : null;
       if (!current()) return;
       state.access = access;
-      if (mainnetStage()) {
+      if (requestedChain === 'juno-1') {
         status('CONNECTED TO JUNO MAINNET · REVIEW YOUR GOVERNANCE PROPOSAL');
       } else if (nativeReviewDao(dao)) {
         const neta = Number(access?.active_neta_stake || 0) / 1e6,
@@ -2463,7 +2466,7 @@
         renderList();
       })
   );
-  $('#discard-action').onclick = (e) => {
+  $('#discard-action').onclick = async (e) => {
     if (state.busy) return;
     if (!state.selected) {
       if (!localDraft() || confirm('Delete this private local draft?')) {
@@ -2490,24 +2493,37 @@
     const native = isNativeReview();
     if (
       state.selected.source !== 'workshop' ||
-      state.selected.status !== 'discussion' ||
+      !(state.selected.status === 'discussion' || (native && state.selected.status === 'ready')) ||
       state.selected.author !== state.address ||
       (!native && state.address !== state.configOwner)
     )
       return;
+    const selectedKey = state.selected.key,
+      author = state.selected.author,
+      button = e.currentTarget;
     if (!confirm('Withdraw this published proposal? Its history will remain visible.')) return;
-    run(e.currentTarget, async () => {
+    if (state.walletChain !== CHAIN_ID) await connect(CHAIN_ID);
+    if (
+      state.walletChain !== CHAIN_ID ||
+      state.selected?.key !== selectedKey ||
+      state.address !== author
+    )
+      return;
+    run(button, async () => {
       const id = state.selected.id;
-      if (native)
-        await execute(
-          { withdraw: { proposal_id: id } },
-          'Juno Governance withdraw review',
-          async () => {
-            const p = await query({ proposal: { proposal_id: id } });
-            return p.withdrawn;
-          }
-        );
-      else
+      if (native) {
+        const withdraw = () =>
+          execute(
+            { withdraw: { proposal_id: id } },
+            'Juno Governance withdraw review',
+            async () => {
+              const p = await query({ proposal: { proposal_id: id } });
+              return p.withdrawn;
+            }
+          );
+        if (sharedFinal) await plannerGov.withdraw(withdraw);
+        else await withdraw();
+      } else
         await execute(
           { set_status: { proposal_id: id, status: 'declined', dao_proposal_id: null } },
           'NETA Governance withdraw proposal',

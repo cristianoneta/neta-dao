@@ -1,3 +1,4 @@
+import { governanceFetch } from './governance-chain-read.mjs';
 import { rewardMessages } from './juno-governance-core.mjs';
 import { canonical } from './juno-community-governance.mjs';
 
@@ -65,7 +66,7 @@ export function nextClaimTitle(proposals) {
   return `${CLAIM_TITLE} ${roman(maximum + 1)}`;
 }
 // Exhaust the mainnet history; never reset numbering on a partial/failed read.
-export async function readClaimTitle(endpoints, { fetcher = fetch } = {}) {
+export async function readClaimTitle(endpoints, { fetcher = governanceFetch } = {}) {
   const results = await Promise.allSettled(
     [...new Set(endpoints.map((x) => new URL(x).origin))].map(async (base) => {
       const get = async (path) => {

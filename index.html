@@ -5,7 +5,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32.png?v=20261006">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/brand/apple-touch-icon.png?v=20261006">
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://juno.test.rpc.nodeshub.online https://juno.test.api.nodeshub.online https://juno.rpc.t.stavr.tech https://juno.api.t.stavr.tech https://juno-api.polkachu.com https://juno-api.lavenderfive.com https://juno.api.m.stavr.tech https://juno-rpc.polkachu.com https://rpc-juno.whispernode.com; img-src 'self' data:; font-src 'self'; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://juno.test.rpc.nodeshub.online https://juno.test.api.nodeshub.online https://juno.rpc.t.stavr.tech https://juno.api.t.stavr.tech https://juno-api.polkachu.com https://juno-api.lavenderfive.com https://rest.lavenderfive.com https://juno.api.m.stavr.tech https://juno-rpc.polkachu.com https://rpc-juno.whispernode.com; img-src 'self' data:; font-src 'self'; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>NETA Governance</title>
   <link rel="stylesheet" href="neta-governance.css?v=20261003-1"><link rel="stylesheet" href="governance-overrides.css?v=20261010-review-feedback-1"><link rel="stylesheet" href="relay.css?v=20261003-3"><link rel="stylesheet" href="names.css?v=20261006-ux-1">
   <link rel="stylesheet" href="neta-ui.css?v=20261006-hierarchy-1">
@@ -36,13 +36,6 @@
       <label>PROPOSAL TITLE<input id="proposal-title" maxlength="120" placeholder="A concise proposal title"></label>
       <label>SUMMARY<textarea id="proposal-summary" maxlength="500" rows="4" placeholder="What should the DAO decide?"></textarea></label>
       <section id="native-funding-panel" class="native-funding-panel" hidden><header><div><span>JUNO NATIVE GOVERNANCE</span><h3>PROPOSAL FUNDING</h3></div><span id="native-funding-status">LIVE PARAMETERS</span></header><div class="funding-stats"><div><small>SUBMIT DEPOSIT</small><strong id="native-initial-deposit">—</strong></div><div><small>TOTAL DEPOSIT</small><strong id="native-min-deposit">—</strong></div><div><small>FUNDING WINDOW</small><strong id="native-deposit-period">—</strong></div><div><small>VOTING WINDOW</small><strong id="native-voting-period">—</strong></div></div><p>Community review runs on UNI-7. Juno proposals enter the mainnet deposit period only after the final review; mainnet submission remains locked until the exact transaction is simulated and reviewed.</p><div id="native-review-setup" class="native-review-setup" hidden><strong>JUNO REVIEW TEST CONTRACT NOT DEPLOYED</strong><span>One admin deployment on UNI-7 enables shared publishing, discussion, replies, revisions and finalization.</span><button id="deploy-native-review" type="button">DEPLOY REVIEW CONTRACT</button></div></section>
-      <section id="planner-native-panel" class="native-funding-panel" hidden>
-        <header><div><span>JUNO MAINNET</span><h3 id="planner-native-heading">Submit finalized proposal</h3></div></header>
-        <div class="governance-funding-body"><p>Community review is complete. You can submit this version with your own wallet.</p>
-          <div id="planner-native-inputs"><label for="planner-native-deposit">Initial deposit (JUNO)</label><input id="planner-native-deposit" inputmode="decimal" placeholder="Minimum loaded during transaction review" autocomplete="off"><p class="field-help">Contribute the initial minimum or the full voting deposit. Others can add the remaining amount after submission.</p></div>
-          <div id="planner-native-review" hidden><p id="planner-native-review-text"></p><label class="planner-native-confirm"><input id="planner-native-confirm" type="checkbox"> I have reviewed the proposal, initial deposit and transaction fee.</label></div>
-        </div>
-      </section>
       <section id="proposal-funding-panel" class="native-funding-panel" hidden>
         <header><div><span>JUNO MAINNET</span><h3>Proposal funding</h3></div><button id="proposal-funding-refresh" type="button">Refresh</button></header>
         <div class="governance-funding-body"><strong id="proposal-funding-total">Refresh funding data</strong><p id="proposal-funding-deadline"></p><p id="proposal-funding-receipt" class="field-help"></p>
@@ -63,7 +56,20 @@
       <section id="revision-panel" class="revision-panel" hidden><header><h3>REVISION HISTORY</h3></header><div id="revision-list"></div></section>
       </div>
       <section id="discussion-panel" class="discussion-panel" hidden><header><div><span>TOPIC THREADS</span><h3>DISCUSSION</h3></div><span id="comment-requirement">STRICTLY &gt; 10 NETA STAKED</span></header><div id="comment-list"></div><form id="comment-form"><div class="comment-form-heading"><strong id="comment-form-title">START A NEW TOPIC</strong><button id="cancel-reply" type="button" hidden>CANCEL REPLY</button></div><input id="comment-title" maxlength="100" placeholder="Name the topic you want to discuss"><textarea id="comment-body" maxlength="1500" rows="3" placeholder="Introduce the topic"></textarea><p data-review-status role="status" hidden></p><button data-review-check type="button" hidden>Check transaction status</button><button id="publish-comment" type="submit">START THREAD</button></form></section>
-      <div class="review-transaction-feedback"><p data-review-status role="status" hidden></p><button data-review-check type="button" hidden>Check transaction status</button></div><footer class="next-actions"><p id="action-hint">Save this private draft in your browser or publish it for public review.</p><div><button id="discard-action" class="danger" type="button">DISCARD</button><button id="save-local" type="button">SAVE REVISION LOCALLY</button><button id="publish-revision" type="button" hidden>PUBLISH NEW REVISION</button><button id="eligibility-action" type="button" hidden>OPEN STAKING</button><button id="primary-action" type="button">PUBLISH FOR REVIEW</button></div></footer>
+      <div class="review-transaction-feedback"><p data-review-status role="status" hidden></p><button data-review-check type="button" hidden>Check transaction status</button></div><footer class="next-actions"><section id="planner-native-panel" class="native-funding-panel" hidden>
+        <header><div><span>JUNO MAINNET</span><h3 id="planner-native-heading">Submit finalized proposal</h3></div></header>
+        <div class="governance-funding-body">
+          <p>Anyone can submit this finalized version with their own wallet. Choose your deposit, then confirm the transaction in Keplr.</p>
+          <p id="planner-native-terms" class="field-help">Loading current deposit requirements…</p>
+          <div id="planner-native-inputs" class="governance-funding-amount">
+            <button id="planner-native-minimum" type="button" disabled>Loading minimum deposit…</button>
+            <button id="planner-native-full" class="neta-primary" type="button" disabled>Loading full deposit…</button>
+          </div>
+          <button id="planner-native-refresh" type="button">Refresh deposit requirements</button>
+          <div id="planner-native-review" hidden><p id="planner-native-review-text"></p></div>
+          <p id="planner-native-status" role="status" tabindex="-1" hidden></p>
+        </div>
+      </section><p id="action-hint">Save this private draft in your browser or publish it for public review.</p><div><button id="discard-action" class="danger" type="button">DISCARD</button><button id="save-local" type="button">SAVE REVISION LOCALLY</button><button id="publish-revision" type="button" hidden>PUBLISH NEW REVISION</button><button id="eligibility-action" type="button" hidden>OPEN STAKING</button><button id="primary-action" type="button">PUBLISH FOR REVIEW</button></div></footer>
     </section>
   </div>
   </section>

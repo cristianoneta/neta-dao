@@ -1,3 +1,4 @@
+import { governanceFetch } from './governance-chain-read.mjs';
 import { PROGRAMME, operator } from './juno-delegation-core.mjs';
 
 export const GOVERNANCE = 'juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730';
@@ -124,7 +125,7 @@ async function preflightSource(
   endpoints,
   content,
   proposer,
-  { fetcher = fetch, now = Date.now() } = {}
+  { fetcher = governanceFetch, now = Date.now() } = {}
 ) {
   let last;
   for (const endpoint of endpoints) {
@@ -248,7 +249,7 @@ export async function preflight(endpoints, content, proposer, options = {}) {
 }
 
 // Checking an uncertain attempt never signs, broadcasts or removes its journal.
-export async function submissionReceipt(endpoints, hash, { fetcher = fetch } = {}) {
+export async function submissionReceipt(endpoints, hash, { fetcher = governanceFetch } = {}) {
   if (!/^[A-F0-9]{64}$/.test(hash)) throw Error('Invalid submission transaction hash.');
   const results = await Promise.allSettled(
     independentEndpoints(endpoints).map(async (endpoint) => {

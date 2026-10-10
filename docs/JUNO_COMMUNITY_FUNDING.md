@@ -84,3 +84,35 @@ series, not an on-chain reservation or globally unique proposal identifier.
 Withdraw review remains visible during discussion. Only its author, connected to
 UNI-7, can confirm withdrawal. The terminal Withdrawn view retains text and comments;
 withdrawal is distinct from a failed governance vote. No contract migration is needed.
+
+
+## Finalized submission revision — candidate, 10 October 2026
+
+Submission lives at the bottom of the review with two chain-derived choices:
+minimum initial deposit and full voting deposit. After verification and fee
+simulation, the selected action opens Keplr directly. Changed parameters require
+a new choice; rejected signatures, account changes and unknown submissions retain
+the existing transaction safeguards. A sponsor can submit another author's review.
+Deposits after submission remain native MsgDeposit contributions by any wallet.
+
+The review author can also withdraw from READY, switching to UNI-7 when needed.
+Before withdrawal, the application checks the finalized review and native proposal
+history, blocks saved submission attempts and takes the same per-review browser
+lock as submission. Withdrawn content and comments stay readable. Already-native
+proposals cannot be cancelled here. As before, separate devices/chains cannot
+atomically exclude a simultaneous submission and review withdrawal; this UI does
+not claim a cross-chain cancellation guarantee.
+
+The public `/data/governance-read` route accepts only bounded GET requests to
+fixed providers and the exact governance, treasury and review query allowlist.
+It forwards the requested block height, strips credentials, rejects redirects
+and large/non-JSON responses, uses no-store responses and never serves static
+fallback data. It provides transport, not a new consensus source: checks still
+compare distinct configured providers, exact contents, chain IDs and fresh heights.
+The current Lavender.Five REST URL is used for native governance reads.
+
+Local evidence: 268 Node tests; synthetic minimum-deposit submission, full-deposit
+selection/signature rejection, account change, sponsor submission, later funding,
+READY withdrawal and preserved transaction recovery; desktop/768/390/320 layouts;
+compiled Pages and real workerd tests. Real end-to-end UNI-7 governance execution,
+real sponsor wallet transactions and post-release live acceptance remain open.
