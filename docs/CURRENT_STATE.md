@@ -29,6 +29,14 @@ were closed, and no open PR remained at the completion check.
 
 ## Deployment evidence
 
+- PR #277 is published from `d9954bccf217af11ea57857228a6212123433b6d` in
+  successful manual release 38065296076. Post-release submission checking exposed
+  a Juno reverse-pagination error on the second history page. A forward traversal
+  correction is in validation, not released. Live read-only queries through the
+  published proxy returned identical complete histories (147 IDs at height 42562163)
+  from Polkachu and Stavr. Real wallet/testnet execution acceptance remains open.
+  These facts supersede the candidate status in the earlier entry below.
+
 - PR #276 is published from `e30336128fc1c6f2e3afa549d4a79694a6e00242` in
   manual release 38037267610 (18 successful jobs). A new candidate addresses
   pinned-read browser preflights, bottom-of-review minimum/full deposit actions

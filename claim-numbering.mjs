@@ -67,8 +67,11 @@ export function nextClaimTitle(proposals) {
 }
 // Exhaust the mainnet history; never reset numbering on a partial/failed read.
 export async function readClaimTitle(endpoints, { fetcher = governanceFetch } = {}) {
+  const sources = [
+    ...new Map(endpoints.map((x) => [new URL(x).origin, x.replace(/\/$/, '')])).values()
+  ];
   const results = await Promise.allSettled(
-    [...new Set(endpoints.map((x) => new URL(x).origin))].map(async (base) => {
+    sources.map(async (base) => {
       const get = async (path) => {
         const r = await fetcher(base + path, {
           cache: 'no-store',
@@ -85,9 +88,11 @@ export async function readClaimTitle(endpoints, { fetcher = governanceFetch } = 
       let key = '',
         rows = [];
       const seen = new Set();
+      // Juno's reverse cursor traversal can panic on older proposal pages.
+      // Forward traversal still checks the complete history, including later claims.
       for (let page = 0; page < 100; page++) {
         const data = await get(
-          '/cosmos/gov/v1/proposals?pagination.limit=100&pagination.reverse=true' +
+          '/cosmos/gov/v1/proposals?pagination.limit=100' +
             (key ? '&pagination.key=' + encodeURIComponent(key) : '')
         );
         if (!Array.isArray(data.proposals)) throw Error('Mainnet claim history unavailable.');
