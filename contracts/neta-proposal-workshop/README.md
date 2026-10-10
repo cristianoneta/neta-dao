@@ -9,7 +9,7 @@ On-chain storage and access control for the public NETA DAO proposal workshop.
 - **Operations DAO mode:** publishing, revising and finalizing require positive voting power from `dao_voting_contract`.
 - **Operations DAO mode:** comments and replies require an active NETA stake **strictly greater than** `minimum_comment_stake`.
 - The Operations-mode threshold used by the frontend is `10000000` raw units (10 NETA with six decimals), so exactly 10 NETA is not sufficient.
-- **Juno community mode:** all writes require at least the configured native delegated stake **and** the configured active NETA stake. The configured UNI-7 thresholds are exactly 1 JUNOX and 1 test NETA.
+- **Juno community mode:** all writes require the configured native delegated stake. A positive `minimum_neta_stake` additionally requires active NETA stake; zero disables all CW20 stake queries in v0.3.1. Existing UNI-7 instances retain their 1 JUNOX + 1 test NETA policy. The owner-selected mainnet policy is 1 delegated JUNO with no NETA requirement.
 - A global 30-second comment cooldown, owner block list and moderator tombstones are enforced on-chain.
 - Revisions are immutable. Only the latest revision can be finalized.
 - Finalization computes the SHA-256 content hash inside the contract and closes discussion.
@@ -38,7 +38,7 @@ uses an access mock and `ujunox`; see [current state](../../docs/CURRENT_STATE.m
 ## Prospective mainnet Juno community mode example
 
 This uses the same NETA staking contract, but replaces Operations DAO membership
-with a dual stake gate. Both amounts use six decimal places.
+with native-only eligibility. The NETA minimum is zero; the retained stake/voting address fields are unused in this mode. JUNO uses six decimal places.
 
 ```json
 {
@@ -49,9 +49,11 @@ with a dual stake gate. Both amounts use six decimal places.
   "community_gate": {
     "native_denom": "ujuno",
     "minimum_native_stake": "1000000",
-    "minimum_neta_stake": "1000000"
+    "minimum_neta_stake": "0"
   }
 }
 ```
 
 Instantiation starts paused. Validate the configured cross-contract queries before explicitly unpausing.
+
+Mainnet v0.3.1 preparation and activation boundaries: [rollout](../../docs/JUNO_REVIEW_MAINNET.md). The existing `assets/neta_proposal_workshop.wasm` remains the v0.3.0 UNI-7 setup artifact; the mainnet artifact is separate and reproduced by CI.

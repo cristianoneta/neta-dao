@@ -52,10 +52,11 @@ jobs:
       - name: Verify shipped workshop artifact
         if: matrix.contract == 'neta-proposal-workshop'
         run: |
-          expected="$(cut -d ' ' -f 1 assets/neta_proposal_workshop.sha256)"
+          expected="$(cut -d ' ' -f 1 assets/review-mainnet/neta_proposal_workshop_v031.sha256)"
           actual="$(sha256sum artifacts/neta_proposal_workshop.wasm | cut -d ' ' -f 1)"
           test "$expected" = "$actual"
-          cmp artifacts/neta_proposal_workshop.wasm assets/neta_proposal_workshop.wasm
+          cmp artifacts/neta_proposal_workshop.wasm assets/review-mainnet/neta_proposal_workshop_v031.wasm
+          sha256sum --check assets/neta_proposal_workshop.sha256
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ${{ matrix.contract }}-wasm
