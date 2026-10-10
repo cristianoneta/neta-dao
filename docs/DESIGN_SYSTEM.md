@@ -684,3 +684,13 @@ fallback and wrap identity text at 320px. Withdraw review is visible in discussi
 with author-only eligibility and confirmation; its terminal view preserves history.
 New proposal text ends with a short Cosmoot attribution. Mainnet reward proposal
 numbering is fixed before shared review, never rewritten after finalization.
+
+
+## Finalized proposal actions — owner update 2026-10-10
+
+Place submission after the proposal and discussion, with a secondary minimum-deposit
+button and a primary full-deposit button. Derive amounts from current chain rules;
+remove the separate deposit input, intermediate review action and checkbox step.
+Show verification/signature progress, the simulated fee and errors in this same
+area. Keplr remains the explicit transaction confirmation. Offer author-only
+withdrawal in both Discussion and READY before native submission, keeping history.

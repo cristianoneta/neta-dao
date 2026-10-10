@@ -36,6 +36,10 @@ const mf = new Miniflare(convertV4MiniflareOptions({
   outboundService: request => {
     calls.push({ url: request.url, method: request.method,
       cookie: request.headers.has('Cookie'), authorization: request.headers.has('Authorization') });
+    if (new URL(request.url).origin === 'https://juno-api.polkachu.com') {
+      if (request.headers.get('x-cosmos-block-height') !== '123') throw Error('Missing pinned chain height');
+      return new HostResponse('{"params":{}}', { headers: { 'x-cosmos-block-height': '123', 'Set-Cookie': 'private=1' } });
+    }
     return new HostResponse(request.method === 'HEAD' ? null : upstreamBytes, {
       status: mode,
       headers: { Location: 'https://redirect.invalid/private', 'Set-Cookie': 'private=1' }
@@ -88,6 +92,14 @@ try {
     await (await request(origin, paths[0], 'POST')).arrayBuffer();
     assert.equal(calls.length, before, 'Private paths and writes must not contact the origin');
   }
+  const chainResponse = await mf.dispatchFetch('https://cosmoot.com/data/governance-read?' + new URLSearchParams({source:'juno-polkachu',path:'/cosmos/gov/v1/params/deposit',height:'123'}), {headers:{Cookie:'private=1',Authorization:'Bearer private'}});
+  assert.equal(chainResponse.status,200);
+  assert.equal(chainResponse.headers.get('x-cosmos-block-height'),'123');
+  assert.equal(chainResponse.headers.get('Cache-Control'),'no-store');
+  assert.equal(chainResponse.headers.get('Set-Cookie'),null);
+  assert.deepEqual(await chainResponse.json(),{params:{}});
+  assert.equal(calls.at(-1).cookie,false);
+  assert.equal(calls.at(-1).authorization,false);
   console.log(`workerd passed: ${paths.length} GET/HEAD paths on both domains; exact bytes, credential stripping and redirect/error fallback.`);
 } finally {
   await mf.dispose();

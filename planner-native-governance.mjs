@@ -1,8 +1,12 @@
-import { verifyReview, findReviewSubmission, canonical } from './juno-community-governance.mjs';
+import {
+  verifyReview,
+  findReviewSubmission,
+  submissionTerms,
+  canonical
+} from './juno-community-governance.mjs';
 import {
   preflight,
   proposalContent,
-  parseDeposit,
   displayJuno,
   submissionReceipt
 } from './juno-governance-core.mjs';
@@ -17,8 +21,9 @@ export function nativePlanner({
   rests,
   rpcs,
   reviewRests,
+  blocked = () => false,
   onSubmitted,
-  status,
+  status: globalStatus,
   busy,
   rerender
 }) {
@@ -26,7 +31,19 @@ export function nativePlanner({
   let reviewed = null,
     client = null,
     generation = 0,
-    working = false;
+    working = false,
+    termsState = null;
+  const status = (text, error = false) => {
+    globalStatus(text, error);
+    const node = $('#planner-native-status');
+    node.textContent = text;
+    node.hidden = !text;
+    node.dataset.state = error ? 'error' : 'ready';
+    if (error) {
+      node.focus({ preventScroll: true });
+      node.scrollIntoView({ block: 'nearest' });
+    }
+  };
   const receiptKey = (id = draft().id) => `cosmoot:juno:planner-proposal:${id}:submission`;
   const saveReceipt = (id, value) => {
     const key = receiptKey(id),
@@ -51,40 +68,79 @@ export function nativePlanner({
   function invalidate() {
     generation++;
     reviewed = null;
-    $('#planner-native-confirm').checked = false;
     $('#planner-native-review').hidden = true;
     render();
   }
+  async function loadTerms(force = false) {
+    if (!active() || receipt()) return;
+    const id = draft().id;
+    if (!force && termsState?.id === id) return;
+    const request = { id, loading: true };
+    termsState = request;
+    render();
+    try {
+      const proof = await submissionTerms(rests);
+      if (termsState === request) Object.assign(request, proof);
+    } catch (error) {
+      if (termsState === request) request.error = error.message;
+    } finally {
+      request.loading = false;
+      if (active() && draft().id === id && termsState === request) render();
+    }
+  }
   function render() {
     $('#planner-native-panel').hidden = !active();
+    $('#action-hint').hidden = active();
     if (!active()) return;
     const previous = receipt(),
       button = $('#primary-action');
-    button.hidden = false;
+    button.hidden = !previous;
     button.textContent = working
       ? 'CHECKING JUNO…'
       : previous?.state === 'broadcast'
         ? 'CHECK SUBMISSION STATUS'
-        : previous
-          ? previous.state === 'included'
-            ? 'SUBMISSION CONFIRMED'
-            : 'SUBMISSION RECORDED'
-          : !address() || chain() !== 'juno-1'
-            ? 'CONNECT KEPLR · JUNO'
-            : reviewed
-              ? 'SUBMIT TO JUNO GOVERNANCE'
-              : 'REVIEW JUNO PROPOSAL';
-    button.disabled =
-      working ||
-      (!!previous && previous.state !== 'broadcast') ||
-      (!!reviewed && !$('#planner-native-confirm').checked);
-    $('#planner-native-deposit').disabled = working || !!previous;
+        : previous?.state === 'included'
+          ? 'SUBMISSION CONFIRMED'
+          : 'SUBMISSION RECORDED';
+    button.disabled = working || (!!previous && previous.state !== 'broadcast');
     $('#planner-native-inputs').hidden = !!previous;
+    $('#planner-native-refresh').hidden = !!previous;
+    $('#planner-native-refresh').disabled = working || !!termsState?.loading;
     $('#planner-native-heading').textContent = 'Submit finalized proposal';
-    $('#planner-native-confirm').disabled = working;
-    $('#action-hint').textContent = previous
-      ? `${previous.state === 'included' ? 'Proposal submission confirmed. This does not mean the proposal passed or rewards were claimed.' : previous.state === 'failed' ? `Transaction failed (code ${previous.code}). No proposal was created; review the failure before preparing a new draft.` : 'This draft has a saved submission attempt. Check its status without signing again.'}${previous.hash ? ' · TX ' + previous.hash : ''}`
-      : 'Anyone can submit this finalized review with their own wallet. The submitter pays the initial deposit and fee; the review author stays unchanged.';
+    if (previous) {
+      $('#planner-native-terms').textContent = `${
+        previous.state === 'included'
+          ? 'Proposal submission confirmed. This does not mean the proposal passed or rewards were claimed.'
+          : previous.state === 'failed'
+            ? `Transaction failed (code ${previous.code}). Review the failure before preparing a new draft.`
+            : 'A submission is already recorded. Check its status without signing again.'
+      }${previous.hash ? ' · TX ' + previous.hash : ''}`;
+      return;
+    }
+    if (termsState?.id !== draft().id) {
+      void loadTerms();
+      return;
+    }
+    const terms = termsState.terms;
+    $('#planner-native-refresh').hidden = !termsState.error;
+    $('#planner-native-terms').textContent =
+      termsState.error ||
+      (terms
+        ? `${displayJuno(terms.initial)} JUNO submits the proposal to the chain; others can fund the remainder. ${displayJuno(terms.total)} JUNO covers the full voting deposit. A network fee is added. Deposits follow Juno’s refund and burn rules.`
+        : 'Loading current deposit requirements…');
+    $('#planner-native-terms').dataset.state = termsState.error ? 'error' : 'ready';
+    for (const [selector, key] of [
+      ['#planner-native-minimum', 'initial'],
+      ['#planner-native-full', 'total']
+    ]) {
+      const action = $(selector);
+      action.textContent = terms
+        ? `Submit with ${displayJuno(terms[key])} JUNO`
+        : 'Loading deposit…';
+      action.disabled = working || blocked() || !terms || !!termsState.loading;
+      action.classList.toggle('review-action-busy', working);
+    }
+    $('#planner-native-minimum').hidden = !!terms && terms.initial === terms.total;
   }
   const current = (epoch, fingerprint, sender, id) => {
     if (
@@ -106,8 +162,8 @@ export function nativePlanner({
     )
       throw Error('Keplr account changed. Reconnect and review again.');
   }
-  async function run() {
-    if (!active() || working) return;
+  async function run(choice = 'total') {
+    if (!active() || working || blocked()) return;
     const previous = receipt(),
       id = draft().id;
     if (previous) {
@@ -138,6 +194,8 @@ export function nativePlanner({
       await connectWallet();
       return;
     }
+    const displayed = termsState;
+    if (!displayed?.terms || displayed.id !== id || !['initial', 'total'].includes(choice)) return;
     working = true;
     busy(true);
     render();
@@ -155,7 +213,7 @@ export function nativePlanner({
       if (canonical(content) !== canonical(expectedReview.content))
         throw Error('The proposal differs from the finalized review.');
       await wallet(sender);
-      if (!reviewed) {
+      {
         localStorage.setItem(`cosmoot:juno:planner-proposal:${draft().id}:revision`, fingerprint);
         status('CHECKING JUNO GOVERNANCE, DEPOSIT AND PROGRAMME AUTHORITY…');
         await verifyReview(reviewRests, expectedReview);
@@ -167,11 +225,11 @@ export function nativePlanner({
         }
         const proof = await preflight(rests, content, sender);
         current(epoch, fingerprint, sender, id);
-        const field = $('#planner-native-deposit');
-        if (!field.value) field.value = displayJuno(proof.terms.initial);
-        const deposit = parseDeposit(field.value);
-        if (BigInt(deposit) < BigInt(proof.terms.initial))
-          throw Error(`Initial deposit must be at least ${displayJuno(proof.terms.initial)} JUNO.`);
+        if (canonical(proof.terms) !== canonical(displayed.terms)) {
+          termsState = { id, terms: proof.terms, checkedAt: proof.checkedAt };
+          throw Error('Deposit requirements changed. Review the updated amounts and choose again.');
+        }
+        const deposit = proof.terms[choice];
         // Require direct signing for native gov v1; never silently fall back to legacy Amino.
         const base = window.keplr.getOfflineSigner('juno-1');
         if (typeof base.signDirect !== 'function')
@@ -197,12 +255,10 @@ export function nativePlanner({
             : 'Text-only rule approval. No delegation or treasury execution is authorized.') +
           '\nThe deposit is subject to Juno’s refund and burn rules. If the total deposit is not reached in time, the proposal will not enter voting. The fee is paid when submitting.';
         $('#planner-native-review').hidden = false;
-        $('#planner-native-confirm').checked = false;
-        status('PROPOSAL READY · REVIEW THE DEPOSIT AND FEE, THEN CONFIRM');
-      } else {
+        status('PROPOSAL CHECKED · CONFIRM THE DEPOSIT AND FEE IN KEPLR');
+      }
+      {
         const review = reviewed;
-        if (!$('#planner-native-confirm').checked)
-          throw Error('Confirm the proposal, deposit and fee first.');
         current(review.epoch, review.fingerprint, review.sender, review.id);
         const guard = async () => {
           current(review.epoch, review.fingerprint, review.sender, review.id);
@@ -271,8 +327,9 @@ export function nativePlanner({
       rerender();
     }
   }
-  $('#planner-native-deposit').addEventListener('input', invalidate);
-  $('#planner-native-confirm').addEventListener('change', render);
+  $('#planner-native-minimum').onclick = () => run('initial');
+  $('#planner-native-full').onclick = () => run('total');
+  $('#planner-native-refresh').onclick = () => loadTerms(true);
   for (const id of ['proposal-title', 'proposal-summary', 'proposal-body', 'proposal-actions'])
     $('#' + id).addEventListener('input', invalidate);
   window.addEventListener('neta:relay-panel', invalidate);
@@ -287,5 +344,36 @@ export function nativePlanner({
     client = null;
     invalidate();
   });
-  return { render, run, invalidate };
+  async function withdraw(task) {
+    const expected = draft()?.review,
+      id = draft()?.id,
+      sender = address(),
+      epoch = generation;
+    if (!expected || !navigator.locks?.request)
+      throw Error('Reopen the finalized review before withdrawing it.');
+    return navigator.locks.request(
+      receiptKey(id),
+      { mode: 'exclusive', ifAvailable: true },
+      async (lock) => {
+        if (!lock) throw Error('Another tab is processing this proposal.');
+        if (receipt())
+          throw Error('A submission is already recorded. Check its status before withdrawing.');
+        await verifyReview(reviewRests, expected);
+        if ((await findReviewSubmission(rests, expected.content)).length)
+          throw Error(
+            'This review was already submitted to Juno. Its on-chain proposal cannot be withdrawn here.'
+          );
+        if (
+          !active() ||
+          draft()?.id !== id ||
+          address() !== sender ||
+          generation !== epoch ||
+          chain() !== 'uni-7'
+        )
+          throw Error('Review or wallet changed. Reopen the review before withdrawing.');
+        return task();
+      }
+    );
+  }
+  return { render, run, invalidate, withdraw, hasReceipt: () => !!receipt() };
 }

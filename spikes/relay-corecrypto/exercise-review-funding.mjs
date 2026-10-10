@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile } from 'node:fs/promises';
+import { GOVERNANCE_SOURCES, CHAIN_READ_PATH } from '../../governance-chain-read.mjs';
 import { REVIEW_CONTRACT } from '../../juno-community-governance.mjs';
 
 // All external reads and wallet writes are synthetic. This exercises the actual
@@ -54,128 +55,151 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
         )
       )
       .digest('hex');
-  await page.route(/^https:\/\//, async (route) => {
-    const url = new URL(route.request().url());
-    assert.ok(['GET', 'OPTIONS'].includes(route.request().method()), 'No real writes');
-    const testnet = /\.test\.|\.t\./.test(url.hostname);
-    const headers = {
-      'access-control-allow-origin': '*',
-      'access-control-allow-headers': 'x-cosmos-block-height, content-type',
-      'access-control-allow-methods': 'GET, OPTIONS',
-      'x-cosmos-block-height': '42500123'
-    };
-    if (route.request().method() === 'OPTIONS') return route.fulfill({ headers, body: '' });
-    let body = { data: {} };
-    if (url.pathname.endsWith('/node_info')) body = { default_node_info: { network: 'juno-1' } };
-    else if (url.pathname.includes('/code/')) {
-      const pin = Object.values(manifest.contracts).find(
-        (p) => String(p.code_id) === url.pathname.split('/').at(-1)
-      );
-      body = { code_info: { data_hash: pin.sha256 } };
-    } else if (url.pathname.endsWith('/latest'))
-      body = {
-        block: {
-          header: {
-            chain_id: testnet ? 'uni-7' : 'juno-1',
-            height: '42500123',
-            time: new Date().toISOString()
-          }
-        }
-      };
-    else if (url.pathname.includes('/params/')) body = { params };
-    else if (url.pathname.includes('/spendable_balances/'))
-      body = { balance: { denom: 'ujuno', amount: '10000000000' } };
-    else if (url.pathname.includes('/module_accounts/gov'))
-      body = { account: { name: 'gov', base_account: { address: govMessages[0].sender } } };
-    else if (url.pathname.includes('/smart/')) {
-      const q = JSON.parse(
-        Buffer.from(decodeURIComponent(url.pathname.split('/smart/')[1]), 'base64')
-      );
-      let data;
-      if (url.pathname.includes(REVIEW_CONTRACT)) {
-        if (q.config) data = { owner: author, minimum_comment_stake: '1000000' };
-        else if (q.access)
-          data = {
-            can_publish: true,
-            can_comment: true,
-            active_native_stake: '1000000',
-            active_neta_stake: '1000000'
-          };
-        else if (q.proposal_summaries) {
-          if (failReviewReads)
-            return route.fulfill({ status: 503, headers, body: 'Temporary review read failure' });
-          data = proposal ? [{ proposal, latest_revision: revision }] : [];
-        } else if (q.proposals) data = proposal ? [proposal] : [];
-        else if (q.proposal) data = proposal;
-        else if (q.revisions) data = revision ? [revision] : [];
-        else if (q.comments) data = comments;
-        else data = [];
-      } else if (url.pathname.includes(manifest.registry)) {
-        if (q.config)
-          data = {
-            ...manifest,
-            purchases_paused: false,
-            tariff_version: 1,
-            tariff: { three_cents: 9900, four_cents: 1900, standard_cents: 500 }
-          };
-        else if (q.name_of) data = { address: q.name_of.address, name: 'cristiano.neta' };
-        else if (q.identity)
-          data = {
-            name: 'cristiano.neta',
-            owner: author,
-            expires_at: Math.floor(Date.now() / 1000) + 86400
-          };
-      } else if (url.pathname.includes(manifest.profile_contract))
-        data = { registry: manifest.registry };
-      else if (url.pathname.includes(manifest.token)) data = { decimals: 6 };
-      else
-        data = q.pause_info
-          ? pauseProgramme
-            ? { paused: { expiration: { at_height: 99999999 } } }
-            : { unpaused: {} }
-          : govMessages[0].sender;
-      body = { data };
-    } else if (url.pathname.includes('/contract/')) {
-      const pin = url.pathname.endsWith(manifest.registry)
-        ? manifest.contracts.registry
-        : url.pathname.endsWith(manifest.profile_contract)
-          ? manifest.contracts.profiles
-          : { code_id: '4047' };
-      body = { contract_info: pin };
-    } else if (url.pathname.includes('/withdraw_address'))
-      body = { withdraw_address: sample.programme };
-    else if (url.pathname.includes('/delegations/'))
-      body = {
-        delegation_responses: sample.validators.map((v) => ({
-          delegation: { delegator_address: sample.programme, validator_address: v.address },
-          balance: { denom: 'ujuno', amount: v.currentRaw }
-        })),
-        pagination: {}
-      };
-    else if (url.pathname.includes('/txs/')) {
-      if (url.pathname.endsWith(reviewTxHash)) {
-        if (url.hostname.includes('nodeshub'))
-          return route.fulfill({ status: 503, headers, body: 'Primary unavailable' });
-        return route.fulfill({
-          contentType: 'application/json',
-          headers,
-          body: JSON.stringify({
-            tx_response: { txhash: reviewTxHash, height: '42500126', code: 0, events: reviewEvents }
-          })
-        });
+  await page.route(
+    /^(https:\/\/|http:\/\/127\.0\.0\.1.*\/data\/governance-read)/,
+    async (route) => {
+      let url = new URL(route.request().url());
+      if (url.pathname === CHAIN_READ_PATH) {
+        assert.equal(route.request().headers()['x-cosmos-block-height'], undefined);
+        url = new URL(
+          GOVERNANCE_SOURCES[url.searchParams.get('source')] + url.searchParams.get('path')
+        );
       }
-      if (!txKnown) return route.fulfill({ status: 404, headers, body: 'not found' });
-      body = { tx_response: { txhash: 'B'.repeat(64), height: '42500125', code: 0 } };
-    } else if (url.pathname === '/cosmos/gov/v1/proposals/900') body = { proposal: native };
-    else if (url.pathname === '/cosmos/gov/v1/proposals')
-      body = {
-        proposals: native
-          ? [{ ...native, ...(wrongDisplayed ? { title: 'Incorrect cached proposal title' } : {}) }]
-          : [],
-        pagination: {}
+      assert.ok(['GET', 'OPTIONS'].includes(route.request().method()), 'No real writes');
+      const testnet = /\.test\.|\.t\./.test(url.hostname);
+      const headers = {
+        'access-control-allow-origin': '*',
+        'access-control-allow-headers': 'x-cosmos-block-height, content-type',
+        'access-control-allow-methods': 'GET, OPTIONS',
+        'x-cosmos-block-height': '42500123'
       };
-    return route.fulfill({ contentType: 'application/json', headers, body: JSON.stringify(body) });
-  });
+      if (route.request().method() === 'OPTIONS') return route.fulfill({ headers, body: '' });
+      let body = { data: {} };
+      if (url.pathname.endsWith('/node_info')) body = { default_node_info: { network: 'juno-1' } };
+      else if (url.pathname.includes('/code/')) {
+        const pin = Object.values(manifest.contracts).find(
+          (p) => String(p.code_id) === url.pathname.split('/').at(-1)
+        );
+        body = { code_info: { data_hash: pin.sha256 } };
+      } else if (url.pathname.endsWith('/latest'))
+        body = {
+          block: {
+            header: {
+              chain_id: testnet ? 'uni-7' : 'juno-1',
+              height: '42500123',
+              time: new Date().toISOString()
+            }
+          }
+        };
+      else if (url.pathname.includes('/params/')) body = { params };
+      else if (url.pathname.includes('/spendable_balances/'))
+        body = { balance: { denom: 'ujuno', amount: '10000000000' } };
+      else if (url.pathname.includes('/module_accounts/gov'))
+        body = { account: { name: 'gov', base_account: { address: govMessages[0].sender } } };
+      else if (url.pathname.includes('/smart/')) {
+        const q = JSON.parse(
+          Buffer.from(decodeURIComponent(url.pathname.split('/smart/')[1]), 'base64')
+        );
+        let data;
+        if (url.pathname.includes(REVIEW_CONTRACT)) {
+          if (q.config) data = { owner: author, minimum_comment_stake: '1000000' };
+          else if (q.access)
+            data = {
+              can_publish: true,
+              can_comment: true,
+              active_native_stake: '1000000',
+              active_neta_stake: '1000000'
+            };
+          else if (q.proposal_summaries) {
+            if (failReviewReads)
+              return route.fulfill({ status: 503, headers, body: 'Temporary review read failure' });
+            data = proposal ? [{ proposal, latest_revision: revision }] : [];
+          } else if (q.proposals) data = proposal ? [proposal] : [];
+          else if (q.proposal) data = proposal;
+          else if (q.revisions) data = revision ? [revision] : [];
+          else if (q.comments) data = comments;
+          else data = [];
+        } else if (url.pathname.includes(manifest.registry)) {
+          if (q.config)
+            data = {
+              ...manifest,
+              purchases_paused: false,
+              tariff_version: 1,
+              tariff: { three_cents: 9900, four_cents: 1900, standard_cents: 500 }
+            };
+          else if (q.name_of) data = { address: q.name_of.address, name: 'cristiano.neta' };
+          else if (q.identity)
+            data = {
+              name: 'cristiano.neta',
+              owner: author,
+              expires_at: Math.floor(Date.now() / 1000) + 86400
+            };
+        } else if (url.pathname.includes(manifest.profile_contract))
+          data = { registry: manifest.registry };
+        else if (url.pathname.includes(manifest.token)) data = { decimals: 6 };
+        else
+          data = q.pause_info
+            ? pauseProgramme
+              ? { paused: { expiration: { at_height: 99999999 } } }
+              : { unpaused: {} }
+            : govMessages[0].sender;
+        body = { data };
+      } else if (url.pathname.includes('/contract/')) {
+        const pin = url.pathname.endsWith(manifest.registry)
+          ? manifest.contracts.registry
+          : url.pathname.endsWith(manifest.profile_contract)
+            ? manifest.contracts.profiles
+            : { code_id: '4047' };
+        body = { contract_info: pin };
+      } else if (url.pathname.includes('/withdraw_address'))
+        body = { withdraw_address: sample.programme };
+      else if (url.pathname.includes('/delegations/'))
+        body = {
+          delegation_responses: sample.validators.map((v) => ({
+            delegation: { delegator_address: sample.programme, validator_address: v.address },
+            balance: { denom: 'ujuno', amount: v.currentRaw }
+          })),
+          pagination: {}
+        };
+      else if (url.pathname.includes('/txs/')) {
+        if (url.pathname.endsWith(reviewTxHash)) {
+          if (url.hostname.includes('nodeshub'))
+            return route.fulfill({ status: 503, headers, body: 'Primary unavailable' });
+          return route.fulfill({
+            contentType: 'application/json',
+            headers,
+            body: JSON.stringify({
+              tx_response: {
+                txhash: reviewTxHash,
+                height: '42500126',
+                code: 0,
+                events: reviewEvents
+              }
+            })
+          });
+        }
+        if (!txKnown) return route.fulfill({ status: 404, headers, body: 'not found' });
+        body = { tx_response: { txhash: 'B'.repeat(64), height: '42500125', code: 0 } };
+      } else if (url.pathname === '/cosmos/gov/v1/proposals/900') body = { proposal: native };
+      else if (url.pathname === '/cosmos/gov/v1/proposals')
+        body = {
+          proposals: native
+            ? [
+                {
+                  ...native,
+                  ...(wrongDisplayed ? { title: 'Incorrect cached proposal title' } : {})
+                }
+              ]
+            : [],
+          pagination: {}
+        };
+      return route.fulfill({
+        contentType: 'application/json',
+        headers,
+        body: JSON.stringify(body)
+      });
+    }
+  );
   await page.exposeFunction('__reviewWrite', async (sender, msg) => {
     assert.equal(sender, author);
     reviewWrites++;
@@ -290,12 +314,18 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
       };
       window.NetaJunoGovernance = {
         connect: async () => ({ disconnect() {} }),
-        simulate: async () => 100000,
+        simulate: async (_client, _content, _sender, deposit) => {
+          window.__selectedDeposit = deposit;
+          if (window.__holdNativeSimulation)
+            await new Promise((resolve) => (window.__releaseNativeSimulation = resolve));
+          return 100000;
+        },
         simulateDeposit: async () => 100000,
         fixedFee: () => ({ gas: '140000', amount: [{ denom: 'ujuno', amount: '10500' }] }),
         submit: async (_client, content, sender, deposit, _fee, guards) => {
           await guards.beforeSign();
           await guards.assertWallet();
+          if (window.__rejectNative) throw Error('Signature rejected');
           await guards.beforeBroadcast('A'.repeat(64));
           return window.__nativeSubmit(content, sender, deposit);
         },
@@ -428,7 +458,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     await shot(`claim-community-review-${width}`);
   }
   await page.locator('#primary-action').click();
-  await primary('CONNECT KEPLR · JUNO');
+  await page.locator('#planner-native-panel').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#proposal-title').isDisabled(), true);
   const sharedUrl = page.url();
   assert.match(sharedUrl, /review=77/);
@@ -440,40 +470,68 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   });
   await page.goto(sharedUrl);
   await page.reload();
-  await primary('CONNECT KEPLR · JUNO');
+  await page.locator('#planner-native-panel').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#planner-proposal-context').isVisible(), false);
   assert.equal(await page.locator('#discussion-panel').isVisible(), true);
   assert.equal(await page.locator('#comment-form').isVisible(), false);
   await wallet(sponsor);
-  await page.locator('#primary-action').click();
-  await primary('REVIEW JUNO PROPOSAL');
+  await page.locator('#gov-connect').click();
+  const minimum = page.locator('#planner-native-minimum'),
+    full = page.locator('#planner-native-full');
+  await page.waitForFunction(() => !document.querySelector('#planner-native-minimum').disabled);
+  assert.equal(await minimum.textContent(), 'Submit with 1000 JUNO');
+  assert.equal(await full.textContent(), 'Submit with 5000 JUNO');
+  assert.equal(await page.locator('#primary-action').isVisible(), false);
+  assert.equal(await page.locator('#discard-action').isVisible(), true);
+  assert.equal(await page.locator('#discard-action').isDisabled(), true);
   assert.deepEqual(await page.evaluate(() => window.__walletChains), ['juno-1']);
+  assert.ok(
+    await page.evaluate(() =>
+      document
+        .querySelector('.next-actions')
+        .contains(document.querySelector('#planner-native-panel'))
+    )
+  );
   pauseProgramme = true;
-  await page.locator('#primary-action').click();
-  await page.waitForFunction(() => document.querySelector('#gov-status').dataset.state === 'error');
-  assert.match(await page.locator('#gov-status').innerText(), /pause state/);
+  await minimum.click();
+  await page.waitForFunction(
+    () => document.querySelector('#planner-native-status').dataset.state === 'error'
+  );
+  assert.match(await page.locator('#planner-native-status').innerText(), /pause state/);
   assert.equal(submits, 0);
   pauseProgramme = false;
-  await page.locator('#primary-action').click();
-  await page.waitForFunction(() => !document.querySelector('#planner-native-review').hidden);
-  assert.equal(await page.locator('#planner-native-deposit').inputValue(), '1000');
-  assert.equal(await page.locator('#primary-action').isDisabled(), true);
-  await page.locator('#planner-native-confirm').check();
-  // A changed account invalidates the review without submitting anything.
+  // Rejecting a full-deposit wallet prompt never broadcasts and retains both choices.
+  await page.evaluate(() => (window.__rejectNative = true));
+  await full.click();
+  await page.waitForFunction(() =>
+    document.querySelector('#planner-native-status').textContent.includes('Signature rejected')
+  );
+  assert.equal(await page.evaluate(() => window.__selectedDeposit), '5000000000');
+  assert.equal(submits, 0);
+  await page.evaluate(() => {
+    window.__rejectNative = false;
+    window.__holdNativeSimulation = true;
+  });
+  await minimum.click();
+  await page.waitForFunction(() => !!window.__releaseNativeSimulation);
   await page.evaluate(() => dispatchEvent(new Event('keplr_keystorechange')));
-  await primary('CONNECT KEPLR · JUNO');
-  assert.equal(await page.locator('#planner-native-review').isVisible(), false);
-  await page.locator('#primary-action').click();
-  await primary('REVIEW JUNO PROPOSAL');
-  await page.locator('#primary-action').click();
-  await page.waitForFunction(() => !document.querySelector('#planner-native-review').hidden);
-  await page.locator('#planner-native-confirm').check();
+  await page.evaluate(() => {
+    window.__holdNativeSimulation = false;
+    window.__releaseNativeSimulation();
+  });
+  await page.waitForFunction(() =>
+    document.querySelector('#planner-native-status').textContent.includes('changed')
+  );
+  assert.equal(submits, 0);
+  await wallet(sponsor);
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(() => !document.querySelector('#planner-native-minimum').disabled);
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     await shot(`claim-sponsor-submit-${width}`);
   }
-  await page.locator('#primary-action').click();
+  await minimum.click();
   await page.waitForFunction(() =>
     document.querySelector('#proposal-funding-total').textContent.includes('1000 / 5000')
   );
@@ -587,6 +645,11 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   revision = null;
   native = null;
   comments = [];
+  await page.evaluate(() => {
+    for (const key of Object.keys(localStorage))
+      if (key.startsWith('cosmoot:juno:planner-proposal:') && key.endsWith(':submission'))
+        localStorage.removeItem(key);
+  });
   await page.evaluate(
     ({ id, value }) => localStorage.setItem('cosmoot:juno:planner-proposal:' + id, value),
     { id: legacyId, value: originalDraft }
@@ -635,6 +698,10 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   assert.equal(await page.locator('#discard-action').isDisabled(), true);
   await page.locator('#gov-disconnect').click();
   await wallet(author);
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(() => !document.querySelector('#discard-action').disabled);
+  await page.locator('#primary-action').click();
+  await page.locator('#planner-native-panel').waitFor({ state: 'visible' });
   await page.locator('#gov-connect').click();
   await page.waitForFunction(() => !document.querySelector('#discard-action').disabled);
   page.once('dialog', (dialog) => dialog.accept());

@@ -283,3 +283,16 @@ body.revision-dialog-open { overflow:hidden; }
 .review-action-busy::before { content:""; display:inline-block; width:14px; height:14px; margin-right:8px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; vertical-align:middle; animation:review-progress 1s linear infinite; }
 @keyframes review-progress { to { transform:rotate(360deg); } }
 @media (prefers-reduced-motion:reduce) { .review-action-busy::before { animation:none; } }
+
+/* Finalized proposals end with deposit choices and local transaction feedback. */
+.next-actions #planner-native-panel { margin:0 0 16px; border:0; background:transparent; }
+.next-actions #planner-native-panel > header { padding:0 0 16px; background:transparent; }
+.next-actions #planner-native-panel .governance-funding-body { padding:0; gap:12px; }
+#planner-native-panel .governance-funding-body { display:grid; }
+#planner-native-panel .governance-funding-amount { display:flex; gap:12px; }
+#planner-native-panel button { white-space:normal; overflow-wrap:anywhere; }
+#planner-native-panel #planner-native-full { background:var(--neta-accent); color:var(--neta-on-accent); }
+#planner-native-panel #planner-native-refresh { justify-self:start; background:transparent; color:var(--neta-text-secondary); }
+#planner-native-status { overflow-wrap:anywhere; color:var(--neta-info); }
+#planner-native-status[data-state="error"], #planner-native-terms[data-state="error"] { color:var(--neta-danger); }
+#planner-native-status[hidden], #planner-native-panel button[hidden] { display:none; }

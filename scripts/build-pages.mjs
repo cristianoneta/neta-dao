@@ -12,6 +12,7 @@ const run = (command, args) => execFileSync(command, args, {
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const inputs = [
   'functions/data/[[path]].js', 'service/snapshot-proxy.mjs',
+  'deploy/cosmoot/governance-read-proxy.mjs', 'governance-chain-read.mjs',
   'deploy/cosmoot/snapshot-paths.json', 'deploy/cosmoot/pages-routes.json',
   'wrangler.json', 'scripts/build-pages.mjs'
 ];
