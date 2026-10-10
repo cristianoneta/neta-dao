@@ -134,5 +134,7 @@ Read-only live evidence: Polkachu and Stavr returned the same 147 proposal IDs a
 height 42562163 through the published proxy with forward pagination. Regression
 coverage includes a later-page match, later-page claim number and source disagreement;
 the browser fixture rejects reverse reads and requires two history pages. This
-candidate still requires complete CI and a separate manual release. No signing or
-fund movement was part of diagnosis.
+candidate passes 269 local Node tests, repository/static checks and the complete
+synthetic planner/review/funding browser flow at four widths. It still requires
+complete CI and a separate manual release. No real signing or fund movement was
+part of diagnosis.

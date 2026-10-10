@@ -59,7 +59,8 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     /^(https:\/\/|http:\/\/127\.0\.0\.1.*\/data\/governance-read)/,
     async (route) => {
       let url = new URL(route.request().url());
-      if (url.pathname === CHAIN_READ_PATH) {
+      const verifiedRead = url.pathname === CHAIN_READ_PATH;
+      if (verifiedRead) {
         assert.equal(route.request().headers()['x-cosmos-block-height'], undefined);
         url = new URL(
           GOVERNANCE_SOURCES[url.searchParams.get('source')] + url.searchParams.get('path')
@@ -184,10 +185,10 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
       else if (url.pathname === '/cosmos/gov/v1/proposals') {
         // Reproduce the live Juno reverse-pagination failure. Forward reads
         // must exhaust both pages before submission, withdrawal or recovery.
-        if (url.searchParams.has('pagination.reverse'))
+        if (verifiedRead && url.searchParams.has('pagination.reverse'))
           return route.fulfill({ status: 502, headers, body: 'Chain source returned HTTP 500.' });
-        const last = url.searchParams.has('pagination.key');
-        if (last) assert.equal(url.searchParams.get('pagination.key'), 'older+/=');
+        const last = !verifiedRead || url.searchParams.has('pagination.key');
+        if (verifiedRead && last) assert.equal(url.searchParams.get('pagination.key'), 'older+/=');
         body = {
           proposals:
             last && native
