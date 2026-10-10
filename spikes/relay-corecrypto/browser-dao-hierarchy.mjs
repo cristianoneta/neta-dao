@@ -91,7 +91,9 @@ try{
  await page.getByRole('button',{name:'Treasury',exact:true}).click();
  assert.equal(await page.locator('.testnet-pill').isVisible(),false);
  await page.locator('#subdao-select').selectOption('neta');
- await page.reload();assert.equal(await page.locator('#subdao-select').inputValue(),'neta');
+ await page.reload();
+ await page.waitForFunction(()=>document.querySelector('#subdao-select').value==='neta');
+ assert.equal(await page.locator('#subdao-select').inputValue(),'neta');
  assert.equal(new URL(page.url()).searchParams.get('subdao'),'main');
  // Organization picker chooses its consolidated view, not a hidden main-only balance.
  await page.locator('#dao-search').fill('NETA');await page.locator('#dao-options button').filter({hasText:'NETA'}).click();

@@ -1,11 +1,28 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { REVIEW_CONTRACT } from '../../juno-community-governance.mjs';
 
 // All external reads and wallet writes are synthetic. This exercises the actual
 // composer, shared-review deep link, sponsor handoff and deposit controls.
 export async function exerciseReviewFunding(page, origin, sample, govMessages) {
+  const manifest = JSON.parse(
+    await readFile(new URL('../../docs/deployments/nns-mainnet.json', import.meta.url))
+  );
+  const reviewBytes = Buffer.from('synthetic signed review');
+  const reviewTxHash = createHash('sha256').update(reviewBytes).digest('hex').toUpperCase();
+  const reviewEvents = [
+    {
+      type: 'wasm',
+      attributes: [
+        { key: '_contract_address', value: REVIEW_CONTRACT },
+        { key: 'proposal_id', value: '77' }
+      ]
+    }
+  ];
+  let reviewWrites = 0,
+    comments = [],
+    failReviewReads = false;
   const author = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
   const sponsor = 'juno1d0g7f97v87xwe6r4vr4jj3jfhzcv4vvfhamy8w';
   const params = {
@@ -49,7 +66,13 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     };
     if (route.request().method() === 'OPTIONS') return route.fulfill({ headers, body: '' });
     let body = { data: {} };
-    if (url.pathname.endsWith('/latest'))
+    if (url.pathname.endsWith('/node_info')) body = { default_node_info: { network: 'juno-1' } };
+    else if (url.pathname.includes('/code/')) {
+      const pin = Object.values(manifest.contracts).find(
+        (p) => String(p.code_id) === url.pathname.split('/').at(-1)
+      );
+      body = { code_info: { data_hash: pin.sha256 } };
+    } else if (url.pathname.endsWith('/latest'))
       body = {
         block: {
           header: {
@@ -78,21 +101,48 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
             active_native_stake: '1000000',
             active_neta_stake: '1000000'
           };
-        else if (q.proposal_summaries)
+        else if (q.proposal_summaries) {
+          if (failReviewReads)
+            return route.fulfill({ status: 503, headers, body: 'Temporary review read failure' });
           data = proposal ? [{ proposal, latest_revision: revision }] : [];
-        else if (q.proposals) data = proposal ? [proposal] : [];
+        } else if (q.proposals) data = proposal ? [proposal] : [];
         else if (q.proposal) data = proposal;
         else if (q.revisions) data = revision ? [revision] : [];
+        else if (q.comments) data = comments;
         else data = [];
-      } else
+      } else if (url.pathname.includes(manifest.registry)) {
+        if (q.config)
+          data = {
+            ...manifest,
+            purchases_paused: false,
+            tariff_version: 1,
+            tariff: { three_cents: 9900, four_cents: 1900, standard_cents: 500 }
+          };
+        else if (q.name_of) data = { address: q.name_of.address, name: 'cristiano.neta' };
+        else if (q.identity)
+          data = {
+            name: 'cristiano.neta',
+            owner: author,
+            expires_at: Math.floor(Date.now() / 1000) + 86400
+          };
+      } else if (url.pathname.includes(manifest.profile_contract))
+        data = { registry: manifest.registry };
+      else if (url.pathname.includes(manifest.token)) data = { decimals: 6 };
+      else
         data = q.pause_info
           ? pauseProgramme
             ? { paused: { expiration: { at_height: 99999999 } } }
             : { unpaused: {} }
           : govMessages[0].sender;
       body = { data };
-    } else if (url.pathname.includes('/contract/')) body = { contract_info: { code_id: '4047' } };
-    else if (url.pathname.includes('/withdraw_address'))
+    } else if (url.pathname.includes('/contract/')) {
+      const pin = url.pathname.endsWith(manifest.registry)
+        ? manifest.contracts.registry
+        : url.pathname.endsWith(manifest.profile_contract)
+          ? manifest.contracts.profiles
+          : { code_id: '4047' };
+      body = { contract_info: pin };
+    } else if (url.pathname.includes('/withdraw_address'))
       body = { withdraw_address: sample.programme };
     else if (url.pathname.includes('/delegations/'))
       body = {
@@ -103,6 +153,17 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
         pagination: {}
       };
     else if (url.pathname.includes('/txs/')) {
+      if (url.pathname.endsWith(reviewTxHash)) {
+        if (url.hostname.includes('nodeshub'))
+          return route.fulfill({ status: 503, headers, body: 'Primary unavailable' });
+        return route.fulfill({
+          contentType: 'application/json',
+          headers,
+          body: JSON.stringify({
+            tx_response: { txhash: reviewTxHash, height: '42500126', code: 0, events: reviewEvents }
+          })
+        });
+      }
       if (!txKnown) return route.fulfill({ status: 404, headers, body: 'not found' });
       body = { tx_response: { txhash: 'B'.repeat(64), height: '42500125', code: 0 } };
     } else if (url.pathname === '/cosmos/gov/v1/proposals/900') body = { proposal: native };
@@ -117,6 +178,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   });
   await page.exposeFunction('__reviewWrite', async (sender, msg) => {
     assert.equal(sender, author);
+    reviewWrites++;
     if (msg.publish_proposal) {
       const content = msg.publish_proposal.content;
       revision = {
@@ -135,12 +197,22 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
         withdrawn: false,
         created_time: revision.created_time
       };
+    } else if (msg.add_comment) {
+      comments.push({
+        id: comments.length + 1,
+        author,
+        created_time: Math.floor(Date.now() / 1000),
+        verified_stake: '1000000',
+        ...msg.add_comment
+      });
+    } else if (msg.withdraw) {
+      proposal.withdrawn = true;
     } else if (msg.finalize) {
       assert.equal(msg.finalize.proposal_id, 77);
       proposal.finalized_version = 1;
       proposal.finalized_hash = reviewHash();
     } else throw Error('Unexpected review write');
-    return { transactionHash: 'C'.repeat(64) };
+    return { transactionHash: reviewTxHash, height: 42500126, code: 0, events: reviewEvents };
   });
   await page.exposeFunction('__nativeSubmit', async (content, sender, deposit) => {
     submits++;
@@ -187,7 +259,34 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
       };
       window.NetaSocialsTestnet = {
         connect: async () => ({ disconnect() {} }),
-        execute: async (_client, sender, _contract, msg) => window.__reviewWrite(sender, msg)
+        execute: async (_client, sender, _contract, msg) => {
+          if (window.__rejectReview) throw Error('Signature rejected');
+          if (msg.publish_proposal && window.__holdReviewPublish)
+            await new Promise((resolve) => (window.__releaseReviewPublish = resolve));
+          const result = await window.__reviewWrite(sender, msg);
+          if (msg.publish_proposal && window.__loseReviewResponse) {
+            const bytes = new TextEncoder().encode('synthetic signed review');
+            const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
+              .map((x) => x.toString(16).padStart(2, '0'))
+              .join('')
+              .toUpperCase();
+            localStorage.setItem(
+              `neta-pending-tx-v1:uni-7:${sender}`,
+              JSON.stringify({
+                version: 1,
+                status: 'pending',
+                chain: 'uni-7',
+                sender,
+                hash,
+                bytes: btoa(String.fromCharCode(...bytes))
+              })
+            );
+            throw Error('TRANSACTION OUTCOME UNKNOWN', {
+              cause: Error('transaction indexing is disabled')
+            });
+          }
+          return result;
+        }
       };
       window.NetaJunoGovernance = {
         connect: async () => ({ disconnect() {} }),
@@ -224,7 +323,12 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     }
   };
   // Old direct-submit attempts remain status-only after upgrading the UI.
+  const originalDraftUrl = page.url();
   const legacyId = new URL(page.url()).searchParams.get('plannerDraft');
+  const originalDraft = await page.evaluate(
+    (id) => localStorage.getItem('cosmoot:juno:planner-proposal:' + id),
+    legacyId
+  );
   assert.ok(legacyId);
   const legacyKey = `cosmoot:juno:planner-proposal:${legacyId}:submission`;
   await page.evaluate(
@@ -256,8 +360,65 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   await page.locator('#gov-connect').click();
   await page.waitForFunction(() => !document.querySelector('#primary-action').disabled);
   assert.deepEqual(await page.evaluate(() => window.__walletChains), ['uni-7']);
+  await page.evaluate(() => (window.__rejectReview = true));
   await page.locator('#primary-action').click();
+  await page.waitForFunction(
+    () => document.querySelector('#gov-status').textContent === 'Signature rejected'
+  );
+  assert.equal(reviewWrites, 0);
+  assert.equal(await page.locator('#primary-action').isDisabled(), false);
+  assert.match(
+    await page.locator('#proposal-body').inputValue(),
+    /This proposal was created on cosmoot.com/
+  );
+  await page.evaluate(() => {
+    window.__rejectReview = false;
+    window.__loseReviewResponse = true;
+    window.__holdReviewPublish = true;
+  });
+  await page.locator('#primary-action').click();
+  await page.waitForFunction(() => typeof window.__releaseReviewPublish === 'function');
+  assert.equal(await page.locator('.proposal-workspace').getAttribute('aria-busy'), 'true');
+  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  await page.evaluate(() => window.__releaseReviewPublish());
   await primary('FINALIZE REVIEW');
+  assert.equal(reviewWrites, 1);
+  assert.match(revision.title, / rewards I$/);
+  assert.match(revision.body, /This proposal was created on cosmoot.com\./);
+  await page.waitForFunction(() =>
+    document.querySelector('#shared-review-author').textContent.includes('cristiano.neta')
+  );
+  assert.equal(await page.locator('#discard-action').isVisible(), true);
+  assert.equal(await page.locator('#discard-action').isDisabled(), false);
+  await page.locator('#shared-review-copy').click();
+  await page.waitForFunction(
+    () => document.querySelector('#shared-review-copy-status').textContent.length > 0
+  );
+  await page.evaluate(() =>
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: async () => {
+          throw Error('denied');
+        }
+      }
+    })
+  );
+  await page.locator('#shared-review-copy').click();
+  assert.equal(await page.locator('#shared-review-copy-fallback').isVisible(), true);
+  assert.match(await page.locator('#shared-review-copy-fallback').inputValue(), /review=77/);
+  await page.locator('#comment-title').fill('A useful discussion');
+  await page.locator('#comment-body').fill('Review comment survives publication without a reload.');
+  await page.locator('#publish-comment').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#gov-status').textContent.includes('Discussion thread published')
+  );
+  assert.equal(comments.length, 1);
+  assert.match(
+    await page.locator('#discussion-panel').innerText(),
+    /Review comment survives publication/
+  );
+
   assert.equal(await page.locator('#planner-native-panel').isVisible(), false);
   assert.equal(await page.locator('#discussion-panel').isVisible(), true);
   assert.match(await page.locator('#shared-review-url').getAttribute('href'), /review=77/);
@@ -281,7 +442,8 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   await page.reload();
   await primary('CONNECT KEPLR · JUNO');
   assert.equal(await page.locator('#planner-proposal-context').isVisible(), false);
-  assert.equal(await page.locator('#discussion-panel').isVisible(), false);
+  assert.equal(await page.locator('#discussion-panel').isVisible(), true);
+  assert.equal(await page.locator('#comment-form').isVisible(), false);
   await wallet(sponsor);
   await page.locator('#primary-action').click();
   await primary('REVIEW JUNO PROPOSAL');
@@ -419,4 +581,70 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     ),
     'Preserved draft'
   );
+  // Confirmed publication + failed view read survives reload, and withdrawal
+  // stays discoverable to visitors while only the author can execute it.
+  proposal = null;
+  revision = null;
+  native = null;
+  comments = [];
+  await page.evaluate(
+    ({ id, value }) => localStorage.setItem('cosmoot:juno:planner-proposal:' + id, value),
+    { id: legacyId, value: originalDraft }
+  );
+  await page.goto(originalDraftUrl);
+  await primary('PUBLISH FOR REVIEW');
+  await wallet(author);
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(() => !document.querySelector('#primary-action').disabled);
+  // Let the pre-publication summaries succeed; fail only after confirmed write.
+  await page.exposeFunction('__failReviewReads', () => {
+    failReviewReads = true;
+  });
+  await page.evaluate(() => {
+    const execute = window.NetaSocialsTestnet.execute;
+    window.NetaSocialsTestnet.execute = async (...args) => {
+      const r = await execute(...args);
+      await window.__failReviewReads();
+      return r;
+    };
+  });
+  const previousWrites = reviewWrites;
+  await page.locator('#primary-action').click();
+  await page.waitForFunction(() => document.querySelector('#gov-status').dataset.state === 'error');
+  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  assert.equal(reviewWrites, previousWrites + 1);
+  failReviewReads = false;
+  await page.reload();
+  await primary('PUBLISH FOR REVIEW');
+  await wallet(author);
+  await page.locator('#gov-connect').click();
+  await page
+    .locator('.review-transaction-feedback [data-review-check]')
+    .waitFor({ state: 'visible' });
+  await page.locator('.review-transaction-feedback [data-review-check]').click();
+  await primary('FINALIZE REVIEW');
+  assert.equal(reviewWrites, previousWrites + 1, 'Read-only status lookup must not republish');
+  await page.locator('#gov-disconnect').click();
+  assert.equal(await page.locator('#discard-action').isVisible(), true);
+  assert.equal(await page.locator('#discard-action').isDisabled(), true);
+  await page.waitForFunction(() =>
+    document.querySelector('#shared-review-author').textContent.includes('cristiano.neta')
+  );
+  await wallet(sponsor);
+  await page.locator('#gov-connect').click();
+  assert.equal(await page.locator('#discard-action').isDisabled(), true);
+  await page.locator('#gov-disconnect').click();
+  await wallet(author);
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(() => !document.querySelector('#discard-action').disabled);
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.locator('#discard-action').click();
+  await page.waitForFunction(
+    () => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN'
+  );
+  assert.equal(proposal.withdrawn, true);
+  assert.equal(await page.locator('.workflow .active').count(), 0);
+  assert.equal(await page.locator('#comment-form').isVisible(), false);
+  assert.equal(await page.locator('#primary-action').isVisible(), false);
+  assert.equal(await page.locator('#proposal-title').isDisabled(), true);
 }

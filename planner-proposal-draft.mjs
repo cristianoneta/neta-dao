@@ -47,7 +47,12 @@ function draft(kind, title, summary, body, actions = []) {
     programme: PROGRAMME,
     kind,
     createdAt: new Date().toISOString(),
-    values: { title, summary, body, actions_json: JSON.stringify(actions, null, 2) }
+    values: {
+      title,
+      summary,
+      body: body + '\n\nThis proposal was created on cosmoot.com.',
+      actions_json: JSON.stringify(actions, null, 2)
+    }
   });
 }
 export function ruleProposal(review) {

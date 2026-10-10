@@ -22,6 +22,21 @@
     validateCategories,
     isSpend
   } = await import('./proposal-accounting.mjs?v=20261006-4');
+  const {
+    publishedReview,
+    indexingUnavailable,
+    reviewEventId,
+    reconcileReviewTransaction,
+    copyReviewLink
+  } = await import('./review-publication.mjs');
+  let authorRenderer;
+  async function renderAuthorName(element, owner, current) {
+    element.textContent = `Draft author: ${owner} · Review on UNI-7`;
+    const { authorNameRenderer } = await import('./proposal-identity.mjs');
+    if (!current()) return;
+    authorRenderer ||= authorNameRenderer();
+    await authorRenderer(element, owner, current);
+  }
   const CHAIN_ID = 'uni-7';
   const RPCS = ['https://juno.test.rpc.nodeshub.online', 'https://juno.rpc.t.stavr.tech'],
     RESTS = ['https://juno.test.api.nodeshub.online', 'https://juno.api.t.stavr.tech'];
@@ -134,7 +149,10 @@
     countdown: null,
     requestEpoch: 0,
     walletEpoch: 0,
-    connecting: false
+    connecting: false,
+    actionMessage: '',
+    actionKind: 'ready',
+    actionButton: null
   };
   const $ = (s) => document.querySelector(s),
     node = (tag, cls, text) => {
@@ -217,26 +235,154 @@
         new Promise((_, r) => setTimeout(() => r(new Error(`${label} TIMED OUT`)), ms))
       ]);
   const encode = (q) => encodeURIComponent(btoa(JSON.stringify(q))),
-    indexingDisabled = (e) =>
-      /transaction indexing is disabled/i.test(
-        [
-          e?.message,
-          e?.data,
-          (() => {
-            try {
-              return JSON.stringify(e);
-            } catch {
-              return '';
-            }
-          })(),
-          String(e)
-        ]
-          .filter(Boolean)
-          .join(' ')
-      );
+    indexingDisabled = indexingUnavailable;
   function status(text, error = false) {
     $('#gov-status').textContent = text;
     $('#gov-status').dataset.state = error ? 'error' : 'ready';
+  }
+  function reviewContext() {
+    const address = state.address,
+      contract = CONTRACT,
+      epoch = state.walletEpoch,
+      request = state.requestEpoch,
+      selected = state.selected?.key;
+    return {
+      address,
+      contract,
+      selectedId: state.selected?.id || null,
+      assert() {
+        if (
+          address !== state.address ||
+          contract !== CONTRACT ||
+          epoch !== state.walletEpoch ||
+          request !== state.requestEpoch ||
+          selected !== state.selected?.key ||
+          state.walletChain !== CHAIN_ID
+        )
+          throw Error(
+            'Governance context changed. Reconnect the original wallet and check transaction status.'
+          );
+      }
+    };
+  }
+  const receiptKey = (address = state.address) => `cosmoot:review-receipt:uni-7:${address}`;
+  function saveReviewReceipt(result, context, intent = null) {
+    if (result && result.code !== undefined && result.code !== 0) return;
+    const value = JSON.stringify({
+      result,
+      contract: context.contract,
+      selectedId: context.selectedId,
+      intent
+    });
+    localStorage.setItem(receiptKey(context.address), value);
+    if (localStorage.getItem(receiptKey(context.address)) !== value)
+      throw Error('Confirmed transaction could not be saved. Do not repeat this action.');
+  }
+  function pendingReview() {
+    if (!state.address || state.walletChain !== CHAIN_ID) return false;
+    // Unreadable storage is also locked; never assume that it means no receipt.
+    try {
+      return (
+        !!localStorage.getItem(`neta-pending-tx-v1:${CHAIN_ID}:${state.address}`) ||
+        !!localStorage.getItem(receiptKey())
+      );
+    } catch {
+      return true;
+    }
+  }
+  function actionFeedback(text, kind = 'pending') {
+    state.actionMessage = text;
+    state.actionKind = kind;
+    renderReviewActivity();
+  }
+  function renderReviewActivity() {
+    for (const element of document.querySelectorAll('[data-review-status]')) {
+      element.textContent = state.actionMessage;
+      element.hidden = !state.actionMessage;
+      element.dataset.state = state.actionKind;
+    }
+    const pending = pendingReview();
+    for (const button of document.querySelectorAll('[data-review-check]')) {
+      button.hidden = !pending;
+      button.disabled = state.busy;
+    }
+    if (pending) {
+      $('#primary-action').disabled = true;
+      $('#publish-revision').disabled = true;
+      $('#publish-comment').disabled = true;
+    }
+    $('.proposal-workspace').setAttribute('aria-busy', String(state.busy));
+    if (state.busy && state.actionButton) {
+      state.actionButton.disabled = true;
+      state.actionButton.classList.add('review-action-busy');
+      state.actionButton.textContent = 'PROCESSING…';
+    }
+  }
+  async function reconcileReview(context = reviewContext(), intent = null) {
+    context.assert();
+    actionFeedback('Checking the previous UNI-7 transaction. No new signature is requested.');
+    return reconcileReviewTransaction({
+      storage: localStorage,
+      locks: navigator.locks,
+      sender: context.address,
+      assertCurrent: context.assert,
+      onConfirmed: (result) => saveReviewReceipt(result, context, intent),
+      fetchTx: async (hash) => {
+        for (const base of RESTS) {
+          try {
+            const response = await deadline(
+              fetch(`${base}/cosmos/tx/v1beta1/txs/${hash}`, { cache: 'no-store' }),
+              8000,
+              'TRANSACTION LOOKUP'
+            );
+            if (!response.ok) continue;
+            const data = await response.json();
+            if (data.tx_response?.txhash?.toUpperCase() === hash) return data;
+          } catch {}
+        }
+        return null;
+      }
+    });
+  }
+  async function refreshReviewResult(saved, context) {
+    context.assert();
+    if (saved.contract !== CONTRACT)
+      throw Error('Select the original DAO to open this confirmed review action.');
+    let id = reviewEventId(saved.result, CONTRACT) || saved.selectedId;
+    if (!id && saved.intent) {
+      const rows = await queryAll(
+        (startAfter) => ({ proposal_summaries: { start_after: startAfter, limit: 100 } }),
+        (item) => item.proposal.id
+      );
+      // A later revision must not hide the original publication.
+      for (const row of rows.filter(
+        (r) => r.proposal.id > saved.intent.after && r.proposal.author === saved.intent.author
+      )) {
+        const revisions = await query({
+          revisions: { proposal_id: row.proposal.id, start_after: null, limit: 1 }
+        });
+        row.latest_revision = revisions[0];
+      }
+      id = publishedReview(rows, saved.intent)?.proposal.id;
+    }
+    context.assert();
+    if (isNativeReview()) await loadJunoReviews(state.requestEpoch);
+    else await load();
+    if (!id || !state.proposals.some((p) => p.id === id))
+      throw Error(
+        'Transaction confirmed. Check status again to load its review; do not publish again.'
+      );
+    // load() advances the request epoch for legacy DAOs, but wallet/contract must still match.
+    if (context.address !== state.address || context.contract !== CONTRACT)
+      throw Error('Governance context changed. Check status again.');
+    await select(id);
+    if (
+      context.address !== state.address ||
+      context.contract !== CONTRACT ||
+      state.selected?.key !== `workshop:${id}`
+    )
+      throw Error('Governance context changed. Check status again.');
+    renderList();
   }
   function namesChain() {
     return document.body.dataset.workspaceView === 'relay' &&
@@ -926,8 +1072,11 @@
           ? 'ONLY IN THIS BROWSER'
           : `#${p.id} · ${item.source === 'chain' ? 'JUNO MAINNET' : 'PUBLIC REVIEW'}`;
       b.append(node('strong', null, title), meta, node('small', null, context));
-      b.onclick = () =>
+      b.onclick = () => {
+        if (state.busy) return;
+        state.actionMessage = '';
         isLocal ? newDraft() : item.source === 'chain' ? selectChain(p) : select(p.id);
+      };
       list.append(b);
     });
     if (!rows.length) list.append(node('div', 'revision-item', 'NO PROPOSALS MATCH THIS FILTER'));
@@ -1087,7 +1236,7 @@
       list.append(node('div', 'comment-item', 'NO TOPICS YET · START THE FIRST THREAD BELOW'));
     $('#comment-title').disabled = !allowed;
     $('#comment-body').disabled = !allowed;
-    $('#publish-comment').disabled = !allowed;
+    $('#publish-comment').disabled = !allowed || state.busy || pendingReview();
   }
   function nativeAccess() {
     const junox = Number(state.access?.active_native_stake || 0) / 1e6,
@@ -1158,8 +1307,16 @@
       ? '1 JUNOX + 1 TEST NETA STAKED'
       : 'STRICTLY > 10 NETA STAKED';
     $('#primary-action').hidden = !!selected && !discussion;
-    $('#discard-action').hidden = !!selected && !canWithdraw;
-    $('#discard-action').textContent = selected ? 'DISCARD / WITHDRAW' : 'DISCARD DRAFT';
+    $('#discard-action').hidden =
+      !!selected && !(discussion && selected.source === 'workshop' && native) && !canWithdraw;
+    $('#discard-action').textContent = selected ? 'WITHDRAW REVIEW' : 'DISCARD DRAFT';
+    $('#discard-action').disabled =
+      state.busy ||
+      (!!selected && (!canWithdraw || state.walletChain !== CHAIN_ID || pendingReview()));
+    $('#discard-action').title =
+      selected && !canWithdraw
+        ? 'Only the draft author can withdraw this review. Connect the author wallet on UNI-7.'
+        : 'Withdraw this review while keeping its public history.';
     setEditable(!state.busy && (!selected || (discussion && member)));
     if (!selected) {
       $('#action-hint').textContent = needsSetup
@@ -1195,7 +1352,7 @@
         : native
           ? access
             ? `${access.label} · CURRENT: ${access.junox} JUNOX + ${access.neta} TEST NETA STAKED`
-            : 'Connect Keplr to verify review access.'
+            : 'Connect Keplr to verify review access. The draft author can withdraw this review.'
           : 'Public Discussion view. DAO voting power is required to revise or finalize.';
       $('#save-local').hidden = false;
       $('#save-local').textContent = 'SAVE REVISION LOCALLY';
@@ -1211,11 +1368,14 @@
             : `This proposal is in ${String(selected.status).toUpperCase()}.`;
       $('#primary-action').hidden = true;
     }
+    if (discussion && native && state.address && !canWithdraw)
+      $('#action-hint').textContent += ' Only the draft author can withdraw this review.';
     $('#native-funding-panel').hidden = true;
     if (sharedFinal) {
       setEditable(false);
       plannerGov.render();
     }
+    renderReviewActivity();
   }
   async function nativeGet(path) {
     const failures = [];
@@ -1330,7 +1490,7 @@
         ...proposal,
         title: latest.title || `Juno community proposal #${proposal.id}`,
         status: proposal.withdrawn
-          ? 'declined'
+          ? 'withdrawn'
           : proposal.finalized_version
             ? 'ready'
             : 'discussion',
@@ -1396,7 +1556,6 @@
     state.selected = { ...found, key: `workshop:${id}`, source: 'workshop' };
     $('#onchain-panel').hidden = true;
     setDetails(false);
-    resetCommentForm();
     renderList();
     let [revisions, comments] = await Promise.all([
       isNativeReview()
@@ -1426,6 +1585,7 @@
         revision: item.version,
         change_note: item.change_log
       }));
+    resetCommentForm();
     state.revisions = revisions;
     state.comments = comments;
     const current =
@@ -1447,8 +1607,14 @@
     reviewUrl.searchParams.set('review', String(id));
     reviewUrl.hash = 'governance';
     $('#shared-review-url').href = reviewUrl.href;
-    $('#shared-review-url').textContent = 'Share this review ↗';
-    $('#shared-review-author').textContent = `Draft author: ${found.author} · Review on UNI-7`;
+    $('#shared-review-url').textContent = 'Open review ↗';
+    $('#shared-review-copy-status').textContent = '';
+    $('#shared-review-copy-fallback').hidden = true;
+    void renderAuthorName(
+      $('#shared-review-author'),
+      found.author,
+      () => daoId === state.dao.id && state.selected?.key === `workshop:${id}`
+    );
     $('#shared-review-link').hidden = !isNativeReview();
     history.replaceState(null, '', reviewUrl);
     renderNetwork();
@@ -1457,7 +1623,13 @@
     $('#proposal-heading').textContent = state.selected.title;
     $('#proposal-badge').textContent = String(state.selected.status).toUpperCase();
     updateWorkflow(
-      state.selected.status === 'discussion' ? 4 : state.selected.status === 'voting' ? 6 : 5
+      ['withdrawn', 'declined'].includes(state.selected.status)
+        ? 0
+        : state.selected.status === 'discussion'
+          ? 4
+          : state.selected.status === 'voting'
+            ? 6
+            : 5
     );
     renderRevisions();
     renderComments();
@@ -1632,8 +1804,18 @@
     const base = window.keplr.getOfflineSigner?.(CHAIN_ID) || window.getOfflineSigner?.(CHAIN_ID);
     const wrapped = {
       getAccounts: () => base.getAccounts(),
-      signDirect: (a, d) => window.keplr.signDirect(CHAIN_ID, a, d, { preferNoSetFee: true }),
-      signAmino: (a, d) => window.keplr.signAmino(CHAIN_ID, a, d, { preferNoSetFee: true })
+      signDirect: async (a, d) => {
+        actionFeedback('Confirm this review action in Keplr.');
+        const signed = await window.keplr.signDirect(CHAIN_ID, a, d, { preferNoSetFee: true });
+        actionFeedback('Signature received. Waiting for UNI-7 confirmation…');
+        return signed;
+      },
+      signAmino: async (a, d) => {
+        actionFeedback('Confirm this review action in Keplr.');
+        const signed = await window.keplr.signAmino(CHAIN_ID, a, d, { preferNoSetFee: true });
+        actionFeedback('Signature received. Waiting for UNI-7 confirmation…');
+        return signed;
+      }
     };
     for (const rpc of RPCS)
       try {
@@ -1653,45 +1835,116 @@
     }
     throw new Error(`${label} WAS BROADCAST BUT COULD NOT BE RECOVERED`);
   }
-  async function execute(msg, memo, check) {
+  async function execute(msg, memo, check, intent = null) {
     if (!CONTRACT) throw new Error('PUBLIC REVIEW IS NOT CONFIGURED FOR THIS DAO');
     if (state.walletChain !== CHAIN_ID)
       throw new Error('Reconnect Keplr on UNI-7 to publish this review.');
-    const epoch = state.requestEpoch,
-      address = state.address,
-      contract = CONTRACT;
+    const context = reviewContext();
+    const client = await signer();
+    context.assert();
+    const active = (await window.keplr.getOfflineSigner(CHAIN_ID).getAccounts())[0]?.address;
+    context.assert();
+    if (active !== context.address) throw new Error('KEPLR ACCOUNT CHANGED · RECONNECT');
+    if (localStorage.getItem(receiptKey(context.address)))
+      throw Error('A confirmed review action is waiting to be opened. Check transaction status.');
+    // Retain the action binding before the signing client can clear its journal.
+    // An interrupted view write then remains status-only even across reloads.
+    saveReviewReceipt(null, context, intent);
+    const prepared = localStorage.getItem(receiptKey(context.address));
+    let result;
     try {
-      const client = await signer();
-      if (epoch !== state.requestEpoch || address !== state.address || contract !== CONTRACT)
-        throw new Error('GOVERNANCE CONTEXT CHANGED · REVIEW AGAIN');
-      const active = (await window.keplr.getOfflineSigner(CHAIN_ID).getAccounts())[0]?.address;
-      if (active !== address) throw new Error('KEPLR ACCOUNT CHANGED · RECONNECT');
-      return await NetaSocialsTestnet.execute(client, address, contract, msg, memo);
-    } catch (e) {
-      if (!indexingDisabled(e)) throw e;
-      await recover(check, memo);
-      return { transactionHash: 'RECOVERED_FROM_CHAIN' };
+      result = await NetaSocialsTestnet.execute(
+        client,
+        context.address,
+        context.contract,
+        msg,
+        memo
+      );
+    } catch (error) {
+      if (!localStorage.getItem(`neta-pending-tx-v1:${CHAIN_ID}:${context.address}`)) {
+        // The signing adapter retains every unknown broadcast, including interrupted signatures.
+        // Without a journal this exception is pre-broadcast rejection or verified failure.
+        if (localStorage.getItem(receiptKey(context.address)) === prepared)
+          localStorage.removeItem(receiptKey(context.address));
+        throw error;
+      }
+      context.assert();
+      if (!error.cause) throw error; // A different tab’s pending action is status-only, never this action’s result.
+      result = await reconcileReview(context, intent);
+      if (!result) throw error;
+      if (result.code !== 0) {
+        if (localStorage.getItem(receiptKey(context.address)) === prepared)
+          localStorage.removeItem(receiptKey(context.address));
+        throw Error(
+          `Transaction failed (code ${result.code}). Review the action before trying again.`
+        );
+      }
     }
+    // Persist confirmed outcome before any subsequent view lookup. A failed read
+    // or changed account must never offer the same publication as a fresh write.
+    saveReviewReceipt(result, context, intent);
+    context.assert();
+    return result;
   }
   async function run(button, task) {
     if (state.busy) return false;
     state.busy = true;
-    renderWallet();
+    state.actionButton = button;
     const old = button.textContent;
-    button.disabled = true;
-    button.textContent = 'CHECK KEPLR';
+    const context = reviewContext();
+    const savedReceiptKey = receiptKey(context.address);
+    renderWallet();
+    renderActions();
+    actionFeedback('Preparing your review action…');
     try {
-      await task();
-      status('ON-CHAIN ACTION VERIFIED');
+      // A click after an unknown outcome checks the saved transaction only.
+      // It must never turn recovery of publication into a new comment/signature.
+      if (pendingReview()) {
+        let saved = JSON.parse(localStorage.getItem(savedReceiptKey) || 'null');
+        if (saved && saved.contract !== context.contract)
+          throw Error('Select the original DAO to check this review transaction.');
+        if (!saved?.result) {
+          const result = await reconcileReview(context, saved?.intent);
+          if (!result)
+            throw Error(
+              'Interrupted review confirmation. Check wallet history; this action remains locked.'
+            );
+          if (result.code !== 0) {
+            localStorage.removeItem(savedReceiptKey);
+            throw Error(
+              `Previous transaction failed (code ${result.code}). Review the action before trying again.`
+            );
+          }
+          saved = JSON.parse(localStorage.getItem(savedReceiptKey));
+        }
+        actionFeedback('Transaction confirmed. Updating the review…');
+        await refreshReviewResult(saved, context);
+        localStorage.removeItem(savedReceiptKey);
+        const message =
+          'Previous transaction confirmed. The review is up to date; you can continue.';
+        status(message);
+        actionFeedback(message, 'ready');
+        return true;
+      }
+      const message = await task();
+      localStorage.removeItem(savedReceiptKey);
+      const success = typeof message === 'string' ? message : 'Review action confirmed.';
+      status(success);
+      actionFeedback(success, 'ready');
       return true;
     } catch (e) {
-      status(e.message || String(e), true);
+      const message = e.message || String(e);
+      status(message, true);
+      actionFeedback(message, 'error');
       return false;
     } finally {
       state.busy = false;
+      button.classList.remove('review-action-busy');
       button.textContent = old;
+      state.actionButton = null;
       renderWallet();
       renderActions();
+      renderComments();
     }
   }
   function openRevisionDialog() {
@@ -1868,6 +2121,21 @@
       }
     }
   }
+  $('#shared-review-copy').onclick = async () => {
+    const button = $('#shared-review-copy');
+    button.disabled = true;
+    try {
+      await copyReviewLink($('#shared-review-url').href, {
+        clipboard: navigator.clipboard,
+        input: $('#shared-review-copy-fallback'),
+        feedback: $('#shared-review-copy-status')
+      });
+    } finally {
+      button.disabled = false;
+    }
+  };
+  for (const button of document.querySelectorAll('[data-review-check]'))
+    button.onclick = () => run(button, async () => 'No pending review transaction.');
   $('#proposal-actions').addEventListener('input', renderAccounting);
   $('#subdao-select').onchange = (e) => {
     const scope = state.scope;
@@ -1941,18 +2209,48 @@
           if (!state.selected) {
             const v = values();
             validate(v);
+            if (native && isPlannerGovernance() && plannerDraft.kind === 'CLAIM_REWARDS') {
+              const context = reviewContext();
+              actionFeedback('Checking the next mainnet claim number…');
+              const { readClaimTitle } = await import('./claim-numbering.mjs');
+              context.assert();
+              v.title = await readClaimTitle(MAINNET_RESTS);
+              context.assert();
+              $('#proposal-title').value = v.title;
+            }
+            if (!v.body.includes('This proposal was created on cosmoot.com.')) {
+              v.body += '\n\nThis proposal was created on cosmoot.com.';
+              $('#proposal-body').value = v.body;
+            }
+            validate(v);
             if (native && !CONTRACT) await deployNativeReview();
+            const author = state.address;
+            const before = native
+              ? await queryAll(
+                  (startAfter) => ({ proposal_summaries: { start_after: startAfter, limit: 100 } }),
+                  (item) => item.proposal.id
+                )
+              : [];
+            const intent = {
+              author,
+              values: v,
+              after: Math.max(0, ...before.map((r) => r.proposal.id))
+            };
+            let result;
             if (native)
-              await execute(
+              result = await execute(
                 { publish_proposal: { content: v } },
                 'Juno Governance publish review',
                 async () => {
                   const rows = await queryAll(
-                    (startAfter) => ({ proposals: { start_after: startAfter, limit: 100 } }),
-                    (item) => item.id
+                    (startAfter) => ({
+                      proposal_summaries: { start_after: startAfter, limit: 100 }
+                    }),
+                    (item) => item.proposal.id
                   );
-                  return rows.find((p) => p.author === state.address);
-                }
+                  return publishedReview(rows, intent);
+                },
+                intent
               );
             else
               await execute({ publish_draft: v }, 'NETA Governance publish draft', async () => {
@@ -1962,19 +2260,34 @@
                 );
                 return rows.find((p) => p.author === state.address && p.title === v.title);
               });
-            localStorage.removeItem(draftKey());
+            actionFeedback('Publication confirmed. Opening the community review…');
+            const savedDraftKey = draftKey();
+            if (native) {
+              await refreshReviewResult(
+                JSON.parse(localStorage.getItem(receiptKey())),
+                reviewContext()
+              );
+            } else {
+              await load();
+              const hit = state.proposals
+                .slice()
+                .reverse()
+                .find((p) => p.author === author && p.title === v.title);
+              if (!hit)
+                throw Error(
+                  'Publication confirmed. Reload reviews to open it; do not publish again.'
+                );
+              await select(hit.id);
+            }
+            localStorage.removeItem(savedDraftKey);
             plannerDraft = null;
             plannerDraftError = null;
-            const publishedUrl = new URL(location.href);
-            publishedUrl.searchParams.delete('plannerDraft');
-            history.replaceState(null, '', publishedUrl);
             if (!native) localStorage.removeItem('neta-governance-local-draft');
-            await load();
-            const hit = state.proposals
-              .slice()
-              .reverse()
-              .find((p) => p.author === state.address && p.title === v.title);
-            if (hit) await select(hit.id);
+            renderList();
+            $('#proposal-heading').setAttribute('tabindex', '-1');
+            $('#proposal-heading').focus();
+            $('#proposal-heading').scrollIntoView({ block: 'start', behavior: 'auto' });
+            return 'Published for community review. You can now discuss and revise this proposal.';
           } else {
             const id = state.selected.id;
             if (native)
@@ -1997,8 +2310,11 @@
                   return p.status === 'voting';
                 }
               );
-            await load();
+            actionFeedback('Finalization confirmed. Opening the next step…');
+            if (native) await loadJunoReviews(state.requestEpoch);
+            else await load();
             await select(id);
+            return 'Review finalized. The proposal is ready for submission.';
           }
         });
   $('#publish-revision').onclick = () => {
@@ -2053,7 +2369,8 @@
               return rows.length > state.revisions.length;
             }
           );
-        await load();
+        if (native) await loadJunoReviews(state.requestEpoch);
+        else await load();
         await select(id);
       });
     if (success) closeRevisionDialog();
@@ -2132,8 +2449,8 @@
           return rows.some((c) => c.author === state.address && c.body === expectedBody);
         }
       );
-      resetCommentForm();
       await select(id);
+      return parentId === null ? 'Discussion thread published.' : 'Reply published.';
     });
   };
   document.querySelectorAll('[data-filter]').forEach(
@@ -2199,8 +2516,10 @@
             return p.status === 'declined';
           }
         );
-      await load();
-      newDraft();
+      if (native) await loadJunoReviews(state.requestEpoch);
+      else await load();
+      await select(id);
+      return 'Review withdrawn. Its proposal text and discussion remain available.';
     });
   };
   async function mainnetSigner() {

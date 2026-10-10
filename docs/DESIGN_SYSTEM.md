@@ -672,3 +672,15 @@ and a compact snapshot date/block. Keep unavailable data distinct from zero and
 unclaimed rewards outside the allocation budget. Preparation and errors belong
 beside the button; errors receive focus and remain visible at narrow widths.
 Use existing graphite/mint tokens. Opening a draft requires no wallet signature.
+
+
+## Review feedback and withdrawal — owner update 2026-10-10
+
+Keep transaction progress/status beside the action and discussion controls, with
+visible busy state and a read-only Check transaction status action after uncertain
+outcomes. Copy review link offers visible confirmation and a selectable URL fallback.
+Show the verified public .neta author with the underlying address. Retain address
+fallback and wrap identity text at 320px. Withdraw review is visible in discussion,
+with author-only eligibility and confirmation; its terminal view preserves history.
+New proposal text ends with a short Cosmoot attribution. Mainnet reward proposal
+numbering is fixed before shared review, never rewritten after finalization.

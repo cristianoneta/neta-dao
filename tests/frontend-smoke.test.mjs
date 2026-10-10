@@ -187,8 +187,8 @@ test("mainnet Juno submission remains explicitly locked", () => {
 });
 
 test("UNI-7 indexing errors are detected in RPC data payloads", () => {
-  assert.match(governance, /e\?\.data/);
-  assert.match(governance, /transaction indexing is disabled/i);
+  assert.match(readFileSync(new URL('../review-publication.mjs', import.meta.url), 'utf8'), /current\.cause/);
+  assert.match(readFileSync(new URL('../review-publication.mjs', import.meta.url), 'utf8'), /transaction indexing is disabled/i);
 });
 
 test("UNI-7 code discovery uses legacy-compatible pagination", () => {
