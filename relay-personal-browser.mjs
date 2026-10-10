@@ -36,7 +36,7 @@ class SnapshotJournal extends PersonalSendJournal{
 }
 export class PersonalBrowserController{
   constructor({runtime,adapter,backup,makeBridge,storage=globalThis.localStorage,onState=()=>{},fault=async()=>{}}){
-    if(!runtime?.reset||!runtime?.close||adapter?.profile?.chain!=='juno-1'||!backup?.latest||!backup?.upload||typeof makeBridge!=='function'||!storage?.getItem)throw Error('Personal browser dependencies unavailable');
+    if(!runtime?.reset||!runtime?.close||!runtime?.drain||adapter?.profile?.chain!=='juno-1'||!backup?.latest||!backup?.upload||typeof makeBridge!=='function'||!storage?.getItem)throw Error('Personal browser dependencies unavailable');
     Object.assign(this,{runtime,adapter,backup,makeBridge,storage,onState,fault});
     this.scopeObject={chain:adapter.profile.chain,contract:adapter.profile.contract,wallet:adapter.address};
     this.scope=personalBackupScope(this.scopeObject);this.busy=false;this.invalidated=false;this.failed=false;this.snapshot=null;this.record=null;this.lock=null;
@@ -72,13 +72,14 @@ export class PersonalBrowserController{
     this.busy=true;this.emit();
     try{await this.guard();const result=await fn();await this.guard();return result;}
     catch(error){this.failed=!!this.snapshot;throw error;}
-    finally{this.quiesce();this.busy=false;if(this.invalidated||!this.snapshot)await this.release();this.emit();}
+    finally{try{await this.quiesce();}catch(error){this.failed=!!this.snapshot;throw error;}finally{this.busy=false;if(this.invalidated||!this.snapshot)await this.release();this.emit();}}
   }
-  invalidate(){this.invalidated=true;this.emit();if(!this.busy)void this.release();}
+  invalidate(){this.invalidated=true;this.emit();if(!this.busy)void this.release().catch(()=>{});}
   async lockInbox(){if(this.busy)throw Error('Personal operation already running');if(this.invalidated)throw Error('Reconnect the personal session');await this.release();this.failed=false;this.emit();}
   async close(){this.invalidated=true;this.emit();if(!this.busy)await this.release();}
-  async release(){this.quiesce();this.runtime.close();this.wire=null;this.repo?.close();this.repo=null;this.code=null;this.snapshot=null;this.record=null;await this.lock?.release();this.lock=null;globalThis.removeEventListener?.('keplr_keystorechange',this.accountChanged);}
-  quiesce(){for(const name of ['cc','db','dbKey']){try{this[name]?.uniffiDestroy();}catch{}this[name]=null;}}
+  release(){return this.releasing||=(this._release().finally(()=>{this.releasing=null;}));}
+  async _release(){try{await this.quiesce();}finally{try{await this.runtime.close();}finally{this.wire=null;this.repo?.close();this.repo=null;this.code=null;this.snapshot=null;this.record=null;await this.lock?.release();this.lock=null;globalThis.removeEventListener?.('keplr_keystorechange',this.accountChanged);}}}
+  async quiesce(){let failure;for(const name of ['cc','db','dbKey']){try{this[name]?.uniffiDestroy();}catch(error){failure||=error;}finally{this[name]=null;}}await this.runtime.drain();if(failure)throw failure;}
   async acquire(code){
     if(this.lock)throw Error('Personal device already open');
     if(!/^[a-f0-9]{64}$/.test(code||''))throw Error('Generated recovery code required');
@@ -96,16 +97,16 @@ export class PersonalBrowserController{
   async openCrypto(device=this.snapshot){
     // Native handles/VFS caches can survive wrapper destruction. Never open a
     // different database or reopen after a checkpoint in the preceding realm.
-    this.quiesce();this.wire=await this.runtime.reset();const secret=await unwrapPersonalDatabaseKey(this.scopeObject,device.wrappedKey,this.code);
+    await this.quiesce();this.wire=await this.runtime.reset();const secret=await unwrapPersonalDatabaseKey(this.scopeObject,device.wrappedKey,this.code);
     try{this.dbKey=new this.wire.DatabaseKey(secret);}finally{secret.fill(0);}
     this.db=await this.wire.Database.open(device.path,this.dbKey);this.cc=this.wire.CoreCrypto.new(this.db);await this.transaction(ctx=>ctx.proteusInit());
-    const actualFingerprint=await this.transaction(ctx=>ctx.proteusFingerprint());if(actualFingerprint!==device.descriptor.fingerprint){this.quiesce();throw Error('Personal local fingerprint mismatch (generation '+device.descriptor.generation+')');}
+    const actualFingerprint=await this.transaction(ctx=>ctx.proteusFingerprint());if(actualFingerprint!==device.descriptor.fingerprint){await this.quiesce();throw Error('Personal local fingerprint mismatch (generation '+device.descriptor.generation+')');}
   }
   async restoreWorking(device=this.snapshot){
     if(device.path!==await this.path(device.descriptor))throw Error('Backup database path mismatch');
     // Create only the pinned IndexedDB schema. Opening a new SQLite database
     // here would populate CoreCrypto's VFS cache before the import is installed.
-    this.quiesce();this.wire=await this.runtime.reset();await new Promise((resolve,reject)=>{
+    await this.quiesce();this.wire=await this.runtime.reset();await new Promise((resolve,reject)=>{
       const r=indexedDB.open('core-crypto',1);
       r.onupgradeneeded=()=>r.result.createObjectStore('blocks',{keyPath:['path','offset']});
       r.onsuccess=()=>{r.result.close();resolve();};r.onerror=()=>reject(r.error);
@@ -113,17 +114,17 @@ export class PersonalBrowserController{
     await restoreRatchet(device.path,device.blocks);
   }
   async newDevice(generation){
-    this.quiesce();this.wire=await this.runtime.reset();
+    await this.quiesce();this.wire=await this.runtime.reset();
     const descriptor={generation,device_id:'personal-'+random(12),protocol_version:1,fingerprint:null,prekeys:[],max_prekey_id:8};
     const path=await this.path(descriptor),secret=crypto.getRandomValues(new Uint8Array(32));
     let wrappedKey;try{wrappedKey=await wrapPersonalDatabaseKey(this.scopeObject,secret,this.code);this.dbKey=new this.wire.DatabaseKey(secret);}finally{secret.fill(0);}
     this.db=await this.wire.Database.open(path,this.dbKey);this.cc=this.wire.CoreCrypto.new(this.db);await this.transaction(ctx=>ctx.proteusInit());
     descriptor.fingerprint=await this.transaction(ctx=>ctx.proteusFingerprint());
     for(let id=1;id<=8;id++)descriptor.prekeys.push({id,bundle:b64(await this.transaction(ctx=>ctx.proteusNewPrekey(id)))});
-    this.quiesce();const device={path,wrappedKey,descriptor,blocks:await captureRatchet(path)};
+    await this.quiesce();const device={path,wrappedKey,descriptor,blocks:await captureRatchet(path)};
     // Check that the persisted key really survives a fresh runtime before it can
     // be backed up or offered for registration on-chain.
-    await this.openCrypto(device);this.quiesce();return device;
+    await this.openCrypto(device);await this.quiesce();return device;
   }
   validateSnapshot(s){
     if(s?.controller?.version!==1||typeof s.controller.readOnly!=='boolean'||typeof s.controller.registered!=='boolean'||!Array.isArray(s.controller.retired)||!Array.isArray(s.controller.quarantine))throw Error('Unsupported personal controller snapshot');
@@ -166,7 +167,7 @@ export class PersonalBrowserController{
     this.snapshot.transactionIntents=rows;
   }
   async persist({upload=true}={}){
-    this.quiesce();this.snapshot.blocks=await captureRatchet(this.snapshot.path);this.captureTransactions();
+    await this.quiesce();this.snapshot.blocks=await captureRatchet(this.snapshot.path);this.captureTransactions();
     if(this.record?.pendingUpload)await this.sync(); // Never overwrite an uncertain backup attempt.
     const revision=(this.record?.remote?.revision||0)+1;
     const envelope=await sealPersonalBackup(this.scopeObject,revision,this.snapshot,this.code);
@@ -231,7 +232,10 @@ export class PersonalBrowserController{
   }
   ensureIdle(){if(this.snapshot.sendRecords.some(r=>!terminal(r))||this.snapshot.controller.inbound||this.snapshot.registrationIntent?.status==='pending'||this.lifecycle.load()?.status==='pending')throw Error('Unresolved personal operation; recover it first');}
   async recover(){return this.run(async()=>{
-    this.quiesce();this.record=await this.repo.read();const opened=await openPersonalBackup(this.scopeObject,this.record.envelope,this.code);
+    // A failed storage writer cannot be reused. Its queued writes must settle
+    // before the authenticated checkpoint can replace the working database.
+    try{await this.quiesce();}catch{try{await this.runtime.close();}catch{}}
+    this.record=await this.repo.read();const opened=await openPersonalBackup(this.scopeObject,this.record.envelope,this.code);
     this.validateSnapshot(opened.snapshot);this.snapshot=opened.snapshot;this.setupAdapters();await this.restoreWorking();await this._recover();this.failed=false;return this.status();
   },{recover:true});}
   async _recover(){
@@ -265,7 +269,7 @@ export class PersonalBrowserController{
       recipient,recipientGeneration:remote.generation,recipientFingerprint:remote.fingerprint,messageId:random()};
     await this.openCrypto();const session=personalSessionId(meta,{address:meta.sender,...d},{address:recipient,...remote});
     const exists=await this.transaction(ctx=>ctx.proteusSessionExists(session));const prekey=exists?null:remote.prekeys?.[0];if(!exists&&!prekey)throw Error('Recipient needs prekeys');
-    this.quiesce();const blocks=await captureRatchet(this.snapshot.path),archiveId=await personalArchiveId(meta);
+    await this.quiesce();const blocks=await captureRatchet(this.snapshot.path),archiveId=await personalArchiveId(meta);
     const send={messageId:meta.messageId,recipient,recipientName:contact.name,generation:remote.generation,deviceId:remote.device_id,fingerprint:remote.fingerprint,
       ...(prekey?{initialPrekeyId:prekey.id,initialPrekeyBundle:Array.from(unb64(prekey.bundle))}:{})};
     await this.journal.prepare({meta,text,archiveId,blocks,send});await this.openCrypto();
@@ -295,9 +299,9 @@ export class PersonalBrowserController{
       await this.restoreWorking(device);this.snapshot.controller.inbound={path:device.path,blocks:clone(device.blocks),id,sequence:row.sequence};await this.persist();
       await this.openCrypto(device);let text;
       try{text=await this.transaction(ctx=>decryptPersonal(ctx,meta,unb64(row.ciphertext)));}
-      catch{this.quiesce();await restoreRatchet(device.path,this.snapshot.controller.inbound.blocks);device.blocks=clone(this.snapshot.controller.inbound.blocks);
+      catch{await this.quiesce();await restoreRatchet(device.path,this.snapshot.controller.inbound.blocks);device.blocks=clone(this.snapshot.controller.inbound.blocks);
         this.snapshot.controller.quarantine.push({id,sequence:row.sequence});this.snapshot.cursor=row.sequence;this.snapshot.controller.inbound=null;await this.persist();continue;}
-      await this.fault('inbound-decrypted');this.quiesce();device.blocks=await captureRatchet(device.path);
+      await this.fault('inbound-decrypted');await this.quiesce();device.blocks=await captureRatchet(device.path);
       this.snapshot.archiveRecords.push({id,direction:'in',status:'confirmed',sequence:row.sequence,meta,text});this.snapshot.cursor=row.sequence;this.snapshot.controller.inbound=null;
       await this.persist();
     }

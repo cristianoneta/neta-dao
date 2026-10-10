@@ -29,10 +29,19 @@ were closed, and no open PR remained at the completion check.
 
 ## Deployment evidence
 
+- PR #278 merged after all 16 checks, but manual release 38068377663 failed the
+  personal-browser generation-2 fingerprint check; it did not publish. A new
+  candidate drains queued IndexedDB writes and releases CoreCrypto's temporary
+  native constructor handle before checkpoints and teardown. Browser regressions
+  distinguish the old and corrected handle lifetime, and cover delayed/aborted
+  writes. Local backup/restore/rotation integration and 273 Node tests pass;
+  full CI and manual publication remain pending. [Details](PERSONAL_STORAGE_LIFETIME.md).
+
+
 - PR #277 is published from `d9954bccf217af11ea57857228a6212123433b6d` in
   successful manual release 38065296076. Post-release submission checking exposed
   a Juno reverse-pagination error on the second history page. A forward traversal
-  correction is in validation, not released. Live read-only queries through the
+  correction is merged, with publication blocked by the mailbox check above. Live read-only queries through the
   published proxy returned identical complete histories (147 IDs at height 42562163)
   from Polkachu and Stavr. Real wallet/testnet execution acceptance remains open.
   These facts supersede the candidate status in the earlier entry below.

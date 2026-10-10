@@ -320,11 +320,27 @@ try {
   await page.evaluate(() => {
     Storage.prototype.setItem = window.originalPlannerSetItem;
   });
+  // Prepared text is rendered before the async workspace modules finish. Hold
+  // one module to prove that this intermediate state is still non-interactive.
+  let releaseWorkspace;
+  const workspaceModule = new Promise((resolve) => {
+    releaseWorkspace = resolve;
+  });
+  const moduleRoute = '**/planner-native-governance.mjs';
+  await page.route(moduleRoute, async (route) => {
+    await workspaceModule;
+    await route.continue();
+  });
   await page.locator('#claim-rewards').press('Enter');
   await page.waitForURL((url) => url.hash === '#governance');
   await page.waitForFunction(() =>
     document.getElementById('proposal-title').value.includes('claim staking rewards')
   );
+  assert.equal(await page.locator('#proposal-title').isDisabled(), true);
+  assert.equal(await page.locator('#primary-action').isDisabled(), true);
+  releaseWorkspace();
+  await page.waitForFunction(() => !document.getElementById('proposal-title').disabled);
+  await page.unroute(moduleRoute);
   assert.equal(await page.locator('#governance-view').isVisible(), true);
   assert.match(
     await page.locator('#proposal-summary').inputValue(),
@@ -356,8 +372,10 @@ try {
   await page.locator('#review-proposal').click();
   await page.locator('#publish-proposal').click();
   await page.waitForURL((url) => url.hash === '#governance');
-  await page.waitForFunction(() =>
-    document.getElementById('proposal-title').value.includes('allocation rules')
+  await page.waitForFunction(
+    () =>
+      document.getElementById('proposal-title').value.includes('allocation rules') &&
+      !document.getElementById('proposal-title').disabled
   );
   assert.deepEqual(JSON.parse(await page.locator('#proposal-actions').inputValue()), []);
   assert.match(await page.locator('#proposal-body').inputValue(), /Rule SHA-256:/);
