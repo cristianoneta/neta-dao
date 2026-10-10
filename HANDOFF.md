@@ -8,6 +8,23 @@ in the owner's private operations handoff, outside this repository.
 
 ## Current priority
 
+PR #278 merged as `6b9eeeb9e6e5d02b1311f59da3b85e054f60474f` after 16 successful
+CI jobs, but manual release 38068377663 failed the personal mailbox browser test
+with a generation-2 fingerprint mismatch. PR #277 remains the published source.
+A new candidate addresses two verified storage-lifetime gaps: the temporary
+CoreCrypto constructor handle survives until GC, and relaxed-idb writes can
+outlive the crypto call. It explicitly releases that handle and waits for queued
+IndexedDB transactions before snapshot, restore and runtime teardown. Write
+failures block checkpoints; concurrent disconnects share one cleanup operation.
+
+The real-browser regression fails on the previous source (one retained native
+handle) and passes on this candidate (zero). Delayed/aborted IndexedDB writes,
+273 Node tests and the full encrypted message backup/restore/rotation browser
+flow pass locally. The original intermittent fingerprint stack was not reproduced
+verbatim locally. Full CI and manual publication remain required. Public messaging
+stays disabled; pending journals, archived messages and fingerprint checks remain.
+See [storage lifetime](docs/PERSONAL_STORAGE_LIFETIME.md).
+
 PR #277 is now published from `d9954bccf217af11ea57857228a6212123433b6d`
 in successful manual release [38065296076](https://github.com/cristianoneta/neta-dao/actions/runs/38065296076).
 The owner then encountered HTTP 502 while checking prior native submissions.
@@ -20,8 +37,7 @@ A new correction uses complete forward traversal for duplicate detection and
 claim numbering; numbering also preserves provider URL path prefixes. Two-source
 agreement, pinned submission checks and incomplete-history failure remain.
 Local 269 Node tests, repository/static checks and the full synthetic planner /
-review / submission / funding browser flow pass. Full CI and manual release of
-this correction remain pending. No real signature, deposit or contract change occurred.
+review / submission / funding browser flow pass. PR #278 CI passed; its manual release is blocked as described above. No real signature, deposit or contract change occurred.
 The earlier implementation notes below describe the now-published PR #277.
 
 PR #276 was published from `e30336128fc1c6f2e3afa549d4a79694a6e00242` by manual

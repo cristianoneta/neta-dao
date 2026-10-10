@@ -1,3 +1,4 @@
+import {exercisePersonalStorage} from './exercise-personal-storage.mjs';
 // Real CoreCrypto, IndexedDB, exact-byte bridge and cross-origin HTTPS/ADR-36/SQLite backup.
 // Chain signing is simulated; disposable test wallets authenticate the real service.
 import assert from 'node:assert/strict';
@@ -123,6 +124,7 @@ const consent=async(p,other)=>invoke(p,'submitLifecycle',await invoke(p,'reviewC
 const send=async(p,other,text)=>invoke(p,'submitMessage',await invoke(p,'prepareMessage',other.wallet,text));
 try{
  browser=await chromium.launch({headless:true,...(process.env.RELAY_CHROMIUM_PATH?{executablePath:process.env.RELAY_CHROMIUM_PATH,args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}: {})});
+ await exercisePersonalStorage(browser,origin);
  const a=await profile(alice,undefined,true),b=await profile(bob);
  await a.page.getByRole('button',{name:'Continue with wallet',exact:true}).click();
  await a.page.getByLabel('Recovery code',{exact:true}).waitFor();

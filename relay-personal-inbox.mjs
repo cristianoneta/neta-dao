@@ -118,5 +118,5 @@ export function mountPersonalInbox({root,controller,authorizeBackup,pollInterval
   }
   const previous=controller.onState;controller.onState=state=>{previous(state);render(state);};render(controller.status());
   void perform(()=>inspect(),{reconcile:false});if(pollInterval>0)timer=win.setTimeout(tick,pollInterval);
-  return {dispose(){disposed=true;if(timer)win.clearTimeout(timer);controller.onState=previous;recovery.input.value='';root.replaceChildren();void controller.close();}};
+  return {dispose(){disposed=true;if(timer)win.clearTimeout(timer);controller.onState=previous;recovery.input.value='';root.replaceChildren();void controller.close().catch(()=>{});}};
 }

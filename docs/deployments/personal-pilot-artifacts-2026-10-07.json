@@ -1,6 +1,6 @@
 {
   "format": "neta-personal-private-pilot-v1",
-  "sourceCommit": "bdefafdbcd3dad3203e933ee598aa500ebaa5ec2",
+  "sourceCommit": "6b9eeeb9e6e5d02b1311f59da3b85e054f60474f",
   "sourceRepository": "https://github.com/cristianoneta/neta-dao",
   "sourceBrowserRun": null,
   "publicInboxEnabled": false,
@@ -15,17 +15,18 @@
   "artifacts": {
     "relay-personal-pilot.html": "139c72facb83b0b9783164f0a32795b021ad42083ba100ef64398e9bd882f790",
     "relay-personal-pilot.css": "965f52ed71fa25918750a94aa1fcb0ac6578f2722b7987a0f2716586a666bbaf",
-    "relay-personal-pilot.js": "0c24a2348bc2eefce27f56fd1c2c2eeb648907c5c426b003ec39818df0a1b885",
+    "relay-personal-pilot.js": "e004c504ed0c2223394f2d610e5745cc897fc2a89a65ba6c8593dad400b0b216",
     "assets/relay-personal-pilot-signing.js": "6d9b9480b37989a0b80f193c1bcb2bc6b51aaa4a66a055796572876f9cfbd531",
     "relay-personal-inbox.css": "15d29684ae4d594ec3ad739cf5a4cad48b518cbb4b5763f49a0688d6c758e922",
     "relay-personal-runtime.html": "7e757ce0e5743d732cf3e353ceb667dc110d3b2b0fc66952c879afd52d3ec39c",
-    "relay-personal-runtime-init.mjs": "6fe1146131952a21673a9d5c2e1b15498221096e123ec15e949b3ad7370c84e8"
+    "relay-personal-runtime-init.mjs": "912460883210cb8a23d96cf130015877b6d1c77a7a40eeb903100cdd1ecf2106",
+    "relay-personal-runtime-storage.mjs": "adae7b91db708c736ec409a80ac55b929f39ea6e94349837f0666defef9c5483"
   },
   "existingCryptoArtifacts": {
     "assets/relay-crypto/corecrypto.js": "41c255af33ec642c81a46cfec59e70f4c1a459e28affa5151689b215311b4872",
     "assets/relay-crypto/index_bg.wasm": "ba9a90a53f60ae1600f8f64364ce081995eb1e3548ef9be40fa02e7150c09d84"
   },
-  "deploymentStatus": "Prepared API endpoint migration; not published. Current validation is recorded in the pull request checks.",
+  "deploymentStatus": "Prepared personal IndexedDB checkpoint barrier and explicit native-handle release; not published. Validation is recorded in the pull request checks.",
   "originalPilot": {
     "sourceCommit": "a17a2bfa04fc44a87d70c96292abc01de86ee4f7",
     "sourceBrowserRun": 37616645784
