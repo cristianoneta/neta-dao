@@ -186,13 +186,15 @@ test('review recheck binds a final revision from two UNI-7 sources and paginated
   tamper = true;
   await assert.rejects(verifyReview(sources, expected, { fetcher }));
   let pages = 0;
-  const mainnet = async (url) => {
+  const mainnet = async (url, options) => {
     if (url.includes('/latest'))
       return new Response(
         JSON.stringify({
           block: { header: { chain_id: 'juno-1', height: '99', time: new Date().toISOString() } }
         })
       );
+    assert.equal(new URL(url).searchParams.has('pagination.reverse'), false);
+    assert.equal(options.headers['x-cosmos-block-height'], '99');
     pages++;
     return new Response(
       JSON.stringify(

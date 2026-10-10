@@ -8,6 +8,22 @@ in the owner's private operations handoff, outside this repository.
 
 ## Current priority
 
+PR #277 is now published from `d9954bccf217af11ea57857228a6212123433b6d`
+in successful manual release [38065296076](https://github.com/cristianoneta/neta-dao/actions/runs/38065296076).
+The owner then encountered HTTP 502 while checking prior native submissions.
+Read-only diagnosis reproduced HTTP 500 / nil-pointer errors on the second
+reverse-paginated governance page at both Polkachu and Stavr. Forward cursor
+pagination through the published proxy returned the same complete 147 proposal
+IDs at height 42562163 from both providers.
+
+A new correction uses complete forward traversal for duplicate detection and
+claim numbering; numbering also preserves provider URL path prefixes. Two-source
+agreement, pinned submission checks and incomplete-history failure remain.
+Local 269 Node tests, repository/static checks and the full synthetic planner /
+review / submission / funding browser flow pass. Full CI and manual release of
+this correction remain pending. No real signature, deposit or contract change occurred.
+The earlier implementation notes below describe the now-published PR #277.
+
 PR #276 was published from `e30336128fc1c6f2e3afa549d4a79694a6e00242` by manual
 release [38037267610](https://github.com/cristianoneta/neta-dao/actions/runs/38037267610),
 with all 18 jobs successful. The owner finalized a review and then encountered a

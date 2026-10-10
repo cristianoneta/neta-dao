@@ -116,3 +116,25 @@ selection/signature rejection, account change, sponsor submission, later funding
 READY withdrawal and preserved transaction recovery; desktop/768/390/320 layouts;
 compiled Pages and real workerd tests. Real end-to-end UNI-7 governance execution,
 real sponsor wallet transactions and post-release live acceptance remain open.
+
+## History pagination correction — 10 October 2026 candidate
+
+PR #277 was published in successful manual release 38065296076. The subsequent
+live check found that reverse cursor pagination over older native proposals can
+return a node-side HTTP 500 nil-pointer error, surfaced as HTTP 502 by the read
+route. The first page alone is not evidence of a complete duplicate check.
+
+Duplicate detection and Roman claim numbering now traverse forward until the
+terminal cursor. No history window, status filter or skipped failing page is
+introduced. The numbering reader also preserves each provider's URL path prefix
+while counting independent hosts only once. Page limits, repeated-cursor rejection,
+source agreement and submission height checks remain unchanged.
+
+Read-only live evidence: Polkachu and Stavr returned the same 147 proposal IDs at
+height 42562163 through the published proxy with forward pagination. Regression
+coverage includes a later-page match, later-page claim number and source disagreement;
+the browser fixture rejects reverse reads and requires two history pages. This
+candidate passes 269 local Node tests, repository/static checks and the complete
+synthetic planner/review/funding browser flow at four widths. It still requires
+complete CI and a separate manual release. No real signing or fund movement was
+part of diagnosis.

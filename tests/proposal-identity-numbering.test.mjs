@@ -67,3 +67,40 @@ test('new claim text includes a single Cosmoot attribution', () => {
   const p = claimProposal(s);
   assert.equal(p.values.body.split('This proposal was created on cosmoot.com.').length - 1, 1);
 });
+
+test('claim numbering traverses forward through the last page and retains provider path prefixes', async () => {
+  const messages = rewardMessages(fixture().validators.map((v) => v.address));
+  const endpoints = ['https://one.test', 'https://two.test/juno', 'https://two.test/juno/'];
+  const calls = [];
+  let mismatch = false;
+  const fetcher = async (url) => {
+    const u = new URL(url);
+    if (u.hostname === 'two.test') assert.ok(u.pathname.startsWith('/juno/'));
+    if (u.pathname.endsWith('/latest'))
+      return new Response(
+        JSON.stringify({
+          block: { header: { chain_id: 'juno-1', height: '99', time: new Date().toISOString() } }
+        })
+      );
+    assert.equal(u.searchParams.has('pagination.reverse'), false);
+    calls.push(url);
+    const last = u.searchParams.has('pagination.key');
+    if (last) assert.equal(u.searchParams.get('pagination.key'), 'cursor+/=');
+    return new Response(
+      JSON.stringify({
+        proposals: [
+          {
+            title:
+              CLAIM_TITLE + (last ? (mismatch && u.hostname === 'two.test' ? ' VI' : ' V') : ' II'),
+            messages
+          }
+        ],
+        pagination: { next_key: last ? null : 'cursor+/=' }
+      })
+    );
+  };
+  assert.equal(await readClaimTitle(endpoints, { fetcher }), CLAIM_TITLE + ' VI');
+  assert.equal(calls.length, 4, 'Only independent hosts count, with every page read');
+  mismatch = true;
+  await assert.rejects(readClaimTitle(endpoints, { fetcher }), /must agree/);
+});

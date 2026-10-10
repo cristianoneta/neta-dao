@@ -193,9 +193,11 @@ export async function findReviewSubmission(endpoints, content, options = {}) {
       let key = '',
         found = [],
         seen = new Set();
+      // Juno's reverse cursor traversal can panic on older proposal pages.
+      // Forward traversal still checks the complete history, including later claims.
       for (let page = 0; page < 100; page++) {
         const result = await get(
-          '/cosmos/gov/v1/proposals?pagination.limit=100&pagination.reverse=true' +
+          '/cosmos/gov/v1/proposals?pagination.limit=100' +
             (key ? '&pagination.key=' + encodeURIComponent(key) : '')
         );
         if (!Array.isArray(result.proposals)) throw Error('Proposal history unavailable.');
