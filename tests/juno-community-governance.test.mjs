@@ -212,3 +212,14 @@ test('review recheck binds a final revision from two UNI-7 sources and paginated
   ]);
   assert.equal(pages, 4);
 });
+
+test('same numbered reviews on different chains retain separate submission identities and metadata', async () => {
+  const {proposal,revision}=reviewed();
+  const old=await finalizedReview(proposal,revision), main=await finalizedReview(proposal,revision,'juno-1');
+  assert.equal(old.id,`review-${proposal.id}-${proposal.finalized_hash}`);
+  assert.notEqual(old.id,main.id);
+  assert.notEqual(old.content.metadata,main.content.metadata);
+  assert.equal(main.chainId,'juno-1');
+  assert.match(main.content.metadata,/cosmoot:review:juno-1:/);
+  assert.equal(matchesReview({...main.content},old.content),false);
+});

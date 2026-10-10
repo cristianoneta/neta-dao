@@ -31,14 +31,19 @@
   } = await import('./review-publication.mjs');
   let authorRenderer;
   async function renderAuthorName(element, owner, current) {
-    element.textContent = `Draft author: ${owner} · Review on UNI-7`;
+    element.textContent = `Draft author: ${owner} · Review on ${reviewLabel()}`;
     const { authorNameRenderer } = await import('./proposal-identity.mjs');
     if (!current()) return;
     authorRenderer ||= authorNameRenderer();
-    await authorRenderer(element, owner, current);
+    await authorRenderer(element, owner, current, reviewLabel());
   }
-  const CHAIN_ID = 'uni-7';
-  const RPCS = ['https://juno.test.rpc.nodeshub.online', 'https://juno.rpc.t.stavr.tech'],
+  const { selectedReviewNetwork } = await import('./juno-review-network.mjs');
+  const { verifyMainnetReview } = await import('./juno-review-mainnet-read.mjs');
+  const { executeMainnetReview, loadReviewSigning } = await import(
+    './juno-review-transactions.mjs'
+  );
+  let CHAIN_ID = 'uni-7';
+  let RPCS = ['https://juno.test.rpc.nodeshub.online', 'https://juno.rpc.t.stavr.tech'],
     RESTS = ['https://juno.test.api.nodeshub.online', 'https://juno.api.t.stavr.tech'];
   const MAINNET_RESTS = [
       'https://juno-api.polkachu.com',
@@ -53,13 +58,6 @@
     TEST_ACCESS_CONTRACT = 'juno10739807rjqkf4kmtvpu5ll5e67dkch82xzgph83cmn5h8n0fxmnszasg86',
     TEST_ADMIN = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57',
     DELIVERABLE_TYPE = 'dao_deliverable_v1';
-  function storedReviewContract() {
-    try {
-      return localStorage.getItem(JUNO_REVIEW_CONTRACT_KEY) || null;
-    } catch {
-      return null;
-    }
-  }
   function storedScope() {
     try {
       return JSON.parse(localStorage.getItem('neta-governance-scope') || 'null');
@@ -70,10 +68,19 @@
   const initialScope = resolveSelection(plannerParams, ORGANIZATIONS, DAOS, storedScope());
   const initialDao = initialScope.dao;
   const nativeReviewDao = (dao) => dao.mode === 'native-gov' || dao.id === 'juno-delegation';
+  let reviewNetwork = selectedReviewNetwork(plannerParams, nativeReviewDao(initialDao));
+  function useReviewNetwork(params, dao) {
+    reviewNetwork = selectedReviewNetwork(params, nativeReviewDao(dao));
+    CHAIN_ID = reviewNetwork.chainId;
+    RPCS = reviewNetwork.rpcs;
+    RESTS = reviewNetwork.rests;
+  }
+  useReviewNetwork(plannerParams, initialDao);
   const reviewContractFor = (dao) =>
-    dao.id === 'juno-delegation'
-      ? DAOS.find((d) => d.id === 'juno').workshopContract
-      : dao.workshopContract || (nativeReviewDao(dao) ? storedReviewContract() : null);
+    nativeReviewDao(dao) ? reviewNetwork.contract : dao.workshopContract;
+  const reviewLabel = () => reviewNetwork.label;
+  const reviewRequirement = () =>
+    CHAIN_ID === 'juno-1' ? '1 JUNO DELEGATED' : '1 JUNOX + 1 TEST NETA STAKED';
   let upgradePlannerValues = (value) => value;
   let plannerDraft = null,
     plannerDraftError = null,
@@ -99,10 +106,10 @@
   let CONTRACT = reviewContractFor(initialDao),
     proposalModule = initialDao.proposalModule;
   const CHAIN = {
-    chainId: CHAIN_ID,
+    chainId: 'uni-7',
     chainName: 'Juno Testnet',
-    rpc: RPCS[0],
-    rest: RESTS[0],
+    rpc: 'https://juno.test.rpc.nodeshub.online',
+    rest: 'https://juno.test.api.nodeshub.online',
     bip44: { coinType: 118 },
     bech32Config: {
       bech32PrefixAccAddr: 'juno',
@@ -194,7 +201,7 @@
     connectWallet: connect,
     rests: MAINNET_RESTS,
     rpcs: MAINNET_RPCS,
-    reviewRests: RESTS,
+    reviewRests: () => RESTS,
     blocked: () => state.busy,
     onSubmitted: openSubmittedProposal,
     status,
@@ -244,17 +251,20 @@
   function reviewContext() {
     const address = state.address,
       contract = CONTRACT,
+      chainId = CHAIN_ID,
       epoch = state.walletEpoch,
       request = state.requestEpoch,
       selected = state.selected?.key;
     return {
       address,
       contract,
+      chainId,
       selectedId: state.selected?.id || null,
       assert() {
         if (
           address !== state.address ||
           contract !== CONTRACT ||
+          chainId !== CHAIN_ID ||
           epoch !== state.walletEpoch ||
           request !== state.requestEpoch ||
           selected !== state.selected?.key ||
@@ -266,12 +276,13 @@
       }
     };
   }
-  const receiptKey = (address = state.address) => `cosmoot:review-receipt:uni-7:${address}`;
+  const receiptKey = (address = state.address) => `cosmoot:review-receipt:${CHAIN_ID}:${address}`;
   function saveReviewReceipt(result, context, intent = null) {
     if (result && result.code !== undefined && result.code !== 0) return;
     const value = JSON.stringify({
       result,
       contract: context.contract,
+      chainId: context.chainId,
       selectedId: context.selectedId,
       intent
     });
@@ -321,11 +332,14 @@
   }
   async function reconcileReview(context = reviewContext(), intent = null) {
     context.assert();
-    actionFeedback('Checking the previous UNI-7 transaction. No new signature is requested.');
+    actionFeedback(
+      `Checking the previous ${reviewLabel()} transaction. No new signature is requested.`
+    );
     return reconcileReviewTransaction({
       storage: localStorage,
       locks: navigator.locks,
       sender: context.address,
+      chainId: context.chainId,
       assertCurrent: context.assert,
       onConfirmed: (result) => saveReviewReceipt(result, context, intent),
       fetchTx: async (hash) => {
@@ -415,7 +429,7 @@
         : state.dao.mode === 'dao-readonly' && !isNativeReview()
           ? 'JUNO MAINNET · READ ONLY'
           : isNativeReview()
-            ? 'MAINNET DATA · UNI-7 REVIEW'
+            ? `MAINNET DATA · ${reviewLabel().toUpperCase()} REVIEW`
             : 'UNI-7 TESTNET';
   }
   window.addEventListener('hashchange', renderNetwork);
@@ -597,6 +611,8 @@
     selectionParams(state.scope, url.searchParams);
     if (dao !== state.dao) {
       url.searchParams.delete('review');
+      url.searchParams.delete('reviewChain');
+      url.searchParams.delete('reviewContract');
       url.searchParams.delete('proposal');
     }
     if (plannerDraft && dao.id !== plannerDraft.daoId) {
@@ -623,6 +639,7 @@
     state.dao = dao;
     closeDaoOptions();
     notifyDaoSelection();
+    useReviewNetwork(url.searchParams, dao);
     CONTRACT = reviewContractFor(dao);
     proposalModule = dao.proposalModule;
     clearWallet();
@@ -634,7 +651,7 @@
       dao.mode === 'dao-readonly' && !nativeReviewDao(dao)
         ? 'JUNO MAINNET · READ ONLY'
         : nativeReviewDao(dao)
-          ? 'MAINNET DATA · UNI-7 REVIEW'
+          ? `MAINNET DATA · ${reviewLabel().toUpperCase()} REVIEW`
           : 'UNI-7 TESTNET';
     $('#native-funding-panel').hidden = dao.mode !== 'native-gov';
     newDraft();
@@ -762,8 +779,8 @@
   }
   const draftKey = () =>
     plannerDraft && state.dao.id === plannerDraft.daoId
-      ? `${PLANNER_DRAFT_PREFIX}${plannerDraft.id}:revision`
-      : `neta-governance-local-draft:${state.dao.id}`;
+      ? `${PLANNER_DRAFT_PREFIX}${plannerDraft.id}:revision${CHAIN_ID === 'juno-1' ? ':juno-1:' + CONTRACT : ''}`
+      : `neta-governance-local-draft:${state.dao.id}${CHAIN_ID === 'juno-1' ? ':juno-1:' + CONTRACT : ''}`;
   function localDraft() {
     try {
       const restored = JSON.parse(
@@ -1186,7 +1203,7 @@
         node(
           'div',
           'thread-meta',
-          `${Number(comment.verified_stake) / 1e6} NETA VERIFIED · ${when(comment.created_time)}`
+          `${isNativeReview() && CHAIN_ID === 'juno-1' ? 'JUNO ELIGIBILITY VERIFIED AT POSTING' : Number(comment.verified_stake) / 1e6 + ' NETA VERIFIED'} · ${when(comment.created_time)}`
         ),
         reply
       );
@@ -1211,7 +1228,7 @@
         meta = node(
           'div',
           'thread-meta',
-          `${short(root.author)} · ${Number(root.verified_stake) / 1e6} NETA VERIFIED · ${when(root.created_time)}`
+          `${short(root.author)} · ${isNativeReview() && CHAIN_ID === 'juno-1' ? 'JUNO ELIGIBILITY VERIFIED AT POSTING' : Number(root.verified_stake) / 1e6 + ' NETA VERIFIED'} · ${when(root.created_time)}`
         ),
         controls = node('div', 'thread-controls'),
         reply = node('button', null, 'REPLY');
@@ -1243,15 +1260,20 @@
     const junox = Number(state.access?.active_native_stake || 0) / 1e6,
       neta = Number(state.access?.active_neta_stake || 0) / 1e6,
       missing = [];
-    if (junox < 1) missing.push(`${Math.max(0, 1 - junox)} MORE JUNOX DELEGATED`);
-    if (neta < 1) missing.push(`${Math.max(0, 1 - neta)} MORE TEST NETA STAKED`);
+    if (junox < 1) missing.push(`${Math.max(0, 1 - junox)} MORE ${reviewNetwork.coin} DELEGATED`);
+    if (reviewNetwork.minimumNeta && neta < 1)
+      missing.push(`${Math.max(0, 1 - neta)} MORE TEST NETA STAKED`);
+    const holdings = `${junox} ${reviewNetwork.coin} DELEGATED${reviewNetwork.minimumNeta ? ` + ${neta} TEST NETA STAKED` : ''}`;
     return {
       junox,
       neta,
       missing,
-      label: missing.length
-        ? `${missing.join(' + ')} REQUIRED`
-        : `ELIGIBLE · ${junox} JUNOX + ${neta} TEST NETA STAKED`
+      holdings,
+      label: state.access?.paused
+        ? 'REVIEW PAUSED · OWNER ACTIVATION REQUIRED'
+        : missing.length
+          ? `${missing.join(' + ')} REQUIRED`
+          : `ELIGIBLE · ${holdings}`
     };
   }
   function renderActions() {
@@ -1305,8 +1327,20 @@
     $('#publish-revision').hidden = !discussion;
     $('#eligibility-action').hidden = !commentBlocked;
     $('#eligibility-action').textContent = state.dao.commentStakeLabel || 'OPEN STAKING';
+    if (native && CHAIN_ID === 'juno-1') $('#eligibility-action').textContent = 'DELEGATE JUNO';
+    $('#review-network-archive').hidden = !native;
+    if (native) {
+      const link = new URL(location.href);
+      link.searchParams.delete('review');
+      link.searchParams.delete('reviewContract');
+      link.searchParams.delete('plannerDraft');
+      link.searchParams.set('reviewChain', CHAIN_ID === 'juno-1' ? 'uni-7' : 'juno-1');
+      $('#review-network-archive').href = link.href;
+      $('#review-network-archive').textContent =
+        CHAIN_ID === 'juno-1' ? 'Open UNI-7 test reviews' : 'Return to Juno mainnet reviews';
+    }
     $('#comment-requirement').textContent = native
-      ? '1 JUNOX + 1 TEST NETA STAKED'
+      ? reviewRequirement()
       : 'STRICTLY > 10 NETA STAKED';
     $('#primary-action').hidden = !!selected && !discussion;
     $('#discard-action').hidden =
@@ -1317,8 +1351,8 @@
       (!!selected && (!canWithdraw || pendingReview() || (sharedFinal && plannerGov.hasReceipt())));
     $('#discard-action').title =
       selected && !canWithdraw
-        ? 'Only the draft author can withdraw this review. Connect the author wallet on UNI-7.'
-        : 'Withdraw this review on UNI-7 before mainnet submission, keeping its public history.';
+        ? `Only the draft author can withdraw this review. Connect the author wallet on ${reviewLabel()}.`
+        : `Withdraw this review on ${reviewLabel()} before native submission, keeping its public history.`;
     setEditable(!state.busy && (!selected || (discussion && member)));
     if (!selected) {
       $('#action-hint').textContent = needsSetup
@@ -1327,12 +1361,12 @@
           : 'The shared UNI-7 review workspace must be set up by the configured administrator.'
         : member
           ? native
-            ? 'Publish this Juno proposal on UNI-7 for community review. Mainnet deposit and submission stay locked.'
+            ? `Publish this Juno proposal on ${reviewLabel()} for community review. Native deposit and submission become available after finalization.`
             : 'Save this private draft locally or publish it on Uni-7 for public review.'
           : native
             ? access
-              ? `${access.label} · CURRENT: ${access.junox} JUNOX + ${access.neta} TEST NETA STAKED`
-              : 'CONNECT KEPLR · 1 JUNOX DELEGATED + 1 TEST NETA STAKED REQUIRED'
+              ? `${access.label} · CURRENT: ${access.holdings}`
+              : `CONNECT KEPLR · ${reviewRequirement()} REQUIRED`
             : !CONTRACT
               ? 'Local drafts are available. Public review and proposal submission are not connected for this DAO.'
               : 'Connect an eligible DAO wallet to publish. Local saving remains available.';
@@ -1353,7 +1387,7 @@
           : 'Publish a revision or finalize this version and move it to Voting.'
         : native
           ? access
-            ? `${access.label} · CURRENT: ${access.junox} JUNOX + ${access.neta} TEST NETA STAKED`
+            ? `${access.label} · CURRENT: ${access.holdings}`
             : 'Connect Keplr to verify review access. The draft author can withdraw this review.'
           : 'Public Discussion view. DAO voting power is required to revise or finalize.';
       $('#save-local').hidden = false;
@@ -1469,7 +1503,7 @@
       return;
     }
     const [config, summaries] = await Promise.all([
-      query({ config: {} }),
+      CHAIN_ID === 'juno-1' ? verifyMainnetReview().then((x) => x.config) : query({ config: {} }),
       queryAll(
         (startAfter) => ({ proposal_summaries: { start_after: startAfter, limit: 100 } }),
         (item) => item.proposal.id
@@ -1478,6 +1512,7 @@
     if (epoch !== state.requestEpoch) return;
     state.nativeThreads = true;
     state.configOwner = config.owner;
+    state.reviewPaused = config.paused;
     state.proposals = summaries
       .filter(({ latest_revision }) => {
         if (state.dao.id !== 'juno-delegation') return true;
@@ -1509,7 +1544,7 @@
       renderList();
       $('#native-review-setup').hidden = !!CONTRACT;
       status(
-        `${state.chainProposals.length} JUNO MAINNET · ${state.proposals.length} COMMUNITY REVIEWS`
+        `${state.chainProposals.length} JUNO MAINNET · ${state.proposals.length} ${reviewLabel().toUpperCase()} REVIEWS${state.reviewPaused ? ' · REVIEW PAUSED' : ''}`
       );
       return;
     }
@@ -1596,7 +1631,7 @@
     if (isNativeReview() && state.selected.status === 'ready') {
       let final;
       try {
-        final = await finalizedReview(found, current);
+        final = await finalizedReview(found, current, CHAIN_ID);
       } catch (error) {
         status(error.message, true);
       }
@@ -1607,6 +1642,8 @@
     reviewUrl.searchParams.delete('plannerDraft');
     reviewUrl.searchParams.delete('proposal');
     reviewUrl.searchParams.set('review', String(id));
+    reviewUrl.searchParams.set('reviewChain', CHAIN_ID);
+    if (isNativeReview()) reviewUrl.searchParams.set('reviewContract', CONTRACT);
     reviewUrl.hash = 'governance';
     $('#shared-review-url').href = reviewUrl.href;
     $('#shared-review-url').textContent = 'Open review ↗';
@@ -1803,31 +1840,34 @@
   async function signer() {
     if (state.client) return state.client;
     if (!state.address) throw new Error('CONNECT KEPLR FIRST');
+    if (CHAIN_ID === 'juno-1') await loadReviewSigning();
     const base = window.keplr.getOfflineSigner?.(CHAIN_ID) || window.getOfflineSigner?.(CHAIN_ID);
     const wrapped = {
       getAccounts: () => base.getAccounts(),
       signDirect: async (a, d) => {
         actionFeedback('Confirm this review action in Keplr.');
         const signed = await window.keplr.signDirect(CHAIN_ID, a, d, { preferNoSetFee: true });
-        actionFeedback('Signature received. Waiting for UNI-7 confirmation…');
+        actionFeedback(`Signature received. Waiting for ${reviewLabel()} confirmation…`);
         return signed;
       },
       signAmino: async (a, d) => {
         actionFeedback('Confirm this review action in Keplr.');
         const signed = await window.keplr.signAmino(CHAIN_ID, a, d, { preferNoSetFee: true });
-        actionFeedback('Signature received. Waiting for UNI-7 confirmation…');
+        actionFeedback(`Signature received. Waiting for ${reviewLabel()} confirmation…`);
         return signed;
       }
     };
     for (const rpc of RPCS)
       try {
         return (state.client = await deadline(
-          NetaSocialsTestnet.connect(rpc, wrapped),
+          CHAIN_ID === 'juno-1'
+            ? NetaNamesSigning.connect(rpc, wrapped, CHAIN_ID)
+            : NetaSocialsTestnet.connect(rpc, wrapped),
           45000,
           'RPC CONNECTION'
         ));
       } catch {}
-    throw new Error('ALL UNI-7 RPC ENDPOINTS FAILED');
+    throw new Error(`ALL ${reviewLabel().toUpperCase()} RPC ENDPOINTS FAILED`);
   }
   async function recover(check, label) {
     for (let i = 0; i < 8; i++) {
@@ -1840,7 +1880,7 @@
   async function execute(msg, memo, check, intent = null) {
     if (!CONTRACT) throw new Error('PUBLIC REVIEW IS NOT CONFIGURED FOR THIS DAO');
     if (state.walletChain !== CHAIN_ID)
-      throw new Error('Reconnect Keplr on UNI-7 to publish this review.');
+      throw new Error(`Reconnect Keplr on ${reviewLabel()} to publish this review.`);
     const context = reviewContext();
     const client = await signer();
     context.assert();
@@ -1855,13 +1895,25 @@
     const prepared = localStorage.getItem(receiptKey(context.address));
     let result;
     try {
-      result = await NetaSocialsTestnet.execute(
-        client,
-        context.address,
-        context.contract,
-        msg,
-        memo
-      );
+      result =
+        CHAIN_ID === 'juno-1'
+          ? await executeMainnetReview({
+              client,
+              sender: context.address,
+              contract: context.contract,
+              msg,
+              memo,
+              assertWallet: async (sender) => {
+                context.assert();
+                if (
+                  (await window.keplr.getOfflineSigner(context.chainId).getAccounts())[0]
+                    ?.address !== sender
+                )
+                  throw Error('KEPLR ACCOUNT CHANGED · RECONNECT');
+                context.assert();
+              }
+            })
+          : await NetaSocialsTestnet.execute(client, context.address, context.contract, msg, memo);
     } catch (error) {
       if (!localStorage.getItem(`neta-pending-tx-v1:${CHAIN_ID}:${context.address}`)) {
         // The signing adapter retains every unknown broadcast, including interrupted signatures.
@@ -1967,7 +2019,8 @@
     $('#publish-revision').focus();
   }
   async function deployNativeReview() {
-    if (!isNativeReview()) throw new Error('SELECT JUNO NETWORK GOVERNANCE FIRST');
+    if (!isNativeReview() || CHAIN_ID !== 'uni-7')
+      throw new Error('Testnet setup is only available on UNI-7.');
     if (!state.address) throw new Error('CONNECT KEPLR FIRST');
     if (state.address !== TEST_ADMIN)
       throw new Error('ONLY THE CONFIGURED TEST ADMIN MAY SET UP THE REVIEW WORKSPACE');
@@ -2069,7 +2122,7 @@
     status('CONNECTING · CHECK KEPLR');
     try {
       if (!window.keplr) throw new Error('KEPLR NOT FOUND');
-      if (requestedChain === CHAIN_ID) {
+      if (requestedChain === 'uni-7') {
         if (!window.keplr.experimentalSuggestChain)
           throw new Error('KEPLR CHAIN SUGGESTION UNAVAILABLE');
         await deadline(window.keplr.experimentalSuggestChain(CHAIN), 45000, 'CHAIN SUGGESTION');
@@ -2099,14 +2152,14 @@
           : null;
       if (!current()) return;
       state.access = access;
-      if (requestedChain === 'juno-1') {
+      if (requestedChain === 'juno-1' && !nativeReviewDao(dao)) {
         status('CONNECTED TO JUNO MAINNET · REVIEW YOUR GOVERNANCE PROPOSAL');
       } else if (nativeReviewDao(dao)) {
         const neta = Number(access?.active_neta_stake || 0) / 1e6,
           junox = Number(access?.active_native_stake || 0) / 1e6;
         status(
           contract
-            ? `${access?.can_publish ? 'REVIEW ELIGIBLE' : 'CONNECTED'} · ${junox} JUNOX + ${neta} TEST NETA STAKED`
+            ? `${nativeAccess().label} · ${reviewLabel()}`
             : 'CONNECTED · DEPLOY THE JUNO REVIEW CONTRACT'
         );
       } else
@@ -2411,8 +2464,11 @@
       status(`JUNO REVIEW WORKSPACE READY · ${short(CONTRACT)}`);
     });
   $('#eligibility-action').onclick = () => {
-    if (state.dao.commentStakeUrl)
-      window.open(state.dao.commentStakeUrl, '_blank', 'noopener,noreferrer');
+    const url =
+      isNativeReview() && CHAIN_ID === 'juno-1'
+        ? 'https://www.mintscan.io/juno/validators'
+        : state.dao.commentStakeUrl;
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
   };
   $('#comment-form').onsubmit = (e) => {
     e.preventDefault();
@@ -2598,11 +2654,12 @@
   );
   $('#chain-select').value = state.chain.id;
   $('#dao-search').value = state.scope.organization.name;
+  $('#dao-search').disabled = false;
   $('.testnet-pill').textContent =
     state.dao.mode === 'dao-readonly' && !isNativeReview()
       ? 'JUNO MAINNET · READ ONLY'
       : isNativeReview()
-        ? 'MAINNET DATA · UNI-7 REVIEW'
+        ? `MAINNET DATA · ${reviewLabel().toUpperCase()} REVIEW`
         : 'UNI-7 TESTNET';
   $('#native-funding-panel').hidden = !isNativeReview();
   $('#native-review-setup').hidden = !isNativeReview() || !!CONTRACT;

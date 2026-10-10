@@ -1,3 +1,4 @@
+import { REVIEW_MAINNET_RELEASE } from './juno-review-mainnet-config.mjs';
 // Public read-only transport. Provider identities stay distinct for quorum checks.
 export const GOVERNANCE_SOURCES = /* @__PURE__ */ Object.freeze({
   'uni7-nodeshub': 'https://juno.test.api.nodeshub.online',
@@ -34,6 +35,8 @@ export function governanceReadTarget(source, path, height = '') {
         '/cosmos/gov/v1/params/deposit',
         '/cosmos/auth/v1beta1/module_accounts/gov',
         `/cosmwasm/wasm/v1/contract/${programme}`,
+        `/cosmwasm/wasm/v1/contract/${REVIEW_MAINNET_RELEASE.contract}`,
+        `/cosmwasm/wasm/v1/code/${REVIEW_MAINNET_RELEASE.codeId}`,
         `/cosmos/distribution/v1beta1/delegators/${programme}/withdraw_address`
       ].includes(pathname) ||
       /^\/cosmos\/gov\/v1\/proposals\/[1-9]\d{0,19}$/.test(pathname) ||
@@ -61,7 +64,10 @@ export function governanceReadTarget(source, path, height = '') {
       return url.href;
     }
   }
-  const prefix = `/cosmwasm/wasm/v1/contract/${mainnet ? programme : review}/smart/`;
+  const isMainnetReview =
+    mainnet &&
+    pathname.startsWith(`/cosmwasm/wasm/v1/contract/${REVIEW_MAINNET_RELEASE.contract}/smart/`);
+  const prefix = `/cosmwasm/wasm/v1/contract/${isMainnetReview ? REVIEW_MAINNET_RELEASE.contract : mainnet ? programme : review}/smart/`;
   if (pathname.startsWith(prefix)) {
     const q = JSON.parse(atob(decodeURIComponent(pathname.slice(prefix.length))));
     const keys = Object.keys(q),
@@ -69,8 +75,9 @@ export function governanceReadTarget(source, path, height = '') {
       value = q[type];
     if (keys.length !== 1 || !value || typeof value !== 'object' || Array.isArray(value))
       throw Error('Invalid contract read.');
-    if (mainnet)
+    if (mainnet && !isMainnetReview)
       allowed = ['admin', 'pause_info'].includes(type) && Object.keys(value).length === 0;
+    else if (isMainnetReview && type === 'config') allowed = Object.keys(value).length === 0;
     else if (type === 'proposal')
       allowed =
         Object.keys(value).length === 1 &&

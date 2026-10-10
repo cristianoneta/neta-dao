@@ -129,7 +129,7 @@ function fixture() {
 }
 test('owner-reviewed upload/create exports verified policy and upgrade custody without activation', async () => {
   const f = fixture();
-  assert.equal(REVIEW_MAINNET_RELEASE, null);
+  assert.equal(REVIEW_MAINNET_RELEASE.codeId, 5171);
   await assert.rejects(f.setup.prepare('instantiate'), /Upload once/);
   const upload = await f.setup.prepare('store');
   assert.equal(f.writes, 0);

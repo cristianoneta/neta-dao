@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile } from 'node:fs/promises';
 import { GOVERNANCE_SOURCES, CHAIN_READ_PATH } from '../../governance-chain-read.mjs';
-import { REVIEW_CONTRACT } from '../../juno-community-governance.mjs';
+import {
+  REVIEW_MAINNET_RELEASE as PIN,
+  REVIEW_MAINNET_POLICY
+} from '../../juno-review-mainnet-config.mjs';
+import { UNI7_REVIEW_CONTRACT } from '../../juno-review-network.mjs';
+const REVIEW_CONTRACT = PIN.contract;
 
 // All external reads and wallet writes are synthetic. This exercises the actual
 // composer, shared-review deep link, sponsor handoff and deposit controls.
@@ -81,7 +86,11 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
         const pin = Object.values(manifest.contracts).find(
           (p) => String(p.code_id) === url.pathname.split('/').at(-1)
         );
-        body = { code_info: { data_hash: pin.sha256 } };
+        body = {
+          code_info: url.pathname.endsWith('/5171')
+            ? { creator: PIN.creator, data_hash: PIN.codeHash }
+            : { data_hash: pin.sha256 }
+        };
       } else if (url.pathname.endsWith('/latest'))
         body = {
           block: {
@@ -102,14 +111,17 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
           Buffer.from(decodeURIComponent(url.pathname.split('/smart/')[1]), 'base64')
         );
         let data;
-        if (url.pathname.includes(REVIEW_CONTRACT)) {
-          if (q.config) data = { owner: author, minimum_comment_stake: '1000000' };
+        if (url.pathname.includes(REVIEW_CONTRACT) || url.pathname.includes(UNI7_REVIEW_CONTRACT)) {
+          if (q.config)
+            data = testnet
+              ? { owner: author, minimum_comment_stake: '1000000' }
+              : { ...REVIEW_MAINNET_POLICY, paused: false };
           else if (q.access)
             data = {
               can_publish: true,
               can_comment: true,
               active_native_stake: '1000000',
-              active_neta_stake: '1000000'
+              active_neta_stake: '0'
             };
           else if (q.proposal_summaries) {
             if (failReviewReads)
@@ -151,7 +163,11 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
           : url.pathname.endsWith(manifest.profile_contract)
             ? manifest.contracts.profiles
             : { code_id: '4047' };
-        body = { contract_info: pin };
+        body = {
+          contract_info: url.pathname.endsWith(REVIEW_CONTRACT)
+            ? { code_id: PIN.codeId, creator: PIN.creator, admin: PIN.admin, label: PIN.label }
+            : pin
+        };
       } else if (url.pathname.includes('/withdraw_address'))
         body = { withdraw_address: sample.programme };
       else if (url.pathname.includes('/delegations/'))
@@ -274,6 +290,12 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     if (contributionMode === 'lost') throw Error('Synthetic lost response');
     return { transactionHash: 'B'.repeat(64), height: 42500125, code: 0 };
   });
+  await page.route('**/assets/names-signing.js*', (route) =>
+    route.fulfill({
+      contentType: 'text/javascript',
+      body: 'window.NetaNamesSigning = window.__reviewSigningFixture;'
+    })
+  );
   const wallet = async (address) =>
     page.evaluate((address) => {
       window.__walletChains = [];
@@ -304,11 +326,11 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
               .join('')
               .toUpperCase();
             localStorage.setItem(
-              `neta-pending-tx-v1:uni-7:${sender}`,
+              `neta-pending-tx-v1:juno-1:${sender}`,
               JSON.stringify({
                 version: 1,
                 status: 'pending',
-                chain: 'uni-7',
+                chain: 'juno-1',
                 sender,
                 hash,
                 bytes: btoa(String.fromCharCode(...bytes))
@@ -321,6 +343,25 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
           return result;
         }
       };
+      const previouslyLoaded = !!window.NetaNamesSigning;
+      window.__reviewSigningFixture = {
+        connect: async () => ({ disconnect() {} }),
+        createBridge: (opts) => ({
+          execute: async (request, { beforeSign }) => {
+            if (opts.chainId !== 'juno-1') throw Error('Wrong review chain');
+            await opts.verifyDeployment();
+            await beforeSign();
+            return window.NetaSocialsTestnet.execute(
+              null,
+              request.owner,
+              request.contract,
+              request.msg
+            );
+          }
+        })
+      };
+      if (previouslyLoaded) window.NetaNamesSigning = window.__reviewSigningFixture;
+      else delete window.NetaNamesSigning;
       window.NetaJunoGovernance = {
         connect: async () => ({ disconnect() {} }),
         simulate: async (_client, _content, _sender, deposit) => {
@@ -398,7 +439,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   await wallet(author);
   await page.locator('#gov-connect').click();
   await page.waitForFunction(() => !document.querySelector('#primary-action').disabled);
-  assert.deepEqual(await page.evaluate(() => window.__walletChains), ['uni-7']);
+  assert.deepEqual(await page.evaluate(() => window.__walletChains), ['juno-1']);
   await page.evaluate(() => (window.__rejectReview = true));
   await page.locator('#primary-action').click();
   await page.waitForFunction(
@@ -723,4 +764,19 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   assert.equal(await page.locator('#comment-form').isVisible(), false);
   assert.equal(await page.locator('#primary-action').isVisible(), false);
   assert.equal(await page.locator('#proposal-title').isDisabled(), true);
+  const mainnetUrl = page.url(),
+    legacyUrl = new URL(mainnetUrl);
+  legacyUrl.searchParams.delete('reviewChain');
+  legacyUrl.searchParams.delete('reviewContract');
+  await page.goto(legacyUrl.href);
+  await page.waitForFunction(
+    () => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN'
+  );
+  assert.match(await page.locator('#shared-review-author').textContent(), /Review on UNI-7/);
+  assert.match(await page.locator('#shared-review-url').getAttribute('href'), /reviewChain=uni-7/);
+  await page.goto(mainnetUrl);
+  await page.waitForFunction(
+    () => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN'
+  );
+  assert.match(await page.locator('#shared-review-author').textContent(), /Review on Juno mainnet/);
 }

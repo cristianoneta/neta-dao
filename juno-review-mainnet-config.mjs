@@ -1,4 +1,4 @@
-// Proposed launch policy. Deployment remains paused; activation needs verified receipts.
+// Verified mainnet deployment. The live contract pause controls community writes.
 export const REVIEW_MAINNET_OWNER = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
 export const REVIEW_MAINNET_WASM =
   '2974c3de6c5cd2ad71de0ce2af45a50535fc55a79c5e85556923790c6274decf';
@@ -19,5 +19,13 @@ export const REVIEW_MAINNET_POLICY = Object.freeze({
   paused: true,
   comment_cooldown_seconds: 30
 });
-// Null until exact code, instance, admin, policy and transactions have been verified.
-export const REVIEW_MAINNET_RELEASE = null;
+// Both deployment transactions and the paused instance were independently verified.
+export const REVIEW_MAINNET_RELEASE = Object.freeze({
+  chainId: 'juno-1',
+  contract: 'juno15wwr9dezyfp86p4px5p664gguargukml3wa9pctw9nutfn2rzk9qwf45gq',
+  creator: 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57',
+  admin: 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57',
+  codeId: 5171,
+  codeHash: '2974c3de6c5cd2ad71de0ce2af45a50535fc55a79c5e85556923790c6274decf',
+  label: 'Juno community review v0.3.1 \u00b7 Juno mainnet'
+});

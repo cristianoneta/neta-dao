@@ -50,11 +50,13 @@ export async function reconcileReviewTransaction({
   storage,
   locks,
   sender,
+  chainId = 'uni-7',
   fetchTx,
   assertCurrent = () => {},
   onConfirmed = () => {}
 }) {
-  const key = `neta-pending-tx-v1:uni-7:${sender}`;
+  if (!['uni-7', 'juno-1'].includes(chainId)) throw Error('Unsupported review network.');
+  const key = `neta-pending-tx-v1:${chainId}:${sender}`;
   if (!locks?.request) throw Error('Device transaction lock unavailable.');
   return locks.request(key, { mode: 'exclusive', ifAvailable: true }, async (lock) => {
     if (!lock) throw Error('Another tab is processing this transaction.');
@@ -63,7 +65,7 @@ export async function reconcileReviewTransaction({
     const journal = JSON.parse(saved);
     if (
       journal.version !== 1 ||
-      journal.chain !== 'uni-7' ||
+      journal.chain !== chainId ||
       journal.sender !== sender ||
       journal.status !== 'pending' ||
       !/^[0-9A-F]{64}$/.test(journal.hash) ||

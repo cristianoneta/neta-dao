@@ -206,7 +206,7 @@ test("Juno review uses the canonical UNI-7 contract", () => {
 });
 
 test("Juno review explains each missing stake requirement", () => {
-  assert.match(governance, /MORE JUNOX DELEGATED/);
+  assert.match(governance, /MORE \$\{reviewNetwork.coin\} DELEGATED/);
   assert.match(governance, /MORE TEST NETA STAKED/);
   assert.match(governance, /CURRENT:/);
 });

@@ -60,7 +60,12 @@ try{
  });
  await context.route('**/data/daos/neta.json',route=>json(route,{adapter:'cw20-staked-legacy',power_decimals:6,power_unit:'NETA',chain_id:'juno-1',token_contract:'juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr',core:'juno1c5v6jkmre5xa9vf9aas6yxewc7aqmjy0rlkkyk4d88pnwuhclyhsrhhns6',voting_module:'juno1839rlmw33avduccuhpnv6cqxsdlwpz87vq8g6x6jkfrdzpwtl8nsgf20f4',staking_contract:'juno1a7x8aj7k38vnj9edrlymkerhrl5d4ud3makmqhx6vt3dhu0d824qh038zh',members_complete:true,members:[{address:'juno1'+'q'.repeat(38),power_raw:'1000000'}],total_power_raw:'1000000',height:100,generated_at:'2026-10-03T18:00:00Z'}));
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ let releaseGovernance;
+ const governanceReady=new Promise(resolve=>{releaseGovernance=resolve;});
+ await context.route('**/juno-review-network.mjs',async route=>{await governanceReady;await route.continue();});
  await page.goto(origin+'/index.html');
+ assert.equal(await page.locator('#dao-search').isDisabled(),true,'DAO search must wait for its handlers');
+ releaseGovernance();
  await page.locator('#dao-search').fill('Juno');
  await page.locator('#dao-options button').filter({hasText:'Juno Network Governance'}).click();
  await page.locator('#subdao-select').selectOption('juno');

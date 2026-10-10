@@ -1,3 +1,5 @@
+import { reviewNetwork } from './juno-review-network.mjs';
+import { verifyMainnetReview } from './juno-review-mainnet-read.mjs';
 import { governanceFetch } from './governance-chain-read.mjs';
 import { claimValidators, depositTerms, proposalContent } from './juno-governance-core.mjs';
 
@@ -35,7 +37,8 @@ export function reviewValues(revision) {
     })
   );
 }
-export async function finalizedReview(proposal, revision) {
+export async function finalizedReview(proposal, revision, chainId = 'uni-7') {
+  const network = reviewNetwork(chainId);
   if (
     !positive(proposal?.id) ||
     proposal.withdrawn ||
@@ -55,9 +58,14 @@ export async function finalizedReview(proposal, revision) {
     throw Error('Finalized review content does not match its on-chain hash.');
   const kind = reviewKind(values),
     content = proposalContent(kind, values);
-  const metadata = `cosmoot:review:uni-7:${REVIEW_CONTRACT}:${proposal.id}:${hash}`;
+  const metadata = `cosmoot:review:${chainId}:${network.contract}:${proposal.id}:${hash}`;
   return {
-    id: `review-${proposal.id}-${hash}`,
+    id:
+      chainId === 'uni-7'
+        ? `review-${proposal.id}-${hash}`
+        : `review-${chainId}-${network.contract}-${proposal.id}-${hash}`,
+    chainId,
+    contract: network.contract,
     reviewId: String(proposal.id),
     hash,
     kind,
@@ -113,14 +121,18 @@ async function quorum(endpoints, read, same, label = 'Chain verification') {
   return good;
 }
 export async function verifyReview(endpoints, expected, options = {}) {
+  const network = reviewNetwork(expected.chainId || 'uni-7');
+  if (expected.contract && expected.contract !== network.contract)
+    throw Error('Review contract identity mismatch.');
+  if (network.chainId === 'juno-1') await verifyMainnetReview(options);
   const good = await quorum(
     endpoints,
     async (endpoint) => {
-      const { get } = await reader(endpoint, 'uni-7', options);
+      const { get } = await reader(endpoint, network.chainId, options);
       const query = async (q) =>
         (
           await get(
-            `/cosmwasm/wasm/v1/contract/${REVIEW_CONTRACT}/smart/${encodeURIComponent(btoa(JSON.stringify(q)))}`
+            `/cosmwasm/wasm/v1/contract/${network.contract}/smart/${encodeURIComponent(btoa(JSON.stringify(q)))}`
           )
         ).data;
       const proposal = await query({ proposal: { proposal_id: Number(expected.reviewId) } });
@@ -132,10 +144,10 @@ export async function verifyReview(endpoints, expected, options = {}) {
           limit: 1
         }
       });
-      return finalizedReview(proposal, revisions?.[0]);
+      return finalizedReview(proposal, revisions?.[0], network.chainId);
     },
     (v) => v,
-    'UNI-7 finalized review verification'
+    `${network.label} finalized review verification`
   );
   if (canonical(good[0]) !== canonical(expected))
     throw Error('The finalized community review changed. Reopen it.');

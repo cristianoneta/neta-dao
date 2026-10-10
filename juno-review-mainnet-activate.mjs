@@ -1,9 +1,6 @@
+import { ReviewMainnetActivation } from './juno-review-mainnet-activate-core.mjs';
 import { connectReviewSetup } from './juno-review-mainnet-deploy-core.mjs';
-import {
-  REVIEW_MAINNET_OWNER,
-  REVIEW_MAINNET_WASM,
-  REVIEW_MAINNET_RELEASE
-} from './juno-review-mainnet-config.mjs';
+import { REVIEW_MAINNET_OWNER, REVIEW_MAINNET_WASM } from './juno-review-mainnet-config.mjs';
 const $ = (id) => document.getElementById(id);
 let session = null,
   busy = false,
@@ -31,20 +28,19 @@ function render() {
       : 'Juno setup not connected.';
   $('registry-state').textContent = s?.codeId
     ? `Code ${s.codeId}${s.address ? ' · ' + s.address : ' · ready to create'}`
-    : 'Not deployed in this browser.';
+    : 'Pinned mainnet review; connect to verify.';
   $('pending').textContent = s?.pending
     ? `${s.pending.kind} · outcome pending`
     : session
-      ? 'No pending deployment.'
+      ? 'No pending activation.'
       : 'No wallet connected.';
   for (const b of document.querySelectorAll('[data-kind]'))
     b.disabled =
-      !!REVIEW_MAINNET_RELEASE ||
       busy ||
       !$('approve-policy').checked ||
       !s ||
       !!s.pending ||
-      (b.dataset.kind === 'store' ? !!s.codeId : !s.codeId || !!s.address);
+      s.history.some((x) => !x.receipt.notBroadcast && x.receipt.code === 0);
   $('approve-policy').disabled = busy;
   $('confirm').disabled = busy || !review || !session;
   $('recover').disabled = busy || !s?.pending;
@@ -70,7 +66,7 @@ function disconnected() {
   session = null;
   clear();
   $('connection-status').textContent =
-    'Disconnected. Deployment and transaction records are preserved.';
+    'Disconnected. Activation and transaction records are preserved.';
   render();
 }
 $('owner').textContent = REVIEW_MAINNET_OWNER;
@@ -78,6 +74,7 @@ $('connect').addEventListener('click', () =>
   run(async () => {
     const started = epoch;
     const candidate = await connectReviewSetup({
+      Setup: ReviewMainnetActivation,
       assertCurrent: () => {
         if (started !== epoch) throw Error('Wallet connection changed.');
       },
@@ -147,11 +144,12 @@ $('download').addEventListener('click', () =>
     );
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'juno-review-mainnet-deployment-receipts.json';
+    a.download = 'juno-review-mainnet-activation-receipts.json';
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    $('status').textContent =
-      'Verified public receipts saved. The review remains paused. Share these receipts to prepare activation.';
+    $('status').textContent = data.activated
+      ? 'Verified: mainnet review is enabled. Public receipts saved.'
+      : 'Review remains paused. Public receipts saved.';
   })
 );
 $('approve-policy').addEventListener('change', () => {

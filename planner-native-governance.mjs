@@ -27,6 +27,7 @@ export function nativePlanner({
   busy,
   rerender
 }) {
+  const reviewEndpoints = () => (typeof reviewRests === 'function' ? reviewRests() : reviewRests);
   const $ = (selector) => document.querySelector(selector);
   let reviewed = null,
     client = null,
@@ -216,7 +217,7 @@ export function nativePlanner({
       {
         localStorage.setItem(`cosmoot:juno:planner-proposal:${draft().id}:revision`, fingerprint);
         status('CHECKING JUNO GOVERNANCE, DEPOSIT AND PROGRAMME AUTHORITY…');
-        await verifyReview(reviewRests, expectedReview);
+        await verifyReview(reviewEndpoints(), expectedReview);
         const existing = await findReviewSubmission(rests, content);
         current(epoch, fingerprint, sender, id);
         if (existing.length) {
@@ -263,7 +264,7 @@ export function nativePlanner({
         const guard = async () => {
           current(review.epoch, review.fingerprint, review.sender, review.id);
           if (receipt()) throw Error('A submission is already recorded for this draft.');
-          await verifyReview(reviewRests, review.expectedReview);
+          await verifyReview(reviewEndpoints(), review.expectedReview);
           if ((await findReviewSubmission(rests, review.content)).length)
             throw Error(
               'This review already has an on-chain proposal. Refresh to open its funding.'
@@ -358,7 +359,7 @@ export function nativePlanner({
         if (!lock) throw Error('Another tab is processing this proposal.');
         if (receipt())
           throw Error('A submission is already recorded. Check its status before withdrawing.');
-        await verifyReview(reviewRests, expected);
+        await verifyReview(reviewEndpoints(), expected);
         if ((await findReviewSubmission(rests, expected.content)).length)
           throw Error(
             'This review was already submitted to Juno. Its on-chain proposal cannot be withdrawn here.'
@@ -368,7 +369,7 @@ export function nativePlanner({
           draft()?.id !== id ||
           address() !== sender ||
           generation !== epoch ||
-          chain() !== 'uni-7'
+          chain() !== (expected.chainId || 'uni-7')
         )
           throw Error('Review or wallet changed. Reopen the review before withdrawing.');
         return task();

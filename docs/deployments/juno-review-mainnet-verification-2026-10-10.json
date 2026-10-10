@@ -1,0 +1,84 @@
+{
+  "kind": "juno-review-mainnet-independent-verification",
+  "verifiedAt": "2026-10-10T18:22:06.289Z",
+  "deployment": {
+    "chainId": "juno-1",
+    "contract": "juno15wwr9dezyfp86p4px5p664gguargukml3wa9pctw9nutfn2rzk9qwf45gq",
+    "creator": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+    "admin": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+    "codeId": 5171,
+    "codeHash": "2974c3de6c5cd2ad71de0ce2af45a50535fc55a79c5e85556923790c6274decf",
+    "label": "Juno community review v0.3.1 \u00b7 Juno mainnet"
+  },
+  "policy": {
+    "owner": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+    "dao_voting_contract": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
+    "stake_contract": "juno1a7x8aj7k38vnj9edrlymkerhrl5d4ud3makmqhx6vt3dhu0d824qh038zh",
+    "minimum_comment_stake": "0",
+    "community_gate": {
+      "native_denom": "ujuno",
+      "minimum_native_stake": "1000000",
+      "minimum_neta_stake": "0"
+    },
+    "pending_owner": null,
+    "paused": true,
+    "comment_cooldown_seconds": 30
+  },
+  "transactions": [
+    {
+      "kind": "store",
+      "hash": "A7196F3EB326B368F59327B385016B78AC9553677E77979B6482528A11912F53",
+      "height": 42565130,
+      "code": 0,
+      "exactPayloadMatched": true
+    },
+    {
+      "kind": "instantiate",
+      "hash": "9E61CE32A83EF262188BDC8B114AFBFF50E05F309F1EAC2EAA5BDB84804B32E4",
+      "height": 42565156,
+      "code": 0,
+      "exactPayloadMatched": true
+    }
+  ],
+  "observations": [
+    {
+      "provider": "https://juno-api.polkachu.com",
+      "height": "42565215",
+      "time": "2026-10-10T18:20:36.544772404Z",
+      "policy": {
+        "owner": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+        "pending_owner": null,
+        "dao_voting_contract": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
+        "stake_contract": "juno1a7x8aj7k38vnj9edrlymkerhrl5d4ud3makmqhx6vt3dhu0d824qh038zh",
+        "minimum_comment_stake": "0",
+        "community_gate": {
+          "native_denom": "ujuno",
+          "minimum_native_stake": "1000000",
+          "minimum_neta_stake": "0"
+        },
+        "paused": true,
+        "comment_cooldown_seconds": 30
+      }
+    },
+    {
+      "provider": "https://juno.api.m.stavr.tech",
+      "height": "42565229",
+      "time": "2026-10-10T18:21:12.181211312Z",
+      "policy": {
+        "owner": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+        "pending_owner": null,
+        "dao_voting_contract": "juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl",
+        "stake_contract": "juno1a7x8aj7k38vnj9edrlymkerhrl5d4ud3makmqhx6vt3dhu0d824qh038zh",
+        "minimum_comment_stake": "0",
+        "community_gate": {
+          "native_denom": "ujuno",
+          "minimum_native_stake": "1000000",
+          "minimum_neta_stake": "0"
+        },
+        "paused": true,
+        "comment_cooldown_seconds": 30
+      }
+    }
+  ],
+  "note": "Two independent REST observations and exact transaction bytes; not a light-client proof. No signatures or broadcasts."
+}
