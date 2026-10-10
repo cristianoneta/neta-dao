@@ -1,5 +1,5 @@
 // Public read-only transport. Provider identities stay distinct for quorum checks.
-export const GOVERNANCE_SOURCES = Object.freeze({
+export const GOVERNANCE_SOURCES = /* @__PURE__ */ Object.freeze({
   'uni7-nodeshub': 'https://juno.test.api.nodeshub.online',
   'uni7-stavr': 'https://juno.api.t.stavr.tech',
   'juno-polkachu': 'https://juno-api.polkachu.com',
