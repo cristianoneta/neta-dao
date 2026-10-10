@@ -50,3 +50,37 @@ bytes. The browser regression uses synthetic chain responses and separate author
 and sponsor wallets for publish, finalize, share, submit and contribute, including
 stale funding, account changes, unknown outcomes and four viewport sizes. No new
 contract or backend custody is introduced. Mainnet voting remains read-only.
+
+## Review feedback and attribution — 10 October 2026 candidate
+
+The review actions show preparation, wallet confirmation and chain confirmation
+beside the relevant controls. Publication opens its public review directly; it does
+not wait for unrelated mainnet history. Copy review link reports success or offers
+an editable selection field when clipboard permission is unavailable.
+
+Pending UNI-7 transactions are checked under the signing client's account lock.
+Only the exact hash of the saved signed bytes plus a confirmed inclusion receipt
+can release that journal. Uncertain signatures remain locked. A separate persistent
+action/receipt binding keeps successful publication status-only if loading its view
+fails. Checking an old action never signs the newly clicked comment or publication.
+Wallet, DAO and selection changes invalidate in-flight view work. Public history
+and pending journals are retained.
+
+Draft author resolves the public mainnet NNS reverse name and verifies matching,
+unexpired ownership, even for a visitor with no connected wallet. Lookup failures
+retain the full address; stale responses cannot replace another selected author.
+
+New planner proposals and new public drafts include “This proposal was created on
+cosmoot.com.” before publication. Existing published/finalized content is unchanged.
+For new planner reward reviews, two fresh mainnet sources must agree on the next
+Roman suffix in the numbered claim series. Only claims with the programme's exact
+reward execution messages and canonical title count; unnumbered historical claims
+predate the series. The title ends with a single space and I, II, III, etc. Complete
+paginated history is required; errors never silently reset the series. The number
+is fixed before public review and is not changed at finalization/submission.
+Independent parallel reviews may choose the same number: this is a descriptive
+series, not an on-chain reservation or globally unique proposal identifier.
+
+Withdraw review remains visible during discussion. Only its author, connected to
+UNI-7, can confirm withdrawal. The terminal Withdrawn view retains text and comments;
+withdrawal is distinct from a failed governance vote. No contract migration is needed.

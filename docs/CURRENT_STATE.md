@@ -29,6 +29,13 @@ were closed, and no open PR remained at the completion check.
 
 ## Deployment evidence
 
+- Shared review and native contributions from PR #275 are published as
+  `06bc871860d59d04347b53286fd7756c292c0dad` (manual release 37979266882, all 18
+  jobs successful). A subsequent review-feedback candidate adds exact receipt
+  reconciliation, public author names, claim numbering, attribution and withdrawal
+  visibility. Local checks and synthetic browser acceptance do not constitute a
+  production release or real wallet transaction. See [review behaviour](JUNO_COMMUNITY_FUNDING.md).
+
 - The Juno Delegation Programme planner and dedicated same-origin snapshot were
   accepted live from release `885beb9ac6adbb175997dd8bf8ae4e00d23e66ef` on 9 October.
   The staged UI was subsequently published from `5d14ce24`; criteria, reserve and

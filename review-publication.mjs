@@ -46,7 +46,14 @@ export function reviewEventId(result, contract) {
 
 // Use the same account lock as the shipped signing client. Only a confirmed
 // receipt for the exact saved signed bytes can release its pending journal.
-export async function reconcileReviewTransaction({ storage, locks, sender, fetchTx }) {
+export async function reconcileReviewTransaction({
+  storage,
+  locks,
+  sender,
+  fetchTx,
+  assertCurrent = () => {},
+  onConfirmed = () => {}
+}) {
   const key = `neta-pending-tx-v1:uni-7:${sender}`;
   if (!locks?.request) throw Error('Device transaction lock unavailable.');
   return locks.request(key, { mode: 'exclusive', ifAvailable: true }, async (lock) => {
@@ -88,8 +95,14 @@ export async function reconcileReviewTransaction({ storage, locks, sender, fetch
       );
     if (storage.getItem(key) !== saved)
       throw Error('Transaction record changed. Check status again.');
+    assertCurrent();
+    const receipt = { ...result, transactionHash: hash, height };
+    await onConfirmed(receipt);
+    assertCurrent();
+    if (storage.getItem(key) !== saved)
+      throw Error('Transaction record changed. Check status again.');
     storage.removeItem(key);
-    return { ...result, transactionHash: hash, height };
+    return receipt;
   });
 }
 

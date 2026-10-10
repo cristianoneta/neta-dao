@@ -8,19 +8,18 @@ in the owner's private operations handoff, outside this repository.
 
 ## Current priority
 
-Release `ef7873b191afa26911363967edbd927eacf061a6` is published by manual
-run [37963591472](https://github.com/cristianoneta/neta-dao/actions/runs/37963591472),
-with all 18 jobs successful. Both domains were checked: the claim button opens
-the populated draft and current rewards, USD estimate and timestamp are visible.
-No transaction was submitted during acceptance.
+PR #275 is published from `06bc871860d59d04347b53286fd7756c292c0dad` by manual
+run [37979266882](https://github.com/cristianoneta/neta-dao/actions/runs/37979266882),
+with all 18 jobs successful. The owner successfully published a UNI-7 review.
 
-The next candidate adds shared UNI-7 review before native submission. Any wallet
-can submit a finalized, hash-verified programme review with its own initial
-deposit and fee. Once the native proposal exists, other wallets can contribute
-part or all of the remaining deposit directly to Juno governance. Review has no
-funding panel, pledges or escrow. Claim prose explains only the action and effect;
-current estimates stay in the planner. CI and a manual website release remain
-required. See [review and deposits](docs/JUNO_COMMUNITY_FUNDING.md).
+The next candidate fixes publication feedback, direct review transition, copy-link
+feedback and exact-transaction status recovery. It adds public mainnet .neta author
+names, Roman numbering for new programme reward reviews, Cosmoot attribution in
+new proposal text, and discoverable author-only withdrawal during discussion.
+Confirmed outcomes remain recorded across failed view reads and reloads. Existing
+reviews are not renamed or rewritten. See [review and deposits](docs/JUNO_COMMUNITY_FUNDING.md).
+Full CI and a separate manual website release are required. No live signing,
+withdrawal, mainnet proposal or contribution was performed during development.
 
 Stricter standby selection, verified rule approval, allocation execution and native
 voting remain separate work. No live signing or deposit is claimed for this candidate.
