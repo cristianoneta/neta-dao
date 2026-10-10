@@ -54,3 +54,26 @@ export async function executeMainnetReview({
   };
   return bridge.execute(request, { beforeSign: guard });
 }
+
+let loadingSigning;
+export async function loadReviewSigning() {
+  if (globalThis.NetaNamesSigning) return globalThis.NetaNamesSigning;
+  if (!loadingSigning)
+    loadingSigning = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'assets/names-signing.js?v=20261007-gzip';
+      script.onload = () =>
+        globalThis.NetaNamesSigning
+          ? resolve(globalThis.NetaNamesSigning)
+          : reject(Error('Review signing tools unavailable.'));
+      script.onerror = () => {
+        script.remove();
+        reject(Error('Review signing tools could not be loaded. Retry.'));
+      };
+      document.head.append(script);
+    }).catch((error) => {
+      loadingSigning = null;
+      throw error;
+    });
+  return loadingSigning;
+}

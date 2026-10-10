@@ -39,7 +39,9 @@
   }
   const { selectedReviewNetwork } = await import('./juno-review-network.mjs');
   const { verifyMainnetReview } = await import('./juno-review-mainnet-read.mjs');
-  const { executeMainnetReview } = await import('./juno-review-transactions.mjs');
+  const { executeMainnetReview, loadReviewSigning } = await import(
+    './juno-review-transactions.mjs'
+  );
   let CHAIN_ID = 'uni-7';
   let RPCS = ['https://juno.test.rpc.nodeshub.online', 'https://juno.rpc.t.stavr.tech'],
     RESTS = ['https://juno.test.api.nodeshub.online', 'https://juno.api.t.stavr.tech'];
@@ -1838,6 +1840,7 @@
   async function signer() {
     if (state.client) return state.client;
     if (!state.address) throw new Error('CONNECT KEPLR FIRST');
+    if (CHAIN_ID === 'juno-1') await loadReviewSigning();
     const base = window.keplr.getOfflineSigner?.(CHAIN_ID) || window.getOfflineSigner?.(CHAIN_ID);
     const wrapped = {
       getAccounts: () => base.getAccounts(),

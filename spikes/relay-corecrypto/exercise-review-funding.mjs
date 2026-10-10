@@ -290,6 +290,12 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     if (contributionMode === 'lost') throw Error('Synthetic lost response');
     return { transactionHash: 'B'.repeat(64), height: 42500125, code: 0 };
   });
+  await page.route('**/assets/names-signing.js*', (route) =>
+    route.fulfill({
+      contentType: 'text/javascript',
+      body: 'window.NetaNamesSigning = window.__reviewSigningFixture;'
+    })
+  );
   const wallet = async (address) =>
     page.evaluate((address) => {
       window.__walletChains = [];
@@ -337,7 +343,8 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
           return result;
         }
       };
-      window.NetaNamesSigning = {
+      const previouslyLoaded = !!window.NetaNamesSigning;
+      window.__reviewSigningFixture = {
         connect: async () => ({ disconnect() {} }),
         createBridge: (opts) => ({
           execute: async (request, { beforeSign }) => {
@@ -353,6 +360,8 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
           }
         })
       };
+      if (previouslyLoaded) window.NetaNamesSigning = window.__reviewSigningFixture;
+      else delete window.NetaNamesSigning;
       window.NetaJunoGovernance = {
         connect: async () => ({ disconnect() {} }),
         simulate: async (_client, _content, _sender, deposit) => {
