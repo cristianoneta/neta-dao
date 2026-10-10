@@ -55,3 +55,11 @@ Local integration and 273 Node tests pass. Full CI and a separate manual release
 remain required. No real wallet action or deployed contract change was performed.
 The identified lifetime races are directly tested; the original intermittent
 fingerprint error itself was not reproduced verbatim locally.
+
+The first candidate CI passed all personal-mailbox browser steps, then exposed
+an independent timing error in the delegation browser test. That test treated
+early-populated draft text as proof that the async workspace was ready. The
+fixture now deliberately holds the native-planner module, checks that the early
+draft is disabled, releases the module, and waits for editable state before
+asserting DAO selection. The complete planner/review/funding browser flow passes
+with this controlled delay; application behavior and assertions are preserved.
