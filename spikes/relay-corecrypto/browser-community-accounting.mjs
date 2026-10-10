@@ -42,7 +42,7 @@ try{
  await page.route('https://**/*',r=>r.abort());
  await page.goto(`http://127.0.0.1:${server.address().port}/index.html?dao=juno&subdao=main#treasury`);
  await page.locator('#pnl-year').selectOption('2026');await page.locator('#pnl-month').selectOption('10');
- await page.waitForFunction(()=>document.querySelector('#pnl-account-community_tax').textContent.includes('$'));
+ await page.waitForFunction(()=>document.querySelector('#pnl-account-community_tax')?.textContent.includes('$'));
  assert.match(await page.locator('#pnl-basis').innerText(),/Historical daily USD references/);
  assert.doesNotMatch(await page.locator('#pnl-basis').innerText(),/USD at payment time/);
  await page.getByRole('button',{name:'+ Income',exact:true}).click();
