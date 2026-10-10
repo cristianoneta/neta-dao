@@ -29,9 +29,14 @@
     reconcileReviewTransaction,
     copyReviewLink
   } = await import('./review-publication.mjs');
-  const { authorNameRenderer } = await import('./proposal-identity.mjs');
-  const renderAuthorName = authorNameRenderer();
-  const { readClaimTitle } = await import('./claim-numbering.mjs');
+  let authorRenderer;
+  async function renderAuthorName(element, owner, current) {
+    element.textContent = `Draft author: ${owner} · Review on UNI-7`;
+    const { authorNameRenderer } = await import('./proposal-identity.mjs');
+    if (!current()) return;
+    authorRenderer ||= authorNameRenderer();
+    await authorRenderer(element, owner, current);
+  }
   const CHAIN_ID = 'uni-7';
   const RPCS = ['https://juno.test.rpc.nodeshub.online', 'https://juno.rpc.t.stavr.tech'],
     RESTS = ['https://juno.test.api.nodeshub.online', 'https://juno.api.t.stavr.tech'];
@@ -1618,7 +1623,13 @@
     $('#proposal-heading').textContent = state.selected.title;
     $('#proposal-badge').textContent = String(state.selected.status).toUpperCase();
     updateWorkflow(
-      state.selected.status === 'discussion' ? 4 : state.selected.status === 'voting' ? 6 : 5
+      ['withdrawn', 'declined'].includes(state.selected.status)
+        ? 0
+        : state.selected.status === 'discussion'
+          ? 4
+          : state.selected.status === 'voting'
+            ? 6
+            : 5
     );
     renderRevisions();
     renderComments();
@@ -2201,6 +2212,8 @@
             if (native && isPlannerGovernance() && plannerDraft.kind === 'CLAIM_REWARDS') {
               const context = reviewContext();
               actionFeedback('Checking the next mainnet claim number…');
+              const { readClaimTitle } = await import('./claim-numbering.mjs');
+              context.assert();
               v.title = await readClaimTitle(MAINNET_RESTS);
               context.assert();
               $('#proposal-title').value = v.title;

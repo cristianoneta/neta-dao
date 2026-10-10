@@ -30,6 +30,17 @@ test('claim series advances by verified numbered mainnet claims, independent of 
   );
   assert.equal(nextClaimTitle([{ title: CLAIM_TITLE + ' X', messages: [] }]), CLAIM_TITLE + ' I');
   assert.equal(nextClaimTitle([{ title: CLAIM_TITLE + ' IIII', messages }]), CLAIM_TITLE + ' I');
+  const reordered = messages.map((m) => ({
+    '@type': m['@type'],
+    sender: m.sender,
+    contract: m.contract,
+    msg: btoa(JSON.stringify(m.msg)),
+    funds: m.funds
+  }));
+  assert.equal(
+    nextClaimTitle([{ title: CLAIM_TITLE + ' IV', messages: reordered }]),
+    CLAIM_TITLE + ' V'
+  );
   assert.equal(roman(49), 'XLIX');
   assert.equal(roman(3999), 'MMMCMXCIX');
   assert.throws(() => roman(4000));

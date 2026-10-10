@@ -643,6 +643,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     () => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN'
   );
   assert.equal(proposal.withdrawn, true);
+  assert.equal(await page.locator('.workflow .active').count(), 0);
   assert.equal(await page.locator('#comment-form').isVisible(), false);
   assert.equal(await page.locator('#primary-action').isVisible(), false);
   assert.equal(await page.locator('#proposal-title').isDisabled(), true);
