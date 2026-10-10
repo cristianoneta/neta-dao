@@ -82,6 +82,15 @@ fn active_stake(
     address: &Addr,
     height: u64,
 ) -> Result<Uint128, ContractError> {
+    // Native-only community instances must not depend on any CW20 contract.
+    // Operations and dual-stake instances retain their existing query behavior.
+    if cfg
+        .community_gate
+        .as_ref()
+        .is_some_and(|gate| gate.minimum_neta_stake.is_zero())
+    {
+        return Ok(Uint128::zero());
+    }
     let r: StakedBalanceResponse = deps
         .querier
         .query_wasm_smart(

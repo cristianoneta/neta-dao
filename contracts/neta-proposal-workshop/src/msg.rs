@@ -8,8 +8,9 @@ pub struct InstantiateMsg {
     pub dao_voting_contract: String,
     pub stake_contract: String,
     pub minimum_comment_stake: Uint128,
-    /// When set, publishing, revising, commenting, and finalizing require both
-    /// the configured NETA stake and native delegated stake. When omitted the
+    /// When set, publishing, revising, commenting, and finalizing require
+    /// the configured native delegated stake and, if nonzero, NETA stake.
+    /// A zero NETA minimum disables CW20 queries entirely. When omitted the
     /// original Operations DAO membership rules remain unchanged.
     pub community_gate: Option<CommunityGate>,
 }

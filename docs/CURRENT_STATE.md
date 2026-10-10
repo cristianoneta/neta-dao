@@ -29,6 +29,20 @@ were closed, and no open PR remained at the completion check.
 
 ## Deployment evidence
 
+10 October update: manual release 38071673542 succeeded for PR #279 main
+`6f33689ba76cc8f81e2a7e5163bec6dea62dff61`. The owner now requests mainnet
+community reviews for a second-wallet trial, with **1 delegated JUNO and no
+NETA requirement**. A separate paused v0.3.1 deployment page is prepared with
+owner-held upgrade authority, exact transaction recovery and two-provider
+receipt checks. Zero NETA minimum now skips CW20 queries entirely. Existing
+UNI-7 instances and journals retain their original identities. No contract is
+deployed or unpaused by this source change; verified receipts, the workspace
+network switch and real-wallet acceptance remain required. See
+[mainnet review rollout](JUNO_REVIEW_MAINNET.md).
+
+Earlier release notes below are historical and superseded by this update.
+
+
 - PR #278 merged after all 16 checks, but manual release 38068377663 failed the
   personal-browser generation-2 fingerprint check; it did not publish. A new
   candidate drains queued IndexedDB writes and releases CoreCrypto's temporary

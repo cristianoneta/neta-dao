@@ -549,3 +549,129 @@ fn actions_must_be_a_json_array() {
         ContractError::InvalidActions
     );
 }
+
+#[test]
+fn native_only_review_never_queries_neta_and_enforces_juno_lifecycle() {
+    let mut deps = community_deps();
+    // Instantiation, access and every community write must work even when
+    // external voting/staking contracts are unavailable.
+    deps.querier
+        .update_wasm(|_| panic!("native-only review queried CW20 or DAO"));
+    instantiate(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("owner", &[]),
+        InstantiateMsg {
+            owner: "owner".into(),
+            dao_voting_contract: "unused".into(),
+            stake_contract: "unused".into(),
+            minimum_comment_stake: Uint128::zero(),
+            community_gate: Some(CommunityGate {
+                native_denom: "ujuno".into(),
+                minimum_native_stake: Uint128::new(1_000_000),
+                minimum_neta_stake: Uint128::zero(),
+            }),
+        },
+    )
+    .unwrap();
+    let access =
+        |deps: &OwnedDeps<MockStorage, MockApi, MockQuerier, Empty>, who: &str| -> AccessResponse {
+            from_json(
+                query(
+                    deps.as_ref(),
+                    mock_env(),
+                    QueryMsg::Access {
+                        address: who.into(),
+                    },
+                )
+                .unwrap(),
+            )
+            .unwrap()
+        };
+    assert!(!access(&deps, "juno_only").can_publish);
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("owner", &[]),
+        ExecuteMsg::SetPaused { paused: false },
+    )
+    .unwrap();
+    let eligible = access(&deps, "juno_only");
+    assert!(eligible.can_publish && eligible.can_comment);
+    assert_eq!(eligible.active_neta_stake, Uint128::zero());
+    assert!(!access(&deps, "neta_only").can_publish);
+    assert_eq!(
+        execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info("neta_only", &[]),
+            ExecuteMsg::PublishProposal {
+                content: content("No native stake")
+            }
+        )
+        .unwrap_err(),
+        ContractError::CommunityStakeNotMet
+    );
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("juno_only", &[]),
+        ExecuteMsg::PublishProposal {
+            content: content("Native only"),
+        },
+    )
+    .unwrap();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("juno_only", &[]),
+        ExecuteMsg::AddRevision {
+            proposal_id: 1,
+            content: content("Revised"),
+            change_log: "Clarify".into(),
+        },
+    )
+    .unwrap();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("juno_only", &[]),
+        ExecuteMsg::AddComment {
+            proposal_id: 1,
+            version: 2,
+            parent_id: None,
+            title: None,
+            body: "Review".into(),
+        },
+    )
+    .unwrap();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("juno_only", &[]),
+        ExecuteMsg::Finalize {
+            proposal_id: 1,
+            version: 2,
+        },
+    )
+    .unwrap();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("juno_only", &[]),
+        ExecuteMsg::Withdraw { proposal_id: 1 },
+    )
+    .unwrap();
+    deps.querier.update_staking(
+        "ujuno",
+        &[],
+        &[FullDelegation {
+            delegator: Addr::unchecked("below"),
+            validator: "validator".into(),
+            amount: coin(999_999, "ujuno"),
+            can_redelegate: coin(999_999, "ujuno"),
+            accumulated_rewards: vec![],
+        }],
+    );
+    assert!(!access(&deps, "below").can_publish);
+}
