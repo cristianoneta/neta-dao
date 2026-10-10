@@ -2651,6 +2651,7 @@
   );
   $('#chain-select').value = state.chain.id;
   $('#dao-search').value = state.scope.organization.name;
+  $('#dao-search').disabled = false;
   $('.testnet-pill').textContent =
     state.dao.mode === 'dao-readonly' && !isNativeReview()
       ? 'JUNO MAINNET · READ ONLY'
