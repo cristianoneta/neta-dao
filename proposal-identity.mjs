@@ -18,8 +18,8 @@ export async function publicAuthorName(reader, owner, now = () => Date.now() / 1
 }
 export function authorNameRenderer({ fetcher = fetch } = {}) {
   let manifest;
-  return async (element, owner, current = () => true) => {
-    element.textContent = `Draft author: ${owner} · Review on UNI-7`;
+  return async (element, owner, current = () => true, networkLabel = 'UNI-7') => {
+    element.textContent = `Draft author: ${owner} · Review on ${networkLabel}`;
     element.title = owner;
     try {
       manifest ||= fetcher('./docs/deployments/nns-mainnet.json', { cache: 'no-store' })
@@ -36,7 +36,7 @@ export function authorNameRenderer({ fetcher = fetch } = {}) {
       const reader = new NamesV2Reader({ deployment: await manifest, fetcher });
       const name = await publicAuthorName(reader, owner);
       if (name && current())
-        element.textContent = `Draft author: ${name} (${owner}) · Review on UNI-7`;
+        element.textContent = `Draft author: ${name} (${owner}) · Review on ${networkLabel}`;
     } catch {
       /* The full verifiable address remains the public fallback. */
     }

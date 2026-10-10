@@ -308,6 +308,7 @@ export async function connectReviewSetup({
   fetcher = globalThis.fetch,
   assertCurrent = () => {},
   onStatus = () => {},
+  Setup = ReviewMainnetSetup,
   connectionTimeoutMs = 12000
 } = {}) {
   if (!keplr)
@@ -388,7 +389,7 @@ export async function connectReviewSetup({
         'Keplr connected, but the Juno network connection is unavailable. Retry later. No transaction was requested; keep your browser’s site data.'
       );
     report('Owner wallet verified. Checking current Juno data with two independent providers…');
-    const setup = new ReviewMainnetSetup({
+    const setup = new Setup({
       owner: OWNER,
       client,
       bundle,

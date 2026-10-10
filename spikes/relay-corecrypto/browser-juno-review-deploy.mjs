@@ -5,7 +5,8 @@ import { chromium } from 'playwright';
 import {
   REVIEW_MAINNET_OWNER as owner,
   REVIEW_MAINNET_WASM as hash,
-  REVIEW_MAINNET_POLICY as policy
+  REVIEW_MAINNET_POLICY as policy,
+  REVIEW_MAINNET_RELEASE as PIN
 } from '../../juno-review-mainnet-config.mjs';
 import { REVIEW_DEPLOY_LABEL as label } from '../../juno-review-mainnet-deploy-core.mjs';
 const root = new URL('../../', import.meta.url),
@@ -78,6 +79,17 @@ try {
     else if (p.includes('/smart/')) data = { data: policy };
     else data = { contract_info: { code_id: '321', creator: owner, admin: owner, label } };
     await route.fulfill({ json: data });
+  });
+  // Exercise the original pre-deployment page with an explicitly unpinned fixture.
+  await context.route('**/juno-review-mainnet-config.mjs', async (r) => {
+    const source = await readFile(new URL('juno-review-mainnet-config.mjs', root), 'utf8');
+    await r.fulfill({
+      contentType: 'text/javascript',
+      body: source.replace(
+        /export const REVIEW_MAINNET_RELEASE = Object.freeze\([\s\S]*?\);/,
+        'export const REVIEW_MAINNET_RELEASE = null;'
+      )
+    });
   });
   await page.goto(origin + '/juno-review-mainnet-deploy.html');
   assert.equal(await page.locator('[data-kind=store]').isDisabled(), true);
@@ -164,6 +176,70 @@ try {
     await page.locator('#download').evaluate((e) => getComputedStyle(e).outlineStyle),
     'none'
   );
+  // Switch to the shipped pin and exercise the owner activation page.
+  await context.unroute('**/juno-review-mainnet-config.mjs');
+  await context.unroute('https://**/*');
+  let activated = false;
+  await page.exposeFunction('__activateReview', () => {
+    activated = true;
+  });
+  await context.route('https://**/*', async (route) => {
+    const p = new URL(route.request().url()).pathname;
+    const data = p.endsWith('blocks/latest')
+      ? { block: { header: { chain_id: 'juno-1', height: '123', time: new Date().toISOString() } } }
+      : p.includes('/code/')
+        ? { code_info: { creator: owner, data_hash: hash } }
+        : p.includes('/smart/')
+          ? { data: { ...policy, paused: !activated } }
+          : { contract_info: { code_id: PIN.codeId, creator: owner, admin: owner, label } };
+    await route.fulfill({ json: data });
+  });
+  await context.unroute('**/assets/names-signing.js*');
+  await context.route('**/assets/names-signing.js*', (r) =>
+    r.fulfill({
+      contentType: 'text/javascript',
+      body: `
+    const receipt={chainId:'juno-1',intentMatched:true,code:0,height:123,transactionHash:'C'.repeat(64)};
+    window.NetaNamesSigning={validAddress:s=>s===${JSON.stringify(PIN.contract)},connect:async()=>({disconnect(){}}),createBridge:opts=>({execute:async request=>{await opts.verifyDeployment();if(JSON.stringify(request.msg)!==JSON.stringify({set_paused:{paused:false}}))throw Error('Wrong activation');localStorage.setItem('activationWrites','1');await window.__activateReview();throw Error('UNKNOWN');},recover:async()=>{await opts.verifyDeployment();return receipt;}})};
+  `
+    })
+  );
+  await page.goto(origin + '/juno-review-mainnet-activate.html');
+  await page.locator('#connect').click();
+  await page.locator('#approve-policy').check();
+  await page.locator('[data-kind=activate]').click();
+  await page.waitForFunction(() => !document.querySelector('#confirm').disabled);
+  assert.match(await page.locator('#review-text').textContent(), /"paused": false/);
+  assert.equal(await page.evaluate(() => localStorage.getItem('activationWrites')), null);
+  await page.evaluate(() => dispatchEvent(new Event('keplr_keystorechange')));
+  assert.equal(await page.locator('#review').isHidden(), true);
+  await page.locator('#connect').click();
+  await page.locator('[data-kind=activate]').click();
+  await page.locator('#confirm').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#status').textContent.includes('UNKNOWN')
+  );
+  await page.reload();
+  await page.locator('#connect').click();
+  await page.locator('#recover').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#status').textContent.includes('Confirmed on Juno mainnet')
+  );
+  assert.equal(await page.locator('[data-kind=activate]').isDisabled(), true);
+  const activationDownload = page.waitForEvent('download');
+  await page.locator('#download').click();
+  const activation = JSON.parse(await readFile(await (await activationDownload).path(), 'utf8'));
+  assert.equal(activation.activated, true);
+  assert.equal(activation.deployment.contract, PIN.contract);
+  assert.equal(await page.evaluate(() => localStorage.getItem('activationWrites')), '1');
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      true
+    );
+    await page.screenshot({ path: '/tmp/review-activation-' + width + '.png', fullPage: true });
+  }
   assert.deepEqual(errors, []);
   console.log(
     'Review deployment browser passed: two explicit reviews, owner admin/policy, reload recovery without resend, wallet invalidation, two-provider export and 320/390/768/1440px. Simulated chain/signing only.'

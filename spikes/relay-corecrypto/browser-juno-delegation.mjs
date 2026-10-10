@@ -365,7 +365,10 @@ try {
   );
   await exerciseReviewFunding(page, origin, sample, govMessages);
   await page.locator('#new-draft').click();
-  assert.equal(await page.locator('#proposal-title').inputValue(), 'Preserved draft');
+  assert.equal(await page.locator('#proposal-title').inputValue(), '', 'Mainnet drafts must not overwrite old UNI-7 drafts');
+  await page.locator('#review-network-archive').click();
+  await page.waitForFunction(()=>document.querySelector('#proposal-title').value==='Preserved draft');
+  assert.match(await page.locator('.testnet-pill').textContent(), /UNI-7 REVIEW/);
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
   await simulate();

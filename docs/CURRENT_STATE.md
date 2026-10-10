@@ -29,16 +29,19 @@ were closed, and no open PR remained at the completion check.
 
 ## Deployment evidence
 
-10 October update: manual release 38071673542 succeeded for PR #279 main
-`6f33689ba76cc8f81e2a7e5163bec6dea62dff61`. The owner now requests mainnet
-community reviews for a second-wallet trial, with **1 delegated JUNO and no
-NETA requirement**. A separate paused v0.3.1 deployment page is prepared with
-owner-held upgrade authority, exact transaction recovery and two-provider
-receipt checks. Zero NETA minimum now skips CW20 queries entirely. Existing
-UNI-7 instances and journals retain their original identities. No contract is
-deployed or unpaused by this source change; verified receipts, the workspace
-network switch and real-wallet acceptance remain required. See
-[mainnet review rollout](JUNO_REVIEW_MAINNET.md).
+10 October update: PR #280 was published by successful manual release
+38074225057 from `c4c91fdac8883fec10edffe34d89fcf40b65ffe9`. The owner
+uploaded and instantiated Juno community review v0.3.1 on mainnet (code 5171).
+Independent transaction-byte and two-provider checks confirmed the new address,
+code hash, owner/upgrade administrator and **1 delegated JUNO, zero NETA** policy.
+The instance was **paused** at verification; no activation was sent by the agent.
+
+The activation candidate pins that instance in the Juno workspace. Historical
+unqualified review links stay on UNI-7; new links, drafts, finalized metadata and
+transaction records carry their network identity. Operations stays on UNI-7.
+The owner activation page prepares one explicit `set_paused: false` transaction
+with exact-payload recovery. Website release and owner signature remain manual;
+real two-wallet acceptance is still open. See [mainnet review rollout](JUNO_REVIEW_MAINNET.md).
 
 Earlier release notes below are historical and superseded by this update.
 

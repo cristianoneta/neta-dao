@@ -109,3 +109,12 @@ test('browser transport avoids provider CORS preflights while retaining provider
     else globalThis.location = oldLocation;
   }
 });
+
+test('mainnet review reads are limited to the pinned instance and code on mainnet providers', async () => {
+  const {REVIEW_MAINNET_RELEASE:pin}=await import('../juno-review-mainnet-config.mjs');
+  const instance='/cosmwasm/wasm/v1/contract/'+pin.contract,code='/cosmwasm/wasm/v1/code/'+pin.codeId;
+  const paths=[instance,code,instance+'/smart/'+btoa(JSON.stringify({config:{}})),instance+'/smart/'+btoa(JSON.stringify({proposal:{proposal_id:1}}))];
+  for(const path of paths){assert.ok(governanceReadTarget('juno-stavr',path));assert.throws(()=>governanceReadTarget('uni7-stavr',path));}
+  assert.throws(()=>governanceReadTarget('juno-stavr',code+'0'));
+  assert.throws(()=>governanceReadTarget('juno-stavr',instance+'/smart/'+btoa(JSON.stringify({set_paused:{paused:false}}))));
+});
