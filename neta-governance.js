@@ -22,6 +22,13 @@
     validateCategories,
     isSpend
   } = await import('./proposal-accounting.mjs?v=20261006-4');
+  const {
+    publishedReview,
+    indexingUnavailable,
+    reviewEventId,
+    reconcileReviewTransaction,
+    copyReviewLink
+  } = await import('./review-publication.mjs');
   const CHAIN_ID = 'uni-7';
   const RPCS = ['https://juno.test.rpc.nodeshub.online', 'https://juno.rpc.t.stavr.tech'],
     RESTS = ['https://juno.test.api.nodeshub.online', 'https://juno.api.t.stavr.tech'];
@@ -134,7 +141,10 @@
     countdown: null,
     requestEpoch: 0,
     walletEpoch: 0,
-    connecting: false
+    connecting: false,
+    actionMessage: '',
+    actionKind: 'ready',
+    actionButton: null
   };
   const $ = (s) => document.querySelector(s),
     node = (tag, cls, text) => {
@@ -217,26 +227,77 @@
         new Promise((_, r) => setTimeout(() => r(new Error(`${label} TIMED OUT`)), ms))
       ]);
   const encode = (q) => encodeURIComponent(btoa(JSON.stringify(q))),
-    indexingDisabled = (e) =>
-      /transaction indexing is disabled/i.test(
-        [
-          e?.message,
-          e?.data,
-          (() => {
-            try {
-              return JSON.stringify(e);
-            } catch {
-              return '';
-            }
-          })(),
-          String(e)
-        ]
-          .filter(Boolean)
-          .join(' ')
-      );
+    indexingDisabled = indexingUnavailable;
   function status(text, error = false) {
     $('#gov-status').textContent = text;
     $('#gov-status').dataset.state = error ? 'error' : 'ready';
+  }
+  function pendingReview() {
+    if (!state.address || state.walletChain !== CHAIN_ID) return false;
+    // Unreadable storage is also locked; never assume that it means no receipt.
+    try {
+      return !!localStorage.getItem(`neta-pending-tx-v1:${CHAIN_ID}:${state.address}`);
+    } catch {
+      return true;
+    }
+  }
+  function actionFeedback(text, kind = 'pending') {
+    state.actionMessage = text;
+    state.actionKind = kind;
+    renderReviewActivity();
+  }
+  function renderReviewActivity() {
+    for (const element of document.querySelectorAll('[data-review-status]')) {
+      element.textContent = state.actionMessage;
+      element.hidden = !state.actionMessage;
+      element.dataset.state = state.actionKind;
+    }
+    const pending = pendingReview();
+    for (const button of document.querySelectorAll('[data-review-check]')) {
+      button.hidden = !pending;
+      button.disabled = state.busy;
+    }
+    if (pending) {
+      $('#primary-action').disabled = true;
+      $('#publish-revision').disabled = true;
+      $('#publish-comment').disabled = true;
+    }
+    $('.proposal-workspace').setAttribute('aria-busy', String(state.busy));
+    if (state.busy && state.actionButton) {
+      state.actionButton.disabled = true;
+      state.actionButton.classList.add('review-action-busy');
+      state.actionButton.textContent = 'PROCESSING…';
+    }
+  }
+  async function reconcileReview() {
+    actionFeedback('Checking the previous UNI-7 transaction. No new signature is requested.');
+    return reconcileReviewTransaction({
+      storage: localStorage,
+      locks: navigator.locks,
+      sender: state.address,
+      fetchTx: async (hash) => {
+        for (const base of RESTS) {
+          try {
+            const response = await deadline(
+              fetch(`${base}/cosmos/tx/v1beta1/txs/${hash}`, { cache: 'no-store' }),
+              8000,
+              'TRANSACTION LOOKUP'
+            );
+            if (!response.ok) continue;
+            const data = await response.json();
+            if (data.tx_response?.txhash?.toUpperCase() === hash) return data;
+          } catch {}
+        }
+        return null;
+      }
+    });
+  }
+  async function refreshReviewResult(result) {
+    const id = reviewEventId(result, CONTRACT) || state.selected?.id;
+    if (isNativeReview()) await loadJunoReviews(state.requestEpoch);
+    else await load();
+    if (id && state.proposals.some((p) => p.id === id)) await select(id);
+    renderList();
   }
   function namesChain() {
     return document.body.dataset.workspaceView === 'relay' &&
@@ -926,8 +987,11 @@
           ? 'ONLY IN THIS BROWSER'
           : `#${p.id} · ${item.source === 'chain' ? 'JUNO MAINNET' : 'PUBLIC REVIEW'}`;
       b.append(node('strong', null, title), meta, node('small', null, context));
-      b.onclick = () =>
+      b.onclick = () => {
+        if (state.busy) return;
+        state.actionMessage = '';
         isLocal ? newDraft() : item.source === 'chain' ? selectChain(p) : select(p.id);
+      };
       list.append(b);
     });
     if (!rows.length) list.append(node('div', 'revision-item', 'NO PROPOSALS MATCH THIS FILTER'));
@@ -1087,7 +1151,7 @@
       list.append(node('div', 'comment-item', 'NO TOPICS YET · START THE FIRST THREAD BELOW'));
     $('#comment-title').disabled = !allowed;
     $('#comment-body').disabled = !allowed;
-    $('#publish-comment').disabled = !allowed;
+    $('#publish-comment').disabled = !allowed || state.busy || pendingReview();
   }
   function nativeAccess() {
     const junox = Number(state.access?.active_native_stake || 0) / 1e6,
@@ -1216,6 +1280,7 @@
       setEditable(false);
       plannerGov.render();
     }
+    renderReviewActivity();
   }
   async function nativeGet(path) {
     const failures = [];
@@ -1447,7 +1512,9 @@
     reviewUrl.searchParams.set('review', String(id));
     reviewUrl.hash = 'governance';
     $('#shared-review-url').href = reviewUrl.href;
-    $('#shared-review-url').textContent = 'Share this review ↗';
+    $('#shared-review-url').textContent = 'Open review ↗';
+    $('#shared-review-copy-status').textContent = '';
+    $('#shared-review-copy-fallback').hidden = true;
     $('#shared-review-author').textContent = `Draft author: ${found.author} · Review on UNI-7`;
     $('#shared-review-link').hidden = !isNativeReview();
     history.replaceState(null, '', reviewUrl);
@@ -1632,8 +1699,18 @@
     const base = window.keplr.getOfflineSigner?.(CHAIN_ID) || window.getOfflineSigner?.(CHAIN_ID);
     const wrapped = {
       getAccounts: () => base.getAccounts(),
-      signDirect: (a, d) => window.keplr.signDirect(CHAIN_ID, a, d, { preferNoSetFee: true }),
-      signAmino: (a, d) => window.keplr.signAmino(CHAIN_ID, a, d, { preferNoSetFee: true })
+      signDirect: async (a, d) => {
+        actionFeedback('Confirm this review action in Keplr.');
+        const signed = await window.keplr.signDirect(CHAIN_ID, a, d, { preferNoSetFee: true });
+        actionFeedback('Signature received. Waiting for UNI-7 confirmation…');
+        return signed;
+      },
+      signAmino: async (a, d) => {
+        actionFeedback('Confirm this review action in Keplr.');
+        const signed = await window.keplr.signAmino(CHAIN_ID, a, d, { preferNoSetFee: true });
+        actionFeedback('Signature received. Waiting for UNI-7 confirmation…');
+        return signed;
+      }
     };
     for (const rpc of RPCS)
       try {
@@ -1668,6 +1745,15 @@
       if (active !== address) throw new Error('KEPLR ACCOUNT CHANGED · RECONNECT');
       return await NetaSocialsTestnet.execute(client, address, contract, msg, memo);
     } catch (e) {
+      if (pendingReview()) {
+        const result = await reconcileReview();
+        if (result?.code === 0) return result;
+        if (result)
+          throw Error(
+            `Previous transaction failed (code ${result.code}). Review the action before trying again.`
+          );
+        throw e;
+      }
       if (!indexingDisabled(e)) throw e;
       await recover(check, memo);
       return { transactionHash: 'RECOVERED_FROM_CHAIN' };
@@ -1676,22 +1762,47 @@
   async function run(button, task) {
     if (state.busy) return false;
     state.busy = true;
-    renderWallet();
+    state.actionButton = button;
     const old = button.textContent;
-    button.disabled = true;
-    button.textContent = 'CHECK KEPLR';
+    renderWallet();
+    renderActions();
+    actionFeedback('Preparing your review action…');
     try {
-      await task();
-      status('ON-CHAIN ACTION VERIFIED');
+      // A click after an unknown outcome checks the saved transaction only.
+      // It must never turn recovery of publication into a new comment/signature.
+      if (pendingReview()) {
+        const result = await reconcileReview();
+        if (!result) throw Error('No pending review transaction found.');
+        if (result.code !== 0)
+          throw Error(
+            `Previous transaction failed (code ${result.code}). Review the action before trying again.`
+          );
+        actionFeedback('Transaction confirmed. Updating the review…');
+        await refreshReviewResult(result);
+        const message =
+          'Previous transaction confirmed. The review is up to date; you can continue.';
+        status(message);
+        actionFeedback(message, 'ready');
+        return true;
+      }
+      const message = await task();
+      const success = typeof message === 'string' ? message : 'Review action confirmed.';
+      status(success);
+      actionFeedback(success, 'ready');
       return true;
     } catch (e) {
-      status(e.message || String(e), true);
+      const message = e.message || String(e);
+      status(message, true);
+      actionFeedback(message, 'error');
       return false;
     } finally {
       state.busy = false;
+      button.classList.remove('review-action-busy');
       button.textContent = old;
+      state.actionButton = null;
       renderWallet();
       renderActions();
+      renderComments();
     }
   }
   function openRevisionDialog() {
@@ -1868,6 +1979,21 @@
       }
     }
   }
+  $('#shared-review-copy').onclick = async () => {
+    const button = $('#shared-review-copy');
+    button.disabled = true;
+    try {
+      await copyReviewLink($('#shared-review-url').href, {
+        clipboard: navigator.clipboard,
+        input: $('#shared-review-copy-fallback'),
+        feedback: $('#shared-review-copy-status')
+      });
+    } finally {
+      button.disabled = false;
+    }
+  };
+  for (const button of document.querySelectorAll('[data-review-check]'))
+    button.onclick = () => run(button, async () => 'No pending review transaction.');
   $('#proposal-actions').addEventListener('input', renderAccounting);
   $('#subdao-select').onchange = (e) => {
     const scope = state.scope;
@@ -1942,16 +2068,31 @@
             const v = values();
             validate(v);
             if (native && !CONTRACT) await deployNativeReview();
+            const author = state.address;
+            const before = native
+              ? await queryAll(
+                  (startAfter) => ({ proposal_summaries: { start_after: startAfter, limit: 100 } }),
+                  (item) => item.proposal.id
+                )
+              : [];
+            const intent = {
+              author,
+              values: v,
+              after: Math.max(0, ...before.map((r) => r.proposal.id))
+            };
+            let result;
             if (native)
-              await execute(
+              result = await execute(
                 { publish_proposal: { content: v } },
                 'Juno Governance publish review',
                 async () => {
                   const rows = await queryAll(
-                    (startAfter) => ({ proposals: { start_after: startAfter, limit: 100 } }),
-                    (item) => item.id
+                    (startAfter) => ({
+                      proposal_summaries: { start_after: startAfter, limit: 100 }
+                    }),
+                    (item) => item.proposal.id
                   );
-                  return rows.find((p) => p.author === state.address);
+                  return publishedReview(rows, intent);
                 }
               );
             else
@@ -1962,19 +2103,41 @@
                 );
                 return rows.find((p) => p.author === state.address && p.title === v.title);
               });
-            localStorage.removeItem(draftKey());
+            actionFeedback('Publication confirmed. Opening the community review…');
+            const savedDraftKey = draftKey();
+            if (native) {
+              const receiptId = reviewEventId(result, CONTRACT);
+              const hit = await recover(async () => {
+                const rows = await queryAll(
+                  (startAfter) => ({ proposal_summaries: { start_after: startAfter, limit: 100 } }),
+                  (item) => item.proposal.id
+                );
+                const match = publishedReview(rows, intent);
+                return match && (!receiptId || match.proposal.id === receiptId) ? match : null;
+              }, 'Published review');
+              await loadJunoReviews(state.requestEpoch);
+              await select(hit.proposal.id);
+            } else {
+              await load();
+              const hit = state.proposals
+                .slice()
+                .reverse()
+                .find((p) => p.author === author && p.title === v.title);
+              if (!hit)
+                throw Error(
+                  'Publication confirmed. Reload reviews to open it; do not publish again.'
+                );
+              await select(hit.id);
+            }
+            localStorage.removeItem(savedDraftKey);
             plannerDraft = null;
             plannerDraftError = null;
-            const publishedUrl = new URL(location.href);
-            publishedUrl.searchParams.delete('plannerDraft');
-            history.replaceState(null, '', publishedUrl);
             if (!native) localStorage.removeItem('neta-governance-local-draft');
-            await load();
-            const hit = state.proposals
-              .slice()
-              .reverse()
-              .find((p) => p.author === state.address && p.title === v.title);
-            if (hit) await select(hit.id);
+            renderList();
+            $('#proposal-heading').setAttribute('tabindex', '-1');
+            $('#proposal-heading').focus();
+            $('#proposal-heading').scrollIntoView({ block: 'start', behavior: 'auto' });
+            return 'Published for community review. You can now discuss and revise this proposal.';
           } else {
             const id = state.selected.id;
             if (native)
@@ -1997,8 +2160,11 @@
                   return p.status === 'voting';
                 }
               );
-            await load();
+            actionFeedback('Finalization confirmed. Opening the next step…');
+            if (native) await loadJunoReviews(state.requestEpoch);
+            else await load();
             await select(id);
+            return 'Review finalized. The proposal is ready for submission.';
           }
         });
   $('#publish-revision').onclick = () => {
@@ -2134,6 +2300,7 @@
       );
       resetCommentForm();
       await select(id);
+      return parentId === null ? 'Discussion thread published.' : 'Reply published.';
     });
   };
   document.querySelectorAll('[data-filter]').forEach(

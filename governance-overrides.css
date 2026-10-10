@@ -270,3 +270,16 @@ body.revision-dialog-open { overflow:hidden; }
 #shared-review-link { margin:16px 0; overflow-wrap:anywhere; }
 #shared-review-author { display:block; color:var(--neta-text-secondary); font-size:14px; margin-top:8px; }
 @media (max-width:640px) { .governance-funding-body { padding:16px; } .governance-funding-amount { align-items:stretch; } .governance-funding-amount button { width:100%; } }
+
+/* Review writes keep progress and read-only recovery next to the action. */
+[data-review-status] { overflow-wrap:anywhere; color:var(--neta-info); line-height:1.6; }
+[data-review-status][data-state="error"] { color:var(--neta-danger); }
+[data-review-status][data-state="ready"] { color:var(--neta-success); }
+[data-review-status][hidden], [data-review-check][hidden], #shared-review-copy-fallback[hidden] { display:none; }
+.review-share-actions { display:flex; align-items:center; flex-wrap:wrap; gap:16px; }
+#shared-review-copy-status { display:block; color:var(--neta-success); margin-top:8px; }
+.proposal-heading { scroll-margin-top:120px; }
+.gov-shell button.review-action-busy:disabled { opacity:1; color:var(--neta-text); }
+.review-action-busy::before { content:""; display:inline-block; width:14px; height:14px; margin-right:8px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; vertical-align:middle; animation:review-progress 1s linear infinite; }
+@keyframes review-progress { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { .review-action-busy::before { animation:none; } }
