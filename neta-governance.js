@@ -1626,13 +1626,11 @@
     reviewUrl.searchParams.set('reviewChain', CHAIN_ID);
     if (isNativeReview()) reviewUrl.searchParams.set('reviewContract', CONTRACT);
     reviewUrl.hash = 'governance';
+    const authorReview = state.selected;
     void renderAuthorName(
       $('#shared-review-author'),
       found.author,
-      () =>
-        epoch === state.requestEpoch &&
-        daoId === state.dao.id &&
-        state.selected?.key === `workshop:${id}`
+      () => daoId === state.dao.id && state.selected === authorReview
     );
     $('#review-author-card').hidden = false;
     history.replaceState(null, '', reviewUrl);

@@ -28,7 +28,9 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   ];
   let reviewWrites = 0,
     comments = [],
-    failReviewReads = false;
+    failReviewReads = false,
+    holdAuthorLookup = false,
+    releaseAuthorLookup;
   const author = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
   const sponsor = 'juno1d0g7f97v87xwe6r4vr4jj3jfhzcv4vvfhamy8w';
   const params = {
@@ -141,7 +143,11 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
               tariff: { three_cents: 9900, four_cents: 1900, standard_cents: 500 }
             };
           else if (q.name_of) data = { address: q.name_of.address, name: 'cristiano.neta' };
-          else if (q.identity)
+          else if (q.identity) {
+            if (holdAuthorLookup) {
+              await page.evaluate(() => { window.__authorLookupHeld = true; });
+              await new Promise(resolve => { releaseAuthorLookup = resolve; });
+            }
             data = {
               name: 'cristiano.neta',
               owner: author,
@@ -149,6 +155,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
               ownership_revision: 1,
               expires_at: Math.floor(Date.now() / 1000) + 86400
             };
+          }
         } else if (url.pathname.includes(manifest.profile_contract))
           data = q.profile ? { active: true, profile: { identity: {name: 'cristiano.neta', owner: author, generation: 1, ownership_revision: 1}, contacts: {description: 'Public profile fixture', website: 'https://example.org', twitter: 'cristiano'}, revision: 1 } } : { registry: manifest.registry };
         else if (url.pathname.includes(manifest.token)) data = { decimals: 6 };
@@ -728,10 +735,14 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   await page
     .locator('.review-transaction-feedback [data-review-check]')
     .waitFor({ state: 'visible' });
+  holdAuthorLookup = true;
   await page.locator('.review-transaction-feedback [data-review-check]').click();
   await primary('FINALIZE REVIEW');
   assert.equal(reviewWrites, previousWrites + 1, 'Read-only status lookup must not republish');
+  await page.waitForFunction(() => window.__authorLookupHeld === true);
   await page.locator('#gov-disconnect').click();
+  holdAuthorLookup = false;
+  releaseAuthorLookup();
   assert.equal(await page.locator('#discard-action').isVisible(), true);
   assert.equal(await page.locator('#discard-action').isDisabled(), true);
   await page.waitForFunction(() =>
