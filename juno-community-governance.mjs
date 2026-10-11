@@ -75,7 +75,11 @@ export async function finalizedReview(proposal, revision, chainId = 'uni-7') {
   };
 }
 
-async function reader(endpoint, chain, { fetcher = governanceFetch, now = Date.now() } = {}) {
+export async function reader(
+  endpoint,
+  chain,
+  { fetcher = governanceFetch, now = Date.now() } = {}
+) {
   let height;
   const get = async (path) => {
     const response = await fetcher(endpoint + path, {
@@ -102,7 +106,7 @@ async function reader(endpoint, chain, { fetcher = governanceFetch, now = Date.n
   height = String(header.height);
   return { get, height, endpoint, checkedAt: now };
 }
-async function quorum(endpoints, read, same, label = 'Chain verification') {
+export async function quorum(endpoints, read, same, label = 'Chain verification') {
   const sources = endpointsOf(endpoints);
   const results = await Promise.allSettled(sources.map(read));
   const good = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);

@@ -732,3 +732,21 @@ headings. Explain nested weights with an inactive 80/20 and RPC 30% example;
 V2 itself remains objective-only. Never imply that an example weight, assessor or
 stored draft is approved or used by V1. Preserve existing graphite/mint tokens,
 keyboard navigation and every transaction/submission boundary.
+
+
+## Compact rule groups and current settings — owner update 2026-10-11
+
+Keep A/B/C headings and prominent category percentage fields visible; collapse
+individual criteria, within-group weights, measurement guidance and assessor detail
+by default. Future inputs remain disabled with Planned labels. Show the shared
+B+C=100% requirement; the 80/20 mix is a V3 preview, V2 alone remains B=100%.
+Use Allocation settings above full-width A/B/C cards on Set rules. Validation opens
+the relevant disclosure before focusing the invalid input. Move snapshot status,
+source and Refresh data below all stage content, removing the opening draft notice.
+
+Current rules belongs with actual programme data in Overview. Show verified approved
+settings and a proposal link before the general rule explanations; do not substitute
+defaults or a local draft. Keep approval evidence and exclusion reasons expandable.
+Distinguish no matching approval from unavailable verification. Refresh clears old
+results; a newer unsupported approval cannot leave an older version labeled current.
+This read-only display does not authorize transactions or activate future scoring.
