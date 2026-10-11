@@ -1,12 +1,35 @@
 # Juno Delegation Programme
 
-9 October 2026. Native Juno governance, long-validator claim entry and current
-rewards are published through `ef7873b1` (manual run 37963591472, all 18 jobs
-successful). Both domains passed claim handoff acceptance without submitting a
-transaction. The next candidate adds [shared review and deposits](JUNO_COMMUNITY_FUNDING.md).
-Rule approval verification and allocation execution remain unconnected.
+11 October 2026. Native governance/review, claim preparation and current rewards
+are published. Overview was published through PR #285 (`a3caada9`, successful
+manual run 38143829153); both domains were inspected without a wallet action.
+Read-only approved-settings discovery is the current candidate. Allocation
+execution still requires its own approval and authority integration.
 
-## Delegation Programme overview — 11 October 2026 candidate
+## Compact UI and current approved settings — candidate
+
+Snapshot status/source/refresh move to the page bottom. Allocation settings lead
+Set rules, followed by full-width A/B/C cards with default-closed criteria.
+Category weights remain visible and disabled, with the future B+C=100% requirement
+and inactive 80/20 example. Invalid V1 inputs open before receiving focus.
+
+Overview displays the current passed policy independently of local drafts. The
+reader scans complete, forward-paginated Juno governance history using two fresh,
+height-pinned sources through the existing allowlisted read proxy. It recognizes
+programme rule proposals in the planner format: matching title/programme/chain,
+exact policy JSON and its SHA-256, with no execution messages. The latest passed
+voting-end time wins, with proposal ID breaking ties. Unknown policy fields or a
+newer unsupported version fail visibly rather than falling back to an old policy.
+
+The display includes the proposal link, voting-end date, factor/cap, commission,
+eligibility, upgrade window, reserve, exclusions and V1 scoring status. Evidence
+and exclusion reasons are expandable. Loading, no matching approval and unavailable
+verification are distinct. Refresh removes stale approval display before reading.
+Free-text historical policies are not interpreted as structured planner rules.
+This adapter neither overwrites draft controls nor authorizes allocation execution.
+See [CURRENT_STATE](CURRENT_STATE.md) for candidate validation and release status.
+
+## Delegation Programme overview — published 11 October 2026
 
 Overview is now the default entry, followed by Set rules, Review distribution and
 Review proposal. It leads with the current snapshot: delegated and spendable JUNO,
@@ -25,7 +48,8 @@ reuses the archived C4E/RockawayX research without adopting historical parameter
 
 Local browser acceptance covers current positions, rewards placement, disabled
 future controls, draft return links and all four views at 1440/768/390/320 px.
-Full candidate CI and manual publication remain pending. No live transaction sent.
+PR #285 passed all 16 CI jobs and manual release 38143829153 passed all 18 jobs.
+No live transaction sent.
 
 ## Claim entry and current rewards correction
 
