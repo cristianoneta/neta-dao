@@ -4,6 +4,21 @@
 no NETA requirement**. This is preparation for a controlled two-wallet review
 trial, not evidence that the complete governance lifecycle has passed.
 
+## Activation connection correction · 11 October
+
+PR #281 is live from manual release 38078172222. The activation connection
+passed raw browser fetch to the verifier, causing height-header requests to
+bypass the same-origin read proxy. Provider preflight rejection blocks this
+verification even after Keplr has approved the wallet connection.
+
+The correction uses the existing allowlisted proxy for activation verification.
+Both sources, block heights, code checksum, owner/admin and policy checks remain
+required. A failed connection displays its reason instead of only returning to
+the generic disconnected label. A browser test rejects all direct provider reads
+and checks failed verification, retry, activation and recovery without resending.
+The correction needs a new manual website release; no contract redeployment is
+needed. Owner activation remains a separate explicit wallet transaction.
+
 ## Verified deployment and activation candidate
 
 `juno-review-mainnet-deploy.html` provides owner-reviewed code upload and

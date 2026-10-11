@@ -8,6 +8,19 @@ in the owner's private operations handoff, outside this repository.
 
 ## Current priority
 
+11 October update: PR #281 was published by successful manual release
+38078172222 from `fd18e05b13b7d9957aeaaccf59a50cf54d80ebd8`. The owner
+reported that activation could not complete its wallet connection. Activation
+passed raw browser fetch into the height-pinned verifier, bypassing the existing
+same-origin read proxy. Direct provider preflight requests were rejected.
+
+The connection fix routes activation verification through the existing allowlisted
+proxy, preserving provider identity, pinned heights and all code/authority/policy
+checks. Connection failures now show a clear status alongside the actual reason.
+A browser regression rejects every direct provider request and covers outage,
+retry, owner activation and pending transaction recovery. No real activation or
+production release was performed by the agent. The fix needs manual publication.
+
 10 October update: PR #280 was published by successful manual release
 38074225057 from `c4c91fdac8883fec10edffe34d89fcf40b65ffe9`. The owner
 uploaded and instantiated Juno community review v0.3.1 on mainnet (code 5171).

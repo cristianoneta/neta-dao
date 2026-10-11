@@ -3,6 +3,7 @@ import {
   REVIEW_MAINNET_RELEASE as PIN,
   REVIEW_MAINNET_OWNER as OWNER
 } from './juno-review-mainnet-config.mjs';
+import { governanceFetch } from './governance-chain-read.mjs';
 import { verifyMainnetReview } from './juno-review-mainnet-read.mjs';
 const stable = (v) =>
   JSON.stringify(v, (_, x) =>
@@ -25,7 +26,9 @@ export class ReviewMainnetActivation extends ReviewMainnetSetup {
     return { ...s, codeId: PIN.codeId, address: PIN.contract };
   }
   async verifyState() {
-    return verifyMainnetReview({ fetcher: this.fetcher });
+    return verifyMainnetReview({
+      fetcher: (url, options) => governanceFetch(url, options, this.fetcher)
+    });
   }
   async requirePaused() {
     const current = await this.verifyState();
