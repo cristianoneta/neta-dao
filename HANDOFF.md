@@ -6,6 +6,15 @@ boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
 
+## Community Tools navigation — 11 October 2026 candidate
+
+Interchain now precedes Juno and NETA. Delegation Programme moves to Interchain
+alongside a Neta Naming Service card opening the existing .neta name panel.
+The planner URL and all chain/transaction behavior remain unchanged.
+Local validation passed: 292 Node tests, source/static checks and the existing
+Community Tools browser flow, including direct NNS navigation and four viewport
+screenshots. Full PR CI and manual publication remain pending.
+
 ## Current priority
 
 11 October update: PR #281 was published by successful manual release
@@ -100,7 +109,7 @@ Stricter standby selection, verified rule approval, allocation execution and nat
 voting remain separate work. No live signing or deposit is claimed for this candidate.
 
 The current development priority is the Juno **Delegation Programme** planner,
-placed under Community Tools → Juno. Its first implementation adds capped equal
+placed under Community Tools → Interchain in the current navigation candidate. Its first implementation adds capped equal
 allocation, explicit v31 evidence review, manual exclusions, current-versus-target
 comparison and downloadable rule drafts using the shared UI. The collector and
 snapshot path are live from release `885beb9a`. The owner-approved three-stage

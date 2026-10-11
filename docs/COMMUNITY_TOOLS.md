@@ -8,6 +8,21 @@ their URLs and appear under Juno. `/community-tools/neta/buy/` adds **Buy NETA o
 WYND** using the current shared header, theme, project breadcrumbs and a native
 review dialog.
 
+## Interchain navigation — 11 October 2026 candidate
+
+The hub now orders project filters and sections as Interchain, Juno, NETA.
+Interchain contains Delegation Programme and Neta Naming Service; Juno retains
+Faucet and Validator Upgrade Status, and NETA retains Buy NETA on WYND.
+Counts are 5 overall and 2 / 2 / 1 per section. The planner keeps its existing
+`/community-tools/juno/delegation/` URL and Juno scope, with an Interchain
+breadcrumb. The naming card opens `/index.html#relay/register`, the existing
+.neta name panel, without introducing a second registration flow.
+The existing browser flow verifies filters/reload, the naming card opening the
+registration panel, and the planner breadcrumb returning to Interchain. Hub
+screenshots at 1440 / 768 / 390 / 320 px were inspected; all 292 Node tests and
+static checks passed. Full PR CI and manual publication remain pending.
+No wallet or contract behavior changed.
+
 ## Source and transaction behavior
 
 The swap controller, REST query client, transaction fee helper and token icons are
