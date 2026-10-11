@@ -1,4 +1,5 @@
-import { renderFuturePolicy } from './juno-delegation-roadmap.mjs';
+import { currentApprovedRules } from './juno-approved-rules.mjs';
+import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=2';
 import { ruleProposal, claimProposal, savePlannerProposal } from './planner-proposal-draft.mjs';
 import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 import {
@@ -105,6 +106,88 @@ const node = (tag, text, className) => {
   if (className) el.className = className;
   return el;
 };
+let approvalRead = 0;
+async function loadApprovedRules() {
+  const read = ++approvalRead;
+  const host = $('current-rules-content'),
+    state = $('current-rules-state');
+  state.textContent = 'Checking approval…';
+  state.className = 'state-pill neutral';
+  host.replaceChildren(node('p', 'Checking Juno governance for approved programme rules…'));
+  try {
+    const result = await currentApprovedRules();
+    if (read !== approvalRead) return;
+    host.replaceChildren();
+    if (!result.current) {
+      state.textContent = 'Awaiting first approval';
+      host.append(
+        node(
+          'p',
+          'No approved Cosmoot rule proposal found. Once the first rule proposal passes Juno governance, its settings will appear here automatically.'
+        )
+      );
+      return;
+    }
+    const { rule, proposalId, votingEndedAt, hash } = result.current;
+    state.textContent = 'Approved · current version';
+    state.className = 'state-pill live';
+    const source = node('p'),
+      link = node('a', `Proposal #${proposalId} ↗`);
+    link.href = 'https://atomscan.com/juno/proposals/' + proposalId;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    source.append(
+      link,
+      document.createTextNode(` · Voting ended ${new Date(votingEndedAt).toLocaleString()}`)
+    );
+    const settings = node('dl', '', 'approved-settings');
+    for (const [label, value] of [
+      ['Allocation', 'Equal distribution within the voting power cap'],
+      [
+        'Voting power cap',
+        `min(30%, ${rule.factorTenths / 10} × 100% / consensus validator count)`
+      ],
+      [
+        'Maximum commission',
+        rule.commissionMaxBps === null ? 'No limit' : `${rule.commissionMaxBps / 100}%`
+      ],
+      ['Validator status', 'Non-jailed; participation evidence required'],
+      ['Upgrade participation', 'Juno v31 · within 5 hours of the halt'],
+      ['Liquid reserve', `${formatAmount(rule.liquidReserveRaw)} JUNO`],
+      ['Manual exclusions', String(rule.exclusions.length)],
+      ['Scoring', 'V1 · no objective or subjective points']
+    ]) {
+      const entry = node('div');
+      entry.append(node('dt', label), node('dd', value));
+      settings.append(entry);
+    }
+    const details = node('details', '', 'policy-details');
+    details.append(node('summary', 'Approval evidence & exclusions'));
+    for (const entry of rule.exclusions)
+      details.append(node('p', `${entry.validator}: ${entry.reason}`));
+    details.append(node('p', `Rule SHA-256: ${hash}`, 'rule-fingerprint'));
+    details.append(
+      node(
+        'p',
+        'Verified ' +
+          new Date(result.checkedAt).toLocaleString() +
+          ' · ' +
+          result.sources
+            .map((s) => `${new URL(s.endpoint).hostname} · block ${s.height}`)
+            .join(' / '),
+        'field-help'
+      )
+    );
+    host.append(source, settings, details);
+  } catch (error) {
+    if (read !== approvalRead) return;
+    state.textContent = 'Approval unavailable';
+    host.replaceChildren(
+      node('p', 'Current rules could not be verified. Use Refresh data to retry.'),
+      node('p', error.message, 'field-help')
+    );
+  }
+}
 const sumCurrent = () => data.validators.reduce((a, v) => a + BigInt(v.currentRaw), 0n);
 let showAllCurrentPositions = false;
 function renderCurrentPositions() {
@@ -281,6 +364,7 @@ async function fetchJSON(url) {
 async function load() {
   if (loading) return;
   loading = true;
+  void loadApprovedRules();
   $('refresh').disabled = true;
   $('claim-rewards').disabled = true;
   rewardsSource = null;
@@ -589,15 +673,23 @@ function renderResult(result) {
   renderTable();
   renderProposal(result);
 }
+function focusRuleInput(id) {
+  $('rules-eligibility-details').open = true;
+  $(id).focus();
+}
 async function runSimulation() {
   try {
     if (!data || !evidence) throw Error('Load programme data first.');
-    if (!$('factor-number').checkValidity() || !$('factor-number').value)
+    if (!$('factor-number').checkValidity() || !$('factor-number').value) {
+      focusRuleInput('factor-number');
       throw Error('Enter a factor from 1.0 to 2.0 in steps of 0.1.');
-    if (!commissionValid())
+    }
+    if (!commissionValid()) {
+      focusRuleInput('commission');
       throw Error(
         'Enter a whole-number commission limit from 0 to 100, or select no commission limit.'
       );
+    }
     invalidate('Calculating the proposed allocation…');
     const token = revision;
     const result = simulate(rules, data, amount($('programme-amount').value.trim()), evidence);
@@ -721,12 +813,12 @@ $('save-draft').addEventListener('click', () => {
   try {
     if (!$('factor-number').checkValidity() || !$('factor-number').value) {
       tell('Enter a factor from 1.0 to 2.0 before saving the rules.', 'error');
-      $('factor-number').focus();
+      focusRuleInput('factor-number');
       return;
     }
     if (!commissionValid()) {
       tell('Enter a whole-number commission limit from 0 to 100 before saving the rules.', 'error');
-      $('commission').focus();
+      focusRuleInput('commission');
       return;
     }
     localStorage.setItem(key, JSON.stringify(policy(rules)));

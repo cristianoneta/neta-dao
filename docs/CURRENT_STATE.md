@@ -1,9 +1,36 @@
 # Current state — Cosmoot / NETA DAO
 
-Updated 9 October 2026. This is the public feature/deployment/evidence matrix.
+Updated 11 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
-## Delegation Programme overview — 11 October 2026 candidate
+## Compact planner and approved settings — 11 October 2026 candidate
+
+Overview and Set rules keep A/B/C criteria behind default-closed native disclosures.
+Category weights remain prominent disabled percentage fields, with the inactive
+B80 + C20 =100 preview and the future group-total requirement made explicit.
+Set rules puts Allocation settings first, then full-width A/B/C cards. Invalid
+V1 inputs open their disclosure before receiving focus. Snapshot status, source
+and Refresh data now sit at the bottom; the redundant opening notice is removed.
+
+Overview adds Current rules with actual approved V1 values, the native proposal
+link and voting-end date. A read-only adapter scans complete, height-pinned Juno
+proposal history through two independent fresh sources and requires agreement.
+It recognizes the planner's exact policy format and fingerprint, selecting the
+latest passed version by voting-end time, then proposal ID. Incomplete history,
+source disagreement, invalid hashes or an unsupported latest policy fail visibly;
+they never fall back to an older version or a local draft. Before the first matching
+approval, the section explains that the settings will appear after passage.
+Refresh clears old approval display and retries independently of holdings.
+
+This is display-only: it neither changes saved drafts nor unlocks allocation
+execution. V2/V3 scoring and live weight editing remain planned. Human-authored
+historical policies without the exact planner policy block are not auto-imported.
+Local validation: 299 Node tests, repository/format/static checks, and the complete
+synthetic planner/review/submission browser flow. Four views at 1440/768/390/320 px,
+expanded criteria at 1440/320 px, keyboard toggles and invalid-input focus checked.
+Full candidate CI and manual publication remain pending. No live wallet action.
+
+## Delegation Programme overview — published 11 October 2026
 
 Overview is now the default entry, followed by Set rules, Review distribution and
 Review proposal. It leads with the current snapshot: delegated and spendable JUNO,
@@ -22,9 +49,11 @@ reuses the archived C4E/RockawayX research without adopting historical parameter
 
 Local browser acceptance covers current positions, rewards placement, disabled
 future controls, draft return links and all four views at 1440/768/390/320 px.
-Full candidate CI and manual publication remain pending. No live transaction sent.
+PR #285 passed all 16 CI jobs (38142732149), merged as `a3caada9`, and was
+published by successful manual release 38143829153 (all 18 jobs). Overview and
+Set rules were inspected on both production domains. No live transaction sent.
 
-## Proposal review hierarchy — 11 October 2026 candidate
+## Proposal review hierarchy — published 11 October 2026
 
 The redundant review-link/testnet shortcut row and isolated discussion stake badge
 are removed. A prominent author card sits beneath the heading: the verified .neta
@@ -38,7 +67,9 @@ Local validation: 294 Node tests, repository/static checks, and the full synthet
 planner/review/submission browser flow. Review and public profile screenshots at
 1440/768/390/320 px inspected; keyboard disclosure and profile/address links checked.
 PR #284 passed all 16 CI jobs (run 38141482634) and merged as `e56a8901`.
-Manual publication remains pending. No live wallet action performed.
+Manual release 38142763291 passed all 18 jobs and published this exact commit.
+The author profile and review hierarchy were inspected on the production sites.
+No live wallet action performed.
 
 ## Current architecture
 
@@ -176,7 +207,7 @@ Earlier release notes below are historical and superseded by this update.
 
 | Feature | Code | Deployment / activation | Evidence and remaining boundary |
 | --- | --- | --- | --- |
-| Juno Delegation Programme planner | Shared Community Tools UI; capped equal simulation, exclusions, snapshot collector and rule-draft exports | Native governance handoff/submission published; claim-entry and rewards-display correction pending release | Original live simulation accepted on both domains; on-chain approval verifier and execution adapter remain open. [Scope and rollout](JUNO_DELEGATION_PROGRAMME.md) |
+| Juno Delegation Programme planner | Shared Community Tools UI; capped equal simulation, exclusions, snapshots, rewards and rule drafts | Native submission and Overview published through PR #285; compact UI and approved-settings display are the current candidate | Read-only policy discovery is implemented in the candidate; allocation execution approval/authority integration remains open. [Scope and rollout](JUNO_DELEGATION_PROGRAMME.md) |
 | Community Tools | Candidate: Interchain / Juno / NETA, with a Delegation Programme chain picker (initially Juno) and a Neta Naming Service entry under Interchain | Existing four-tool menu published; five-entry Interchain navigation awaits manual release | Existing Juno routes retained; native/CW20 swap, contract allowlist, $25 cap and pending journal retained. Signing and browser checks passed; desktop/mobile screenshots inspected. The published hub was checked during the original planner release. [Details](COMMUNITY_TOOLS.md) |
 | Names | Registry v0.3.1 and profiles v0.1.0 | Mainnet code 5168/5169; purchases active | First registration and fee receipt recorded; mainnet renewal/transfer and live validator E2E remain open. [Receipts](NNS_MAINNET_DEPLOYMENT_2026-10-05.md) |
 | Personal messaging | Maintained client, builder, backup and browser suites integrated in cleanup candidate | Code 5170 deployed; separate two-wallet pilot live; public release/deployment pins null | User confirmed send/read/reload; device/consent queried through one provider. Fresh-profile restore/rotation explicitly deferred; reply and hosted durability open. [Pilot evidence](deployments/PERSONAL_PILOT_2026-10-07.md) |

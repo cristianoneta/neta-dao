@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { approvedProposal } from '../../tests/fixtures/approved-rules.mjs';
+import { defaultPolicy } from '../../juno-delegation-core.mjs';
 import { fixture } from '../../tests/fixtures/delegation-planner.mjs';
 import { rewardsFixture } from '../../tests/fixtures/claim-rewards.mjs';
 import { exerciseReviewFunding } from './exercise-review-funding.mjs';
@@ -62,6 +64,40 @@ try {
       body: JSON.stringify({ data: { proposals: [] } })
     })
   );
+  const approvedPolicy = defaultPolicy();
+  approvedPolicy.factorTenths = 18;
+  approvedPolicy.commissionMaxBps = 700;
+  approvedPolicy.exclusions = [
+    {
+      chainId: 'juno-1',
+      validator: sample.validators[0].address,
+      reason: '<script>Public exclusion reason</script>'
+    }
+  ];
+  const approved = await approvedProposal({}, approvedPolicy);
+  let approvalState = 'empty';
+  await page.route('**/data/governance-read?*', (route) => {
+    const url = new URL(route.request().url()),
+      path = url.searchParams.get('path');
+    let response;
+    if (path.endsWith('/blocks/latest'))
+      response = {
+        block: {
+          header: { chain_id: 'juno-1', height: '50000000', time: new Date().toISOString() }
+        }
+      };
+    else if (path.startsWith('/cosmos/gov/v1/proposals?'))
+      response = {
+        proposals:
+          approvalState === 'empty' ||
+          (approvalState === 'disagree' && url.searchParams.get('source') === 'juno-stavr')
+            ? []
+            : [approved],
+        pagination: { next_key: null }
+      };
+    else return route.fallback();
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify(response) });
+  });
   let state = 'current';
   let rewardsState = 'current';
   await page.route('**/data/treasury/juno-delegation.json', (route) => {
@@ -99,6 +135,67 @@ try {
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
   assert.equal(await page.locator('#overview').isVisible(), true);
+  await page.waitForFunction(
+    () => document.getElementById('current-rules-state').textContent === 'Awaiting first approval'
+  );
+  approvalState = 'approved';
+  await page.locator('#refresh').click();
+  await ready();
+  await page.waitForFunction(() =>
+    document.getElementById('current-rules-state').textContent.includes('Approved ·')
+  );
+  assert.match(await page.locator('#current-rules-content').textContent(), /1.8 × 100%/);
+  assert.match(await page.locator('#current-rules-content').textContent(), /7%/);
+  assert.match(
+    await page.locator('#current-rules-content').textContent(),
+    /<script>Public exclusion reason<\/script>/
+  );
+  assert.equal(await page.locator('#current-rules-content script').count(), 0);
+  assert.equal(
+    await page.locator('#current-rules-content a').getAttribute('href'),
+    'https://atomscan.com/juno/proposals/950'
+  );
+  assert.equal(await page.locator('#factor-number').inputValue(), '1.5');
+  assert.equal(await page.locator('#commission').inputValue(), '10');
+  approvalState = 'disagree';
+  await page.locator('#refresh').click();
+  await ready();
+  await page.waitForFunction(
+    () => document.getElementById('current-rules-state').textContent === 'Approval unavailable'
+  );
+  assert.equal(await page.locator('#current-rules-content .approved-settings').count(), 0);
+  approvalState = 'approved';
+  await page.locator('#refresh').click();
+  await ready();
+  assert.equal(await page.locator('.programme-notice').count(), 0);
+  assert.equal(
+    await page
+      .locator('.snapshot-bar')
+      .evaluate(
+        (el) =>
+          !!(
+            document.querySelector('#proposals').compareDocumentPosition(el) &
+            Node.DOCUMENT_POSITION_FOLLOWING
+          )
+      ),
+    true
+  );
+  for (const prefix of ['overview', 'rules']) {
+    for (const group of ['eligibility', 'objective', 'subjective'])
+      assert.equal(await page.locator(`#${prefix}-${group}-details`).getAttribute('open'), null);
+  }
+  for (const group of ['objective', 'subjective']) {
+    assert.equal(await page.locator(`#overview-${group}-share`).isVisible(), true);
+    const toggle = page.locator(`#overview-${group}-details > summary`);
+    await toggle.press('Enter');
+    assert.equal(await page.locator(`#overview-${group}-details`).evaluate((el) => el.open), true);
+    await toggle.press('Enter');
+  }
+  assert.match(
+    await page.locator('#overview-weighting-help').textContent(),
+    /B 80% \+ C 20% = 100%/
+  );
+
   assert.equal(await page.locator('#rules').isVisible(), false);
   assert.equal(await page.locator('#overview #claim-rewards').isVisible(), true);
   assert.equal(await page.locator('#rules #claim-rewards').count(), 0);
@@ -152,6 +249,20 @@ try {
   assert.equal(await page.locator('#programme-amount').inputValue(), '15000900');
   assert.equal(await page.locator('.criterion h4').count(), 4);
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
+  assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), false);
+  assert.equal(
+    await page
+      .locator('.allocation-settings')
+      .evaluate(
+        (el) =>
+          !!(
+            el.compareDocumentPosition(document.querySelector('.eligibility-rules')) &
+            Node.DOCUMENT_POSITION_FOLLOWING
+          )
+      ),
+    true
+  );
+  await page.locator('#rules-eligibility-details > summary').press('Enter');
   await page.locator('#factor-number').fill('2');
   assert.equal(await page.locator('#factor').inputValue(), '20');
   assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
@@ -173,7 +284,13 @@ try {
   for (const value of ['13.5', '-1', '101', '']) {
     await page.locator('#commission').fill(value);
     assert.equal(await page.locator('#commission-error').isVisible(), true);
+    await page.locator('#rules-eligibility-details > summary').click();
     await page.locator('#save-draft').click();
+    assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), true);
+    assert.equal(
+      await page.locator('#commission').evaluate((el) => el === document.activeElement),
+      true
+    );
     assert.match(await page.locator('#feedback').textContent(), /whole-number commission/);
     await page.locator('#simulate').click();
     assert.equal(await page.locator('#export-json').isDisabled(), true);
@@ -287,6 +404,7 @@ try {
   assert.equal(review.policyHash.length, 64);
   const shots = process.env.NNS_SCREENSHOT_DIR;
   if (shots) await mkdir(shots, { recursive: true });
+  await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = false));
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     for (const stage of ['overview', 'rules', 'simulation', 'proposals']) {
@@ -313,6 +431,25 @@ try {
           path: `${shots}/juno-delegation-${stage}-${width}.png`,
           fullPage: true
         });
+    }
+  }
+  for (const width of [1440, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (const stage of ['overview', 'rules']) {
+      await step(stage);
+      for (const group of ['eligibility', 'objective', 'subjective'])
+        await page.locator(`#${stage}-${group}-details > summary`).press('Enter');
+      assert.ok(
+        await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        `${stage} expanded overflow at ${width}`
+      );
+      if (shots)
+        await page.screenshot({
+          path: `${shots}/juno-delegation-${stage}-expanded-${width}.png`,
+          fullPage: true
+        });
+      for (const group of ['eligibility', 'objective', 'subjective'])
+        await page.locator(`#${stage}-${group}-details > summary`).press('Enter');
     }
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -437,6 +574,7 @@ try {
     document.getElementById('feedback').textContent.includes('covered')
   );
   assert.equal(await page.locator('#export-json').isDisabled(), true);
+  await page.locator('#rules-eligibility-details > summary').click();
   await page.locator('#factor').press('End');
   assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
   state = 'stale';

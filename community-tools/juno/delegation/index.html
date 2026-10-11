@@ -16,8 +16,8 @@
     <link rel="stylesheet" href="/neta-ui.css" />
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
-    <link rel="stylesheet" href="/juno-delegation.css?v=5" />
-    <script type="module" src="/juno-delegation.mjs?v=5"></script>
+    <link rel="stylesheet" href="/juno-delegation.css?v=6" />
+    <script type="module" src="/juno-delegation.mjs?v=6"></script>
   </head>
   <body>
     <a class="planner-skip" href="#planner-heading">Skip to planner</a>
@@ -47,20 +47,6 @@
         </div>
         <span class="state-pill neutral">V1 planner · V2/V3 planned</span>
       </header>
-      <p class="programme-notice">
-        Current holdings are read-only. No approved rule version is connected to this planner; new rules are unapproved drafts.
-      </p>
-      <section class="snapshot-bar" aria-label="Programme data">
-        <div>
-          <strong id="snapshot-status">Loading programme snapshot…</strong>
-          <p id="snapshot-detail">Loading the observation time and active validator count.</p>
-          <details class="source-details">
-            <summary>Data source and block</summary>
-            <p id="snapshot-source">Waiting for programme data.</p>
-          </details>
-        </div>
-        <button id="refresh" type="button">Refresh data</button>
-      </section>
       <nav class="planner-steps" aria-label="Planning steps">
         <a href="#overview" data-step="overview" aria-current="step"><span aria-hidden="true">i</span> Overview</a>
         <a href="#rules" data-step="rules"
@@ -76,7 +62,7 @@
       <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
       <section id="overview" class="planner-panel" aria-labelledby="overview-title">
         <div class="section-heading"><h2 id="overview-title" tabindex="-1">Current delegation programme</h2><span class="state-pill neutral">Observed holdings</span></div>
-        <p class="overview-intro">See where the programme is delegated today and prepare a staking rewards proposal. Draft allocation rules below do not describe an approved current policy.</p>
+        <p class="overview-intro">See where the programme is delegated today and prepare a staking rewards proposal.</p>
         <div class="programme-overview-grid">
           <article class="planner-card programme-current">
             <div class="policy-heading"><h3>Programme position</h3><a href="/index.html?chain=juno&amp;dao=juno&amp;subdao=juno-delegation#treasury">Open treasury ↗</a></div>
@@ -86,7 +72,7 @@
               <div><span>Validator positions</span><strong id="current-validator-count">—</strong></div>
             </div>
             <p id="current-breakdown" class="field-help">Loading current programme positions.</p>
-            <p class="field-help">Balances are from the programme snapshot above. Unclaimed rewards are separate; spendable balance is not the full allocation budget.</p>
+            <p class="field-help">Balances are from the programme snapshot. Unclaimed rewards are separate; spendable balance is not the full allocation budget.</p>
           </article>
           <article class="planner-card programme-rewards"><h3>Staking rewards</h3>
             <div class="claim-rewards">
@@ -124,11 +110,16 @@
           </div>
           <button id="current-positions-toggle" type="button" aria-expanded="false" aria-controls="current-position-rows" hidden>Show all positions</button>
         </article>
+        <article class="planner-card current-rules" aria-labelledby="current-rules-title">
+          <div class="policy-heading"><h3 id="current-rules-title">Current rules</h3><span id="current-rules-state" class="state-pill neutral">Checking approval…</span></div>
+          <div id="current-rules-content" aria-live="polite"><p>Checking Juno governance for approved programme rules…</p></div>
+        </article>
         <div class="section-heading"><h2>How allocation rules develop</h2><a href="#rules" data-step="rules">Set rules →</a></div>
         <p class="overview-intro">The same three groups appear in Set rules. Only the existing V1 controls affect today’s simulation; grey sections preview later versions.</p>
         <article class="planner-card eligibility-overview">
           <div class="policy-heading"><h3>A · Eligibility</h3><span class="state-pill live">V1 · Available</span></div>
           <p>Decide which validators qualify before any future points are assigned. Current V1 distributes equally among eligible validators, subject to the voting-power cap and available capacity.</p>
+          <details id="overview-eligibility-details" class="policy-details"><summary>Eligibility criteria <span>5 checks</span></summary>
           <dl class="eligibility-list">
             <div><dt>Validator status</dt><dd>Non-jailed validators; consensus membership is shown separately. Current operation outside the active set is not independently verified.</dd></div>
             <div><dt>Voting power</dt><dd>A dynamic cap on projected total stake: min(30%, factor × 100% / active set size).</dd></div>
@@ -138,6 +129,7 @@
           </dl>
           <p class="field-help">A .neta name is not an admission requirement. Future testnet bonus eligibility is separate.</p>
           <a href="#rules" data-step="rules">Configure eligibility &amp; allocation →</a>
+          </details>
         </article>
         <div id="overview-future-policy" class="future-policy-grid"></div>
         <details class="calculation-help"><summary>Research behind this structure</summary><p>RockawayX separated eligibility from weighted scoring; C4E also separated objective and subjective assessment. These historical examples inform the layout, not the active Juno policy.</p><p><a href="https://web.archive.org/web/20240813161133/https://smartdelegation.app/docs" target="_blank" rel="noopener noreferrer">Archived RockawayX policy guide ↗</a> · <a href="https://docs.c4e.io/validatorsGuide/strategReserveDelegationProgram/strategReserveDelegationProgram.html" target="_blank" rel="noopener noreferrer">C4E delegation programme documentation ↗</a></p></details>
@@ -147,10 +139,28 @@
           <h2 id="rules-title" tabindex="-1">Set the allocation rules</h2>
           <span class="state-pill neutral">Equal distribution</span>
         </div>
-        <div class="rules-grid">
-          <article class="planner-card">
+          <article class="planner-card allocation-settings">
+            <h3>Allocation settings</h3>
+            <label for="programme-amount">Amount to distribute · JUNO</label
+            ><input
+              id="programme-amount"
+              type="text"
+              inputmode="decimal"
+              placeholder="Waiting for snapshot"
+              autocomplete="off"
+              aria-describedby="available-funds"
+            />
+            <p class="field-help" id="available-funds">
+              Includes delegated and available JUNO, keeps at least 50 JUNO in reserve and rounds
+              down to whole hundreds.
+            </p>
+            <p id="reserve-note" class="field-help"></p>
+
+          </article>
+          <article class="planner-card eligibility-rules">
             <div class="policy-heading"><h3>A · Eligibility</h3><span class="state-pill live">V1 · Available</span></div>
             <p>Pass the admission rules first. These checks are not weighted points. Voting power also limits the target allocation.</p>
+            <details id="rules-eligibility-details" class="policy-details"><summary>Eligibility criteria <span>5 checks · edit rules</span></summary>
             <section class="criterion" aria-labelledby="status-criterion">
               <h4 id="status-criterion"><span>1</span> Validator status</h4>
               <p>
@@ -262,26 +272,9 @@
               <ul id="exclusions" class="exclusions"></ul>
               <p id="empty-exclusions" class="field-help">No manual exclusions in this draft.</p>
             </details>
+            </details>
           </article>
-          <article class="planner-card">
-            <h3>Allocation settings</h3>
-            <label for="programme-amount">Amount to distribute · JUNO</label
-            ><input
-              id="programme-amount"
-              type="text"
-              inputmode="decimal"
-              placeholder="Waiting for snapshot"
-              autocomplete="off"
-              aria-describedby="available-funds"
-            />
-            <p class="field-help" id="available-funds">
-              Includes delegated and available JUNO, keeps at least 50 JUNO in reserve and rounds
-              down to whole hundreds.
-            </p>
-            <p id="reserve-note" class="field-help"></p>
-
-          </article>
-        </div>
+        <div id="roadmap" class="policy-roadmap" aria-label="Future policy settings"><div id="rules-future-policy" class="future-policy-grid"></div></div>
         <div class="step-actions">
           <div class="draft-actions">
             <button id="save-draft" type="button">Save rules</button
@@ -292,7 +285,6 @@
             Simulate distribution →
           </button>
         </div>
-        <div id="roadmap" class="policy-roadmap" aria-label="Future policy settings"><div id="rules-future-policy" class="future-policy-grid"></div></div>
       </section>
       <section id="simulation" class="planner-panel" aria-labelledby="simulation-title" hidden>
         <div class="section-heading">
@@ -502,6 +494,17 @@
             redelegation checks are not connected yet.
           </p>
         </details>
+      </section>
+      <section class="snapshot-bar" aria-label="Programme data">
+        <div>
+          <strong id="snapshot-status">Loading programme snapshot…</strong>
+          <p id="snapshot-detail">Loading the observation time and active validator count.</p>
+          <details class="source-details">
+            <summary>Data source and block</summary>
+            <p id="snapshot-source">Waiting for programme data.</p>
+          </details>
+        </div>
+        <button id="refresh" type="button">Refresh data</button>
       </section>
       <footer class="tool-footer">
         <span>Cosmoot · a community service by NETA Reborn</span
