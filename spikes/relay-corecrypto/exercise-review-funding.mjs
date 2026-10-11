@@ -28,7 +28,9 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   ];
   let reviewWrites = 0,
     comments = [],
-    failReviewReads = false;
+    failReviewReads = false,
+    holdAuthorLookup = false,
+    releaseAuthorLookup;
   const author = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
   const sponsor = 'juno1d0g7f97v87xwe6r4vr4jj3jfhzcv4vvfhamy8w';
   const params = {
@@ -141,14 +143,21 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
               tariff: { three_cents: 9900, four_cents: 1900, standard_cents: 500 }
             };
           else if (q.name_of) data = { address: q.name_of.address, name: 'cristiano.neta' };
-          else if (q.identity)
+          else if (q.identity) {
+            if (holdAuthorLookup) {
+              await page.evaluate(() => { window.__authorLookupHeld = true; });
+              await new Promise(resolve => { releaseAuthorLookup = resolve; });
+            }
             data = {
               name: 'cristiano.neta',
               owner: author,
+              generation: 1,
+              ownership_revision: 1,
               expires_at: Math.floor(Date.now() / 1000) + 86400
             };
+          }
         } else if (url.pathname.includes(manifest.profile_contract))
-          data = { registry: manifest.registry };
+          data = q.profile ? { active: true, profile: { identity: {name: 'cristiano.neta', owner: author, generation: 1, ownership_revision: 1}, contacts: {description: 'Public profile fixture', website: 'https://example.org', twitter: 'cristiano'}, revision: 1 } } : { registry: manifest.registry };
         else if (url.pathname.includes(manifest.token)) data = { decimals: 6 };
         else
           data = q.pause_info
@@ -470,23 +479,15 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   );
   assert.equal(await page.locator('#discard-action').isVisible(), true);
   assert.equal(await page.locator('#discard-action').isDisabled(), false);
-  await page.locator('#shared-review-copy').click();
-  await page.waitForFunction(
-    () => document.querySelector('#shared-review-copy-status').textContent.length > 0
-  );
-  await page.evaluate(() =>
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: {
-        writeText: async () => {
-          throw Error('denied');
-        }
-      }
-    })
-  );
-  await page.locator('#shared-review-copy').click();
-  assert.equal(await page.locator('#shared-review-copy-fallback').isVisible(), true);
-  assert.match(await page.locator('#shared-review-copy-fallback').inputValue(), /review=77/);
+  assert.equal(await page.locator('#shared-review-copy, #shared-review-url, #review-network-archive, #comment-requirement').count(), 0);
+  assert.equal(await page.locator('.review-author-wallet').getAttribute('href'), `https://atomscan.com/juno/accounts/${author}`);
+  assert.equal(await page.locator('.review-author-name').getAttribute('href'), '/name-profile.html?name=cristiano.neta');
+  assert.equal(await page.locator('#proposal-details').isVisible(), false);
+  await page.locator('#proposal-details-toggle').focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#proposal-details').isVisible(), true);
+  await page.keyboard.press('Space');
+  assert.equal(await page.locator('#proposal-details').isVisible(), false);
   await page.locator('#comment-title').fill('A useful discussion');
   await page.locator('#comment-body').fill('Review comment survives publication without a reload.');
   await page.locator('#publish-comment').click();
@@ -501,7 +502,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
 
   assert.equal(await page.locator('#planner-native-panel').isVisible(), false);
   assert.equal(await page.locator('#discussion-panel').isVisible(), true);
-  assert.match(await page.locator('#shared-review-url').getAttribute('href'), /review=77/);
+  assert.match(page.url(), /review=77/);
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
@@ -734,10 +735,14 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   await page
     .locator('.review-transaction-feedback [data-review-check]')
     .waitFor({ state: 'visible' });
+  holdAuthorLookup = true;
   await page.locator('.review-transaction-feedback [data-review-check]').click();
   await primary('FINALIZE REVIEW');
   assert.equal(reviewWrites, previousWrites + 1, 'Read-only status lookup must not republish');
+  await page.waitForFunction(() => window.__authorLookupHeld === true);
   await page.locator('#gov-disconnect').click();
+  holdAuthorLookup = false;
+  releaseAuthorLookup();
   assert.equal(await page.locator('#discard-action').isVisible(), true);
   assert.equal(await page.locator('#discard-action').isDisabled(), true);
   await page.waitForFunction(() =>
@@ -773,10 +778,21 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     () => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN'
   );
   assert.match(await page.locator('#shared-review-author').textContent(), /Review on UNI-7/);
-  assert.match(await page.locator('#shared-review-url').getAttribute('href'), /reviewChain=uni-7/);
+  assert.match(page.url(), /reviewChain=uni-7/);
   await page.goto(mainnetUrl);
   await page.waitForFunction(
     () => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN'
   );
   assert.match(await page.locator('#shared-review-author').textContent(), /Review on Juno mainnet/);
+  await page.goto(origin + '/name-profile.html?name=cristiano.neta');
+  await page.locator('#profile-content').waitFor({state: 'visible'});
+  assert.match(await page.locator('#profile-content').innerText(), /Public profile fixture/);
+  assert.equal(await page.locator('.profile-wallet').getAttribute('href'), `https://atomscan.com/juno/accounts/${author}`);
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({width, height: 1000});
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await shot(`public-profile-${width}`);
+  }
+  await page.goto(mainnetUrl);
+  await page.waitForFunction(() => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN');
 }

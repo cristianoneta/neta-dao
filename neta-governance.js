@@ -22,17 +22,12 @@
     validateCategories,
     isSpend
   } = await import('./proposal-accounting.mjs?v=20261006-4');
-  const {
-    publishedReview,
-    indexingUnavailable,
-    reviewEventId,
-    reconcileReviewTransaction,
-    copyReviewLink
-  } = await import('./review-publication.mjs');
+  const { publishedReview, indexingUnavailable, reviewEventId, reconcileReviewTransaction } =
+    await import('./review-publication.mjs');
   let authorRenderer;
   async function renderAuthorName(element, owner, current) {
-    element.textContent = `Draft author: ${owner} · Review on ${reviewLabel()}`;
-    const { authorNameRenderer } = await import('./proposal-identity.mjs');
+    element.textContent = owner;
+    const { authorNameRenderer } = await import('./proposal-identity.mjs?v=20261011-1');
     if (!current()) return;
     authorRenderer ||= authorNameRenderer();
     await authorRenderer(element, owner, current, reviewLabel());
@@ -1120,7 +1115,7 @@
     $('#proposal-details').hidden = !open;
     const button = $('#proposal-details-toggle');
     button.setAttribute('aria-expanded', String(open));
-    button.firstChild.textContent = open ? '− HIDE PROPOSAL DETAILS' : '+ SHOW PROPOSAL DETAILS';
+    $('#proposal-details-state').textContent = open ? 'Hide details −' : 'View details +';
   }
   function resetCommentForm() {
     state.replyTo = null;
@@ -1328,20 +1323,6 @@
     $('#eligibility-action').hidden = !commentBlocked;
     $('#eligibility-action').textContent = state.dao.commentStakeLabel || 'OPEN STAKING';
     if (native && CHAIN_ID === 'juno-1') $('#eligibility-action').textContent = 'DELEGATE JUNO';
-    $('#review-network-archive').hidden = !native;
-    if (native) {
-      const link = new URL(location.href);
-      link.searchParams.delete('review');
-      link.searchParams.delete('reviewContract');
-      link.searchParams.delete('plannerDraft');
-      link.searchParams.set('reviewChain', CHAIN_ID === 'juno-1' ? 'uni-7' : 'juno-1');
-      $('#review-network-archive').href = link.href;
-      $('#review-network-archive').textContent =
-        CHAIN_ID === 'juno-1' ? 'Open UNI-7 test reviews' : 'Return to Juno mainnet reviews';
-    }
-    $('#comment-requirement').textContent = native
-      ? reviewRequirement()
-      : 'STRICTLY > 10 NETA STAKED';
     $('#primary-action').hidden = !!selected && !discussion;
     $('#discard-action').hidden =
       !!selected && !(withdrawable && selected.source === 'workshop' && native) && !canWithdraw;
@@ -1645,16 +1626,13 @@
     reviewUrl.searchParams.set('reviewChain', CHAIN_ID);
     if (isNativeReview()) reviewUrl.searchParams.set('reviewContract', CONTRACT);
     reviewUrl.hash = 'governance';
-    $('#shared-review-url').href = reviewUrl.href;
-    $('#shared-review-url').textContent = 'Open review ↗';
-    $('#shared-review-copy-status').textContent = '';
-    $('#shared-review-copy-fallback').hidden = true;
+    const authorReview = state.selected;
     void renderAuthorName(
       $('#shared-review-author'),
       found.author,
-      () => daoId === state.dao.id && state.selected?.key === `workshop:${id}`
+      () => daoId === state.dao.id && state.selected === authorReview
     );
-    $('#shared-review-link').hidden = !isNativeReview();
+    $('#review-author-card').hidden = false;
     history.replaceState(null, '', reviewUrl);
     renderNetwork();
     $('#proposal-stage').textContent =
@@ -1706,7 +1684,7 @@
     sharedFinal = null;
     funding.invalidate();
     $('#planner-proposal-context').hidden = true;
-    $('#shared-review-link').hidden = true;
+    $('#review-author-card').hidden = true;
     const chainUrl = new URL(location.href);
     chainUrl.searchParams.delete('plannerDraft');
     chainUrl.searchParams.delete('review');
@@ -1765,7 +1743,7 @@
   function newDraft() {
     sharedFinal = null;
     state.selected = null;
-    $('#shared-review-link').hidden = true;
+    $('#review-author-card').hidden = true;
     funding.invalidate();
     plannerGov.invalidate();
     clearInterval(state.countdown);
@@ -2177,19 +2155,6 @@
       }
     }
   }
-  $('#shared-review-copy').onclick = async () => {
-    const button = $('#shared-review-copy');
-    button.disabled = true;
-    try {
-      await copyReviewLink($('#shared-review-url').href, {
-        clipboard: navigator.clipboard,
-        input: $('#shared-review-copy-fallback'),
-        feedback: $('#shared-review-copy-status')
-      });
-    } finally {
-      button.disabled = false;
-    }
-  };
   for (const button of document.querySelectorAll('[data-review-check]'))
     button.onclick = () => run(button, async () => 'No pending review transaction.');
   $('#proposal-actions').addEventListener('input', renderAccounting);

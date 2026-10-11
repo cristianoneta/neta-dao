@@ -1,0 +1,10 @@
+.public-profile { max-width:880px; }
+.public-profile h1, .public-profile-card { overflow-wrap:anywhere; }
+.public-profile-card { padding:24px; background:var(--neta-surface); border:1px solid var(--neta-border); border-radius:12px; }
+.public-profile-card[hidden], #profile-retry[hidden] { display:none; }
+.public-profile-card dl { display:grid; grid-template-columns:120px minmax(0,1fr); gap:16px; margin:24px 0; }
+.public-profile-card dt { color:var(--neta-text-secondary); }
+.public-profile-card dd { margin:0; min-width:0; }
+.public-profile-card .profile-wallet { font-family:ui-monospace,monospace; font-size:14px; }
+#profile-status[data-error="true"] { color:var(--neta-danger); }
+@media(max-width:640px) { .public-profile-card { padding:16px; } .public-profile-card dl { grid-template-columns:1fr; gap:8px; } .public-profile-card dd { margin-bottom:12px; } }

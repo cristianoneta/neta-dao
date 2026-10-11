@@ -16,10 +16,35 @@ export async function publicAuthorName(reader, owner, now = () => Date.now() / 1
     return null;
   return name;
 }
+function renderIdentity(element, owner, networkLabel, name) {
+  const doc = element.ownerDocument;
+  const wallet = doc.createElement('a');
+  wallet.className = 'review-author-wallet';
+  wallet.textContent = owner;
+  wallet.href = `https://atomscan.com/juno/accounts/${encodeURIComponent(owner)}`;
+  wallet.target = '_blank';
+  wallet.rel = 'noopener noreferrer';
+  wallet.setAttribute('aria-label', `View ${owner} on Atomscan (opens in a new tab)`);
+  const network = doc.createElement('span');
+  network.className = 'review-author-network';
+  network.textContent = `Review on ${networkLabel}`;
+  element.replaceChildren();
+  if (name) {
+    const profile = doc.createElement('a');
+    profile.className = 'review-author-name';
+    profile.textContent = name;
+    profile.href = `/name-profile.html?${new URLSearchParams({name})}`;
+    profile.target = '_blank';
+    profile.rel = 'noopener noreferrer';
+    profile.setAttribute('aria-label', `View ${name} profile (opens in a new tab)`);
+    element.append(profile);
+  }
+  element.append(wallet, network);
+}
 export function authorNameRenderer({ fetcher = fetch } = {}) {
   let manifest;
   return async (element, owner, current = () => true, networkLabel = 'UNI-7') => {
-    element.textContent = `Draft author: ${owner} · Review on ${networkLabel}`;
+    renderIdentity(element, owner, networkLabel);
     element.title = owner;
     try {
       manifest ||= fetcher('./docs/deployments/nns-mainnet.json', { cache: 'no-store' })
@@ -36,7 +61,7 @@ export function authorNameRenderer({ fetcher = fetch } = {}) {
       const reader = new NamesV2Reader({ deployment: await manifest, fetcher });
       const name = await publicAuthorName(reader, owner);
       if (name && current())
-        element.textContent = `Draft author: ${name} (${owner}) · Review on ${networkLabel}`;
+        renderIdentity(element, owner, networkLabel, name);
     } catch {
       /* The full verifiable address remains the public fallback. */
     }
