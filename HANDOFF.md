@@ -6,6 +6,21 @@ boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
 
+## Proposal review hierarchy — 11 October 2026 candidate
+
+The redundant review-link/testnet shortcut row and isolated discussion stake badge
+are removed. A prominent author card sits beneath the heading: the verified .neta
+name opens a read-only public profile and the full address opens Atomscan. Address
+fallback remains available when name lookup fails. The default-closed proposal
+text/actions disclosure is now a raised card with explanatory text and clear state.
+Public profiles verify the mainnet registry and current ownership before showing
+contacts; expired or mismatched identities fail visibly, with a retry option.
+
+Local validation: 294 Node tests, repository/static checks, and the full synthetic
+planner/review/submission browser flow. Review and public profile screenshots at
+1440/768/390/320 px inspected; keyboard disclosure and profile/address links checked.
+Full PR CI and manual publication remain pending. No live wallet action performed.
+
 ## Community Tools navigation — 11 October 2026 candidate
 
 Interchain now precedes Juno and NETA. Delegation Programme moves to Interchain

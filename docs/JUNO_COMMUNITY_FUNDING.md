@@ -55,7 +55,7 @@ contract or backend custody is introduced. Mainnet voting remains read-only.
 
 The review actions show preparation, wallet confirmation and chain confirmation
 beside the relevant controls. Publication opens its public review directly; it does
-not wait for unrelated mainnet history. Copy review link reports success or offers
+not wait for unrelated mainnet history. The former Copy review link control reported success or offered
 an editable selection field when clipboard permission is unavailable.
 
 Pending UNI-7 transactions are checked under the signing client's account lock.
@@ -138,3 +138,7 @@ candidate passes 269 local Node tests, repository/static checks and the complete
 synthetic planner/review/funding browser flow at four widths. It still requires
 complete CI and a separate manual release. No real signing or fund movement was
 part of diagnosis.
+
+11 October UI update: the copy/open-review row and testnet shortcut were removed.
+The browser URL remains a direct review link; existing qualified and legacy UNI-7
+URLs continue to work. The author card links to a public .neta profile and Atomscan.

@@ -682,7 +682,7 @@ Use existing graphite/mint tokens. Opening a draft requires no wallet signature.
 
 Keep transaction progress/status beside the action and discussion controls, with
 visible busy state and a read-only Check transaction status action after uncertain
-outcomes. Copy review link offers visible confirmation and a selectable URL fallback.
+outcomes. The former copy/open-review row was removed by the 11 October owner update.
 Show the verified public .neta author with the underlying address. Retain address
 fallback and wrap identity text at 320px. Withdraw review is visible in discussion,
 with author-only eligibility and confirmation; its terminal view preserves history.
@@ -698,3 +698,20 @@ remove the separate deposit input, intermediate review action and checkbox step.
 Show verification/signature progress, the simulated fee and errors in this same
 area. Keplr remains the explicit transaction confirmation. Offer author-only
 withdrawal in both Discussion and READY before native submission, keeping history.
+
+
+## Proposal review hierarchy — owner update 2026-10-11
+
+Remove the redundant testnet/copy/open-review row and the standalone stake badge in
+the discussion heading. Keep direct review URLs and action-specific access guidance.
+Place a Proposed by card directly beneath the proposal heading, with a prominent
+verified .neta profile link, full linked Atomscan address and secondary network label.
+The author profile opens in a separate tab without losing an in-progress review.
+Public profile pages reuse shared graphite/mint foundations, show published contacts
+without wallet connection, distinguish absent contacts from unavailable data and
+never reuse the owner's editing form as a public identity page.
+
+Keep selected-review details closed initially. Use a raised, bordered full-width
+Proposal text & actions disclosure, a concise explanation and View/Hide details
+state. Retain native button semantics, keyboard operation and aria-expanded. New
+local drafts retain their open editor. Identity text wraps at 320 px.

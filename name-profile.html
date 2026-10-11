@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://juno-api.polkachu.com https://rest.lavenderfive.com https://juno.api.m.stavr.tech; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Public .neta profile · Cosmoot</title>
+  <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/neta-ui.css"><link rel="stylesheet" href="/community-tools.css"><link rel="stylesheet" href="/community-tools-header.css"><link rel="stylesheet" href="/name-profile.css">
+  <script type="module" src="/name-profile.mjs"></script>
+</head>
+<body>
+  <header class="gov-header faucet-header"><a class="gov-brand" href="/index.html">NETA REBORN</a><a class="faucet-header-label" href="/index.html#relay/register">NETA NAMING SERVICE</a><div class="gov-controls"><span class="community-network">JUNO MAINNET</span></div></header>
+  <main class="tools-hub public-profile">
+    <nav class="tool-breadcrumb" aria-label="Breadcrumb"><a href="/index.html#governance">Proposals</a><span aria-hidden="true"> / </span><span>Public profile</span></nav>
+    <header class="tools-intro"><p class="eyebrow">PUBLIC .NETA PROFILE</p><h1 id="profile-name">.neta profile</h1></header>
+    <p id="profile-status" role="status">Loading public profile…</p>
+    <button id="profile-retry" type="button" hidden>Retry profile lookup</button>
+    <section id="profile-content" class="public-profile-card" aria-label="Published profile" hidden></section>
+    <footer class="tool-footer"><span>Public contacts are supplied by the name owner.</span><a href="/index.html#relay/register">Neta Naming Service</a></footer>
+  </main>
+</body>
+</html>

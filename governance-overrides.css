@@ -25,8 +25,12 @@
 .proposal-filters { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px; border-bottom:1px solid var(--line); }
 .proposal-filters button { padding:9px 6px; font-size:12px; }
 .proposal-filters button.active { background:var(--neta-selected); }
-.details-toggle { width:100%; display:flex; justify-content:space-between; margin-top:20px; border-color:var(--line)!important; color:var(--muted)!important; }
-.details-toggle::after { content:"BODY · EXECUTION · REVISIONS"; font-size:12px; letter-spacing:.04em; }
+.details-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:24px; padding:20px!important; text-align:left; border:1px solid var(--neta-control-border)!important; border-left:4px solid var(--neta-accent)!important; background:var(--neta-surface-raised)!important; color:var(--neta-text)!important; }
+.details-toggle:hover { border-color:var(--neta-accent)!important; }
+.proposal-details-copy { display:grid; gap:8px; min-width:0; }
+.proposal-details-copy strong { font-size:18px; }
+.proposal-details-copy > span { color:var(--neta-text-secondary); font-size:14px; font-weight:400; line-height:1.5; }
+#proposal-details-state { flex-shrink:0; color:var(--neta-accent); font-size:14px; }
 #proposal-details[hidden] { display:none; }
 #proposal-details>label { display:block; color:var(--muted); font-size:12px; letter-spacing:.04em; margin:20px 0; }
 .proposal-list .status { width:fit-content; margin-top:8px; padding:4px 7px; border-left:3px solid currentColor; font-weight:900; }
@@ -266,18 +270,21 @@ body.revision-dialog-open { overflow:hidden; }
 #proposal-funding-review-text { white-space:pre-line; overflow-wrap:anywhere; margin-bottom:16px; }
 #proposal-funding-action { margin-top:16px; }
 #proposal-funding-total { font-size:20px; font-variant-numeric:tabular-nums; }
-#proposal-funding-panel[hidden], #proposal-funding-form[hidden], #proposal-funding-review[hidden], #shared-review-link[hidden], #planner-native-inputs[hidden] { display:none; }
-#shared-review-link { margin:16px 0; overflow-wrap:anywhere; }
-#shared-review-author { display:block; color:var(--neta-text-secondary); font-size:14px; margin-top:8px; }
+#proposal-funding-panel[hidden], #proposal-funding-form[hidden], #proposal-funding-review[hidden], #review-author-card[hidden], #planner-native-inputs[hidden] { display:none; }
+.review-author-card { margin:16px 0 24px; padding:16px 20px; background:var(--neta-surface-raised); border:1px solid var(--neta-border); border-radius:12px; overflow-wrap:anywhere; }
+.review-author-label { color:var(--neta-text-secondary); font-size:12px; letter-spacing:.08em; }
+#shared-review-author { display:grid; gap:8px; margin-top:8px; min-width:0; }
+.review-author-name { font-size:20px; font-weight:700; width:fit-content; }
+.review-author-wallet { font-family:ui-monospace,monospace; font-size:13px; width:fit-content; max-width:100%; }
+.review-author-network { color:var(--neta-text-secondary); font-size:13px; }
+@media (max-width:640px) { .details-toggle { align-items:flex-start; flex-direction:column; } }
 @media (max-width:640px) { .governance-funding-body { padding:16px; } .governance-funding-amount { align-items:stretch; } .governance-funding-amount button { width:100%; } }
 
 /* Review writes keep progress and read-only recovery next to the action. */
 [data-review-status] { overflow-wrap:anywhere; color:var(--neta-info); line-height:1.6; }
 [data-review-status][data-state="error"] { color:var(--neta-danger); }
 [data-review-status][data-state="ready"] { color:var(--neta-success); }
-[data-review-status][hidden], [data-review-check][hidden], #shared-review-copy-fallback[hidden] { display:none; }
-.review-share-actions { display:flex; align-items:center; flex-wrap:wrap; gap:16px; }
-#shared-review-copy-status { display:block; color:var(--neta-success); margin-top:8px; }
+[data-review-status][hidden], [data-review-check][hidden] { display:none; }
 .proposal-heading { scroll-margin-top:120px; }
 .gov-shell button.review-action-busy:disabled { opacity:1; color:var(--neta-text); }
 .review-action-busy::before { content:""; display:inline-block; width:14px; height:14px; margin-right:8px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; vertical-align:middle; animation:review-progress 1s linear infinite; }
