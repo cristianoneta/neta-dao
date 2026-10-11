@@ -98,6 +98,36 @@ try {
   };
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
+  assert.equal(await page.locator('#overview').isVisible(), true);
+  assert.equal(await page.locator('#rules').isVisible(), false);
+  assert.equal(await page.locator('#overview #claim-rewards').isVisible(), true);
+  assert.equal(await page.locator('#rules #claim-rewards').count(), 0);
+  assert.equal(await page.locator('#current-validator-count').textContent(), '25');
+  assert.equal(await page.locator('#current-position-rows tr').count(), 5);
+  await page.locator('#current-positions-toggle').click();
+  assert.equal(await page.locator('#current-position-rows tr').count(), 25);
+  await page.locator('#current-positions-toggle').click();
+  for (const prefix of ['overview', 'rules']) {
+    assert.equal(
+      await page
+        .locator(`#${prefix}-future-policy input:enabled, #${prefix}-future-policy select:enabled`)
+        .count(),
+      0
+    );
+    assert.equal(await page.locator(`#${prefix}-objective-share`).inputValue(), '80');
+    assert.equal(await page.locator(`#${prefix}-subjective-share`).inputValue(), '20');
+    const weights = await page
+      .locator(`#${prefix}-future-policy .future-criteria input`)
+      .evaluateAll((nodes) => nodes.map((n) => Number(n.value)));
+    assert.deepEqual(weights, [30, 10, 10, 10, 10, 10, 10, 10]);
+    assert.equal(
+      weights.reduce((a, b) => a + b, 0),
+      100
+    );
+  }
+  await page.reload();
+  await ready();
+  assert.equal(await page.locator('#overview').isVisible(), true);
   assert.match(
     await page.locator('#claim-rewards-amount').textContent(),
     /3,837,025.339927 JUNO.*33,896.32/
@@ -118,6 +148,7 @@ try {
   rewardsState = 'current';
   await page.locator('#refresh').click();
   await ready();
+  await step('rules');
   assert.equal(await page.locator('#programme-amount').inputValue(), '15000900');
   assert.equal(await page.locator('.criterion h4').count(), 4);
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
@@ -258,15 +289,15 @@ try {
   if (shots) await mkdir(shots, { recursive: true });
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
-    for (const stage of ['rules', 'simulation', 'proposals']) {
+    for (const stage of ['overview', 'rules', 'simulation', 'proposals']) {
       await step(stage);
       await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
       assert.ok(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         `${stage} page overflow at ${width}`
       );
-      if (stage !== 'proposals') {
-        const id = stage === 'rules' ? 'current-total' : 'allocated-total';
+      if (stage === 'overview' || stage === 'simulation') {
+        const id = stage === 'overview' ? 'current-total' : 'allocated-total';
         assert.equal(
           await page.locator('#' + id).evaluate((el) => {
             const range = document.createRange();
@@ -285,7 +316,7 @@ try {
     }
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await step('rules');
+  await step('overview');
   // Exercise both actual links into the existing proposal workspace.
   await page.route(/^https:\/\//, (route) =>
     route.fulfill({
@@ -363,14 +394,24 @@ try {
     await page.locator('#planner-proposal-context-text').innerText(),
     /Juno native governance/
   );
+  assert.match(
+    await page.locator('#planner-proposal-context a').getAttribute('href'),
+    /#overview$/
+  );
   await exerciseReviewFunding(page, origin, sample, govMessages);
   await page.locator('#new-draft').click();
-  assert.equal(await page.locator('#proposal-title').inputValue(), '', 'Mainnet drafts must not overwrite old UNI-7 drafts');
+  assert.equal(
+    await page.locator('#proposal-title').inputValue(),
+    '',
+    'Mainnet drafts must not overwrite old UNI-7 drafts'
+  );
   const archive = new URL(page.url());
   for (const key of ['review', 'reviewContract', 'plannerDraft']) archive.searchParams.delete(key);
   archive.searchParams.set('reviewChain', 'uni-7');
   await page.goto(archive.href);
-  await page.waitForFunction(()=>document.querySelector('#proposal-title').value==='Preserved draft');
+  await page.waitForFunction(
+    () => document.querySelector('#proposal-title').value === 'Preserved draft'
+  );
   assert.match(await page.locator('.testnet-pill').textContent(), /UNI-7 REVIEW/);
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
@@ -385,9 +426,11 @@ try {
   );
   assert.deepEqual(JSON.parse(await page.locator('#proposal-actions').inputValue()), []);
   assert.match(await page.locator('#proposal-body').inputValue(), /Rule SHA-256:/);
+  assert.match(await page.locator('#planner-proposal-context a').getAttribute('href'), /#rules$/);
   assert.equal(await page.locator('#primary-action').innerText(), 'PUBLISH FOR REVIEW');
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
+  await step('rules');
   await page.locator('#programme-amount').fill('99999999');
   await page.locator('#simulate').click();
   await page.waitForFunction(() =>
@@ -415,7 +458,7 @@ try {
   }
   assert.deepEqual(errors, []);
   console.log(
-    'Juno delegation browser: stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all three stages at four viewports passed.'
+    'Juno delegation browser: overview/current holdings, disabled V2/V3 weights, claim placement, stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all four views at four viewports passed.'
   );
 } catch (error) {
   if (diagnosticPage && !diagnosticPage.isClosed()) {

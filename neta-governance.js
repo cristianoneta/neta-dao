@@ -1775,6 +1775,8 @@
   function renderPlannerContext() {
     const panel = $('#planner-proposal-context');
     const current = plannerDraft && state.dao.id === plannerDraft.daoId && !state.selected;
+    panel.querySelector('a').href =
+      `/community-tools/juno/delegation/#${current && plannerDraft.kind === 'CLAIM_REWARDS' ? 'overview' : 'rules'}`;
     panel.hidden = !current && !plannerDraftError;
     $('#planner-proposal-context-text').textContent =
       plannerDraftError ||
