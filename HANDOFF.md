@@ -10,6 +10,8 @@ in the owner's private operations handoff, outside this repository.
 
 Interchain now precedes Juno and NETA. Delegation Programme moves to Interchain
 alongside a Neta Naming Service card opening the existing .neta name panel.
+The programme card first opens a chain picker, currently with only Juno. Its
+Juno card opens the existing planner; breadcrumbs provide the return path.
 The planner URL and all chain/transaction behavior remain unchanged.
 Local validation passed: 292 Node tests, source/static checks and the existing
 Community Tools browser flow, including direct NNS navigation and four viewport

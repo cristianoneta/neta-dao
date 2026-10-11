@@ -13,12 +13,15 @@ review dialog.
 The hub now orders project filters and sections as Interchain, Juno, NETA.
 Interchain contains Delegation Programme and Neta Naming Service; Juno retains
 Faucet and Validator Upgrade Status, and NETA retains Buy NETA on WYND.
-Counts are 5 overall and 2 / 2 / 1 per section. The planner keeps its existing
+Counts are 5 overall and 2 / 2 / 1 per section. Delegation Programme first opens
+`/community-tools/delegation/`, a chain picker currently containing only Juno.
+Its Juno card opens the planner, whose breadcrumb returns to the chain picker.
+The planner keeps its existing
 `/community-tools/juno/delegation/` URL and Juno scope, with an Interchain
 breadcrumb. The naming card opens `/index.html#relay/register`, the existing
 .neta name panel, without introducing a second registration flow.
 The existing browser flow verifies filters/reload, the naming card opening the
-registration panel, and the planner breadcrumb returning to Interchain. Hub
+registration panel, the chain picker, keyboard activation of Juno and the return breadcrumbs. Hub and chain-picker
 screenshots at 1440 / 768 / 390 / 320 px were inspected; all 292 Node tests and
 static checks passed. Full PR CI and manual publication remain pending.
 No wallet or contract behavior changed.

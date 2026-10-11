@@ -59,6 +59,14 @@ try{
   assert.equal(await page.locator('#names-view').isVisible(),true);
   await page.goBack();
   await page.getByRole('link',{name:/Delegation Programme/}).click();
+  assert.equal(new URL(page.url()).pathname,'/community-tools/delegation/');
+  assert.deepEqual(await page.locator('.tool-card h2').allTextContents(),['Juno']);
+  for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:1100});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await screenshot(`delegation-chains-${width}`);}
+  await page.getByRole('link',{name:/Open Juno programme/}).focus();
+  await page.keyboard.press('Enter');
+  await page.waitForURL('**/community-tools/juno/delegation/');
+  await page.locator('.tool-breadcrumb a[href="/community-tools/delegation/"]').click();
+  assert.equal(new URL(page.url()).pathname,'/community-tools/delegation/');
   await page.locator('.tool-breadcrumb a[href="/community-tools/#interchain"]').click();
   await page.waitForFunction(()=>document.querySelector('[data-project-link="interchain"]').getAttribute('aria-current')==='true');
   await page.locator('[data-project-link="juno"]').click();
