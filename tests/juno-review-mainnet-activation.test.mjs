@@ -207,3 +207,31 @@ test('mainnet review bridge binds chain, contract and wallet and checks active s
     /Unsupported/
   );
 });
+
+test('activation uses the same-origin reader and preserves both provider identities and pinned heights', async () => {
+  const { GOVERNANCE_SOURCES, CHAIN_READ_PATH } = await import('../governance-chain-read.mjs');
+  const previousLocation = globalThis.location,
+    f = fixture(),
+    sources = new Set();
+  globalThis.location = { origin: 'https://cosmoot.com' };
+  f.setup.fetcher = async (url, options) => {
+    const parsed = new URL(url, location.origin);
+    assert.equal(parsed.origin, location.origin);
+    assert.equal(parsed.pathname, CHAIN_READ_PATH);
+    assert.equal(options.headers, undefined);
+    assert.equal(options.credentials, 'omit');
+    const source = parsed.searchParams.get('source'),
+      path = parsed.searchParams.get('path');
+    sources.add(source);
+    if (!path.endsWith('blocks/latest')) assert.equal(parsed.searchParams.get('height'), '123');
+    return f.fetcher(GOVERNANCE_SOURCES[source] + path);
+  };
+  try {
+    assert.equal((await f.setup.verifyState()).config.paused, true);
+    assert.deepEqual([...sources].sort(), ['juno-polkachu', 'juno-stavr']);
+    assert.equal(f.writes, 0);
+  } finally {
+    if (previousLocation === undefined) delete globalThis.location;
+    else globalThis.location = previousLocation;
+  }
+});

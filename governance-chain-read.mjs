@@ -95,17 +95,17 @@ export function governanceReadTarget(source, path, height = '') {
   if (!allowed || url.search) throw Error('Unsupported governance read.');
   return url.href;
 }
-export function governanceFetch(url, options = {}) {
+export function governanceFetch(url, options = {}, fetcher = globalThis.fetch) {
   const source = Object.entries(GOVERNANCE_SOURCES).find(([, base]) =>
     String(url).startsWith(base + '/')
   );
-  if (!source || typeof location === 'undefined') return fetch(url, options);
+  if (!source || typeof location === 'undefined') return fetcher(url, options);
   const path = String(url).slice(source[1].length);
   const height = new Headers(options.headers).get('x-cosmos-block-height') || '';
   governanceReadTarget(source[0], path, height);
   const query = new URLSearchParams({ source: source[0], path });
   if (height) query.set('height', height);
-  return fetch(`${CHAIN_READ_PATH}?${query}`, {
+  return fetcher(`${CHAIN_READ_PATH}?${query}`, {
     cache: 'no-store',
     credentials: 'omit',
     signal: options.signal

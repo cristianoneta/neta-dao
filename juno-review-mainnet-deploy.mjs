@@ -7,6 +7,7 @@ import {
 const $ = (id) => document.getElementById(id);
 let session = null,
   busy = false,
+  connectionFailed = false,
   review = null,
   epoch = 0;
 function clear() {
@@ -28,7 +29,9 @@ function render() {
     ? session.owner
     : busy
       ? 'Connection in progress…'
-      : 'Juno setup not connected.';
+      : connectionFailed
+        ? 'Connection could not be completed. See the reason below.'
+        : 'Wallet not connected.';
   $('registry-state').textContent = s?.codeId
     ? `Code ${s.codeId}${s.address ? ' · ' + s.address : ' · ready to create'}`
     : 'Not deployed in this browser.';
@@ -54,10 +57,12 @@ function render() {
 async function run(fn, status = $('status')) {
   if (busy) return;
   busy = true;
+  if (status === $('connection-status')) connectionFailed = false;
   render();
   try {
     await fn();
   } catch (e) {
+    if (status === $('connection-status')) connectionFailed = true;
     status.textContent = e.message;
   } finally {
     busy = false;
@@ -65,6 +70,7 @@ async function run(fn, status = $('status')) {
   }
 }
 function disconnected() {
+  connectionFailed = false;
   epoch++;
   session?.disconnect();
   session = null;

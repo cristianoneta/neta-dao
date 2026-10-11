@@ -8,6 +8,7 @@ import {
   REVIEW_MAINNET_POLICY as policy,
   REVIEW_MAINNET_RELEASE as PIN
 } from '../../juno-review-mainnet-config.mjs';
+import { GOVERNANCE_SOURCES, CHAIN_READ_PATH } from '../../governance-chain-read.mjs';
 import { REVIEW_DEPLOY_LABEL as label } from '../../juno-review-mainnet-deploy-core.mjs';
 const root = new URL('../../', import.meta.url),
   address = 'juno1' + 'q'.repeat(58);
@@ -179,12 +180,30 @@ try {
   // Switch to the shipped pin and exercise the owner activation page.
   await context.unroute('**/juno-review-mainnet-config.mjs');
   await context.unroute('https://**/*');
-  let activated = false;
+  let activated = false,
+    failVerification = true,
+    directReads = 0;
+  const pinnedSources = new Set();
   await page.exposeFunction('__activateReview', () => {
     activated = true;
   });
+  // Browsers cannot use the providers' rejected height-header preflight.
   await context.route('https://**/*', async (route) => {
-    const p = new URL(route.request().url()).pathname;
+    directReads++;
+    await route.abort();
+  });
+  await context.route('**' + CHAIN_READ_PATH + '?*', async (route) => {
+    const url = new URL(route.request().url()),
+      source = url.searchParams.get('source'),
+      p = url.searchParams.get('path');
+    assert.ok(GOVERNANCE_SOURCES[source]);
+    assert.equal(route.request().headers()['x-cosmos-block-height'], undefined);
+    if (!p.endsWith('blocks/latest')) {
+      assert.equal(url.searchParams.get('height'), '123');
+      pinnedSources.add(source);
+    }
+    if (failVerification && source === 'juno-stavr')
+      return route.fulfill({ status: 503, json: { error: 'Provider unavailable' } });
     const data = p.endsWith('blocks/latest')
       ? { block: { header: { chain_id: 'juno-1', height: '123', time: new Date().toISOString() } } }
       : p.includes('/code/')
@@ -206,6 +225,15 @@ try {
   );
   await page.goto(origin + '/juno-review-mainnet-activate.html');
   await page.locator('#connect').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#connection-status').textContent.includes('verification failed')
+  );
+  assert.match(await page.locator('#wallet').textContent(), /Connection could not be completed/);
+  assert.equal(await page.locator('#connect').isEnabled(), true);
+  assert.equal(await page.evaluate(() => localStorage.getItem('activationWrites')), null);
+  failVerification = false;
+  await page.locator('#connect').click();
+
   await page.locator('#approve-policy').check();
   await page.locator('[data-kind=activate]').click();
   await page.waitForFunction(() => !document.querySelector('#confirm').disabled);
@@ -240,6 +268,8 @@ try {
     );
     await page.screenshot({ path: '/tmp/review-activation-' + width + '.png', fullPage: true });
   }
+  assert.equal(directReads, 0);
+  assert.deepEqual([...pinnedSources].sort(), ['juno-polkachu', 'juno-stavr']);
   assert.deepEqual(errors, []);
   console.log(
     'Review deployment browser passed: two explicit reviews, owner admin/policy, reload recovery without resend, wallet invalidation, two-provider export and 320/390/768/1440px. Simulated chain/signing only.'
