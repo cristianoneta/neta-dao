@@ -89,8 +89,12 @@ animation. Keep the existing brand name; generated mockup marks are not a new lo
 
 ## Shared shell and components
 
-Owner update 2026-10-08: Community Tools is grouped by project, initially Juno and
-NETA, with room for future chains. Keep the existing Faucet and Validator Upgrade
+Owner update 2026-10-11: Community Tools is grouped in this order: Interchain,
+Juno, NETA, after the All projects filter. Interchain contains Delegation Programme
+and Neta Naming Service, linking directly to the existing RELAY .neta name panel.
+Delegation Programme opens a chain-selection page first; initially only Juno
+is offered. Keep the planner URL stable, preserve return breadcrumbs and identify
+the current Juno scope on the chain card. Keep the existing Faucet and Validator Upgrade
 Status under Juno. The NETA entry is **Buy NETA on WYND**, adapted from Rescue NETA
 on the old site. Reuse the current graphite/mint foundations and Community Tools
 header; do not import the old terminal/matrix styling. Use a readable amount and
