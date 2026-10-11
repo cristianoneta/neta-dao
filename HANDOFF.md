@@ -6,6 +6,27 @@ boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
 
+## Delegation Programme overview — 11 October 2026 candidate
+
+Overview is now the default entry, followed by Set rules, Review distribution and
+Review proposal. It leads with the current snapshot: delegated and spendable JUNO,
+validator positions, and claimable rewards. The existing claim-proposal action
+moves here from Set rules; returning from a claim draft opens Overview. Current
+holdings are read-only and do not establish an approved policy version.
+
+Overview and Set rules share A Eligibility (available V1), B Objective scoring
+(planned V2), and C Subjective assessment (planned V3). Manual exclusions remain
+part of eligibility. Future controls are greyed and disabled. V2 is objective-only;
+an explicitly inactive V3 example shows 80% objective / 20% subjective, with RPC
+30% and seven other objective criteria 10% each. An external DAO/person and
+subjective rubric are future settings, not an appointed authority. These examples
+never enter the simulator, saved rule schema or proposal export. The structure
+reuses the archived C4E/RockawayX research without adopting historical parameters.
+
+Local browser acceptance covers current positions, rewards placement, disabled
+future controls, draft return links and all four views at 1440/768/390/320 px.
+Full candidate CI and manual publication remain pending. No live transaction sent.
+
 ## Proposal review hierarchy — 11 October 2026 candidate
 
 The redundant review-link/testnet shortcut row and isolated discussion stake badge
@@ -19,7 +40,8 @@ contacts; expired or mismatched identities fail visibly, with a retry option.
 Local validation: 294 Node tests, repository/static checks, and the full synthetic
 planner/review/submission browser flow. Review and public profile screenshots at
 1440/768/390/320 px inspected; keyboard disclosure and profile/address links checked.
-Full PR CI and manual publication remain pending. No live wallet action performed.
+PR #284 passed all 16 CI jobs (run 38141482634) and merged as `e56a8901`.
+Manual publication remains pending. No live wallet action performed.
 
 ## Community Tools navigation — 11 October 2026 candidate
 

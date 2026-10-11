@@ -6,6 +6,27 @@ successful). Both domains passed claim handoff acceptance without submitting a
 transaction. The next candidate adds [shared review and deposits](JUNO_COMMUNITY_FUNDING.md).
 Rule approval verification and allocation execution remain unconnected.
 
+## Delegation Programme overview — 11 October 2026 candidate
+
+Overview is now the default entry, followed by Set rules, Review distribution and
+Review proposal. It leads with the current snapshot: delegated and spendable JUNO,
+validator positions, and claimable rewards. The existing claim-proposal action
+moves here from Set rules; returning from a claim draft opens Overview. Current
+holdings are read-only and do not establish an approved policy version.
+
+Overview and Set rules share A Eligibility (available V1), B Objective scoring
+(planned V2), and C Subjective assessment (planned V3). Manual exclusions remain
+part of eligibility. Future controls are greyed and disabled. V2 is objective-only;
+an explicitly inactive V3 example shows 80% objective / 20% subjective, with RPC
+30% and seven other objective criteria 10% each. An external DAO/person and
+subjective rubric are future settings, not an appointed authority. These examples
+never enter the simulator, saved rule schema or proposal export. The structure
+reuses the archived C4E/RockawayX research without adopting historical parameters.
+
+Local browser acceptance covers current positions, rewards placement, disabled
+future controls, draft return links and all four views at 1440/768/390/320 px.
+Full candidate CI and manual publication remain pending. No live transaction sent.
+
 ## Claim entry and current rewards correction
 
 The claim adapter previously accepted only short validator addresses. This
@@ -37,8 +58,8 @@ post-release acceptance remain required; no live signing is claimed.
 
 ## Placement and interface
 
-`/community-tools/juno/delegation/` is the third Juno tool on the Community Tools
-hub. It reuses `neta-ui.css`, `community-tools.css`, `community-tools-header.css`
+`/community-tools/juno/delegation/` is reached through Community Tools → Interchain →
+Delegation Programme → Juno. It reuses `neta-ui.css`, `community-tools.css`, `community-tools-header.css`
 and the existing assembly-plaza header asset. There is no new theme, wallet
 connection, framework or sidebar. English matches the existing application.
 
@@ -49,7 +70,7 @@ stage groups criteria, amount and optional manual exclusions, with a keyboard
 slider and an exact numeric factor input. Commission accepts whole percentages
 from 0 to 100 (default 10), with a separate no-limit checkbox. Invalid, empty or
 fractional values block simulation and saving; exports retain basis-point units. Local storage saves rules only, not the
-amount or simulation. The V2 roadmap is collapsed and explicitly inactive.
+amount or simulation. This earlier layout is superseded by the Overview and A/B/C structure described above.
 
 The simulation leads with allocated funds, actual recipients and unallocated
 funds. Eligible validators with no capacity are distinguished from recipients.

@@ -1,3 +1,4 @@
+import { renderFuturePolicy } from './juno-delegation-roadmap.mjs';
 import { ruleProposal, claimProposal, savePlannerProposal } from './planner-proposal-draft.mjs';
 import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 import {
@@ -77,7 +78,7 @@ function renderClaimRewards() {
   }
 }
 function setStep(step, focus = true) {
-  if (!['rules', 'simulation', 'proposals'].includes(step)) step = 'rules';
+  if (!['overview', 'rules', 'simulation', 'proposals'].includes(step)) step = 'overview';
   for (const panel of document.querySelectorAll('.planner-panel')) panel.hidden = panel.id !== step;
   for (const link of document.querySelectorAll('.planner-steps [data-step]')) {
     if (link.dataset.step === step) link.setAttribute('aria-current', 'step');
@@ -86,11 +87,13 @@ function setStep(step, focus = true) {
   if (location.hash !== '#' + step) history.replaceState(null, '', '#' + step);
   if (focus) {
     const heading = $(
-      step === 'rules'
-        ? 'rules-title'
-        : step === 'simulation'
-          ? 'simulation-title'
-          : 'proposals-title'
+      step === 'overview'
+        ? 'overview-title'
+        : step === 'rules'
+          ? 'rules-title'
+          : step === 'simulation'
+            ? 'simulation-title'
+            : 'proposals-title'
     );
     heading.focus({ preventScroll: true });
     heading.scrollIntoView({ block: 'start' });
@@ -103,6 +106,65 @@ const node = (tag, text, className) => {
   return el;
 };
 const sumCurrent = () => data.validators.reduce((a, v) => a + BigInt(v.currentRaw), 0n);
+let showAllCurrentPositions = false;
+function renderCurrentPositions() {
+  const host = $('current-position-rows'),
+    toggle = $('current-positions-toggle');
+  host.replaceChildren();
+  toggle.hidden = true;
+  for (const id of ['current-total', 'current-liquid', 'current-validator-count'])
+    $(id).textContent = '—';
+  if (!data) {
+    const row = node('tr'),
+      cell = node(
+        'td',
+        loading ? 'Loading current positions…' : 'Current programme positions unavailable.'
+      );
+    cell.colSpan = 4;
+    row.append(cell);
+    host.append(row);
+    return;
+  }
+  const total = sumCurrent();
+  const held = data.validators
+    .filter((v) => BigInt(v.currentRaw) > 0n)
+    .sort((a, b) => {
+      const delta = BigInt(b.currentRaw) - BigInt(a.currentRaw);
+      return delta > 0n ? 1 : delta < 0n ? -1 : a.address.localeCompare(b.address);
+    });
+  $('current-total').textContent = formatAmount(total);
+  $('current-liquid').textContent = formatAmount(data.liquidRaw);
+  $('current-validator-count').textContent = String(held.length);
+  if (!held.length) {
+    const row = node('tr'),
+      cell = node('td', 'No current programme delegations.');
+    cell.colSpan = 4;
+    row.append(cell);
+    host.append(row);
+  }
+  for (const v of showAllCurrentPositions ? held : held.slice(0, 5)) {
+    const row = node('tr'),
+      identity = node('td');
+    const link = node('a', v.name || v.address);
+    link.href = 'https://atomscan.com/juno/validators/' + encodeURIComponent(v.address);
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    identity.append(link);
+    const share = total ? Number((BigInt(v.currentRaw) * 10000n) / total) / 100 : 0;
+    row.append(
+      identity,
+      node('td', formatAmount(v.currentRaw), 'numeric'),
+      node('td', share === 0 && total > 0n ? '<0.01%' : share.toFixed(2) + '%', 'numeric'),
+      node('td', v.jailed ? 'Jailed' : v.active ? 'Consensus set' : 'Outside active set')
+    );
+    host.append(row);
+  }
+  toggle.hidden = held.length <= 5;
+  toggle.textContent = showAllCurrentPositions
+    ? 'Show largest 5 positions'
+    : `Show all ${held.length} positions`;
+  toggle.setAttribute('aria-expanded', String(showAllCurrentPositions));
+}
 function freshness() {
   return data
     ? Math.max(Date.now() - Date.parse(data.blockTime), Date.now() - Date.parse(data.collectedAt))
@@ -222,6 +284,9 @@ async function load() {
   $('refresh').disabled = true;
   $('claim-rewards').disabled = true;
   rewardsSource = null;
+  data = null;
+  renderCurrentPositions();
+  $('current-breakdown').textContent = 'Loading current programme positions.';
   $('claim-rewards-amount').textContent = 'Loading claimable staking rewards…';
   $('claim-rewards-observed').textContent = '';
   claimFeedback('');
@@ -244,6 +309,7 @@ async function load() {
     )
       throw Error('Snapshot timestamp is in the future.');
     data = next;
+    renderCurrentPositions();
     rewardsSource = rewards;
     renderClaimRewards();
     evidence = nextEvidence;
@@ -293,7 +359,7 @@ async function load() {
     tell(
       stale
         ? 'You can inspect this historical snapshot. Refresh current data before requesting approval.'
-        : 'Programme data loaded. Review the rules, then simulate.'
+        : 'Programme data loaded. Explore the overview or set rules for the next allocation.'
     );
   } catch (error) {
     data = null;
@@ -305,7 +371,7 @@ async function load() {
     $('snapshot-detail').textContent =
       'The dedicated collector must publish a validated snapshot before allocations can be calculated.';
     $('snapshot-source').textContent = 'No usable programme snapshot.';
-    $('current-total').textContent = '—';
+    renderCurrentPositions();
     $('programme-amount').value = '';
     $('reserve-note').textContent = '';
     $('claim-rewards-help').textContent = 'Load a valid current programme snapshot first.';
@@ -733,6 +799,12 @@ setInterval(() => {
 document.addEventListener('visibilitychange', () => {
   if (!loading && !document.hidden) renderClaimRewards();
 });
+renderFuturePolicy($('overview-future-policy'), 'overview');
+renderFuturePolicy($('rules-future-policy'), 'rules');
+$('current-positions-toggle').onclick = () => {
+  showAllCurrentPositions = !showAllCurrentPositions;
+  renderCurrentPositions();
+};
 document.querySelectorAll('[data-step]').forEach((link) =>
   link.addEventListener('click', (event) => {
     event.preventDefault();
@@ -765,13 +837,12 @@ $('show-evidence-review').addEventListener('click', () => {
 window.addEventListener('hashchange', () => {
   if (location.hash === '#roadmap') {
     setStep('rules');
-    $('roadmap').open = true;
     $('roadmap').scrollIntoView({ block: 'start' });
   } else setStep(location.hash.slice(1));
 });
 const initialStep = location.hash.slice(1);
 setStep(initialStep === 'roadmap' ? 'rules' : initialStep, false);
-if (initialStep === 'roadmap') $('roadmap').open = true;
+if (initialStep === 'roadmap') $('roadmap').scrollIntoView({ block: 'start' });
 try {
   const saved = localStorage.getItem(key);
   if (!saved && localStorage.getItem('cosmoot:juno:delegation:rule-draft:v1')) {

@@ -649,8 +649,8 @@ spacing and dividers. Consensus membership is informational, not an eligibility
 condition. Keep current uptime evidence limits explicit.
 
 Programme amount includes delegated and spendable funds, reserves 50 JUNO and
-suggests a whole hundred. Place the mint Create claim rewards proposal button
-inside this card. Publish proposal opens the existing scoped proposal workspace
+suggests a whole hundred. The 11 October update moves the mint Create claim rewards proposal button
+to the current-programme section on Overview. Publish proposal opens the existing scoped proposal workspace
 with a prepared draft. Distinguish preparing/opening a draft from publishing or
 executing it; preserve existing drafts and all current submission locks.
 
@@ -715,3 +715,20 @@ Keep selected-review details closed initially. Use a raised, bordered full-width
 Proposal text & actions disclosure, a concise explanation and View/Hide details
 state. Retain native button semantics, keyboard operation and aria-expanded. New
 local drafts retain their open editor. Identity text wraps at 320 px.
+
+
+## Delegation overview and rule versions — owner update 2026-10-11
+
+Start with Overview before the three existing planning stages. Put actual programme
+holdings and claimable rewards first, with a clear claim-proposal action. Show five
+largest validator positions initially and allow expansion; contain horizontal table
+scroll on narrow screens. Claims return to Overview, rule drafts to Set rules.
+
+Repeat the same A Eligibility / B Objective scoring / C Subjective assessment
+headings in Overview and Set rules. Keep current eligibility available and manual
+exclusions in that group. Future V2/V3 settings are visible, muted and disabled,
+with explicit Planned labels. Collapse measurement detail, not the category
+headings. Explain nested weights with an inactive 80/20 and RPC 30% example;
+V2 itself remains objective-only. Never imply that an example weight, assessor or
+stored draft is approved or used by V1. Preserve existing graphite/mint tokens,
+keyboard navigation and every transaction/submission boundary.

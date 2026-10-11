@@ -718,3 +718,61 @@
 #claim-rewards-feedback:empty {
   display: none;
 }
+
+/* Overview and rules share the same eligibility / objective / subjective hierarchy. */
+.programme-overview-grid { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:24px; }
+.overview-intro { color:var(--neta-text-secondary); line-height:1.6; max-width:900px; }
+.policy-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
+.policy-heading h3 { margin:0; }
+.policy-heading a { font-size:13px; }
+.state-pill.live { color:var(--neta-accent); }
+.current-metrics { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin:24px 0; }
+.current-metrics > div:first-child { grid-column:1/-1; }
+.current-metrics span { display:block; font-size:13px; color:var(--neta-text-secondary); }
+.current-metrics strong { display:block; font-size:24px; font-variant-numeric:tabular-nums; margin-top:8px; overflow-wrap:anywhere; }
+.current-metrics > div:first-child strong { font-size:32px; }
+.programme-rewards .claim-rewards { border:0; padding:0; margin:0; }
+.programme-rewards .claim-amount { color:var(--neta-text); font-size:20px; line-height:1.5; }
+.current-positions { margin:24px 0 32px; }
+.current-table-region { overflow:auto; }
+.current-positions-table { width:100%; min-width:600px; border-collapse:collapse; font-size:14px; }
+.current-positions-table th { text-align:left; font-weight:500; color:var(--neta-text-secondary); }
+.current-positions-table th, .current-positions-table td { padding:14px 12px; border-bottom:1px solid var(--neta-border); vertical-align:top; }
+.current-positions-table th:first-child, .current-positions-table td:first-child { padding-left:0; max-width:280px; overflow-wrap:anywhere; }
+.current-positions-table .numeric { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+#current-positions-toggle { margin-top:16px; }
+.eligibility-list { margin:20px 0; }
+.eligibility-list > div { display:grid; grid-template-columns:180px minmax(0,1fr); gap:20px; padding:14px 0; border-top:1px solid var(--neta-border); }
+.eligibility-list dt { font-weight:600; font-size:14px; }
+.eligibility-list dd { margin:0; line-height:1.6; color:var(--neta-text-secondary); font-size:14px; }
+.future-policy-grid { display:grid; gap:24px; margin-top:24px; }
+.future-policy { background:var(--neta-bg); border-style:dashed; color:var(--neta-text-secondary); }
+.future-policy .policy-heading h3, .future-policy h4 { color:var(--neta-text-secondary); }
+.future-policy fieldset { min-width:0; padding:0; margin:20px 0; border:0; }
+.future-policy legend { padding:0 0 12px; font-size:13px; font-weight:600; }
+.future-policy .future-criterion { display:grid; grid-template-columns:minmax(0,1fr) 160px; gap:24px; align-items:start; border-top:1px solid var(--neta-border); padding:16px 0; }
+.future-criterion h4 { font-size:15px; margin:0 0 8px; }
+.future-criterion p { margin:0; }
+.future-policy .future-weight { margin:0; font-size:12px; }
+.future-weight input { margin-top:8px; max-width:160px; }
+.future-policy input:disabled, .future-policy select:disabled { opacity:1; color:var(--neta-text-secondary); border-color:var(--neta-border); cursor:not-allowed; }
+.future-policy input:disabled::placeholder { color:var(--neta-text-secondary); }
+.future-policy > fieldset > .future-weight { display:block; margin-bottom:24px; }
+.assessor-settings { display:grid; grid-template-columns:1fr 1fr 2fr; align-items:end; gap:16px; margin-bottom:24px; }
+.assessor-settings label { margin:0; font-size:12px; }
+.assessor-settings select, .assessor-settings input { margin-top:8px; }
+.weight-explanation { border-left:3px solid var(--neta-control-border); padding:12px 16px; background:var(--neta-surface); border-radius:4px; }
+.policy-roadmap { margin-top:32px; }
+@media(max-width:900px) { .programme-overview-grid { grid-template-columns:1fr; } }
+@media(max-width:600px) {
+  .current-metrics { grid-template-columns:1fr; }
+  .eligibility-list > div, .assessor-settings { grid-template-columns:1fr; gap:8px; }
+  .future-policy .future-criterion { grid-template-columns:1fr; gap:12px; }
+  .future-policy .future-weight { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .future-weight input { width:96px!important; margin:0; flex:none; }
+  .assessor-settings { gap:16px; }
+  .current-positions-table { min-width:560px; }
+}
+@media(max-width:600px) { .current-metrics > div:first-child strong { font-size:24px; } }
+.future-measurements { margin:16px 0; font-size:13px; }
+.future-measurements p { line-height:1.6; }
