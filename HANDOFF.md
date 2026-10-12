@@ -6,6 +6,31 @@ boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
 
+## Unlisted DEX preview — 12 October 2026 candidate
+
+An isolated browser-local MVP at `/community-tools/neta/dex/` models NETA-paired
+swaps, liquidity deposits/withdrawals, pool creation, and protocol-fee buyback/burn.
+All balances, reserves and prices are explicitly illustrative and reset on reload.
+No wallet integration, RPC calls, deployed DEX contracts, token issuance or funding.
+The added incentive planner saves unfunded session drafts for exactly 84 days,
+with reward asset, budget and UTC start/end dates. Astroport's reusable external
+incentives module requires LP deposits and uses next-Monday-plus-N-weeks schedules;
+adopting that module would change the no-LP-staking architecture and needs a
+separate decision. No incentive distribution or sponsorship transfer is enabled.
+The page has no incoming navigation/tool links; HTML and response headers request
+no indexing. This is an unlisted public route, not access control.
+
+Owner model: 0.30% swap fee, 0.20% stays with LPs, 0.10% funds DAO-token purchases
+and burning. NETA remains every pool's counterpart; smaller pools stay accessible
+below the $1,000 NETA-side listing threshold. No LP staking. Initial administration
+is the owner's wallet, then a new DAO that approves upgrades and owns initial
+liquidity. Its token is intended to help fund that liquidity; operating reserves
+are separate from buyback fees. No token terms or production buyback parameters
+are set by this simulation. Local validation: 308 Node tests, source/static
+artifact checks, and the full browser flow passed at 1440/768/390/320 px, including
+keyboard dialog dismissal and 200% zoom reflow. Screenshots inspected. Full PR CI
+and manual production publication remain pending.
+
 ## Compact planner and approved settings — 11 October 2026 candidate
 
 Overview and Set rules keep A/B/C criteria behind default-closed native disclosures.

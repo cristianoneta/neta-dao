@@ -1,5 +1,19 @@
 # NETA DAO design system
 
+## Unlisted DEX simulation — owner request 2026-10-12
+
+Reuse graphite/mint tokens with a compact Cosmoot header, clearly labelled local
+simulation, and Swap / Pools & liquidity / DAO & buybacks views. Do not add links
+from Home, navigation or Community Tools. Distinguish example balances and prices
+from live values in each view. Transactions are labelled Simulate and have no
+wallet connection. Keep smaller pools in a default-closed disclosure and preserve
+their swap/deposit/withdrawal actions. Use native dialogs with keyboard dismissal
+and return focus for reviews; clear errors stay beside their form. DAO token name,
+funding terms and future deployment remain explicitly pending.
+Pool rows expose Plan incentives. The form fixes duration to 12 weeks / 84 days,
+labels dates UTC, and displays saved campaigns as unfunded demo plans. No dummy
+funding button, invented campaign APR or apparent live rewards.
+
 Version 1.0 · design direction selected by the owner on 2026-10-03.
 Scope: every user-facing surface at `dao.netareborn.com`, including future pages.
 Status: **shared theme and Home live; per-page refinement in progress**. PR #108

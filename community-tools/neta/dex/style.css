@@ -1,0 +1,117 @@
+.dex-header { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px max(24px, calc((100vw - 1160px) / 2)); border-bottom: 1px solid var(--neta-border); background: var(--neta-bg); }
+.brand { color: var(--neta-text); font-weight: 750; font-size: 20px; letter-spacing: .025em; text-decoration: none; }
+.brand span { color: var(--neta-text-secondary); font-size: 12px; }
+.header-actions, .section-head, .amount-top, .amount-value, .dialog-actions, .dex-footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.dex-page { max-width: 1160px; margin: auto; padding: 36px 24px 24px; }
+.intro { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.intro h1 { font-size: clamp(30px, 4vw, 42px); margin: 8px 0 12px; }
+.intro h1 span { color: var(--neta-accent); }
+.intro p { margin: 0; color: var(--neta-text-secondary); }
+.intro img { margin-right: 12px; }
+.badge { display: inline-flex; align-items: center; border: 1px solid var(--neta-warning); color: var(--neta-warning); border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.badge.neutral { border-color: var(--neta-border); color: var(--neta-text-secondary); }
+.preview-note { border-left: 2px solid var(--neta-warning); background: var(--neta-surface); padding: 12px 16px; font-size: 13px; margin: 24px 0 8px; color: var(--neta-text-secondary); }
+.preview-note strong { color: var(--neta-text); }
+.dex-tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--neta-border); margin-bottom: 28px; }
+.dex-tabs a { display: flex; align-items: center; min-height: 58px; text-decoration: none; color: var(--neta-text-secondary); font-size: 15px; font-weight: 600; border-bottom: 2px solid transparent; }
+.dex-tabs a[aria-current] { color: var(--neta-accent); border-bottom-color: var(--neta-accent); }
+.swap-layout { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.panel { min-width: 0; background: var(--neta-surface); border: 1px solid var(--neta-border); border-radius: 12px; padding: 24px; }
+.panel h2, .panel h3 { margin: 0 0 16px; }
+.section-head { margin-bottom: 20px; }
+.section-head h2, .section-head h3 { margin: 0; }
+.section-head p { margin: 8px 0 0; }
+.muted, .small, .amount-top, .metrics dt { color: var(--neta-text-secondary); }
+.small { font-size: 13px; }
+.field-label { display: block; margin: 16px 0 8px; font-size: 13px; font-weight: 600; }
+.swap-panel .field-label:first-child { margin-top: 0; }
+select, .dialog-body input { width: 100%; }
+.amount-box { background: var(--neta-bg); border: 1px solid var(--neta-border); border-radius: 12px; padding: 16px; margin-top: 20px; }
+.amount-top { font-size: 12px; gap: 8px; flex-wrap: wrap; }
+.amount-value { margin-top: 10px; }
+.amount-value input { width: 100%; min-width: 0; font-size: 28px; padding: 4px 8px; }
+.amount-value output { font-size: 28px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; min-width: 0; }
+.amount-value strong { font-size: 16px; }
+.reverse-row { display: flex; justify-content: center; margin: -4px 0 -24px; position: relative; }
+.reverse-row button { background: var(--neta-surface-raised); width: 44px; font-size: 22px; padding: 4px; }
+.receive { padding-top: 20px; }
+.metrics { margin: 20px 0; font-size: 13px; }
+.metrics > div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 6px 0; }
+.metrics dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.full { width: 100%; min-height: 48px; }
+.context { display: grid; gap: 16px; }
+.concept { position: relative; padding-right: 140px; min-height: 215px; }
+.concept h2 { font-size: 25px; }
+.concept p { max-width: 320px; font-size: 14px; color: var(--neta-text-secondary); }
+.concept .eyebrow { font-size: 12px; }
+.token-orbit { position: absolute; right: 28px; top: 34px; display: grid; justify-items: center; gap: 12px; }
+.token-orbit span { border: 1px solid var(--neta-border); border-radius: 8px; padding: 5px 12px; color: var(--neta-text-secondary); font-size: 12px; }
+.fee-bar { display: flex; gap: 4px; height: 8px; border-radius: 4px; overflow: hidden; }
+.fee-bar span:first-child { width: 66.667%; background: var(--neta-accent); }
+.fee-bar span:last-child { flex: 1; background: var(--neta-info); }
+.context .metrics { margin: 12px 0; }
+.context .small { margin-bottom: 0; }
+summary { cursor: pointer; min-height: 24px; font-weight: 600; }
+details.panel { margin-top: 16px; }
+.context details.panel { margin: 0; }
+.error { color: var(--neta-danger); font-size: 13px; }
+.error:empty { display: none; }
+.notice { background: var(--neta-success-soft); border: 1px solid var(--neta-accent); border-radius: 8px; padding: 12px 16px; font-size: 14px; }
+.pool-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(160px, 1fr) auto; gap: 16px; align-items: center; padding: 20px 0; border-top: 1px solid var(--neta-border); }
+.pool-row strong { font-size: 16px; }
+.pool-row p { margin: 4px 0 0; font-size: 13px; color: var(--neta-text-secondary); }
+.pool-row .pool-values { font-size: 14px; font-variant-numeric: tabular-nums; }
+.pool-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pool-actions button { padding: 10px 12px; }
+.pool-row:last-child { padding-bottom: 0; }
+.positions { margin-top: 16px; }
+.count { color: var(--neta-text-secondary); font-size: 13px; margin-left: 8px; }
+.campaign { padding: 16px 0; border-top: 1px solid var(--neta-border); }
+.campaign p { margin: 8px 0; font-size: 14px; }
+.positions > details { margin-top: 20px; }
+.dao-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.dao-grid p { font-size: 14px; color: var(--neta-text-secondary); }
+.operating-model { padding: 0 0 0 24px; }
+.operating-model li { padding: 8px 0 24px 8px; }
+.operating-model li::marker { color: var(--neta-accent); }
+.operating-model strong, .operating-model span { display: block; }
+.operating-model span { font-size: 14px; margin-top: 8px; color: var(--neta-text-secondary); }
+.dex-footer { border-top: 1px solid var(--neta-border); margin-top: 40px; padding-top: 20px; font-size: 12px; color: var(--neta-text-secondary); }
+dialog { width: min(480px, calc(100% - 32px)); max-height: calc(100dvh - 32px); overflow: auto; padding: 0; border: 1px solid var(--neta-control-border); border-radius: 12px; color: var(--neta-text); background: var(--neta-surface); }
+dialog::backdrop { background: var(--neta-bg); opacity: .85; }
+.dialog-body { padding: 24px; }
+.dialog-body h2 { margin: 8px 0 20px; }
+.dialog-actions { margin-top: 24px; flex-wrap: wrap; justify-content: flex-start; }
+.dialog-body li { margin-bottom: 12px; overflow-wrap: anywhere; }
+.skip { position: fixed; top: -100px; z-index: 50; background: var(--neta-surface); padding: 12px; }
+.skip:focus { top: 8px; }
+@media (max-width: 850px) {
+  .swap-layout, .dao-grid { grid-template-columns: 1fr; }
+  .swap-panel { max-width: 560px; width: 100%; justify-self: center; }
+  .context { grid-template-columns: 1fr 1fr; }
+  .context .wallet { grid-column: 1 / -1; }
+  .concept { padding-right: 24px; }
+  .token-orbit { display: none; }
+  .pool-row { grid-template-columns: 1fr 1fr; }
+  .pool-actions { grid-column: 1 / -1; }
+}
+@media (max-width: 520px) {
+  .dex-header { padding: 12px 16px; gap: 8px; }
+  .brand { font-size: 17px; }
+  .brand span { display: none; }
+  .header-actions { gap: 8px; }
+  .header-actions button { padding: 10px; font-size: 12px; }
+  .dex-page { padding: 24px 16px; }
+  .intro img { display: none; }
+  .intro p { font-size: 14px; }
+  .panel, .dialog-body { padding: 20px 16px; }
+  .dex-tabs { gap: 16px; }
+  .dex-tabs a { font-size: 13px; min-height: 60px; }
+  .context { grid-template-columns: 1fr; }
+  .section-head { align-items: flex-start; flex-wrap: wrap; }
+  .pool-row { gap: 12px; }
+  .pool-row strong { font-size: 14px; }
+  .pool-row .pool-values { font-size: 13px; }
+  .amount-value input, .amount-value output { font-size: 24px; }
+  .dex-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
