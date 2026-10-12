@@ -3,6 +3,31 @@
 Updated 11 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
+## Unlisted DEX preview — 12 October 2026 candidate
+
+`/community-tools/neta/dex/` is a browser-only working simulation using the shared
+graphite/mint theme. Swap review updates demo balances and XYK reserves; LP deposits,
+withdrawals and NETA-only pool creation update the same session. Featured pools
+require $1,000 on the NETA side at an explicitly illustrative $4 reference price.
+The DAO view previews conversion of protocol fees into the placeholder DAO token
+and burning, with a demo-only 1% per-hop impact ceiling and atomic skipped routes.
+
+Fee split is 0.20% LP / 0.10% protocol, totaling 0.30%. Local arithmetic uses six
+demo decimals, integer rounding and conservation checks; it is not contract code.
+No wallet, chain writes, real prices, DAO/token deployment or fundraise is enabled.
+Pool actions include an unfunded incentive planner: fixed 84-day campaigns with
+reward asset, total budget and UTC dates. Drafts do not debit balances or accrue
+LP rewards. Existing Astroport/WYND incentive implementations require LP deposits;
+no such contract or participation model has been adopted by this preview.
+Reload resets the session. HTML noindex metadata and route-scoped X-Robots-Tag
+headers accompany omission from all public navigation. This does not make the URL
+private. Production contracts, custody transfer, oracle/price protections, executor
+funding and audit remain future work. Publication is through the existing manual
+release, after candidate checks; no new production release is claimed here.
+Local acceptance: 308 Node tests and the focused browser flow pass, including
+four viewport widths, dialogs, validation, unfunded incentive plans, reset and
+absence of wallet/network access. Source/static checks and screenshot review pass.
+
 ## Compact planner and approved settings — 11 October 2026 candidate
 
 Overview and Set rules keep A/B/C criteria behind default-closed native disclosures.

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>NETA DEX · Cosmoot preview</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/neta-ui.css">
+  <link rel="stylesheet" href="./style.css?v=1">
+  <script type="module" src="./app.mjs?v=1"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to DEX</a>
+  <header class="dex-header">
+    <a class="brand" href="/">COSMOOT<span> / LAB</span></a>
+    <div class="header-actions"><span class="badge">Simulation</span><button id="reset" type="button">Reset demo</button></div>
+  </header>
+  <main id="main" class="dex-page">
+    <header class="intro"><div><p class="eyebrow">NETA DEX · WORKING PREVIEW</p><h1>NETA at the center<span>.</span></h1><p>Swap, provide liquidity, and explore a community-owned exchange.</p></div><img src="/assets/neta-token.png" alt="" width="72" height="72"></header>
+    <p class="preview-note"><strong>Demo funds only.</strong> All pools, prices and balances are illustrative. No wallet connection or on-chain transactions. Changes reset when you reload.</p>
+    <noscript><p class="preview-note">Enable JavaScript to use the local simulation. No live trading is available.</p></noscript>
+    <nav class="dex-tabs" aria-label="DEX views">
+      <a href="#swap" data-view="swap" aria-current="page">Swap</a>
+      <a href="#pools" data-view="pools">Pools &amp; liquidity</a>
+      <a href="#dao" data-view="dao">DAO &amp; buybacks</a>
+    </nav>
+    <p id="notice" class="notice" role="status" hidden></p>
+
+    <section id="view-swap" aria-labelledby="swap-title">
+      <div class="swap-layout">
+        <section class="panel swap-panel">
+          <div class="section-head"><h2 id="swap-title">Swap</h2><span class="muted">0.30% fee</span></div>
+          <form id="swap-form" novalidate>
+            <label class="field-label" for="swap-pair">NETA pair</label>
+            <select id="swap-pair"></select>
+            <div class="amount-box"><div class="amount-top"><label for="swap-input">You pay</label><span id="pay-balance"></span></div><div class="amount-value"><input id="swap-input" inputmode="decimal" autocomplete="off" maxlength="19" placeholder="0.00" value="100" aria-describedby="swap-error"><strong id="pay-token">JUNO</strong></div></div>
+            <div class="reverse-row"><button id="reverse" type="button" aria-label="Reverse swap direction">⇅</button></div>
+            <div class="amount-box receive"><div class="amount-top"><span>Estimated receipt</span><span>Demo quote</span></div><div class="amount-value"><output id="swap-output" aria-live="polite">—</output><strong id="receive-token">NETA</strong></div></div>
+            <dl class="metrics"><div><dt>Price impact</dt><dd id="impact">—</dd></div><div><dt>LP fee · 0.20%</dt><dd id="lp-fee">—</dd></div><div><dt>Buyback fee · 0.10%</dt><dd id="protocol-fee">—</dd></div></dl>
+            <p id="swap-error" class="error" role="status"></p>
+            <button id="swap-submit" class="neta-primary full" type="submit">Review demo swap</button>
+          </form>
+        </section>
+        <aside class="context">
+          <section class="panel concept"><p class="eyebrow">ONE COMMON ASSET</p><h2>Every pool starts<br>with NETA.</h2><p>Open pool creation. A shared NETA counterpart. Liquidity providers earn directly from swaps.</p><div class="token-orbit" aria-hidden="true"><span>JUNO</span><img src="/assets/neta-token.png" width="52" height="52" alt=""><span>USDC</span></div></section>
+          <section class="panel"><h3>A clear fee split</h3><div class="fee-bar" aria-hidden="true"><span></span><span></span></div><dl class="metrics"><div><dt>Liquidity providers</dt><dd>0.20%</dd></div><div><dt>DAO token buyback &amp; burn</dt><dd>0.10%</dd></div></dl><p class="small muted">LP fees stay in the pool. Protocol fees fund purchases of the future DAO token, followed by burning.</p></section>
+          <details class="panel wallet"><summary>Your demo balances</summary><dl id="balances" class="metrics"></dl></details>
+        </aside>
+      </div>
+    </section>
+
+    <section id="view-pools" aria-labelledby="pools-title" hidden>
+      <div class="section-head"><div><h2 id="pools-title">Pools &amp; liquidity</h2><p class="muted">Illustrative pools · NETA reference price fixed at $4 for this demo.</p></div><button id="new-pool" class="neta-primary" type="button">Create demo pool</button></div>
+      <section class="panel pool-section"><div class="section-head"><h3>Featured pools</h3><span class="badge neutral">≥ $1,000 in NETA</span></div><div id="featured-pools" class="pool-list"></div></section>
+      <details class="panel smaller-pools"><summary>Smaller pools <span id="small-count" class="count"></span></summary><p class="small muted">Below $1,000 in NETA. Swaps and liquidity withdrawals remain available.</p><div id="small-pools" class="pool-list"></div></details>
+      <section class="panel positions"><h3>Your demo liquidity</h3><div id="positions"></div></section>
+      <section class="panel positions" aria-labelledby="incentives-title"><div class="section-head"><div><h3 id="incentives-title">12-week incentives</h3><p class="small muted">Plan a sponsor-funded reward campaign for any NETA pool.</p></div><span class="badge neutral">Planning only</span></div><div id="incentive-plans"><p>No campaigns planned. Choose “Plan incentives” on a pool to start.</p></div><details><summary>How rewards would work</summary><p>Fund a fixed reward budget for exactly 84 days. Rewards would accrue over time to eligible liquidity providers. This planner does not distribute rewards or require LP staking.</p><p>The final participation and withdrawal rules remain to be agreed. Campaign funding and reward claims are not available yet.</p></details></section>
+      <details class="panel"><summary>How pool listing works</summary><p>Every pair includes NETA. The planned contracts will verify the exact NETA asset, not its name. Creation will be permissionless; this simulation offers a fixed set of example assets.</p><p>Featured status depends on the NETA side alone, not total pool value. Production USD pricing and contract deployment are still pending.</p></details>
+    </section>
+
+    <section id="view-dao" aria-labelledby="dao-title" hidden>
+      <div class="section-head"><div><p class="eyebrow">COMMUNITY OWNERSHIP</p><h2 id="dao-title">DAO &amp; buybacks</h2><p class="muted">Operating model preview. The DAO and its token have not been created.</p></div><span class="badge neutral">Planned</span></div>
+      <div class="dao-grid">
+        <section class="panel"><div class="section-head"><h3>Buyback &amp; burn</h3><span class="badge">Demo activity</span></div><p>The 0.10% protocol fee is collected in the output asset, then converted into the DAO token and burned.</p><dl class="metrics"><div><dt>Demo swaps completed</dt><dd id="swap-count">0</dd></div><div><dt>DAO tokens burned · demo</dt><dd id="burned">0</dd></div></dl><h4>Collected protocol fees · demo</h4><div id="fee-balances"></div><button id="buyback" class="neta-primary full" type="button">Preview demo buyback</button><p class="small muted">The demo caps price impact at 1% per hop. Routes that exceed this limit are skipped. Production scheduling and price protection are not deployed.</p></section>
+        <section class="panel"><h3>Govern changes. Automate the routine.</h3><ol class="operating-model"><li><strong>Start with the owner wallet</strong><span>Initial administration during setup.</span></li><li><strong>Transfer authority to the new DAO</strong><span>Code upgrades require DAO approval. Fee changes and treasury decisions stay under governance.</span></li><li><strong>Run buybacks by agreed rules</strong><span>No holder vote for each purchase. A transaction executor triggers bounded contract actions.</span></li></ol></section>
+      </div>
+      <details class="panel"><summary>DAO funding &amp; token design</summary><p>The planned DAO token will help fund initial liquidity. DAO-funded LP positions belong in its treasury. A separate reserve from raised funds covers hosting, maintenance and execution costs.</p><p>Token name, supply, sale terms, voting rules, operating budget and authority-transfer date remain undecided. “DAO” is a demo label. There is no token sale or funding action on this page.</p></details>
+    </section>
+    <footer class="dex-footer"><span>Cosmoot · Unlisted development preview</span><span>No live contracts connected</span></footer>
+  </main>
+
+  <dialog id="review" aria-labelledby="review-title"><div class="dialog-body"><p class="eyebrow">SIMULATION · NO REAL FUNDS</p><h2 id="review-title">Review demo swap</h2><div id="review-content"></div><p id="review-error" class="error" role="status"></p><div class="dialog-actions"><button id="confirm" class="neta-primary" type="button">Simulate swap</button><button type="button" data-close="review">Cancel</button></div></div></dialog>
+  <dialog id="liquidity" aria-labelledby="liquidity-title"><form id="liquidity-form" class="dialog-body" novalidate><p class="eyebrow">SIMULATION · NO REAL FUNDS</p><h2 id="liquidity-title">Add demo liquidity</h2><label class="field-label" for="liquidity-input" id="liquidity-label">Token amount</label><input id="liquidity-input" inputmode="decimal" autocomplete="off" maxlength="19" value="100"><p id="liquidity-quote"></p><p class="small muted">Deposit both sides at the current demo pool ratio. Your LP share earns pool fees without staking.</p><p id="liquidity-error" class="error" role="status"></p><div class="dialog-actions"><button class="neta-primary" type="submit">Simulate deposit</button><button type="button" data-close="liquidity">Cancel</button></div></form></dialog>
+  <dialog id="create" aria-labelledby="create-title"><form id="create-form" class="dialog-body" novalidate><p class="eyebrow">SIMULATION · NO REAL FUNDS</p><h2 id="create-title">Create a NETA pool</h2><label class="field-label" for="create-token">Other asset · demo selection</label><select id="create-token"></select><label class="field-label" for="create-amount">Other asset amount</label><input id="create-amount" inputmode="decimal" autocomplete="off" maxlength="19" value="100"><label class="field-label" for="create-neta">NETA amount</label><input id="create-neta" inputmode="decimal" autocomplete="off" maxlength="19" value="10"><p class="small muted">These deposits set the initial pool price. Small pools remain available in the collapsed list.</p><p id="create-error" class="error" role="status"></p><div class="dialog-actions"><button id="create-submit" class="neta-primary" type="submit">Simulate pool creation</button><button type="button" data-close="create">Cancel</button></div></form></dialog>
+  <dialog id="incentive" aria-labelledby="incentive-title"><form id="incentive-form" class="dialog-body" novalidate><p class="eyebrow">CAMPAIGN PLAN · NOT FUNDED</p><h2 id="incentive-title">Plan 12-week incentives</h2><p id="incentive-pool"></p><label class="field-label" for="incentive-reward">Reward asset · demo selection</label><select id="incentive-reward"><option>NETA</option><option>JUNO</option><option>USDC</option><option>DAO</option><option>ATOM</option><option>OSMO</option></select><label class="field-label" for="incentive-total">Total reward budget</label><input id="incentive-total" inputmode="decimal" autocomplete="off" maxlength="19" value="1200"><label class="field-label" for="incentive-start">Start date · 00:00 UTC</label><input id="incentive-start" type="date"><p id="incentive-schedule"></p><p class="small muted">Exactly 12 weeks (84 days). Saving a plan does not debit your demo balance or fund a contract.</p><p id="incentive-error" class="error" role="status"></p><div class="dialog-actions"><button class="neta-primary" type="submit">Save demo plan</button><button type="button" data-close="incentive">Cancel</button></div></form></dialog>
+</body>
+</html>

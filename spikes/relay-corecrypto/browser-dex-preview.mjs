@@ -1,0 +1,100 @@
+import assert from 'node:assert/strict';
+import http from 'node:http';
+import { readFile, mkdir } from 'node:fs/promises';
+import { chromium } from 'playwright';
+const root = new URL('../../', import.meta.url);
+const server = http.createServer(async (req, res) => {
+  try {
+    let path = new URL(req.url, 'http://localhost').pathname;
+    if (path.endsWith('/')) path += 'index.html';
+    const bytes = await readFile(new URL(`.${path}`, root));
+    res.writeHead(200, { 'content-type': /\.m?js$/.test(path) ? 'text/javascript' : path.endsWith('.css') ? 'text/css' : path.endsWith('.png') ? 'image/png' : 'text/html' }).end(bytes);
+  } catch { res.writeHead(404).end(); }
+});
+await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+let browser;
+try {
+  browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) });
+  const page = await browser.newPage(), errors = [], external = [];
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('request', req => { if (!req.url().startsWith(origin)) external.push(req.url()); });
+  await page.addInitScript(() => { window.keplr = new Proxy({}, { get() { throw Error('Preview must not access a wallet'); } }); });
+  await page.goto(origin + '/community-tools/neta/dex/');
+  await page.waitForFunction(() => document.querySelector('#swap-output').textContent !== '—');
+  assert.equal(await page.locator('#swap-output').textContent(), '2.49001');
+  await page.locator('#swap-input').fill('10001');
+  assert.equal(await page.locator('#swap-submit').isDisabled(), true);
+  await page.locator('#swap-input').fill('100');
+  await page.locator('#swap-submit').click();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#swap-submit').evaluate(el => el === document.activeElement), true);
+  await page.locator('#swap-submit').click(); await page.locator('#confirm').click();
+  assert.match(await page.locator('#notice').textContent(), /Demo swap completed/);
+  await page.locator('[data-view="dao"]').click();
+  assert.equal(await page.locator('#swap-count').textContent(), '1');
+  await page.locator('#buyback').click(); await page.locator('#confirm').click();
+  assert.notEqual(await page.locator('#burned').textContent(), '0');
+  await page.locator('[data-view="pools"]').click();
+  assert.equal(await page.locator('#featured-pools .pool-row').count(), 3);
+  assert.equal(await page.locator('#small-pools').isVisible(), false);
+  await page.locator('#featured-pools .pool-row').first().getByRole('button', { name: 'Add liquidity' }).click();
+  await page.locator('#liquidity-input').fill('999999');
+  await page.getByRole('button', { name: 'Simulate deposit' }).click();
+  assert.match(await page.locator('#liquidity-error').textContent(), /Not enough/);
+  await page.locator('#liquidity-input').fill('100');
+  await page.getByRole('button', { name: 'Simulate deposit' }).click();
+  assert.equal(await page.locator('#positions .pool-row').count(), 1);
+  await page.getByRole('button', { name: 'Remove liquidity' }).click(); await page.locator('#confirm').click();
+  assert.equal(await page.locator('#positions .pool-row').count(), 0);
+  await page.locator('#new-pool').click();
+  await page.locator('#create-neta').fill('0'); await page.locator('#create-submit').click();
+  assert.match(await page.locator('#create-error').textContent(), /greater than zero/);
+  await page.locator('#create-neta').fill('10'); await page.locator('#create-submit').click();
+  assert.equal(await page.locator('#small-pools .pool-row').count(), 2);
+  assert.match(await page.locator('#small-pools').textContent(), /OSMO/);
+  await page.locator('#featured-pools .pool-row').first().getByRole('button', { name: 'Plan incentives' }).click();
+  await page.locator('#incentive-total').fill('0');
+  await page.getByRole('button', { name: 'Save demo plan' }).click();
+  assert.match(await page.locator('#incentive-error').textContent(), /greater than zero/);
+  await page.locator('#incentive-total').fill('1200');
+  await page.getByRole('button', { name: 'Save demo plan' }).click();
+  assert.match(await page.locator('#incentive-plans').textContent(), /12 weeks \/ 84 days/);
+  assert.match(await page.locator('#incentive-plans').textContent(), /Not funded/);
+  const shots = process.env.NNS_SCREENSHOT_DIR;
+  if (shots) await mkdir(shots, { recursive: true });
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1100 });
+    for (const view of ['swap', 'pools', 'dao']) {
+      await page.locator(`[data-view="${view}"]`).click();
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${view} overflow at ${width}`);
+      await page.evaluate(() => { document.activeElement?.blur(); scrollTo({ top: 0, behavior: 'instant' }); });
+      if (shots) await page.screenshot({ path: `${shots}/dex-${view}-${width}.png`, fullPage: true });
+    }
+  }
+  await page.locator('[data-view="swap"]').click();
+  await page.locator('#reverse').click();
+  assert.equal(await page.locator('#pay-token').textContent(), 'NETA');
+  await page.locator('#swap-submit').focus(); await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#review').isVisible(), true);
+  if (shots) await page.screenshot({ path: `${shots}/dex-review-320.png`, fullPage: true });
+  await page.keyboard.press('Escape');
+  await page.locator('#reset').click(); await page.locator('#confirm').click();
+  assert.equal(await page.locator('#swap-output').textContent(), '2.49001');
+  assert.equal(await page.locator('#positions .pool-row').count(), 0);
+  assert.equal(await page.locator('#incentive-plans .campaign').count(), 0);
+  await page.goto(origin + '/community-tools/neta/dex/#dao');
+  assert.equal(await page.locator('#view-dao').isVisible(), true);
+  assert.equal(await page.locator('#swap-count').textContent(), '0');
+  assert.equal(await page.locator('#buyback').isDisabled(), true);
+  await page.locator('[data-view="pools"]').click();
+  await page.locator('#featured-pools .pool-row').first().getByRole('button', { name: 'Plan incentives' }).click();
+  if (shots) await page.screenshot({ path: `${shots}/dex-incentives-320.png`, fullPage: true });
+  await page.keyboard.press('Escape');
+  await page.setViewportSize({ width: 768, height: 1100 });
+  await page.evaluate(() => { document.body.style.zoom = '2'; });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), '200% zoom reflows without horizontal overflow');
+  await page.evaluate(() => { document.body.style.zoom = ''; });
+  assert.deepEqual(errors, []); assert.deepEqual(external, []);
+  console.log('DEX preview: swap/review, fees, buyback, LP deposit/withdrawal, pool creation, 84-day incentive plans, reset, direct routes, wallet isolation and four responsive widths passed.');
+} finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }

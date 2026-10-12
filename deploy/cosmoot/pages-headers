@@ -7,3 +7,9 @@
 
 /data/*
   Cache-Control: no-store
+
+/community-tools/neta/dex/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/community-tools/neta/dex
+  X-Robots-Tag: noindex, nofollow, noarchive
