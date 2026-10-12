@@ -6,6 +6,27 @@ boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
 
+
+## Orbital DEX design — 12 October 2026 candidate
+
+The owner approved an original Interchain visual direction for the unlisted DEX.
+Its Explore & swap view places NETA at the center of an illustrated orbital map,
+with selectable pool assets and an adjacent working demo swap form. Map/list,
+small-pool visibility, the pair selector and compact pool cards share the same
+session state. The selected pair also opens the existing liquidity dialog.
+A 42 KB WebP illustration replaces the concept's static UI artwork; all controls,
+labels and amounts are real HTML. Shared graphite/mint controls, fee split,
+liquidity, buyback and unfunded incentive-planning behavior remain intact.
+The background glow can be paused and respects reduced-motion preferences.
+There is no added runtime dependency, wallet integration or network request.
+The route remains unlinked and noindex; production publication is manual.
+
+Local acceptance: existing financial model tests and the full DEX browser flow,
+plus map/list/pair synchronization, small-pool selection, selected-pair deposits,
+keyboard selection and reduced motion pass. Four viewport sizes and 200% reflow
+are covered; representative screenshots were inspected. Full PR CI and manual
+publication remain pending for this candidate.
+
 ## Unlisted DEX preview — 12 October 2026 candidate
 
 An isolated browser-local MVP at `/community-tools/neta/dex/` models NETA-paired

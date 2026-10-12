@@ -1,5 +1,21 @@
 # NETA DAO design system
 
+## DEX Interchain direction — owner approval 2026-10-12
+
+The DEX alone adopts the approved cosmic concept: a warm, mint-rimmed NETA sphere,
+subtle orbital paths, selectable asset bodies, spacious typography and graphite
+financial forms. This supersedes the blanket illustration/motion restriction only
+for this isolated DEX. Reuse shared semantic colors, controls and focus treatment.
+The original generated asset is `assets/design/dex-cosmos.webp` (1200×800, 42 KB).
+It is decorative; ticker labels, selection states and every control are live HTML.
+Keep the real simulation status and financial model rather than copying mockup data.
+
+Use a map/list alternative and an explicit small-pool toggle. Both share the form's
+selection. Keep planet positions fixed for targeting; only a subtle background glow
+animates. Offer pause and honor reduced motion. Stack the form below a compact map
+on mobile; maintain keyboard access and existing dialog focus restoration. Other
+workspace pages retain the established assembly-plaza visual direction.
+
 ## Unlisted DEX simulation — owner request 2026-10-12
 
 Reuse graphite/mint tokens with a compact Cosmoot header, clearly labelled local

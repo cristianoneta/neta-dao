@@ -1,21 +1,83 @@
-.dex-header { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px max(24px, calc((100vw - 1160px) / 2)); border-bottom: 1px solid var(--neta-border); background: var(--neta-bg); }
-.brand { color: var(--neta-text); font-weight: 750; font-size: 20px; letter-spacing: .025em; text-decoration: none; }
-.brand span { color: var(--neta-text-secondary); font-size: 12px; }
+body { background: color-mix(in srgb, var(--neta-bg) 60%, black); }
+.dex-header { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 0 32px; border-bottom: 1px solid var(--neta-border); background: color-mix(in srgb, var(--neta-bg) 95%, transparent); backdrop-filter: blur(16px); }
+.brand { display: flex; align-items: center; gap: 24px; color: var(--neta-text); font-weight: 650; font-size: 26px; letter-spacing: -.035em; text-decoration: none; white-space: nowrap; }
+.brand span { border-left: 1px solid var(--neta-border); padding-left: 24px; color: var(--neta-text-secondary); font-size: 13px; font-weight: 400; letter-spacing: .08em; }
 .header-actions, .section-head, .amount-top, .amount-value, .dialog-actions, .dex-footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-.dex-page { max-width: 1160px; margin: auto; padding: 36px 24px 24px; }
-.intro { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.intro h1 { font-size: clamp(30px, 4vw, 42px); margin: 8px 0 12px; }
-.intro h1 span { color: var(--neta-accent); }
-.intro p { margin: 0; color: var(--neta-text-secondary); }
-.intro img { margin-right: 12px; }
+.dex-page { max-width: 1480px; margin: auto; padding: 16px 32px 24px; }
+.intro { position: relative; z-index: 1; margin-top: 16px; }
+.intro h1 { font-size: clamp(34px, 3.6vw, 56px); line-height: 1.08; font-weight: 550; letter-spacing: -.045em; margin: 16px 0; }
+.intro h1 span { color: var(--neta-accent-hover); }
+.intro p { margin: 0; color: var(--neta-text-secondary); font-size: 16px; }
+.intro .eyebrow { font-size: 11px; letter-spacing: .14em; }
 .badge { display: inline-flex; align-items: center; border: 1px solid var(--neta-warning); color: var(--neta-warning); border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .badge.neutral { border-color: var(--neta-border); color: var(--neta-text-secondary); }
-.preview-note { border-left: 2px solid var(--neta-warning); background: var(--neta-surface); padding: 12px 16px; font-size: 13px; margin: 24px 0 8px; color: var(--neta-text-secondary); }
-.preview-note strong { color: var(--neta-text); }
-.dex-tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--neta-border); margin-bottom: 28px; }
-.dex-tabs a { display: flex; align-items: center; min-height: 58px; text-decoration: none; color: var(--neta-text-secondary); font-size: 15px; font-weight: 600; border-bottom: 2px solid transparent; }
+.preview-note { color: var(--neta-text-secondary); font-size: 12px; margin: 0 0 24px; }
+.preview-note summary { font-size: 12px; font-weight: 400; min-height: 24px; }
+.preview-note strong { color: var(--neta-warning); font-weight: 500; }
+.preview-note p { margin: 8px 0; max-width: 700px; }
+.dex-tabs { display: flex; gap: 24px; }
+.dex-tabs a { display: flex; align-items: center; min-height: 76px; text-decoration: none; color: var(--neta-text-secondary); font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; }
 .dex-tabs a[aria-current] { color: var(--neta-accent); border-bottom-color: var(--neta-accent); }
-.swap-layout { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.swap-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(340px, 1fr); gap: 32px; align-items: start; }
+.cosmos-column, .trade-column { min-width: 0; }
+.trade-column { padding-top: 20px; }
+.trade-label { margin: 0 0 16px; font-size: 11px; letter-spacing: .2em; color: var(--neta-text-secondary); }
+.cosmos-toolbar, .cosmos-caption { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cosmos-toolbar { margin-top: 24px; }
+.segmented { display: inline-flex; border: 1px solid var(--neta-control-border); border-radius: 999px; padding: 3px; }
+.segmented button { min-width: 56px; min-height: 36px; padding: 6px 12px; border: 0; border-radius: 999px; background: transparent; color: var(--neta-text-secondary); }
+.segmented button[aria-pressed="true"] { background: var(--neta-surface-raised); color: var(--neta-accent); }
+.small-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--neta-text-secondary); cursor: pointer; min-height: 44px; }
+.small-toggle input { width: 18px; height: 18px; min-height: 18px; padding: 0; accent-color: var(--neta-accent); }
+.cosmos-stage { position: relative; aspect-ratio: 3 / 2; isolation: isolate; margin: 0 -16px; }
+.cosmos-art { position: absolute; width: 100%; height: 100%; object-fit: contain; inset: 0; z-index: -2; mask-image: radial-gradient(ellipse, black 42%, transparent 72%); }
+.cosmos-stage::after { content: ""; position: absolute; inset: 12% 20% 30%; pointer-events: none; z-index: -1; background: radial-gradient(ellipse, color-mix(in srgb, var(--neta-accent) 10%, transparent), transparent 65%); animation: cosmos-glow 12s ease-in-out infinite alternate; }
+@keyframes cosmos-glow { from { opacity: .2; } to { opacity: .8; } }
+.cosmos-stage.still::after { animation: none; opacity: .3; }
+.neta-center { position: absolute; top: 44%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+.neta-center > span { display: block; font-size: clamp(22px, 2.8vw, 42px); letter-spacing: .22em; padding-left: .22em; color: var(--neta-text); text-shadow: 0 0 24px var(--neta-warning); }
+.neta-center small { display: block; font-size: 9px; letter-spacing: .13em; color: var(--neta-text-secondary); margin-top: 6px; }
+.orbit-pool { position: absolute; width: 128px; padding: 0; border: none; background: transparent; text-align: center; transform: translate(-50%, -50%); border-radius: 12px; }
+.orbit-pool:hover:not(:disabled), .orbit-pool:active { background: transparent; }
+.orbit-juno { left: 79%; top: 25%; --planet-color: var(--neta-info); }
+.orbit-usdc { left: 79%; top: 73%; --planet-color: var(--neta-accent); }
+.orbit-dao { left: 21%; top: 72%; --planet-color: var(--neta-warning); }
+.orbit-atom { left: 20%; top: 24%; --planet-color: var(--neta-info); }
+.orbit-osmo { left: 50%; top: 86%; --planet-color: var(--neta-info); }
+.planet-body { display: grid; place-items: center; width: clamp(56px, 6.2vw, 88px); aspect-ratio: 1; margin: 0 auto 8px; border-radius: 50%; border: 1px solid var(--planet-color, var(--neta-info)); box-shadow: inset -12px -12px 20px var(--neta-bg), inset 3px 3px 7px var(--planet-color, var(--neta-info)), 0 0 22px color-mix(in srgb, var(--planet-color, var(--neta-info)) 12%, transparent); background: radial-gradient(circle at 28% 24%, color-mix(in srgb, var(--planet-color, var(--neta-info)) 45%, transparent), transparent 60%), url('/assets/design/dex-cosmos.webp') 50% 44% / 340%; transition: box-shadow .25s, transform .25s; }
+.planet-body b { font-size: 13px; letter-spacing: .035em; text-shadow: 0 1px 6px var(--neta-bg), 0 1px 3px var(--neta-bg); }
+.planet-name { display: block; font-size: 12px; line-height: 1.4; color: var(--neta-text); }
+.planet-state { display: block; margin-top: 4px; font-size: 11px; color: var(--neta-text-secondary); }
+.orbit-pool[aria-pressed="true"] .planet-body { outline: 1px solid var(--neta-accent); outline-offset: 6px; box-shadow: inset -12px -12px 20px var(--neta-bg), inset 3px 3px 7px var(--planet-color, var(--neta-info)), 0 0 28px color-mix(in srgb, var(--neta-accent) 35%, transparent); }
+.orbit-pool[aria-pressed="true"] .planet-state { color: var(--neta-accent); }
+.orbit-pool:hover .planet-body { transform: translateY(-3px); }
+.cosmos-caption { margin: 0 0 12px; font-size: 12px; color: var(--neta-text-secondary); }
+.cosmos-caption p { margin: 0; max-width: 80%; }
+.cosmos-caption button { flex-shrink: 0; padding: 8px; font-size: 11px; min-height: 36px; }
+.cosmos-stage.list-mode { aspect-ratio: auto; min-height: 300px; margin: 24px 0; }
+.list-mode .cosmos-art, .list-mode .neta-center, .list-mode::after { display: none; }
+.list-mode .orbit-pools { display: grid; gap: 8px; }
+.list-mode .orbit-pool { position: static; transform: none; width: 100%; display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 16px; padding: 12px 16px; text-align: left; background: var(--neta-surface); border: 1px solid var(--neta-border); }
+.list-mode .planet-body { width: 44px; margin: 0; }
+.list-mode .planet-body b { font-size: 10px; }
+.list-mode .planet-state { margin: 0; }
+.liquidity-shortcut { width: 100%; min-height: 52px; margin-top: 16px; background: transparent; }
+.explore-strip { border-top: 1px solid var(--neta-border); padding-top: 28px; margin-top: 32px; }
+.explore-strip a { font-size: 13px; color: var(--neta-accent); }
+.quick-pools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.quick-pool { display: flex; gap: 16px; align-items: center; text-align: left; padding: 20px; border: 1px solid var(--neta-border); background: linear-gradient(130deg, var(--neta-surface), var(--neta-bg)); border-radius: 12px; }
+.quick-pool[aria-pressed="true"] { border-color: var(--neta-accent); }
+.quick-pool .planet-body { width: 40px; margin: 0; flex-shrink: 0; }
+.quick-pool .planet-body b { font-size: 10px; }
+.quick-pool strong { font-size: 14px; }
+.quick-pool small { display: block; margin-top: 4px; color: var(--neta-text-secondary); font-size: 12px; }
+.quick-arrow { margin-left: auto; color: var(--neta-accent); }
+.fee-explainer { font-size: 13px; }
+.fee-explainer .fee-bar { margin-top: 24px; max-width: 360px; }
+#view-pools, #view-dao { padding-top: 16px; }
+#view-pools > .section-head, #view-dao > .section-head { padding-bottom: 20px; }
+#view-pools h1, #view-dao h1 { font-size: clamp(30px, 3vw, 44px); font-weight: 550; letter-spacing: -.035em; margin: 8px 0; }
+#view-pools > .section-head, #view-dao > .section-head { background: radial-gradient(ellipse at right, color-mix(in srgb, var(--neta-info) 6%, transparent), transparent 70%); }
 .panel { min-width: 0; background: var(--neta-surface); border: 1px solid var(--neta-border); border-radius: 12px; padding: 24px; }
 .panel h2, .panel h3 { margin: 0 0 16px; }
 .section-head { margin-bottom: 20px; }
@@ -39,25 +101,18 @@ select, .dialog-body input { width: 100%; }
 .metrics > div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 6px 0; }
 .metrics dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .full { width: 100%; min-height: 48px; }
-.context { display: grid; gap: 16px; }
-.concept { position: relative; padding-right: 140px; min-height: 215px; }
-.concept h2 { font-size: 25px; }
-.concept p { max-width: 320px; font-size: 14px; color: var(--neta-text-secondary); }
-.concept .eyebrow { font-size: 12px; }
-.token-orbit { position: absolute; right: 28px; top: 34px; display: grid; justify-items: center; gap: 12px; }
-.token-orbit span { border: 1px solid var(--neta-border); border-radius: 8px; padding: 5px 12px; color: var(--neta-text-secondary); font-size: 12px; }
 .fee-bar { display: flex; gap: 4px; height: 8px; border-radius: 4px; overflow: hidden; }
 .fee-bar span:first-child { width: 66.667%; background: var(--neta-accent); }
 .fee-bar span:last-child { flex: 1; background: var(--neta-info); }
-.context .metrics { margin: 12px 0; }
-.context .small { margin-bottom: 0; }
 summary { cursor: pointer; min-height: 24px; font-weight: 600; }
 details.panel { margin-top: 16px; }
-.context details.panel { margin: 0; }
 .error { color: var(--neta-danger); font-size: 13px; }
 .error:empty { display: none; }
 .notice { background: var(--neta-success-soft); border: 1px solid var(--neta-accent); border-radius: 8px; padding: 12px 16px; font-size: 14px; }
 .pool-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(160px, 1fr) auto; gap: 16px; align-items: center; padding: 20px 0; border-top: 1px solid var(--neta-border); }
+.pool-identity { display: flex; align-items: center; gap: 16px; }
+.pool-identity .planet-body { width: 44px; flex-shrink: 0; margin: 0; }
+.pool-identity .planet-body b { font-size: 10px; }
 .pool-row strong { font-size: 16px; }
 .pool-row p { margin: 4px 0 0; font-size: 13px; color: var(--neta-text-secondary); }
 .pool-row .pool-values { font-size: 14px; font-variant-numeric: tabular-nums; }
@@ -85,33 +140,80 @@ dialog::backdrop { background: var(--neta-bg); opacity: .85; }
 .dialog-body li { margin-bottom: 12px; overflow-wrap: anywhere; }
 .skip { position: fixed; top: -100px; z-index: 50; background: var(--neta-surface); padding: 12px; }
 .skip:focus { top: 8px; }
-@media (max-width: 850px) {
-  .swap-layout, .dao-grid { grid-template-columns: 1fr; }
-  .swap-panel { max-width: 560px; width: 100%; justify-self: center; }
-  .context { grid-template-columns: 1fr 1fr; }
-  .context .wallet { grid-column: 1 / -1; }
-  .concept { padding-right: 24px; }
-  .token-orbit { display: none; }
+
+@media (max-width: 1100px) {
+  .dex-header { flex-wrap: wrap; gap: 0 20px; padding: 12px 24px 0; }
+  .dex-tabs { order: 3; width: 100%; justify-content: center; }
+  .dex-tabs a { min-height: 52px; }
+  .swap-layout { grid-template-columns: minmax(0, 1.25fr) minmax(320px, 1fr); gap: 24px; }
+  .intro h1 { font-size: 38px; }
+  .small-toggle { font-size: 11px; }
+  .cosmos-stage { margin: 20px -16px; }
+  .orbit-pool { width: 105px; }
+  .neta-center small { display: none; }
+  .quick-pool { padding: 16px 12px; gap: 12px; }
   .pool-row { grid-template-columns: 1fr 1fr; }
   .pool-actions { grid-column: 1 / -1; }
 }
+@media (max-width: 850px) {
+  .swap-layout, .dao-grid { grid-template-columns: 1fr; }
+  .trade-column { width: 100%; max-width: 560px; justify-self: center; padding-top: 8px; }
+  .intro h1 { font-size: clamp(36px, 6vw, 48px); }
+  .cosmos-stage { max-width: 680px; margin: 0 auto; }
+  .planet-body { width: 72px; }
+  .neta-center > span { font-size: 32px; }
+  .quick-pools { grid-template-columns: 1fr; }
+  .quick-pool { padding: 16px; }
+  .cosmos-stage.list-mode { min-height: 0; }
+}
 @media (max-width: 520px) {
-  .dex-header { padding: 12px 16px; gap: 8px; }
-  .brand { font-size: 17px; }
+  .dex-header { padding: 12px 16px 0; gap: 8px; }
+  .brand { font-size: 22px; gap: 12px; }
   .brand span { display: none; }
   .header-actions { gap: 8px; }
-  .header-actions button { padding: 10px; font-size: 12px; }
-  .dex-page { padding: 24px 16px; }
-  .intro img { display: none; }
+  .header-actions button { padding: 8px; font-size: 11px; }
+  .header-actions .badge { font-size: 10px; padding: 4px 8px; }
+  .dex-page { padding: 12px 16px 24px; }
+  .intro h1 { font-size: clamp(30px, 8.7vw, 34px); }
   .intro p { font-size: 14px; }
+  .intro .eyebrow { font-size: 9px; }
+  .preview-note { margin-bottom: 20px; }
+  .preview-note summary span { display: block; padding-left: 15px; margin-top: 4px; }
   .panel, .dialog-body { padding: 20px 16px; }
-  .dex-tabs { gap: 16px; }
-  .dex-tabs a { font-size: 13px; min-height: 60px; }
-  .context { grid-template-columns: 1fr; }
+  .dex-tabs { gap: 16px; justify-content: space-between; }
+  .dex-tabs a { font-size: 12px; min-height: 48px; }
   .section-head { align-items: flex-start; flex-wrap: wrap; }
+  .cosmos-toolbar { gap: 8px; }
+  .segmented button { min-width: 44px; font-size: 12px; }
+  .small-toggle { gap: 6px; font-size: 11px; }
+  .cosmos-stage { margin: 0 -12px; aspect-ratio: 1.15; }
+  .cosmos-art { object-fit: cover; }
+  .neta-center > span { font-size: 25px; }
+  .orbit-pool { width: 88px; }
+  .planet-body { width: 56px; }
+  .planet-body b { font-size: 11px; }
+  .planet-name { font-size: 11px; }
+  .planet-state { font-size: 10px; }
+  .orbit-juno { left: 81%; top: 23%; }
+  .orbit-atom { left: 19%; top: 23%; }
+  .orbit-dao { left: 19%; top: 72%; }
+  .orbit-usdc { left: 81%; top: 72%; }
+  .orbit-osmo { top: 82%; }
+  .cosmos-caption { font-size: 11px; }
+  .cosmos-caption button { font-size: 10px; }
+  .list-mode .orbit-pool { gap: 8px; padding: 12px; grid-template-columns: 48px 1fr auto; }
+  .list-mode .planet-name { font-size: 13px; }
   .pool-row { gap: 12px; }
+  .pool-identity { gap: 8px; }
+  .pool-identity .planet-body { width: 32px; }
+  .pool-identity .planet-body b { font-size: 8px; }
   .pool-row strong { font-size: 14px; }
   .pool-row .pool-values { font-size: 13px; }
   .amount-value input, .amount-value output { font-size: 24px; }
   .dex-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cosmos-stage::after { animation: none; }
+  .planet-body { transition: none; }
+  .orbit-pool:hover .planet-body { transform: none; }
 }

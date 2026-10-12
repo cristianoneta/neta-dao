@@ -9,29 +9,38 @@
   <title>NETA DEX · Cosmoot preview</title>
   <link rel="icon" href="/favicon.ico">
   <link rel="stylesheet" href="/neta-ui.css">
-  <link rel="stylesheet" href="./style.css?v=1">
-  <script type="module" src="./app.mjs?v=1"></script>
+  <link rel="stylesheet" href="./style.css?v=2">
+  <script type="module" src="./app.mjs?v=2"></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to DEX</a>
   <header class="dex-header">
-    <a class="brand" href="/">COSMOOT<span> / LAB</span></a>
-    <div class="header-actions"><span class="badge">Simulation</span><button id="reset" type="button">Reset demo</button></div>
-  </header>
-  <main id="main" class="dex-page">
-    <header class="intro"><div><p class="eyebrow">NETA DEX · WORKING PREVIEW</p><h1>NETA at the center<span>.</span></h1><p>Swap, provide liquidity, and explore a community-owned exchange.</p></div><img src="/assets/neta-token.png" alt="" width="72" height="72"></header>
-    <p class="preview-note"><strong>Demo funds only.</strong> All pools, prices and balances are illustrative. No wallet connection or on-chain transactions. Changes reset when you reload.</p>
-    <noscript><p class="preview-note">Enable JavaScript to use the local simulation. No live trading is available.</p></noscript>
+    <a class="brand" href="/">cosmoot<span>NETA DEX</span></a>
     <nav class="dex-tabs" aria-label="DEX views">
-      <a href="#swap" data-view="swap" aria-current="page">Swap</a>
+      <a href="#swap" data-view="swap" aria-current="page">Explore &amp; swap</a>
       <a href="#pools" data-view="pools">Pools &amp; liquidity</a>
       <a href="#dao" data-view="dao">DAO &amp; buybacks</a>
     </nav>
+    <div class="header-actions"><span class="badge">Simulation</span><button id="reset" type="button">Reset demo</button></div>
+  </header>
+  <main id="main" class="dex-page">
+    <details class="preview-note"><summary><strong>Demo funds only</strong><span> · Local simulation · No wallet connected</span></summary><p>All pools, prices and balances are illustrative. No wallet connection or on-chain transactions. Changes reset when you reload.</p></details>
+    <noscript><p class="preview-note">Enable JavaScript to use the local simulation. No live trading is available.</p></noscript>
     <p id="notice" class="notice" role="status" hidden></p>
 
     <section id="view-swap" aria-labelledby="swap-title">
       <div class="swap-layout">
-        <section class="panel swap-panel">
+        <section class="cosmos-column" aria-labelledby="cosmos-title">
+          <header class="intro"><p class="eyebrow">ONE COMMON ASSET. A CONNECTED EXCHANGE.</p><h1 id="cosmos-title">NETA at the center<br>of the <span>Interchain.</span></h1><p>Explore pools. Swap assets. Provide liquidity.</p></header>
+          <div class="cosmos-toolbar"><div class="segmented" aria-label="Pool display"><button id="map-mode" type="button" aria-pressed="true">Map</button><button id="list-mode" type="button" aria-pressed="false">List</button></div><label class="small-toggle"><input id="show-small" type="checkbox">Show smaller pools</label></div>
+          <div id="cosmos" class="cosmos-stage">
+            <img class="cosmos-art" src="/assets/design/dex-cosmos.webp" width="1200" height="800" alt="" fetchpriority="high">
+            <div class="neta-center" aria-hidden="true"><span>NETA</span><small>THE COMMON ASSET</small></div>
+            <div id="orbit-pools" class="orbit-pools" role="group" aria-label="Select a NETA pool"></div>
+          </div>
+          <div class="cosmos-caption"><p id="map-caption">Select an asset to explore its NETA pool.</p><button id="motion" type="button" aria-pressed="false">Pause glow</button></div>
+        </section>
+        <div class="trade-column"><p class="eyebrow trade-label">TRADE THROUGH NETA</p><section class="panel swap-panel">
           <div class="section-head"><h2 id="swap-title">Swap</h2><span class="muted">0.30% fee</span></div>
           <form id="swap-form" novalidate>
             <label class="field-label" for="swap-pair">NETA pair</label>
@@ -44,16 +53,16 @@
             <button id="swap-submit" class="neta-primary full" type="submit">Review demo swap</button>
           </form>
         </section>
-        <aside class="context">
-          <section class="panel concept"><p class="eyebrow">ONE COMMON ASSET</p><h2>Every pool starts<br>with NETA.</h2><p>Open pool creation. A shared NETA counterpart. Liquidity providers earn directly from swaps.</p><div class="token-orbit" aria-hidden="true"><span>JUNO</span><img src="/assets/neta-token.png" width="52" height="52" alt=""><span>USDC</span></div></section>
-          <section class="panel"><h3>A clear fee split</h3><div class="fee-bar" aria-hidden="true"><span></span><span></span></div><dl class="metrics"><div><dt>Liquidity providers</dt><dd>0.20%</dd></div><div><dt>DAO token buyback &amp; burn</dt><dd>0.10%</dd></div></dl><p class="small muted">LP fees stay in the pool. Protocol fees fund purchases of the future DAO token, followed by burning.</p></section>
-          <details class="panel wallet"><summary>Your demo balances</summary><dl id="balances" class="metrics"></dl></details>
-        </aside>
+        <button id="selected-liquidity" class="liquidity-shortcut" type="button">Provide liquidity</button>
+        <details class="panel wallet"><summary>Your demo balances</summary><dl id="balances" class="metrics"></dl></details>
+        </div>
       </div>
+      <section class="explore-strip" aria-labelledby="explore-title"><div class="section-head"><div><h2 id="explore-title">Explore pools</h2><p class="small muted">Featured demo pools · At least $1,000 on the NETA side</p></div><a href="#pools">All pools &amp; positions ↗</a></div><div id="quick-pools" class="quick-pools"></div></section>
+      <details class="panel fee-explainer"><summary>A clear fee split · 0.20% LPs / 0.10% buyback</summary><div class="fee-bar" aria-hidden="true"><span></span><span></span></div><p class="small muted">LP fees stay in the pool. Protocol fees fund purchases of the future DAO token, followed by burning. All activity here is simulated.</p></details>
     </section>
 
     <section id="view-pools" aria-labelledby="pools-title" hidden>
-      <div class="section-head"><div><h2 id="pools-title">Pools &amp; liquidity</h2><p class="muted">Illustrative pools · NETA reference price fixed at $4 for this demo.</p></div><button id="new-pool" class="neta-primary" type="button">Create demo pool</button></div>
+      <div class="section-head"><div><p class="eyebrow">THE NETA LIQUIDITY NETWORK</p><h1 id="pools-title">Pools &amp; liquidity</h1><p class="muted">Illustrative pools · NETA reference price fixed at $4 for this demo.</p></div><button id="new-pool" class="neta-primary" type="button">Create demo pool</button></div>
       <section class="panel pool-section"><div class="section-head"><h3>Featured pools</h3><span class="badge neutral">≥ $1,000 in NETA</span></div><div id="featured-pools" class="pool-list"></div></section>
       <details class="panel smaller-pools"><summary>Smaller pools <span id="small-count" class="count"></span></summary><p class="small muted">Below $1,000 in NETA. Swaps and liquidity withdrawals remain available.</p><div id="small-pools" class="pool-list"></div></details>
       <section class="panel positions"><h3>Your demo liquidity</h3><div id="positions"></div></section>
@@ -62,7 +71,7 @@
     </section>
 
     <section id="view-dao" aria-labelledby="dao-title" hidden>
-      <div class="section-head"><div><p class="eyebrow">COMMUNITY OWNERSHIP</p><h2 id="dao-title">DAO &amp; buybacks</h2><p class="muted">Operating model preview. The DAO and its token have not been created.</p></div><span class="badge neutral">Planned</span></div>
+      <div class="section-head"><div><p class="eyebrow">COMMUNITY OWNERSHIP</p><h1 id="dao-title">DAO &amp; buybacks</h1><p class="muted">Operating model preview. The DAO and its token have not been created.</p></div><span class="badge neutral">Planned</span></div>
       <div class="dao-grid">
         <section class="panel"><div class="section-head"><h3>Buyback &amp; burn</h3><span class="badge">Demo activity</span></div><p>The 0.10% protocol fee is collected in the output asset, then converted into the DAO token and burned.</p><dl class="metrics"><div><dt>Demo swaps completed</dt><dd id="swap-count">0</dd></div><div><dt>DAO tokens burned · demo</dt><dd id="burned">0</dd></div></dl><h4>Collected protocol fees · demo</h4><div id="fee-balances"></div><button id="buyback" class="neta-primary full" type="button">Preview demo buyback</button><p class="small muted">The demo caps price impact at 1% per hop. Routes that exceed this limit are skipped. Production scheduling and price protection are not deployed.</p></section>
         <section class="panel"><h3>Govern changes. Automate the routine.</h3><ol class="operating-model"><li><strong>Start with the owner wallet</strong><span>Initial administration during setup.</span></li><li><strong>Transfer authority to the new DAO</strong><span>Code upgrades require DAO approval. Fee changes and treasury decisions stay under governance.</span></li><li><strong>Run buybacks by agreed rules</strong><span>No holder vote for each purchase. A transaction executor triggers bounded contract actions.</span></li></ol></section>
