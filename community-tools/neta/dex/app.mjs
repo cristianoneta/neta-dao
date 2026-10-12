@@ -11,6 +11,7 @@ let incentiveToken = '', plans = [];
 function notice(text) { $('notice').textContent = text; $('notice').hidden = false; }
 function view() {
   const name = ['swap', 'pools', 'dao'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'swap';
+  document.body.dataset.view = name;
   for (const link of document.querySelectorAll('[data-view]')) {
     const active = link.dataset.view === name;
     if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
@@ -30,6 +31,7 @@ function review(title, nodes, label, action) {
 }
 function renderQuote() {
   const pool = poolFor(state, $('swap-pair').value);
+  syncOrbitSelection();
   const inputSymbol = netaIn ? 'NETA' : pool.token, outputSymbol = netaIn ? pool.token : 'NETA';
   $('pay-token').textContent = inputSymbol; $('receive-token').textContent = outputSymbol;
   $('pay-balance').textContent = `Demo balance ${fmt(state.balances[inputSymbol])}`;
@@ -50,7 +52,7 @@ function selectOptions(select, tokens) {
   select.replaceChildren(...tokens.map(token => { const option = document.createElement('option'); option.value = token; option.textContent = `${token} / NETA`; return option; }));
   if (tokens.includes(previous)) select.value = previous;
 }
-function showSwap(token) { $('swap-pair').value = token; netaIn = false; location.hash = 'swap'; renderQuote(); $('swap-input').focus(); }
+function showSwap(token) { selectPool(token); location.hash = 'swap'; $('swap-input').focus(); }
 function openLiquidity(token) {
   liquidityToken = token;
   $('liquidity-title').textContent = `Add ${token} / NETA liquidity`;
@@ -70,7 +72,9 @@ function actionButton(label, action) {
 function poolRow(pool) {
   const row = document.createElement('div'); row.className = 'pool-row';
   const title = document.createElement('div'), strong = document.createElement('strong'); strong.textContent = `${pool.token} / NETA`;
-  title.append(strong, paragraph('Demo pool · 0.30% fee'));
+  title.className = 'pool-identity';
+  const identity = document.createElement('div'); identity.append(strong, paragraph('Demo pool · 0.30% fee'));
+  title.append(planet(pool.token), identity);
   const values = document.createElement('div'); values.className = 'pool-values';
   values.append(document.createTextNode(`${money(pool.neta, 'NETA')} · ${usd(display(pool.neta) * 4)}`), paragraph(money(pool.reserve, pool.token)));
   const actions = document.createElement('div'); actions.className = 'pool-actions';
@@ -98,7 +102,7 @@ function renderPools() {
   }
 }
 function render() {
-  selectOptions($('swap-pair'), state.pools.map(p => p.token)); renderQuote(); renderPools();
+  selectOptions($('swap-pair'), state.pools.map(p => p.token)); renderQuote(); renderPools(); renderCosmos();
   $('balances').replaceChildren(...Object.entries(state.balances).map(([token, value]) => metric(token, fmt(value))));
   $('swap-count').textContent = String(state.swaps); $('burned').textContent = fmt(state.burned);
   const fees = Object.entries(state.fees).filter(([, value]) => value > 0n);
@@ -106,7 +110,7 @@ function render() {
   $('buyback').disabled = !fees.length;
 }
 $('swap-input').addEventListener('input', renderQuote);
-$('swap-pair').addEventListener('change', renderQuote);
+$('swap-pair').addEventListener('change', () => { if (!featured(poolFor(state, $('swap-pair').value))) { $('show-small').checked = true; renderCosmos(); } renderQuote(); });
 $('reverse').addEventListener('click', () => { netaIn = !netaIn; renderQuote(); });
 $('swap-form').addEventListener('submit', event => {
   event.preventDefault(); if ($('swap-submit').disabled) return;
@@ -193,5 +197,68 @@ $('incentive-form').addEventListener('submit', event => {
 $('reset').addEventListener('click', () => review('Reset demo session?', [paragraph('Clears your simulated swaps, pools, liquidity positions and burns. Restores all example balances.')], 'Reset demo', () => {
   state = initialState(); plans = []; renderPlans(); netaIn = false; $('swap-input').value = '100'; notice('Demo reset. All example balances restored.');
 }));
+// The orbital map and compact cards select the same local pool as the form.
+function planet(token) {
+  const sphere = document.createElement('span'); sphere.className = 'planet-body';
+  sphere.setAttribute('aria-hidden', 'true');
+  const label = document.createElement('b'); label.textContent = token; sphere.append(label); return sphere;
+}
+function selectPool(token) {
+  $('swap-pair').value = token; netaIn = false;
+  if (!featured(poolFor(state, token)) && !$('show-small').checked) { $('show-small').checked = true; renderCosmos(); }
+  renderQuote();
+}
+function syncOrbitSelection() {
+  const token = $('swap-pair').value;
+  for (const button of document.querySelectorAll('[data-pool-select]')) {
+    const selected = button.dataset.poolSelect === token;
+    button.setAttribute('aria-pressed', String(selected));
+    const label = button.querySelector('.planet-state');
+    if (label) label.textContent = selected ? 'Selected' : featured(poolFor(state, button.dataset.poolSelect)) ? 'View pool' : 'Small pool';
+  }
+  const pool = state.pools.find(p => p.token === token);
+  if (pool) $('map-caption').textContent = `${token} / NETA · ${money(pool.neta, 'NETA')} in this demo pool${featured(pool) ? '' : ' · Below featured threshold'}`;
+}
+function renderCosmos() {
+  const visible = state.pools.filter(p => featured(p) || $('show-small').checked);
+  const nodes = visible.map(pool => {
+    const button = actionButton('', () => selectPool(pool.token));
+    button.className = `orbit-pool orbit-${pool.token.toLowerCase()}`;
+    button.dataset.poolSelect = pool.token; button.setAttribute('aria-label', `Select ${pool.token} / NETA`);
+    const name = document.createElement('span'); name.className = 'planet-name'; name.textContent = `${pool.token} / NETA`;
+    const status = document.createElement('span'); status.className = 'planet-state';
+    button.append(planet(pool.token), name, status); return button;
+  });
+  $('orbit-pools').replaceChildren(...nodes);
+  if (!nodes.length) $('orbit-pools').append(paragraph('No featured pools. Enable smaller pools to explore.'));
+  $('quick-pools').replaceChildren(...state.pools.filter(featured).map(pool => {
+    const button = actionButton('', () => showSwap(pool.token));
+    button.className = 'quick-pool'; button.dataset.poolSelect = pool.token;
+    const text = document.createElement('span'), name = document.createElement('strong'), sub = document.createElement('small');
+    name.textContent = `${pool.token} / NETA`; sub.textContent = `${usd(display(pool.neta) * 4)} in NETA · Demo`;
+    text.append(name, sub); const arrow = document.createElement('span'); arrow.className = 'quick-arrow'; arrow.textContent = '↗'; arrow.setAttribute('aria-hidden', 'true');
+    button.append(planet(pool.token), text, arrow); return button;
+  }));
+  if (!$('quick-pools').children.length) $('quick-pools').append(paragraph('No featured demo pools. All pools remain available in Pools & liquidity.'));
+  syncOrbitSelection();
+}
+$('show-small').addEventListener('change', renderCosmos);
+for (const mode of ['map', 'list']) $(`${mode}-mode`).addEventListener('click', () => {
+  $('cosmos').classList.toggle('list-mode', mode === 'list');
+  for (const choice of ['map', 'list']) $(`${choice}-mode`).setAttribute('aria-pressed', String(mode === choice));
+  $('motion').hidden = mode === 'list';
+});
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let paused = reducedMotion.matches;
+function renderMotion() {
+  $('cosmos').classList.toggle('still', paused || reducedMotion.matches);
+  $('motion').setAttribute('aria-pressed', String(paused || reducedMotion.matches));
+  $('motion').textContent = reducedMotion.matches ? 'Motion reduced' : paused ? 'Resume glow' : 'Pause glow';
+  $('motion').disabled = reducedMotion.matches;
+}
+$('motion').addEventListener('click', () => { paused = !paused; renderMotion(); });
+reducedMotion.addEventListener('change', renderMotion);
+$('selected-liquidity').addEventListener('click', () => openLiquidity($('swap-pair').value));
+renderMotion();
 window.addEventListener('hashchange', view);
 render(); view();

@@ -8,7 +8,7 @@ const server = http.createServer(async (req, res) => {
     let path = new URL(req.url, 'http://localhost').pathname;
     if (path.endsWith('/')) path += 'index.html';
     const bytes = await readFile(new URL(`.${path}`, root));
-    res.writeHead(200, { 'content-type': /\.m?js$/.test(path) ? 'text/javascript' : path.endsWith('.css') ? 'text/css' : path.endsWith('.png') ? 'image/png' : 'text/html' }).end(bytes);
+    res.writeHead(200, { 'content-type': /\.m?js$/.test(path) ? 'text/javascript' : path.endsWith('.css') ? 'text/css' : path.endsWith('.webp') ? 'image/webp' : path.endsWith('.png') ? 'image/png' : 'text/html' }).end(bytes);
   } catch { res.writeHead(404).end(); }
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -23,6 +23,31 @@ try {
   await page.goto(origin + '/community-tools/neta/dex/');
   await page.waitForFunction(() => document.querySelector('#swap-output').textContent !== '—');
   assert.equal(await page.locator('#swap-output').textContent(), '2.49001');
+  assert.equal(await page.locator('#orbit-pools button').count(), 3);
+  await page.locator('#orbit-pools [data-pool-select="USDC"]').click();
+  assert.equal(await page.locator('#swap-pair').inputValue(), 'USDC');
+  assert.equal(await page.locator('#pay-token').textContent(), 'USDC');
+  await page.locator('#show-small').check();
+  await page.locator('#list-mode').click();
+  await page.locator('#orbit-pools [data-pool-select="ATOM"]').focus(); await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#swap-pair').inputValue(), 'ATOM');
+  assert.equal(await page.locator('#orbit-pools [data-pool-select="ATOM"]').getAttribute('aria-pressed'), 'true');
+  await page.locator('#selected-liquidity').click();
+  assert.match(await page.locator('#liquidity-title').textContent(), /ATOM/); await page.keyboard.press('Escape');
+  await page.locator('#show-small').uncheck();
+  assert.equal(await page.locator('#orbit-pools [data-pool-select="ATOM"]').count(), 0);
+  await page.locator('#swap-pair').selectOption('ATOM');
+  assert.equal(await page.locator('#show-small').isChecked(), true);
+  await page.locator('#swap-pair').selectOption('JUNO'); await page.locator('#show-small').uncheck();
+  await page.locator('#map-mode').click();
+  await page.locator('#motion').click();
+  assert.equal(await page.locator('#motion').getAttribute('aria-pressed'), 'true');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.waitForFunction(() => document.querySelector('#motion').disabled);
+  assert.equal(await page.locator('#motion').isDisabled(), true);
+  assert.equal(await page.locator('#cosmos').evaluate(el => getComputedStyle(el, '::after').animationName), 'none');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+
   await page.locator('#swap-input').fill('10001');
   assert.equal(await page.locator('#swap-submit').isDisabled(), true);
   await page.locator('#swap-input').fill('100');
@@ -70,6 +95,15 @@ try {
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${view} overflow at ${width}`);
       await page.evaluate(() => { document.activeElement?.blur(); scrollTo({ top: 0, behavior: 'instant' }); });
       if (shots) await page.screenshot({ path: `${shots}/dex-${view}-${width}.png`, fullPage: true });
+      if (view === 'swap') {
+        await page.locator('#show-small').check();
+        assert.equal(await page.locator('#orbit-pools button').count(), 5);
+        if (shots) await page.screenshot({ path: `${shots}/dex-map-all-${width}.png`, fullPage: true });
+        await page.locator('#list-mode').click();
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `list overflow at ${width}`);
+        if (shots) await page.screenshot({ path: `${shots}/dex-list-${width}.png`, fullPage: true });
+        await page.locator('#map-mode').click(); await page.locator('#show-small').uncheck();
+      }
     }
   }
   await page.locator('[data-view="swap"]').click();
