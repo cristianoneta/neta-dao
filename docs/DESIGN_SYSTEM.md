@@ -1,5 +1,14 @@
 # NETA DAO design system
 
+## DEX pool overview — owner request 2026-10-13
+
+Above pool listings, use Overview with Incentivize pool and Create demo pool
+buttons, followed by three equal cards: Total liquidity, 24h volume and NETA price.
+Use existing graphite surfaces, restrained mint accents and tabular values;
+stack cards on mobile. Keep demo valuation and unavailable volume visible.
+Top-level incentives opens the existing unfunded planner with a labelled pool
+selector; pool-row shortcuts preselect their pair. DCA is V2, not an active tab.
+
 ## DEX Interchain direction — owner approval 2026-10-12
 
 The DEX alone adopts the approved cosmic concept: a warm, mint-rimmed NETA sphere,
@@ -11,8 +20,11 @@ It is decorative; ticker labels, selection states and every control are live HTM
 Keep the real simulation status and financial model rather than copying mockup data.
 
 Use a map/list alternative and an explicit small-pool toggle. Both share the form's
-selection. Keep planet positions fixed for targeting; only a subtle background glow
-animates. Offer pause and honor reduced motion. Stack the form below a compact map
+selection. Owner update 2026-10-13: animate planets on slow independent elliptical orbits.
+Freeze/Resume motion must stay visible above the scene and preserve current positions.
+Pause targeting on map hover or asset focus; honor reduced motion. Keep list mode
+static. The compact swap form includes subdued, explicitly demo USD estimates.
+Collapse fee detail while keeping total fees and price impact visible. Stack the form below a compact map
 on mobile; maintain keyboard access and existing dialog focus restoration. Other
 workspace pages retain the established assembly-plaza visual direction.
 

@@ -1,4 +1,4 @@
-import { ASSETS, amount, display, initialState, poolFor, featured, quote,
+import { ASSETS, DEMO_NETA_USD, amount, display, initialState, poolFor, featured, quote,
   swap, depositQuote, addLiquidity, withdraw, createPool, buybackPreview, incentivePlan } from './model.mjs';
 
 const $ = id => document.getElementById(id);
@@ -36,10 +36,14 @@ function renderQuote() {
   $('pay-token').textContent = inputSymbol; $('receive-token').textContent = outputSymbol;
   $('pay-balance').textContent = `Demo balance ${fmt(state.balances[inputSymbol])}`;
   $('swap-error').textContent = ''; $('swap-submit').disabled = true;
-  for (const id of ['swap-output', 'impact', 'lp-fee', 'protocol-fee']) $(id).textContent = '—';
+  for (const id of ['swap-output', 'impact', 'lp-fee', 'protocol-fee', 'pay-usd', 'receive-usd']) $(id).textContent = '—';
   if (!$('swap-input').value.trim()) return;
   try {
     const input = amount($('swap-input').value), q = quote(pool, input, netaIn);
+    const tokenUsd = display(pool.neta) / display(pool.reserve) * DEMO_NETA_USD;
+    const estimate = (value, price) => `(≈ ${ (display(value) * price).toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }) } · demo)`;
+    $('pay-usd').textContent = estimate(input, netaIn ? DEMO_NETA_USD : tokenUsd);
+    $('receive-usd').textContent = estimate(q.received, netaIn ? tokenUsd : DEMO_NETA_USD);
     $('swap-output').textContent = fmt(q.received); $('impact').textContent = `${q.impact.toFixed(2)}%`;
     $('lp-fee').textContent = money(q.lp, q.out); $('protocol-fee').textContent = money(q.protocol, q.out);
     if (state.balances[q.in] < input) throw Error(`Not enough demo ${q.in}.`);
@@ -82,6 +86,9 @@ function poolRow(pool) {
   row.append(title, values, actions); return row;
 }
 function renderPools() {
+  const netaReserve = state.pools.reduce((total, pool) => total + pool.neta, 0n);
+  $('total-liquidity').textContent = usd(display(netaReserve) * DEMO_NETA_USD * 2);
+  $('neta-reference').textContent = DEMO_NETA_USD.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   const large = state.pools.filter(featured), small = state.pools.filter(p => !featured(p));
   $('featured-pools').replaceChildren(...large.map(poolRow));
   if (!large.length) $('featured-pools').append(paragraph('No demo pools meet the featured threshold.'));
@@ -166,11 +173,15 @@ $('buyback').addEventListener('click', () => {
   $('confirm').disabled = preview.burned === 0n;
 });
 function openIncentive(token) {
-  incentiveToken = token; $('incentive-pool').textContent = `${token} / NETA`;
+  incentiveToken = token;
+  selectOptions($('incentive-pool'), state.pools.map(pool => pool.token));
+  $('incentive-pool').value = token;
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   $('incentive-start').min = tomorrow; $('incentive-start').value = tomorrow;
   $('incentive-error').textContent = ''; renderSchedule(); $('incentive').showModal();
 }
+$('new-incentive').addEventListener('click', () => openIncentive($('swap-pair').value));
+$('incentive-pool').addEventListener('change', () => { incentiveToken = $('incentive-pool').value; renderSchedule(); });
 function getPlan() { return incentivePlan({ token: incentiveToken, reward: $('incentive-reward').value,
   total: $('incentive-total').value, start: $('incentive-start').value }); }
 function renderSchedule() {
@@ -241,6 +252,7 @@ function renderCosmos() {
   }));
   if (!$('quick-pools').children.length) $('quick-pools').append(paragraph('No featured demo pools. All pools remain available in Pools & liquidity.'));
   syncOrbitSelection();
+  paintOrbits();
 }
 $('show-small').addEventListener('change', renderCosmos);
 for (const mode of ['map', 'list']) $(`${mode}-mode`).addEventListener('click', () => {
@@ -249,11 +261,34 @@ for (const mode of ['map', 'list']) $(`${mode}-mode`).addEventListener('click', 
   $('motion').hidden = mode === 'list';
 });
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-let paused = reducedMotion.matches;
+let paused = false, pointerOnMap = false, orbitTime = 0, lastFrame = 0;
+// Independent slow ellipses; labels remain upright. Time stops rather than resets.
+const orbits = {
+  JUNO: [31, 24, -40, 210], USDC: [34, 29, 45, 270],
+  DAO: [32, 27, 140, 330], ATOM: [36, 32, 220, 390], OSMO: [30, 35, 90, 450],
+};
+function paintOrbits() {
+  for (const button of $('orbit-pools').querySelectorAll('[data-pool-select]')) {
+    const [rx, ry, start, seconds] = orbits[button.dataset.poolSelect];
+    const angle = start * Math.PI / 180 + orbitTime / seconds * Math.PI * 2;
+    button.style.left = `clamp(48px, ${50 + rx * Math.cos(angle)}%, calc(100% - 48px))`;
+    button.style.top = `clamp(56px, ${44 + ry * Math.sin(angle)}%, calc(100% - 56px))`;
+  }
+}
+function animateOrbits(now) {
+  const elapsed = lastFrame ? Math.min((now - lastFrame) / 1000, .1) : 0;
+  lastFrame = now;
+  const frozen = paused || reducedMotion.matches || pointerOnMap || $('cosmos').contains(document.activeElement)
+    || document.hidden || $('view-swap').hidden || $('cosmos').classList.contains('list-mode') || document.querySelector('dialog[open]');
+  if (!frozen) { orbitTime += elapsed; paintOrbits(); }
+  requestAnimationFrame(animateOrbits);
+}
+$('cosmos').addEventListener('pointerenter', event => { if (event.pointerType === 'mouse') pointerOnMap = true; });
+$('cosmos').addEventListener('pointerleave', () => { pointerOnMap = false; });
 function renderMotion() {
   $('cosmos').classList.toggle('still', paused || reducedMotion.matches);
   $('motion').setAttribute('aria-pressed', String(paused || reducedMotion.matches));
-  $('motion').textContent = reducedMotion.matches ? 'Motion reduced' : paused ? 'Resume glow' : 'Pause glow';
+  $('motion').textContent = reducedMotion.matches ? 'Motion reduced' : paused ? 'Resume motion' : 'Freeze motion';
   $('motion').disabled = reducedMotion.matches;
 }
 $('motion').addEventListener('click', () => { paused = !paused; renderMotion(); });
@@ -262,3 +297,4 @@ $('selected-liquidity').addEventListener('click', () => openLiquidity($('swap-pa
 renderMotion();
 window.addEventListener('hashchange', view);
 render(); view();
+requestAnimationFrame(animateOrbits);

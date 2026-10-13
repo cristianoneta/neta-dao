@@ -9,8 +9,8 @@
   <title>NETA DEX · Cosmoot preview</title>
   <link rel="icon" href="/favicon.ico">
   <link rel="stylesheet" href="/neta-ui.css">
-  <link rel="stylesheet" href="./style.css?v=2">
-  <script type="module" src="./app.mjs?v=2"></script>
+  <link rel="stylesheet" href="./style.css?v=3">
+  <script type="module" src="./app.mjs?v=3"></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to DEX</a>
@@ -32,23 +32,23 @@
       <div class="swap-layout">
         <section class="cosmos-column" aria-labelledby="cosmos-title">
           <header class="intro"><p class="eyebrow">ONE COMMON ASSET. A CONNECTED EXCHANGE.</p><h1 id="cosmos-title">NETA at the center<br>of the <span>Interchain.</span></h1><p>Explore pools. Swap assets. Provide liquidity.</p></header>
-          <div class="cosmos-toolbar"><div class="segmented" aria-label="Pool display"><button id="map-mode" type="button" aria-pressed="true">Map</button><button id="list-mode" type="button" aria-pressed="false">List</button></div><label class="small-toggle"><input id="show-small" type="checkbox">Show smaller pools</label></div>
+          <div class="cosmos-toolbar"><div class="segmented" aria-label="Pool display"><button id="map-mode" type="button" aria-pressed="true">Map</button><button id="list-mode" type="button" aria-pressed="false">List</button></div><button id="motion" type="button" aria-pressed="false" aria-label="Freeze motion" title="Freeze or resume the orbital motion and glow">Freeze motion</button><label class="small-toggle"><input id="show-small" type="checkbox">Show smaller pools</label></div>
           <div id="cosmos" class="cosmos-stage">
             <img class="cosmos-art" src="/assets/design/dex-cosmos.webp" width="1200" height="800" alt="" fetchpriority="high">
             <div class="neta-center" aria-hidden="true"><span>NETA</span><small>THE COMMON ASSET</small></div>
             <div id="orbit-pools" class="orbit-pools" role="group" aria-label="Select a NETA pool"></div>
           </div>
-          <div class="cosmos-caption"><p id="map-caption">Select an asset to explore its NETA pool.</p><button id="motion" type="button" aria-pressed="false">Pause glow</button></div>
+          <div class="cosmos-caption"><p id="map-caption">Select an asset to explore its NETA pool.</p></div>
         </section>
-        <div class="trade-column"><p class="eyebrow trade-label">TRADE THROUGH NETA</p><section class="panel swap-panel">
+        <div class="trade-column"><section class="panel swap-panel">
           <div class="section-head"><h2 id="swap-title">Swap</h2><span class="muted">0.30% fee</span></div>
           <form id="swap-form" novalidate>
             <label class="field-label" for="swap-pair">NETA pair</label>
             <select id="swap-pair"></select>
-            <div class="amount-box"><div class="amount-top"><label for="swap-input">You pay</label><span id="pay-balance"></span></div><div class="amount-value"><input id="swap-input" inputmode="decimal" autocomplete="off" maxlength="19" placeholder="0.00" value="100" aria-describedby="swap-error"><strong id="pay-token">JUNO</strong></div></div>
+            <div class="amount-box"><div class="amount-top"><label for="swap-input">You pay</label><span id="pay-balance"></span></div><div class="amount-value"><input id="swap-input" inputmode="decimal" autocomplete="off" maxlength="19" placeholder="0.00" value="100" aria-describedby="swap-error"><strong id="pay-token">JUNO</strong></div><p id="pay-usd" class="amount-usd">—</p></div>
             <div class="reverse-row"><button id="reverse" type="button" aria-label="Reverse swap direction">⇅</button></div>
-            <div class="amount-box receive"><div class="amount-top"><span>Estimated receipt</span><span>Demo quote</span></div><div class="amount-value"><output id="swap-output" aria-live="polite">—</output><strong id="receive-token">NETA</strong></div></div>
-            <dl class="metrics"><div><dt>Price impact</dt><dd id="impact">—</dd></div><div><dt>LP fee · 0.20%</dt><dd id="lp-fee">—</dd></div><div><dt>Buyback fee · 0.10%</dt><dd id="protocol-fee">—</dd></div></dl>
+            <div class="amount-box receive"><div class="amount-top"><span>Estimated receipt</span><span>Demo quote</span></div><div class="amount-value"><output id="swap-output" aria-live="polite">—</output><strong id="receive-token">NETA</strong></div><p id="receive-usd" class="amount-usd">—</p></div>
+            <div class="quote-impact"><span>Price impact</span><span id="impact">—</span></div><details class="swap-details"><summary>Fee breakdown · 0.20% LP / 0.10% buyback</summary><dl class="metrics"><div><dt>LP fee · 0.20%</dt><dd id="lp-fee">—</dd></div><div><dt>Buyback fee · 0.10%</dt><dd id="protocol-fee">—</dd></div></dl><p class="small">USD estimates use this demo pool’s reserve ratio and the fixed $4 NETA reference, not market prices.</p></details>
             <p id="swap-error" class="error" role="status"></p>
             <button id="swap-submit" class="neta-primary full" type="submit">Review demo swap</button>
           </form>
@@ -62,7 +62,16 @@
     </section>
 
     <section id="view-pools" aria-labelledby="pools-title" hidden>
-      <div class="section-head"><div><p class="eyebrow">THE NETA LIQUIDITY NETWORK</p><h1 id="pools-title">Pools &amp; liquidity</h1><p class="muted">Illustrative pools · NETA reference price fixed at $4 for this demo.</p></div><button id="new-pool" class="neta-primary" type="button">Create demo pool</button></div>
+      <div class="section-head"><div><p class="eyebrow">THE NETA LIQUIDITY NETWORK</p><h1 id="pools-title">Pools &amp; liquidity</h1><p class="muted">A connected network of NETA pairs.</p></div></div>
+      <section class="pool-overview" aria-labelledby="overview-title">
+        <div class="section-head"><h2 id="overview-title">Overview</h2><div class="overview-actions"><button id="new-incentive" type="button">Incentivize pool</button><button id="new-pool" class="neta-primary" type="button">Create demo pool</button></div></div>
+        <dl class="overview-metrics">
+          <div class="overview-card"><dt>Total liquidity</dt><dd id="total-liquidity">—</dd><dd class="metric-note">Demo estimate · All pools, both sides</dd></div>
+          <div class="overview-card"><dt>24h volume</dt><dd>—</dd><dd class="metric-note">Live trading data not connected</dd></div>
+          <div class="overview-card"><dt>NETA price</dt><dd id="neta-reference">—</dd><dd class="metric-note">Fixed illustrative reference</dd></div>
+        </dl>
+        <details class="overview-method"><summary>About these demo figures</summary><p>Total liquidity includes smaller pools and values both sides at each pool’s current reserve ratio and the fixed $4 NETA reference. It is not a market valuation. Deposits, withdrawals and swaps update the estimate within this session. No 24-hour trading history is available.</p></details>
+      </section>
       <section class="panel pool-section"><div class="section-head"><h3>Featured pools</h3><span class="badge neutral">≥ $1,000 in NETA</span></div><div id="featured-pools" class="pool-list"></div></section>
       <details class="panel smaller-pools"><summary>Smaller pools <span id="small-count" class="count"></span></summary><p class="small muted">Below $1,000 in NETA. Swaps and liquidity withdrawals remain available.</p><div id="small-pools" class="pool-list"></div></details>
       <section class="panel positions"><h3>Your demo liquidity</h3><div id="positions"></div></section>
@@ -84,6 +93,6 @@
   <dialog id="review" aria-labelledby="review-title"><div class="dialog-body"><p class="eyebrow">SIMULATION · NO REAL FUNDS</p><h2 id="review-title">Review demo swap</h2><div id="review-content"></div><p id="review-error" class="error" role="status"></p><div class="dialog-actions"><button id="confirm" class="neta-primary" type="button">Simulate swap</button><button type="button" data-close="review">Cancel</button></div></div></dialog>
   <dialog id="liquidity" aria-labelledby="liquidity-title"><form id="liquidity-form" class="dialog-body" novalidate><p class="eyebrow">SIMULATION · NO REAL FUNDS</p><h2 id="liquidity-title">Add demo liquidity</h2><label class="field-label" for="liquidity-input" id="liquidity-label">Token amount</label><input id="liquidity-input" inputmode="decimal" autocomplete="off" maxlength="19" value="100"><p id="liquidity-quote"></p><p class="small muted">Deposit both sides at the current demo pool ratio. Your LP share earns pool fees without staking.</p><p id="liquidity-error" class="error" role="status"></p><div class="dialog-actions"><button class="neta-primary" type="submit">Simulate deposit</button><button type="button" data-close="liquidity">Cancel</button></div></form></dialog>
   <dialog id="create" aria-labelledby="create-title"><form id="create-form" class="dialog-body" novalidate><p class="eyebrow">SIMULATION · NO REAL FUNDS</p><h2 id="create-title">Create a NETA pool</h2><label class="field-label" for="create-token">Other asset · demo selection</label><select id="create-token"></select><label class="field-label" for="create-amount">Other asset amount</label><input id="create-amount" inputmode="decimal" autocomplete="off" maxlength="19" value="100"><label class="field-label" for="create-neta">NETA amount</label><input id="create-neta" inputmode="decimal" autocomplete="off" maxlength="19" value="10"><p class="small muted">These deposits set the initial pool price. Small pools remain available in the collapsed list.</p><p id="create-error" class="error" role="status"></p><div class="dialog-actions"><button id="create-submit" class="neta-primary" type="submit">Simulate pool creation</button><button type="button" data-close="create">Cancel</button></div></form></dialog>
-  <dialog id="incentive" aria-labelledby="incentive-title"><form id="incentive-form" class="dialog-body" novalidate><p class="eyebrow">CAMPAIGN PLAN · NOT FUNDED</p><h2 id="incentive-title">Plan 12-week incentives</h2><p id="incentive-pool"></p><label class="field-label" for="incentive-reward">Reward asset · demo selection</label><select id="incentive-reward"><option>NETA</option><option>JUNO</option><option>USDC</option><option>DAO</option><option>ATOM</option><option>OSMO</option></select><label class="field-label" for="incentive-total">Total reward budget</label><input id="incentive-total" inputmode="decimal" autocomplete="off" maxlength="19" value="1200"><label class="field-label" for="incentive-start">Start date · 00:00 UTC</label><input id="incentive-start" type="date"><p id="incentive-schedule"></p><p class="small muted">Exactly 12 weeks (84 days). Saving a plan does not debit your demo balance or fund a contract.</p><p id="incentive-error" class="error" role="status"></p><div class="dialog-actions"><button class="neta-primary" type="submit">Save demo plan</button><button type="button" data-close="incentive">Cancel</button></div></form></dialog>
+  <dialog id="incentive" aria-labelledby="incentive-title"><form id="incentive-form" class="dialog-body" novalidate><p class="eyebrow">CAMPAIGN PLAN · NOT FUNDED</p><h2 id="incentive-title">Plan 12-week incentives</h2><label class="field-label" for="incentive-pool">NETA pool</label><select id="incentive-pool"></select><label class="field-label" for="incentive-reward">Reward asset · demo selection</label><select id="incentive-reward"><option>NETA</option><option>JUNO</option><option>USDC</option><option>DAO</option><option>ATOM</option><option>OSMO</option></select><label class="field-label" for="incentive-total">Total reward budget</label><input id="incentive-total" inputmode="decimal" autocomplete="off" maxlength="19" value="1200"><label class="field-label" for="incentive-start">Start date · 00:00 UTC</label><input id="incentive-start" type="date"><p id="incentive-schedule"></p><p class="small muted">Exactly 12 weeks (84 days). Saving a plan does not debit your demo balance or fund a contract.</p><p id="incentive-error" class="error" role="status"></p><div class="dialog-actions"><button class="neta-primary" type="submit">Save demo plan</button><button type="button" data-close="incentive">Cancel</button></div></form></dialog>
 </body>
 </html>
