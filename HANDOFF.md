@@ -7,6 +7,36 @@ Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
 
 
+## DEX overview, motion and compact swap — 13 October 2026 candidate
+
+Pools & liquidity adopts the requested overview structure with Incentivize pool
+and Create demo pool actions above three graphite/mint metric cards. Total
+liquidity includes both sides of every demo pool, including smaller pools, valued
+at reserve ratios and the fixed $4 NETA reference; it updates with session state.
+The 24h volume card explicitly has no connected data. The incentive dialog now
+allows pool selection, including newly created and smaller pools. Existing row
+shortcuts, default-collapsed smaller pools and unfunded 84-day plans are preserved.
+No wallet, network data or production transactions have been added.
+
+Owner decision: DCA belongs in V2. Proposed initial scope is fixed-budget recurring
+swaps through NETA pairs with cancellation and return of unused funds. No DCA UI,
+contract or executor is enabled. Astroport's app exposes DCA, but its exact current
+implementation, reusable source/license, Juno compatibility and execution fees
+remain unverified. Reusing its AMM core alone does not establish DCA support.
+
+Owner update: pool planets now follow independent slow ellipses (3.5–7.5 minutes
+per revolution) with Freeze/Resume motion. Hovering the map or focusing an asset
+pauses targeting; reduced-motion preferences disable animation. List mode, hidden
+views, hidden tabs and open dialogs suspend orbit advancement. No runtime library.
+The compact swap form adds muted USD estimates using each demo pool's reserve
+ratio and the fixed NETA reference. Fee detail is default-collapsed; total fees
+and price impact remain visible, with exact fees still in transaction review.
+
+Local acceptance: DEX browser flows, freeze/resume/hover, reduced motion, USD
+estimates and invalid input clearing, overview updates/reset and incentive pool
+selection pass. Four viewport widths, 200% reflow and screenshots are checked.
+Full PR CI and manual publication remain pending for this candidate.
+
 ## Orbital DEX design — 12 October 2026 candidate
 
 The owner approved an original Interchain visual direction for the unlisted DEX.

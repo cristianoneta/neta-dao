@@ -20,10 +20,11 @@ body { background: color-mix(in srgb, var(--neta-bg) 60%, black); }
 .dex-tabs a[aria-current] { color: var(--neta-accent); border-bottom-color: var(--neta-accent); }
 .swap-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(340px, 1fr); gap: 32px; align-items: start; }
 .cosmos-column, .trade-column { min-width: 0; }
-.trade-column { padding-top: 20px; }
+.trade-column { padding-top: 16px; }
 .trade-label { margin: 0 0 16px; font-size: 11px; letter-spacing: .2em; color: var(--neta-text-secondary); }
 .cosmos-toolbar, .cosmos-caption { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.cosmos-toolbar { margin-top: 24px; }
+.cosmos-toolbar { margin-top: 24px; flex-wrap: wrap; }
+.cosmos-toolbar #motion { min-height: 36px; padding: 6px 10px; font-size: 12px; }
 .segmented { display: inline-flex; border: 1px solid var(--neta-control-border); border-radius: 999px; padding: 3px; }
 .segmented button { min-width: 56px; min-height: 36px; padding: 6px 12px; border: 0; border-radius: 999px; background: transparent; color: var(--neta-text-secondary); }
 .segmented button[aria-pressed="true"] { background: var(--neta-surface-raised); color: var(--neta-accent); }
@@ -53,7 +54,7 @@ body { background: color-mix(in srgb, var(--neta-bg) 60%, black); }
 .orbit-pool:hover .planet-body { transform: translateY(-3px); }
 .cosmos-caption { margin: 0 0 12px; font-size: 12px; color: var(--neta-text-secondary); }
 .cosmos-caption p { margin: 0; max-width: 80%; }
-.cosmos-caption button { flex-shrink: 0; padding: 8px; font-size: 11px; min-height: 36px; }
+
 .cosmos-stage.list-mode { aspect-ratio: auto; min-height: 300px; margin: 24px 0; }
 .list-mode .cosmos-art, .list-mode .neta-center, .list-mode::after { display: none; }
 .list-mode .orbit-pools { display: grid; gap: 8px; }
@@ -61,7 +62,7 @@ body { background: color-mix(in srgb, var(--neta-bg) 60%, black); }
 .list-mode .planet-body { width: 44px; margin: 0; }
 .list-mode .planet-body b { font-size: 10px; }
 .list-mode .planet-state { margin: 0; }
-.liquidity-shortcut { width: 100%; min-height: 52px; margin-top: 16px; background: transparent; }
+.liquidity-shortcut { width: 100%; min-height: 44px; margin-top: 12px; background: transparent; }
 .explore-strip { border-top: 1px solid var(--neta-border); padding-top: 28px; margin-top: 32px; }
 .explore-strip a { font-size: 13px; color: var(--neta-accent); }
 .quick-pools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
@@ -79,6 +80,25 @@ body { background: color-mix(in srgb, var(--neta-bg) 60%, black); }
 #view-pools h1, #view-dao h1 { font-size: clamp(30px, 3vw, 44px); font-weight: 550; letter-spacing: -.035em; margin: 8px 0; }
 #view-pools > .section-head, #view-dao > .section-head { background: radial-gradient(ellipse at right, color-mix(in srgb, var(--neta-info) 6%, transparent), transparent 70%); }
 .panel { min-width: 0; background: var(--neta-surface); border: 1px solid var(--neta-border); border-radius: 12px; padding: 24px; }
+.pool-overview { margin-bottom: 28px; }
+.pool-overview h2 { font-size: 22px; font-weight: 500; margin: 0; }
+.overview-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.overview-actions button { min-width: 180px; min-height: 48px; }
+.overview-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin: 0; }
+.overview-card { display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 0; min-height: 164px; padding: 24px 16px; border: 1px solid var(--neta-border); border-top-color: var(--neta-accent); border-radius: 16px; background: radial-gradient(ellipse at 50% 0, color-mix(in srgb, var(--neta-accent) 7%, transparent), transparent 75%), var(--neta-surface); text-align: center; }
+.overview-card dt { color: var(--neta-accent); font-size: 14px; }
+.overview-card dd { margin: 0 0 12px; order: -1; font-size: clamp(26px, 2.4vw, 34px); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; max-width: 100%; }
+.overview-card .metric-note { order: 0; font-size: 12px; color: var(--neta-text-secondary); margin: 8px 0 0; }
+.overview-method { margin-top: 12px; color: var(--neta-text-secondary); font-size: 12px; }
+.overview-method summary { font-weight: 400; }
+.overview-method p { max-width: 760px; line-height: 1.6; }
+@media (max-width: 640px) {
+  .pool-overview > .section-head { align-items: stretch; flex-direction: column; }
+  .overview-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .overview-actions button { min-width: 0; padding: 10px; }
+  .overview-metrics { grid-template-columns: 1fr; gap: 12px; }
+  .overview-card { min-height: 132px; padding: 20px 16px; }
+}
 .panel h2, .panel h3 { margin: 0 0 16px; }
 .section-head { margin-bottom: 20px; }
 .section-head h2, .section-head h3 { margin: 0; }
@@ -87,6 +107,22 @@ body { background: color-mix(in srgb, var(--neta-bg) 60%, black); }
 .small { font-size: 13px; }
 .field-label { display: block; margin: 16px 0 8px; font-size: 13px; font-weight: 600; }
 .swap-panel .field-label:first-child { margin-top: 0; }
+.swap-panel { padding: 20px; }
+.swap-panel .section-head { margin-bottom: 12px; }
+.swap-panel .field-label { margin: 0 0 6px; }
+.swap-panel select { padding-top: 8px; padding-bottom: 8px; }
+.swap-panel .amount-box { margin-top: 12px; padding: 12px 14px; }
+.swap-panel .amount-value { margin-top: 6px; }
+.swap-panel .amount-value input { border-color: transparent; background: transparent; padding: 0; }
+.swap-panel .amount-value input:hover { border-color: var(--neta-control-border); }
+.swap-panel .amount-usd { font-size: 12px; color: var(--neta-text-secondary); margin: 4px 0 0; min-height: 18px; overflow-wrap: anywhere; }
+.swap-panel .reverse-row { margin: -6px 0 -30px; }
+.swap-panel .receive { padding-top: 22px; }
+.swap-panel .quote-impact { display: flex; justify-content: space-between; gap: 12px; margin: 14px 0 6px; color: var(--neta-text-secondary); font-size: 12px; }
+.swap-details { font-size: 12px; color: var(--neta-text-secondary); margin-bottom: 12px; }
+.swap-details summary { font-size: 12px; font-weight: 400; }
+.swap-details .metrics { margin: 8px 0; }
+.trade-column details.wallet { padding: 14px 20px; margin-top: 12px; font-size: 13px; }
 select, .dialog-body input { width: 100%; }
 .amount-box { background: var(--neta-bg); border: 1px solid var(--neta-border); border-radius: 12px; padding: 16px; margin-top: 20px; }
 .amount-top { font-size: 12px; gap: 8px; flex-wrap: wrap; }
@@ -200,7 +236,7 @@ dialog::backdrop { background: var(--neta-bg); opacity: .85; }
   .orbit-usdc { left: 81%; top: 72%; }
   .orbit-osmo { top: 82%; }
   .cosmos-caption { font-size: 11px; }
-  .cosmos-caption button { font-size: 10px; }
+  .cosmos-toolbar #motion { font-size: 11px; }
   .list-mode .orbit-pool { gap: 8px; padding: 12px; grid-template-columns: 48px 1fr auto; }
   .list-mode .planet-name { font-size: 13px; }
   .pool-row { gap: 12px; }
