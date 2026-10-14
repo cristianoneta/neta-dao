@@ -1,0 +1,38 @@
+[Unit]
+Description=Cosmoot Juno validator history (read only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=cosmoot-collect
+Group=cosmoot-collect
+WorkingDirectory=/srv/cosmoot/collectors/repo
+Environment=PYTHONDONTWRITEBYTECODE=1
+# Explicit UTC coverage start: the owner's request to begin continuous capture.
+# Once initialized this identity cannot be silently moved forward after failures.
+ExecStart=/usr/bin/python3 scripts/validator_history.py --state-dir /var/lib/cosmoot-validator-history --start-time 2026-10-14T19:17:50Z --seconds 90 --max-blocks 120
+StateDirectory=cosmoot-validator-history
+StateDirectoryMode=0700
+UMask=0077
+TimeoutStartSec=120s
+TimeoutStopSec=10s
+KillMode=control-group
+MemoryHigh=192M
+MemoryMax=256M
+CPUQuota=40%
+TasksMax=16
+Nice=15
+IOSchedulingClass=idle
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+InaccessiblePaths=/srv/cosmoot/state /etc/cosmoot /var/lib/cosmoot-collect
+

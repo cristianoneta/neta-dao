@@ -6,6 +6,29 @@ boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
 
+## Delegation priority and validator evidence — 14 October 2026 candidate
+
+The owner prioritized completing the Juno Delegation Programme before DEX,
+token-creation and launch work. V1 eligibility now requires continuous active-set
+membership for the immediately preceding 90 days, superseding projected standby
+admission. V2 will add at least 95% participation and no jail episode in that
+window. These policy changes are decided but not yet applied to saved rules,
+simulation or execution gates.
+
+A separate bounded, read-only collector archives each canonical block's roster
+and participation, relevant jail/governance/upgrade events, and hourly validator,
+commission, stake, signing-info and chain-parameter observations. Atomic SQLite
+checkpoints resume without duplicates or skipped heights; exact evidence is kept
+for 120 days with daily aggregates. It has separate systemd units, state and limits;
+existing collectors and the website publisher remain unchanged. No scoring or
+allocation authorization is inferred from this single-provider evidence.
+See [collector design and acceptance](docs/VALIDATOR_HISTORY.md). Source tests and
+live probes do not establish server installation or a running production timer.
+
+Release correction: the previous PR #290 source `934c632d` was published in
+successful manual release 38582008807, with all 18 jobs successful. Earlier
+candidate notes below do not supersede that release receipt.
+
 
 ## DEX viewport alignment — 14 October 2026 candidate
 

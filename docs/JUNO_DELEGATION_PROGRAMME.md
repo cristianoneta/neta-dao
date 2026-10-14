@@ -1,5 +1,13 @@
 # Juno Delegation Programme
 
+14 October owner update: V1 requires **continuous membership in the active set
+throughout the immediately preceding 90 days**. This supersedes the historical
+standby-admission plans below. V2 will additionally require at least 95%
+participation over those 90 days and no jail episode. The new data collector is
+described in [VALIDATOR_HISTORY](VALIDATOR_HISTORY.md); policy-schema/UI changes,
+independent rule verification and execution integration remain separate work.
+Existing drafts and old approvals must not be reinterpreted under these new rules.
+
 11 October 2026. Native governance/review, claim preparation and current rewards
 are published. Overview was published through PR #285 (`a3caada9`, successful
 manual run 38143829153); both domains were inspected without a wallet action.
