@@ -242,15 +242,6 @@ function renderCosmos() {
   });
   $('orbit-pools').replaceChildren(...nodes);
   if (!nodes.length) $('orbit-pools').append(paragraph('No featured pools. Enable smaller pools to explore.'));
-  $('quick-pools').replaceChildren(...state.pools.filter(featured).map(pool => {
-    const button = actionButton('', () => showSwap(pool.token));
-    button.className = 'quick-pool'; button.dataset.poolSelect = pool.token;
-    const text = document.createElement('span'), name = document.createElement('strong'), sub = document.createElement('small');
-    name.textContent = `${pool.token} / NETA`; sub.textContent = `${usd(display(pool.neta) * 4)} in NETA · Demo`;
-    text.append(name, sub); const arrow = document.createElement('span'); arrow.className = 'quick-arrow'; arrow.textContent = '↗'; arrow.setAttribute('aria-hidden', 'true');
-    button.append(planet(pool.token), text, arrow); return button;
-  }));
-  if (!$('quick-pools').children.length) $('quick-pools').append(paragraph('No featured demo pools. All pools remain available in Pools & liquidity.'));
   syncOrbitSelection();
   paintOrbits();
 }

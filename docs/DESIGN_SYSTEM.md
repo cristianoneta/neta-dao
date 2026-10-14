@@ -1,5 +1,17 @@
 # NETA DAO design system
 
+## DEX viewport alignment — owner correction 2026-10-14
+
+Place the compact desktop heading above both map and swap columns, with no forced
+line break. Size the orbital canvas against available viewport height while
+preserving its illustration/coordinate aspect ratio. Align the complete swap
+column alongside the map; allow natural document scrolling for expanded details,
+feedback, mobile and zoom. Do not clip controls or introduce inner scrolling.
+Remove the standalone demo notice and redundant Explore pools card strip. Keep
+Simulation in the shared header and demo labels in amounts/actions. Pool selection
+continues through map/list and Pools & liquidity. On short desktop windows place
+subtitle alongside the heading; liquidity and balances use a compact secondary row.
+
 ## DEX pool overview — owner request 2026-10-13
 
 Above pool listings, use Overview with Incentivize pool and Create demo pool

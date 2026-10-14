@@ -30,6 +30,27 @@ try {
   assert.equal(await page.locator('#neta-reference').textContent(), '$4.00');
   assert.equal(await page.locator('#pay-usd').textContent(), '(≈ $10.00 · demo)');
   assert.equal(await page.locator('#receive-usd').textContent(), '(≈ $9.96 · demo)');
+  // The whole map and trade column must fit together, not only the submit button.
+  for (const [width, height] of [[1920, 900], [1440, 900], [1366, 768], [1280, 720], [1536, 864]]) {
+    await page.setViewportSize({ width, height });
+    const layout = await page.evaluate(() => {
+      const rect = selector => {
+        const r = document.querySelector(selector).getBoundingClientRect();
+        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, height: r.height };
+      };
+      return { map: rect('#cosmos'), trade: rect('.trade-column'), title: rect('#cosmos-title'),
+        titleLine: parseFloat(getComputedStyle(document.querySelector('#cosmos-title')).lineHeight),
+        header: rect('.dex-header'), scroll: scrollY };
+    });
+    assert.equal(layout.scroll, 0, 'Layout fits without scrolling');
+    assert.ok(layout.map.right <= layout.trade.left, `Map and swap are adjacent at ${width}`);
+    assert.ok(layout.map.top >= layout.header.bottom && layout.trade.top >= layout.header.bottom, 'No header overlap');
+    assert.ok(Math.max(layout.map.bottom, layout.trade.bottom) <= height, `Entire map and swap fit ${width}x${height}: ${JSON.stringify(layout)}`);
+    assert.ok(layout.title.height < layout.titleLine * 1.5, `Desktop heading stays on one line at ${width}`);
+    if (shots) await page.screenshot({ path: `${shots}/dex-viewport-${width}-${height}.png` });
+  }
+  assert.equal(await page.locator('.explore-strip, details.preview-note').count(), 0);
+  await page.setViewportSize({ width: 1440, height: 900 });
   const initialOrbit = await page.locator('.orbit-juno').evaluate(el => el.style.left);
   await page.waitForFunction(left => document.querySelector('.orbit-juno').style.left !== left, initialOrbit);
   await page.locator('#motion').click();

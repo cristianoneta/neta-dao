@@ -4,26 +4,23 @@ body { background: color-mix(in srgb, var(--neta-bg) 60%, black); }
 .brand span { border-left: 1px solid var(--neta-border); padding-left: 24px; color: var(--neta-text-secondary); font-size: 13px; font-weight: 400; letter-spacing: .08em; }
 .header-actions, .section-head, .amount-top, .amount-value, .dialog-actions, .dex-footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .dex-page { max-width: 1480px; margin: auto; padding: 16px 32px 24px; }
-.intro { position: relative; z-index: 1; margin-top: 16px; }
-.intro h1 { font-size: clamp(34px, 3.6vw, 56px); line-height: 1.08; font-weight: 550; letter-spacing: -.045em; margin: 16px 0; }
+.intro { position: relative; z-index: 1; margin: 0 0 16px; }
+.intro h1 { font-size: clamp(30px, 3vw, 42px); line-height: 1.08; font-weight: 550; letter-spacing: -.045em; margin: 0 0 8px; }
 .intro h1 span { color: var(--neta-accent-hover); }
 .intro p { margin: 0; color: var(--neta-text-secondary); font-size: 16px; }
 .intro .eyebrow { font-size: 11px; letter-spacing: .14em; }
 .badge { display: inline-flex; align-items: center; border: 1px solid var(--neta-warning); color: var(--neta-warning); border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .badge.neutral { border-color: var(--neta-border); color: var(--neta-text-secondary); }
 .preview-note { color: var(--neta-text-secondary); font-size: 12px; margin: 0 0 24px; }
-.preview-note summary { font-size: 12px; font-weight: 400; min-height: 24px; }
-.preview-note strong { color: var(--neta-warning); font-weight: 500; }
-.preview-note p { margin: 8px 0; max-width: 700px; }
 .dex-tabs { display: flex; gap: 24px; }
-.dex-tabs a { display: flex; align-items: center; min-height: 76px; text-decoration: none; color: var(--neta-text-secondary); font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; }
+.dex-tabs a { display: flex; align-items: center; min-height: 64px; text-decoration: none; color: var(--neta-text-secondary); font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; }
 .dex-tabs a[aria-current] { color: var(--neta-accent); border-bottom-color: var(--neta-accent); }
-.swap-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(340px, 1fr); gap: 32px; align-items: start; }
+.swap-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(340px, 1fr); gap: 32px; align-items: center; }
 .cosmos-column, .trade-column { min-width: 0; }
-.trade-column { padding-top: 16px; }
+.trade-column { padding-top: 0; }
 .trade-label { margin: 0 0 16px; font-size: 11px; letter-spacing: .2em; color: var(--neta-text-secondary); }
 .cosmos-toolbar, .cosmos-caption { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.cosmos-toolbar { margin-top: 24px; flex-wrap: wrap; }
+.cosmos-toolbar { margin-top: 0; flex-wrap: wrap; }
 .cosmos-toolbar #motion { min-height: 36px; padding: 6px 10px; font-size: 12px; }
 .segmented { display: inline-flex; border: 1px solid var(--neta-control-border); border-radius: 999px; padding: 3px; }
 .segmented button { min-width: 56px; min-height: 36px; padding: 6px 12px; border: 0; border-radius: 999px; background: transparent; color: var(--neta-text-secondary); }
@@ -63,16 +60,6 @@ body { background: color-mix(in srgb, var(--neta-bg) 60%, black); }
 .list-mode .planet-body b { font-size: 10px; }
 .list-mode .planet-state { margin: 0; }
 .liquidity-shortcut { width: 100%; min-height: 44px; margin-top: 12px; background: transparent; }
-.explore-strip { border-top: 1px solid var(--neta-border); padding-top: 28px; margin-top: 32px; }
-.explore-strip a { font-size: 13px; color: var(--neta-accent); }
-.quick-pools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.quick-pool { display: flex; gap: 16px; align-items: center; text-align: left; padding: 20px; border: 1px solid var(--neta-border); background: linear-gradient(130deg, var(--neta-surface), var(--neta-bg)); border-radius: 12px; }
-.quick-pool[aria-pressed="true"] { border-color: var(--neta-accent); }
-.quick-pool .planet-body { width: 40px; margin: 0; flex-shrink: 0; }
-.quick-pool .planet-body b { font-size: 10px; }
-.quick-pool strong { font-size: 14px; }
-.quick-pool small { display: block; margin-top: 4px; color: var(--neta-text-secondary); font-size: 12px; }
-.quick-arrow { margin-left: auto; color: var(--neta-accent); }
 .fee-explainer { font-size: 13px; }
 .fee-explainer .fee-bar { margin-top: 24px; max-width: 360px; }
 #view-pools, #view-dao { padding-top: 16px; }
@@ -111,18 +98,21 @@ body { background: color-mix(in srgb, var(--neta-bg) 60%, black); }
 .swap-panel .section-head { margin-bottom: 12px; }
 .swap-panel .field-label { margin: 0 0 6px; }
 .swap-panel select { padding-top: 8px; padding-bottom: 8px; }
-.swap-panel .amount-box { margin-top: 12px; padding: 12px 14px; }
+.swap-panel .amount-box { margin-top: 8px; padding: 8px 14px; }
 .swap-panel .amount-value { margin-top: 6px; }
 .swap-panel .amount-value input { border-color: transparent; background: transparent; padding: 0; }
 .swap-panel .amount-value input:hover { border-color: var(--neta-control-border); }
 .swap-panel .amount-usd { font-size: 12px; color: var(--neta-text-secondary); margin: 4px 0 0; min-height: 18px; overflow-wrap: anywhere; }
 .swap-panel .reverse-row { margin: -6px 0 -30px; }
-.swap-panel .receive { padding-top: 22px; }
+.swap-panel .receive { padding-top: 16px; }
 .swap-panel .quote-impact { display: flex; justify-content: space-between; gap: 12px; margin: 14px 0 6px; color: var(--neta-text-secondary); font-size: 12px; }
 .swap-details { font-size: 12px; color: var(--neta-text-secondary); margin-bottom: 12px; }
 .swap-details summary { font-size: 12px; font-weight: 400; }
 .swap-details .metrics { margin: 8px 0; }
-.trade-column details.wallet { padding: 14px 20px; margin-top: 12px; font-size: 13px; }
+.trade-extras { display: flex; align-items: start; gap: 8px; margin-top: 8px; }
+.trade-extras > * { flex: 1; min-width: 0; }
+.trade-extras .liquidity-shortcut { margin-top: 0; }
+.trade-column details.wallet { padding: 9px 12px; margin-top: 0; font-size: 13px; }
 select, .dialog-body input { width: 100%; }
 .amount-box { background: var(--neta-bg); border: 1px solid var(--neta-border); border-radius: 12px; padding: 16px; margin-top: 20px; }
 .amount-top { font-size: 12px; gap: 8px; flex-wrap: wrap; }
@@ -177,6 +167,16 @@ dialog::backdrop { background: var(--neta-bg); opacity: .85; }
 .skip { position: fixed; top: -100px; z-index: 50; background: var(--neta-surface); padding: 12px; }
 .skip:focus { top: 8px; }
 
+@media (min-width: 851px) {
+  .cosmos-stage:not(.list-mode) { width: min(100%, max(480px, calc((100svh - 280px) * 1.5))); max-width: 100%; margin: 0 auto; }
+}
+@media (min-width: 1101px) and (max-height: 800px) {
+  .dex-page { padding-top: 12px; }
+  .dex-tabs a { min-height: 56px; }
+  .intro { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 20px; margin-bottom: 12px; }
+  .intro h1 { font-size: clamp(30px, 2.6vw, 36px); margin: 0; }
+  .intro p { font-size: 13px; }
+}
 @media (max-width: 1100px) {
   .dex-header { flex-wrap: wrap; gap: 0 20px; padding: 12px 24px 0; }
   .dex-tabs { order: 3; width: 100%; justify-content: center; }
@@ -187,7 +187,6 @@ dialog::backdrop { background: var(--neta-bg); opacity: .85; }
   .cosmos-stage { margin: 20px -16px; }
   .orbit-pool { width: 105px; }
   .neta-center small { display: none; }
-  .quick-pool { padding: 16px 12px; gap: 12px; }
   .pool-row { grid-template-columns: 1fr 1fr; }
   .pool-actions { grid-column: 1 / -1; }
 }
@@ -198,8 +197,6 @@ dialog::backdrop { background: var(--neta-bg); opacity: .85; }
   .cosmos-stage { max-width: 680px; margin: 0 auto; }
   .planet-body { width: 72px; }
   .neta-center > span { font-size: 32px; }
-  .quick-pools { grid-template-columns: 1fr; }
-  .quick-pool { padding: 16px; }
   .cosmos-stage.list-mode { min-height: 0; }
 }
 @media (max-width: 520px) {
@@ -214,8 +211,8 @@ dialog::backdrop { background: var(--neta-bg); opacity: .85; }
   .intro p { font-size: 14px; }
   .intro .eyebrow { font-size: 9px; }
   .preview-note { margin-bottom: 20px; }
-  .preview-note summary span { display: block; padding-left: 15px; margin-top: 4px; }
   .panel, .dialog-body { padding: 20px 16px; }
+  .trade-extras { flex-direction: column; align-items: stretch; }
   .dex-tabs { gap: 16px; justify-content: space-between; }
   .dex-tabs a { font-size: 12px; min-height: 48px; }
   .section-head { align-items: flex-start; flex-wrap: wrap; }

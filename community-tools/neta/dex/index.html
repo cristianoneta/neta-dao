@@ -9,8 +9,8 @@
   <title>NETA DEX · Cosmoot preview</title>
   <link rel="icon" href="/favicon.ico">
   <link rel="stylesheet" href="/neta-ui.css">
-  <link rel="stylesheet" href="./style.css?v=3">
-  <script type="module" src="./app.mjs?v=3"></script>
+  <link rel="stylesheet" href="./style.css?v=4">
+  <script type="module" src="./app.mjs?v=4"></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to DEX</a>
@@ -24,14 +24,13 @@
     <div class="header-actions"><span class="badge">Simulation</span><button id="reset" type="button">Reset demo</button></div>
   </header>
   <main id="main" class="dex-page">
-    <details class="preview-note"><summary><strong>Demo funds only</strong><span> · Local simulation · No wallet connected</span></summary><p>All pools, prices and balances are illustrative. No wallet connection or on-chain transactions. Changes reset when you reload.</p></details>
     <noscript><p class="preview-note">Enable JavaScript to use the local simulation. No live trading is available.</p></noscript>
     <p id="notice" class="notice" role="status" hidden></p>
 
     <section id="view-swap" aria-labelledby="swap-title">
+      <header class="intro"><h1 id="cosmos-title">NETA at the center of the <span>Interchain.</span></h1><p>Explore pools. Swap assets. Provide liquidity.</p></header>
       <div class="swap-layout">
         <section class="cosmos-column" aria-labelledby="cosmos-title">
-          <header class="intro"><p class="eyebrow">ONE COMMON ASSET. A CONNECTED EXCHANGE.</p><h1 id="cosmos-title">NETA at the center<br>of the <span>Interchain.</span></h1><p>Explore pools. Swap assets. Provide liquidity.</p></header>
           <div class="cosmos-toolbar"><div class="segmented" aria-label="Pool display"><button id="map-mode" type="button" aria-pressed="true">Map</button><button id="list-mode" type="button" aria-pressed="false">List</button></div><button id="motion" type="button" aria-pressed="false" aria-label="Freeze motion" title="Freeze or resume the orbital motion and glow">Freeze motion</button><label class="small-toggle"><input id="show-small" type="checkbox">Show smaller pools</label></div>
           <div id="cosmos" class="cosmos-stage">
             <img class="cosmos-art" src="/assets/design/dex-cosmos.webp" width="1200" height="800" alt="" fetchpriority="high">
@@ -53,11 +52,10 @@
             <button id="swap-submit" class="neta-primary full" type="submit">Review demo swap</button>
           </form>
         </section>
-        <button id="selected-liquidity" class="liquidity-shortcut" type="button">Provide liquidity</button>
-        <details class="panel wallet"><summary>Your demo balances</summary><dl id="balances" class="metrics"></dl></details>
+        <div class="trade-extras"><button id="selected-liquidity" class="liquidity-shortcut" type="button">Provide liquidity</button>
+        <details class="panel wallet"><summary>Your demo balances</summary><dl id="balances" class="metrics"></dl></details></div>
         </div>
       </div>
-      <section class="explore-strip" aria-labelledby="explore-title"><div class="section-head"><div><h2 id="explore-title">Explore pools</h2><p class="small muted">Featured demo pools · At least $1,000 on the NETA side</p></div><a href="#pools">All pools &amp; positions ↗</a></div><div id="quick-pools" class="quick-pools"></div></section>
       <details class="panel fee-explainer"><summary>A clear fee split · 0.20% LPs / 0.10% buyback</summary><div class="fee-bar" aria-hidden="true"><span></span><span></span></div><p class="small muted">LP fees stay in the pool. Protocol fees fund purchases of the future DAO token, followed by burning. All activity here is simulated.</p></details>
     </section>
 
