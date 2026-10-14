@@ -4,6 +4,24 @@ Updated 11 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 
+## DEX viewport alignment — 14 October 2026 candidate
+
+The shared single-line desktop heading now sits above the map and swap columns.
+The map preserves its aspect ratio while its size responds to viewport height;
+the complete trade column is vertically aligned beside it. Short desktop windows
+use a compact inline heading/subtitle, and liquidity/balances share a secondary
+row. Mobile and zoomed layouts continue to wrap and stack without clipping.
+The owner requested removal of the standalone demo notice and duplicate Explore
+pools cards. Simulation labels remain in the header, amounts and action dialogs;
+map/list and Pools & liquidity remain the pool navigation paths.
+
+Local validation: full DEX browser flow, screenshots at 1440/768/390/320 widths,
+keyboard and 200% reflow. A regression verifies the entire map and trade column
+fit simultaneously without scrolling at 1920×900, 1440×900, 1366×768, 1280×720
+and 1536×864. Expanded details, feedback and small/mobile viewports may scroll.
+PR CI and the manual production release remain pending. No financial model,
+wallet, contract or execution changes.
+
 ## DEX overview, motion and compact swap — 13 October 2026 candidate
 
 Pools & liquidity adopts the requested overview structure with Incentivize pool
