@@ -109,6 +109,8 @@ Metadata failure is reported separately and does not erase collected blocks.
 - SQLite retains exact block evidence, selected events and hourly snapshots for
   120 days. Pruning is bounded per run; daily aggregates and current streaks remain.
   Freed pages are reused rather than fully vacuuming the database each run.
+  Identical repeated consensus-parameter responses are stored once and again when
+  they change; the full per-block result digest is still retained.
 - A two-GiB database ceiling and 512-MiB minimum free disk fail visibly. Total
   state includes the WAL and receipts; the database ceiling is not an exact bound
   on all filesystem bytes. Real footprint and catch-up throughput need host measurement.

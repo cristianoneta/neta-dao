@@ -427,8 +427,17 @@ def append(db, item):
         db.execute('INSERT INTO blocks VALUES (?,?,?,?,?,?,?,?,?,?,?)',
                    (height, item['time'], instant(item['time']).timestamp(), item['hash'], item['previous'],
                     rid, item['flags'], item['validatorHash'], item['resultsHash'], item['proposer'], item['round']))
-        if item['events']:
-            db.execute('INSERT INTO events VALUES (?,?)', (height, zlib.compress(canonical(item['events']).encode())))
+        events = []
+        for event in item['events']:
+            if event['type'] == 'consensus_param_updates':
+                # Juno can repeat the same parameter response every block.
+                # Preserve the initial value and changes, not millions of copies.
+                if get_meta(db, 'lastConsensusParameters') == event['updates']:
+                    continue
+                set_meta(db, 'lastConsensusParameters', event['updates'])
+            events.append(event)
+        if events:
+            db.execute('INSERT INTO events VALUES (?,?)', (height, zlib.compress(canonical(events).encode())))
         old = {r[0] for r in db.execute('SELECT address FROM streaks')}
         current = set(item['roster'])
         for address in old - current:

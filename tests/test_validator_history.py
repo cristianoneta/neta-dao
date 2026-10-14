@@ -223,6 +223,22 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(history.get_meta(self.db, 'cursor')['height'], 11)
         self.assertEqual(self.db.execute('SELECT count(*) FROM streaks').fetchone()[0], 4)
 
+    def test_repeated_parameters_are_deduplicated_but_changes_and_jail_events_remain(self):
+        self.initialize()
+        params = {'type': 'consensus_param_updates', 'updates': {'block': {'max_gas': '100'}}}
+        for h in (10, 11):
+            v = item(h)
+            v['events'] = [params]
+            history.append(self.db, v)
+        v = item(12)
+        v['events'] = [copy.deepcopy(params), {'type': 'slash', 'attributes': []}]
+        v['events'][0]['updates']['block']['max_gas'] = '200'
+        history.append(self.db, v)
+        self.assertEqual(self.db.execute('SELECT height FROM events ORDER BY height').fetchall(), [(10,), (12,)])
+        last_events = json.loads(zlib.decompress(self.db.execute('SELECT payload FROM events WHERE height=12').fetchone()[0]))
+        self.assertEqual([e['type'] for e in last_events], ['consensus_param_updates', 'slash'])
+        self.assertEqual(history.get_meta(self.db, 'lastConsensusParameters'), {'block': {'max_gas': '200'}})
+
     def test_start_boundary_is_not_guessed_or_advanced_past_pruned_data(self):
         reader = FakeReader()
         self.assertEqual(history.first_height(reader, reader.timestamp(3), 2, 6), 3)
