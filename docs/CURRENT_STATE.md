@@ -3,6 +3,26 @@
 Updated 11 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
+## Validator history — 14 October 2026 candidate
+
+The owner requested continuous Juno validator evidence collection, starting with
+active-set membership, canonical commit participation and jail events. A separate
+SQLite collector and resource-limited systemd timer are prepared; hourly metadata
+also preserves commission, stake, consensus/operator identity and chain parameters,
+while selected block events support later governance and upgrade analysis.
+Gaps block the cursor rather than manufacturing uptime. No production timer,
+90-day history, independently verified eligibility or frontend integration is
+claimed. See [scope and installation gates](VALIDATOR_HISTORY.md).
+
+The latest agreed V1 rule is continuous active-set membership for 90 days;
+projected standby admission is superseded. V2 adds 95% participation and no jail
+episode in that window. The allocation policy implementation still needs this
+explicit revision and community approval; existing drafts are preserved.
+
+The previous website release 38582008807 completed successfully at `934c632d`
+with all 18 jobs successful. The new collector requires a separate server install,
+not a website release.
+
 
 ## DEX viewport alignment — 14 October 2026 candidate
 
