@@ -804,3 +804,15 @@ defaults or a local draft. Keep approval evidence and exclusion reasons expandab
 Distinguish no matching approval from unavailable verification. Refresh clears old
 results; a newer unsupported approval cannot leave an older version labeled current.
 This read-only display does not authorize transactions or activate future scoring.
+
+## Native voting display — owner feedback, 2026-10-15
+
+Use one canonical list row after an immutable review is linked to its native
+proposal. Keep review history accessible as a secondary action, with its original
+revision/comment history and a return link. During voting remove the prominent
+funding panel; only unresolved prior contributions retain a compact receipt check.
+Show Yes, No, Abstain and No with veto together, grouped JUNO amounts rounded
+to two decimals with full precision in Exact amounts, update time
+and a manual refresh. Reflow the four-option grid to two columns and one on narrow
+screens. Unavailable data is a dash plus an explicit message, never a fabricated
+zero. Direct native voting and detailed participation tables remain proposed.

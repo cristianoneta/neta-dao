@@ -55,9 +55,16 @@ export function proposalFunding({
   function render() {
     const id = currentId(),
       panel = $('#proposal-funding-panel');
-    panel.hidden = !id;
+    const r = receipt(), outsideDeposit = selected()?.proposal?.status !== 'deposit';
+    panel.hidden = !id || outsideDeposit;
+    const recovery = $('#contribution-recovery');
+    recovery.hidden = !id || !outsideDeposit || !['broadcast', 'unreadable'].includes(r?.state);
+    $('#contribution-recovery-text').textContent = r?.state === 'unreadable'
+      ? 'Saved contribution record unreadable. No new contribution will be sent.'
+      : 'A previous contribution still needs confirmation.';
+    $('#contribution-recovery-check').disabled = working || r?.state !== 'broadcast';
     if (!id) return;
-    const r = receipt(),
+    const
       known = proof && String(proof.proposal.id) === id,
       t = known && proof.terms;
     $('#proposal-funding-total').textContent = known
@@ -117,7 +124,7 @@ export function proposalFunding({
     $('#proposal-funding-review').hidden = true;
     $('#proposal-funding-confirm').checked = false;
     render();
-    if (!id) return;
+    if (!id || selected()?.proposal?.status !== 'deposit') return;
     try {
       const next = await fundingProof(rests, id);
       if (generation !== epoch || currentId() !== id) return;
@@ -278,6 +285,7 @@ export function proposalFunding({
   $('#proposal-funding-confirm').addEventListener('change', render);
   $('#proposal-funding-refresh').onclick = refresh;
   $('#proposal-funding-action').onclick = run;
+  $('#contribution-recovery-check').onclick = run;
   $('#proposal-funding-remaining').onclick = () => {
     if (!proof?.terms.open) return;
     const t = proof.terms;

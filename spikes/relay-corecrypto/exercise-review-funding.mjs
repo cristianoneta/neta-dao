@@ -51,7 +51,8 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     contributions = 0,
     contributionMode = 'ok',
     txKnown = false,
-    wrongDisplayed = false;
+    wrongDisplayed = false,
+    tallyYes = '2099071009805', failTally = false, holdTally = false, releaseTally;
   const reviewHash = () =>
     createHash('sha256')
       .update(
@@ -206,6 +207,11 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
         }
         if (!txKnown) return route.fulfill({ status: 404, headers, body: 'not found' });
         body = { tx_response: { txhash: 'B'.repeat(64), height: '42500125', code: 0 } };
+      } else if (url.pathname === '/cosmos/gov/v1/proposals/900/tally') {
+        assert.equal(verifiedRead, true, 'Browser tallies must use the same-origin read bridge');
+        if (holdTally) await new Promise(resolve => { releaseTally = resolve; });
+        if (failTally) return route.fulfill({status:503,headers,body:'Unavailable'});
+        body = {tally:{yes_count:tallyYes,no_count:'123456',abstain_count:'0',no_with_veto_count:'5000000'}};
       } else if (url.pathname === '/cosmos/gov/v1/proposals/900') body = { proposal: native };
       else if (url.pathname === '/cosmos/gov/v1/proposals') {
         // Reproduce the live Juno reverse-pagination failure. Forward reads
@@ -294,8 +300,10 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     native.total_deposit[0].amount = String(
       BigInt(native.total_deposit[0].amount) + BigInt(amount)
     );
-    if (BigInt(native.total_deposit[0].amount) >= 5000000000n)
+    if (BigInt(native.total_deposit[0].amount) >= 5000000000n) {
       native.status = 'PROPOSAL_STATUS_VOTING_PERIOD';
+      native.voting_end_time = new Date(Date.now() + 432000000).toISOString();
+    }
     if (contributionMode === 'lost') throw Error('Synthetic lost response');
     return { transactionHash: 'B'.repeat(64), height: 42500125, code: 0 };
   });
@@ -677,12 +685,43 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   await page.waitForFunction(() =>
     document.querySelector('#gov-status').textContent.includes('CONTRIBUTION CONFIRMED')
   );
-  await page.locator('#proposal-funding-refresh').click();
-  await page.waitForFunction(() =>
-    document.querySelector('#proposal-funding-deadline').textContent.includes('Funding is closed')
-  );
+  await page.locator('#voting-refresh').click();
+  await page.waitForFunction(() => document.querySelector('#proposal-badge').textContent === 'VOTING');
   assert.equal(contributions, 2);
-  assert.equal(await page.locator('#proposal-funding-action').isDisabled(), true);
+  assert.equal(await page.locator('#proposal-funding-panel').isVisible(), false);
+  await page.waitForFunction(() => document.querySelector('#vote-yes').textContent === '2,099,071.01 JUNO');
+  assert.equal(await page.locator('#vote-veto').textContent(), '5.00 JUNO');
+  assert.equal(await page.locator('#proposal-list button').filter({hasText: revision.title}).count(), 1);
+  await page.locator('#proposal-review-history').click();
+  await page.waitForFunction(() => document.querySelector('#action-hint').textContent.includes('Review history'));
+  assert.equal(await page.locator('#planner-native-panel').isVisible(), false);
+  assert.equal(await page.locator('#discard-action').isVisible(), false);
+  await page.reload();
+  await page.waitForFunction(() => document.querySelector('#action-hint').textContent.includes('Review history'));
+  await page.locator('#action-hint button').click();
+  await page.waitForFunction(() => document.querySelector('#vote-yes').textContent === '2,099,071.01 JUNO');
+  await page.clock.install();
+  await page.reload();
+  await page.waitForFunction(() => document.querySelector('#vote-yes').textContent === '2,099,071.01 JUNO');
+  tallyYes = '2599071009805';
+  await page.clock.fastForward(31000);
+  await page.waitForFunction(() => document.querySelector('#vote-yes').textContent === '2,599,071.01 JUNO');
+  await page.clock.resume();
+  tallyYes = '3099071009805';
+  await page.locator('#voting-refresh').click();
+  await page.waitForFunction(() => document.querySelector('#vote-yes').textContent === '3,099,071.01 JUNO');
+  failTally = true;
+  await page.locator('#voting-refresh').click();
+  await page.waitForFunction(() => document.querySelector('#voting-data-status').textContent.includes('unavailable'));
+  assert.equal(await page.locator('#vote-yes').textContent(), '—');
+  failTally = false;
+  await page.locator('#voting-refresh').click();
+  await page.waitForFunction(() => document.querySelector('#vote-yes').textContent === '3,099,071.01 JUNO');
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await shot(`native-voting-${width}`);
+  }
   assert.equal(submits, 1);
   assert.equal(
     await page.evaluate(
@@ -690,6 +729,17 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     ),
     'Preserved draft'
   );
+  // A delayed tally response must not overwrite a newly selected draft.
+  holdTally = true;
+  await page.locator('#voting-refresh').click();
+  for (let i = 0; i < 100 && !releaseTally; i++) await new Promise(r => setTimeout(r, 10));
+  assert.ok(releaseTally);
+  await page.locator('#new-draft').click();
+  holdTally = false;
+  releaseTally();
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator('#onchain-panel').isVisible(), false);
+  assert.equal(await page.locator('#proposal-heading').textContent(), 'NEW PROPOSAL');
   // Confirmed publication + failed view read survives reload, and withdrawal
   // stays discoverable to visitors while only the author can execute it.
   proposal = null;
