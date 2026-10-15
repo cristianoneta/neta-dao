@@ -1,7 +1,20 @@
 # Current state — Cosmoot / NETA DAO
 
-Updated 11 October 2026. This is the public feature/deployment/evidence matrix.
+Updated 15 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
+
+## Delegation product design — 15 October 2026 candidate
+
+The existing overview and three planning stages have a revised hierarchy: prominent
+holdings and rewards, a clear allocation-planning entry, open active criteria with
+a draft summary, secondary future-policy disclosures, a comparison-first simulation
+and an accurately labelled proposal-draft handoff. Calculations and downstream
+governance/transaction behavior are preserved. This change is not deployed.
+See [design review, research and browser frames](DELEGATION_PRODUCT_DESIGN.md).
+
+Local verification includes the planner unit tests, full planner/review/funding/
+voting browser regression and four-stage reflow at 1440/768/390/320px. Example-data
+frames are explicitly labelled. PR checks and the manual release are separate gates.
 
 ## Compact voting and Treasury diagnostics — 15 October 2026 candidate
 

@@ -1,10 +1,21 @@
 # Cosmoot public handoff
 
-Updated 11 October 2026. This file contains public project status and development
+Updated 15 October 2026. This file contains public project status and development
 boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 [documentation policy](docs/DOCUMENTATION_PRIVACY.md) and applicable AGENTS.md.
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
+
+## Delegation product design — 15 October 2026 candidate
+
+The existing Juno delegation core has been reorganized around observation, rule
+editing, distribution review and proposal preparation. No allocation algorithm,
+future scoring, signing or execution capability changes. The candidate reuses the
+shared graphite/mint design and preserves the existing routes and downstream flows.
+See [the critical review, sources and implementation previews](docs/DELEGATION_PRODUCT_DESIGN.md).
+Local planner/browser checks cover desktop, tablet, mobile, failures and the
+proposal handoff. The production site remains unchanged by this candidate;
+inspect PR CI and use the deliberate release workflow separately.
 
 ## Compact voting and Treasury diagnostics — 15 October 2026 candidate
 

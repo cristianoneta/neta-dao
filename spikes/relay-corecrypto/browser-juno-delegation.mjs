@@ -132,9 +132,21 @@ try {
     await page.locator('#simulate').click();
     await page.waitForFunction(() => !document.getElementById('export-json').disabled);
   };
-  await page.goto(origin + '/community-tools/juno/delegation/');
+  await page.goto(origin + '/community-tools/juno/delegation/#overview');
   await ready();
   assert.equal(await page.locator('#overview').isVisible(), true);
+  assert.equal(
+    await page.evaluate(() => scrollY),
+    0,
+    'Overview deep link keeps the page title visible'
+  );
+  await page.locator('.overview-heading [data-step="rules"]').click();
+  assert.equal(
+    await page.locator('#rules-title').evaluate((el) => el === document.activeElement),
+    true
+  );
+  await step('overview');
+  assert.equal(await page.locator('#overview-model').evaluate((el) => el.open), false);
   await page.waitForFunction(
     () => document.getElementById('current-rules-state').textContent === 'Awaiting first approval'
   );
@@ -182,8 +194,13 @@ try {
   );
   for (const prefix of ['overview', 'rules']) {
     for (const group of ['eligibility', 'objective', 'subjective'])
-      assert.equal(await page.locator(`#${prefix}-${group}-details`).getAttribute('open'), null);
+      assert.equal(
+        await page.locator(`#${prefix}-${group}-details`).evaluate((el) => el.open),
+        prefix === 'rules' && group === 'eligibility'
+      );
   }
+  assert.equal(await page.locator('#overview-objective-share').isVisible(), false);
+  await page.locator('#overview-model > summary').click();
   for (const group of ['objective', 'subjective']) {
     assert.equal(await page.locator(`#overview-${group}-share`).isVisible(), true);
     const toggle = page.locator(`#overview-${group}-details > summary`);
@@ -196,6 +213,8 @@ try {
     /B 80% \+ C 20% = 100%/
   );
 
+  await page.locator('#overview-model > summary').click();
+  assert.equal(await page.locator('#overview-objective-share').isVisible(), false);
   assert.equal(await page.locator('#rules').isVisible(), false);
   assert.equal(await page.locator('#overview #claim-rewards').isVisible(), true);
   assert.equal(await page.locator('#rules #claim-rewards').count(), 0);
@@ -227,11 +246,11 @@ try {
   assert.equal(await page.locator('#overview').isVisible(), true);
   assert.match(
     await page.locator('#claim-rewards-amount').textContent(),
-    /3,837,025.339927 JUNO.*33,896.32/
+    /3,837,025.34 JUNO.*33,896.32/
   );
   assert.match(
     await page.locator('#claim-rewards-observed').textContent(),
-    /25 programme delegations/
+    /Exact amount: 3,837,025.339927 JUNO.*25 programme delegations/
   );
   for (const status of ['stale', 'missing', 'no-price']) {
     rewardsState = status;
@@ -240,7 +259,7 @@ try {
     assert.equal(await page.locator('#claim-rewards').isEnabled(), true);
     const text = await page.locator('#claim-rewards-amount').textContent();
     assert.equal(text.includes('$'), false);
-    assert.match(text, status === 'no-price' ? /3,837,025.339927 JUNO/ : /unavailable/);
+    assert.match(text, status === 'no-price' ? /3,837,025.34 JUNO/ : /unavailable/);
   }
   rewardsState = 'current';
   await page.locator('#refresh').click();
@@ -249,7 +268,9 @@ try {
   assert.equal(await page.locator('#programme-amount').inputValue(), '15000900');
   assert.equal(await page.locator('.criterion h4').count(), 4);
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
-  assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), false);
+  assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), true);
+  assert.equal(await page.locator('#draft-budget').textContent(), '15,000,900.00 JUNO');
+  assert.equal(await page.locator('#rules-objective-share').isVisible(), false);
   assert.equal(
     await page
       .locator('.allocation-settings')
@@ -262,7 +283,6 @@ try {
       ),
     true
   );
-  await page.locator('#rules-eligibility-details > summary').press('Enter');
   await page.locator('#factor-number').fill('2');
   assert.equal(await page.locator('#factor').inputValue(), '20');
   assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
@@ -404,7 +424,7 @@ try {
   assert.equal(review.policyHash.length, 64);
   const shots = process.env.NNS_SCREENSHOT_DIR;
   if (shots) await mkdir(shots, { recursive: true });
-  await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = false));
+  await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     for (const stage of ['overview', 'rules', 'simulation', 'proposals']) {
@@ -437,8 +457,10 @@ try {
     await page.setViewportSize({ width, height: 1000 });
     for (const stage of ['overview', 'rules']) {
       await step(stage);
+      const model = stage === 'overview' ? '#overview-model' : '#roadmap';
+      await page.locator(model + ' > summary').click();
       for (const group of ['eligibility', 'objective', 'subjective'])
-        await page.locator(`#${stage}-${group}-details > summary`).press('Enter');
+        await page.locator(`#${stage}-${group}-details`).evaluate((el) => (el.open = true));
       assert.ok(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         `${stage} expanded overflow at ${width}`
@@ -449,7 +471,10 @@ try {
           fullPage: true
         });
       for (const group of ['eligibility', 'objective', 'subjective'])
-        await page.locator(`#${stage}-${group}-details > summary`).press('Enter');
+        await page
+          .locator(`#${stage}-${group}-details`)
+          .evaluate((el, open) => (el.open = open), stage === 'rules' && group === 'eligibility');
+      await page.locator(model + ' > summary').click();
     }
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -574,7 +599,7 @@ try {
     document.getElementById('feedback').textContent.includes('covered')
   );
   assert.equal(await page.locator('#export-json').isDisabled(), true);
-  await page.locator('#rules-eligibility-details > summary').click();
+  await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
   await page.locator('#factor').press('End');
   assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
   state = 'stale';

@@ -61,14 +61,23 @@ function renderClaimRewards() {
   }
   try {
     const value = claimRewardsOverview(rewardsSource, data);
-    const usd =
-      value.usd === null
-        ? ''
-        : ` (≈ ${value.usd.toLocaleString('en-US', { style: 'currency', currency: 'USD' })})`;
-    $('claim-rewards-amount').textContent =
-      `Claimable staking rewards: ${fmt(value.amountRaw)} JUNO${usd}`;
+    const amountLine = node('span', '', 'reward-value');
+    amountLine.append(
+      document.createTextNode(formatAmount(value.amountRaw) + ' '),
+      node('small', 'JUNO')
+    );
+    $('claim-rewards-amount').replaceChildren(
+      amountLine,
+      node(
+        'span',
+        value.usd === null
+          ? 'USD estimate unavailable'
+          : `≈ ${value.usd.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`,
+        'reward-usd'
+      )
+    );
     $('claim-rewards-observed').textContent =
-      `Rewards snapshot: ${new Date(value.observedAt).toLocaleString()} · block ${value.height.toLocaleString('en-US')} · ${value.validatorCount} programme delegations, including jailed and standby positions. ` +
+      `Exact amount: ${fmt(value.amountRaw)} JUNO. Rewards snapshot: ${new Date(value.observedAt).toLocaleString()} · block ${value.height.toLocaleString('en-US')} · ${new URL(value.source).hostname} · ${value.validatorCount} programme delegations, including jailed and standby positions. ` +
       (value.priceObservedAt
         ? `Indicative USD price snapshot: ${new Date(value.priceObservedAt).toLocaleString()}. `
         : 'USD price unavailable. ') +
@@ -80,6 +89,7 @@ function renderClaimRewards() {
 }
 function setStep(step, focus = true) {
   if (!['overview', 'rules', 'simulation', 'proposals'].includes(step)) step = 'overview';
+  if (focus && $('feedback').dataset.tone !== 'warning') tell('');
   for (const panel of document.querySelectorAll('.planner-panel')) panel.hidden = panel.id !== step;
   for (const link of document.querySelectorAll('.planner-steps [data-step]')) {
     if (link.dataset.step === step) link.setAttribute('aria-current', 'step');
@@ -97,7 +107,7 @@ function setStep(step, focus = true) {
             : 'proposals-title'
     );
     heading.focus({ preventScroll: true });
-    heading.scrollIntoView({ block: 'start' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }
 }
 const node = (tag, text, className) => {
@@ -123,7 +133,7 @@ async function loadApprovedRules() {
       host.append(
         node(
           'p',
-          'No approved Cosmoot rule proposal found. Once the first rule proposal passes Juno governance, its settings will appear here automatically.'
+          'No approved Cosmoot rule proposal found. You can prepare a draft; the community must approve its rules first.'
         )
       );
       return;
@@ -178,7 +188,16 @@ async function loadApprovedRules() {
         'field-help'
       )
     );
-    host.append(source, settings, details);
+    details.querySelector('summary').textContent = 'Approved settings & evidence';
+    details.insertBefore(settings, details.children[1] || null);
+    host.append(
+      source,
+      node(
+        'p',
+        `Equal allocation · ${rule.commissionMaxBps === null ? 'no commission limit' : rule.commissionMaxBps / 100 + '% maximum commission'} · ${rule.exclusions.length} manual exclusions.`
+      ),
+      details
+    );
   } catch (error) {
     if (read !== approvalRead) return;
     state.textContent = 'Approval unavailable';
@@ -195,6 +214,7 @@ function renderCurrentPositions() {
     toggle = $('current-positions-toggle');
   host.replaceChildren();
   toggle.hidden = true;
+  $('position-health').hidden = true;
   for (const id of ['current-total', 'current-liquid', 'current-validator-count'])
     $(id).textContent = '—';
   if (!data) {
@@ -234,11 +254,19 @@ function renderCurrentPositions() {
     link.rel = 'noopener noreferrer';
     identity.append(link);
     const share = total ? Number((BigInt(v.currentRaw) * 10000n) / total) / 100 : 0;
+    const status = node('td');
+    const badge = node(
+      'span',
+      v.jailed ? 'Jailed' : v.active ? 'Active set' : 'Outside set',
+      'position-state'
+    );
+    badge.dataset.state = v.jailed ? 'jailed' : v.active ? 'active' : 'outside';
+    status.append(badge);
     row.append(
       identity,
       node('td', formatAmount(v.currentRaw), 'numeric'),
       node('td', share === 0 && total > 0n ? '<0.01%' : share.toFixed(2) + '%', 'numeric'),
-      node('td', v.jailed ? 'Jailed' : v.active ? 'Consensus set' : 'Outside active set')
+      status
     );
     host.append(row);
   }
@@ -296,6 +324,23 @@ function renderRuleSummary() {
     : 'pending';
   $('rule-summary').textContent =
     `Equal allocation · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
+  $('draft-cap').textContent =
+    $('factor-number').checkValidity() && $('factor-number').value ? capText : 'Check value';
+  $('draft-commission').textContent = commissionValid()
+    ? rules.commissionMaxBps === null
+      ? 'No limit'
+      : `${rules.commissionMaxBps / 100}%`
+    : 'Check value';
+  $('draft-exclusions').textContent = rules.exclusions.length
+    ? String(rules.exclusions.length)
+    : 'None';
+  try {
+    $('draft-budget').textContent = $('programme-amount').value.trim()
+      ? `${formatAmount(amount($('programme-amount').value.trim()))} JUNO`
+      : '—';
+  } catch {
+    $('draft-budget').textContent = 'Check amount';
+  }
 }
 function commissionValid() {
   const input = $('commission');
@@ -414,6 +459,12 @@ async function load() {
       current = sumCurrent();
     const outsidePercent =
       current > 0n ? (Number((outside * 10000n) / current) / 100).toFixed(2) : '0.00';
+    const activePercent = current > 0n ? Number(((current - outside) * 10000n) / current) / 100 : 0;
+    $('position-health').hidden = current <= 0n;
+    $('active-position-meter').value = activePercent;
+    $('active-position-share').textContent = `${activePercent.toFixed(2)}%`;
+    $('active-position-count').textContent = `${held.length - inactive.length} in the active set`;
+    $('outside-position-count').textContent = `${inactive.length} outside · ${outsidePercent}%`;
     $('current-breakdown').textContent =
       `Current positions: ${fmt(current - outside)} JUNO across ${held.length - inactive.length} consensus validators; ${fmt(outside)} JUNO across ${inactive.length} validators outside the active set (${outsidePercent}%). These positions are not automatically unbonding funds.`;
     $('upgrade-window').textContent =
@@ -437,13 +488,14 @@ async function load() {
       ? 'Refresh current programme data before preparing a rewards proposal.'
       : !held.length
         ? 'No current programme delegations to claim from.'
-        : 'Opens a prepared draft on our proposal page. After approval and execution, refresh the data to include claimed rewards.';
+        : 'Opens a draft for community review. Claiming follows on-chain approval and execution.';
     $('simulate').disabled = false;
     renderRules();
     tell(
       stale
         ? 'You can inspect this historical snapshot. Refresh current data before requesting approval.'
-        : 'Programme data loaded. Explore the overview or set rules for the next allocation.'
+        : '',
+      stale ? 'warning' : 'info'
     );
   } catch (error) {
     data = null;
@@ -929,12 +981,19 @@ $('show-evidence-review').addEventListener('click', () => {
 window.addEventListener('hashchange', () => {
   if (location.hash === '#roadmap') {
     setStep('rules');
+    $('roadmap').open = true;
     $('roadmap').scrollIntoView({ block: 'start' });
   } else setStep(location.hash.slice(1));
 });
 const initialStep = location.hash.slice(1);
 setStep(initialStep === 'roadmap' ? 'rules' : initialStep, false);
-if (initialStep === 'roadmap') $('roadmap').scrollIntoView({ block: 'start' });
+if (initialStep === 'roadmap') {
+  $('roadmap').open = true;
+  $('roadmap').scrollIntoView({ block: 'start' });
+} else {
+  // A deep link selects the view; keep its title and navigation in sight.
+  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+}
 try {
   const saved = localStorage.getItem(key);
   if (!saved && localStorage.getItem('cosmoot:juno:delegation:rule-draft:v1')) {
