@@ -193,13 +193,35 @@ def allocation(result, height):
 def batch(heights):
     payload = [{'jsonrpc':'2.0', 'id':h, 'method':'block_results', 'params':{'height':str(h)}} for h in heights]
     data = request(RPC, payload)
-    if not isinstance(data, list) or len(data) != len(heights): raise ValueError('Truncated RPC batch')
-    by_id = {r['id']:r for r in data}
-    if len(by_id) != len(data) or set(by_id) != set(heights): raise ValueError('Duplicate/foreign RPC response')
+    by_id = {}
+    if isinstance(data, list):
+        for row in data:
+            if not isinstance(row, dict) or type(row.get('id')) is not int:
+                raise ValueError('Invalid RPC response identity')
+            h = row['id']
+            if h in by_id or h not in heights: raise ValueError('Duplicate/foreign RPC response')
+            by_id[h] = row
+    if not isinstance(data, list) or len(data) != len(heights):
+        # Some gateways reject or truncate batch envelopes while individual GETs
+        # remain available. Re-read EVERY requested height, never infer missing
+        # results. At most len(heights) single calls, within the existing worker
+        # pool and request retry bound; no recursive splitting or provider swap.
+        error = data.get('error') if isinstance(data, dict) else None
+        print(json.dumps({'event':'block_results_batch_fallback','from_height':heights[0],
+            'through_height':heights[-1],'expected':len(heights),
+            'received':len(data) if isinstance(data,list) else None,
+            'response_type':type(data).__name__,
+            'rpc_error':str(error)[:240] if error else None}),flush=True)
+        by_id = {}
+        for h in heights:
+            try:
+                by_id[h] = {'result':rpc('block_results',height=h)}
+            except Exception as exc:
+                raise ValueError(f'Individual block_results failed at height {h}: {exc}') from exc
     out = []
     for h in heights:
         row = by_id[h]
-        if row.get('error'): raise ValueError(str(row['error']))
+        if row.get('error'): raise ValueError(f'block_results failed at height {h}: {row["error"]}')
         amounts, extra, transactions = allocation(row['result'], h)
         digest = hashlib.sha256(json.dumps(row['result'],sort_keys=True,separators=(',',':')).encode()).hexdigest()
         out.append((h, amounts, extra, transactions, digest))

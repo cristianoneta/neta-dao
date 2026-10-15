@@ -103,6 +103,8 @@ try{
  await page.waitForFunction(()=>document.querySelector('#pnl-coverage').textContent.includes('incomplete accounting'));
  assert.match(await page.locator('.pnl-result').innerText(),/—/);
  assert.doesNotMatch(await page.locator('.pnl-result').innerText(),/\$5/);
+ assert.match(await page.locator('.pnl-group').first().innerText(),/\$5\.00\s*Partial/);
+ assert.match(await page.locator('#pnl-coverage').innerText(),/Operations: Accounting source unavailable/);
  missingOps=false;delayOps=true;await page.locator('#treasury-refresh').click();
  await page.locator('#subdao-select').selectOption('neta');
  await page.waitForFunction(()=>document.querySelector('#pnl-coverage').textContent==='Provisional · recorded transactions');

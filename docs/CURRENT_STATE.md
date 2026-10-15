@@ -3,6 +3,44 @@
 Updated 11 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
+## Compact voting and Treasury diagnostics — 15 October 2026 candidate
+
+The native proposal view keeps the deadline and removes the duplicate upper tally
+cards. Four result bars show percentages plus whole, rounded JUNO in parentheses.
+The bars use the independent live/final tally, so a failed participation lookup
+or an unavailable historical breakdown cannot hide the result. Source/refresh and
+review history move below the participation area; legacy DAO vote totals remain.
+
+Consolidated Income and Expenses retain available valued receipt subtotals labelled
+Partial when a unit is incomplete. The result remains unavailable until all units
+pass the existing accounting checks. The coverage line identifies incomplete units
+and their block/reward cutoff. No missing values become zero.
+
+Live read-only diagnosis found Community Tax through 13 October 23:59:30 UTC while
+holdings/statement publication continued on 15 October. Staking rewards extended
+through 14 October 23:59:58 UTC. Operator-provided logs show repeated
+`Truncated RPC batch` failures in the Community Tax collector. Independent holdings
+and statement jobs still publish, so a recent publication did not prove current
+block coverage. The old exception did not retain the RPC envelope; the upstream
+reason is unconfirmed. A subsequent read-only probe of the next 1,000 heights
+returned complete batches, so the failure was not reproduced from this environment.
+
+Rejected or incomplete batch envelopes now trigger a bounded reread of every
+requested height using individual calls to the same RPC. Diagnostics retain the
+height range, response type/count and short RPC error. Duplicate/foreign response
+IDs, per-item RPC errors and invalid block evidence still fail closed. Only a
+complete, contiguous, header-verified chunk can advance the existing checkpoint.
+The source health check now independently checks Community Tax accounting refresh,
+block-collection time, covered block time and status. Neither server change is
+installed by a website release; production installation and catch-up remain pending.
+
+Validation: 327 Node tests; 162 Python tests (including batch fallback, unchanged
+checkpoint on failure, exactly-once recovery and published-source health); full planner,
+review, funding and voting browser flow; hierarchy/consolidated P&L browser flow;
+static build and syntax/integrity checks. Desktop/mobile screenshots inspected.
+A read-only comparison of ten real heights returned identical amounts and evidence
+hashes via batch and individual requests. Full PR CI and manual publication remain pending.
+
 ## Native voting and participation — 15 October 2026 candidate
 
 One combined change adds four-choice native Juno voting and Change vote, an inline

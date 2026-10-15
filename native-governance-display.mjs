@@ -9,6 +9,10 @@ export function formatVoteAmount(raw, locale) {
   return `${formatter.format(cents / 100n)}${decimal}${String(cents % 100n).padStart(2, '0')} JUNO`;
 }
 
+export function formatWholeVoteAmount(raw, locale) {
+  return `${new Intl.NumberFormat(locale).format((BigInt(raw) + 500000n) / 1000000n)} JUNO`;
+}
+
 export const nativeStatus = (value) => ({
   PROPOSAL_STATUS_DEPOSIT_PERIOD: 'deposit',
   PROPOSAL_STATUS_VOTING_PERIOD: 'open',

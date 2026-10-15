@@ -8,7 +8,7 @@ import {
 } from './native-voting-core.mjs';
 import { canonical, proposalIdentity } from './juno-community-governance.mjs';
 import { displayJuno, submissionReceipt } from './juno-governance-core.mjs';
-import { formatVoteAmount } from './native-governance-display.mjs';
+import { formatVoteAmount, formatWholeVoteAmount } from './native-governance-display.mjs';
 
 export function nativeVoting({
   selected,
@@ -264,21 +264,7 @@ export function nativeVoting({
       $('native-participation-status').textContent =
         `Reconciled with the chain tally · Block ${result.height} · ${new Date(result.checkedAt).toLocaleTimeString()} · ${new URL(result.endpoint).hostname}`;
       $('native-participation-data').hidden = false;
-      const bars = $('native-participation-bars');
-      bars.replaceChildren();
-      for (const k of ['yes', 'no', 'abstain', 'veto']) {
-        const row = document.createElement('div'),
-          label = document.createElement('span'),
-          meter = document.createElement('meter');
-        const p = percent(result.tally[k], m.total);
-        label.textContent = `${labels[k]} · ${p}%`;
-        meter.min = 0;
-        meter.max = 100;
-        meter.value = Number(p);
-        meter.setAttribute('aria-label', labels[k]);
-        row.append(label, meter);
-        bars.append(row);
-      }
+
     } catch (error) {
       if (generation === epoch) {
         clearData();
@@ -290,6 +276,31 @@ export function nativeVoting({
         loading = false;
         render();
       }
+    }
+  }
+  // The tally is independent of the more expensive participation reconstruction.
+  // Keep it available for closed proposals and when detailed evidence fails.
+  function renderTally(tally) {
+    const bars = $('native-participation-bars');
+    bars.replaceChildren();
+    const total = tally ? Object.values(tally).reduce((n, v) => n + BigInt(v), 0n) : 0n;
+    for (const k of ['yes', 'no', 'abstain', 'veto']) {
+      const row = document.createElement('div'),
+        label = document.createElement('span');
+      const p = tally ? percent(BigInt(tally[k]), total) : null;
+      label.textContent = tally
+        ? `${labels[k]} · ${p}% (${formatWholeVoteAmount(tally[k])})`
+        : `${labels[k]} · —`;
+      row.append(label);
+      if (tally) {
+        const meter = document.createElement('meter');
+        meter.min = 0;
+        meter.max = 100;
+        meter.value = Number(p);
+        meter.setAttribute('aria-label', label.textContent);
+        row.append(meter);
+      }
+      bars.append(row);
     }
   }
   async function wallet(sender) {
@@ -464,5 +475,5 @@ export function nativeVoting({
       render();
     }
   });
-  return { render, refresh, invalidate };
+  return { render, renderTally, refresh, invalidate };
 }

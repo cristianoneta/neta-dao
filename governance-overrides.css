@@ -313,7 +313,8 @@ body.revision-dialog-open { overflow:hidden; }
 @media (max-width:480px) { .native-voting .vote-totals { grid-template-columns:1fr; } }
 
 .native-voting .vote-totals strong { font-size:clamp(16px,2vw,22px); }
-#voting-precision { margin-top:16px; color:var(--neta-text-secondary); overflow-wrap:anywhere; }
+.voting-metadata { margin-top: 16px; }
+#native-participation-bars span { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 
 /* Native voting uses the shared graphite/mint foundations. */
 .native-own-vote, .native-participation { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--neta-border); min-width: 0; }

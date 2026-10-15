@@ -227,7 +227,7 @@
       renderActions();
     }
   });
-  const { nativeVoting } = await import('./native-voting-ui.mjs');
+  const { nativeVoting } = await import('./native-voting-ui.mjs?v=20261015-compact-1');
   const nativeVote = nativeVoting({
     selected: () => state.selected,
     address: () => state.address,
@@ -1695,21 +1695,15 @@
   function renderVotingTotals(votes, native) {
     $('#vote-veto-card').hidden = !native;
     $('#onchain-panel').classList.toggle('native-voting', native);
-    $('#voting-precision').hidden = !native;
-    $('#voting-exact-amounts').replaceChildren();
+    $('#legacy-voting-heading').hidden = native;
+    $('#onchain-panel .vote-totals').hidden = native;
+    if (native) nativeVote.renderTally(votes);
     for (const key of ['yes', 'no', 'abstain', 'veto']) {
       $('#vote-' + key).textContent =
         votes?.[key] == null ? '—' : native ? formatVoteAmount(votes[key]) : votes[key];
-      if (native)
-        $('#voting-exact-amounts').append(
-          node(
-            'p',
-            null,
-            `${key === 'veto' ? 'No with veto' : key}: ${votes?.[key] == null ? '—' : displayJuno(votes[key]) + ' JUNO'}`
-          )
-        );
     }
   }
+
   async function refreshNativeVoting() {
     const selected = state.selected,
       generation = votingEpoch;
