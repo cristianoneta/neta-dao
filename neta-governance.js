@@ -24,6 +24,11 @@
   } = await import('./proposal-accounting.mjs?v=20261006-4');
   const { publishedReview, indexingUnavailable, reviewEventId, reconcileReviewTransaction } =
     await import('./review-publication.mjs');
+  const { normalizeNativeProposal, linkedNativeId, readNativeVoting, formatVoteAmount } =
+    await import('./native-governance-display.mjs');
+  const { displayJuno } = await import('./juno-governance-core.mjs');
+  let votingEpoch = 0,
+    votingRequest = null;
   let authorRenderer;
   async function renderAuthorName(element, owner, current) {
     element.textContent = owner;
@@ -164,7 +169,7 @@
       return n;
     };
   let sharedFinal = null;
-  const { finalizedReview, reviewKind, matchesReview } = await import(
+  const { finalizedReview, reviewKind, matchesReview, proposalIdentity, canonical } = await import(
     './juno-community-governance.mjs'
   );
   const isNativeReview = () => nativeReviewDao(state.dao);
@@ -1026,7 +1031,7 @@
     const hiddenCount = state.proposals.filter(isHiddenTestReview).length;
     $('#test-review-toggle').hidden = !hiddenCount;
     const workshop = state.proposals
-        .filter((p) => $('#show-test-reviews').checked || !isHiddenTestReview(p))
+        .filter((p) => !p.nativeId && ($('#show-test-reviews').checked || !isHiddenTestReview(p)))
         .map((p) => ({
           source: 'workshop',
           group: ['declined', 'rejected', 'withdrawn'].includes(String(p.status).toLowerCase())
@@ -1061,7 +1066,9 @@
         isLocal = item.source === 'local',
         b = node(
           'button',
-          (isLocal && !state.selected) || state.selected?.key === `${item.source}:${p.id}`
+          (isLocal && !state.selected) ||
+            state.selected?.key === `${item.source}:${p.id}` ||
+            (item.source === 'chain' && state.selected?.nativeId === p.id)
             ? 'active'
             : null
         );
@@ -1388,6 +1395,21 @@
     if (discussion && native && state.address && !canWithdraw)
       $('#action-hint').textContent += ' Only the draft author can withdraw this review.';
     $('#native-funding-panel').hidden = true;
+    if (selected?.source === 'workshop' && selected.nativeId) {
+      setEditable(false);
+      $('#planner-native-panel').hidden = true;
+      $('#discard-action').hidden = true;
+      $('#primary-action').hidden = true;
+      $('#action-hint').textContent =
+        `Review history · submitted as Juno proposal #${selected.nativeId}.`;
+      const link = node('button', null, `Open proposal #${selected.nativeId}`);
+      link.type = 'button';
+      link.onclick = () =>
+        selectChain(state.chainProposals.find((p) => p.id === selected.nativeId));
+      $('#action-hint').append(' ', link);
+      renderReviewActivity();
+      return;
+    }
     if (sharedFinal) {
       setEditable(false);
       plannerGov.render();
@@ -1409,36 +1431,6 @@
         failures.push(`${base}: ${error.message}`);
       }
     throw new Error(failures.join(' · '));
-  }
-  const nativeStatus = (value) =>
-    ({
-      PROPOSAL_STATUS_DEPOSIT_PERIOD: 'deposit',
-      PROPOSAL_STATUS_VOTING_PERIOD: 'open',
-      PROPOSAL_STATUS_PASSED: 'passed',
-      PROPOSAL_STATUS_REJECTED: 'rejected',
-      PROPOSAL_STATUS_FAILED: 'execution_failed'
-    })[value] || 'closed';
-  function normalizeNativeProposal(p) {
-    return {
-      id: Number(p.id),
-      proposal: {
-        title: p.title || `Juno proposal #${p.id}`,
-        description: p.summary || p.metadata || '',
-        msgs: p.messages || [],
-        status: nativeStatus(p.status),
-        votes: {
-          yes: p.final_tally_result?.yes_count || '0',
-          no: p.final_tally_result?.no_count || '0',
-          abstain: p.final_tally_result?.abstain_count || '0'
-        },
-        expiration: p.voting_end_time
-          ? { at_time: String(BigInt(Date.parse(p.voting_end_time)) * 1000000n) }
-          : null,
-        native: true,
-        raw: p,
-        total_deposit: p.total_deposit || []
-      }
-    };
   }
   const formatJuno = (amount) =>
       `${(Number(amount || 0) / 1e6).toLocaleString(undefined, { maximumFractionDigits: 6 })} JUNO`,
@@ -1494,26 +1486,30 @@
     state.nativeThreads = true;
     state.configOwner = config.owner;
     state.reviewPaused = config.paused;
-    state.proposals = summaries
-      .filter(({ latest_revision }) => {
-        if (state.dao.id !== 'juno-delegation') return true;
-        try {
-          reviewKind(latest_revision);
-          return true;
-        } catch {
-          return false;
-        }
-      })
-      .map(({ proposal, latest_revision: latest }) => ({
-        ...proposal,
-        title: latest.title || `Juno community proposal #${proposal.id}`,
-        status: proposal.withdrawn
-          ? 'withdrawn'
-          : proposal.finalized_version
-            ? 'ready'
-            : 'discussion',
-        current_revision: proposal.latest_version
-      }));
+    const reviews = await Promise.all(
+      summaries
+        .filter(({ latest_revision }) => {
+          if (state.dao.id !== 'juno-delegation') return true;
+          try {
+            reviewKind(latest_revision);
+            return true;
+          } catch {
+            return false;
+          }
+        })
+        .map(async ({ proposal, latest_revision: latest }) => ({
+          ...proposal,
+          nativeId: await linkedNativeId(proposal, latest, CHAIN_ID, state.chainProposals),
+          title: latest.title || `Juno community proposal #${proposal.id}`,
+          status: proposal.withdrawn
+            ? 'withdrawn'
+            : proposal.finalized_version
+              ? 'ready'
+              : 'discussion',
+          current_revision: proposal.latest_version
+        }))
+    );
+    if (epoch === state.requestEpoch) state.proposals = reviews;
   }
   async function load() {
     const epoch = ++state.requestEpoch;
@@ -1563,7 +1559,8 @@
     renderList();
     status(`${history.length} ON-CHAIN · ${state.proposals.length} PUBLIC REVIEWS`);
   }
-  async function select(id) {
+  async function select(id, showHistory = false) {
+    stopNativeVoting();
     const epoch = state.requestEpoch,
       daoId = state.dao.id,
       found = state.proposals.find((p) => p.id === Number(id));
@@ -1623,6 +1620,8 @@
     reviewUrl.searchParams.delete('plannerDraft');
     reviewUrl.searchParams.delete('proposal');
     reviewUrl.searchParams.set('review', String(id));
+    if (showHistory) reviewUrl.searchParams.set('reviewHistory', '1');
+    else reviewUrl.searchParams.delete('reviewHistory');
     reviewUrl.searchParams.set('reviewChain', CHAIN_ID);
     if (isNativeReview()) reviewUrl.searchParams.set('reviewContract', CONTRACT);
     reviewUrl.hash = 'governance';
@@ -1655,11 +1654,96 @@
       const submitted = state.chainProposals.find((p) =>
         matchesReview(p.proposal.raw, sharedFinal.content)
       );
-      if (submitted) selectChain(submitted);
+      if (submitted && !showHistory) selectChain(submitted);
+      if (submitted && showHistory) {
+        sharedFinal = null;
+        state.selected.nativeId = submitted.id;
+        renderActions();
+      }
     }
     if (!isNativeReview() && revisions.length >= 100)
       status('LEGACY REVISION HISTORY MAY BE TRUNCATED AT 100 RECORDS', true);
   }
+  function stopNativeVoting() {
+    votingEpoch++;
+    votingRequest = null;
+    clearInterval(state.countdown);
+    $('#proposal-review-history').hidden = true;
+  }
+  function renderVotingTotals(votes, native) {
+    $('#vote-veto-card').hidden = !native;
+    $('#onchain-panel').classList.toggle('native-voting', native);
+    $('#voting-precision').hidden = !native;
+    $('#voting-exact-amounts').replaceChildren();
+    for (const key of ['yes', 'no', 'abstain', 'veto']) {
+      $('#vote-' + key).textContent =
+        votes?.[key] == null ? '—' : native ? formatVoteAmount(votes[key]) : votes[key];
+      if (native)
+        $('#voting-exact-amounts').append(
+          node(
+            'p',
+            null,
+            `${key === 'veto' ? 'No with veto' : key}: ${votes?.[key] == null ? '—' : displayJuno(votes[key]) + ' JUNO'}`
+          )
+        );
+    }
+  }
+  async function refreshNativeVoting() {
+    const selected = state.selected,
+      generation = votingEpoch;
+    if (
+      !selected?.proposal?.native ||
+      state.busy ||
+      document.hidden ||
+      document.body.dataset.workspaceView !== 'governance' ||
+      votingRequest
+    )
+      return;
+    const request = {};
+    votingRequest = request;
+    $('#voting-refresh').disabled = true;
+    const current = () => generation === votingEpoch && state.selected === selected;
+    try {
+      const result = await readNativeVoting(MAINNET_RESTS, selected.id);
+      if (!current() || state.busy) return;
+      if (
+        canonical(proposalIdentity(selected.proposal.raw)) !==
+        canonical(proposalIdentity(result.proposal.raw))
+      )
+        throw Error(
+          'The refreshed proposal differs from the displayed proposal. Reload before continuing.'
+        );
+      selected.proposal = { ...result.proposal, votes: result.votes };
+      const stored = state.chainProposals.find((p) => p.id === selected.id);
+      if (stored) stored.proposal = selected.proposal;
+      renderVotingTotals(result.votes, true);
+      $('#proposal-badge').textContent = chainLabel(selected.proposal.status);
+      $('#voting-data-status').textContent =
+        `${selected.proposal.status === 'open' ? 'Current tally' : selected.proposal.status === 'deposit' ? 'Voting has not started' : 'Final tally'} · ${new Date(result.checkedAt).toLocaleTimeString()} · Block ${result.height} · ${new URL(result.endpoint).hostname}`;
+      updateCountdown();
+      renderList();
+      funding.render();
+      updateWorkflow(selected.proposal.status === 'deposit' ? 5 : 6);
+      $('.next-actions').dataset.status =
+        selected.proposal.status === 'open' ? 'voting' : chainGroup(selected.proposal.status);
+    } catch (error) {
+      if (!current()) return;
+      renderVotingTotals(null, true);
+      $('#voting-data-status').textContent =
+        'Current results unavailable. Retry refresh. ' + error.message;
+    } finally {
+      if (votingRequest === request) votingRequest = null;
+      if (current()) $('#voting-refresh').disabled = false;
+    }
+  }
+  $('#voting-refresh').onclick = refreshNativeVoting;
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) void refreshNativeVoting();
+  });
+  window.addEventListener('hashchange', () => {
+    void refreshNativeVoting();
+  });
+  window.addEventListener('pagehide', stopNativeVoting);
   function expiryMs(expiration) {
     return expiration?.at_time ? Number(BigInt(expiration.at_time) / 1000000n) : null;
   }
@@ -1668,6 +1752,10 @@
       target = expiryMs(p?.expiration);
     if (!p || p.status !== 'open') {
       $('#voting-deadline').textContent = '';
+      return;
+    }
+    if (!Number.isFinite(target)) {
+      $('#voting-deadline').textContent = 'Voting deadline unavailable';
       return;
     }
     const left = target - Date.now(),
@@ -1681,6 +1769,7 @@
   }
   function selectChain(item, confirmed = false) {
     if (state.busy && !confirmed) return;
+    stopNativeVoting();
     sharedFinal = null;
     funding.invalidate();
     $('#planner-proposal-context').hidden = true;
@@ -1688,6 +1777,7 @@
     const chainUrl = new URL(location.href);
     chainUrl.searchParams.delete('plannerDraft');
     chainUrl.searchParams.delete('review');
+    chainUrl.searchParams.delete('reviewHistory');
     chainUrl.searchParams.set('proposal', String(item.id));
     chainUrl.hash = 'governance';
     history.replaceState(null, '', chainUrl);
@@ -1710,9 +1800,15 @@
     $('#proposal-heading').textContent = p.title;
     $('#proposal-badge').textContent = chainLabel(p.status);
     $('#onchain-panel').hidden = false;
-    $('#vote-yes').textContent = v.yes || '0';
-    $('#vote-no').textContent = v.no || '0';
-    $('#vote-abstain').textContent = v.abstain || '0';
+    renderVotingTotals(native ? p.votes : v, native);
+    $('#voting-refresh').hidden = !native;
+    $('#voting-data-status').textContent = native ? 'Loading current voting results…' : '';
+    const review = state.proposals.find((r) => String(r.nativeId) === String(item.id));
+    $('#proposal-review-history').hidden = !review;
+    if (review) {
+      $('#proposal-review-history').textContent = `View community review #${review.id}`;
+      $('#proposal-review-history').onclick = () => select(review.id, true);
+    }
     const open =
       p.status === 'open' && (!expiryMs(p.expiration) || expiryMs(p.expiration) > Date.now());
     $('#vote-actions').hidden = !open || native || !state.dao.canVote;
@@ -1736,11 +1832,16 @@
     updateWorkflow(p.status === 'deposit' ? 5 : 6);
     renderList();
     updateCountdown();
-    state.countdown = setInterval(updateCountdown, 30000);
+    state.countdown = setInterval(() => {
+      updateCountdown();
+      void refreshNativeVoting();
+    }, 30000);
+    if (native) void refreshNativeVoting();
     renderNetwork();
     funding.refresh();
   }
   function newDraft() {
+    stopNativeVoting();
     sharedFinal = null;
     state.selected = null;
     $('#review-author-card').hidden = true;
@@ -2677,7 +2778,7 @@
       if (reviewId && /^[1-9]\d*$/.test(reviewId) && isNativeReview()) {
         if (!state.proposals.some((p) => String(p.id) === reviewId))
           throw Error('Shared review not found in this workspace.');
-        await select(Number(reviewId));
+        await select(Number(reviewId), plannerParams.get('reviewHistory') === '1');
       } else if (proposalId && /^[1-9]\d*$/.test(proposalId)) {
         const item = state.chainProposals.find((p) => String(p.id) === proposalId);
         if (!item) throw Error('On-chain proposal not found.');
