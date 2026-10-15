@@ -62,9 +62,7 @@ export async function readNativeVoting(endpoints, id, options = {}) {
   const failures = [];
   for (const endpoint of endpoints) {
     try {
-      const source = await reader(endpoint, 'juno-1', {
-        ...options, fetcher: options.fetcher || globalThis.fetch
-      });
+      const source = await reader(endpoint, 'juno-1', options);
       const { proposal } = await source.get(`/cosmos/gov/v1/proposals/${id}`);
       if (String(proposal?.id) !== String(id)) throw Error('Proposal identity mismatch.');
       const status = nativeStatus(proposal.status);

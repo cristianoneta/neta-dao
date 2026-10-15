@@ -8,11 +8,12 @@ Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_P
 Fix duplicate finalized-review/native-proposal list entries through exact immutable
 content linking while keeping review history accessible. Hide the contribution
 panel after deposit, retaining unresolved receipt checks. Read a fresh live tally
-for open native proposals and show all four options in JUNO, with 30-second visible
+for open native proposals through the existing same-origin read bridge (including
+the narrowly allowlisted tally endpoint) and show all four options in JUNO, with 30-second visible
 view refresh, manual retry, source/height/time and explicit unavailable states.
 Closed proposals use their final tally. No native vote transaction is enabled.
 See [voting design and follow-up scope](JUNO_GOVERNANCE_VOTING.md).
-Local validation: 314 Node tests, repository syntax/integrity and the full planner,
+Local validation: 315 Node tests, repository syntax/integrity and the full planner,
 review, funding and native-voting browser flow pass. The new flow covers deduplication,
 review-history round trips/reload, live/manual/automatic tally updates, failures and
 late-response isolation, with 1440/768/390/320 px inspection. PR CI and the manual

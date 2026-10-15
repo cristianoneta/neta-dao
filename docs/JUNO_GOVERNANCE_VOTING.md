@@ -16,7 +16,9 @@ closes. No transaction journal is deleted or automatically resent.
 
 Open native proposals must read the live /tally endpoint, not final_tally_result.
 Fetch the selected proposal and tally at one fresh chain height from the same
-provider, with fallback on source failure. Display all four choices including
+provider, with fallback on source failure. Use the existing same-origin read proxy
+to avoid provider CORS preflight failures; the allowlist adds only a positive
+proposal ID followed by /tally, without arbitrary query parameters or writes. Display all four choices including
 No with veto, amounts in JUNO, read time and height. Refresh every 30 seconds while
 the governance view is visible, on tab return, and through Refresh results.
 Missing/incomplete/error data is unavailable, never a zero-vote result. Reject

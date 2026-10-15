@@ -39,7 +39,7 @@ export function governanceReadTarget(source, path, height = '') {
         `/cosmwasm/wasm/v1/code/${REVIEW_MAINNET_RELEASE.codeId}`,
         `/cosmos/distribution/v1beta1/delegators/${programme}/withdraw_address`
       ].includes(pathname) ||
-      /^\/cosmos\/gov\/v1\/proposals\/[1-9]\d{0,19}$/.test(pathname) ||
+      /^\/cosmos\/gov\/v1\/proposals\/[1-9]\d{0,19}(?:\/tally)?$/.test(pathname) ||
       /^\/cosmos\/tx\/v1beta1\/txs\/[A-F0-9]{64}$/.test(pathname);
     if (
       /^\/cosmos\/bank\/v1beta1\/spendable_balances\/juno1[a-z0-9]{38,58}\/by_denom$/.test(pathname)

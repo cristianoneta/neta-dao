@@ -208,6 +208,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
         if (!txKnown) return route.fulfill({ status: 404, headers, body: 'not found' });
         body = { tx_response: { txhash: 'B'.repeat(64), height: '42500125', code: 0 } };
       } else if (url.pathname === '/cosmos/gov/v1/proposals/900/tally') {
+        assert.equal(verifiedRead, true, 'Browser tallies must use the same-origin read bridge');
         if (holdTally) await new Promise(resolve => { releaseTally = resolve; });
         if (failTally) return route.fulfill({status:503,headers,body:'Unavailable'});
         body = {tally:{yes_count:tallyYes,no_count:'123456',abstain_count:'0',no_with_veto_count:'5000000'}};
