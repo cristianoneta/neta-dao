@@ -3,8 +3,10 @@ import { toHex } from '@cosmjs/encoding';
 import { Registry } from '@cosmjs/proto-signing';
 import { SigningStargateClient, defaultRegistryTypes, GasPrice } from '@cosmjs/stargate';
 import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
-import { MsgSubmitProposal, MsgDeposit } from 'cosmjs-types/cosmos/gov/v1/tx';
+import { MsgSubmitProposal, MsgDeposit, MsgVote } from 'cosmjs-types/cosmos/gov/v1/tx';
 import { TxBody, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { VOTE, choices } from '../../native-voting-core.mjs';
+import { validateJunoAddress } from '../../names-profile-core.mjs';
 import { DEPOSIT } from '../../juno-community-governance.mjs';
 import { EXECUTE, SUBMIT, claimValidators } from '../../juno-governance-core.mjs';
 import { journalBroadcast } from './broadcast-journal.mjs';
@@ -47,6 +49,7 @@ export async function connect(endpoints, signer) {
           ...defaultRegistryTypes,
           [SUBMIT, MsgSubmitProposal],
           [DEPOSIT, MsgDeposit],
+          [VOTE, MsgVote],
           [EXECUTE, MsgExecuteContract]
         ]),
         gasPrice: GasPrice.fromString('0.075ujuno')
@@ -169,3 +172,26 @@ export const simulateDeposit = (client, id, sender, amount) =>
   client.simulate(sender, [depositMessage(id, sender, amount)], '');
 export const contribute = (client, id, sender, amount, fee, options) =>
   signReviewed(client, depositMessage(id, sender, amount), MsgDeposit, sender, fee, options);
+
+export function voteMessage(id, sender, option) {
+  validateJunoAddress(sender, true);
+  if (
+    !/^[1-9]\d{0,19}$/.test(String(id)) ||
+    BigInt(id) > (1n << 64n) - 1n ||
+    !Object.hasOwn(choices, option)
+  )
+    throw Error('Invalid vote.');
+  return {
+    typeUrl: VOTE,
+    value: MsgVote.fromPartial({
+      proposalId: BigInt(id),
+      voter: sender,
+      option: choices[option],
+      metadata: ''
+    })
+  };
+}
+export const simulateVote = (client, id, sender, option) =>
+  client.simulate(sender, [voteMessage(id, sender, option)], '');
+export const vote = (client, id, sender, option, fee, options) =>
+  signReviewed(client, voteMessage(id, sender, option), MsgVote, sender, fee, options);

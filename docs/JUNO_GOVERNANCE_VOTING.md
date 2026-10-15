@@ -24,9 +24,9 @@ the governance view is visible, on tab return, and through Refresh results.
 Missing/incomplete/error data is unavailable, never a zero-vote result. Reject
 late responses after selection changes and changed proposal content. Closed
 proposals use their final tally. This is read-only display evidence, not a
-transaction authorization proof; native voting remains disabled in this patch.
+transaction authorization proof; native voting remained disabled in PR #292. The combined candidate below adds it.
 
-## Proposed next increment — not implemented or approved yet
+## Combined increment — implemented candidate, owner approved 15 October
 
 Keep the existing graphite/mint interface and one canonical native-proposal view:
 
@@ -60,12 +60,37 @@ Retain terminal votes/events or an appropriate index because finalized proposals
 need not retain all live voter queries. The existing validator-event collector
 is useful input but does not yet supply this complete indexed dataset.
 
-Suggested order: release the three display fixes, then ship direct native voting
-with receipt verification, then validator/direct-voter analytics with checked
-aggregation. Do not add speculative programme scoring while doing this work.
+Owner correction: direct voting and participation analysis ship together in one PR.
+The earlier separate-release suggestion is superseded. No programme scoring is
+added. Validation: 326 Node tests and eight signing-adapter tests pass. The complete
+planner/review/funding/browser flow passes with added vote rejection, confirmed
+change, lost response/reload/status recovery, filters and unavailable-detail cases.
+Desktop/mobile screenshots at 1440/768/390/320 px inspected. A real read-only
+Proposal 381 snapshot at height 42734121 reconciled 25 bonded validators and 15
+direct voting addresses exactly with the chain tally. No real wallet write.
+Full PR CI and manual website publication remain pending for this candidate.
+
+
 
 ## Research references
 
 - Keplr: [Cast Your Vote](https://help.keplr.app/wallet-dashboard/5R3bMyjtr33UpY5E29q8p1/cast-your-vote/5So5gM41LhxyLfQPJxvfaG) — proposal detail, quorum/turnout, validator choices and wallet confirmation.
 - Mintscan: [API capabilities](https://docs.mintscan.io/apis) — separate account-vote and validator-vote histories.
 - [Cosmos SDK v0.53.7 tally implementation](https://github.com/cosmos/cosmos-sdk/blob/v0.53.7/x/gov/keeper/tally.go) — stake shares, direct-voter deductions and weighted choices.
+
+## Implementation boundaries
+
+`native-voting-core.mjs` implements the fixed-point SDK tally, complete reads,
+reconciliation and vote preflight; `native-voting-ui.mjs` owns the mounted view.
+The existing governance signing bundle registers only MsgVote for this action,
+with an empty metadata/memo and a simulated explicit JUNO fee. Uncertain votes
+retain both the account transaction journal and proposal-specific receipt. Checking
+status is read-only; after two matching inclusion proofs, only a matching account
+journal hash may be released. An interrupted signature remains locked.
+
+Participation is current single-provider evidence, not a historical index or an
+independent multi-provider data proof. Transaction authorization uses two distinct
+source origins. Pagination is bounded to 50 × 100 records per list and repeated
+cursors/duplicates fail. Large proposals can exceed these limits or provider
+retention; details then stay unavailable without blocking independent vote review.
+No server collector, production timer or historical capture is installed here.

@@ -815,4 +815,19 @@ Show Yes, No, Abstain and No with veto together, grouped JUNO amounts rounded
 to two decimals with full precision in Exact amounts, update time
 and a manual refresh. Reflow the four-option grid to two columns and one on narrow
 screens. Unavailable data is a dash plus an explicit message, never a fabricated
-zero. Direct native voting and detailed participation tables remain proposed.
+zero. The combined 15 October candidate adds direct voting and detailed participation below.
+
+## Native voting and participation — owner-approved combined candidate, 2026-10-15
+
+Keep four results and the deadline above Your vote, then Participation. Require an
+explicit choice (no default Yes), show current/weighted ballots and own delegated
+weight, and review proposal/choice/fee before Keplr. Preserve a visible pending
+receipt/status action across reloads. Use three compact metric cards for turnout
+and quorum, Yes excluding Abstain, and veto. Show source/height/time separately.
+
+Validators and Direct votes share labelled search/decision/sort controls and
+25-row pagination. Show bonded stake separately from the post-deduction represented
+weight. Identify validator accounts in the direct list; call them addresses, not
+people. Wrap identities, stack controls/cards on mobile and contain horizontal
+table overflow. Never use missing/stale detail as zero or pretend a present-day
+stake reconstruction is a historical final result.

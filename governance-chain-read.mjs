@@ -33,6 +33,8 @@ export function governanceReadTarget(source, path, height = '') {
     allowed ||=
       [
         '/cosmos/gov/v1/params/deposit',
+        '/cosmos/gov/v1/params/tallying',
+        '/cosmos/staking/v1beta1/pool',
         '/cosmos/auth/v1beta1/module_accounts/gov',
         `/cosmwasm/wasm/v1/contract/${programme}`,
         `/cosmwasm/wasm/v1/contract/${REVIEW_MAINNET_RELEASE.contract}`,
@@ -49,7 +51,9 @@ export function governanceReadTarget(source, path, height = '') {
     }
     if (
       pathname === '/cosmos/gov/v1/proposals' ||
-      pathname === `/cosmos/staking/v1beta1/delegations/${programme}`
+      (/^\/cosmos\/staking\/v1beta1\/delegations\/juno1[a-z0-9]{38,58}$/.test(pathname)) ||
+      pathname === '/cosmos/staking/v1beta1/validators' ||
+      /^\/cosmos\/gov\/v1\/proposals\/[1-9]\d{0,19}\/votes$/.test(pathname)
     ) {
       if (
         params.get('pagination.limit') !== '100' ||

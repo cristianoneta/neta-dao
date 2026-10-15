@@ -227,6 +227,26 @@
       renderActions();
     }
   });
+  const { nativeVoting } = await import('./native-voting-ui.mjs');
+  const nativeVote = nativeVoting({
+    selected: () => state.selected,
+    address: () => state.address,
+    chain: () => state.walletChain,
+    connectWallet: connect,
+    rests: MAINNET_RESTS,
+    rpcs: MAINNET_RPCS,
+    blocked: () => state.busy,
+    busy: (value) => {
+      state.busy = value;
+      renderWallet();
+      renderActions();
+    },
+    onVoted: () => {
+      setTimeout(() => {
+        void refreshNativeVoting();
+      }, 0);
+    }
+  });
   async function openSubmittedProposal(id) {
     const epoch = state.requestEpoch;
     await load();
@@ -1282,6 +1302,7 @@
     renderPlannerContext();
     plannerGov.render();
     funding.render();
+    nativeVote.render();
     const planner =
       (isPlannerGovernance() && !state.selected) ||
       (isNativeReview() && !!state.selected && state.dao.id === 'juno-delegation');
@@ -1665,6 +1686,7 @@
       status('LEGACY REVISION HISTORY MAY BE TRUNCATED AT 100 RECORDS', true);
   }
   function stopNativeVoting() {
+    nativeVote.invalidate();
     votingEpoch++;
     votingRequest = null;
     clearInterval(state.countdown);
@@ -1701,6 +1723,7 @@
       return;
     const request = {};
     votingRequest = request;
+    void nativeVote.refresh();
     $('#voting-refresh').disabled = true;
     const current = () => generation === votingEpoch && state.selected === selected;
     try {
@@ -1723,6 +1746,7 @@
       updateCountdown();
       renderList();
       funding.render();
+      nativeVote.render();
       updateWorkflow(selected.proposal.status === 'deposit' ? 5 : 6);
       $('.next-actions').dataset.status =
         selected.proposal.status === 'open' ? 'voting' : chainGroup(selected.proposal.status);
@@ -1800,6 +1824,7 @@
     $('#proposal-heading').textContent = p.title;
     $('#proposal-badge').textContent = chainLabel(p.status);
     $('#onchain-panel').hidden = false;
+    nativeVote.render();
     renderVotingTotals(native ? p.votes : v, native);
     $('#voting-refresh').hidden = !native;
     $('#voting-data-status').textContent = native ? 'Loading current voting results…' : '';
@@ -1813,7 +1838,7 @@
       p.status === 'open' && (!expiryMs(p.expiration) || expiryMs(p.expiration) > Date.now());
     $('#vote-actions').hidden = !open || native || !state.dao.canVote;
     $('#vote-hint').textContent = native
-      ? 'Native Juno voting is shown read-only until the transaction adapter is verified.'
+      ? 'Vote directly with Keplr on Juno mainnet.'
       : state.dao.canVote
         ? 'Connect Keplr on Juno Mainnet to vote.'
         : 'Voting is read-only until this DAO transaction adapter is verified.';
