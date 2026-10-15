@@ -10,13 +10,11 @@ import {
 } from '../native-voting-core.mjs';
 import { governanceReadTarget } from '../governance-chain-read.mjs';
 import { governanceOperatorAccount } from '../names-profile-core.mjs';
-const operator = 'junovaloper1z3xcalwan92yqxu9d406tlft9yy94jy8nc4y8p';
-// Use the same address codec as the chain to make real checksum-valid fixtures.
-import { toBech32, fromBech32 } from '../faucet/node_modules/@cosmjs/encoding/build/index.js';
+// Checksum-valid fixtures generated independently with the Cosmos address codec.
 const account = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
-const val = toBech32('junovaloper', fromBech32(account).data);
-const user = toBech32('juno', new Uint8Array(20).fill(3));
-const val2 = toBech32('junovaloper', new Uint8Array(20).fill(4));
+const val = 'junovaloper1z3xcalwan92yqxu9d406tlft9yy94jy80f0y08';
+const user = 'juno1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcr549pth';
+const val2 = 'junovaloper1qszqgpqyqszqgpqyqszqgpqyqszqgpqytc5thj';
 const v = (address = val, tokens = '100000000') => ({
   operator_address: address,
   tokens,
@@ -223,6 +221,10 @@ test('fractional delegations retain turnout precision before integer tally trunc
   assert.equal(metrics.quorumReached, true);
 });
 test('native governance decodes extended validator accounts without weakening profile wallet checks', () => {
-  const bytes = new Uint8Array(32).fill(7);
-  assert.equal(governanceOperatorAccount(toBech32('junovaloper', bytes)), toBech32('juno', bytes));
+  assert.equal(
+    governanceOperatorAccount(
+      'junovaloper1qurswpc8qurswpc8qurswpc8qurswpc8qurswpc8qurswpc8qurs6aydqy'
+    ),
+    'juno1qurswpc8qurswpc8qurswpc8qurswpc8qurswpc8qurswpc8qursaq28r5'
+  );
 });
