@@ -719,6 +719,11 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   assert.equal(await page.locator('#proposal-funding-panel').isVisible(), false);
   await page.waitForFunction(() => document.querySelector('#vote-yes').textContent === '2,099,071.01 JUNO');
   assert.equal(await page.locator('#vote-veto').textContent(), '5.00 JUNO');
+  assert.equal(await page.locator('.vote-totals').isVisible(), false);
+  assert.equal(await page.locator('#legacy-voting-heading').isVisible(), false);
+  assert.match(await page.locator('#voting-deadline').innerText(), /REMAINING/);
+  assert.match(await page.locator('#native-participation-bars').innerText(), /Yes · [\d.]+% \(2,099,071 JUNO\)/);
+  assert.match(await page.locator('#native-participation-bars').innerText(), /No with veto · [\d.]+% \(5 JUNO\)/);
   assert.equal(await page.locator('#proposal-list button').filter({hasText: revision.title}).count(), 1);
   await page.locator('#proposal-review-history').click();
   await page.waitForFunction(() => document.querySelector('#action-hint').textContent.includes('Review history'));
@@ -742,6 +747,8 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   await page.locator('#voting-refresh').click();
   await page.waitForFunction(() => document.querySelector('#voting-data-status').textContent.includes('unavailable'));
   assert.equal(await page.locator('#vote-yes').textContent(), '—');
+  assert.equal(await page.locator('#native-participation-bars meter').count(), 0);
+  assert.doesNotMatch(await page.locator('#native-participation-bars').innerText(), /JUNO|0%/);
   failTally = false;
   await page.locator('#voting-refresh').click();
   await page.waitForFunction(() => document.querySelector('#vote-yes').textContent === '3,099,071.01 JUNO');
@@ -789,6 +796,8 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   await page.locator('#native-participation-refresh').click();
   await page.waitForFunction(()=>document.querySelector('#native-participation-status').textContent.includes('unavailable'));
   assert.equal(await page.locator('#native-participation-data').isVisible(),false);
+  assert.equal(await page.locator('#native-participation-bars meter').count(),4);
+  assert.match(await page.locator('#native-participation-bars').innerText(), /JUNO/);
   participationDown=false;
   await page.locator('#native-participation-refresh').click();
   await page.waitForFunction(()=>document.querySelector('#native-participation-status').textContent.includes('Reconciled'));

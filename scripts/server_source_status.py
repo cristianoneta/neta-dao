@@ -151,6 +151,29 @@ def check(root, *, now=None):
     except (OSError, ValueError, TypeError, OverflowError):
         issues.append("snapshot-unavailable")
     rows.append({"path": name, "ok": not issues, "issues": issues, "warnings": []})
+    name, issues = "data/treasury/juno-community-accounting.json", []
+    try:
+        value = read_object(root, name)
+        issues += age_issues(timestamp(value.get("checked_at")), now, CADENCES["treasury"])
+        if value.get("chain_id") != "juno-1" or value.get("dao_id") != "juno" or value.get("schema_version") != 3:
+            issues.append("invalid-source-identity")
+        if value.get("refresh_status") != "completed":
+            issues.append("community-accounting-refresh-unavailable")
+        coverage = value.get("block_coverage")
+        if not isinstance(coverage, dict):
+            raise ValueError("Community Tax coverage missing")
+        if coverage.get("status") != "CURRENT":
+            issues.append("community-tax-coverage-unavailable")
+        if (type(coverage.get("blocks")) is not int or coverage["blocks"] < 1
+                or type(coverage.get("through_height")) is not int or coverage["through_height"] < 1):
+            issues.append("community-tax-evidence-missing")
+        # A new statement publication must never make retained block evidence fresh.
+        for field, label in [(value.get("block_last_success_at"), "community-tax-collection"),
+                             (coverage.get("through_time"), "community-tax-block")]:
+            issues += [label + ":" + issue for issue in age_issues(timestamp(field), now, 7200)]
+    except (OSError, ValueError, TypeError, OverflowError):
+        issues.append("snapshot-unavailable")
+    rows.append({"path": name, "ok": not issues, "issues": issues, "warnings": []})
     return {"ok": all(row["ok"] for row in rows), "sources": rows,
             "scope": "Published observation freshness and refresh results only; no signature, chain or accounting audit."}
 

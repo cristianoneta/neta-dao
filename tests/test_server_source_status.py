@@ -35,6 +35,11 @@ class PublishedFreshness(unittest.TestCase):
             accrual_refresh_status='completed', accrual_coverage=dict(
                 status='CURRENT', through_time=stamp, through_height=42, intervals=1)))
 
+        self.put('data/treasury/juno-community-accounting.json', dict(
+            schema_version=3, chain_id='juno-1', dao_id='juno', checked_at=stamp,
+            refresh_status='completed', block_last_success_at=stamp,
+            block_coverage=dict(status='CURRENT', through_time=stamp, through_height=42, blocks=20)))
+
     def put(self, name, value):
         path = self.root / name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -67,6 +72,19 @@ class PublishedFreshness(unittest.TestCase):
         self.assertIn('staking-accrual:stale-observation', self.issues(name))
         self.edit(name, accrual_refresh_status='catching_up')
         self.assertIn('staking-accrual-refresh-unavailable', self.issues(name))
+
+    def test_fresh_statement_cannot_hide_stalled_community_tax(self):
+        name = 'data/treasury/juno-community-accounting.json'
+        old = datetime.fromtimestamp(NOW-7201, timezone.utc).isoformat()
+        self.edit(name, block_coverage=dict(status='CURRENT', through_time=old, through_height=42, blocks=20))
+        self.assertIn('community-tax-block:stale-observation', self.issues(name))
+        self.assertFalse(status.check(self.root, now=NOW)['ok'])
+        self.edit(name, block_last_success_at=old)
+        self.assertIn('community-tax-collection:stale-observation', self.issues(name))
+        self.edit(name, block_coverage=dict(status='BACKFILL', through_time=old, through_height=42, blocks=20))
+        self.assertIn('community-tax-coverage-unavailable', self.issues(name))
+        self.edit(name, block_coverage=None)
+        self.assertIn('snapshot-unavailable', self.issues(name))
 
     def test_fresh_check_time_cannot_hide_retained_old_data(self):
         self.edit('data/daos/neta.json', generated_at=datetime.fromtimestamp(NOW-3901, timezone.utc).isoformat())

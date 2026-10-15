@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { formatVoteAmount, nativeTally, normalizeNativeProposal, readNativeVoting, linkedNativeId } from '../native-governance-display.mjs';
+import { formatWholeVoteAmount, formatVoteAmount, nativeTally, normalizeNativeProposal, readNativeVoting, linkedNativeId } from '../native-governance-display.mjs';
 import { finalizedReview } from '../juno-community-governance.mjs';
 import { claimProposal } from '../planner-proposal-draft.mjs';
 import { fixture } from './fixtures/delegation-planner.mjs';
@@ -79,4 +79,12 @@ test('display rounds with integer arithmetic and keeps small nonzero votes visib
   assert.equal(formatVoteAmount('999999','en-US'),'1.00 JUNO');
   assert.equal(formatVoteAmount('1','en-US'),'<0.01 JUNO');
   assert.equal(formatVoteAmount('0','en-US'),'0 JUNO');
+});
+
+test('whole JUNO display rounds integer micro-units without precision loss', () => {
+  assert.equal(formatWholeVoteAmount('9115235240000', 'de-DE'), '9.115.235 JUNO');
+  assert.equal(formatWholeVoteAmount('1499999', 'en-US'), '1 JUNO');
+  assert.equal(formatWholeVoteAmount('1500000', 'en-US'), '2 JUNO');
+  assert.equal(formatWholeVoteAmount('0', 'en-US'), '0 JUNO');
+  assert.equal(formatWholeVoteAmount('9007199254740993500000', 'en-US'), '9,007,199,254,740,994 JUNO');
 });

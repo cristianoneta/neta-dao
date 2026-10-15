@@ -3,6 +3,33 @@
 Updated 11 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
+## Compact voting and Treasury diagnostics — 15 October 2026 candidate
+
+The native proposal view keeps the deadline and removes the duplicate upper tally
+cards. Four result bars show percentages plus whole, rounded JUNO in parentheses.
+The bars use the independent live/final tally, so a failed participation lookup
+or an unavailable historical breakdown cannot hide the result. Source/refresh and
+review history move below the participation area; legacy DAO vote totals remain.
+
+Consolidated Income and Expenses retain available valued receipt subtotals labelled
+Partial when a unit is incomplete. The result remains unavailable until all units
+pass the existing accounting checks. The coverage line identifies incomplete units
+and their block/reward cutoff. No missing values become zero.
+
+Live read-only diagnosis found Community Tax through 13 October 23:59:30 UTC while
+holdings/statement publication continued on 15 October. Staking rewards extended
+through 14 October 23:59:58 UTC. This establishes stale Community Tax evidence,
+not the underlying process error. Server logs are needed to distinguish RPC,
+timeout and resource failures; no production collector or checkpoint was changed.
+The source health check lacked Community Tax coverage. It now independently checks
+the accounting refresh, block-collection time, covered block time and status.
+This server-side improvement requires deliberate installation, not a website release.
+
+Validation: 327 Node tests; 14 focused published-source health tests; full planner,
+review, funding and voting browser flow; hierarchy/consolidated P&L browser flow;
+static build and syntax/integrity checks. Desktop/mobile screenshots inspected.
+Full PR CI and manual publication remain pending.
+
 ## Native voting and participation — 15 October 2026 candidate
 
 One combined change adds four-choice native Juno voting and Change vote, an inline

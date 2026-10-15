@@ -831,3 +831,13 @@ weight. Identify validator accounts in the direct list; call them addresses, not
 people. Wrap identities, stack controls/cards on mobile and contain horizontal
 table overflow. Never use missing/stale detail as zero or pretend a present-day
 stake reconstruction is a historical final result.
+
+## Compact native tally — owner correction, 2026-10-15
+
+Keep only the deadline above Your vote. The four participation bars also contain
+rounded whole JUNO amounts in parentheses; remove the duplicate upper cards and
+Exact amounts block. Tally bars remain independently available when detailed
+participation cannot be reconstructed, including final results. Keep source,
+refresh and review history as secondary controls below participation.
+Consolidated P&L displays available receipt subtotals as Partial during coverage
+gaps, names the affected unit/cutoff, and withholds an unsupported overall result.
