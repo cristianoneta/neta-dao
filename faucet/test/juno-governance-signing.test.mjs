@@ -201,3 +201,74 @@ test('contribution serialization and signing bind depositor, proposal ID, amount
   }
   assert.throws(() => depositMessage('0', sender, '1'));
 });
+
+test('native votes preserve exact proposal, voter, option and fee; uncertain writes stay locked', async () => {
+  const { vote, voteMessage } = await import('../src/juno-governance-signing.mjs');
+  const { MsgVote } = await import('cosmjs-types/cosmos/gov/v1/tx');
+  for (const mode of ['ok', 'choice', 'proposal', 'memo', 'fee', 'lost', 'wallet', 'deadline']) {
+    const rows = new Map();
+    let broadcasts = 0,
+      signedCount = 0;
+    const storage = {
+      getItem: (k) => rows.get(k) ?? null,
+      setItem: (k, v) => rows.set(k, v),
+      removeItem: (k) => rows.delete(k)
+    };
+    const client = {
+      getChainId: async () => 'juno-1',
+      getTx: async () => null,
+      sign: async (_sender, [msg], fee, memo) => {
+        signedCount++;
+        const value = { ...msg.value };
+        if (mode === 'choice') value.option = 4;
+        if (mode === 'proposal') value.proposalId = 382n;
+        return TxRaw.fromPartial({
+          bodyBytes: TxBody.encode(
+            TxBody.fromPartial({
+              messages: [{ typeUrl: msg.typeUrl, value: MsgVote.encode(value).finish() }],
+              memo: mode === 'memo' ? 'changed' : memo
+            })
+          ).finish(),
+          authInfoBytes: AuthInfo.encode(
+            AuthInfo.fromPartial({
+              signerInfos: [{ sequence: 1n }],
+              fee: {
+                gasLimit: BigInt(fee.gas),
+                amount: mode === 'fee' ? [{ denom: 'ujuno', amount: '9999' }] : fee.amount
+              }
+            })
+          ).finish(),
+          signatures: [new Uint8Array(64)]
+        });
+      },
+      broadcastTx: async (bytes) => {
+        broadcasts++;
+        if (mode === 'lost') throw Error('Lost');
+        return { transactionHash: toHex(sha256(bytes)).toUpperCase(), height: 100, code: 0 };
+      }
+    };
+    const options = {
+      journalOptions: { storage, locks: { request: async (_k, _o, fn) => fn({}) } },
+      assertWallet: async () => {
+        if (mode === 'wallet' && signedCount) throw Error('wallet changed');
+      },
+      beforeSign: async () => {
+        if (mode === 'deadline' && signedCount) throw Error('Voting ended');
+      },
+      beforeBroadcast: async () => {}
+    };
+    const run = () => vote(client, '381', sender, 'yes', fee, options);
+    if (mode === 'ok') await run();
+    else await assert.rejects(run());
+    assert.equal(broadcasts, ['ok', 'lost'].includes(mode) ? 1 : 0, mode);
+    if (mode === 'lost') {
+      await assert.rejects(run(), /UNKNOWN/);
+      assert.equal(signedCount, 1);
+    }
+  }
+  for (const choice of ['yes', 'no', 'abstain', 'veto'])
+    assert.equal(voteMessage('381', sender, choice).typeUrl, '/cosmos.gov.v1.MsgVote');
+  for (const choice of ['__proto__', 'unknown', null])
+    assert.throws(() => voteMessage('381', sender, choice));
+  assert.throws(() => voteMessage('18446744073709551616', sender, 'yes'));
+});

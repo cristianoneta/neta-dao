@@ -32,6 +32,12 @@ function decodeAddress(address, prefix, length) {
 export function operatorAccount(address) {
   return encodeAddress('juno', decodeAddress(address, 'junovaloper', 32));
 }
+// Native governance can include 32-byte module/contract validator accounts.
+export function governanceOperatorAccount(address) {
+  const words = decodeAddress(address, 'junovaloper', address?.length === 70 ? 52 : 32);
+  if (words.length === 52 && (words[51] & 15)) throw Error('Invalid operator address padding.');
+  return encodeAddress('juno', words);
+}
 export function validateJunoAddress(address, walletOnly = false) {
   try { decodeAddress(address, 'juno', 32); }
   catch (error) {

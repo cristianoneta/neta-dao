@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { toBech32, fromBech32 } from '../../faucet/node_modules/@cosmjs/encoding/build/index.js';
 import { mkdir, readFile } from 'node:fs/promises';
 import { GOVERNANCE_SOURCES, CHAIN_READ_PATH } from '../../governance-chain-read.mjs';
 import {
@@ -32,8 +33,13 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     holdAuthorLookup = false,
     releaseAuthorLookup;
   const author = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
-  const sponsor = 'juno1d0g7f97v87xwe6r4vr4jj3jfhzcv4vvfhamy8w';
+  const sponsor = toBech32('juno', new Uint8Array(20).fill(3));
+  const voterAccounts = [author, sponsor, toBech32('juno', new Uint8Array(20).fill(5))];
+  const voteOperators = voterAccounts.map(a => toBech32('junovaloper', fromBech32(a).data));
+  let authorChoice = 'VOTE_OPTION_YES', voteWrites = 0, lostVote = false, participationDown = false;
+  const voteTally = () => ({yes_count: authorChoice === 'VOTE_OPTION_YES' ? tallyYes : '0', no_count: String(123456n + (authorChoice === 'VOTE_OPTION_NO' ? BigInt(tallyYes) : 0n)), abstain_count: authorChoice === 'VOTE_OPTION_ABSTAIN' ? tallyYes : '0', no_with_veto_count: String(5000000n + (authorChoice === 'VOTE_OPTION_NO_WITH_VETO' ? BigInt(tallyYes) : 0n))});
   const params = {
+    quorum: '0.334', threshold: '0.5', expedited_threshold: '0.667', veto_threshold: '0.334',
     min_deposit: [{ denom: 'ujuno', amount: '5000000000' }],
     min_initial_deposit_ratio: '0.2',
     min_deposit_ratio: '0.01',
@@ -105,6 +111,15 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
           }
         };
       else if (url.pathname.includes('/params/')) body = { params };
+      else if (url.pathname === '/cosmos/staking/v1beta1/pool') body = {pool:{bonded_tokens:String(BigInt(tallyYes)+5123456n)}};
+      else if (url.pathname === '/cosmos/staking/v1beta1/validators') {
+        if (participationDown) return route.fulfill({status:503,headers,body:'No staking source'});
+        body = {validators:voteOperators.map((operator_address,i)=>({operator_address,description:{moniker:['Alpha validator','Beta validator','Veto validator'][i]},status:'BOND_STATUS_BONDED',tokens:[tallyYes,'123456','5000000'][i],delegator_shares:[tallyYes,'123456','5000000'][i]})),pagination:{next_key:null}};
+      } else if (url.pathname === '/cosmos/gov/v1/proposals/900/votes') body={votes:voterAccounts.map((voter,i)=>({proposal_id:'900',voter,options:[{option:[authorChoice,'VOTE_OPTION_NO','VOTE_OPTION_NO_WITH_VETO'][i],weight:'1'}]})),pagination:{next_key:null}};
+      else if (url.pathname.startsWith('/cosmos/staking/v1beta1/delegations/') && voterAccounts.includes(url.pathname.split('/').at(-1))) {
+        const a=url.pathname.split('/').at(-1),i=voterAccounts.indexOf(a);
+        body={delegation_responses:[{delegation:{delegator_address:a,validator_address:voteOperators[i],shares:i===0?'1000000':i===1?'123456':'5000000'}}],pagination:{next_key:null}};
+      }
       else if (url.pathname.includes('/spendable_balances/'))
         body = { balance: { denom: 'ujuno', amount: '10000000000' } };
       else if (url.pathname.includes('/module_accounts/gov'))
@@ -206,12 +221,12 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
           });
         }
         if (!txKnown) return route.fulfill({ status: 404, headers, body: 'not found' });
-        body = { tx_response: { txhash: 'B'.repeat(64), height: '42500125', code: 0 } };
+        body = { tx_response: { txhash: url.pathname.split('/').at(-1), height: '42500125', code: 0 } };
       } else if (url.pathname === '/cosmos/gov/v1/proposals/900/tally') {
         assert.equal(verifiedRead, true, 'Browser tallies must use the same-origin read bridge');
         if (holdTally) await new Promise(resolve => { releaseTally = resolve; });
         if (failTally) return route.fulfill({status:503,headers,body:'Unavailable'});
-        body = {tally:{yes_count:tallyYes,no_count:'123456',abstain_count:'0',no_with_veto_count:'5000000'}};
+        body = {tally:voteTally()};
       } else if (url.pathname === '/cosmos/gov/v1/proposals/900') body = { proposal: native };
       else if (url.pathname === '/cosmos/gov/v1/proposals') {
         // Reproduce the live Juno reverse-pagination failure. Forward reads
@@ -307,6 +322,12 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     if (contributionMode === 'lost') throw Error('Synthetic lost response');
     return { transactionHash: 'B'.repeat(64), height: 42500125, code: 0 };
   });
+  await page.exposeFunction('__nativeVote', async (id, sender, option) => {
+    assert.equal(String(id),'900'); assert.equal(sender,author); voteWrites++;
+    authorChoice = {yes:'VOTE_OPTION_YES',no:'VOTE_OPTION_NO',abstain:'VOTE_OPTION_ABSTAIN',veto:'VOTE_OPTION_NO_WITH_VETO'}[option];
+    if(lostVote) throw Error('Synthetic vote response lost');
+    return {transactionHash:'C'.repeat(64),height:42500127,code:0};
+  });
   await page.route('**/assets/names-signing.js*', (route) =>
     route.fulfill({
       contentType: 'text/javascript',
@@ -388,6 +409,13 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
           return 100000;
         },
         simulateDeposit: async () => 100000,
+        simulateVote: async () => 100000,
+        vote: async (_client, id, sender, option, _fee, guards) => {
+          await guards.beforeSign(); await guards.assertWallet();
+          if(window.__rejectVote) throw Error('Vote rejected by wallet');
+          await guards.beforeBroadcast('C'.repeat(64));
+          return window.__nativeVote(id,sender,option);
+        },
         fixedFee: () => ({ gas: '140000', amount: [{ denom: 'ujuno', amount: '10500' }] }),
         submit: async (_client, content, sender, deposit, _fee, guards) => {
           await guards.beforeSign();
@@ -721,6 +749,53 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     await shot(`native-voting-${width}`);
+  }
+  // Complete participation and direct voting share the same proposal view.
+  await wallet(author);
+  await page.locator('#gov-connect').click();
+  await page.locator('#native-participation-refresh').click();
+  await page.waitForFunction(() => document.querySelector('#native-participation-status').textContent.includes('Reconciled'));
+  assert.equal(await page.locator('#native-participation-rows tr').count(),3);
+  assert.match(await page.locator('#native-participation-metrics').textContent(),/Turnout 100.00%/);
+  await page.locator('#native-participation-search').fill('Alpha');
+  assert.equal(await page.locator('#native-participation-rows tr').count(),1);
+  await page.locator('#native-participation-search').fill('');
+  await page.locator('#native-participation-kind').selectOption('direct');
+  assert.match(await page.locator('#native-own-vote').textContent(),/Own delegated weight: 1.00 JUNO/);
+  assert.match(await page.locator('#native-participation-summary').textContent(),/3 voting addresses/);
+  await page.locator('#native-vote-choice').selectOption('no');
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(() => !document.querySelector('#native-vote-review').hidden);
+  assert.match(await page.locator('#native-vote-review-text').textContent(),/Vote: No.*Fee: 0.0105 JUNO/);
+  await page.evaluate(()=>{window.__rejectVote=true;});
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(()=>document.querySelector('#native-vote-status').textContent.includes('rejected'));
+  assert.equal(voteWrites,0);
+  await page.evaluate(()=>{window.__rejectVote=false;});
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(() => !document.querySelector('#native-vote-review').hidden);
+  lostVote=true;
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(()=>document.querySelector('#native-vote-action').textContent==='Check vote status');
+  assert.equal(voteWrites,1);
+  await page.reload(); await wallet(author); await page.locator('#gov-connect').click();
+  await page.waitForFunction(()=>document.querySelector('#native-vote-action').textContent==='Check vote status');
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(()=>document.querySelector('#native-vote-status').textContent.includes('Vote confirmed'));
+  assert.equal(voteWrites,1,'Recovery never sends a second vote'); lostVote=false;
+  await page.locator('#native-participation-refresh').click();
+  await page.waitForFunction(()=>document.querySelector('#native-own-vote').textContent.startsWith('No ·'));
+  participationDown=true;
+  await page.locator('#native-participation-refresh').click();
+  await page.waitForFunction(()=>document.querySelector('#native-participation-status').textContent.includes('unavailable'));
+  assert.equal(await page.locator('#native-participation-data').isVisible(),false);
+  participationDown=false;
+  await page.locator('#native-participation-refresh').click();
+  await page.waitForFunction(()=>document.querySelector('#native-participation-status').textContent.includes('Reconciled'));
+  for (const width of [1440,768,390,320]) {
+    await page.setViewportSize({width,height:1000});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+    await shot(`native-participation-${width}`);
   }
   assert.equal(submits, 1);
   assert.equal(

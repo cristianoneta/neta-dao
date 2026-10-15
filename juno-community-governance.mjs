@@ -78,7 +78,7 @@ export async function finalizedReview(proposal, revision, chainId = 'uni-7') {
 export async function reader(
   endpoint,
   chain,
-  { fetcher = governanceFetch, now = Date.now() } = {}
+  { fetcher = governanceFetch, now = Date.now(), requireHeight = false } = {}
 ) {
   let height;
   const get = async (path) => {
@@ -89,7 +89,7 @@ export async function reader(
     });
     if (!response.ok) throw Error(`Chain query failed (HTTP ${response.status}).`);
     const returned = response.headers.get('x-cosmos-block-height');
-    if (height && returned && returned !== height) throw Error('Chain query height mismatch.');
+    if (height && ((requireHeight && !returned) || (returned && returned !== height))) throw Error('Chain query height mismatch.');
     return response.json();
   };
   const data = await get('/cosmos/base/tendermint/v1beta1/blocks/latest');

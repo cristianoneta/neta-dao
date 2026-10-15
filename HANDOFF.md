@@ -6,7 +6,40 @@ boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
 
-## Native governance display — 15 October 2026 candidate
+## Native voting and participation — 15 October 2026 candidate
+
+One combined change adds four-choice native Juno voting and Change vote, an inline
+proposal/choice/fee review, explicit Keplr signing, two-source preflight checks and
+persistent pending-receipt recovery without resubmission. The signature adapter
+checks exact message and fee bytes and rechecks the wallet, proposal and deadline
+before broadcasting. This does not cast any vote on behalf of the owner.
+
+The same view shows turnout/quorum, regular or expedited acceptance thresholds,
+veto share, own delegated weight and inherited validator choices. Searchable,
+filterable, sortable and paginated Validators / Direct votes tables distinguish
+validator accounts from other voting addresses. Bonded stake and represented
+weight remain separate; direct delegations, including validator self-delegations,
+are deducted before validator votes are tallied. Weighted ballots retain their
+weights; the transaction form deliberately replaces the full ballot with one choice.
+
+Complete validators, votes and voter delegations are read at one header-confirmed
+height. SDK-compatible fixed-point rounding and reconciliation against the live
+four-option tally gate the detail display. Incomplete pages, missing heights and
+mismatches show unavailable, never partial totals. Reads use the narrowly extended
+same-origin allowlist, at most four concurrent voter lookups and 50 pages per list.
+The view refreshes while visible, preserves independent tally/participation errors,
+and rejects responses from earlier selections. No historical final breakdown is
+invented from current stake; final tally remains available for closed proposals.
+
+Validation: 326 Node tests and eight signing-adapter tests pass. The complete
+planner/review/funding/browser flow passes with added vote rejection, confirmed
+change, lost response/reload/status recovery, filters and unavailable-detail cases.
+Desktop/mobile screenshots at 1440/768/390/320 px inspected. A real read-only
+Proposal 381 snapshot at height 42734121 reconciled 25 bonded validators and 15
+direct voting addresses exactly with the chain tally. No real wallet write.
+Full PR CI and manual website publication remain pending for this candidate.
+
+## Previous native governance display change — 15 October 2026
 
 Fix duplicate finalized-review/native-proposal list entries through exact immutable
 content linking while keeping review history accessible. Hide the contribution
