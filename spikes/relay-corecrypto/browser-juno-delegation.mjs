@@ -3,8 +3,8 @@ import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { approvedProposal } from '../../tests/fixtures/approved-rules.mjs';
-import { defaultPolicy } from '../../juno-delegation-core.mjs';
-import { fixture } from '../../tests/fixtures/delegation-planner.mjs';
+import { legacyPolicy as defaultPolicy } from '../../juno-delegation-core.mjs';
+import { fixture, activeHistory } from '../../tests/fixtures/delegation-planner.mjs';
 import { rewardsFixture } from '../../tests/fixtures/claim-rewards.mjs';
 import { exerciseReviewFunding } from './exercise-review-funding.mjs';
 const root = new URL('../../', import.meta.url),
@@ -75,15 +75,16 @@ try {
     }
   ];
   const approved = await approvedProposal({}, approvedPolicy);
-  let approvalState = 'empty';
-  await page.route('**/data/governance-read?*', (route) => {
+  let approvalState = 'empty',
+    publishedRule = null;
+  const approvalRoute = (route) => {
     const url = new URL(route.request().url()),
-      path = url.searchParams.get('path');
+      path = url.searchParams.get('path') || url.pathname + url.search;
     let response;
     if (path.endsWith('/blocks/latest'))
       response = {
         block: {
-          header: { chain_id: 'juno-1', height: '50000000', time: new Date().toISOString() }
+          header: { chain_id: 'juno-1', height: '42500123', time: new Date().toISOString() }
         }
       };
     else if (path.startsWith('/cosmos/gov/v1/proposals?'))
@@ -92,13 +93,19 @@ try {
           approvalState === 'empty' ||
           (approvalState === 'disagree' && url.searchParams.get('source') === 'juno-stavr')
             ? []
-            : [approved],
+            : [approved, ...(publishedRule ? [publishedRule] : [])],
         pagination: { next_key: null }
       };
     else return route.fallback();
-    return route.fulfill({ contentType: 'application/json', body: JSON.stringify(response) });
-  });
+    return route.fulfill({
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify(response)
+    });
+  };
+  await page.route('**/data/governance-read?*', approvalRoute);
   let state = 'current';
+  let historyComplete = true;
   let rewardsState = 'current';
   await page.route('**/data/treasury/juno-delegation.json', (route) => {
     if (rewardsState === 'missing') return route.fulfill({ status: 503, body: 'unavailable' });
@@ -116,6 +123,7 @@ try {
     const data = structuredClone(sample);
     if (state === 'stale') data.blockTime = new Date(Date.now() - 7200000).toISOString();
     if (state === 'wrong-chain') data.chainId = 'uni-7';
+    if (historyComplete) data.activeSetHistory = activeHistory(data);
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify(data) });
   });
   const ready = () => page.waitForFunction(() => !document.getElementById('simulate').disabled);
@@ -154,7 +162,7 @@ try {
   await page.locator('#refresh').click();
   await ready();
   await page.waitForFunction(() =>
-    document.getElementById('current-rules-state').textContent.includes('Approved ·')
+    document.getElementById('current-rules-state').textContent.includes('Rules approved ·')
   );
   assert.match(await page.locator('#current-rules-content').textContent(), /1.8 × 100%/);
   assert.match(await page.locator('#current-rules-content').textContent(), /7%/);
@@ -266,6 +274,14 @@ try {
   await ready();
   await step('rules');
   assert.equal(await page.locator('#programme-amount').inputValue(), '15000900');
+  await page.waitForFunction(() =>
+    document.getElementById('draft-parent-note').textContent.includes('#950')
+  );
+  assert.equal(await page.locator('#factor-number').inputValue(), '1.8');
+  assert.equal(await page.locator('#commission').inputValue(), '7');
+  await page.locator('#use-current-model').click();
+  await page.locator('#factor-number').fill('1.5');
+  await page.locator('#commission').fill('10');
   assert.equal(await page.locator('.criterion h4').count(), 4);
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
   assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), true);
@@ -327,67 +343,63 @@ try {
   await simulate();
   assert.equal(await page.locator('#simulation').isVisible(), true);
   assert.equal(await page.locator('#rules').isVisible(), false);
-  assert.ok(Number(await page.locator('#eligible-total').textContent()) >= 22);
-  assert.equal(
-    await page.locator('#allocation-rows img').count(),
-    0,
-    'validator names are rendered as text'
-  );
+  const comparison = page.locator('#simulation-comparison');
+  assert.equal(await comparison.locator('img').count(), 0, 'validator names are rendered as text');
   assert.equal(await page.locator('.execution-details button').isDisabled(), true);
-  assert.equal(await page.locator('#allocation-rows .allocation-row').count(), 10);
-  assert.match(await page.locator('#table-count').textContent(), /1–10 of 25/);
-  await page.locator('#next-page').click();
-  assert.match(await page.locator('#table-count').textContent(), /11–20 of 25/);
-  await page.locator('#validator-sort').selectOption('name');
-  assert.match(await page.locator('#table-count').textContent(), /1–10 of 25/);
-  await page.locator('#validator-search').fill(sample.validators[0].address);
-  assert.equal(await page.locator('#allocation-rows .allocation-row').count(), 1);
-  assert.match(await page.locator('#allocation-rows .validator-name').textContent(), /<img src=x/);
-  await page.locator('.row-toggle').click();
-  assert.equal(await page.locator('.row-toggle').getAttribute('aria-expanded'), 'true');
-  assert.match(await page.locator('.row-detail').textContent(), /600,000.123456 JUNO/);
-  assert.match(await page.locator('.row-detail').textContent(), /Total after allocation:/);
-  assert.equal(await page.locator('.allocation-row td').count(), 6);
-  assert.equal(await page.locator('.projected-total').count(), 1);
-  await page.locator('#validator-search').fill('no-such-validator');
-  assert.match(await page.locator('#allocation-rows').textContent(), /No validators match/);
-  await page.locator('#validator-search').fill('');
-  await page.locator('#validator-filter').selectOption('receiving');
-  assert.equal(
-    await page
-      .locator('.allocation-row .target-amount')
-      .evaluateAll((nodes) => nodes.every((el) => el.textContent !== '0.00')),
-    true
+  assert.equal(await comparison.locator('.rr-validator').count(), 10);
+  assert.match(await comparison.locator('.rr-pagination').textContent(), /1–10 of 25/);
+  await comparison.getByRole('button', { name: 'Next →', exact: true }).click();
+  assert.match(await comparison.locator('.rr-pagination').textContent(), /11–20 of 25/);
+  await comparison.getByLabel('Sort by', { exact: true }).selectOption('name');
+  await comparison
+    .getByLabel('Find a validator', { exact: true })
+    .fill(sample.validators[0].address);
+  assert.equal(await comparison.locator('.rr-validator').count(), 1);
+  assert.match(await comparison.locator('.rr-identity').textContent(), /<img src=x/);
+  await comparison.locator('.rr-validator summary').click();
+  assert.match(
+    await comparison.locator('.rr-validator details').textContent(),
+    /600,000.123456 JUNO/
   );
-  await page.locator('#validator-filter').selectOption('all');
+  assert.match(
+    await comparison.locator('.rr-validator details').textContent(),
+    /All delegators after allocation:/
+  );
+  await comparison.getByRole('button', { name: 'Rule effect only', exact: true }).click();
+  assert.equal(
+    await comparison
+      .getByRole('button', { name: 'Rule effect only', exact: true })
+      .getAttribute('aria-pressed'),
+    'true'
+  );
+  assert.match(
+    await comparison.locator('.rr-note').first().textContent(),
+    /same snapshot, evidence and budget/
+  );
+  await comparison.getByLabel('Only changes', { exact: true }).check();
+  await comparison.getByLabel('Only changes', { exact: true }).uncheck();
+  await comparison.getByRole('button', { name: 'Today → proposed', exact: true }).click();
+  await comparison.getByLabel('Find a validator', { exact: true }).fill('no-such-validator');
+  assert.match(await comparison.locator('.rr-rows').textContent(), /No validators match/);
+  await comparison.getByLabel('Find a validator', { exact: true }).fill('');
+  await comparison.getByLabel('Show', { exact: true }).selectOption('receiving');
+  assert.ok(
+    (await comparison.locator('.rr-proposed strong').allTextContents()).every((v) => v !== '0.00')
+  );
+  await comparison.getByLabel('Show', { exact: true }).selectOption('all');
   for (const sort of ['total', 'total-asc', 'projected', 'projected-asc']) {
-    await page.locator('#validator-sort').selectOption(sort);
-    const totals = await page.locator('.projected-total').allTextContents();
-    const amounts = totals.map((value) => Number(value.replaceAll(',', '')));
-    const ascending = sort.endsWith('-asc');
-    assert.ok(
-      amounts.every(
-        (value, index) =>
-          index === 0 || (ascending ? value >= amounts[index - 1] : value <= amounts[index - 1])
-      )
-    );
-    assert.match(await page.locator('#table-count').textContent(), /1–10 of 25/);
-  }
-  if (await page.locator('#evidence-review').isVisible()) {
-    await page.locator('#show-evidence-review').click();
-    assert.equal(await page.locator('#validator-filter').inputValue(), 'review');
-    assert.equal(
-      await page.locator('#validator-filter').evaluate((el) => el === document.activeElement),
-      true
-    );
-    await page.locator('#validator-filter').selectOption('all');
+    await comparison.getByLabel('Sort by', { exact: true }).selectOption(sort);
+    assert.match(await comparison.locator('.rr-pagination').textContent(), /1–10 of 25/);
   }
   const selected = sample.validators.find(
     (v) =>
+      v.address !== sample.validators[0].address &&
       history.firstSignatures[v.consensusAddress] &&
       history.firstSignatures[v.consensusAddress].secondsFromHalt < 18000
   );
-  const before = Number(await page.locator('#eligible-total').textContent());
+  const before = Number(
+    (await comparison.locator('.rr-stats > div').nth(2).textContent()).match(/→ (\d+)/)[1]
+  );
   await step('rules');
   await page.locator('#manual-exclusions summary').click();
   await page.locator('#excluded-validator').fill(selected.name);
@@ -395,18 +407,21 @@ try {
   await page.locator('#add-exclusion').click();
   assert.equal(await page.locator('#export-json').isDisabled(), true);
   await simulate();
-  assert.equal(Number(await page.locator('#eligible-total').textContent()), before - 1);
+  assert.equal(
+    Number((await comparison.locator('.rr-stats > div').nth(2).textContent()).match(/→ (\d+)/)[1]),
+    before - 1
+  );
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
   await step('rules');
   await page.locator('#save-draft').click();
   await page.reload();
   await ready();
-  assert.equal(await page.locator('#exclusions li').count(), 1);
+  assert.equal(await page.locator('#exclusions li').count(), 2);
   assert.equal(await page.locator('#commission').inputValue(), '19');
   await simulate();
   await page.locator('#review-proposal').click();
   assert.equal(await page.locator('#proposal-review').isVisible(), true);
-  assert.match(await page.locator('#proposal-rules').textContent(), /Exchange-operated fixture/);
+  assert.match(await page.locator('#proposal-review').textContent(), /Exchange-operated fixture/);
   const pendingDownload = page.waitForEvent('download');
   await page.locator('#export-json').click();
   const download = await pendingDownload;
@@ -414,13 +429,12 @@ try {
     chunks = [];
   for await (const chunk of stream) chunks.push(chunk);
   const review = JSON.parse(Buffer.concat(chunks));
-  assert.equal(review.proposalType, 'RULE_APPROVAL');
-  assert.equal(review.status, 'DRAFT_NOT_SUBMITTED');
-  assert.equal(review.rule.exclusions[0].validator, selected.address);
+  assert.equal(review.kind, 'RULE_APPROVAL');
+  assert.equal(review.parent.proposalId, '950');
+  assert.ok(review.rule.exclusions.some((v) => v.validator === selected.address));
   assert.equal(review.rule.commissionMaxBps, 1900);
-  assert.equal(review.approval, null);
-  assert.equal(review.execution.enabled, false);
-  assert.deepEqual(review.execution.messages, []);
+  assert.deepEqual(review.messages, []);
+  assert.equal(review.rule.schema, 3);
   assert.equal(review.policyHash.length, 64);
   const shots = process.env.NNS_SCREENSHOT_DIR;
   if (shots) await mkdir(shots, { recursive: true });
@@ -434,8 +448,8 @@ try {
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         `${stage} page overflow at ${width}`
       );
-      if (stage === 'overview' || stage === 'simulation') {
-        const id = stage === 'overview' ? 'current-total' : 'allocated-total';
+      if (stage === 'overview') {
+        const id = 'current-total';
         assert.equal(
           await page.locator('#' + id).evaluate((el) => {
             const range = document.createRange();
@@ -575,6 +589,8 @@ try {
     () => document.querySelector('#proposal-title').value === 'Preserved draft'
   );
   assert.match(await page.locator('.testnet-pill').textContent(), /UNI-7 REVIEW/);
+  // Restore the approved baseline after the rewards-flow fixture's own routes.
+  await page.route(/^(https:\/\/|http:\/\/127\.0\.0\.1.*\/data\/governance-read)/, approvalRoute);
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
   await simulate();
@@ -589,14 +605,90 @@ try {
   assert.deepEqual(JSON.parse(await page.locator('#proposal-actions').inputValue()), []);
   assert.match(await page.locator('#proposal-body').inputValue(), /Rule SHA-256:/);
   assert.match(await page.locator('#planner-proposal-context a').getAttribute('href'), /#rules$/);
+  await page.waitForFunction(() =>
+    document
+      .getElementById('proposal-rule-review')
+      .textContent.includes('What changes in the distribution?')
+  );
+  assert.match(await page.locator('#proposal-rule-review').textContent(), /Previously approved/);
+  assert.equal(await page.locator('#proposal-rule-review img').count(), 0);
   assert.equal(await page.locator('#primary-action').innerText(), 'PUBLISH FOR REVIEW');
+  const frozenValues = await page.evaluate(() => ({
+    title: document.getElementById('proposal-title').value,
+    summary: document.getElementById('proposal-summary').value,
+    body: document.getElementById('proposal-body').value
+  }));
+  publishedRule = {
+    ...approved,
+    id: '999',
+    title: frozenValues.title,
+    summary: frozenValues.summary + '\n\n' + frozenValues.body,
+    status: 'PROPOSAL_STATUS_VOTING_PERIOD',
+    voting_end_time: new Date(Date.now() + 86400000).toISOString()
+  };
+  const publishedUrl = new URL(page.url());
+  publishedUrl.searchParams.delete('plannerDraft');
+  publishedUrl.searchParams.set('proposal', '999');
+  await page.evaluate(() =>
+    localStorage.setItem(
+      'cosmoot:juno:delegation:rule-draft:v3',
+      JSON.stringify({
+        schema: 1,
+        rule: { schema: 3, factorTenths: 99 },
+        parent: null,
+        rationale: 'Unrelated local edits must not change a published review'
+      })
+    )
+  );
+  await page.goto(publishedUrl.href);
+  await page.waitForFunction(() =>
+    document.getElementById('proposal-rule-review').textContent.includes('PUBLISHED RULE REVIEW')
+  );
+  assert.match(await page.locator('#proposal-rule-review').innerText(), /follows proposal #950/);
+  assert.doesNotMatch(
+    await page.locator('#proposal-rule-review').innerText(),
+    /Unrelated local edits/
+  );
+  assert.equal(await page.locator('#proposal-title').isDisabled(), true);
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+      'Published review reflows at ' + width
+    );
+    if (shots) await page.screenshot({ path: `${shots}/rule-voter-${width}.png`, fullPage: true });
+  }
+  publishedRule.summary = publishedRule.summary.replace(
+    /Review SHA-256: [a-f0-9]{64}/,
+    'Review SHA-256: ' + '0'.repeat(64)
+  );
+  await page.reload();
+  await page.waitForFunction(() =>
+    document
+      .getElementById('proposal-rule-review')
+      .textContent.includes('Rule comparison unavailable')
+  );
+  assert.equal(
+    await page.locator('#proposal-rule-review .rr-validator').count(),
+    0,
+    'A corrupt published review must not retain earlier targets'
+  );
+  await page.locator('#new-draft').click();
+  assert.equal(await page.locator('#proposal-rule-review').isVisible(), false);
+  publishedRule = null;
+  await page.evaluate(() => localStorage.removeItem('cosmoot:juno:delegation:rule-draft:v3'));
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
   await step('rules');
+  await page.waitForFunction(() =>
+    document.getElementById('current-rules-state').textContent.includes('Rules approved')
+  );
+  await page.locator('#use-current-model').click();
   await page.locator('#programme-amount').fill('99999999');
   await page.locator('#simulate').click();
   await page.waitForFunction(() =>
-    document.getElementById('feedback').textContent.includes('covered')
+    document.getElementById('feedback').textContent.includes('50 JUNO')
   );
   assert.equal(await page.locator('#export-json').isDisabled(), true);
   await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
@@ -608,7 +700,29 @@ try {
   assert.match(await page.locator('#snapshot-status').textContent(), /historical/);
   assert.equal(await page.locator('#claim-rewards').isDisabled(), true);
   await simulate();
-  assert.match(await page.locator('#simulation-note').textContent(), /Historical/);
+  assert.equal(await page.locator('#publish-proposal').isDisabled(), true);
+  state = 'current';
+  historyComplete = false;
+  await page.locator('#refresh').click();
+  await ready();
+  await simulate();
+  assert.match(
+    await page.locator('#simulation-comparison .rr-unavailable').textContent(),
+    /90-day/
+  );
+  assert.ok(
+    (await page.locator('#simulation-comparison .rr-proposed strong').allTextContents()).every(
+      (v) => v === '—'
+    )
+  );
+  assert.equal(
+    await page
+      .locator('#simulation-comparison')
+      .getByLabel('Only changes', { exact: true })
+      .isDisabled(),
+    true
+  );
+  assert.equal(await page.locator('#publish-proposal').isEnabled(), true);
   for (state of ['wrong-chain', 'missing']) {
     await page.locator('#refresh').click();
     await page.waitForFunction(

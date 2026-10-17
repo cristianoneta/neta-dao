@@ -434,7 +434,8 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
     }, address);
   const primary = (text) =>
     page.waitForFunction(
-      (text) => document.querySelector('#primary-action').textContent === text,
+      (text) => !!document.querySelector('#gov-connect').onclick &&
+        document.querySelector('#primary-action').textContent === text,
       text
     );
   const shot = async (name) => {

@@ -1,10 +1,35 @@
 # Cosmoot public handoff
 
-Updated 15 October 2026. This file contains public project status and development
+Updated 17 October 2026. This file contains public project status and development
 boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 [documentation policy](docs/DOCUMENTATION_PRIVACY.md) and applicable AGENTS.md.
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
+
+## Rule changes and frozen impact review — 17 October 2026 candidate
+
+PR #295 now carries the implemented rule-change review: exact old/new values,
+initial adoption without fabricated prior rules, actual-to-target and same-input
+old-policy-to-new-policy comparisons, exact deltas and per-validator reasons.
+Author and voter share a renderer. The proposal embeds sufficient observations and
+results; hash and reproducibility checks reject altered or unavailable packages.
+Published views use stored proposal content, never a local draft.
+
+Drafts retain their approved parent. Preparation, publication/revision and review
+finalization recheck it. Policy schema 3 implements continuous 90-day active-set
+eligibility; historical schema 2 keeps its original meaning. Missing history keeps
+new targets unavailable while preserving actual holdings and rule review. A
+read-only archive exporter is opt-in; no server change was installed here.
+
+Rule approval contains no execution messages. The future allocation entry remains
+disabled until exact-plan approval, verified authority and transaction checks are
+implemented. No real proposal, vote or redistribution was submitted. This candidate
+has not been released. See [rule-change design and implementation](docs/DELEGATION_RULE_CHANGE_UX.md) and
+[example-data browser frames](docs/DELEGATION_PRODUCT_DESIGN.md).
+
+Local validation: 340 Node tests and 164 Python tests pass. Full planner/review/
+funding/voting browser checks, repository/build checks and PR CI are recorded in
+the associated PR; production publication remains a separate manual step.
 
 ## Delegation product design — 15 October 2026 candidate
 

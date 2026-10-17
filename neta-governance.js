@@ -27,6 +27,46 @@
   const { normalizeNativeProposal, linkedNativeId, readNativeVoting, formatVoteAmount } =
     await import('./native-governance-display.mjs');
   const { displayJuno } = await import('./juno-governance-core.mjs');
+  const { readProposalReview } = await import('./juno-delegation-review.mjs');
+  const { renderRuleReview } = await import('./juno-rule-review-view.mjs');
+  let frozenViewEpoch = 0;
+  async function renderFrozenValues(v, editing = false) {
+    const epoch = ++frozenViewEpoch,
+      host = document.querySelector('#proposal-rule-review');
+    host.replaceChildren();
+    host.hidden = true;
+    if (!v.body?.includes('## Frozen allocation review') && !/"schema"\s*:\s*3/.test(v.body || ''))
+      return;
+    host.hidden = false;
+    host.textContent = 'Verifying the frozen rule comparison…';
+    try {
+      const frozen = await readProposalReview(v);
+      if (epoch !== frozenViewEpoch) return;
+      host.hidden = !frozen;
+      if (frozen)
+        renderRuleReview(host, frozen, {
+          scope: !editing && state.selected ? 'published' : 'draft'
+        });
+    } catch (error) {
+      if (epoch !== frozenViewEpoch) return;
+      host.textContent = 'Rule comparison unavailable: ' + error.message;
+    }
+  }
+  async function verifyFrozenAction(values) {
+    const context = reviewContext();
+    const frozen = await readProposalReview(values);
+    if (frozen) {
+      const { currentApprovedRules } = await import('./juno-approved-rules.mjs');
+      const { parentMatches } = await import('./juno-delegation-review.mjs');
+      const approved = await currentApprovedRules();
+      if (!parentMatches(frozen.value.parent, approved.current))
+        throw Error(
+          'The approved rules changed after this comparison was prepared. Return to the planner and prepare a new comparison.'
+        );
+    }
+    context.assert();
+  }
+
   let votingEpoch = 0,
     votingRequest = null;
   let authorRenderer;
@@ -965,6 +1005,7 @@
     };
   }
   function setValues(v = {}) {
+    void renderFrozenValues(v);
     $('#proposal-title').value = v.title || '';
     $('#proposal-summary').value = v.summary || '';
     $('#proposal-body').value = v.body || '';
@@ -981,6 +1022,17 @@
     renderDeliverables();
     renderAccounting();
   }
+  for (const id of ['proposal-title', 'proposal-summary', 'proposal-body', 'proposal-actions'])
+    document.getElementById(id).addEventListener('input', () => {
+      void renderFrozenValues(
+        {
+          title: $('#proposal-title').value,
+          body: $('#proposal-body').value,
+          actions_json: $('#proposal-actions').value
+        },
+        true
+      );
+    });
   function validate(v) {
     if (v.title.length < 3) throw new Error('TITLE MUST CONTAIN AT LEAST 3 CHARACTERS');
     if (!v.summary) throw new Error('SUMMARY IS REQUIRED');
@@ -993,6 +1045,10 @@
     }
     if (!Array.isArray(actions)) throw new Error('ACTIONS MUST BE A JSON ARRAY');
     if (isNativeReview()) {
+      if (new TextEncoder().encode(`${v.summary.trim()}\n\n${v.body.trim()}`).length > 10000)
+        throw new Error(
+          'On-chain proposal text exceeds 10,000 bytes. Shorten the text or prepare a smaller frozen comparison; do not remove its data.'
+        );
       for (const [field, max] of [
         ['title', 100],
         ['summary', 300],
@@ -1586,6 +1642,7 @@
       daoId = state.dao.id,
       found = state.proposals.find((p) => p.id === Number(id));
     if (!found) return;
+    void renderFrozenValues({});
     sharedFinal = null;
     plannerGov.invalidate();
     funding.invalidate();
@@ -2366,6 +2423,7 @@
               $('#proposal-body').value = v.body;
             }
             validate(v);
+            if (native) await verifyFrozenAction(v);
             if (native && !CONTRACT) await deployNativeReview();
             const author = state.address;
             const before = native
@@ -2433,9 +2491,15 @@
             return 'Published for community review. You can now discuss and revise this proposal.';
           } else {
             const id = state.selected.id;
-            if (native)
+            if (native) {
+              const version = state.selected.current_revision;
+              const stored = state.revisions.find((r) => r.revision === version);
+              if (!stored) throw Error('The selected revision is unavailable. Reload the review.');
+              const exact = { ...stored, title: state.selected.title };
+              validate(exact);
+              await verifyFrozenAction(exact);
               await execute(
-                { finalize: { proposal_id: id, version: state.selected.current_revision } },
+                { finalize: { proposal_id: id, version } },
                 'Juno Governance finalize review',
                 async () => {
                   const p = await query({ proposal: { proposal_id: id } });
@@ -2444,7 +2508,7 @@
                   );
                 }
               );
-            else
+            } else
               await execute(
                 { finalize_and_submit: { proposal_id: id } },
                 'NETA Governance finalize proposal',
@@ -2484,6 +2548,7 @@
       native = isNativeReview(),
       success = await run($('#confirm-revision'), async () => {
         validate(v);
+        if (native) await verifyFrozenAction(v);
         if (native)
           await execute(
             { add_revision: { proposal_id: id, content: v, change_log: change_note } },

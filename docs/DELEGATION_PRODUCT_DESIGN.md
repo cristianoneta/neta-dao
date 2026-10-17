@@ -8,8 +8,10 @@ features. This change reorganizes that core and preserves its calculation,
 governance and transaction boundaries.
 
 17 October follow-up: [rule changes, impact comparison and allocation approval](DELEGATION_RULE_CHANGE_UX.md)
-specifies the proposed first-adoption and future governance flow. It is a design
-proposal; the new comparison package and execution integration are not implemented.
+documents the implemented first-adoption, rule-diff and immutable author/voter
+comparison candidate. It preserves historical policy semantics and leaves future
+allocation execution disabled. The following diagnosis describes the original
+15 October redesign; the follow-up supersedes its comparison-table layout.
 
 ## Diagnosis
 
@@ -57,7 +59,8 @@ separate decisions.
   labelled disclosures. Existing disabled controls, weights and evidence remain.
 - The simulation emphasizes proposed amounts and exceptions before the comparison.
   Search, filtering, sorting, pagination and row evidence keep their existing
-  behavior. Six columns remain available in a labelled scroll region on mobile.
+  behavior. The 17 October shared comparison stacks labelled Current / Proposed /
+  Change values on mobile; network totals and exact amounts remain in row details.
 - Proposal review separates proposed policy from illustrative allocation amounts.
   “Open proposal draft” accurately describes the handoff. Signing and execution
   are not implied by planning buttons.
@@ -106,3 +109,15 @@ Before judging the redesign with real users, ask an observer to identify holding
 and spendable funds, ask a proposer to change a rule and explain its impact, and ask
 a reviewer to distinguish rule approval from execution. These are proposed research
 tasks, not completed testing or a request for additional product features.
+
+## Rule-change implementation frames — 17 October
+
+These are captures of the actual candidate with labelled synthetic validators,
+approval and complete history, not live target allocations.
+
+| View | Desktop | Mobile |
+| --- | --- | --- |
+| Rule changes and prior values | [Preview](design/delegation-rule-changes-desktop.webp) | Covered by browser regression |
+| Actual holdings → proposed | [Preview](design/delegation-rule-impact-desktop.webp) | [Preview](design/delegation-rule-impact-mobile.webp) |
+| Isolated policy effect | [Preview](design/delegation-rule-effect-desktop.webp) | Same reflowing component |
+| Full proposal review | [Preview](design/delegation-rule-proposal-desktop.webp) | Covered by browser regression |

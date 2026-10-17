@@ -4,6 +4,23 @@
 acceptance are separate from source integration. No frontend or allocation gate
 is enabled by collecting these observations.
 
+## Planner integration candidate — 17 October 2026
+
+Policy schema 3 now requires a complete immediately preceding 90-day roster window
+for illustrative targets. Schema 2 preserves its original standby eligibility.
+`scripts/update_delegation_planner.py --history-db <archive>` can optionally embed
+compact roster spans from `scripts/validator_active_set.py`. The exporter opens the
+archive read-only, checks a contiguous hash-linked window and exact snapshot
+height/time/current roster, and has bounded runtime/transition count. It never
+writes an eligibility verdict or modifies collector state.
+
+The frontend checks span continuity, current roster and exact temporal coverage.
+Missing/incomplete history leaves proposed amounts unavailable. It does not hide
+actual holdings or prevent review of rule text. These are provider observations,
+not independent history or execution authority proofs. The archive started on
+14 October; this implementation does not establish an earlier 90-day window.
+Server installation/configuration is separate and was not performed by this change.
+
 ## Owner decisions
 
 Complete the Juno Delegation Programme before DEX, token creation and launch work.
@@ -12,8 +29,8 @@ immediately preceding 90 days**. This supersedes the earlier plan to include
 standby validators brought into the set by the proposed allocation. V2 additionally
 requires at least 95% participation over that same window and no jail episode.
 Current jailed/tombstoned exclusions and the other approved planning constraints
-remain. These decisions are not yet implemented in the allocation policy schema;
-existing saved rules must not be silently reinterpreted or approved.
+remain. The 17 October candidate versions V1 as schema 3; V2 remains planned.
+Existing saved rules must not be silently reinterpreted or approved.
 
 The SDK `AfterValidatorBonded` hook resets `SigningInfo.StartHeight` on reentry.
 This is a useful V1 input, not a validator creation date. Zero heights, changes

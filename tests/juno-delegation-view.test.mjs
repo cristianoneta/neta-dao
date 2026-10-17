@@ -8,7 +8,7 @@ import {
   rowStatus,
   allocationReason
 } from '../juno-delegation-view.mjs';
-import { defaultPolicy, simulate, amount } from '../juno-delegation-core.mjs';
+import { legacyPolicy as defaultPolicy, simulate, amount } from '../juno-delegation-core.mjs';
 import { fixture, observed } from './fixtures/delegation-planner.mjs';
 
 test('rounded amounts distinguish micro-unit changes and preserve exact large values', () => {

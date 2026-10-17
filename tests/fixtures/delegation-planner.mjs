@@ -34,3 +34,11 @@ export function observed(s) {
     )
   };
 }
+// Synthetic, complete evidence for tests only. Not a production history claim.
+export function activeHistory(s, days = 90) {
+  return { schema: 1, chainId: 'juno-1', source: 'https://history.example.org', spans: [{
+    firstHeight: s.height - 3200000, lastHeight: s.height,
+    startTime: new Date(Date.parse(s.blockTime) - days * 86400000).toISOString(),
+    endTime: s.blockTime, addresses: s.validators.filter((v) => v.active).map((v) => v.consensusAddress)
+  }] };
+}

@@ -1,5 +1,19 @@
 # NETA DAO design system
 
+## Rule and impact comparison — 17 October 2026 candidate
+
+Use the same `juno-rule-review-view.mjs` component in author and voter views.
+Lead with the decision and no-execution scope, then changed fields with labelled
+previous/proposed values, then distribution impact. Keep unchanged criteria and
+exact data in disclosures. Initial adoption has no previous approved values.
+
+The default compares actual holdings with the proposed target. A single alternative
+isolates policy effects on identical observations and budget. Neutral ticks and mint
+bars share a scale; adjacent numbers and signs carry meaning without color.
+Mobile stacks labels and values, never hides held outside-set positions and never
+turns missing evidence into zero. “Only changes” uses exact amounts, not rounding.
+Approved rules and an approved executable allocation remain distinct states.
+
 ## Delegation product hierarchy — redesign candidate, 15 October 2026
 
 The owner requested a critical redesign of the existing delegation core, with no

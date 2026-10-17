@@ -16,9 +16,10 @@
     <link rel="stylesheet" href="/neta-ui.css" />
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
-    <link rel="stylesheet" href="/juno-delegation.css?v=7" />
-    <script type="module" src="/juno-delegation.mjs?v=7"></script>
-  </head>
+    <link rel="stylesheet" href="/juno-delegation.css?v=8" />
+    <script type="module" src="/juno-delegation.mjs?v=8"></script>
+    <link rel="stylesheet" href="/juno-rule-review.css?v=20261017-1" />
+</head>
   <body>
     <a class="planner-skip" href="#planner-heading">Skip to planner</a>
     <header class="gov-header faucet-header delegation-header">
@@ -68,7 +69,7 @@
         <div class="section-heading overview-heading">
           <h2 id="overview-title" tabindex="-1">The programme today</h2>
           <a class="action-link primary-action" href="#rules" data-step="rules"
-            >Plan an allocation <span aria-hidden="true">→</span></a
+            >Propose initial rules <span aria-hidden="true">→</span></a
           >
         </div>
         <p class="overview-intro">Current allocations and rewards, before any proposed changes.</p>
@@ -202,6 +203,12 @@
                 <p>Checking Juno governance for approved programme rules…</p>
               </div>
             </article>
+            <article class="planner-card" id="approved-allocation-next" hidden>
+              <p class="eyebrow">AFTER RULE APPROVAL</p><h3>Prepare a separate allocation</h3>
+              <p id="approved-allocation-reference"></p>
+              <button type="button" disabled>Prepare allocation proposal</button>
+              <p class="field-help">Not yet available. This needs programme execution authority, fresh movement constraints and approval of the exact transactions. Approval of rules alone cannot move funds.</p>
+            </article>
             <article class="planner-card next-allocation">
               <p class="eyebrow">PLANNING WORKFLOW</p>
               <h3>Plan the next allocation</h3>
@@ -252,7 +259,7 @@
             <article class="planner-card eligibility-overview">
               <div class="policy-heading">
                 <h3>A · Eligibility</h3>
-                <span class="state-pill live">V1 · Available</span>
+                <span class="state-pill neutral">V1 · evidence required</span>
               </div>
               <p>
                 Decide which validators qualify before any future points are assigned. Current V1
@@ -265,8 +272,8 @@
                   <div>
                     <dt>Validator status</dt>
                     <dd>
-                      Non-jailed validators; consensus membership is shown separately. Current
-                      operation outside the active set is not independently verified.
+                      90 continuous days in the active set, with no current jail. Complete history
+                      must cover the immediately preceding window.
                     </dd>
                   </div>
                   <div>
@@ -337,6 +344,7 @@
         <p class="section-description">
           Choose the budget and limits. You can compare the outcome before sharing anything.
         </p>
+        <div id="draft-parent-notice" aria-live="polite"><p id="draft-parent-note">Checking the approved baseline…</p><button id="adopt-current-rules" type="button" hidden>Start from current approved rules</button><button id="use-current-model" type="button" hidden>Propose the 90-day eligibility model</button></div>
         <div class="rules-workspace">
           <div class="rules-form">
             <article class="planner-card allocation-settings">
@@ -362,7 +370,7 @@
             <article class="planner-card eligibility-rules">
               <div class="policy-heading">
                 <h3>Validator eligibility</h3>
-                <span class="state-pill live">V1 · Available</span>
+                <span class="state-pill neutral">V1 · evidence required</span>
               </div>
               <p>
                 These checks decide who can receive an allocation. The voting-power limit also caps
@@ -373,11 +381,10 @@
                 <section class="criterion" aria-labelledby="status-criterion">
                   <h4 id="status-criterion"><span>1</span> Validator status</h4>
                   <p>
-                    Non-jailed validators may qualify. Only validators in the simulated active set
-                    receive a target allocation.
+                    <span id="draft-eligibility-description">90 continuous days in the active set; currently not jailed.</span>
                   </p>
                   <p class="field-help">
-                    Current operation outside the active set is not independently verified.
+                    Incomplete history keeps the target unavailable. Existing positions outside the set stay visible.
                   </p>
                 </section>
                 <section class="criterion" aria-labelledby="power-criterion">
@@ -495,7 +502,7 @@
           </div>
           <aside class="planner-card draft-summary" aria-label="Your allocation draft">
             <p class="eyebrow">YOUR DRAFT</p>
-            <h3>Equal allocation</h3>
+            <h3>Equal allocation</h3><p id="draft-change-count"></p>
             <p>Eligible validators share the budget, within the voting-power limit.</p>
             <dl class="draft-facts">
               <div>
@@ -515,8 +522,8 @@
                 <dd id="draft-exclusions">None</dd>
               </div>
             </dl>
-            <button id="simulate" class="primary-action" type="button" disabled>
-              Simulate distribution →
+            <label for="rule-rationale">Why this change? <small>Optional</small></label><textarea id="rule-rationale" maxlength="1000" rows="3" placeholder="Explain the decision to voters"></textarea><button id="simulate" class="primary-action" type="button" disabled>
+              Review rules &amp; impact →
             </button>
             <p class="field-help">
               Next: compare current and proposed allocations. No wallet connection required.
@@ -544,104 +551,7 @@
           <p id="rule-summary">Review the draft rules before simulating.</p>
           <a href="#rules" data-step="rules">Edit rules or amount</a>
         </div>
-        <div class="metrics">
-          <article>
-            <span>Proposed allocation</span><strong id="allocated-total">—</strong
-            ><small>JUNO</small>
-          </article>
-          <article>
-            <span>Receiving validators</span><strong id="recipient-total">—</strong
-            ><small
-              ><span id="eligible-total">—</span> eligible ·
-              <span id="active-total">Active set pending</span></small
-            >
-          </article>
-          <article>
-            <span>Unallocated funds</span><strong id="unallocated-total">—</strong
-            ><small>JUNO</small>
-          </article>
-        </div>
-        <div id="evidence-review" class="review-notice" hidden>
-          <p id="evidence-review-text"></p>
-          <button id="show-evidence-review" type="button">View cases</button>
-        </div>
-        <p id="allocation-explanation" class="allocation-explanation">
-          Set the rules and simulate to see who would receive funds.
-        </p>
-        <p id="simulation-note" class="field-help">
-          This is a target distribution, not an immediate redelegation transaction.
-        </p>
-        <div class="comparison-heading">
-          <h3>Validator comparison</h3>
-          <span>Current → proposed · JUNO</span>
-        </div>
-        <div class="table-toolbar">
-          <div>
-            <label for="validator-search">Find a validator</label
-            ><input id="validator-search" type="search" placeholder="Name or validator address" />
-          </div>
-          <div>
-            <label for="validator-filter">Show</label
-            ><select id="validator-filter">
-              <option value="all">All validators</option>
-              <option value="receiving">Receiving an allocation</option>
-              <option value="cap">Limited by voting power</option>
-              <option value="review">Evidence review required</option>
-              <option value="excluded">Not eligible</option>
-              <option value="inactive">Jailed</option>
-              <option value="standby">Outside consensus set · not jailed</option>
-            </select>
-          </div>
-          <div>
-            <label for="validator-sort">Sort by</label
-            ><select id="validator-sort">
-              <option value="change">Largest change first</option>
-              <option value="name">Validator name</option>
-              <option value="target">Largest target first</option>
-              <option value="power">Current stake share</option>
-              <option value="total">Total JUNO after allocation · highest first</option>
-              <option value="total-asc">Total JUNO after allocation · lowest first</option>
-              <option value="projected">Projected share · highest first</option>
-              <option value="projected-asc">Projected share · lowest first</option>
-            </select>
-          </div>
-        </div>
-        <p class="table-scroll-hint">Scroll horizontally to compare all six columns.</p>
-        <div
-          class="table-region"
-          role="region"
-          aria-label="Validator allocation comparison"
-          tabindex="0"
-        >
-          <table class="allocation-table">
-            <caption class="sr-only">
-              Current and proposed programme delegations. Rounded display; exact amounts and
-              eligibility evidence are available in each row.
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Validator / reason</th>
-                <th scope="col">Current JUNO</th>
-                <th scope="col">Target JUNO</th>
-                <th scope="col">Change JUNO</th>
-                <th scope="col">Total JUNO after allocation<br /><span>All delegators</span></th>
-                <th scope="col">Stake share<br /><span>Current → projected</span></th>
-              </tr>
-            </thead>
-            <tbody id="allocation-rows">
-              <tr>
-                <td colspan="6">Set the rules and simulate to compare allocations.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="table-pagination">
-          <span id="table-count" role="status" aria-live="polite">No simulation yet.</span>
-          <div>
-            <button id="previous-page" type="button" disabled>← Previous</button
-            ><button id="next-page" type="button" disabled>Next →</button>
-          </div>
-        </div>
+        <div id="simulation-comparison"><p>Review the draft to see its rules and allocation impact.</p></div>
         <details class="calculation-help">
           <summary>Why target amounts can differ</summary>
           <p>
@@ -700,22 +610,9 @@
           impact; they do not authorize a transfer.
         </p>
         <div id="proposal-empty" class="review-notice">
-          Simulate a distribution to prepare the rule proposal and its review package.
+          Review rules and impact to prepare the frozen proposal comparison. Rules can be proposed while allocation evidence is incomplete.
         </div>
-        <div id="proposal-review" hidden>
-          <article class="planner-card">
-            <h3>Rules proposed for approval</h3>
-            <dl id="proposal-rules" class="review-list"></dl>
-            <a href="#rules" data-step="rules">Edit this draft</a>
-          </article>
-          <article class="planner-card proposal-impact">
-            <h3>Illustrative distribution</h3>
-            <p id="proposal-impact"></p>
-            <p id="proposal-evidence" class="field-help"></p>
-            <p id="proposal-snapshot" class="field-help"></p>
-            <a href="#simulation" data-step="simulation">Review validator amounts</a>
-          </article>
-        </div>
+        <div id="proposal-review" hidden></div>
         <details class="calculation-help">
           <summary>Exact rule and snapshot identifiers</summary>
           <p id="rule-fingerprint" class="field-help">
@@ -752,7 +649,7 @@
           </p>
           <button type="button" disabled>Prepare execution proposal</button>
           <p class="field-help">
-            Unavailable: on-chain approval verification, programme authority and transaction-level
+            Unavailable: programme execution authority and transaction-level
             redelegation checks are not connected yet.
           </p>
         </details>

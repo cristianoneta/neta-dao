@@ -1,6 +1,7 @@
 import { reader, quorum } from './juno-community-governance.mjs?v=2';
 import { GOVERNANCE_SOURCES } from './governance-chain-read.mjs';
 import { PROGRAMME, policy, canonical, fingerprint } from './juno-delegation-core.mjs';
+import { readProposalReview } from './juno-delegation-review.mjs';
 
 const title = 'Juno Delegation Programme — allocation rules';
 const sources = [GOVERNANCE_SOURCES['juno-polkachu'], GOVERNANCE_SOURCES['juno-stavr']];
@@ -43,6 +44,7 @@ export async function approvedRule(proposal, now = Date.now()) {
   }
   const hash = await fingerprint(rule);
   if (hash !== hashes[0][1]) throw Error(`Proposal #${proposal.id}: rule fingerprint mismatch.`);
+  await readProposalReview({ title: proposal.title, body, actions_json: '[]' });
   return { proposalId: proposal.id, votingEndedAt: proposal.voting_end_time, rule, hash };
 }
 

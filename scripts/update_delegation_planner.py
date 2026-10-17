@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from decimal import Decimal, ROUND_CEILING
 import hashlib
 import json
+import sqlite3
 from pathlib import Path
 import time
 import urllib.parse
@@ -141,12 +142,20 @@ def collect(reader, dao):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=ROOT / 'data/daos/juno-delegation-planner.json')
+    parser.add_argument('--history-db', type=Path, help='Optional read-only validator archive for this exact snapshot')
     args = parser.parse_args()
     dao = next(d for d in json.loads((ROOT / 'data/dao-directory.json').read_text())['daos'] if d['id'] == 'juno-delegation')
     deadline, errors = time.monotonic() + 150, []
     for provider in PROVIDERS:
         try:
             result = collect(Reader(provider, deadline), dao)
+            if args.history_db:
+                from validator_active_set import active_set_history
+                try:
+                    result['activeSetHistory'] = active_set_history(args.history_db, result)
+                except (OSError, ValueError, TimeoutError, sqlite3.Error) as error:
+                    result['activeSetHistory'] = None
+                    result['activeSetHistoryIssue'] = type(error).__name__ + ': history unavailable for this snapshot'
             args.output.parent.mkdir(parents=True, exist_ok=True)
             temp = args.output.with_suffix('.tmp')
             temp.write_text(json.dumps(result, indent=2) + '\n')

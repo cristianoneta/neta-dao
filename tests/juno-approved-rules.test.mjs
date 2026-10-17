@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { approvedRule, currentApprovedRules } from '../juno-approved-rules.mjs';
-import { defaultPolicy, PROGRAMME } from '../juno-delegation-core.mjs';
+import { legacyPolicy as defaultPolicy, PROGRAMME } from '../juno-delegation-core.mjs';
 import { approvedProposal } from './fixtures/approved-rules.mjs';
 
 const endpoints = ['https://one.example', 'https://two.example'];

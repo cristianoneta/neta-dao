@@ -8,7 +8,7 @@ import {
   PLANNER_DRAFT_PREFIX
 } from '../planner-proposal-draft.mjs';
 import { claimValidators, GOVERNANCE, EXECUTE } from '../juno-governance-core.mjs';
-import { defaultPolicy, simulate, amount } from '../juno-delegation-core.mjs';
+import { legacyPolicy as defaultPolicy, simulate, amount } from '../juno-delegation-core.mjs';
 import { fixture, observed } from './fixtures/delegation-planner.mjs';
 const memory = () => {
   const data = new Map();

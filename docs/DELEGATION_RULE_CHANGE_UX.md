@@ -1,10 +1,10 @@
 # Rule changes, impact comparison and allocation approval
 
-17 October 2026 · researched design proposal · not implemented or released.
+17 October 2026 · implementation candidate in PR #295 · not released.
 
 This extends the [delegation product design](DELEGATION_PRODUCT_DESIGN.md) after
-the owner's review. It specifies how the existing planner and proposal workspace
-should explain first rule adoption, later rule changes and subsequent allocation.
+the owner's review. It records how the existing planner and proposal workspace
+explain first rule adoption, later rule changes and subsequent allocation.
 It does not enable signing, an execution adapter or new scoring features.
 
 ## Recommendation
@@ -101,12 +101,14 @@ itself a transaction instruction. Distinguish:
 - Target differs from the amount currently movable.
 
 The owner decided on 14 October that V1 requires 90 consecutive days in the active
-set. The present simulator still uses the older eligibility model. The new history
-collector began on 14 October and cannot by itself establish a preceding 90-day
-window on 17 October. This is a real implementation/evidence dependency. The design
-preview uses explicitly fictional complete evidence; it must not be substituted
-for a verified current target. A future implementation must version this change,
-retain old policy meanings, and fail closed where evidence is incomplete.
+set. The candidate implements this as policy schema 3. Schema 2 retains the older
+eligibility model, including standby recipients; old approvals and saved drafts
+are never reinterpreted. The history collector began on 14 October and cannot by
+itself establish a preceding 90-day window on 17 October. Missing or incomplete
+history leaves target amounts unavailable, while actual holdings and rule review
+remain usable. Example frames use explicitly fictional complete history. The
+optional exporter is source code only; installing or configuring it on the server
+is a separate operation, and does not manufacture missing historical evidence.
 
 ## Screen integration
 
@@ -214,18 +216,56 @@ reader explicitly supplies display data only. A disabled button is not an execut
 security boundary. Authority integration, on-chain enforcement where applicable,
 freshness checks and exact transaction validation are required separately.
 
-## Implementation map and acceptance
+## Implemented candidate and remaining scope
 
-The existing modules provide useful pieces, not the completed design:
+The author and voter now share one renderer and one deterministic review model.
+The complete sufficient inputs and computed targets are embedded as compressed
+canonical JSON in the proposal body, alongside readable changes and exact policy.
+The existing review content hash therefore binds the comparison. Loading verifies
+its hash, policy identity, empty execution messages and reproduced amounts before
+showing results. Missing, altered, unsupported or oversized packages fail visibly.
+No attachment URL or browser-local draft is needed to reconstruct a published view.
 
-| Existing component | Needed integration |
+To fit existing text limits, the package retains every held position, active
+validator, possible recipient, excluded address and the top consensus-set-sized
+non-programme stakes. Omitted validators cannot receive under either policy or
+enter the projected set. Preparation compares both reduced results against the
+full source calculation, including exact amounts and projected bonded totals.
+The package also records the full source hash/count and source redelegation count;
+it is sufficient calculation data, not a full raw archive or movement plan.
+
+The shared-review body limit and native 10,000-byte combined text limit remain.
+Oversize packages stop preparation/publication; the export is retained and evidence
+is never silently dropped. Provider observations reproduce the estimate but do not
+constitute independently verified chain history or execution authority.
+
+The draft keeps its original parent proposal and fingerprint. Refresh does not
+overwrite edits. Preparation, review publication/revision and finalization check
+the current approved baseline; superseded drafts require a new comparison.
+This is an application gate, not an on-chain concurrency guarantee.
+
+| Component | Candidate behavior |
 | --- | --- |
-| `juno-approved-rules.mjs` | Supply the verified immutable baseline and explicit unavailable/no-match states. Preserve historical meaning. |
-| `juno-delegation-core.mjs` | Reuse deterministic simulation for both policies with compatible input/evidence semantics; implement the separately decided 90-day model as a versioned policy. |
-| `juno-delegation.mjs` / view helpers | Changed-field summary, comparison modes and per-validator explanations using a shared review model. |
-| `planner-proposal-draft.mjs` | Bind and describe initial/adopted parent rules and the complete comparison package; current output includes only the proposed policy and illustrative totals. |
-| Existing community-review/native-proposal views | Render that same frozen review for voters and preserve the finalized content binding. |
-| Future execution adapter | Require approved policy + separately approved exact plan + verified authority + valid fresh execution state. Currently absent. |
+| `juno-approved-rules.mjs` | Two-source current baseline; exact policy/frozen-package checks; unavailable and no-match remain distinct. |
+| `juno-delegation-core.mjs` | Explicit historical schema 2 and continuous-90-day schema 3; same deterministic allocation arithmetic. |
+| `juno-delegation-review.mjs` | Exact field changes, same-input dual targets, initial adoption, immutable bounded package and reproducibility checks. |
+| `juno-rule-review-view.mjs` | Shared author/voter reading order, baseline switch, search/filter/sort, exact changes, explanations and mobile reflow. |
+| `planner-proposal-draft.mjs` | Readable proposal plus complete sufficient frozen observations/results; no execution messages. |
+| Community review/native proposal view | Uses stored revision/proposal content and clears old results on selection or verification failure. |
+| `scripts/validator_active_set.py` | Optional read-only archive export matched to the exact snapshot; no server installation performed. |
+| Allocation execution | Still unavailable: needs verified authority, a fresh exact movement plan and its separate approval. |
+
+The sequence after approval and its future concurrency/execution requirements
+above remain the integration contract, not a claim that redistribution is enabled.
+
+## Acceptance
+
+Local validation covers first adoption with held outside-set positions, portfolio
+drift versus pure policy effects, commission and indirect changes, exact micro-unit
+deltas, budgets/reserve, incomplete history, continuity/reentry, parent replacement,
+package corruption and legacy compatibility. Browser coverage includes the existing
+review/funding/voting flow and the published frozen comparison, separate from local
+edits, with unavailable/corrupt states and desktop/mobile reflow.
 
 Before shipping, a reviewer must be able to answer: “What was the old value?”;
 “What changes because of this rule?”; “What changes from the portfolio today?”;
@@ -238,5 +278,6 @@ history, parent-policy supersession, immutable published evidence, stale executi
 plans and failed/partial execution. No automatic transformation of an old approval
 or target simulation into a new authorization is allowed.
 
-Implementation should extend the existing combined design branch. This document is
-a proposed integration contract, not evidence that these gates or views already run.
+Implementation stays on the existing combined design branch and PR #295.
+Production publication, server installation, a complete 90-day observation window
+and allocation authority/transaction integration remain separate gates.

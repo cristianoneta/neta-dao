@@ -4,6 +4,7 @@ import {
   withinObservationWindow
 } from './juno-upgrade-history.mjs';
 import { parseReadiness, firstParticipation } from './juno-upgrade-readiness.mjs';
+import { activeSetEvidence } from './juno-active-set-history.mjs';
 
 export const PROGRAMME = 'juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0';
 export const UPGRADE = Object.freeze({
@@ -32,7 +33,7 @@ export function units(value) {
   const n = BigInt(value);
   return `${n / 1000000n}.${(n % 1000000n).toString().padStart(6, '0')}`;
 }
-export function defaultPolicy() {
+export function legacyPolicy() {
   return {
     schema: 2,
     chainId: 'juno-1',
@@ -54,14 +55,17 @@ export function defaultPolicy() {
     exclusions: []
   };
 }
+export function defaultPolicy() {
+  return { ...legacyPolicy(), schema: 3, eligibility: 'continuous-active-set-90-days-v1' };
+}
 export function policy(input) {
   const p = structuredClone(input);
   if (
-    p?.schema !== 2 ||
+    ![2, 3].includes(p?.schema) ||
     p.chainId !== 'juno-1' ||
     p.programme !== PROGRAMME ||
     p.method !== 'equal-capped-v1' ||
-    p.eligibility !== 'non-jailed-with-participation-evidence' ||
+    p.eligibility !== (p.schema === 2 ? legacyPolicy() : defaultPolicy()).eligibility ||
     p.liquidReserveRaw !== LIQUID_RESERVE.toString() ||
     !Number.isInteger(p.factorTenths) ||
     p.factorTenths < 10 ||
@@ -103,7 +107,7 @@ export function policy(input) {
     .sort((a, b) => compare(a.validator, b.validator));
   // Explicit allowlist prevents imported fields from changing the approved meaning.
   return {
-    ...defaultPolicy(),
+    ...(p.schema === 2 ? legacyPolicy() : defaultPolicy()),
     factorTenths: p.factorTenths,
     commissionMaxBps: p.commissionMaxBps,
     exclusions: p.exclusions
@@ -206,7 +210,7 @@ export function equalCapped(budget, entries) {
   }
   return result;
 }
-export function simulate(inputPolicy, inputSnapshot, budget, evidence) {
+export function simulate(inputPolicy, inputSnapshot, budget, evidence, history = null) {
   const p = policy(inputPolicy),
     s = snapshot(inputSnapshot),
     totalCurrent = sum(s.validators.map((v) => BigInt(v.currentRaw)));
@@ -216,6 +220,9 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence) {
     throw Error('Keep at least 50 JUNO outside the target allocation as the liquid reserve.');
   if (!evidence?.records || !evidence.window?.coverageComplete)
     throw Error('The upgrade observation window is incomplete.');
+  const continuity = p.schema === 3 ? activeSetEvidence(history, s) : null;
+  if (continuity && !continuity.complete)
+    throw Error(continuity.reason);
   const excluded = new Map(p.exclusions.map((e) => [e.validator, e.reason])),
     cap = capFraction(p, s.activeCount);
   const rows = s.validators.map((v) => {
@@ -227,6 +234,8 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence) {
       reasons = [];
     // `active` is consensus-set membership, not proof that a standby node is offline.
     if (v.jailed) reasons.push('Jailed');
+    if (continuity && !continuity.members.has(v.consensusAddress))
+      reasons.push(v.active ? 'Not continuously in the active set for 90 days' : 'Outside the active set');
     if (p.commissionMaxBps !== null && v.commissionBps > p.commissionMaxBps)
       reasons.push('Commission above limit');
     if (excluded.has(v.address)) reasons.push(`Manual exclusion: ${excluded.get(v.address)}`);

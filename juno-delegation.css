@@ -1163,10 +1163,7 @@
   max-width: 70ch;
 }
 #proposal-review {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
-  gap: 24px;
-  align-items: start;
+  display: block;
   margin: 24px 0;
 }
 .review-list {
@@ -1409,8 +1406,7 @@
     display: none;
   }
   .overview-workspace,
-  .rules-workspace,
-  #proposal-review {
+  .rules-workspace {
     grid-template-columns: minmax(0, 1fr);
   }
   .overview-sidebar {
