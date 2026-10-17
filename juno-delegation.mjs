@@ -1,43 +1,38 @@
+import { buildRuleReview, ruleChanges, parentMatches } from './juno-delegation-review.mjs';
+import { renderRuleReview } from './juno-rule-review-view.mjs';
 import { currentApprovedRules } from './juno-approved-rules.mjs';
 import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=2';
-import { ruleProposal, claimProposal, savePlannerProposal } from './planner-proposal-draft.mjs';
+import {
+  frozenRuleProposal,
+  claimProposal,
+  savePlannerProposal
+} from './planner-proposal-draft.mjs';
 import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 import {
   defaultPolicy,
   policy,
   snapshot,
   upgradeEvidence,
-  simulate,
   amount,
-  units,
-  fingerprint,
   capFraction,
   suggestedBudget,
   LIQUID_RESERVE
 } from './juno-delegation-core.mjs';
 
-import {
-  formatAmount,
-  formatChange,
-  stakeShare,
-  rowStatus,
-  allocationReason,
-  selectRows
-} from './juno-delegation-view.mjs';
+import { formatAmount } from './juno-delegation-view.mjs';
 
 const $ = (id) => document.getElementById(id),
-  key = 'cosmoot:juno:delegation:rule-draft:v2';
+  key = 'cosmoot:juno:delegation:rule-draft:v3';
 let rules = defaultPolicy(),
   data = null,
   evidence = null,
-  archive = null,
   review = null,
   revision = 0,
   loading = false;
-let page = 0;
+let approval = { status: 'loading', current: null },
+  parent = null,
+  draftStarted = false;
 let rewardsSource = null;
-const pageSize = 10,
-  expanded = new Set();
 const fmt = (value) => formatAmount(value, true);
 const tell = (message, tone = 'info') => {
   $('feedback').textContent = message;
@@ -61,14 +56,23 @@ function renderClaimRewards() {
   }
   try {
     const value = claimRewardsOverview(rewardsSource, data);
-    const usd =
-      value.usd === null
-        ? ''
-        : ` (≈ ${value.usd.toLocaleString('en-US', { style: 'currency', currency: 'USD' })})`;
-    $('claim-rewards-amount').textContent =
-      `Claimable staking rewards: ${fmt(value.amountRaw)} JUNO${usd}`;
+    const amountLine = node('span', '', 'reward-value');
+    amountLine.append(
+      document.createTextNode(formatAmount(value.amountRaw) + ' '),
+      node('small', 'JUNO')
+    );
+    $('claim-rewards-amount').replaceChildren(
+      amountLine,
+      node(
+        'span',
+        value.usd === null
+          ? 'USD estimate unavailable'
+          : `≈ ${value.usd.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`,
+        'reward-usd'
+      )
+    );
     $('claim-rewards-observed').textContent =
-      `Rewards snapshot: ${new Date(value.observedAt).toLocaleString()} · block ${value.height.toLocaleString('en-US')} · ${value.validatorCount} programme delegations, including jailed and standby positions. ` +
+      `Exact amount: ${fmt(value.amountRaw)} JUNO. Rewards snapshot: ${new Date(value.observedAt).toLocaleString()} · block ${value.height.toLocaleString('en-US')} · ${new URL(value.source).hostname} · ${value.validatorCount} programme delegations, including jailed and standby positions. ` +
       (value.priceObservedAt
         ? `Indicative USD price snapshot: ${new Date(value.priceObservedAt).toLocaleString()}. `
         : 'USD price unavailable. ') +
@@ -80,6 +84,7 @@ function renderClaimRewards() {
 }
 function setStep(step, focus = true) {
   if (!['overview', 'rules', 'simulation', 'proposals'].includes(step)) step = 'overview';
+  if (focus && $('feedback').dataset.tone !== 'warning') tell('');
   for (const panel of document.querySelectorAll('.planner-panel')) panel.hidden = panel.id !== step;
   for (const link of document.querySelectorAll('.planner-steps [data-step]')) {
     if (link.dataset.step === step) link.setAttribute('aria-current', 'step');
@@ -97,7 +102,7 @@ function setStep(step, focus = true) {
             : 'proposals-title'
     );
     heading.focus({ preventScroll: true });
-    heading.scrollIntoView({ block: 'start' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }
 }
 const node = (tag, text, className) => {
@@ -109,6 +114,8 @@ const node = (tag, text, className) => {
 let approvalRead = 0;
 async function loadApprovedRules() {
   const read = ++approvalRead;
+  approval = { ...approval, status: 'loading' };
+  renderDraftBaseline();
   const host = $('current-rules-content'),
     state = $('current-rules-state');
   state.textContent = 'Checking approval…';
@@ -117,19 +124,28 @@ async function loadApprovedRules() {
   try {
     const result = await currentApprovedRules();
     if (read !== approvalRead) return;
+    approval = { status: 'verified', current: result.current };
+    if (!draftStarted) {
+      parent = structuredClone(result.current);
+      rules = parent ? structuredClone(parent.rule) : defaultPolicy();
+      draftStarted = true;
+      restoreCommissionInput();
+    }
+    renderRules();
+    renderDraftBaseline();
     host.replaceChildren();
     if (!result.current) {
       state.textContent = 'Awaiting first approval';
       host.append(
         node(
           'p',
-          'No approved Cosmoot rule proposal found. Once the first rule proposal passes Juno governance, its settings will appear here automatically.'
+          'No approved Cosmoot rule proposal found. You can prepare a draft; the community must approve its rules first.'
         )
       );
       return;
     }
     const { rule, proposalId, votingEndedAt, hash } = result.current;
-    state.textContent = 'Approved · current version';
+    state.textContent = 'Rules approved · allocation unchanged by vote';
     state.className = 'state-pill live';
     const source = node('p'),
       link = node('a', `Proposal #${proposalId} ↗`);
@@ -151,7 +167,12 @@ async function loadApprovedRules() {
         'Maximum commission',
         rule.commissionMaxBps === null ? 'No limit' : `${rule.commissionMaxBps / 100}%`
       ],
-      ['Validator status', 'Non-jailed; participation evidence required'],
+      [
+        'Validator status',
+        rule.schema === 3
+          ? '90 continuous days in the active set; not jailed'
+          : 'Legacy model: non-jailed; standby allowed'
+      ],
       ['Upgrade participation', 'Juno v31 · within 5 hours of the halt'],
       ['Liquid reserve', `${formatAmount(rule.liquidReserveRaw)} JUNO`],
       ['Manual exclusions', String(rule.exclusions.length)],
@@ -178,9 +199,20 @@ async function loadApprovedRules() {
         'field-help'
       )
     );
-    host.append(source, settings, details);
+    details.querySelector('summary').textContent = 'Approved settings & evidence';
+    details.insertBefore(settings, details.children[1] || null);
+    host.append(
+      source,
+      node(
+        'p',
+        `Equal allocation · ${rule.commissionMaxBps === null ? 'no commission limit' : rule.commissionMaxBps / 100 + '% maximum commission'} · ${rule.exclusions.length} manual exclusions.`
+      ),
+      details
+    );
   } catch (error) {
     if (read !== approvalRead) return;
+    approval = { status: 'unavailable', current: null };
+    renderDraftBaseline();
     state.textContent = 'Approval unavailable';
     host.replaceChildren(
       node('p', 'Current rules could not be verified. Use Refresh data to retry.'),
@@ -195,6 +227,7 @@ function renderCurrentPositions() {
     toggle = $('current-positions-toggle');
   host.replaceChildren();
   toggle.hidden = true;
+  $('position-health').hidden = true;
   for (const id of ['current-total', 'current-liquid', 'current-validator-count'])
     $(id).textContent = '—';
   if (!data) {
@@ -234,11 +267,19 @@ function renderCurrentPositions() {
     link.rel = 'noopener noreferrer';
     identity.append(link);
     const share = total ? Number((BigInt(v.currentRaw) * 10000n) / total) / 100 : 0;
+    const status = node('td');
+    const badge = node(
+      'span',
+      v.jailed ? 'Jailed' : v.active ? 'Active set' : 'Outside set',
+      'position-state'
+    );
+    badge.dataset.state = v.jailed ? 'jailed' : v.active ? 'active' : 'outside';
+    status.append(badge);
     row.append(
       identity,
       node('td', formatAmount(v.currentRaw), 'numeric'),
       node('td', share === 0 && total > 0n ? '<0.01%' : share.toFixed(2) + '%', 'numeric'),
-      node('td', v.jailed ? 'Jailed' : v.active ? 'Consensus set' : 'Outside active set')
+      status
     );
     host.append(row);
   }
@@ -253,40 +294,47 @@ function freshness() {
     ? Math.max(Date.now() - Date.parse(data.blockTime), Date.now() - Date.parse(data.collectedAt))
     : Infinity;
 }
-function invalidate(
-  message = 'Rules or amount changed. Simulate again to refresh this comparison.'
-) {
+function renderDraftBaseline() {
+  const valid = approval.status === 'verified',
+    matches = valid && parentMatches(parent, approval.current);
+  $('draft-parent-note').textContent = !valid
+    ? approval.status === 'loading'
+      ? 'Checking the approved baseline…'
+      : 'Approval unavailable. The saved baseline and edits are preserved; publication is blocked until verification succeeds.'
+    : !matches
+      ? 'The approved policy has changed. Your draft still uses its original baseline. Start from the current approved rules before preparing a new proposal.'
+      : parent
+        ? `Based on approved proposal #${parent.proposalId}. Your edits need a new rule approval before they can be used for an allocation.`
+        : 'Initial adoption · no approved Cosmoot-format policy found. Actual holdings already exist and remain the comparison baseline.';
+  $('adopt-current-rules').hidden = !valid || matches;
+  $('use-current-model').hidden = rules.schema === 3;
+  if (review) $('publish-proposal').disabled = !matches || freshness() > 3600000;
+  $('approved-allocation-next').hidden = !valid || !approval.current;
+  $('approved-allocation-reference').textContent = approval.current
+    ? `Uses the exact rules from proposal #${approval.current.proposalId}. Changing rules starts a new rule proposal first.`
+    : '';
+  const link = document.querySelector('.overview-heading [data-step="rules"]');
+  if (link)
+    link.textContent = valid
+      ? approval.current
+        ? 'Propose rule changes →'
+        : 'Propose initial rules →'
+      : 'Review rules →';
+}
+function invalidate(message = 'Rules or amount changed. Review again to refresh the comparison.') {
   revision++;
-  if (message.startsWith('Rules or amount changed'))
+  if (message.startsWith('Rules or amount changed')) {
+    draftStarted = true;
     $('draft-status').textContent = 'Draft changed · save rules to keep them locally';
+  }
   review = null;
-  page = 0;
-  expanded.clear();
-  for (const id of [
-    'export-json',
-    'publish-proposal',
-    'review-proposal',
-    'previous-page',
-    'next-page'
-  ])
-    $(id).disabled = true;
-  $('simulation-state').textContent = 'Not simulated';
-  for (const id of ['eligible-total', 'recipient-total', 'allocated-total', 'unallocated-total'])
-    $(id).textContent = '—';
-  $('unallocated-total').parentElement.classList.remove('attention');
-  $('rule-fingerprint').textContent = 'Simulate to identify this exact rule and data version.';
-  $('allocation-explanation').textContent = message;
-  $('simulation-note').textContent =
-    'This is a target distribution, not an immediate redelegation transaction.';
-  $('evidence-review').hidden = true;
+  for (const id of ['export-json', 'publish-proposal', 'review-proposal']) $(id).disabled = true;
+  $('simulation-state').textContent = 'Not reviewed';
+  $('rule-fingerprint').textContent =
+    'Review the draft to identify its exact rules and observations.';
+  $('simulation-comparison').replaceChildren(node('p', message));
   $('proposal-review').hidden = true;
   $('proposal-empty').hidden = false;
-  $('table-count').textContent = 'No current simulation.';
-  const row = node('tr', ''),
-    cell = node('td', message);
-  cell.colSpan = 6;
-  row.append(cell);
-  $('allocation-rows').replaceChildren(row);
   renderRuleSummary();
 }
 function renderRuleSummary() {
@@ -296,6 +344,27 @@ function renderRuleSummary() {
     : 'pending';
   $('rule-summary').textContent =
     `Equal allocation · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
+  $('draft-cap').textContent =
+    $('factor-number').checkValidity() && $('factor-number').value ? capText : 'Check value';
+  $('draft-commission').textContent = commissionValid()
+    ? rules.commissionMaxBps === null
+      ? 'No limit'
+      : `${rules.commissionMaxBps / 100}%`
+    : 'Check value';
+  const changes = ruleChanges(parent?.rule, rules).filter((r) => r.changed);
+  $('draft-change-count').textContent = parent
+    ? `${changes.length} changes from proposal #${parent.proposalId}`
+    : 'Initial criteria · no previous policy values';
+  $('draft-exclusions').textContent = rules.exclusions.length
+    ? String(rules.exclusions.length)
+    : 'None';
+  try {
+    $('draft-budget').textContent = $('programme-amount').value.trim()
+      ? `${formatAmount(amount($('programme-amount').value.trim()))} JUNO`
+      : '—';
+  } catch {
+    $('draft-budget').textContent = 'Check amount';
+  }
 }
 function commissionValid() {
   const input = $('commission');
@@ -329,6 +398,36 @@ function renderRules() {
     ? `Cap = min(30%, ${(rules.factorTenths / 10).toFixed(1)} × 100% / ${data.activeCount}) = ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}%. The full active consensus set is used.`
     : 'Cap = min(30%, factor × 100% / active validator count).';
   renderRuleSummary();
+  renderDraftBaseline();
+  $('draft-eligibility-description').textContent =
+    rules.schema === 3
+      ? '90 continuous days in the active set; currently not jailed.'
+      : 'Legacy draft: non-jailed with participation evidence. Standby validators may qualify. This saved policy has not been reinterpreted.';
+  for (const [input, field] of [
+    ['factor-number', 'factorTenths'],
+    ['commission', 'commissionMaxBps']
+  ]) {
+    const id = input + '-previous';
+    let target = $(id);
+    if (!target) {
+      target = node('p', '', 'rule-previous');
+      target.id = id;
+      ($(input).closest('.factor-control') || $(input)).after(target);
+    }
+    const diff = ruleChanges(parent?.rule, rules).find((r) => r.key === field);
+    target.replaceChildren(document.createTextNode(`Previously approved: ${diff.before}`));
+    if (parent && diff.changed) {
+      const reset = node('button', 'Reset');
+      reset.type = 'button';
+      reset.onclick = () => {
+        rules[field] = parent.rule[field];
+        restoreCommissionInput();
+        invalidate();
+        renderRules();
+      };
+      target.append(' ', reset);
+    }
+  }
   $('exclusion-count').textContent = rules.exclusions.length
     ? `· ${rules.exclusions.length}`
     : '· none';
@@ -397,7 +496,6 @@ async function load() {
     rewardsSource = rewards;
     renderClaimRewards();
     evidence = nextEvidence;
-    archive = { history, readiness };
     const stale = freshness() > 3600000;
     $('snapshot-status').textContent = stale
       ? 'Snapshot older than one hour · historical simulation only'
@@ -414,11 +512,17 @@ async function load() {
       current = sumCurrent();
     const outsidePercent =
       current > 0n ? (Number((outside * 10000n) / current) / 100).toFixed(2) : '0.00';
+    const activePercent = current > 0n ? Number(((current - outside) * 10000n) / current) / 100 : 0;
+    $('position-health').hidden = current <= 0n;
+    $('active-position-meter').value = activePercent;
+    $('active-position-share').textContent = `${activePercent.toFixed(2)}%`;
+    $('active-position-count').textContent = `${held.length - inactive.length} in the active set`;
+    $('outside-position-count').textContent = `${inactive.length} outside · ${outsidePercent}%`;
     $('current-breakdown').textContent =
       `Current positions: ${fmt(current - outside)} JUNO across ${held.length - inactive.length} consensus validators; ${fmt(outside)} JUNO across ${inactive.length} validators outside the active set (${outsidePercent}%). These positions are not automatically unbonding funds.`;
     $('upgrade-window').textContent =
       `Halt: ${new Date(evidence.window.start).toISOString()} · inclusive deadline: ${new Date(evidence.window.end).toISOString()} · ${evidence.records.size} historical validators · window scan ${evidence.window.coverageComplete ? 'complete' : 'incomplete'}. Consensus captures provide additional partial evidence.`;
-    $('active-total').textContent = `${data.activeCount} consensus validators`;
+
     $('available-funds').textContent =
       `Delegated ${formatAmount(sumCurrent())} + spendable ${formatAmount(data.liquidRaw)} JUNO. Suggested total includes both, keeps 50 JUNO in reserve and rounds down to 100 JUNO. Unclaimed rewards and unbonding funds are excluded. You can edit the amount.`;
     $('validator-options').replaceChildren(
@@ -437,20 +541,20 @@ async function load() {
       ? 'Refresh current programme data before preparing a rewards proposal.'
       : !held.length
         ? 'No current programme delegations to claim from.'
-        : 'Opens a prepared draft on our proposal page. After approval and execution, refresh the data to include claimed rewards.';
+        : 'Opens a draft for community review. Claiming follows on-chain approval and execution.';
     $('simulate').disabled = false;
     renderRules();
     tell(
       stale
         ? 'You can inspect this historical snapshot. Refresh current data before requesting approval.'
-        : 'Programme data loaded. Explore the overview or set rules for the next allocation.'
+        : '',
+      stale ? 'warning' : 'info'
     );
   } catch (error) {
     data = null;
     rewardsSource = null;
     renderClaimRewards();
     evidence = null;
-    archive = null;
     $('snapshot-status').textContent = 'Programme snapshot unavailable';
     $('snapshot-detail').textContent =
       'The dedicated collector must publish a validated snapshot before allocations can be calculated.';
@@ -463,7 +567,7 @@ async function load() {
       'Current consensus-set delegation breakdown is unavailable.';
     $('upgrade-window').textContent =
       'Archive coverage could not be loaded with the programme snapshot.';
-    $('active-total').textContent = 'Active set pending';
+
     $('available-funds').textContent = 'No usable programme snapshot.';
     renderRules();
     tell(error.message, 'error');
@@ -472,206 +576,15 @@ async function load() {
     $('refresh').disabled = false;
   }
 }
-function renderTable() {
-  if (!review) return;
-  const result = review.simulation;
-  const rows = selectRows(result, {
-    query: $('validator-search').value,
-    filter: $('validator-filter').value,
-    sort: $('validator-sort').value
-  });
-  page = Math.min(page, Math.max(0, Math.ceil(rows.length / pageSize) - 1));
-  const bonded = data.validators
-    .filter((v) => v.active)
-    .reduce((sum, v) => sum + BigInt(v.tokensRaw), 0n);
-  const shown = rows.slice(page * pageSize, (page + 1) * pageSize);
-  $('allocation-rows').replaceChildren();
-  for (const v of shown) {
-    const row = node('tr', '', 'allocation-row'),
-      name = node('td', '', 'validator-cell');
-    const isReview = !v.jailed && v.upgrade.status !== 'observed';
-    name.append(
-      node('strong', v.name || 'Unnamed validator', 'validator-name'),
-      node('span', rowStatus(v), 'row-status' + (isReview ? ' needs-review' : ''))
-    );
-    const toggle = node('button', 'Why this amount?', 'row-toggle'),
-      detail = node('tr', '', 'row-detail'),
-      content = node('td', '');
-    toggle.type = 'button';
-    detail.id = 'detail-' + v.address;
-    detail.hidden = !expanded.has(v.address);
-    toggle.setAttribute('aria-expanded', String(!detail.hidden));
-    toggle.setAttribute('aria-controls', detail.id);
-    toggle.setAttribute('aria-label', `Why this amount for ${v.name || v.address}?`);
-    toggle.addEventListener('click', () => {
-      detail.hidden = !detail.hidden;
-      toggle.setAttribute('aria-expanded', String(!detail.hidden));
-      if (detail.hidden) expanded.delete(v.address);
-      else expanded.add(v.address);
-    });
-    name.append(toggle);
-    const currentShare = v.active ? stakeShare(v.tokensRaw, bonded) : 'Outside consensus set';
-    const projectedShare = v.projectedActive
-      ? stakeShare(v.projectedRaw, result.projectedBondedRaw)
-      : 'Outside projected consensus set';
-    row.append(
-      name,
-      node('td', formatAmount(v.currentRaw), 'numeric'),
-      node('td', formatAmount(v.targetRaw), 'numeric target-amount'),
-      node('td', formatChange(v.deltaRaw), 'numeric'),
-      node('td', formatAmount(v.projectedRaw), 'numeric projected-total'),
-      node('td', `${currentShare} → ${projectedShare}`, 'numeric')
-    );
-    content.colSpan = 6;
-    content.append(node('p', allocationReason(v)), node('p', v.address, 'detail-address'));
-    const exact = node('div', '', 'exact-amounts');
-    exact.append(
-      node('span', `Current: ${fmt(v.currentRaw)} JUNO`),
-      node('span', `Target: ${fmt(v.targetRaw)} JUNO`),
-      node('span', `Change: ${formatChange(v.deltaRaw, true)} JUNO`),
-      node('span', `Total after allocation: ${fmt(v.projectedRaw)} JUNO (all delegators)`)
-    );
-    const facts = node('p', '', 'detail-facts');
-    facts.append(
-      node('span', `Commission: ${(v.commissionBps / 100).toFixed(2)}%`),
-      node('span', `Stake share: ${currentShare} → ${projectedShare}`)
-    );
-    if (v.eligible)
-      facts.append(node('span', `Capacity under the cap: ${fmt(v.capacityRaw)} JUNO`));
-    content.append(exact, facts);
-    if (v.upgrade.timestamp)
-      content.append(
-        node(
-          'p',
-          `First recorded ${v.upgrade.evidence}: ${new Date(v.upgrade.timestamp).toISOString()}`,
-          'field-help'
-        )
-      );
-    if (v.upgrade.status !== 'observed')
-      content.append(
-        node(
-          'p',
-          'Participation within five hours is not established. A missing or later observation does not prove a late software installation.',
-          'field-help'
-        )
-      );
-    const link = node('a', 'Review the v31 evidence ↗');
-    link.href = '/community-tools/validator-upgrades/juno-v31/';
-    content.append(link);
-    detail.append(content);
-    $('allocation-rows').append(row, detail);
-  }
-  if (!rows.length) {
-    const row = node('tr', ''),
-      cell = node('td', 'No validators match these filters.');
-    cell.colSpan = 6;
-    row.append(cell);
-    $('allocation-rows').append(row);
-  }
-  $('table-count').textContent = rows.length
-    ? `${page * pageSize + 1}–${Math.min((page + 1) * pageSize, rows.length)} of ${rows.length} validators · amounts rounded to two decimals`
-    : 'No matching validators.';
-  $('previous-page').disabled = page === 0;
-  $('next-page').disabled = (page + 1) * pageSize >= rows.length;
-}
-function renderProposal(result) {
+function renderResult() {
+  renderRuleReview($('simulation-comparison'), review);
+  renderRuleReview($('proposal-review'), review);
   $('proposal-empty').hidden = true;
   $('proposal-review').hidden = false;
-  const p = result.policy,
-    cap = capFraction(p, data.activeCount);
-  const entries = [
-    [
-      'Distribution',
-      'Equal amounts, with excess redistributed within the voting power limit. No separate minimum or maximum per validator.'
-    ],
-    [
-      'Eligibility',
-      'Non-jailed Juno validators with participation evidence, inside or outside the consensus set. Current uptime outside that set remains unverified.'
-    ],
-    [
-      'Voting power',
-      `min(30%, ${(p.factorTenths / 10).toFixed(1)} × 100% / active validator count). At this snapshot: ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}%. Exclusions do not reduce the count.`
-    ],
-    [
-      'Commission',
-      p.commissionMaxBps === null
-        ? 'No commission filter.'
-        : `${p.commissionMaxBps / 100}% maximum.`
-    ],
-    [
-      'v31 participation',
-      'Archived participation within five hours of the halt. Unresolved evidence receives no target and remains a review case.'
-    ],
-    [
-      'Manual exclusions',
-      p.exclusions.length
-        ? p.exclusions
-            .map(
-              (e) =>
-                `${data.validators.find((v) => v.address === e.validator)?.name || e.validator} (${e.validator}): ${e.reason}`
-            )
-            .join(' · ')
-        : 'None.'
-    ],
-    [
-      'Liquid reserve',
-      'Keep at least 50 JUNO outside the target allocation. The suggested total includes available JUNO and rounds down to whole hundreds.'
-    ],
-    [
-      'Future changes',
-      'Changes to criteria, cap, method or exclusions require a new rule approval.'
-    ]
-  ];
-  $('proposal-rules').replaceChildren(
-    ...entries.map(([label, value]) => {
-      const row = node('div', '');
-      row.append(node('dt', label), node('dd', value));
-      return row;
-    })
-  );
-  $('proposal-impact').textContent =
-    `${formatAmount(result.allocatedRaw)} JUNO allocated to ${result.rows.filter((v) => BigInt(v.targetRaw) > 0n).length} validators. ${formatAmount(result.unallocatedRaw)} JUNO unallocated. This is an example, not an execution instruction.`;
-  $('proposal-evidence').textContent =
-    `${result.evidenceReviewCount} validators need evidence review.${BigInt(result.releasedRaw) > 0n ? ` ${formatAmount(result.releasedRaw)} JUNO would leave the current allocation.` : ''} Review these cases before putting the rules to the community.`;
-  $('proposal-snapshot').textContent =
-    `Block ${data.height.toLocaleString('en-US')} · ${new Date(data.blockTime).toLocaleString()} · ${freshness() > 3600000 ? 'Historical snapshot: refresh before requesting approval.' : 'Refresh the data before voting and again before execution.'}`;
-}
-function renderResult(result) {
-  const recipients = result.rows.filter((v) => BigInt(v.targetRaw) > 0n),
-    capped = recipients.filter((v) => v.capReached),
-    noCapacity = result.rows.filter((v) => v.eligible && v.capacityRaw === '0');
-  $('eligible-total').textContent = result.eligibleCount;
-  $('recipient-total').textContent = recipients.length;
-  $('allocated-total').textContent = formatAmount(result.allocatedRaw);
-  $('unallocated-total').textContent = formatAmount(result.unallocatedRaw);
-  $('unallocated-total').parentElement.classList.toggle(
-    'attention',
-    BigInt(result.unallocatedRaw) > 0n
-  );
-  $('simulation-state').textContent =
-    freshness() > 3600000 ? 'Historical simulation' : 'Draft simulation';
-  const roundedToZero = result.rows.filter(
-    (v) => v.eligible && v.capacityRaw !== '0' && v.targetRaw === '0'
-  );
-  $('allocation-explanation').textContent =
-    `${recipients.length} validators receive an allocation: ${recipients.length - capped.length} receive the equal share and ${capped.length} are limited by voting power. ${noCapacity.length} otherwise eligible validators have no capacity under the limit.${roundedToZero.length ? ` ${roundedToZero.length} receive no allocation after micro-JUNO rounding.` : ''}`;
-  $('evidence-review').hidden = result.evidenceReviewCount === 0;
-  $('evidence-review-text').textContent =
-    `${result.evidenceReviewCount} validators need participation evidence review.`;
-  const notes = [
-    'Target is the total programme delegation after redistribution. Projected stake shares are estimates.'
-  ];
-  if (data.redelegations.length)
-    notes.push(`${data.redelegations.length} existing redelegation records need execution review.`);
-  if (BigInt(result.releasedRaw))
-    notes.push(
-      `${formatAmount(result.releasedRaw)} JUNO would leave the current programme allocation; no unstaking transaction is prepared.`
-    );
-  if (freshness() > 3600000) notes.push('Historical snapshot: refresh before approval.');
-  $('simulation-note').textContent = notes.join(' ');
+  $('simulation-state').textContent = review.model.proposed.result
+    ? 'Draft comparison'
+    : 'Evidence incomplete';
   renderRuleSummary();
-  renderTable();
-  renderProposal(result);
 }
 function focusRuleInput(id) {
   $('rules-eligibility-details').open = true;
@@ -692,46 +605,36 @@ async function runSimulation() {
     }
     invalidate('Calculating the proposed allocation…');
     const token = revision;
-    const result = simulate(rules, data, amount($('programme-amount').value.trim()), evidence);
-    const [policyHash, snapshotHash, evidenceHash] = await Promise.all([
-      fingerprint(result.policy),
-      fingerprint(data),
-      fingerprint(archive)
-    ]);
-    if (token !== revision) return;
-    review = {
-      schema: 1,
-      proposalType: 'RULE_APPROVAL',
-      status: 'DRAFT_NOT_SUBMITTED',
-      createdAt: new Date().toISOString(),
-      policyHash,
-      snapshotHash,
-      evidenceHash,
-      rule: result.policy,
+    if (approval.status !== 'verified')
+      throw Error(
+        'Verify the current approval status before freezing a comparison. Refresh data to retry.'
+      );
+    if (!parentMatches(parent, approval.current))
+      throw Error(
+        'The parent policy has changed. Start from current approved rules before reviewing.'
+      );
+    const result = await buildRuleReview({
+      rule: rules,
+      parent,
       snapshot: data,
-      upgradeEvidence: archive,
-      simulation: result,
-      approval: null,
-      execution: {
-        enabled: false,
-        messages: [],
-        requirements: [
-          'Verified on-chain rule approval',
-          'Programme execution authority adapter',
-          'Fresh data and redelegation/transaction-limit checks',
-          'Separate approval of exact execution proposal'
-        ]
-      }
-    };
-    renderResult(result);
+      evidence,
+      activeHistory: data.activeSetHistory ?? null,
+      budgetRaw: amount($('programme-amount').value.trim()).toString(),
+      rationale: $('rule-rationale').value
+    });
+    if (token !== revision) return;
+    review = result;
+    renderResult();
     $('rule-fingerprint').textContent =
-      `Rule SHA-256: ${policyHash} · Snapshot SHA-256: ${snapshotHash}`;
+      `Rule SHA-256: ${review.value.policyHash} · Review SHA-256: ${review.hash}`;
     $('export-json').disabled = false;
-    $('publish-proposal').disabled = false;
     $('review-proposal').disabled = false;
+    renderDraftBaseline();
     setStep('simulation');
     tell(
-      'Simulation complete. Review eligibility, remaining funds and the changes before opening the prepared proposal.'
+      review.model.proposed.result
+        ? 'Comparison ready. Review the rule changes and allocation impact before opening the proposal.'
+        : 'Rules are ready to review. The allocation estimate remains unavailable until the required history is complete.'
     );
   } catch (error) {
     tell(error.message, 'error');
@@ -775,6 +678,7 @@ function updateCommission() {
       ? null
       : Number($('commission').value) * 100;
   invalidate();
+  renderRules();
 }
 $('commission').addEventListener('input', updateCommission);
 $('no-commission-limit').addEventListener('change', updateCommission);
@@ -821,7 +725,15 @@ $('save-draft').addEventListener('click', () => {
       focusRuleInput('commission');
       return;
     }
-    localStorage.setItem(key, JSON.stringify(policy(rules)));
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        schema: 1,
+        rule: policy(rules),
+        parent,
+        rationale: $('rule-rationale').value
+      })
+    );
     $('draft-status').textContent = 'Saved locally · unapproved';
     tell(
       'Rule draft saved on this device. The amount and simulation are not saved. The rules have not been submitted or approved.'
@@ -831,7 +743,8 @@ $('save-draft').addEventListener('click', () => {
   }
 });
 $('reset-draft').addEventListener('click', () => {
-  rules = defaultPolicy();
+  rules = parent ? structuredClone(parent.rule) : defaultPolicy();
+  $('rule-rationale').value = '';
   restoreCommissionInput();
   $('factor-error').hidden = true;
   $('factor-number').removeAttribute('aria-invalid');
@@ -848,8 +761,8 @@ $('simulate').addEventListener('click', runSimulation);
 $('export-json').addEventListener('click', () => {
   if (review)
     download(
-      `juno-rule-draft-${review.policyHash.slice(0, 12)}.json`,
-      JSON.stringify(review, null, 2) + '\n',
+      `juno-rule-draft-${review.value.policyHash.slice(0, 12)}.json`,
+      JSON.stringify(review.value, null, 2) + '\n',
       'application/json'
     );
 });
@@ -857,13 +770,44 @@ function openProposal(value) {
   const url = savePlannerProposal(localStorage, value);
   location.assign(url);
 }
-$('publish-proposal').addEventListener('click', () => {
+$('publish-proposal').addEventListener('click', async () => {
+  const selected = review,
+    token = revision;
   try {
-    if (review) openProposal(ruleProposal(review));
+    if (!selected) return;
+    $('publish-proposal').disabled = true;
+    tell('Verifying the parent approval and preparing the frozen comparison…');
+    const current = await currentApprovedRules();
+    if (token !== revision || selected !== review) return;
+    approval = { status: 'verified', current: current.current };
+    if (!parentMatches(selected.value.parent, current.current))
+      throw Error(
+        'The approved policy changed. Keep this export and start a new draft from current rules.'
+      );
+    if (freshness() > 3600000) throw Error('Refresh the snapshot before opening a rule proposal.');
+    const proposal = await frozenRuleProposal(selected);
+    if (token !== revision || selected !== review) return;
+    openProposal(proposal);
   } catch (error) {
     tell(error.message, 'error');
+  } finally {
+    renderDraftBaseline();
   }
 });
+$('rule-rationale').addEventListener('input', () => invalidate());
+$('adopt-current-rules').onclick = () => {
+  if (approval.status !== 'verified') return;
+  parent = structuredClone(approval.current);
+  rules = parent ? structuredClone(parent.rule) : defaultPolicy();
+  restoreCommissionInput();
+  invalidate();
+  renderRules();
+};
+$('use-current-model').onclick = () => {
+  rules = { ...rules, schema: 3, eligibility: defaultPolicy().eligibility };
+  invalidate();
+  renderRules();
+};
 $('claim-rewards').addEventListener('click', () => {
   const button = $('claim-rewards');
   try {
@@ -906,44 +850,36 @@ document.querySelectorAll('[data-step]').forEach((link) =>
 $('review-proposal').addEventListener('click', () => {
   if (review) setStep('proposals');
 });
-for (const id of ['validator-search', 'validator-filter', 'validator-sort'])
-  $(id).addEventListener(id === 'validator-search' ? 'input' : 'change', () => {
-    page = 0;
-    renderTable();
-  });
-$('previous-page').addEventListener('click', () => {
-  page--;
-  renderTable();
-});
-$('next-page').addEventListener('click', () => {
-  page++;
-  renderTable();
-});
-$('show-evidence-review').addEventListener('click', () => {
-  $('validator-search').value = '';
-  $('validator-filter').value = 'review';
-  page = 0;
-  renderTable();
-  $('validator-filter').focus();
-});
 window.addEventListener('hashchange', () => {
   if (location.hash === '#roadmap') {
     setStep('rules');
+    $('roadmap').open = true;
     $('roadmap').scrollIntoView({ block: 'start' });
   } else setStep(location.hash.slice(1));
 });
 const initialStep = location.hash.slice(1);
 setStep(initialStep === 'roadmap' ? 'rules' : initialStep, false);
-if (initialStep === 'roadmap') $('roadmap').scrollIntoView({ block: 'start' });
+if (initialStep === 'roadmap') {
+  $('roadmap').open = true;
+  $('roadmap').scrollIntoView({ block: 'start' });
+} else {
+  // A deep link selects the view; keep its title and navigation in sight.
+  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+}
 try {
   const saved = localStorage.getItem(key);
-  if (!saved && localStorage.getItem('cosmoot:juno:delegation:rule-draft:v1')) {
-    $('draft-status').textContent =
-      'Eligibility updated · review new rules; earlier draft preserved';
-  }
   if (saved) {
-    rules = policy(JSON.parse(saved));
-    $('draft-status').textContent = 'Local draft restored · unapproved';
+    const value = JSON.parse(saved);
+    rules = policy(value.rule);
+    parent = value.parent ?? null;
+    draftStarted = true;
+    $('rule-rationale').value = value.rationale || '';
+    $('draft-status').textContent = 'Local draft restored · original baseline preserved';
+  } else if (localStorage.getItem('cosmoot:juno:delegation:rule-draft:v2')) {
+    rules = policy(JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v2')));
+    draftStarted = true;
+    $('draft-status').textContent =
+      'Legacy draft preserved · review the new 90-day model before proposing';
   }
 } catch {
   tell('Saved draft is invalid or unavailable. Default rules loaded.');

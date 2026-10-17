@@ -1,6 +1,7 @@
 import { PROGRAMME, policy, snapshot, units } from './juno-delegation-core.mjs';
 
 import { rewardMessages } from './juno-governance-core.mjs';
+import { encodeRuleReview, verifyRuleReview, ruleChanges } from './juno-delegation-review.mjs';
 
 export const PLANNER_DRAFT_PREFIX = 'cosmoot:juno:planner-proposal:';
 const identifier = /^[a-f0-9-]{36}$/;
@@ -61,6 +62,7 @@ export function ruleProposal(review) {
     r = review.simulation;
   if (review.proposalType !== 'RULE_APPROVAL' || !r || review.approval !== null)
     throw Error('Simulate an unapproved rule draft first.');
+  if (p.schema !== 2) throw Error('New rule proposals require a frozen allocation review.');
   return draft(
     'RULE_APPROVAL',
     'Juno Delegation Programme — allocation rules',
@@ -70,6 +72,44 @@ export function ruleProposal(review) {
       `## Exact policy\n\n\`\`\`json\n${JSON.stringify(p, null, 2)}\n\`\`\`\n\n` +
       `## Illustrative distribution\n\nBudget: ${units(r.budgetRaw)} JUNO\nAllocated: ${units(r.allocatedRaw)} JUNO\nUnallocated: ${units(r.unallocatedRaw)} JUNO\nSnapshot block: ${s.height}\nSnapshot time: ${s.blockTime}\nRule SHA-256: ${review.policyHash}\nSnapshot SHA-256: ${review.snapshotHash}\nEvidence SHA-256: ${review.evidenceHash}\n\nKeep the full planner review-data export alongside this proposal. Refresh evidence before voting. A later allocation proposal needs verified on-chain rule approval, authority, fresh balances, consensus-set and redelegation checks. This draft contains no execution messages.`
   );
+}
+export async function frozenRuleProposal(review) {
+  const checked = await verifyRuleReview(review.value),
+    v = checked.value;
+  const changes = ruleChanges(v.parent?.rule, v.rule).filter((r) => r.changed);
+  const content =
+    `# Proposed allocation rules\n\nDecision requested: approve this exact rule revision. Execution: none.\nChain: juno-1\nDecision and submission: Juno native governance\nTopic: Delegation Programme\nProgramme: ${v.rule.programme}\n\n` +
+    (v.parent
+      ? `Parent policy: Juno proposal #${v.parent.proposalId}\nParent rule SHA-256: ${v.parent.hash}`
+      : 'Initial adoption: no prior Cosmoot-format approval found at preparation.') +
+    `\n\n${v.rationale ? 'Rationale: ' + v.rationale + '\n\n' : ''}## Changes\n\n` +
+    changes
+      .map(
+        (r) => `- ${r.label}${r.address ? ' (' + r.address + ')' : ''}: ${r.before} → ${r.after}`
+      )
+      .join('\n') +
+    (changes.length ? '' : 'No semantic rule changes.') +
+    `\n\n## Exact policy\n\n\`\`\`json\n${JSON.stringify(v.rule)}\n\`\`\`\n\nRule SHA-256: ${v.policyHash}\n\n` +
+    `Comparison budget: ${units(v.budgetRaw)} JUNO (illustrative, not authorized expenditure).\nSnapshot: ${v.snapshot.height} · ${v.snapshot.blockTime}\n` +
+    (v.proposed.status === 'calculated'
+      ? `Proposed total: ${units(v.proposed.allocatedRaw)} JUNO; unallocated: ${units(v.proposed.unallocatedRaw)} JUNO.\n`
+      : `Allocation impact unavailable: ${v.proposed.reason}\n`) +
+    '\nApproval changes the rules only. Holdings remain unchanged by this vote. A separate allocation proposal must use the approved revision, fresh evidence, verified programme authority and exact reviewed transactions.\n\n' +
+    (await encodeRuleReview(checked));
+  const result = draft(
+    'RULE_APPROVAL',
+    'Juno Delegation Programme — allocation rules',
+    'Approve the exact allocation rules. This vote does not move funds; distribution estimates and their evidence are frozen in the proposal.',
+    content
+  );
+  if (
+    [...result.values.body].length > 10000 ||
+    new TextEncoder().encode(result.values.summary + '\n\n' + result.values.body).length > 10000
+  )
+    throw Error(
+      'The complete comparison exceeds the 10,000-character community-review limit. Keep the review-data export; this proposal cannot be published without its evidence. Reduce optional rationale or exclusion text and prepare it again.'
+    );
+  return result;
 }
 export function claimProposal(input, now = Date.now(), rewardsSource = null) {
   const s = snapshot(input);

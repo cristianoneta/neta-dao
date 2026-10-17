@@ -1,4 +1,4 @@
-import { defaultPolicy, fingerprint, simulate, amount } from '../../juno-delegation-core.mjs';
+import { legacyPolicy as defaultPolicy, fingerprint, simulate, amount } from '../../juno-delegation-core.mjs';
 import { ruleProposal } from '../../planner-proposal-draft.mjs';
 import { fixture, observed } from './delegation-planner.mjs';
 export async function approvedProposal(overrides = {}, rule = defaultPolicy()) {

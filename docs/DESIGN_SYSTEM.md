@@ -1,5 +1,42 @@
 # NETA DAO design system
 
+## Rule and impact comparison — 17 October 2026 candidate
+
+Use the same `juno-rule-review-view.mjs` component in author and voter views.
+Lead with the decision and no-execution scope, then changed fields with labelled
+previous/proposed values, then distribution impact. Keep unchanged criteria and
+exact data in disclosures. Initial adoption has no previous approved values.
+
+The default compares actual holdings with the proposed target. A single alternative
+isolates policy effects on identical observations and budget. Neutral ticks and mint
+bars share a scale; adjacent numbers and signs carry meaning without color.
+Mobile stacks labels and values, never hides held outside-set positions and never
+turns missing evidence into zero. “Only changes” uses exact amounts, not rounding.
+Approved rules and an approved executable allocation remain distinct states.
+
+## Delegation product hierarchy — redesign candidate, 15 October 2026
+
+The owner requested a critical redesign of the existing delegation core, with no
+additional features. The candidate documented in
+[DELEGATION_PRODUCT_DESIGN](DELEGATION_PRODUCT_DESIGN.md) changes the 11 October
+disclosure arrangement: active eligibility controls start open, while planned
+V2/V3 models sit in labelled, default-closed disclosures. Their disabled controls
+and evidence remain available. This is a design candidate, not a new policy or a
+production-release record.
+
+Overview leads with actual holdings, active-set allocation and rewards. Planning
+has the primary action; claiming rewards is a separate secondary task. Current
+approved rules retain their own state and expandable settings/evidence. Keep
+Overview outside the three numbered stages: Set rules, Review distribution and
+Review proposal. Use a draft summary beside the desktop form, stacked after it on
+mobile. “Open proposal draft” describes the existing handoff accurately.
+
+Preserve the shared tokens, exact financial data, stable routes, source freshness,
+validation, table controls and transaction boundaries. Two-decimal summaries must
+retain exact amounts in details/exports. No future scoring or execution capability
+is activated by this redesign. User testing and manual release remain separate
+from local visual and functional verification.
+
 ## DEX viewport alignment — owner correction 2026-10-14
 
 Place the compact desktop heading above both map and swap columns, with no forced

@@ -2,6 +2,7 @@ import { reviewNetwork } from './juno-review-network.mjs';
 import { verifyMainnetReview } from './juno-review-mainnet-read.mjs';
 import { governanceFetch } from './governance-chain-read.mjs';
 import { claimValidators, depositTerms, proposalContent } from './juno-governance-core.mjs';
+import { readProposalReview } from './juno-delegation-review.mjs';
 
 export const REVIEW_CONTRACT = 'juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw';
 export const DEPOSIT = '/cosmos.gov.v1.MsgDeposit';
@@ -50,6 +51,7 @@ export async function finalizedReview(proposal, revision, chainId = 'uni-7') {
   )
     throw Error('Finalize the latest community review before mainnet submission.');
   const values = reviewValues(revision);
+  await readProposalReview(values);
   const bytes = new Uint8Array(
     await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(values)))
   );

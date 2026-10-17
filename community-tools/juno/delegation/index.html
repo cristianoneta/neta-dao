@@ -16,83 +16,131 @@
     <link rel="stylesheet" href="/neta-ui.css" />
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
-    <link rel="stylesheet" href="/juno-delegation.css?v=6" />
-    <script type="module" src="/juno-delegation.mjs?v=6"></script>
-  </head>
+    <link rel="stylesheet" href="/juno-delegation.css?v=8" />
+    <script type="module" src="/juno-delegation.mjs?v=8"></script>
+    <link rel="stylesheet" href="/juno-rule-review.css?v=20261017-1" />
+</head>
   <body>
     <a class="planner-skip" href="#planner-heading">Skip to planner</a>
     <header class="gov-header faucet-header delegation-header">
       <a class="gov-brand" href="/index.html">COSMOOT</a>
       <a class="faucet-header-label" href="/community-tools/">COMMUNITY TOOLS</a>
-      <a class="faucet-dao-promo" href="/index.html" aria-label="Open the Cosmoot DAO workspace">
-        <img src="/assets/design/assembly-plaza.webp" width="76" height="76" alt="" />
-        <span class="faucet-dao-copy"
-          ><strong>DAO workspace</strong><span>Create · Discover · Govern</span></span
-        >
-        <span class="faucet-dao-arrow" aria-hidden="true">↗</span>
-      </a>
-      <div class="gov-controls"><span class="community-network">JUNO MAINNET · PLANNING</span></div>
+      <a class="workspace-link" href="/index.html" aria-label="Open the Cosmoot DAO workspace"
+        >DAO workspace <span aria-hidden="true">↗</span></a
+      >
+      <div class="gov-controls"><span class="community-network">Juno mainnet</span></div>
     </header>
     <main class="tools-hub delegation-hub">
       <nav class="tool-breadcrumb" aria-label="Breadcrumb">
         <a href="/community-tools/">Community Tools</a><span aria-hidden="true"> / </span
         ><a href="/community-tools/#interchain">Interchain</a><span aria-hidden="true"> / </span
-        ><a href="/community-tools/delegation/">Delegation Programme</a><span aria-hidden="true"> / </span
-        ><span>Juno</span>
+        ><a href="/community-tools/delegation/">Delegation Programme</a
+        ><span aria-hidden="true"> / </span><span>Juno</span>
       </nav>
       <header class="delegation-intro">
-        <div>
-          <h1 id="planner-heading" tabindex="-1">Delegation Programme</h1>
-          <p>Explore the programme. Set the rules. Review the next allocation.</p>
+        <div class="programme-identity">
+          <img src="/assets/juno-chain.png" width="48" height="48" alt="" />
+          <div>
+            <p class="eyebrow">COMMUNITY CAPITAL · JUNO</p>
+            <h1 id="planner-heading" tabindex="-1">Delegation Programme</h1>
+            <p class="intro-copy">See the programme today. Shape its next allocation.</p>
+          </div>
         </div>
-        <span class="state-pill neutral">V1 planner · V2/V3 planned</span>
+        <a
+          class="intro-link"
+          href="/index.html?chain=juno&amp;dao=juno&amp;subdao=juno-delegation#treasury"
+          >Programme treasury <span aria-hidden="true">↗</span></a
+        >
       </header>
       <nav class="planner-steps" aria-label="Planning steps">
-        <a href="#overview" data-step="overview" aria-current="step"><span aria-hidden="true">i</span> Overview</a>
-        <a href="#rules" data-step="rules"
-          ><span aria-hidden="true">1</span> Set rules</a
-        >
-        <a href="#simulation" data-step="simulation"
-          ><span aria-hidden="true">2</span> Review distribution</a
-        >
-        <a href="#proposals" data-step="proposals"
-          ><span aria-hidden="true">3</span> Review proposal</a
+        <a href="#overview" data-step="overview" aria-current="step" class="overview-tab"
+          >Overview</a
+        ><span class="workflow-label">PLAN A CHANGE</span
+        ><a href="#rules" data-step="rules"
+          ><span class="step-number" aria-hidden="true">1</span>Set rules</a
+        ><a href="#simulation" data-step="simulation"
+          ><span class="step-number" aria-hidden="true">2</span>Review distribution</a
+        ><a href="#proposals" data-step="proposals"
+          ><span class="step-number" aria-hidden="true">3</span>Review proposal</a
         >
       </nav>
       <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
       <section id="overview" class="planner-panel" aria-labelledby="overview-title">
-        <div class="section-heading"><h2 id="overview-title" tabindex="-1">Current delegation programme</h2><span class="state-pill neutral">Observed holdings</span></div>
-        <p class="overview-intro">See where the programme is delegated today and prepare a staking rewards proposal.</p>
+        <div class="section-heading overview-heading">
+          <h2 id="overview-title" tabindex="-1">The programme today</h2>
+          <a class="action-link primary-action" href="#rules" data-step="rules"
+            >Propose initial rules <span aria-hidden="true">→</span></a
+          >
+        </div>
+        <p class="overview-intro">Current allocations and rewards, before any proposed changes.</p>
         <div class="programme-overview-grid">
           <article class="planner-card programme-current">
-            <div class="policy-heading"><h3>Programme position</h3><a href="/index.html?chain=juno&amp;dao=juno&amp;subdao=juno-delegation#treasury">Open treasury ↗</a></div>
-            <div class="current-metrics">
-              <div><span>Currently delegated · JUNO</span><strong id="current-total">—</strong></div>
-              <div><span>Spendable balance · JUNO</span><strong id="current-liquid">—</strong></div>
-              <div><span>Validator positions</span><strong id="current-validator-count">—</strong></div>
+            <div class="policy-heading">
+              <h3>Currently delegated</h3>
+              <span class="metric-unit">JUNO</span>
             </div>
-            <p id="current-breakdown" class="field-help">Loading current programme positions.</p>
-            <p class="field-help">Balances are from the programme snapshot. Unclaimed rewards are separate; spendable balance is not the full allocation budget.</p>
-          </article>
-          <article class="planner-card programme-rewards"><h3>Staking rewards</h3>
-            <div class="claim-rewards">
-              <p id="claim-rewards-amount" class="claim-amount" aria-live="polite">
-                Loading claimable staking rewards…
+            <div class="delegated-total"><strong id="current-total">—</strong></div>
+            <div class="current-metrics">
+              <div><span>Spendable balance · JUNO</span><strong id="current-liquid">—</strong></div>
+              <div>
+                <span>Validator positions</span><strong id="current-validator-count">—</strong>
+              </div>
+            </div>
+            <div class="position-health" id="position-health" hidden>
+              <div class="position-health-label">
+                <span>Delegation across the active set</span
+                ><strong id="active-position-share">—</strong>
+              </div>
+              <progress
+                id="active-position-meter"
+                max="100"
+                value="0"
+                aria-label="Share of programme delegation in the active set"
+              ></progress>
+              <div class="position-health-legend">
+                <span id="active-position-count">—</span><span id="outside-position-count">—</span>
+              </div>
+            </div>
+            <details class="quiet-details">
+              <summary>Position details</summary>
+              <p id="current-breakdown" class="field-help">Loading current programme positions.</p>
+              <p class="field-help">
+                Unclaimed rewards are separate. Spendable balance alone is not the allocation
+                budget.
               </p>
-              <p id="claim-rewards-observed" class="field-help"></p>
+              <a href="/index.html?chain=juno&amp;dao=juno&amp;subdao=juno-delegation#treasury"
+                >View programme treasury →</a
+              >
+            </details>
+          </article>
+          <article class="planner-card programme-rewards">
+            <div class="policy-heading">
+              <h3>Unclaimed rewards</h3>
+              <span class="reward-symbol" aria-hidden="true">↗</span>
+            </div>
+            <div class="claim-rewards">
+              <div id="claim-rewards-amount" class="claim-amount" aria-live="polite">
+                Loading claimable staking rewards…
+              </div>
+              <p class="reward-description">
+                Bring earned rewards back into the programme through community governance.
+              </p>
               <button
                 id="claim-rewards"
-                class="primary-action"
                 type="button"
                 aria-describedby="claim-rewards-help claim-rewards-feedback"
                 disabled
               >
-                Create claim rewards proposal
+                Create claim rewards proposal <span aria-hidden="true">→</span>
               </button>
               <p class="field-help" id="claim-rewards-help">
-                Opens a prepared draft on our proposal page. After approval and execution, refresh
-                the data to include claimed rewards.
+                Opens a draft for community review. Claiming follows on-chain approval and
+                execution.
               </p>
+              <details class="quiet-details">
+                <summary>Reward amount &amp; source</summary>
+                <p id="claim-rewards-observed" class="field-help"></p>
+              </details>
               <p
                 id="claim-rewards-feedback"
                 class="field-help"
@@ -103,225 +151,407 @@
             </div>
           </article>
         </div>
-        <article class="planner-card current-positions">
-          <div class="policy-heading"><h3>Current validator allocations</h3><span class="field-help">Largest programme positions first</span></div>
-          <div class="current-table-region" role="region" aria-label="Current programme delegations" tabindex="0">
-            <table class="current-positions-table"><thead><tr><th scope="col">Validator</th><th scope="col">Delegated JUNO</th><th scope="col">Programme share</th><th scope="col">Status</th></tr></thead><tbody id="current-position-rows"><tr><td colspan="4">Loading current positions…</td></tr></tbody></table>
+        <div class="overview-workspace">
+          <article class="planner-card current-positions">
+            <div class="policy-heading">
+              <h3>Current validator allocations</h3>
+              <span class="field-help">Largest programme positions first</span>
+            </div>
+            <p id="current-table-hint" class="current-table-hint">
+              Scroll horizontally for share and status.
+            </p>
+            <div
+              class="current-table-region"
+              role="region"
+              aria-label="Current programme delegations"
+              aria-describedby="current-table-hint"
+              tabindex="0"
+            >
+              <table class="current-positions-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Validator</th>
+                    <th scope="col">Delegated JUNO</th>
+                    <th scope="col">Programme share</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="current-position-rows">
+                  <tr>
+                    <td colspan="4">Loading current positions…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <button
+              id="current-positions-toggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="current-position-rows"
+              hidden
+            >
+              Show all positions
+            </button>
+          </article>
+          <aside class="overview-sidebar" aria-label="Programme rules and planning">
+            <article class="planner-card current-rules" aria-labelledby="current-rules-title">
+              <div class="policy-heading">
+                <h3 id="current-rules-title">Current rules</h3>
+                <span id="current-rules-state" class="state-pill neutral">Checking approval…</span>
+              </div>
+              <div id="current-rules-content" aria-live="polite">
+                <p>Checking Juno governance for approved programme rules…</p>
+              </div>
+            </article>
+            <article class="planner-card" id="approved-allocation-next" hidden>
+              <p class="eyebrow">AFTER RULE APPROVAL</p><h3>Prepare a separate allocation</h3>
+              <p id="approved-allocation-reference"></p>
+              <button type="button" disabled>Prepare allocation proposal</button>
+              <p class="field-help">Not yet available. This needs programme execution authority, fresh movement constraints and approval of the exact transactions. Approval of rules alone cannot move funds.</p>
+            </article>
+            <article class="planner-card next-allocation">
+              <p class="eyebrow">PLANNING WORKFLOW</p>
+              <h3>Plan the next allocation</h3>
+              <p>Explore a change before putting it to the community.</p>
+              <ol class="workflow-guide">
+                <li>
+                  <span>1</span>
+                  <div>
+                    <strong>Set the rules</strong><small>Choose limits and eligibility.</small>
+                  </div>
+                </li>
+                <li>
+                  <span>2</span>
+                  <div>
+                    <strong>Compare the impact</strong
+                    ><small>See every validator’s proposed allocation.</small>
+                  </div>
+                </li>
+                <li>
+                  <span>3</span>
+                  <div>
+                    <strong>Prepare the proposal</strong
+                    ><small>Take the rules into community review.</small>
+                  </div>
+                </li>
+              </ol>
+              <a class="action-link" href="#rules" data-step="rules"
+                >Set allocation rules <span aria-hidden="true">→</span></a
+              >
+              <p class="field-help">Planning does not move funds.</p>
+            </article>
+          </aside>
+        </div>
+        <details class="model-details" id="overview-model">
+          <summary>
+            <span>About the allocation model</span
+            ><span class="summary-meta">Eligibility · future scoring · research</span>
+          </summary>
+          <div class="model-content">
+            <div class="section-heading">
+              <h2>Eligibility now. Scoring later.</h2>
+              <a href="#rules" data-step="rules">Set rules →</a>
+            </div>
+            <p class="overview-intro">
+              V1 uses equal allocation within eligibility and voting-power limits. V2 and V3 are
+              planned; their preview settings do not affect your draft.
+            </p>
+            <article class="planner-card eligibility-overview">
+              <div class="policy-heading">
+                <h3>A · Eligibility</h3>
+                <span class="state-pill neutral">V1 · evidence required</span>
+              </div>
+              <p>
+                Decide which validators qualify before any future points are assigned. Current V1
+                distributes equally among eligible validators, subject to the voting-power cap and
+                available capacity.
+              </p>
+              <details id="overview-eligibility-details" class="policy-details">
+                <summary>Eligibility criteria <span>5 checks</span></summary>
+                <dl class="eligibility-list">
+                  <div>
+                    <dt>Validator status</dt>
+                    <dd>
+                      90 continuous days in the active set, with no current jail. Complete history
+                      must cover the immediately preceding window.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Voting power</dt>
+                    <dd>
+                      A dynamic cap on projected total stake: min(30%, factor × 100% / active set
+                      size).
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Commission</dt>
+                    <dd>A configurable maximum commission, or explicitly no limit.</dd>
+                  </div>
+                  <div>
+                    <dt>Upgrade participation</dt>
+                    <dd>
+                      Archived Juno v31 participation within five hours. Missing or late evidence
+                      requires review.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Manual exclusions</dt>
+                    <dd>
+                      Explicit validator exclusions with a public reason; changes form part of the
+                      rule proposal.
+                    </dd>
+                  </div>
+                </dl>
+                <p class="field-help">
+                  A .neta name is not an admission requirement. Future testnet bonus eligibility is
+                  separate.
+                </p>
+                <a href="#rules" data-step="rules">Configure eligibility &amp; allocation →</a>
+              </details>
+            </article>
+            <div id="overview-future-policy" class="future-policy-grid"></div>
+            <details class="calculation-help">
+              <summary>Research behind this structure</summary>
+              <p>
+                RockawayX separated eligibility from weighted scoring; C4E also separated objective
+                and subjective assessment. These historical examples inform the layout, not the
+                active Juno policy.
+              </p>
+              <p>
+                <a
+                  href="https://web.archive.org/web/20240813161133/https://smartdelegation.app/docs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Archived RockawayX policy guide ↗</a
+                >
+                ·
+                <a
+                  href="https://docs.c4e.io/validatorsGuide/strategReserveDelegationProgram/strategReserveDelegationProgram.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >C4E delegation programme documentation ↗</a
+                >
+              </p>
+            </details>
           </div>
-          <button id="current-positions-toggle" type="button" aria-expanded="false" aria-controls="current-position-rows" hidden>Show all positions</button>
-        </article>
-        <article class="planner-card current-rules" aria-labelledby="current-rules-title">
-          <div class="policy-heading"><h3 id="current-rules-title">Current rules</h3><span id="current-rules-state" class="state-pill neutral">Checking approval…</span></div>
-          <div id="current-rules-content" aria-live="polite"><p>Checking Juno governance for approved programme rules…</p></div>
-        </article>
-        <div class="section-heading"><h2>How allocation rules develop</h2><a href="#rules" data-step="rules">Set rules →</a></div>
-        <p class="overview-intro">The same three groups appear in Set rules. Only the existing V1 controls affect today’s simulation; grey sections preview later versions.</p>
-        <article class="planner-card eligibility-overview">
-          <div class="policy-heading"><h3>A · Eligibility</h3><span class="state-pill live">V1 · Available</span></div>
-          <p>Decide which validators qualify before any future points are assigned. Current V1 distributes equally among eligible validators, subject to the voting-power cap and available capacity.</p>
-          <details id="overview-eligibility-details" class="policy-details"><summary>Eligibility criteria <span>5 checks</span></summary>
-          <dl class="eligibility-list">
-            <div><dt>Validator status</dt><dd>Non-jailed validators; consensus membership is shown separately. Current operation outside the active set is not independently verified.</dd></div>
-            <div><dt>Voting power</dt><dd>A dynamic cap on projected total stake: min(30%, factor × 100% / active set size).</dd></div>
-            <div><dt>Commission</dt><dd>A configurable maximum commission, or explicitly no limit.</dd></div>
-            <div><dt>Upgrade participation</dt><dd>Archived Juno v31 participation within five hours. Missing or late evidence requires review.</dd></div>
-            <div><dt>Manual exclusions</dt><dd>Explicit validator exclusions with a public reason; changes form part of the rule proposal.</dd></div>
-          </dl>
-          <p class="field-help">A .neta name is not an admission requirement. Future testnet bonus eligibility is separate.</p>
-          <a href="#rules" data-step="rules">Configure eligibility &amp; allocation →</a>
-          </details>
-        </article>
-        <div id="overview-future-policy" class="future-policy-grid"></div>
-        <details class="calculation-help"><summary>Research behind this structure</summary><p>RockawayX separated eligibility from weighted scoring; C4E also separated objective and subjective assessment. These historical examples inform the layout, not the active Juno policy.</p><p><a href="https://web.archive.org/web/20240813161133/https://smartdelegation.app/docs" target="_blank" rel="noopener noreferrer">Archived RockawayX policy guide ↗</a> · <a href="https://docs.c4e.io/validatorsGuide/strategReserveDelegationProgram/strategReserveDelegationProgram.html" target="_blank" rel="noopener noreferrer">C4E delegation programme documentation ↗</a></p></details>
+        </details>
       </section>
       <section id="rules" class="planner-panel" aria-labelledby="rules-title" hidden>
         <div class="section-heading">
           <h2 id="rules-title" tabindex="-1">Set the allocation rules</h2>
           <span class="state-pill neutral">Equal distribution</span>
         </div>
-          <article class="planner-card allocation-settings">
-            <h3>Allocation settings</h3>
-            <label for="programme-amount">Amount to distribute · JUNO</label
-            ><input
-              id="programme-amount"
-              type="text"
-              inputmode="decimal"
-              placeholder="Waiting for snapshot"
-              autocomplete="off"
-              aria-describedby="available-funds"
-            />
-            <p class="field-help" id="available-funds">
-              Includes delegated and available JUNO, keeps at least 50 JUNO in reserve and rounds
-              down to whole hundreds.
-            </p>
-            <p id="reserve-note" class="field-help"></p>
-
-          </article>
-          <article class="planner-card eligibility-rules">
-            <div class="policy-heading"><h3>A · Eligibility</h3><span class="state-pill live">V1 · Available</span></div>
-            <p>Pass the admission rules first. These checks are not weighted points. Voting power also limits the target allocation.</p>
-            <details id="rules-eligibility-details" class="policy-details"><summary>Eligibility criteria <span>5 checks · edit rules</span></summary>
-            <section class="criterion" aria-labelledby="status-criterion">
-              <h4 id="status-criterion"><span>1</span> Validator status</h4>
-              <p>
-                Running, non-jailed validators may qualify inside or outside the consensus set.
-                Being outside the set is not evidence of being offline.
-              </p>
-              <p class="field-help">
-                V1 checks jail status and the archived participation criterion below. Current uptime
-                outside the set is not independently verified.
-              </p>
-            </section>
-            <section class="criterion" aria-labelledby="power-criterion">
-              <h4 id="power-criterion"><span>2</span> Voting power</h4>
-              <label for="factor">Voting power cap factor</label>
-              <div class="factor-control">
-                <input
-                  id="factor"
-                  type="range"
-                  min="10"
-                  max="20"
-                  step="1"
-                  value="15"
-                  aria-describedby="cap-description"
-                /><label class="sr-only" for="factor-number">Exact voting power cap factor</label
-                ><input
-                  id="factor-number"
-                  type="number"
-                  min="1"
-                  max="2"
-                  step="0.1"
-                  value="1.5"
-                  aria-describedby="factor-error"
-                /><output id="factor-value" for="factor factor-number">1.5×</output>
-              </div>
-              <p id="factor-error" class="field-error" hidden>
-                Enter a factor from 1.0 to 2.0 in steps of 0.1.
-              </p>
-              <p id="cap-description" class="cap-result">
-                The voting power limit will appear after data loads.
-              </p>
-              <details class="calculation-help">
-                <summary>How the limit is calculated</summary>
-                <p id="cap-formula">Cap = min(30%, factor × 100% / active validator count).</p>
-                <p>
-                  All active validators count, including programme exclusions. The cap limits
-                  projected total stake, including other delegators. There is no separate minimum or
-                  maximum programme amount per validator.
-                </p>
-              </details>
-            </section>
-            <section class="criterion" aria-labelledby="commission-criterion">
-              <h4 id="commission-criterion"><span>3</span> Commission</h4>
-              <label for="commission">Maximum commission · %</label>
-              <input
-                id="commission"
-                type="number"
-                min="0"
-                max="100"
-                step="1"
-                value="10"
-                inputmode="numeric"
-                aria-describedby="commission-help commission-error"
-              />
-              <p id="commission-help" class="field-help">
-                Whole numbers from 0 to 100. Proposed default: 10%.
-              </p>
-              <p id="commission-error" class="field-error" hidden>
-                Enter a whole-number commission limit from 0 to 100.
-              </p>
-              <label class="check-option" for="no-commission-limit"
-                ><input id="no-commission-limit" type="checkbox" />No commission limit</label
-              >
-            </section>
-            <section class="criterion" aria-labelledby="upgrade-criterion">
-              <h4 id="upgrade-criterion"><span>4</span> Upgrade participation</h4>
-              <p>Juno v31 participation within five hours</p>
-              <p>
-                Archived participation is required. Missing or late evidence needs review; it does
-                not prove a late software installation.
-              </p>
-              <details>
-                <summary>Review the participation evidence</summary>
-                <p id="upgrade-window" class="field-help">
-                  Loading the archived halt time and observation coverage.
-                </p>
-                <a href="/community-tools/validator-upgrades/juno-v31/">Open the v31 evidence ↗</a>
-              </details>
-            </section>
-            <details id="manual-exclusions" class="manual-exclusions">
-              <summary>Manual exclusions <span id="exclusion-count">· none</span></summary>
-              <p>
-                Exclude a validator by name or address, with a public reason. This changes the rule
-                proposal.
-              </p>
-              <label for="excluded-validator">Juno validator</label
+        <p class="section-description">
+          Choose the budget and limits. You can compare the outcome before sharing anything.
+        </p>
+        <div id="draft-parent-notice" aria-live="polite"><p id="draft-parent-note">Checking the approved baseline…</p><button id="adopt-current-rules" type="button" hidden>Start from current approved rules</button><button id="use-current-model" type="button" hidden>Propose the 90-day eligibility model</button></div>
+        <div class="rules-workspace">
+          <div class="rules-form">
+            <article class="planner-card allocation-settings">
+              <h3>Allocation budget</h3>
+              <label for="programme-amount">Amount to distribute · JUNO</label
               ><input
-                id="excluded-validator"
-                list="validator-options"
-                placeholder="Validator name or junovaloper1…"
+                id="programme-amount"
+                type="text"
+                inputmode="decimal"
+                placeholder="Waiting for snapshot"
                 autocomplete="off"
-                spellcheck="false"
-              /><datalist id="validator-options"></datalist
-              ><label for="excluded-reason">Public reason</label
-              ><input
-                id="excluded-reason"
-                maxlength="300"
-                placeholder="For example: exchange-operated validator"
-              /><button id="add-exclusion" type="button">Add exclusion</button>
-              <ul id="exclusions" class="exclusions"></ul>
-              <p id="empty-exclusions" class="field-help">No manual exclusions in this draft.</p>
-            </details>
-            </details>
-          </article>
-        <div id="roadmap" class="policy-roadmap" aria-label="Future policy settings"><div id="rules-future-policy" class="future-policy-grid"></div></div>
-        <div class="step-actions">
-          <div class="draft-actions">
-            <button id="save-draft" type="button">Save rules</button
-            ><button id="reset-draft" type="button">Reset rules</button
-            ><span id="draft-status" class="field-help">Not saved · unapproved</span>
+                aria-describedby="available-funds"
+              />
+              <details class="quiet-details">
+                <summary>How this budget is calculated</summary>
+                <p class="field-help" id="available-funds">
+                  Includes delegated and available JUNO, keeps at least 50 JUNO in reserve and
+                  rounds down to whole hundreds.
+                </p>
+              </details>
+              <p id="reserve-note" class="field-help"></p>
+            </article>
+            <article class="planner-card eligibility-rules">
+              <div class="policy-heading">
+                <h3>Validator eligibility</h3>
+                <span class="state-pill neutral">V1 · evidence required</span>
+              </div>
+              <p>
+                These checks decide who can receive an allocation. The voting-power limit also caps
+                each target.
+              </p>
+              <details id="rules-eligibility-details" class="policy-details" open="">
+                <summary>Eligibility criteria · 5 checks</summary>
+                <section class="criterion" aria-labelledby="status-criterion">
+                  <h4 id="status-criterion"><span>1</span> Validator status</h4>
+                  <p>
+                    <span id="draft-eligibility-description">90 continuous days in the active set; currently not jailed.</span>
+                  </p>
+                  <p class="field-help">
+                    Incomplete history keeps the target unavailable. Existing positions outside the set stay visible.
+                  </p>
+                </section>
+                <section class="criterion" aria-labelledby="power-criterion">
+                  <h4 id="power-criterion"><span>2</span> Voting power</h4>
+                  <label for="factor">Voting power cap factor</label>
+                  <div class="factor-control">
+                    <input
+                      id="factor"
+                      type="range"
+                      min="10"
+                      max="20"
+                      step="1"
+                      value="15"
+                      aria-describedby="cap-description"
+                    /><label class="sr-only" for="factor-number"
+                      >Exact voting power cap factor</label
+                    ><input
+                      id="factor-number"
+                      type="number"
+                      min="1"
+                      max="2"
+                      step="0.1"
+                      value="1.5"
+                      aria-describedby="factor-error"
+                    /><output id="factor-value" for="factor factor-number">1.5×</output>
+                  </div>
+                  <p id="factor-error" class="field-error" hidden>
+                    Enter a factor from 1.0 to 2.0 in steps of 0.1.
+                  </p>
+                  <p id="cap-description" class="cap-result">
+                    The voting power limit will appear after data loads.
+                  </p>
+                  <details class="calculation-help">
+                    <summary>How the limit is calculated</summary>
+                    <p id="cap-formula">Cap = min(30%, factor × 100% / active validator count).</p>
+                    <p>
+                      All active validators count, including programme exclusions. The cap limits
+                      projected total stake, including other delegators. There is no separate
+                      minimum or maximum programme amount per validator.
+                    </p>
+                  </details>
+                </section>
+                <section class="criterion" aria-labelledby="commission-criterion">
+                  <h4 id="commission-criterion"><span>3</span> Commission</h4>
+                  <label for="commission">Maximum commission · %</label>
+                  <input
+                    id="commission"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value="10"
+                    inputmode="numeric"
+                    aria-describedby="commission-help commission-error"
+                  />
+                  <p id="commission-help" class="field-help">
+                    Whole numbers from 0 to 100. Proposed default: 10%.
+                  </p>
+                  <p id="commission-error" class="field-error" hidden>
+                    Enter a whole-number commission limit from 0 to 100.
+                  </p>
+                  <label class="check-option" for="no-commission-limit"
+                    ><input id="no-commission-limit" type="checkbox" />No commission limit</label
+                  >
+                </section>
+                <section class="criterion" aria-labelledby="upgrade-criterion">
+                  <h4 id="upgrade-criterion"><span>4</span> Upgrade participation</h4>
+                  <p>Juno v31 participation within five hours</p>
+                  <p>
+                    Archived participation is required. Missing or late evidence needs review; it
+                    does not prove a late software installation.
+                  </p>
+                  <details>
+                    <summary>Review the participation evidence</summary>
+                    <p id="upgrade-window" class="field-help">
+                      Loading the archived halt time and observation coverage.
+                    </p>
+                    <a href="/community-tools/validator-upgrades/juno-v31/"
+                      >Open the v31 evidence ↗</a
+                    >
+                  </details>
+                </section>
+                <details id="manual-exclusions" class="manual-exclusions">
+                  <summary>Manual exclusions <span id="exclusion-count">· none</span></summary>
+                  <p>
+                    Exclude a validator by name or address, with a public reason. This changes the
+                    rule proposal.
+                  </p>
+                  <label for="excluded-validator">Juno validator</label
+                  ><input
+                    id="excluded-validator"
+                    list="validator-options"
+                    placeholder="Validator name or junovaloper1…"
+                    autocomplete="off"
+                    spellcheck="false"
+                  /><datalist id="validator-options"></datalist
+                  ><label for="excluded-reason">Public reason</label
+                  ><input
+                    id="excluded-reason"
+                    maxlength="300"
+                    placeholder="For example: exchange-operated validator"
+                  /><button id="add-exclusion" type="button">Add exclusion</button>
+                  <ul id="exclusions" class="exclusions"></ul>
+                  <p id="empty-exclusions" class="field-help">
+                    No manual exclusions in this draft.
+                  </p>
+                </details>
+              </details>
+            </article>
+            <div class="draft-actions">
+              <button id="save-draft" type="button">Save rules</button
+              ><button id="reset-draft" type="button">Reset rules</button
+              ><span id="draft-status" class="field-help">Not saved · unapproved</span>
+            </div>
           </div>
-          <button id="simulate" class="primary-action" type="button" disabled>
-            Simulate distribution →
-          </button>
+          <aside class="planner-card draft-summary" aria-label="Your allocation draft">
+            <p class="eyebrow">YOUR DRAFT</p>
+            <h3>Equal allocation</h3><p id="draft-change-count"></p>
+            <p>Eligible validators share the budget, within the voting-power limit.</p>
+            <dl class="draft-facts">
+              <div>
+                <dt>Allocation budget</dt>
+                <dd id="draft-budget">—</dd>
+              </div>
+              <div>
+                <dt>Voting-power limit</dt>
+                <dd id="draft-cap">—</dd>
+              </div>
+              <div>
+                <dt>Maximum commission</dt>
+                <dd id="draft-commission">10%</dd>
+              </div>
+              <div>
+                <dt>Manual exclusions</dt>
+                <dd id="draft-exclusions">None</dd>
+              </div>
+            </dl>
+            <label for="rule-rationale">Why this change? <small>Optional</small></label><textarea id="rule-rationale" maxlength="1000" rows="3" placeholder="Explain the decision to voters"></textarea><button id="simulate" class="primary-action" type="button" disabled>
+              Review rules &amp; impact →
+            </button>
+            <p class="field-help">
+              Next: compare current and proposed allocations. No wallet connection required.
+            </p>
+            <span class="draft-local">Local draft · not submitted</span>
+          </aside>
         </div>
+        <details id="roadmap" class="model-details" aria-label="Future policy settings">
+          <summary>
+            <span>Future scoring models</span><span class="summary-meta">V2 / V3 · planned</span>
+          </summary>
+          <div id="rules-future-policy" class="future-policy-grid"></div>
+        </details>
       </section>
       <section id="simulation" class="planner-panel" aria-labelledby="simulation-title" hidden>
         <div class="section-heading">
           <h2 id="simulation-title" tabindex="-1">Review the distribution</h2>
           <span id="simulation-state" class="state-pill neutral">Not simulated</span>
         </div>
+        <p class="section-description">
+          Compare the proposed distribution with today’s positions. Expand any validator to inspect
+          the evidence.
+        </p>
         <div class="rule-summary">
           <p id="rule-summary">Review the draft rules before simulating.</p>
           <a href="#rules" data-step="rules">Edit rules or amount</a>
         </div>
-        <div class="metrics">
-          <article>
-            <span>Proposed allocation</span><strong id="allocated-total">—</strong
-            ><small>JUNO</small>
-          </article>
-          <article>
-            <span>Receiving validators</span><strong id="recipient-total">—</strong
-            ><small
-              ><span id="eligible-total">—</span> eligible ·
-              <span id="active-total">Active set pending</span></small
-            >
-          </article>
-          <article>
-            <span>Unallocated funds</span><strong id="unallocated-total">—</strong
-            ><small>JUNO</small>
-          </article>
-        </div>
-        <div id="evidence-review" class="review-notice" hidden>
-          <p id="evidence-review-text"></p>
-          <button id="show-evidence-review" type="button">View cases</button>
-        </div>
-        <p id="allocation-explanation" class="allocation-explanation">
-          Set the rules and simulate to see who would receive funds.
-        </p>
-        <p id="simulation-note" class="field-help">
-          This is a target distribution, not an immediate redelegation transaction.
-        </p>
+        <div id="simulation-comparison"><p>Review the draft to see its rules and allocation impact.</p></div>
         <details class="calculation-help">
           <summary>Why target amounts can differ</summary>
           <p>
@@ -340,73 +570,6 @@
             power for a fixed validator set.
           </p>
         </details>
-        <div class="table-toolbar">
-          <div>
-            <label for="validator-search">Find a validator</label
-            ><input id="validator-search" type="search" placeholder="Name or validator address" />
-          </div>
-          <div>
-            <label for="validator-filter">Show</label
-            ><select id="validator-filter">
-              <option value="all">All validators</option>
-              <option value="receiving">Receiving an allocation</option>
-              <option value="cap">Limited by voting power</option>
-              <option value="review">Evidence review required</option>
-              <option value="excluded">Not eligible</option>
-              <option value="inactive">Jailed</option>
-              <option value="standby">Outside consensus set · not jailed</option>
-            </select>
-          </div>
-          <div>
-            <label for="validator-sort">Sort by</label
-            ><select id="validator-sort">
-              <option value="change">Largest change first</option>
-              <option value="name">Validator name</option>
-              <option value="target">Largest target first</option>
-              <option value="power">Current stake share</option>
-              <option value="total">Total JUNO after allocation · highest first</option>
-              <option value="total-asc">Total JUNO after allocation · lowest first</option>
-              <option value="projected">Projected share · highest first</option>
-              <option value="projected-asc">Projected share · lowest first</option>
-            </select>
-          </div>
-        </div>
-        <p class="table-scroll-hint">Scroll horizontally to compare all six columns.</p>
-        <div
-          class="table-region"
-          role="region"
-          aria-label="Validator allocation comparison"
-          tabindex="0"
-        >
-          <table class="allocation-table">
-            <caption class="sr-only">
-              Current and proposed programme delegations. Rounded display; exact amounts and
-              eligibility evidence are available in each row.
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Validator / reason</th>
-                <th scope="col">Current JUNO</th>
-                <th scope="col">Target JUNO</th>
-                <th scope="col">Change JUNO</th>
-                <th scope="col">Total JUNO after allocation<br /><span>All delegators</span></th>
-                <th scope="col">Stake share<br /><span>Current → projected</span></th>
-              </tr>
-            </thead>
-            <tbody id="allocation-rows">
-              <tr>
-                <td colspan="6">Set the rules and simulate to compare allocations.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="table-pagination">
-          <span id="table-count" role="status" aria-live="polite">No simulation yet.</span>
-          <div>
-            <button id="previous-page" type="button" disabled>← Previous</button
-            ><button id="next-page" type="button" disabled>Next →</button>
-          </div>
-        </div>
         <div class="step-actions">
           <a href="#rules" data-step="rules">← Edit rules or amount</a
           ><button id="review-proposal" type="button" class="primary-action" disabled>
@@ -447,22 +610,9 @@
           impact; they do not authorize a transfer.
         </p>
         <div id="proposal-empty" class="review-notice">
-          Simulate a distribution to prepare the rule proposal and its review package.
+          Review rules and impact to prepare the frozen proposal comparison. Rules can be proposed while allocation evidence is incomplete.
         </div>
-        <div id="proposal-review" hidden>
-          <article class="planner-card">
-            <h3>Rules proposed for approval</h3>
-            <dl id="proposal-rules" class="review-list"></dl>
-            <a href="#rules" data-step="rules">Edit this draft</a>
-          </article>
-          <article class="planner-card proposal-impact">
-            <h3>Illustrative distribution</h3>
-            <p id="proposal-impact"></p>
-            <p id="proposal-evidence" class="field-help"></p>
-            <p id="proposal-snapshot" class="field-help"></p>
-            <a href="#simulation" data-step="simulation">Review validator amounts</a>
-          </article>
-        </div>
+        <div id="proposal-review" hidden></div>
         <details class="calculation-help">
           <summary>Exact rule and snapshot identifiers</summary>
           <p id="rule-fingerprint" class="field-help">
@@ -474,14 +624,23 @@
           <div class="draft-actions">
             <button id="export-json" type="button" disabled>Download review data</button
             ><button id="publish-proposal" class="primary-action" type="button" disabled>
-              Publish proposal →
+              Open proposal draft →
             </button>
           </div>
         </div>
         <p class="field-help">
-          Publish proposal opens the prepared draft on our proposal page for review. Nothing is
-          submitted automatically; on-chain approval and execution remain separate steps.
+          Opens the existing proposal workspace. You can review the draft there before publishing it
+          for discussion.
         </p>
+        <div class="proposal-handoff">
+          <strong>What happens next?</strong>
+          <ol>
+            <li>Review &amp; discuss</li>
+            <li>Submit on-chain</li>
+            <li>Community vote</li>
+          </ol>
+          <p>Approval of the rules and execution of an allocation remain separate decisions.</p>
+        </div>
         <details class="execution-details">
           <summary>Later: update allocations under approved rules</summary>
           <p>
@@ -490,7 +649,7 @@
           </p>
           <button type="button" disabled>Prepare execution proposal</button>
           <p class="field-help">
-            Unavailable: on-chain approval verification, programme authority and transaction-level
+            Unavailable: programme execution authority and transaction-level
             redelegation checks are not connected yet.
           </p>
         </details>

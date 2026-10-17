@@ -30,6 +30,8 @@ export function rowStatus(v) {
   if (v.reasons.some((r) => r.startsWith('Manual exclusion:'))) return 'Manually excluded';
   if (v.jailed) return 'Jailed';
   if (v.reasons.includes('Commission above limit')) return 'Commission above limit';
+  if (v.reasons.includes('Outside the active set')) return 'Outside the active set';
+  if (v.reasons.includes('Not continuously in the active set for 90 days')) return '90-day membership not met';
   if (!v.eligible) return 'Evidence review required';
   if (v.capacityRaw === '0') return 'No capacity under the limit';
   if (v.capReached) return 'Limited by voting power';

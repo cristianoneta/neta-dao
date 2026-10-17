@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   PROGRAMME,
-  defaultPolicy,
+  legacyPolicy as defaultPolicy,
   policy,
   snapshot,
   simulate,
