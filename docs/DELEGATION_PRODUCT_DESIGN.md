@@ -7,6 +7,10 @@ workflow. The owner requested a substantial UI/UX review with no additional prod
 features. This change reorganizes that core and preserves its calculation,
 governance and transaction boundaries.
 
+17 October follow-up: [rule changes, impact comparison and allocation approval](DELEGATION_RULE_CHANGE_UX.md)
+specifies the proposed first-adoption and future governance flow. It is a design
+proposal; the new comparison package and execution integration are not implemented.
+
 ## Diagnosis
 
 The previous page made users interpret the implementation before understanding
