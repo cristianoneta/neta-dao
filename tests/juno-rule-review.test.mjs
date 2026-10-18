@@ -1,13 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  defaultPolicy,
+  strictHistoryPolicy as defaultPolicy,
+  defaultPolicy as collectingPolicy,
+  policy,
   legacyPolicy,
   simulate,
   fingerprint,
   amount
 } from '../juno-delegation-core.mjs';
-import { activeSetEvidence } from '../juno-active-set-history.mjs';
+import { activeSetEvidence, historyCoverageText } from '../juno-active-set-history.mjs';
 import {
   buildRuleReview,
   verifyRuleReview,
@@ -231,4 +233,108 @@ test('snapshot reduction retains held excluded validators and reproduces full-ne
   assert.equal(r.value.sourceValidatorCount, 30);
   assert.ok(r.value.snapshot.validators.some((v) => v.currentRaw === '7'));
   assert.equal((await verifyRuleReview(r.value)).hash, r.hash);
+});
+
+function collectingHistory(s, days = 3) {
+  const h = activeHistory(s, days);
+  h.schema = 2;
+  h.collectionStart = { height: h.spans[0].firstHeight, time: h.spans[0].startTime };
+  return h;
+}
+test('collecting policy uses a shared shorter window, while stored strict rules still require 90 days', async () => {
+  const s = fixture(),
+    h = collectingHistory(s);
+  assert.deepEqual(policy(defaultPolicy()), defaultPolicy());
+  assert.deepEqual(policy(legacyPolicy()), legacyPolicy());
+  assert.throws(() => simulate(defaultPolicy(), s, amount('2500'), observed(s), h), /90 days/);
+  const r = await buildRuleReview({
+    rule: collectingPolicy(),
+    snapshot: s,
+    evidence: observed(s),
+    activeHistory: h,
+    budgetRaw: '2500000000'
+  });
+  assert.equal(r.model.proposed.coverage.collecting, true);
+  assert.equal(r.model.proposed.coverage.observedDays, 3);
+  assert.equal(r.model.proposed.result.allocatedRaw, '2500000000');
+  assert.equal(r.model.proposed.result.executionEnabled, false);
+  assert.deepEqual(r.value.messages, []);
+  assert.equal((await verifyRuleReview(r.value)).hash, r.hash);
+  const proposal = await frozenRuleProposal(r);
+  assert.match(proposal.values.body, /Collecting history · 3 \/ 90 days checked/);
+  assert.equal((await readProposalReview(proposal.values)).hash, r.hash);
+  const changes = ruleChanges(defaultPolicy(), collectingPolicy()).filter((v) => v.changed);
+  assert.equal(changes.length, 1);
+  assert.equal(changes[0].key, 'eligibility');
+  assert.match(changes[0].after, /entire available period/);
+});
+test('collecting window excludes late entrants and validators that left and rejoined', () => {
+  const s = fixture(),
+    h = collectingHistory(s),
+    first = h.spans[0];
+  first.lastHeight = s.height - 2;
+  first.endTime = new Date(Date.parse(s.blockTime) - 2 * 86400000).toISOString();
+  const all = [...first.addresses];
+  first.addresses = all.slice(1);
+  h.spans.push({
+    ...first,
+    firstHeight: s.height - 1,
+    lastHeight: s.height - 1,
+    startTime: new Date(Date.parse(s.blockTime) - 86400000).toISOString(),
+    endTime: new Date(Date.parse(s.blockTime) - 86400000).toISOString(),
+    addresses: all.filter((_, i) => i !== 1)
+  });
+  h.spans.push({
+    ...first,
+    firstHeight: s.height,
+    lastHeight: s.height,
+    startTime: s.blockTime,
+    endTime: s.blockTime,
+    addresses: all
+  });
+  const result = simulate(collectingPolicy(), s, amount('2500'), observed(s), h);
+  assert.ok(result.rows.slice(0, 2).every((v) => !v.eligible && v.targetRaw === '0'));
+  assert.match(result.rows[0].reasons.join(' '), /observed period/);
+  assert.ok(result.rows.slice(2).every((v) => v.eligible));
+});
+test('collecting does not forgive gaps, truncated starts, stale endpoints or empty evidence', () => {
+  const s = fixture(),
+    options = { allowCollecting: true };
+  for (const h of [null, activeHistory(s, 3)])
+    assert.equal(activeSetEvidence(h, s, options).complete, false);
+  for (const change of [
+    (h) => h.spans[0].firstHeight++,
+    (h) => h.spans[0].lastHeight--,
+    (h) => {
+      h.spans[0].startTime = s.blockTime;
+      h.spans[0].firstHeight = s.height;
+      h.collectionStart = { height: s.height, time: s.blockTime };
+    }
+  ]) {
+    const h = collectingHistory(s);
+    change(h);
+    assert.equal(activeSetEvidence(h, s, options).complete, false);
+  }
+  const h = collectingHistory(s),
+    first = h.spans[0];
+  first.lastHeight = s.height - 2;
+  first.endTime = new Date(Date.parse(s.blockTime) - 1000).toISOString();
+  h.spans.push({
+    ...first,
+    firstHeight: s.height,
+    lastHeight: s.height,
+    startTime: s.blockTime,
+    endTime: s.blockTime
+  });
+  assert.throws(() => activeSetEvidence(h, s, options), /gap/);
+});
+test('the window automatically reaches 90 days and never rounds partial coverage up to full', () => {
+  const s = fixture();
+  for (const days of [0.01, 3, 89.999, 90, 120]) {
+    const c = activeSetEvidence(collectingHistory(s, days), s, { allowCollecting: true });
+    assert.equal(c.complete, true);
+    assert.equal(c.collecting, days < 90);
+    assert.ok(Math.abs(c.observedDays - Math.min(90, days)) < 1e-7);
+    if (days === 89.999) assert.match(historyCoverageText(c), /89.9 \/ 90/);
+  }
 });

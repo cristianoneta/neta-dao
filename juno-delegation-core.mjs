@@ -55,17 +55,33 @@ export function legacyPolicy() {
     exclusions: []
   };
 }
-export function defaultPolicy() {
+export function strictHistoryPolicy() {
   return { ...legacyPolicy(), schema: 3, eligibility: 'continuous-active-set-90-days-v1' };
+}
+export function defaultPolicy() {
+  return {
+    ...legacyPolicy(),
+    schema: 4,
+    eligibility: 'continuous-active-set-90-days-collecting-v1'
+  };
+}
+const policyTemplate = (schema) =>
+  schema === 2 ? legacyPolicy() : schema === 3 ? strictHistoryPolicy() : defaultPolicy();
+export function eligibilityDescription(p) {
+  return p.schema === 4
+    ? '90 continuous days in the active set; while collecting, use the entire available period; not jailed'
+    : p.schema === 3
+      ? '90 continuous days in the active set; not jailed'
+      : 'Legacy: non-jailed with participation evidence; standby allowed';
 }
 export function policy(input) {
   const p = structuredClone(input);
   if (
-    ![2, 3].includes(p?.schema) ||
+    ![2, 3, 4].includes(p?.schema) ||
     p.chainId !== 'juno-1' ||
     p.programme !== PROGRAMME ||
     p.method !== 'equal-capped-v1' ||
-    p.eligibility !== (p.schema === 2 ? legacyPolicy() : defaultPolicy()).eligibility ||
+    p.eligibility !== policyTemplate(p.schema).eligibility ||
     p.liquidReserveRaw !== LIQUID_RESERVE.toString() ||
     !Number.isInteger(p.factorTenths) ||
     p.factorTenths < 10 ||
@@ -107,7 +123,7 @@ export function policy(input) {
     .sort((a, b) => compare(a.validator, b.validator));
   // Explicit allowlist prevents imported fields from changing the approved meaning.
   return {
-    ...(p.schema === 2 ? legacyPolicy() : defaultPolicy()),
+    ...policyTemplate(p.schema),
     factorTenths: p.factorTenths,
     commissionMaxBps: p.commissionMaxBps,
     exclusions: p.exclusions
@@ -220,9 +236,9 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
     throw Error('Keep at least 50 JUNO outside the target allocation as the liquid reserve.');
   if (!evidence?.records || !evidence.window?.coverageComplete)
     throw Error('The upgrade observation window is incomplete.');
-  const continuity = p.schema === 3 ? activeSetEvidence(history, s) : null;
-  if (continuity && !continuity.complete)
-    throw Error(continuity.reason);
+  const continuity =
+    p.schema >= 3 ? activeSetEvidence(history, s, { allowCollecting: p.schema === 4 }) : null;
+  if (continuity && !continuity.complete) throw Error(continuity.reason);
   const excluded = new Map(p.exclusions.map((e) => [e.validator, e.reason])),
     cap = capFraction(p, s.activeCount);
   const rows = s.validators.map((v) => {
@@ -235,7 +251,13 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
     // `active` is consensus-set membership, not proof that a standby node is offline.
     if (v.jailed) reasons.push('Jailed');
     if (continuity && !continuity.members.has(v.consensusAddress))
-      reasons.push(v.active ? 'Not continuously in the active set for 90 days' : 'Outside the active set');
+      reasons.push(
+        v.active
+          ? continuity.collecting
+            ? 'Not continuously in the active set during the observed period'
+            : 'Not continuously in the active set for 90 days'
+          : 'Outside the active set'
+      );
     if (p.commissionMaxBps !== null && v.commissionBps > p.commissionMaxBps)
       reasons.push('Commission above limit');
     if (excluded.has(v.address)) reasons.push(`Manual exclusion: ${excluded.get(v.address)}`);

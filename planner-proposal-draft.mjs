@@ -2,6 +2,7 @@ import { PROGRAMME, policy, snapshot, units } from './juno-delegation-core.mjs';
 
 import { rewardMessages } from './juno-governance-core.mjs';
 import { encodeRuleReview, verifyRuleReview, ruleChanges } from './juno-delegation-review.mjs';
+import { historyCoverageText } from './juno-active-set-history.mjs';
 
 export const PLANNER_DRAFT_PREFIX = 'cosmoot:juno:planner-proposal:';
 const identifier = /^[a-f0-9-]{36}$/;
@@ -91,6 +92,9 @@ export async function frozenRuleProposal(review) {
     (changes.length ? '' : 'No semantic rule changes.') +
     `\n\n## Exact policy\n\n\`\`\`json\n${JSON.stringify(v.rule)}\n\`\`\`\n\nRule SHA-256: ${v.policyHash}\n\n` +
     `Comparison budget: ${units(v.budgetRaw)} JUNO (illustrative, not authorized expenditure).\nSnapshot: ${v.snapshot.height} · ${v.snapshot.blockTime}\n` +
+    (checked.model.proposed.coverage?.complete
+      ? historyCoverageText(checked.model.proposed.coverage) + '\n'
+      : '') +
     (v.proposed.status === 'calculated'
       ? `Proposed total: ${units(v.proposed.allocatedRaw)} JUNO; unallocated: ${units(v.proposed.unallocatedRaw)} JUNO.\n`
       : `Allocation impact unavailable: ${v.proposed.reason}\n`) +

@@ -1,10 +1,49 @@
 # Cosmoot public handoff
 
-Updated 17 October 2026. This file contains public project status and development
+Updated 18 October 2026. This file contains public project status and development
 boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 [documentation policy](docs/DOCUMENTATION_PRIVACY.md) and applicable AGENTS.md.
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
+
+## Available-history transition and balanced overview — 18 October 2026 candidate
+
+Owner update: keep a 90-day target, but evaluate the entire available collection
+period until 90 days exist. New policy schema 4 expresses this explicitly. All
+validators share the same window and must remain active throughout it; later
+entry or re-entry does not shorten an individual validator's test. Current jail,
+commission, cap, exclusions and upgrade checks remain. Schemas 2 and 3 retain
+their historical meaning, including the strict schema-3 requirement. Saved drafts
+switch only through an explicit action and the changed eligibility is reviewed.
+
+Archive schema 2 retains the original collection start. Missing prefixes, internal
+gaps, absent data, mismatched endpoints/rosters and zero-length observations do not
+qualify. The UI and frozen proposal show actual coverage and dates; crossing 90
+days automatically selects the full rolling window. Published comparisons remain
+bound to their original inputs. Allocation execution stays disabled.
+
+The planner can select a recent common archive/provider block and reads every
+balance, validator and programme setting at that height. It cross-checks block
+hash/time before exporting history. Missing or >1-hour-lagging archives preserve
+current holdings with unavailable targets. The collector service template supplies
+COSMOOT_VALIDATOR_HISTORY_DB; the existing archive is opened read-only. Source
+changes do not install this integration on the server.
+
+Overview uses one aligned two-column grid, with rules and compact planning inside
+one right-hand card. The unavailable execution step is a disclosure. Desktop card
+edges align; tablet/mobile stack without losing positions or controls.
+
+Local validation: 344 Node tests, 166 Python tests, the full planner/review/funding/
+voting browser regression, repository and format checks, and the Pages/Worker
+build pass. Browser checks include shared collecting-period eligibility, automatic
+90-day coverage, unavailable evidence and aligned overview cards.
+
+Previous release receipt: PR #295 was published by manual run
+[39029839056](https://github.com/cristianoneta/neta-dao/actions/runs/39029839056),
+source `45b49ed68563051151d658a9567de32c83db6e68`, with successful Publish on
+17 October. Older candidate/unpublished notes below describe earlier checkpoints.
+This 18 October change still needs PR CI, integration and a separate manual release;
+server installation is also pending. No real wallet or chain write occurred.
 
 ## Rule changes and frozen impact review — 17 October 2026 candidate
 

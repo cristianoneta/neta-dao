@@ -106,6 +106,7 @@ try {
   await page.route('**/data/governance-read?*', approvalRoute);
   let state = 'current';
   let historyComplete = true;
+  let historyDays = 90;
   let rewardsState = 'current';
   await page.route('**/data/treasury/juno-delegation.json', (route) => {
     if (rewardsState === 'missing') return route.fulfill({ status: 503, body: 'unavailable' });
@@ -123,7 +124,14 @@ try {
     const data = structuredClone(sample);
     if (state === 'stale') data.blockTime = new Date(Date.now() - 7200000).toISOString();
     if (state === 'wrong-chain') data.chainId = 'uni-7';
-    if (historyComplete) data.activeSetHistory = activeHistory(data);
+    if (historyComplete) {
+      data.activeSetHistory = activeHistory(data, historyDays);
+      data.activeSetHistory.schema = 2;
+      data.activeSetHistory.collectionStart = {
+        height: data.activeSetHistory.spans[0].firstHeight,
+        time: data.activeSetHistory.spans[0].startTime
+      };
+    }
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify(data) });
   });
   const ready = () => page.waitForFunction(() => !document.getElementById('simulate').disabled);
@@ -148,6 +156,12 @@ try {
     0,
     'Overview deep link keeps the page title visible'
   );
+  if (process.env.NNS_SCREENSHOT_DIR) {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await mkdir(process.env.NNS_SCREENSHOT_DIR, { recursive: true });
+    await page.locator('.overview-workspace').screenshot({ path: `${process.env.NNS_SCREENSHOT_DIR}/overview-first-adoption.png` });
+    await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+  }
   await page.locator('.overview-heading [data-step="rules"]').click();
   assert.equal(
     await page.locator('#rules-title').evaluate((el) => el === document.activeElement),
@@ -228,6 +242,17 @@ try {
   assert.equal(await page.locator('#rules #claim-rewards').count(), 0);
   assert.equal(await page.locator('#current-validator-count').textContent(), '25');
   assert.equal(await page.locator('#current-position-rows tr').count(), 5);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const aligned = await page.locator('.overview-workspace').evaluate(el => {
+    const a = el.querySelector('.current-positions').getBoundingClientRect();
+    const b = el.querySelector('.overview-sidebar').getBoundingClientRect();
+    return Math.abs(a.top - b.top) < 1 && Math.abs(a.bottom - b.bottom) < 1;
+  });
+  assert.ok(aligned, 'Overview cards share top and bottom edges');
+  if (process.env.NNS_SCREENSHOT_DIR) {
+    await mkdir(process.env.NNS_SCREENSHOT_DIR, { recursive: true });
+    await page.locator('.overview-workspace').screenshot({ path: `${process.env.NNS_SCREENSHOT_DIR}/overview-balanced.png` });
+  }
   await page.locator('#current-positions-toggle').click();
   assert.equal(await page.locator('#current-position-rows tr').count(), 25);
   await page.locator('#current-positions-toggle').click();
@@ -434,7 +459,7 @@ try {
   assert.ok(review.rule.exclusions.some((v) => v.validator === selected.address));
   assert.equal(review.rule.commissionMaxBps, 1900);
   assert.deepEqual(review.messages, []);
-  assert.equal(review.rule.schema, 3);
+  assert.equal(review.rule.schema, 4);
   assert.equal(review.policyHash.length, 64);
   const shots = process.env.NNS_SCREENSHOT_DIR;
   if (shots) await mkdir(shots, { recursive: true });
@@ -702,6 +727,22 @@ try {
   await simulate();
   assert.equal(await page.locator('#publish-proposal').isDisabled(), true);
   state = 'current';
+  historyDays = 3;
+  await page.locator('#refresh').click();
+  await ready();
+  await simulate();
+  assert.match(await page.locator('#simulation-comparison .rr-history').textContent(), /3 \/ 90 days checked/);
+  assert.ok((await page.locator('#simulation-comparison .rr-proposed strong').allTextContents()).some(v => v !== '—'));
+  await step('rules');
+  assert.match(await page.locator('#draft-history-coverage').textContent(), /3 \/ 90/);
+  await step('simulation');
+  if (process.env.NNS_SCREENSHOT_DIR)
+    await page.screenshot({ path: `${process.env.NNS_SCREENSHOT_DIR}/collecting-history.png`, fullPage: true });
+  historyDays = 90;
+  await page.locator('#refresh').click();
+  await ready();
+  await simulate();
+  assert.match(await page.locator('#simulation-comparison .rr-history').textContent(), /Full history · 90 \/ 90/);
   historyComplete = false;
   await page.locator('#refresh').click();
   await ready();

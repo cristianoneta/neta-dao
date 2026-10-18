@@ -10,6 +10,8 @@ Group=cosmoot-collect
 WorkingDirectory=/srv/cosmoot/collectors/repo
 Environment=PATH=/opt/cosmoot/node/bin:/srv/cosmoot/collectors/venv/bin:/usr/bin:/bin
 Environment=PYTHONDONTWRITEBYTECODE=1
+# Optional read-only history. Missing/lagging archives keep current holdings visible.
+Environment=COSMOOT_VALIDATOR_HISTORY_DB=/var/lib/cosmoot-validator-history/history.sqlite3
 ExecStart=/srv/cosmoot/collectors/venv/bin/python scripts/run-server-collector.py %i
 StateDirectory=cosmoot-collect
 UMask=0022
@@ -35,3 +37,5 @@ RestrictSUIDSGID=yes
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 InaccessiblePaths=/srv/cosmoot/state /etc/cosmoot
 ReadWritePaths=/srv/cosmoot/collectors/repo/data /srv/cosmoot/public-snapshots
+# SQLite mode=ro still needs WAL shared-memory sidecars between writer runs.
+ReadWritePaths=-/var/lib/cosmoot-validator-history

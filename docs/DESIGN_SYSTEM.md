@@ -1,5 +1,18 @@
 # NETA DAO design system
 
+## Balanced overview and observed history — 18 October 2026 candidate
+
+Align both overview rows to the same desktop column grid. Current positions and
+the combined rules/planning card share their top and bottom edges. Separate
+sections inside the right card with quiet dividers; keep future execution details
+closed by default. Reflow to stacked cards on tablet/mobile. Preserve every
+position, the show-all action, source details and existing navigation.
+
+Label the history collection phase beside the distribution results and eligibility
+rule, with actual days out of 90 and the observed date range. Frozen voter views
+and proposal text use the same original coverage. Never label partial coverage
+as a full 90-day check or hide a true data gap.
+
 ## Rule and impact comparison — 17 October 2026 candidate
 
 Use the same `juno-rule-review-view.mjs` component in author and voter views.

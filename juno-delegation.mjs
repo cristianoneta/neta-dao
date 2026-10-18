@@ -1,5 +1,6 @@
 import { buildRuleReview, ruleChanges, parentMatches } from './juno-delegation-review.mjs';
 import { renderRuleReview } from './juno-rule-review-view.mjs';
+import { activeSetEvidence, historyCoverageText } from './juno-active-set-history.mjs';
 import { currentApprovedRules } from './juno-approved-rules.mjs';
 import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=2';
 import {
@@ -10,6 +11,7 @@ import {
 import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 import {
   defaultPolicy,
+  eligibilityDescription,
   policy,
   snapshot,
   upgradeEvidence,
@@ -167,12 +169,7 @@ async function loadApprovedRules() {
         'Maximum commission',
         rule.commissionMaxBps === null ? 'No limit' : `${rule.commissionMaxBps / 100}%`
       ],
-      [
-        'Validator status',
-        rule.schema === 3
-          ? '90 continuous days in the active set; not jailed'
-          : 'Legacy model: non-jailed; standby allowed'
-      ],
+      ['Validator status', eligibilityDescription(rule)],
       ['Upgrade participation', 'Juno v31 · within 5 hours of the halt'],
       ['Liquid reserve', `${formatAmount(rule.liquidReserveRaw)} JUNO`],
       ['Manual exclusions', String(rule.exclusions.length)],
@@ -307,7 +304,7 @@ function renderDraftBaseline() {
         ? `Based on approved proposal #${parent.proposalId}. Your edits need a new rule approval before they can be used for an allocation.`
         : 'Initial adoption · no approved Cosmoot-format policy found. Actual holdings already exist and remain the comparison baseline.';
   $('adopt-current-rules').hidden = !valid || matches;
-  $('use-current-model').hidden = rules.schema === 3;
+  $('use-current-model').hidden = rules.schema === 4;
   if (review) $('publish-proposal').disabled = !matches || freshness() > 3600000;
   $('approved-allocation-next').hidden = !valid || !approval.current;
   $('approved-allocation-reference').textContent = approval.current
@@ -399,10 +396,22 @@ function renderRules() {
     : 'Cap = min(30%, factor × 100% / active validator count).';
   renderRuleSummary();
   renderDraftBaseline();
-  $('draft-eligibility-description').textContent =
-    rules.schema === 3
-      ? '90 continuous days in the active set; currently not jailed.'
-      : 'Legacy draft: non-jailed with participation evidence. Standby validators may qualify. This saved policy has not been reinterpreted.';
+  $('draft-eligibility-description').textContent = eligibilityDescription(rules) + '.';
+  const coverage = $('draft-history-coverage');
+  try {
+    coverage.textContent =
+      rules.schema === 2
+        ? 'This saved policy retains its original eligibility.'
+        : data
+          ? historyCoverageText(
+              activeSetEvidence(data.activeSetHistory ?? null, data, {
+                allowCollecting: rules.schema === 4
+              })
+            )
+          : 'Loading the observed history period…';
+  } catch (error) {
+    coverage.textContent = error.message;
+  }
   for (const [input, field] of [
     ['factor-number', 'factorTenths'],
     ['commission', 'commissionMaxBps']
@@ -804,7 +813,7 @@ $('adopt-current-rules').onclick = () => {
   renderRules();
 };
 $('use-current-model').onclick = () => {
-  rules = { ...rules, schema: 3, eligibility: defaultPolicy().eligibility };
+  rules = { ...rules, schema: defaultPolicy().schema, eligibility: defaultPolicy().eligibility };
   invalidate();
   renderRules();
 };

@@ -2,6 +2,10 @@ import base64
 import importlib.util
 from pathlib import Path
 import unittest
+import sys
+import tempfile
+from test_validator_history import history, item
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 
 spec = importlib.util.spec_from_file_location('planner', Path(__file__).resolve().parents[1] / 'scripts/update_delegation_planner.py')
 planner = importlib.util.module_from_spec(spec)
@@ -44,6 +48,55 @@ class PlannerCollector(unittest.TestCase):
     def test_pubkey_shape_rejected(self):
         with self.assertRaises(ValueError):
             planner.consensus_address({'@type': '/cosmos.crypto.ed25519.PubKey', 'key': 'AAAA'})
+
+    def test_common_archive_height_binds_every_balance_and_roster_read(self):
+        vals, cons, delegations = self.fixtures()
+        delegations[0]['delegation']['delegator_address'] = planner.PROGRAMME
+        dao = {'core': planner.PROGRAMME, 'onChainName': 'Programme', 'coreCodeId': '1',
+               'votingModule': 'voting', 'proposalModule': 'proposal'}
+        class Reader:
+            base = 'https://rest.example.org'
+            def __init__(self):
+                self.heights = []
+                self.wrong_hash = False
+            def get(self, path, height=None):
+                if height is not None:
+                    self.heights.append(height)
+                    return {'contract_info': {'code_id': '1'}}
+                h = 42500050 if path.endswith('/latest') else int(path.rsplit('/', 1)[1])
+                return {'block': {'header': {'height': str(h), 'chain_id': 'juno-1',
+                    'time': f'2026-10-14T19:17:{h-42500000:02d}Z'}},
+                    'block_id': {'hash': '0' * 64 if self.wrong_hash else f'{h:064X}'}}
+            def smart(self, address, message, height):
+                self.heights.append(height)
+                if 'config' in message: return {'name': 'Programme'}
+                if 'voting_module' in message: return 'voting'
+                return [{'address': 'proposal', 'status': 'enabled'}]
+            def pages(self, path, field, height):
+                self.heights.append(height)
+                if field == 'validators': return cons if 'validatorsets' in path else vals
+                return {'delegation_responses': delegations, 'balances': [], 'redelegation_responses': []}[field]
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'history.sqlite3'
+            db = history.connect(path)
+            history.initialize(db, '2026-10-14T19:17:10Z', 42500010, 'https://rpc.example.org', 'https://rest.example.org')
+            for h in range(42500010, 42500014):
+                history.append(db, item(h, when=f'2026-10-14T19:17:{h-42500000:02d}Z', keys=(0,), flags=(2,)))
+            reader = Reader()
+            result = planner.collect(reader, dao, path)
+            self.assertEqual(result['height'], 42500013)
+            self.assertEqual(set(reader.heights), {42500013})
+            self.assertEqual(result['activeSetHistory']['spans'][0]['lastHeight'], result['height'])
+            self.assertFalse(result['authority']['executionVerified'])
+            reader.wrong_hash = True
+            with self.assertRaisesRegex(ValueError, 'disagree'):
+                planner.collect(reader, dao, path)
+            missing = planner.collect(Reader(), dao, Path(folder) / 'missing.sqlite3')
+            self.assertEqual(missing['height'], 42500030)
+            self.assertIsNone(missing['activeSetHistory'])
+            self.assertIn('archive unavailable', missing['activeSetHistoryIssue'])
+            self.assertFalse((Path(folder) / 'missing.sqlite3').exists())
+            db.close()
 
 
 if __name__ == '__main__':
