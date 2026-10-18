@@ -125,8 +125,9 @@ def collect(reader, dao, history_db=None):
     header = block['block']['header']
     if int(header['height']) != height or header['chain_id'] != 'juno-1':
         raise ValueError('Wrong snapshot block')
+    # Cosmos REST encodes protobuf bytes as base64; archive checkpoints use hex.
     if checkpoint and (header['time'] != checkpoint['time'] or
-                       block.get('block_id', {}).get('hash', '').upper() != checkpoint['hash']):
+                       base64.b64decode(block.get('block_id', {}).get('hash', ''), validate=True).hex().upper() != checkpoint['hash']):
         raise ValueError('Archive and provider disagree on the snapshot block')
     address = dao['core']
     config = reader.smart(address, {'config': {}}, height)
