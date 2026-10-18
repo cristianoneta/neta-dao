@@ -25,6 +25,10 @@ validator and configuration query to it. Archives more than one hour behind,
 missing databases, identity failures and gaps never yield fabricated targets.
 The read-only path comes from `--history-db` or `COSMOOT_VALIDATOR_HISTORY_DB`;
 the collector service template now sets the documented default archive path.
+The service allows SQLite WAL sidecars in that directory while the exporter opens
+the database with `mode=ro`; database records and collector identity remain read-only.
+This is required when the writer has closed and removed its temporary WAL/shared
+memory files; see [SQLite read-only WAL access](https://sqlite.org/wal.html#read_only_databases).
 Updating the website alone does not install Python sources or this service setting.
 Operator installation and an actual published-history receipt remain pending.
 

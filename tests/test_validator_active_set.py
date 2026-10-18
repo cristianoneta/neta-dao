@@ -34,6 +34,11 @@ class ActiveSetExport(unittest.TestCase):
                 active.archive_checkpoint(path, 20, '2026-10-14T20:18:00Z')
             self.assertNotIn('eligible', result)
             self.assertEqual(db.total_changes, before)
+            db.close()
+            archive_bytes = path.read_bytes()
+            self.assertEqual(active.active_set_history(path, snap), result)
+            self.assertEqual(path.read_bytes(), archive_bytes)
+            db = history.connect(path)
             snap['height'] = 14
             with self.assertRaisesRegex(ValueError, 'does not cover'):
                 active.active_set_history(path, snap)

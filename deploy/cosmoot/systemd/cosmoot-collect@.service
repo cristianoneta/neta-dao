@@ -37,3 +37,5 @@ RestrictSUIDSGID=yes
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 InaccessiblePaths=/srv/cosmoot/state /etc/cosmoot
 ReadWritePaths=/srv/cosmoot/collectors/repo/data /srv/cosmoot/public-snapshots
+# SQLite mode=ro still needs WAL shared-memory sidecars between writer runs.
+ReadWritePaths=-/var/lib/cosmoot-validator-history
