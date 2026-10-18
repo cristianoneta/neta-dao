@@ -3,6 +3,23 @@
 Updated 18 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
+## Planner archive hash comparison — 18 October 2026 repair
+
+The website from PR #296 was published successfully by manual run
+[39155206263](https://github.com/cristianoneta/neta-dao/actions/runs/39155206263),
+source `c09710ed205c23d91b6854e13b62ca131db29161`. All 18 jobs, including Publish, passed.
+
+The first host run with archive integration exposed an encoding error: Cosmos
+REST returns the block hash as Base64 protobuf bytes, while the archive checkpoint
+uses hexadecimal. Decode the REST value strictly before comparing the same hash.
+Height, timestamp, archive continuity and consensus-roster checks remain intact;
+malformed and different hashes are rejected before programme reads.
+
+The REST fixture now uses its real wire encoding and reproduces the failure with
+the old code. The correction and malformed/wrong-length hash regressions pass.
+This candidate requires host installation and a successful published-history
+check; it does not change website assets or authorize allocation execution.
+
 ## Available-history transition and balanced overview — 18 October 2026 candidate
 
 Owner update: keep a 90-day target, but evaluate the entire available collection

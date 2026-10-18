@@ -59,6 +59,7 @@ class PlannerCollector(unittest.TestCase):
             def __init__(self):
                 self.heights = []
                 self.wrong_hash = False
+                self.hash_override = None
             def get(self, path, height=None):
                 if height is not None:
                     self.heights.append(height)
@@ -66,7 +67,8 @@ class PlannerCollector(unittest.TestCase):
                 h = 42500050 if path.endswith('/latest') else int(path.rsplit('/', 1)[1])
                 return {'block': {'header': {'height': str(h), 'chain_id': 'juno-1',
                     'time': f'2026-10-14T19:17:{h-42500000:02d}Z'}},
-                    'block_id': {'hash': '0' * 64 if self.wrong_hash else f'{h:064X}'}}
+                    'block_id': {'hash': self.hash_override if self.hash_override is not None else
+                                 base64.b64encode(bytes(32) if self.wrong_hash else h.to_bytes(32, 'big')).decode()}}
             def smart(self, address, message, height):
                 self.heights.append(height)
                 if 'config' in message: return {'name': 'Programme'}
@@ -91,6 +93,15 @@ class PlannerCollector(unittest.TestCase):
             reader.wrong_hash = True
             with self.assertRaisesRegex(ValueError, 'disagree'):
                 planner.collect(reader, dao, path)
+            for malformed in ('', 'invalid!', f'{42500013:064X}',
+                              base64.b64encode(bytes(31)).decode(),
+                              base64.b64encode(bytes(33)).decode()):
+                with self.subTest(block_hash=malformed):
+                    bad = Reader()
+                    bad.hash_override = malformed
+                    with self.assertRaises(ValueError):
+                        planner.collect(bad, dao, path)
+                    self.assertEqual(bad.heights, [])
             missing = planner.collect(Reader(), dao, Path(folder) / 'missing.sqlite3')
             self.assertEqual(missing['height'], 42500030)
             self.assertIsNone(missing['activeSetHistory'])
