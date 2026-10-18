@@ -786,7 +786,13 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   await page.locator('#native-vote-action').click();
   await page.waitForFunction(()=>document.querySelector('#native-vote-action').textContent==='Check vote status');
   assert.equal(voteWrites,1);
-  await page.reload(); await wallet(author); await page.locator('#gov-connect').click();
+  await page.reload();
+  await wallet(author);
+  // DOM load can precede async workspace initialization. Connect only once its
+  // real handler and selected proposal are ready; never race a no-op click.
+  await page.waitForFunction(() => !!document.querySelector('#gov-connect').onclick &&
+    !document.querySelector('#native-voting-workspace').hidden);
+  await page.locator('#gov-connect').click();
   await page.waitForFunction(()=>document.querySelector('#native-vote-action').textContent==='Check vote status');
   await page.locator('#native-vote-action').click();
   await page.waitForFunction(()=>document.querySelector('#native-vote-status').textContent.includes('Vote confirmed'));

@@ -1,5 +1,12 @@
 # Juno Delegation Programme
 
+18 October owner update: the 90-day target is retained. During initial collection,
+new schema-4 rules evaluate continuous membership throughout the entire available
+period and disclose its duration. This supersedes the strict waiting period for
+new drafts only; historical schemas 2/3 and existing approvals are preserved.
+The shared period must have no gaps and reaches the full rolling 90 days
+automatically. See [history integration](VALIDATOR_HISTORY.md).
+
 14 October owner update: V1 requires **continuous membership in the active set
 throughout the immediately preceding 90 days**. This supersedes the historical
 standby-admission plans below. V2 will additionally require at least 95%

@@ -4,6 +4,30 @@
 acceptance are separate from source integration. No frontend or allocation gate
 is enabled by collecting these observations.
 
+## Collecting-period policy and common snapshot — 18 October 2026 candidate
+
+Policy schema 4 keeps the 90-day horizon and uses the whole recorded collection
+period while the archive is younger. This is a shared programme window, not each
+validator's individually available history. Schemas 2/3 and published reviews are
+preserved. New reviews disclose days covered and exact start/end dates.
+
+The exporter emits schema-2 observations with the immutable collection origin.
+Partial data qualify only when the prefix starts at that origin and continues
+without gaps through the planner snapshot. A missing prefix cannot restart the
+period; a single block alone cannot demonstrate continuity. Once coverage reaches
+90 days, the exact rolling cutoff applies automatically. Existing jail, upgrade,
+commission, exclusion and cap checks still apply. Provider observations are not
+independently verified history or transaction authority.
+
+The planner reads the most recent archived block at or below the provider's safe
+height, checks its hash/time against that provider, and pins every balance,
+validator and configuration query to it. Archives more than one hour behind,
+missing databases, identity failures and gaps never yield fabricated targets.
+The read-only path comes from `--history-db` or `COSMOOT_VALIDATOR_HISTORY_DB`;
+the collector service template now sets the documented default archive path.
+Updating the website alone does not install Python sources or this service setting.
+Operator installation and an actual published-history receipt remain pending.
+
 ## Planner integration candidate — 17 October 2026
 
 Policy schema 3 now requires a complete immediately preceding 90-day roster window

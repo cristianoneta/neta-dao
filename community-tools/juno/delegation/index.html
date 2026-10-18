@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="/juno-delegation.css?v=8" />
     <script type="module" src="/juno-delegation.mjs?v=8"></script>
     <link rel="stylesheet" href="/juno-rule-review.css?v=20261017-1" />
-</head>
+  </head>
   <body>
     <a class="planner-skip" href="#planner-heading">Skip to planner</a>
     <header class="gov-header faucet-header delegation-header">
@@ -193,8 +193,8 @@
               Show all positions
             </button>
           </article>
-          <aside class="overview-sidebar" aria-label="Programme rules and planning">
-            <article class="planner-card current-rules" aria-labelledby="current-rules-title">
+          <aside class="planner-card overview-sidebar" aria-label="Programme rules and planning">
+            <section class="current-rules" aria-labelledby="current-rules-title">
               <div class="policy-heading">
                 <h3 id="current-rules-title">Current rules</h3>
                 <span id="current-rules-state" class="state-pill neutral">Checking approval…</span>
@@ -202,17 +202,21 @@
               <div id="current-rules-content" aria-live="polite">
                 <p>Checking Juno governance for approved programme rules…</p>
               </div>
-            </article>
-            <article class="planner-card" id="approved-allocation-next" hidden>
-              <p class="eyebrow">AFTER RULE APPROVAL</p><h3>Prepare a separate allocation</h3>
+            </section>
+            <details id="approved-allocation-next" class="quiet-details" hidden>
+              <summary>Allocation execution · not yet available</summary>
+              <p class="eyebrow">AFTER RULE APPROVAL</p>
+              <h3>Prepare a separate allocation</h3>
               <p id="approved-allocation-reference"></p>
               <button type="button" disabled>Prepare allocation proposal</button>
-              <p class="field-help">Not yet available. This needs programme execution authority, fresh movement constraints and approval of the exact transactions. Approval of rules alone cannot move funds.</p>
-            </article>
-            <article class="planner-card next-allocation">
-              <p class="eyebrow">PLANNING WORKFLOW</p>
-              <h3>Plan the next allocation</h3>
-              <p>Explore a change before putting it to the community.</p>
+              <p class="field-help">
+                Not yet available. This needs programme execution authority, fresh movement
+                constraints and approval of the exact transactions. Approval of rules alone cannot
+                move funds.
+              </p>
+            </details>
+            <section class="next-allocation" aria-labelledby="next-allocation-title">
+              <h3 id="next-allocation-title">Plan the next allocation</h3>
               <ol class="workflow-guide">
                 <li>
                   <span>1</span>
@@ -239,7 +243,7 @@
                 >Set allocation rules <span aria-hidden="true">→</span></a
               >
               <p class="field-help">Planning does not move funds.</p>
-            </article>
+            </section>
           </aside>
         </div>
         <details class="model-details" id="overview-model">
@@ -344,7 +348,14 @@
         <p class="section-description">
           Choose the budget and limits. You can compare the outcome before sharing anything.
         </p>
-        <div id="draft-parent-notice" aria-live="polite"><p id="draft-parent-note">Checking the approved baseline…</p><button id="adopt-current-rules" type="button" hidden>Start from current approved rules</button><button id="use-current-model" type="button" hidden>Propose the 90-day eligibility model</button></div>
+        <div id="draft-parent-notice" aria-live="polite">
+          <p id="draft-parent-note">Checking the approved baseline…</p>
+          <button id="adopt-current-rules" type="button" hidden>
+            Start from current approved rules</button
+          ><button id="use-current-model" type="button" hidden>
+            Use the available-history transition
+          </button>
+        </div>
         <div class="rules-workspace">
           <div class="rules-form">
             <article class="planner-card allocation-settings">
@@ -381,10 +392,13 @@
                 <section class="criterion" aria-labelledby="status-criterion">
                   <h4 id="status-criterion"><span>1</span> Validator status</h4>
                   <p>
-                    <span id="draft-eligibility-description">90 continuous days in the active set; currently not jailed.</span>
+                    <span id="draft-eligibility-description"
+                      >90 continuous days in the active set; while collecting, use the entire
+                      available period; not jailed.</span
+                    >
                   </p>
-                  <p class="field-help">
-                    Incomplete history keeps the target unavailable. Existing positions outside the set stay visible.
+                  <p class="field-help" id="draft-history-coverage" aria-live="polite">
+                    Loading the observed history period…
                   </p>
                 </section>
                 <section class="criterion" aria-labelledby="power-criterion">
@@ -502,7 +516,8 @@
           </div>
           <aside class="planner-card draft-summary" aria-label="Your allocation draft">
             <p class="eyebrow">YOUR DRAFT</p>
-            <h3>Equal allocation</h3><p id="draft-change-count"></p>
+            <h3>Equal allocation</h3>
+            <p id="draft-change-count"></p>
             <p>Eligible validators share the budget, within the voting-power limit.</p>
             <dl class="draft-facts">
               <div>
@@ -522,7 +537,14 @@
                 <dd id="draft-exclusions">None</dd>
               </div>
             </dl>
-            <label for="rule-rationale">Why this change? <small>Optional</small></label><textarea id="rule-rationale" maxlength="1000" rows="3" placeholder="Explain the decision to voters"></textarea><button id="simulate" class="primary-action" type="button" disabled>
+            <label for="rule-rationale">Why this change? <small>Optional</small></label
+            ><textarea
+              id="rule-rationale"
+              maxlength="1000"
+              rows="3"
+              placeholder="Explain the decision to voters"
+            ></textarea
+            ><button id="simulate" class="primary-action" type="button" disabled>
               Review rules &amp; impact →
             </button>
             <p class="field-help">
@@ -551,7 +573,9 @@
           <p id="rule-summary">Review the draft rules before simulating.</p>
           <a href="#rules" data-step="rules">Edit rules or amount</a>
         </div>
-        <div id="simulation-comparison"><p>Review the draft to see its rules and allocation impact.</p></div>
+        <div id="simulation-comparison">
+          <p>Review the draft to see its rules and allocation impact.</p>
+        </div>
         <details class="calculation-help">
           <summary>Why target amounts can differ</summary>
           <p>
@@ -610,7 +634,8 @@
           impact; they do not authorize a transfer.
         </p>
         <div id="proposal-empty" class="review-notice">
-          Review rules and impact to prepare the frozen proposal comparison. Rules can be proposed while allocation evidence is incomplete.
+          Review rules and impact to prepare the frozen proposal comparison. Rules can be proposed
+          while allocation evidence is incomplete.
         </div>
         <div id="proposal-review" hidden></div>
         <details class="calculation-help">
@@ -649,8 +674,8 @@
           </p>
           <button type="button" disabled>Prepare execution proposal</button>
           <p class="field-help">
-            Unavailable: programme execution authority and transaction-level
-            redelegation checks are not connected yet.
+            Unavailable: programme execution authority and transaction-level redelegation checks are
+            not connected yet.
           </p>
         </details>
       </section>

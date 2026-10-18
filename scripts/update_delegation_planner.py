@@ -7,10 +7,12 @@ from decimal import Decimal, ROUND_CEILING
 import hashlib
 import json
 import sqlite3
+import os
 from pathlib import Path
 import time
 import urllib.parse
 import urllib.request
+from validator_active_set import active_set_history, archive_checkpoint
 
 ROOT = Path(__file__).resolve().parents[1]
 PROGRAMME = 'juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0'
@@ -107,14 +109,25 @@ def assemble(validators, consensus, delegations, address):
     return sorted(rows, key=lambda v: v['address']), len(active)
 
 
-def collect(reader, dao):
+def collect(reader, dao, history_db=None):
     latest = reader.get('/cosmos/base/tendermint/v1beta1/blocks/latest')['block']['header']
     if latest['chain_id'] != 'juno-1' or dao['core'] != PROGRAMME:
         raise ValueError('Unexpected chain or programme')
     height = int(latest['height']) - 20
-    header = reader.get(f'/cosmos/base/tendermint/v1beta1/blocks/{height}')['block']['header']
+    checkpoint, history_issue = None, None
+    if history_db:
+        try:
+            checkpoint = archive_checkpoint(history_db, height, latest['time'])
+            height = checkpoint['height']
+        except (OSError, ValueError, sqlite3.Error) as error:
+            history_issue = type(error).__name__ + ': archive unavailable or more than one hour behind'
+    block = reader.get(f'/cosmos/base/tendermint/v1beta1/blocks/{height}')
+    header = block['block']['header']
     if int(header['height']) != height or header['chain_id'] != 'juno-1':
         raise ValueError('Wrong snapshot block')
+    if checkpoint and (header['time'] != checkpoint['time'] or
+                       block.get('block_id', {}).get('hash', '').upper() != checkpoint['hash']):
+        raise ValueError('Archive and provider disagree on the snapshot block')
     address = dao['core']
     config = reader.smart(address, {'config': {}}, height)
     info = reader.get('/cosmwasm/wasm/v1/contract/' + address, height)['contract_info']
@@ -131,31 +144,35 @@ def collect(reader, dao):
         raise ValueError('Duplicate spendable balance')
     liquid = next((uint(c['amount']) for c in coins if c['denom'] == 'ujuno'), 0)
     redelegations = reader.pages('/cosmos/staking/v1beta1/delegators/' + address + '/redelegations', 'redelegation_responses', height)
-    return {'schema': 1, 'chainId': 'juno-1', 'programme': address, 'height': height,
+    result = {'schema': 1, 'chainId': 'juno-1', 'programme': address, 'height': height,
             'blockTime': header['time'], 'collectedAt': datetime.now(timezone.utc).isoformat(),
             'source': reader.base, 'activeCount': active, 'liquidRaw': str(liquid),
             'validators': rows, 'redelegations': redelegations,
             'authority': {'coreCodeId': str(info['code_id']), 'votingModule': voting,
                           'proposalModule': dao['proposalModule'], 'executionVerified': False}}
+    if history_db:
+        result['activeSetHistory'] = None
+        if checkpoint:
+            try:
+                result['activeSetHistory'] = active_set_history(history_db, result)
+            except (OSError, ValueError, TimeoutError, sqlite3.Error) as error:
+                history_issue = type(error).__name__ + ': history unavailable for this snapshot'
+        if history_issue:
+            result['activeSetHistoryIssue'] = history_issue
+    return result
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=ROOT / 'data/daos/juno-delegation-planner.json')
-    parser.add_argument('--history-db', type=Path, help='Optional read-only validator archive for this exact snapshot')
+    parser.add_argument('--history-db', type=Path, default=os.environ.get('COSMOOT_VALIDATOR_HISTORY_DB'),
+                        help='Read-only validator archive; defaults to COSMOOT_VALIDATOR_HISTORY_DB')
     args = parser.parse_args()
     dao = next(d for d in json.loads((ROOT / 'data/dao-directory.json').read_text())['daos'] if d['id'] == 'juno-delegation')
     deadline, errors = time.monotonic() + 150, []
     for provider in PROVIDERS:
         try:
-            result = collect(Reader(provider, deadline), dao)
-            if args.history_db:
-                from validator_active_set import active_set_history
-                try:
-                    result['activeSetHistory'] = active_set_history(args.history_db, result)
-                except (OSError, ValueError, TimeoutError, sqlite3.Error) as error:
-                    result['activeSetHistory'] = None
-                    result['activeSetHistoryIssue'] = type(error).__name__ + ': history unavailable for this snapshot'
+            result = collect(Reader(provider, deadline), dao, args.history_db)
             args.output.parent.mkdir(parents=True, exist_ok=True)
             temp = args.output.with_suffix('.tmp')
             temp.write_text(json.dumps(result, indent=2) + '\n')

@@ -1,4 +1,5 @@
 import { comparison } from './juno-delegation-review.mjs';
+import { historyCoverageText } from './juno-active-set-history.mjs';
 import {
   formatAmount,
   formatChange,
@@ -169,6 +170,14 @@ function renderDistribution(host, model) {
   const stats = el('div', '', 'rr-stats'),
     secondary = el('p', '', 'rr-note');
   region.append(note, unavailable, stats, secondary);
+  if (model.proposed.coverage?.complete) {
+    const coverage = el(
+      'p',
+      historyCoverageText(model.proposed.coverage),
+      model.proposed.coverage.collecting ? 'rr-history rr-unavailable' : 'rr-history rr-note'
+    );
+    region.insertBefore(coverage, stats);
+  }
   const toolbar = el('div', '', 'rr-toolbar');
   function field(title, tag, options) {
     const label = el('label', title),

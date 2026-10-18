@@ -2,14 +2,14 @@
 export const ACTIVE_WINDOW_MS = 90 * 86400000;
 const address = /^[A-F0-9]{40}$/;
 const positive = (v) => Number.isSafeInteger(v) && v > 0;
-export function activeSetEvidence(value, snapshot) {
+export function activeSetEvidence(value, snapshot, { allowCollecting = false } = {}) {
   const unavailable = (reason) => ({ complete: false, members: new Set(), reason });
   if (value == null)
     return unavailable(
       '90-day active-set history is unavailable. Proposed amounts cannot be calculated.'
     );
   if (
-    value.schema !== 1 ||
+    ![1, 2].includes(value.schema) ||
     value.chainId !== 'juno-1' ||
     typeof value.source !== 'string' ||
     !value.source.startsWith('https://') ||
@@ -52,6 +52,15 @@ export function activeSetEvidence(value, snapshot) {
   }
   const first = value.spans[0],
     last = value.spans.at(-1);
+  const anchor = value.collectionStart;
+  if (
+    value.schema === 2 &&
+    (!positive(anchor?.height) ||
+      !Number.isFinite(Date.parse(anchor.time)) ||
+      anchor.height > first.firstHeight ||
+      Date.parse(anchor.time) > Date.parse(first.startTime))
+  )
+    throw Error('Invalid active-set collection origin.');
   if (
     last.lastHeight !== snapshot.height ||
     Date.parse(last.endTime) !== Date.parse(snapshot.blockTime)
@@ -65,16 +74,51 @@ export function activeSetEvidence(value, snapshot) {
     .sort();
   if (JSON.stringify([...last.addresses].sort()) !== JSON.stringify(active))
     throw Error('Active-set history and the snapshot disagree on the current consensus set.');
-  if (Date.parse(first.startTime) > cutoff)
+  const collecting = Date.parse(first.startTime) > cutoff;
+  if (collecting && !allowCollecting)
     return unavailable(
       'The immediately preceding 90 days are not fully covered. Proposed amounts remain unavailable.'
     );
+  if (
+    collecting &&
+    (value.schema !== 2 ||
+      anchor.height !== first.firstHeight ||
+      Date.parse(anchor.time) !== Date.parse(first.startTime))
+  )
+    return unavailable(
+      'The available history must cover every block from the recorded collection start. Proposed amounts remain unavailable.'
+    );
+  if (
+    collecting &&
+    (last.lastHeight <= first.firstHeight ||
+      Date.parse(last.endTime) <= Date.parse(first.startTime))
+  )
+    return unavailable('More than one observed block is needed to evaluate active-set continuity.');
+  const from = collecting ? Date.parse(first.startTime) : cutoff;
   return {
     complete: true,
     members,
     reason: null,
     source: value.source,
-    from: new Date(cutoff).toISOString(),
-    through: snapshot.blockTime
+    from: new Date(from).toISOString(),
+    through: snapshot.blockTime,
+    collecting,
+    observedDays: (Date.parse(snapshot.blockTime) - from) / 86400000
   };
+}
+export function historyCoverageText(coverage) {
+  if (!coverage?.complete) return coverage?.reason || 'Active-set history is unavailable.';
+  const days =
+    coverage.observedDays < 0.1
+      ? '<0.1'
+      : (Math.floor(coverage.observedDays * 10) / 10).toLocaleString('en-US', {
+          maximumFractionDigits: 1
+        });
+  return (
+    `${coverage.collecting ? 'Collecting history' : 'Full history'} · ${days} / 90 days checked. ` +
+    (coverage.collecting
+      ? 'Continuous membership is required throughout the available period. '
+      : '') +
+    `Observed ${coverage.from} → ${coverage.through}.`
+  );
 }
