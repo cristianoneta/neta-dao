@@ -830,7 +830,9 @@ try {
     );
     // A v2 local draft had no approved parent; test it against first adoption.
     approvalState = old.schema === 2 ? 'empty' : 'approved';
-    await page.goto(origin + '/community-tools/juno/delegation/#rules');
+    // A changed query forces a new document; changing only the hash would keep
+    // the previous in-memory draft instead of exercising storage restoration.
+    await page.goto(origin + `/community-tools/juno/delegation/?migration=${old.schema}#rules`);
     await ready();
     await page.waitForFunction(
       () => !document.getElementById('current-rules-state').textContent.includes('Checking')
