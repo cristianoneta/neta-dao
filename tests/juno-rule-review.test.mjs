@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   strictHistoryPolicy as defaultPolicy,
-  defaultPolicy as collectingPolicy,
+  collectingPolicy,
   policy,
   legacyPolicy,
   simulate,

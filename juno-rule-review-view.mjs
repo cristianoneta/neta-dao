@@ -1,5 +1,6 @@
 import { comparison } from './juno-delegation-review.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
+import { participationText } from './juno-participation-history.mjs';
 import {
   formatAmount,
   formatChange,
@@ -358,6 +359,8 @@ function renderDistribution(host, model) {
             ' Its own eligibility and capacity are unchanged; the difference comes from redistribution after other rule effects (including rounding).';
         details.append(el('p', reason));
       } else details.append(el('p', model.proposed.reason));
+      if (model.value.rule.schema === 5 && v.next)
+        details.append(el('p', participationText(v.next.participation), 'rr-participation'));
       const exact = el('dl', '', 'rr-exact');
       for (const [label, value] of [
         ['Actual holding', v.currentRaw],

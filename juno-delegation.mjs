@@ -1,6 +1,7 @@
 import { buildRuleReview, ruleChanges, parentMatches } from './juno-delegation-review.mjs';
 import { renderRuleReview } from './juno-rule-review-view.mjs';
-import { activeSetEvidence, historyCoverageText } from './juno-active-set-history.mjs';
+import { historyCoverageText } from './juno-active-set-history.mjs';
+import { participationEvidence } from './juno-participation-history.mjs';
 import { currentApprovedRules } from './juno-approved-rules.mjs';
 import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=2';
 import {
@@ -11,6 +12,7 @@ import {
 import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 import {
   defaultPolicy,
+  editablePolicy,
   eligibilityDescription,
   policy,
   snapshot,
@@ -129,7 +131,7 @@ async function loadApprovedRules() {
     approval = { status: 'verified', current: result.current };
     if (!draftStarted) {
       parent = structuredClone(result.current);
-      rules = parent ? structuredClone(parent.rule) : defaultPolicy();
+      rules = editablePolicy(parent?.rule);
       draftStarted = true;
       restoreCommissionInput();
     }
@@ -304,7 +306,6 @@ function renderDraftBaseline() {
         ? `Based on approved proposal #${parent.proposalId}. Your edits need a new rule approval before they can be used for an allocation.`
         : 'Initial adoption · no approved Cosmoot-format policy found. Actual holdings already exist and remain the comparison baseline.';
   $('adopt-current-rules').hidden = !valid || matches;
-  $('use-current-model').hidden = rules.schema === 4;
   if (review) $('publish-proposal').disabled = !matches || freshness() > 3600000;
   $('approved-allocation-next').hidden = !valid || !approval.current;
   $('approved-allocation-reference').textContent = approval.current
@@ -340,7 +341,7 @@ function renderRuleSummary() {
     ? ((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2) + '%'
     : 'pending';
   $('rule-summary').textContent =
-    `Equal allocation · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
+    `Equal allocation · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · commit signatures ≥97.5% · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
   $('draft-cap').textContent =
     $('factor-number').checkValidity() && $('factor-number').value ? capText : 'Check value';
   $('draft-commission').textContent = commissionValid()
@@ -399,16 +400,9 @@ function renderRules() {
   $('draft-eligibility-description').textContent = eligibilityDescription(rules) + '.';
   const coverage = $('draft-history-coverage');
   try {
-    coverage.textContent =
-      rules.schema === 2
-        ? 'This saved policy retains its original eligibility.'
-        : data
-          ? historyCoverageText(
-              activeSetEvidence(data.activeSetHistory ?? null, data, {
-                allowCollecting: rules.schema === 4
-              })
-            )
-          : 'Loading the observed history period…';
+    coverage.textContent = data
+      ? historyCoverageText(participationEvidence(data.activeSetHistory ?? null, data))
+      : 'Loading the observed history period…';
   } catch (error) {
     coverage.textContent = error.message;
   }
@@ -752,7 +746,7 @@ $('save-draft').addEventListener('click', () => {
   }
 });
 $('reset-draft').addEventListener('click', () => {
-  rules = parent ? structuredClone(parent.rule) : defaultPolicy();
+  rules = editablePolicy(parent?.rule);
   $('rule-rationale').value = '';
   restoreCommissionInput();
   $('factor-error').hidden = true;
@@ -807,13 +801,8 @@ $('rule-rationale').addEventListener('input', () => invalidate());
 $('adopt-current-rules').onclick = () => {
   if (approval.status !== 'verified') return;
   parent = structuredClone(approval.current);
-  rules = parent ? structuredClone(parent.rule) : defaultPolicy();
+  rules = editablePolicy(parent?.rule);
   restoreCommissionInput();
-  invalidate();
-  renderRules();
-};
-$('use-current-model').onclick = () => {
-  rules = { ...rules, schema: defaultPolicy().schema, eligibility: defaultPolicy().eligibility };
   invalidate();
   renderRules();
 };
@@ -876,21 +865,36 @@ if (initialStep === 'roadmap') {
   requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'instant' }));
 }
 try {
-  const saved = localStorage.getItem(key);
-  if (saved) {
-    const value = JSON.parse(saved);
-    rules = policy(value.rule);
+  const saved = localStorage.getItem(key),
+    legacy = saved ? null : localStorage.getItem('cosmoot:juno:delegation:rule-draft:v2');
+  if (saved || legacy) {
+    const value = saved
+      ? JSON.parse(saved)
+      : { rule: JSON.parse(legacy), parent: null, rationale: '' };
+    const original = policy(value.rule);
+    rules = editablePolicy(original);
     parent = value.parent ?? null;
     draftStarted = true;
     $('rule-rationale').value = value.rationale || '';
-    $('draft-status').textContent = 'Local draft restored · original baseline preserved';
-  } else if (localStorage.getItem('cosmoot:juno:delegation:rule-draft:v2')) {
-    rules = policy(JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v2')));
-    draftStarted = true;
-    $('draft-status').textContent =
-      'Legacy draft preserved · review the new 90-day model before proposing';
+    const migrated = original.schema !== rules.schema;
+    $('draft-status').textContent = migrated
+      ? 'History and 97.5% signature rule updated automatically · unapproved'
+      : 'Local draft restored · original baseline preserved';
+    if (migrated || legacy) {
+      try {
+        localStorage.setItem(
+          key,
+          JSON.stringify({ schema: 1, rule: rules, parent, rationale: $('rule-rationale').value })
+        );
+      } catch {
+        $('draft-status').textContent = 'Current history rule active · local saving unavailable';
+      }
+    }
   }
 } catch {
+  rules = defaultPolicy();
+  parent = null;
+  draftStarted = false;
   tell('Saved draft is invalid or unavailable. Default rules loaded.');
 }
 restoreCommissionInput();

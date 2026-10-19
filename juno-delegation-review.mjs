@@ -8,6 +8,7 @@ import {
   LIQUID_RESERVE
 } from './juno-delegation-core.mjs';
 import { activeSetEvidence } from './juno-active-set-history.mjs';
+import { participationEvidence } from './juno-participation-history.mjs';
 export const REVIEW_ENGINE = 'equal-capped-review-1';
 export const REVIEW_MARKER = '## Frozen allocation review';
 const hashPattern = /^[a-f0-9]{64}$/;
@@ -93,7 +94,10 @@ function calculate(p, s, budget, evidence, history) {
     };
   let coverage = null;
   if (p.schema >= 3) {
-    coverage = activeSetEvidence(history, s, { allowCollecting: p.schema === 4 });
+    coverage =
+      p.schema === 5
+        ? participationEvidence(history, s)
+        : activeSetEvidence(history, s, { allowCollecting: p.schema >= 4 });
     if (!coverage.complete) return { status: 'unavailable', reason: coverage.reason, result: null };
   }
   return {
@@ -406,7 +410,7 @@ export async function readProposalReview(values) {
       );
   } else {
     const section = values.body?.match(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/m);
-    if (section && [3, 4].includes(JSON.parse(section[1])?.schema))
+    if (section && [3, 4, 5].includes(JSON.parse(section[1])?.schema))
       throw Error(
         'This policy version requires its complete frozen comparison. Return to the planner to prepare it.'
       );

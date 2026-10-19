@@ -5,6 +5,7 @@ import {
 } from './juno-upgrade-history.mjs';
 import { parseReadiness, firstParticipation } from './juno-upgrade-readiness.mjs';
 import { activeSetEvidence } from './juno-active-set-history.mjs';
+import { participationEvidence, meetsParticipation } from './juno-participation-history.mjs';
 
 export const PROGRAMME = 'juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0';
 export const UPGRADE = Object.freeze({
@@ -58,30 +59,59 @@ export function legacyPolicy() {
 export function strictHistoryPolicy() {
   return { ...legacyPolicy(), schema: 3, eligibility: 'continuous-active-set-90-days-v1' };
 }
-export function defaultPolicy() {
+export function collectingPolicy() {
   return {
     ...legacyPolicy(),
     schema: 4,
     eligibility: 'continuous-active-set-90-days-collecting-v1'
   };
 }
+export function defaultPolicy() {
+  return {
+    ...collectingPolicy(),
+    schema: 5,
+    eligibility: 'continuous-active-set-observed-commits-90-days-v1',
+    minParticipationBps: 9750
+  };
+}
+// Only editable planner drafts adopt the current rule. Stored approvals and
+// frozen proposal reviews always go through policy() with their original schema.
+export function editablePolicy(input = defaultPolicy()) {
+  const current = policy(input),
+    template = defaultPolicy();
+  return policy({
+    ...current,
+    schema: template.schema,
+    eligibility: template.eligibility,
+    minParticipationBps: template.minParticipationBps
+  });
+}
 const policyTemplate = (schema) =>
-  schema === 2 ? legacyPolicy() : schema === 3 ? strictHistoryPolicy() : defaultPolicy();
+  schema === 2
+    ? legacyPolicy()
+    : schema === 3
+      ? strictHistoryPolicy()
+      : schema === 4
+        ? collectingPolicy()
+        : defaultPolicy();
 export function eligibilityDescription(p) {
-  return p.schema === 4
-    ? '90 continuous days in the active set; while collecting, use the entire available period; not jailed'
-    : p.schema === 3
-      ? '90 continuous days in the active set; not jailed'
-      : 'Legacy: non-jailed with participation evidence; standby allowed';
+  return p.schema === 5
+    ? '90 continuous days in the active set; automatically use the entire available period until 90 days exist; not jailed; at least 97.5% observed commit signatures'
+    : p.schema === 4
+      ? '90 continuous days in the active set; while collecting, use the entire available period; not jailed'
+      : p.schema === 3
+        ? '90 continuous days in the active set; not jailed'
+        : 'Legacy: non-jailed with participation evidence; standby allowed';
 }
 export function policy(input) {
   const p = structuredClone(input);
   if (
-    ![2, 3, 4].includes(p?.schema) ||
+    ![2, 3, 4, 5].includes(p?.schema) ||
     p.chainId !== 'juno-1' ||
     p.programme !== PROGRAMME ||
     p.method !== 'equal-capped-v1' ||
     p.eligibility !== policyTemplate(p.schema).eligibility ||
+    (p.schema === 5 && p.minParticipationBps !== 9750) ||
     p.liquidReserveRaw !== LIQUID_RESERVE.toString() ||
     !Number.isInteger(p.factorTenths) ||
     p.factorTenths < 10 ||
@@ -237,8 +267,10 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
   if (!evidence?.records || !evidence.window?.coverageComplete)
     throw Error('The upgrade observation window is incomplete.');
   const continuity =
-    p.schema >= 3 ? activeSetEvidence(history, s, { allowCollecting: p.schema === 4 }) : null;
+    p.schema >= 3 ? activeSetEvidence(history, s, { allowCollecting: p.schema >= 4 }) : null;
   if (continuity && !continuity.complete) throw Error(continuity.reason);
+  const participation = p.schema === 5 ? participationEvidence(history, s) : null;
+  if (participation && !participation.complete) throw Error(participation.reason);
   const excluded = new Map(p.exclusions.map((e) => [e.validator, e.reason])),
     cap = capFraction(p, s.activeCount);
   const rows = s.validators.map((v) => {
@@ -258,6 +290,9 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
             : 'Not continuously in the active set for 90 days'
           : 'Outside the active set'
       );
+    const counts = participation?.records.get(v.consensusAddress) ?? null;
+    if (participation && !meetsParticipation(counts, p.minParticipationBps))
+      reasons.push(counts ? 'Observed commit signatures below 97.5%' : 'No observed commit slots');
     if (p.commissionMaxBps !== null && v.commissionBps > p.commissionMaxBps)
       reasons.push('Commission above limit');
     if (excluded.has(v.address)) reasons.push(`Manual exclusion: ${excluded.get(v.address)}`);
@@ -269,6 +304,7 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
       );
     return {
       ...v,
+      ...(participation ? { participation: counts } : {}),
       upgrade,
       reasons,
       eligible: !reasons.length,
