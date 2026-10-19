@@ -3,7 +3,29 @@
 Updated 19 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
-## Automatic history and 97.5% commit participation — 19 October 2026 candidate
+## Rule review size correction — 19 October 2026 candidate
+
+PR #298 is published through successful manual release
+[39303406085](https://github.com/cristianoneta/neta-dao/actions/runs/39303406085),
+source `3c978afc52cb5440b9e933c8e5f2dc4b77b0dc75`. The exporter installation and
+automatic host timers are confirmed; public signature counts reconcile with the
+snapshot and retain the original collection start. Older pending notes below
+describe previous checkpoints.
+
+The next correction addresses proposal preparation, not collection: the real
+46-validator sufficient comparison overflowed the text limit without any optional
+rationale. A lossless alternative transport and shorter text envelope preserve the
+complete model, fingerprint and readable author/voter comparison. Both wire formats
+are supported. The reproduced snapshot fits in 9,241 bytes; the 10,000-byte limit
+and all approval/execution boundaries remain intact. Truly oversized data fails
+with its measured size; no evidence is discarded or moved to a mutable link.
+
+All 356 Node tests, syntax/format, Pages build and Worker runtime checks pass.
+The compact-format browser regression is added but awaits GitHub validation after
+the local Chromium download failed. This correction is not integrated or released;
+it requires no new server installation.
+
+## Automatic history and 97.5% commit participation — earlier 19 October candidate
 
 Owner update: editable drafts automatically use the entire available collection
 period until 90 days exist, then the rolling 90-day window. Schema 5 also requires

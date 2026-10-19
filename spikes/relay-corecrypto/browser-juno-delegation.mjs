@@ -15,6 +15,7 @@ import {
   withParticipation
 } from '../../tests/fixtures/delegation-planner.mjs';
 import { rewardsFixture } from '../../tests/fixtures/claim-rewards.mjs';
+import { reviewSizeInput } from '../../tests/fixtures/delegation-review-size.mjs';
 import { exerciseReviewFunding } from './exercise-review-funding.mjs';
 const root = new URL('../../', import.meta.url),
   history = JSON.parse(await readFile(new URL('data/validator-upgrades/juno-v31.json', root)));
@@ -867,6 +868,76 @@ try {
     assert.equal(await page.locator('#simulate').isDisabled(), true);
     assert.equal(await page.locator('#claim-rewards').isDisabled(), true);
     assert.equal(await page.locator('#export-json').isDisabled(), true);
+  }
+  // Exercise the browser compressor, local-draft handoff and published reader
+  // with realistic identity entropy, all held positions and compact evidence.
+  state = 'current';
+  approvalState = 'empty';
+  const largeInput = reviewSizeInput();
+  largeInput.rationale = 'Preserve every held position and the complete signature evidence.';
+  const large = await page.evaluate(
+    async (input) => {
+      const { buildRuleReview, readProposalReview } = await import('/juno-delegation-review.mjs');
+      const { frozenRuleProposal, savePlannerProposal } = await import(
+        '/planner-proposal-draft.mjs'
+      );
+      input.evidence.records = new Map(input.evidence.records);
+      const review = await buildRuleReview(input),
+        proposal = await frozenRuleProposal(review),
+        decoded = await readProposalReview(proposal.values);
+      return {
+        url: savePlannerProposal(localStorage, proposal),
+        values: proposal.values,
+        bytes: new TextEncoder().encode(proposal.values.summary + '\n\n' + proposal.values.body)
+          .length,
+        hash: review.hash,
+        decodedHash: decoded.hash,
+        validators: decoded.value.snapshot.validators.length
+      };
+    },
+    {
+      ...largeInput,
+      evidence: { ...largeInput.evidence, records: [...largeInput.evidence.records] }
+    }
+  );
+  assert.equal(large.hash, large.decodedHash);
+  assert.equal(large.validators, 46);
+  assert.ok(large.bytes <= 10000);
+  assert.match(large.values.body, /cosmoot-allocation-review-2\+gzip/);
+  await page.goto(origin + large.url);
+  await page.waitForFunction(() => document.querySelector('#proposal-rule-review .rr-pagination'));
+  assert.match(await page.locator('#proposal-rule-review .rr-pagination').innerText(), /of 46/);
+  assert.match(
+    await page.locator('#proposal-rule-review .rr-rationale').innerText(),
+    /Preserve every held position/
+  );
+  assert.equal(await page.locator('#primary-action').innerText(), 'PUBLISH FOR REVIEW');
+  publishedRule = {
+    ...approved,
+    id: '999',
+    title: large.values.title,
+    summary: large.values.summary + '\n\n' + large.values.body,
+    status: 'PROPOSAL_STATUS_VOTING_PERIOD',
+    voting_end_time: new Date(Date.now() + 86400000).toISOString()
+  };
+  approvalState = 'approved';
+  const largePublished = new URL(page.url());
+  largePublished.searchParams.delete('plannerDraft');
+  largePublished.searchParams.set('proposal', '999');
+  await page.goto(largePublished.href);
+  await page.waitForFunction(() =>
+    document.getElementById('proposal-rule-review').textContent.includes('PUBLISHED RULE REVIEW')
+  );
+  assert.match(await page.locator('#proposal-rule-review .rr-pagination').innerText(), /of 46/);
+  assert.match(
+    await page.locator('#proposal-rule-review .rr-rationale').innerText(),
+    /Preserve every held position/
+  );
+  for (const width of [1440, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    if (shots)
+      await page.screenshot({ path: `${shots}/rule-compact-voter-${width}.png`, fullPage: true });
   }
   assert.deepEqual(errors, []);
   console.log(
