@@ -1,5 +1,26 @@
 # Juno validator history
 
+## Planner commit-count export — 19 October 2026 candidate
+
+The existing schema-2 active-set history gains an optional `participation` object
+(schema 1). It binds `firstHeight`, `lastHeight`, `startTime`, `endTime` and one
+`validators` row per observed consensus address, with integer `expected`,
+`signed`, `absent`, `nil`. The exporter reads original block flags in bounded
+batches: canonical commit flag 2 is signed; flags 1 and 3 remain separately
+absent/nil. Every sum must reconcile to the roster-derived expected slot count.
+It does not use full-day aggregates at partial-day boundaries, include blocks
+after the snapshot, count halts as missing blocks or reset the collection origin.
+
+The full window counts blocks strictly after the 90-day cutoff through the
+snapshot, retaining the prior block as a membership anchor. Initial collection
+counts every available block from the immutable origin. Policy schema 5 requires
+97.5% by exact integer comparison over that shared period, alongside continuous
+active membership. Missing counts keep new targets unavailable. The added field
+does not reinterpret historical policy schemas or their frozen comparisons.
+Install the new exporter before publishing the new website version; the existing
+collector and publication timers continue to supply the same public planner URL.
+This is a candidate data contract, not a deployment receipt or execution proof.
+
 14 October 2026. Read-only collector candidate; server installation and scheduled
 acceptance are separate from source integration. No frontend or allocation gate
 is enabled by collecting these observations.

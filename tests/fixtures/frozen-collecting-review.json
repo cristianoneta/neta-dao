@@ -1,0 +1,148 @@
+{
+  "sourceCommit": "a2253ffa7d93840ecee2f3fd4b64db4afdd21390",
+  "hash": "45f06a50be13d02096b74869286b4ef3ec46f4ae89d3fd71bf4bf0c77cc0b560",
+  "value": {
+    "schema": 1,
+    "engine": "equal-capped-review-1",
+    "kind": "RULE_APPROVAL",
+    "createdAt": "2026-10-19T18:00:00.000Z",
+    "parent": null,
+    "rule": {
+      "schema": 4,
+      "chainId": "juno-1",
+      "programme": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+      "method": "equal-capped-v1",
+      "eligibility": "continuous-active-set-90-days-collecting-v1",
+      "liquidReserveRaw": "50000000",
+      "factorTenths": 15,
+      "commissionMaxBps": 1000,
+      "upgrade": {
+        "id": "juno-v31",
+        "anchor": "halt-block-time",
+        "height": 42452000,
+        "haltTime": "2026-10-07T06:56:31.235578431Z",
+        "windowSeconds": 18000,
+        "requireObservedParticipation": true,
+        "unknownHandling": "no-target-review-required"
+      },
+      "exclusions": []
+    },
+    "policyHash": "17206d81a90e8c740ba8f4a1af6d16a7be9d2cd6a548a82368dd920f0d6bf75a",
+    "rationale": "",
+    "budgetRaw": "900000000",
+    "snapshot": {
+      "schema": 1,
+      "chainId": "juno-1",
+      "programme": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+      "height": 42500000,
+      "blockTime": "2026-10-19T17:14:26.759Z",
+      "collectedAt": "2026-10-19T17:14:26.759Z",
+      "source": "https://example.org",
+      "activeCount": 3,
+      "liquidRaw": "1000000000",
+      "redelegations": [],
+      "validators": [
+        {
+          "address": "junovaloper1pqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000001",
+          "name": "Validator 2",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000000",
+          "name": "Validator 1",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1zqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000002",
+          "name": "Validator 3",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        }
+      ]
+    },
+    "sourceSnapshotHash": "66909c370fd6318dfe2a88d46f24495e6e0ca4bfe7bc7823531fe4c65b72d214",
+    "sourceValidatorCount": 3,
+    "existingRedelegationCount": 0,
+    "evidence": {
+      "window": {
+        "coverageComplete": true
+      },
+      "records": [
+        [
+          "0000000000000000000000000000000000000000",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000001",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000002",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ]
+      ]
+    },
+    "activeHistory": {
+      "schema": 2,
+      "chainId": "juno-1",
+      "source": "https://history.example.org",
+      "spans": [
+        {
+          "firstHeight": 39300000,
+          "lastHeight": 42500000,
+          "startTime": "2026-10-14T17:14:26.759Z",
+          "endTime": "2026-10-19T17:14:26.759Z",
+          "addresses": [
+            "0000000000000000000000000000000000000000",
+            "0000000000000000000000000000000000000001",
+            "0000000000000000000000000000000000000002"
+          ]
+        }
+      ],
+      "collectionStart": {
+        "height": 39300000,
+        "time": "2026-10-14T17:14:26.759Z"
+      }
+    },
+    "previous": null,
+    "proposed": {
+      "status": "calculated",
+      "reason": null,
+      "targets": [
+        "0",
+        "0",
+        "0"
+      ],
+      "allocatedRaw": "0",
+      "unallocatedRaw": "900000000",
+      "projectedBondedRaw": "3000000000"
+    },
+    "messages": []
+  }
+}

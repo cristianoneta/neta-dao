@@ -1,10 +1,39 @@
 # Cosmoot public handoff
 
-Updated 18 October 2026. This file contains public project status and development
+Updated 19 October 2026. This file contains public project status and development
 boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 [documentation policy](docs/DOCUMENTATION_PRIVACY.md) and applicable AGENTS.md.
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
+
+## Automatic history and 97.5% commit participation — 19 October 2026 candidate
+
+Owner update: editable drafts automatically use the entire available collection
+period until 90 days exist, then the rolling 90-day window. Schema 5 also requires
+at least 97.5% observed canonical commit signatures. Missing and nil slots are
+unsigned. The exact integer ratio decides eligibility; this is not server uptime
+or the SDK slashing metric. Other current eligibility checks remain in place.
+
+The read-only archive exporter adds per-validator expected/signed/absent/nil
+counts to the existing planner feed, with exact counted height/time bounds.
+Roster continuity, original collection start and the snapshot endpoint remain
+checked. Counts cover (snapshot minus 90 days, snapshot], or every collected
+block during the initial period. The preceding anchor supplies membership only.
+Missing or inconsistent observations never become fabricated zero targets.
+
+Saved editable drafts migrate without a transition button, preserving their
+settings, rationale and approved parent. Published reviews and approved schemas
+2–4 retain their original meaning; a frozen schema-4 regression retains its exact
+hash. Author and voter details show the observed signature ratio and counts.
+Objective/subjective scoring and allocation execution remain disabled.
+
+Local validation: 351 Node tests and 169 Python tests pass. The local environment
+blocks Chromium socket creation, so browser acceptance is delegated to the
+existing GitHub browser job. PR CI and manual website publication are pending.
+The exporter also needs installation on the data host before new targets can be
+calculated from the live feed. No host installation or deployment is claimed.
+PR #297's earlier hash repair was installed successfully by the operator on
+19 October; the public history retains the original collection start.
 
 ## Planner archive hash comparison — 18 October 2026 repair
 

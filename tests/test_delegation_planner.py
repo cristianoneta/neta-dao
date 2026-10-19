@@ -89,6 +89,11 @@ class PlannerCollector(unittest.TestCase):
             self.assertEqual(result['height'], 42500013)
             self.assertEqual(set(reader.heights), {42500013})
             self.assertEqual(result['activeSetHistory']['spans'][0]['lastHeight'], result['height'])
+            counts = result['activeSetHistory']['participation']
+            self.assertEqual(counts['lastHeight'], result['height'])
+            self.assertEqual(counts['endTime'], result['blockTime'])
+            self.assertEqual(counts['validators'][0]['expected'], 4)
+            self.assertEqual(counts['validators'][0]['signed'], 4)
             self.assertFalse(result['authority']['executionVerified'])
             reader.wrong_hash = True
             with self.assertRaisesRegex(ValueError, 'disagree'):

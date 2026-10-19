@@ -1,5 +1,13 @@
 # Juno Delegation Programme
 
+19 October owner update (implementation candidate): schema 5 introduces the
+**97.5% observed commit-signature minimum now**, superseding the older planned
+95% gate. All editable drafts automatically use the shared available history
+until 90 days exist, then the rolling 90-day window, without a transition button.
+The existing current-jail check remains; a historical no-jail gate and objective
+scoring are still separate future work. Approved rules and published schemas 2–4
+are never migrated. See CURRENT_STATE for actual installation/release status.
+
 18 October owner update: the 90-day target is retained. During initial collection,
 new schema-4 rules evaluate continuous membership throughout the entire available
 period and disclose its duration. This supersedes the strict waiting period for

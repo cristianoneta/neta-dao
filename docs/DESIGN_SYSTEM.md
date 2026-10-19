@@ -1,5 +1,15 @@
 # NETA DAO design system
 
+## Automatic observed-history eligibility — 19 October 2026 candidate
+
+Remove the collecting-period opt-in from editable drafts. Describe automatic
+available-period / rolling-90-day selection beside eligibility and its actual
+date range. Add the 97.5% observed commit-signature requirement to validator
+status; keep the existing controls and hierarchy. Per-validator review details
+show percentage plus signed/expected/absent/nil counts using the shared author
+and voter renderer. Unknown counts are unavailable, never zero or 100%. Existing
+published reviews keep frozen data and historical policy semantics.
+
 ## Balanced overview and observed history — 18 October 2026 candidate
 
 Align both overview rows to the same desktop column grid. Current positions and

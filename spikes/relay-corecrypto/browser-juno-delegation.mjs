@@ -3,8 +3,17 @@ import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { approvedProposal } from '../../tests/fixtures/approved-rules.mjs';
-import { legacyPolicy as defaultPolicy } from '../../juno-delegation-core.mjs';
-import { fixture, activeHistory } from '../../tests/fixtures/delegation-planner.mjs';
+import {
+  legacyPolicy as defaultPolicy,
+  strictHistoryPolicy,
+  collectingPolicy,
+  fingerprint
+} from '../../juno-delegation-core.mjs';
+import {
+  fixture,
+  activeHistory,
+  withParticipation
+} from '../../tests/fixtures/delegation-planner.mjs';
 import { rewardsFixture } from '../../tests/fixtures/claim-rewards.mjs';
 import { exerciseReviewFunding } from './exercise-review-funding.mjs';
 const root = new URL('../../', import.meta.url),
@@ -125,7 +134,7 @@ try {
     if (state === 'stale') data.blockTime = new Date(Date.now() - 7200000).toISOString();
     if (state === 'wrong-chain') data.chainId = 'uni-7';
     if (historyComplete) {
-      data.activeSetHistory = activeHistory(data, historyDays);
+      data.activeSetHistory = withParticipation(activeHistory(data, historyDays));
       data.activeSetHistory.schema = 2;
       data.activeSetHistory.collectionStart = {
         height: data.activeSetHistory.spans[0].firstHeight,
@@ -159,7 +168,9 @@ try {
   if (process.env.NNS_SCREENSHOT_DIR) {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await mkdir(process.env.NNS_SCREENSHOT_DIR, { recursive: true });
-    await page.locator('.overview-workspace').screenshot({ path: `${process.env.NNS_SCREENSHOT_DIR}/overview-first-adoption.png` });
+    await page
+      .locator('.overview-workspace')
+      .screenshot({ path: `${process.env.NNS_SCREENSHOT_DIR}/overview-first-adoption.png` });
     await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
   }
   await page.locator('.overview-heading [data-step="rules"]').click();
@@ -243,7 +254,7 @@ try {
   assert.equal(await page.locator('#current-validator-count').textContent(), '25');
   assert.equal(await page.locator('#current-position-rows tr').count(), 5);
   await page.setViewportSize({ width: 1440, height: 1000 });
-  const aligned = await page.locator('.overview-workspace').evaluate(el => {
+  const aligned = await page.locator('.overview-workspace').evaluate((el) => {
     const a = el.querySelector('.current-positions').getBoundingClientRect();
     const b = el.querySelector('.overview-sidebar').getBoundingClientRect();
     return Math.abs(a.top - b.top) < 1 && Math.abs(a.bottom - b.bottom) < 1;
@@ -251,7 +262,9 @@ try {
   assert.ok(aligned, 'Overview cards share top and bottom edges');
   if (process.env.NNS_SCREENSHOT_DIR) {
     await mkdir(process.env.NNS_SCREENSHOT_DIR, { recursive: true });
-    await page.locator('.overview-workspace').screenshot({ path: `${process.env.NNS_SCREENSHOT_DIR}/overview-balanced.png` });
+    await page
+      .locator('.overview-workspace')
+      .screenshot({ path: `${process.env.NNS_SCREENSHOT_DIR}/overview-balanced.png` });
   }
   await page.locator('#current-positions-toggle').click();
   assert.equal(await page.locator('#current-position-rows tr').count(), 25);
@@ -304,7 +317,8 @@ try {
   );
   assert.equal(await page.locator('#factor-number').inputValue(), '1.8');
   assert.equal(await page.locator('#commission').inputValue(), '7');
-  await page.locator('#use-current-model').click();
+  assert.equal(await page.locator('#use-current-model').count(), 0);
+  assert.match(await page.locator('#draft-eligibility-description').textContent(), /97.5%/);
   await page.locator('#factor-number').fill('1.5');
   await page.locator('#commission').fill('10');
   assert.equal(await page.locator('.criterion h4').count(), 4);
@@ -390,6 +404,10 @@ try {
     await comparison.locator('.rr-validator details').textContent(),
     /All delegators after allocation:/
   );
+  assert.match(
+    await comparison.locator('.rr-participation').textContent(),
+    /100.0000% commit signatures/
+  );
   await comparison.getByRole('button', { name: 'Rule effect only', exact: true }).click();
   assert.equal(
     await comparison
@@ -459,7 +477,7 @@ try {
   assert.ok(review.rule.exclusions.some((v) => v.validator === selected.address));
   assert.equal(review.rule.commissionMaxBps, 1900);
   assert.deepEqual(review.messages, []);
-  assert.equal(review.rule.schema, 4);
+  assert.equal(review.rule.schema, 5);
   assert.equal(review.policyHash.length, 64);
   const shots = process.env.NNS_SCREENSHOT_DIR;
   if (shots) await mkdir(shots, { recursive: true });
@@ -709,7 +727,8 @@ try {
   await page.waitForFunction(() =>
     document.getElementById('current-rules-state').textContent.includes('Rules approved')
   );
-  await page.locator('#use-current-model').click();
+  assert.equal(await page.locator('#use-current-model').count(), 0);
+  assert.match(await page.locator('#draft-eligibility-description').textContent(), /97.5%/);
   await page.locator('#programme-amount').fill('99999999');
   await page.locator('#simulate').click();
   await page.waitForFunction(() =>
@@ -731,18 +750,31 @@ try {
   await page.locator('#refresh').click();
   await ready();
   await simulate();
-  assert.match(await page.locator('#simulation-comparison .rr-history').textContent(), /3 \/ 90 days checked/);
-  assert.ok((await page.locator('#simulation-comparison .rr-proposed strong').allTextContents()).some(v => v !== '—'));
+  assert.match(
+    await page.locator('#simulation-comparison .rr-history').textContent(),
+    /3 \/ 90 days checked/
+  );
+  assert.ok(
+    (await page.locator('#simulation-comparison .rr-proposed strong').allTextContents()).some(
+      (v) => v !== '—'
+    )
+  );
   await step('rules');
   assert.match(await page.locator('#draft-history-coverage').textContent(), /3 \/ 90/);
   await step('simulation');
   if (process.env.NNS_SCREENSHOT_DIR)
-    await page.screenshot({ path: `${process.env.NNS_SCREENSHOT_DIR}/collecting-history.png`, fullPage: true });
+    await page.screenshot({
+      path: `${process.env.NNS_SCREENSHOT_DIR}/collecting-history.png`,
+      fullPage: true
+    });
   historyDays = 90;
   await page.locator('#refresh').click();
   await ready();
   await simulate();
-  assert.match(await page.locator('#simulation-comparison .rr-history').textContent(), /Full history · 90 \/ 90/);
+  assert.match(
+    await page.locator('#simulation-comparison .rr-history').textContent(),
+    /Full history · 90 \/ 90/
+  );
   historyComplete = false;
   await page.locator('#refresh').click();
   await ready();
@@ -764,6 +796,68 @@ try {
     true
   );
   assert.equal(await page.locator('#publish-proposal').isEnabled(), true);
+  // Old editable drafts migrate immediately and persist without the transition
+  // button or a Save click. Their approved baseline remains schema 2.
+  historyComplete = true;
+  historyDays = 5;
+  const preservedParent = {
+    proposalId: approved.id,
+    votingEndedAt: approved.voting_end_time,
+    rule: approvedPolicy,
+    hash: await fingerprint(approvedPolicy)
+  };
+  for (const old of [defaultPolicy(), strictHistoryPolicy(), collectingPolicy()]) {
+    old.factorTenths = 19;
+    old.commissionMaxBps = null;
+    old.exclusions = structuredClone(approvedPolicy.exclusions);
+    await page.evaluate(
+      ({ old, parent }) => {
+        localStorage.removeItem('cosmoot:juno:delegation:rule-draft:v3');
+        if (old.schema === 2)
+          localStorage.setItem('cosmoot:juno:delegation:rule-draft:v2', JSON.stringify(old));
+        else
+          localStorage.setItem(
+            'cosmoot:juno:delegation:rule-draft:v3',
+            JSON.stringify({
+              schema: 1,
+              rule: old,
+              parent,
+              rationale: 'Preserved migration rationale'
+            })
+          );
+      },
+      { old, parent: preservedParent }
+    );
+    // A v2 local draft had no approved parent; test it against first adoption.
+    approvalState = old.schema === 2 ? 'empty' : 'approved';
+    // A changed query forces a new document; changing only the hash would keep
+    // the previous in-memory draft instead of exercising storage restoration.
+    await page.goto(origin + `/community-tools/juno/delegation/?migration=${old.schema}#rules`);
+    await ready();
+    await page.waitForFunction(
+      () => !document.getElementById('current-rules-state').textContent.includes('Checking')
+    );
+    assert.equal(await page.locator('#use-current-model').count(), 0);
+    assert.equal(await page.locator('#factor-number').inputValue(), '1.9');
+    assert.equal(await page.locator('#no-commission-limit').isChecked(), true);
+    assert.equal(await page.locator('#exclusions li').count(), 1);
+    const stored = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3'))
+    );
+    assert.equal(stored.rule.schema, 5);
+    assert.equal(stored.rule.minParticipationBps, 9750);
+    assert.deepEqual(stored.parent, old.schema === 2 ? null : preservedParent);
+    assert.equal(stored.rationale, old.schema === 2 ? '' : 'Preserved migration rationale');
+    await simulate();
+    assert.match(
+      await page.locator('#simulation-comparison .rr-history').textContent(),
+      /5 \/ 90 days/
+    );
+    assert.equal(await page.locator('#simulation-state').textContent(), 'Draft comparison');
+    await page.reload();
+    await ready();
+    assert.equal(await page.locator('#factor-number').inputValue(), '1.9');
+  }
   for (state of ['wrong-chain', 'missing']) {
     await page.locator('#refresh').click();
     await page.waitForFunction(

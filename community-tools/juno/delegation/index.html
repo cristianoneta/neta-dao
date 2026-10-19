@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
     <link rel="stylesheet" href="/juno-delegation.css?v=8" />
-    <script type="module" src="/juno-delegation.mjs?v=8"></script>
+    <script type="module" src="/juno-delegation.mjs?v=9"></script>
     <link rel="stylesheet" href="/juno-rule-review.css?v=20261017-1" />
   </head>
   <body>
@@ -276,8 +276,9 @@
                   <div>
                     <dt>Validator status</dt>
                     <dd>
-                      90 continuous days in the active set, with no current jail. Complete history
-                      must cover the immediately preceding window.
+                      Continuous active-set membership and at least 97.5% observed commit
+                      signatures, with no current jail. Automatically uses all history collected so
+                      far, then the latest 90 days once available.
                     </dd>
                   </div>
                   <div>
@@ -351,9 +352,7 @@
         <div id="draft-parent-notice" aria-live="polite">
           <p id="draft-parent-note">Checking the approved baseline…</p>
           <button id="adopt-current-rules" type="button" hidden>
-            Start from current approved rules</button
-          ><button id="use-current-model" type="button" hidden>
-            Use the available-history transition
+            Start from current approved rules
           </button>
         </div>
         <div class="rules-workspace">
@@ -394,8 +393,13 @@
                   <p>
                     <span id="draft-eligibility-description"
                       >90 continuous days in the active set; while collecting, use the entire
-                      available period; not jailed.</span
+                      available period; not jailed; at least 97.5% observed commit signatures.</span
                     >
+                  </p>
+                  <p class="field-help">
+                    The window advances automatically with the snapshot. Commit signatures count
+                    against every expected active-set slot; absent and nil slots do not count as
+                    signed.
                   </p>
                   <p class="field-help" id="draft-history-coverage" aria-live="polite">
                     Loading the observed history period…
