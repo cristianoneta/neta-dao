@@ -1,5 +1,15 @@
 # NETA DAO design system
 
+## Complete rule proposal text — 19 October 2026 correction candidate
+
+Keep the full readable changes, rationale and validator comparison in the shared
+author/voter view. When the prose plus evidence exceeds the proposal limit, use a
+shorter text envelope with exact policy, snapshot, budget, observed period and
+no-execution scope. All detailed text and data remain in the immutable embedded
+review. Never truncate evidence, remove held positions or ask users to shorten
+optional text that is already empty. Report actual bytes if the complete proposal
+still cannot fit. Historical published reviews keep their original fingerprints.
+
 ## Automatic observed-history eligibility — 19 October 2026 candidate
 
 Remove the collecting-period opt-in from editable drafts. Describe automatic

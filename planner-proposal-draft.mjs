@@ -76,7 +76,8 @@ export function ruleProposal(review) {
 }
 export async function frozenRuleProposal(review) {
   const checked = await verifyRuleReview(review.value),
-    v = checked.value;
+    v = checked.value,
+    encoded = await encodeRuleReview(checked);
   const changes = ruleChanges(v.parent?.rule, v.rule).filter((r) => r.changed);
   const content =
     `# Proposed allocation rules\n\nDecision requested: approve this exact rule revision. Execution: none.\nChain: juno-1\nDecision and submission: Juno native governance\nTopic: Delegation Programme\nProgramme: ${v.rule.programme}\n\n` +
@@ -99,21 +100,33 @@ export async function frozenRuleProposal(review) {
       ? `Proposed total: ${units(v.proposed.allocatedRaw)} JUNO; unallocated: ${units(v.proposed.unallocatedRaw)} JUNO.\n`
       : `Allocation impact unavailable: ${v.proposed.reason}\n`) +
     '\nApproval changes the rules only. Holdings remain unchanged by this vote. A separate allocation proposal must use the approved revision, fresh evidence, verified programme authority and exact reviewed transactions.\n\n' +
-    (await encodeRuleReview(checked));
-  const result = draft(
-    'RULE_APPROVAL',
-    'Juno Delegation Programme — allocation rules',
-    'Approve the exact allocation rules. This vote does not move funds; distribution estimates and their evidence are frozen in the proposal.',
-    content
-  );
-  if (
-    [...result.values.body].length > 10000 ||
-    new TextEncoder().encode(result.values.summary + '\n\n' + result.values.body).length > 10000
-  )
+    encoded;
+  const summary =
+      'Approve this exact rule revision. No funds move; the comparison is illustrative.',
+    attribution = '\n\nThis proposal was created on cosmoot.com.',
+    size = (body) => new TextEncoder().encode(summary + '\n\n' + body + attribution).length;
+  // The shared author/voter view renders every change, rationale and exact value
+  // from the same verified package. Do not repeat all of it in the text envelope
+  // when that repetition would prevent publishing the complete evidence.
+  const compact =
+    `${v.parent ? 'Revises Juno proposal #' + v.parent.proposalId + '.' : 'Initial adoption; no prior Cosmoot-format approval found.'}\n\n` +
+    `## Exact policy\n\n\`\`\`json\n${JSON.stringify(v.rule)}\n\`\`\`\n\nRule SHA-256: ${v.policyHash}\n\n` +
+    `Illustrative budget: ${units(v.budgetRaw)} JUNO. Snapshot: ${v.snapshot.height} · ${v.snapshot.blockTime}.\n` +
+    (checked.model.proposed.coverage?.complete
+      ? historyCoverageText(checked.model.proposed.coverage) + '\n'
+      : `Allocation impact unavailable: ${v.proposed.reason}\n`) +
+    '\nFull changes, rationale and validator comparison are frozen below and displayed by Cosmoot. Moving funds requires separate approval.\n\n' +
+    encoded;
+  const body = size(content) <= 10000 ? content : compact;
+  if (size(body) > 10000)
     throw Error(
-      'The complete comparison exceeds the 10,000-character community-review limit. Keep the review-data export; this proposal cannot be published without its evidence. Reduce optional rationale or exclusion text and prepare it again.'
+      `The complete review needs ${size(body).toLocaleString('en-US')} bytes; the proposal limit is 10,000. Nothing was published. ` +
+        (v.rationale || v.rule.exclusions.length
+          ? 'Shorten optional rationale or exclusion reasons and prepare it again. '
+          : 'The required evidence is too large for this proposal format. ') +
+        'Keep the full review-data export; evidence cannot be omitted.'
     );
-  return result;
+  return draft('RULE_APPROVAL', 'Juno Delegation Programme — allocation rules', summary, body);
 }
 export function claimProposal(input, now = Date.now(), rewardsSource = null) {
   const s = snapshot(input);

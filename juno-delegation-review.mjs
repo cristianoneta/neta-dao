@@ -9,6 +9,7 @@ import {
 } from './juno-delegation-core.mjs';
 import { activeSetEvidence } from './juno-active-set-history.mjs';
 import { participationEvidence } from './juno-participation-history.mjs';
+import { packReview, unpackReview } from './juno-review-transport.mjs';
 export const REVIEW_ENGINE = 'equal-capped-review-1';
 export const REVIEW_MARKER = '## Frozen allocation review';
 const hashPattern = /^[a-f0-9]{64}$/;
@@ -345,25 +346,40 @@ export function parentMatches(parent, current) {
 export async function encodeRuleReview(review) {
   const bytes = new TextEncoder().encode(canonical(review.value));
   if (bytes.length > 750000) throw Error('Review data exceeds the supported size.');
-  const compressed = new Uint8Array(
-    await new Response(
-      new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'))
-    ).arrayBuffer()
-  );
+  const compress = async (data) =>
+    new Uint8Array(
+      await new Response(
+        new Blob([data]).stream().pipeThrough(new CompressionStream('gzip'))
+      ).arrayBuffer()
+    );
+  let compressed = await compress(bytes),
+    format = 1;
+  const packed = packReview(review.value);
+  // Do not omit unknown or optional fields to make a proposal fit.
+  if (canonical(unpackReview(packed)) === canonical(review.value)) {
+    const packedBytes = new TextEncoder().encode(canonical(packed));
+    if (packedBytes.length <= 750000) {
+      const compact = await compress(packedBytes);
+      if (compact.length < compressed.length) {
+        compressed = compact;
+        format = 2;
+      }
+    }
+  }
   const encoded = btoa(Array.from(compressed, (b) => String.fromCharCode(b)).join(''));
-  return `${REVIEW_MARKER}\n\nFormat: cosmoot-allocation-review-1+gzip\nReview SHA-256: ${review.hash}\n\n\`\`\`cosmoot-review\n${encoded}\n\`\`\``;
+  return `${REVIEW_MARKER}\n\nFormat: cosmoot-allocation-review-${format}+gzip\nReview SHA-256: ${review.hash}\n\n\`\`\`cosmoot-review\n${encoded}\n\`\`\``;
 }
 export async function decodeRuleReview(body) {
   if (typeof body !== 'string' || !body.includes(REVIEW_MARKER)) return null;
   if (body.length > 30000) throw Error('Proposal review exceeds the supported size.');
   const parts = [
     ...body.matchAll(
-      /^## Frozen allocation review\n\nFormat: cosmoot-allocation-review-1\+gzip\nReview SHA-256: ([a-f0-9]{64})\n\n```cosmoot-review\n([A-Za-z0-9+/=]+)\n```/gm
+      /^## Frozen allocation review\n\nFormat: cosmoot-allocation-review-([12])\+gzip\nReview SHA-256: ([a-f0-9]{64})\n\n```cosmoot-review\n([A-Za-z0-9+/=]+)\n```/gm
     )
   ];
   if (parts.length !== 1 || body.split(REVIEW_MARKER).length !== 2)
     throw Error('Frozen comparison is missing, duplicated or malformed.');
-  const bytes = Uint8Array.from(atob(parts[0][2]), (c) => c.charCodeAt(0));
+  const bytes = Uint8Array.from(atob(parts[0][3]), (c) => c.charCodeAt(0));
   const reader = new Blob([bytes])
     .stream()
     .pipeThrough(new DecompressionStream('gzip'))
@@ -382,8 +398,11 @@ export async function decodeRuleReview(body) {
     await reader.cancel();
   }
   const text = await new Blob(chunks).text(),
-    value = JSON.parse(text);
-  if ((await fingerprint(value)) !== parts[0][1])
+    packet = JSON.parse(text),
+    value = parts[0][1] === '2' ? unpackReview(packet) : packet;
+  if (new TextEncoder().encode(canonical(value)).length > 750000)
+    throw Error('Expanded review exceeds the supported size.');
+  if ((await fingerprint(value)) !== parts[0][2])
     throw Error('Frozen comparison fingerprint mismatch.');
   const review = await verifyRuleReview(value);
   const policies = [...body.matchAll(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/gm)],

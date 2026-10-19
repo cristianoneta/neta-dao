@@ -6,7 +6,35 @@ boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
 
-## Automatic history and 97.5% commit participation — 19 October 2026 candidate
+## Complete rule reviews within the proposal limit — 19 October 2026 candidate
+
+A real programme snapshot exceeded the proposal text limit even without rationale
+or exclusions: the sufficient comparison retains 46 validators and 37 held
+positions. Repetitive 25-validator arithmetic fixtures did not cover this size.
+
+The candidate adds a lossless dictionary/tuple transport alongside the existing
+gzip format and uses a shorter text envelope when needed. Review fingerprints,
+all retained observations and amounts, policy semantics and the shared author/voter
+view remain unchanged. The 10,000-byte limit is still enforced; evidence is never
+removed to fit. Oversize errors report the actual size without blaming absent
+optional text. The reproduced public snapshot now fits in 9,241 bytes.
+
+All 356 Node tests, syntax/format checks, the Pages build and Worker runtime check
+pass locally. New tests cover realistic identities/portfolio size, long rationale,
+exclusions and a prior policy, original-format compatibility, altered transport
+data and an oversized required package. A full browser regression for the compact
+author and published views is added; local browser installation failed, so its
+GitHub result remains required. This correction is not released.
+
+PR #298 itself is live: manual release
+[39303406085](https://github.com/cristianoneta/neta-dao/actions/runs/39303406085)
+published `3c978afc52cb5440b9e933c8e5f2dc4b77b0dc75`, with all 18 jobs including
+Publish successful. The operator installed the exporter, both timers are active,
+and the public feed contains reconciled participation counts with the original
+collection start. Exact host evidence is retained in the private operations handoff.
+No additional host installation is needed for this text-format correction.
+
+## Automatic history and 97.5% commit participation — earlier 19 October candidate
 
 Owner update: editable drafts automatically use the entire available collection
 period until 90 days exist, then the rolling 90-day window. Schema 5 also requires
