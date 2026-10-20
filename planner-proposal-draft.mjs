@@ -1,6 +1,6 @@
 import { PROGRAMME, policy, snapshot, units } from './juno-delegation-core.mjs';
 
-import { rewardMessages } from './juno-governance-core.mjs';
+import { rewardMessages, CLAIM_REWARDS_BLOCK_REASON } from './juno-governance-core.mjs';
 import { encodeRuleReview, verifyRuleReview, ruleChanges } from './juno-delegation-review.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
 
@@ -128,25 +128,8 @@ export async function frozenRuleProposal(review) {
     );
   return draft('RULE_APPROVAL', 'Juno Delegation Programme — allocation rules', summary, body);
 }
-export function claimProposal(input, now = Date.now(), rewardsSource = null) {
-  const s = snapshot(input);
-  for (const time of [s.blockTime, s.collectedAt]) {
-    const age = now - Date.parse(time);
-    if (age > 3600000 || age < -300000)
-      throw Error('Refresh programme data before preparing the rewards proposal.');
-  }
-  const validators = s.validators
-    .filter((v) => BigInt(v.currentRaw) > 0n)
-    .sort((a, b) => a.address.localeCompare(b.address));
-  if (!validators.length) throw Error('No current programme delegations to claim from.');
-  const actions = rewardMessages(validators.map((v) => v.address));
-  return draft(
-    'CLAIM_REWARDS',
-    'Juno Delegation Programme — claim staking rewards',
-    `This proposal claims the accrued staking rewards from the Juno Delegation Programme’s ${validators.length} listed validator positions and makes them available in the programme treasury.`,
-    'Existing delegations remain unchanged. No tokens are delegated, redelegated or transferred to another recipient.',
-    actions
-  );
+export function claimProposal() {
+  throw Error(CLAIM_REWARDS_BLOCK_REASON);
 }
 export function savePlannerProposal(storage, value, id = crypto.randomUUID()) {
   if (!identifier.test(id)) throw Error('Invalid planner draft identifier.');

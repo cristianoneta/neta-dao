@@ -10,6 +10,7 @@ import {
   savePlannerProposal
 } from './planner-proposal-draft.mjs';
 import { claimRewardsOverview } from './juno-claim-rewards.mjs';
+import { CLAIM_REWARDS_BLOCK_REASON } from './juno-governance-core.mjs';
 import {
   defaultPolicy,
   editablePolicy,
@@ -539,12 +540,8 @@ async function load() {
       BigInt(data.liquidRaw) < LIQUID_RESERVE
         ? 'Less than 50 JUNO is currently spendable. A lower target does not create immediate liquidity; any unstaking must complete before the reserve is available.'
         : 'At least 50 JUNO remains available outside the allocation; rounding can leave more.';
-    $('claim-rewards').disabled = stale || !held.length;
-    $('claim-rewards-help').textContent = stale
-      ? 'Refresh current programme data before preparing a rewards proposal.'
-      : !held.length
-        ? 'No current programme delegations to claim from.'
-        : 'Opens a draft for community review. Claiming follows on-chain approval and execution.';
+    $('claim-rewards').disabled = true;
+    $('claim-rewards-help').textContent = CLAIM_REWARDS_BLOCK_REASON;
     $('simulate').disabled = false;
     renderRules();
     tell(

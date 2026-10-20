@@ -4,7 +4,16 @@ import { PROGRAMME, operator } from './juno-delegation-core.mjs';
 export const GOVERNANCE = 'juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730';
 export const EXECUTE = '/cosmwasm.wasm.v1.MsgExecuteContract';
 export const SUBMIT = '/cosmos.gov.v1.MsgSubmitProposal';
+export const CLAIM_REWARDS_BLOCK_REASON =
+  'Programme rewards claims are paused after proposal #381 failed. The generated actions were incompatible with the programme contract. A replacement requires verified execution before publication or submission.';
+// Historical review decoding is not permission to create a new write.
+export function assertProgrammeExecutionAvailable(messages) {
+  if (!Array.isArray(messages)) throw Error('Invalid proposal messages.');
+  if (messages.some((m) => m?.contract === PROGRAMME)) throw Error(CLAIM_REWARDS_BLOCK_REASON);
+}
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+// Historical format only. Code 4047 rejects DistributionMsg. Retain this exact
+// format to verify published review hashes and links, never to authorize a claim.
 export function rewardMessages(validators) {
   if (
     !Array.isArray(validators) ||
@@ -222,6 +231,7 @@ function independentEndpoints(endpoints) {
   ];
 }
 export async function preflight(endpoints, content, proposer, options = {}) {
+  assertProgrammeExecutionAvailable(content.messages);
   const results = await Promise.allSettled(
     independentEndpoints(endpoints).map((endpoint) =>
       preflightSource([endpoint], content, proposer, options)

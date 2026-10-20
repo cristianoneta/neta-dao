@@ -7,12 +7,13 @@ import {
   REVIEW_MAINNET_RELEASE as PIN,
   REVIEW_MAINNET_POLICY
 } from '../../juno-review-mainnet-config.mjs';
+import { GOVERNANCE } from '../../juno-governance-core.mjs';
 import { UNI7_REVIEW_CONTRACT } from '../../juno-review-network.mjs';
 const REVIEW_CONTRACT = PIN.contract;
 
 // All external reads and wallet writes are synthetic. This exercises the actual
 // composer, shared-review deep link, sponsor handoff and deposit controls.
-export async function exerciseReviewFunding(page, origin, sample, govMessages) {
+export async function exerciseReviewFunding(page, origin, sample) {
   const manifest = JSON.parse(
     await readFile(new URL('../../docs/deployments/nns-mainnet.json', import.meta.url))
   );
@@ -52,7 +53,6 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   let proposal = null,
     revision = null,
     native = null,
-    pauseProgramme = false,
     submits = 0,
     contributions = 0,
     contributionMode = 'ok',
@@ -123,7 +123,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
       else if (url.pathname.includes('/spendable_balances/'))
         body = { balance: { denom: 'ujuno', amount: '10000000000' } };
       else if (url.pathname.includes('/module_accounts/gov'))
-        body = { account: { name: 'gov', base_account: { address: govMessages[0].sender } } };
+        body = { account: { name: 'gov', base_account: { address: GOVERNANCE } } };
       else if (url.pathname.includes('/smart/')) {
         const q = JSON.parse(
           Buffer.from(decodeURIComponent(url.pathname.split('/smart/')[1]), 'base64')
@@ -177,10 +177,8 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
         else if (url.pathname.includes(manifest.token)) data = { decimals: 6 };
         else
           data = q.pause_info
-            ? pauseProgramme
-              ? { paused: { expiration: { at_height: 99999999 } } }
-              : { unpaused: {} }
-            : govMessages[0].sender;
+            ? { unpaused: {} }
+            : GOVERNANCE;
         body = { data };
       } else if (url.pathname.includes('/contract/')) {
         const pin = url.pathname.endsWith(manifest.registry)
@@ -509,7 +507,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   await page.evaluate(() => window.__releaseReviewPublish());
   await primary('FINALIZE REVIEW');
   assert.equal(reviewWrites, 1);
-  assert.match(revision.title, / rewards I$/);
+  assert.match(revision.title, /allocation rules$/);
   assert.match(revision.body, /This proposal was created on cosmoot.com\./);
   await page.waitForFunction(() =>
     document.querySelector('#shared-review-author').textContent.includes('cristiano.neta')
@@ -543,7 +541,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await shot(`claim-community-review-${width}`);
+    await shot(`rule-community-review-${width}`);
   }
   await page.locator('#primary-action').click();
   await page.locator('#planner-native-panel').waitFor({ state: 'visible' });
@@ -580,14 +578,6 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
         .contains(document.querySelector('#planner-native-panel'))
     )
   );
-  pauseProgramme = true;
-  await minimum.click();
-  await page.waitForFunction(
-    () => document.querySelector('#planner-native-status').dataset.state === 'error'
-  );
-  assert.match(await page.locator('#planner-native-status').innerText(), /pause state/);
-  assert.equal(submits, 0);
-  pauseProgramme = false;
   // Rejecting a full-deposit wallet prompt never broadcasts and retains both choices.
   await page.evaluate(() => (window.__rejectNative = true));
   await full.click();
@@ -617,7 +607,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await shot(`claim-sponsor-submit-${width}`);
+    await shot(`rule-sponsor-submit-${width}`);
   }
   await minimum.click();
   await page.waitForFunction(() =>
@@ -706,7 +696,7 @@ export async function exerciseReviewFunding(page, origin, sample, govMessages) {
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await shot(`claim-community-funding-${width}`);
+    await shot(`rule-community-funding-${width}`);
   }
   contributionMode = 'ok';
   await page.locator('#proposal-funding-confirm').check();

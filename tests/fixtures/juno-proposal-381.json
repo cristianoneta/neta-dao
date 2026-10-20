@@ -1,0 +1,301 @@
+{
+  "proposal": {
+    "id": "381",
+    "messages": [
+      {
+        "@type": "/cosmwasm.wasm.v1.MsgExecuteContract",
+        "sender": "juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730",
+        "contract": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+        "msg": {
+          "execute_admin_msgs": {
+            "msgs": [
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper12rkgnycfaqqyclrhquzerrm4nfwg6um26l2aqw"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper13uflwz6ncv7wuey55rhh08nlmskpdpfevckja0"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper14xmyp2hdd586frvl0d5mpqy5j9rjkt4khdp5hd"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper15ntrq4rmmd2vtrj5hvczfhqus3v4pqpuxfvj0e"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper177svs8gyz28pupaj6amgls6rahcmwmwq06fukv"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1836fhsg6yqpu98vezfc7caakchqe8pvske7t8q"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper185hgkqs8q8ysnc8cvkgd8j2knnq2m0ah6ae73gntv9ampgwpmrxqlfzywn"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper19ur8r2l25qhsy9xvej5zgpuc5cpn6syydmwtrt"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper19v94c3z7ckarwsum76kaagma0wqsqhh5w9jlsx"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1aevx3gfvvdce60ql75fp6j4fzj42lru9h0vhqq"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1ax4c40gn3s74xxm75g6cmts3fw7rq64gweqg8q"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1c0r2r5e3usyjjy55dk5ktql9nc5nljk3jn6mkq"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1f2jpv5sc6ur6yurq5w0t2chphrznpy8lfvj9vs"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1gwd9l44t22e3nteu68akfgykuxu6lq6m6u786d"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1j9644d7qyln8smd2t42jvymj0yhjw5qkmw9fms"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1juczud9nep06t0khghvm643hf9usw45r23gsmr"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1mzqqrctm0hvkghf66jruxjtggd5j447dmugz0j"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1nna7k5lywn99cd63elcfqm6p8c5c4qcup6gd43"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1p0r4znp29547d8ra5k8t6ls0ztm3tj74ak38wz"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1s0lankh33kprer2l22nank5rvsuh9ksahu7s62"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1ssmt2aveqpc7e0ncgxt0tpj83ur623dvk7uvng"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1sz9nuewea8dlje7lzqymzyww8q0hun5q5ryep7"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1t3cjxseweyyy5ssckdr2ynn0qx283hza33p056"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1t8ehvswxjfn3ejzkjtntcyrqwvmvuknzmvtaaa"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1teekgw89a9mx8jhpvuhyx2u6c6neazv80z22gw"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1tx2u0nvjwregdv6a5t5k7z0krv6l8l6hgq4z85"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1v676erkdwd3hq2n2a7xte5qpymdfa8c8uyatcw"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1x73p5aukx7ak8c2gss3ctvdlqyln38xjnkdj83"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1x8u2ypdr35802tjyjqyxan8x85fzxe6sk0qmh8"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1xeuvxfdw4cdcu0zcusrmufp97z9mnhfddfaz5k"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1yeaw3dv6jk3hr290l2tsew7rr2vjykynme37s2"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1yfx5x9cs3nvncprlw0kuw2cgs9qq38uqnwfhd8"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1yg0h9xeseq3qfu2vkwj3m29yf42lnyfmqasn35"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1yy3tnegzmkdcm7czzcy3flw5z0zyr9vkkxrfse"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1z3svprqzmquw6mckh6rgyt0dmd4yhv7c6l58qc"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1zvuyw9utsdp3w0mnrructw87p8sy8a3snclwet"
+                  }
+                }
+              },
+              {
+                "distribution": {
+                  "withdraw_delegator_reward": {
+                    "validator": "junovaloper1zxx8j75ngm8m38v9l5wreaavwnsuun7gcq5cu8"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "funds": []
+      }
+    ],
+    "status": "PROPOSAL_STATUS_FAILED",
+    "final_tally_result": {
+      "yes_count": "23757054567436",
+      "abstain_count": "0",
+      "no_count": "689724081",
+      "no_with_veto_count": "288765237710"
+    },
+    "submit_time": "2026-10-15T12:10:49.407018524Z",
+    "deposit_end_time": "2026-10-25T12:10:49.407018524Z",
+    "total_deposit": [
+      {
+        "denom": "ujuno",
+        "amount": "5000000000"
+      }
+    ],
+    "voting_start_time": "2026-10-15T12:10:49.407018524Z",
+    "voting_end_time": "2026-10-20T12:10:49.407018524Z",
+    "metadata": "cosmoot:review:juno-1:juno15wwr9dezyfp86p4px5p664gguargukml3wa9pctw9nutfn2rzk9qwf45gq:1:80a758ffb4c459ac453b55a65e26694dd9179a6ac63674807c9dfdb03b8fa25a",
+    "title": "Juno Delegation Programme — claim staking rewards I",
+    "summary": "This proposal claims the accrued staking rewards from the Juno Delegation Programme’s 37 listed validator positions and makes them available in the programme treasury.\n\nExisting delegations remain unchanged. No tokens are delegated, redelegated or transferred to another recipient.\n\nThis proposal was created on cosmoot.com.",
+    "proposer": "juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57",
+    "expedited": false,
+    "failed_reason": "Error parsing into type dao_interface::msg::ExecuteMsg: unknown variant `distribution`, expected one of `bank`, `custom`, `stargate`, `ibc`, `wasm`, `gov`: execute wasm contract failed"
+  }
+}

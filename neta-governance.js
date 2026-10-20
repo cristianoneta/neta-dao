@@ -24,9 +24,16 @@
   } = await import('./proposal-accounting.mjs?v=20261006-4');
   const { publishedReview, indexingUnavailable, reviewEventId, reconcileReviewTransaction } =
     await import('./review-publication.mjs');
-  const { normalizeNativeProposal, linkedNativeId, readNativeVoting, formatVoteAmount } =
-    await import('./native-governance-display.mjs');
-  const { displayJuno } = await import('./juno-governance-core.mjs');
+  const {
+    normalizeNativeProposal,
+    linkedNativeId,
+    readNativeVoting,
+    formatVoteAmount,
+    nativeExecutionFailure
+  } = await import('./native-governance-display.mjs');
+  const { displayJuno, assertProgrammeExecutionAvailable } = await import(
+    './juno-governance-core.mjs'
+  );
   const { readProposalReview } = await import('./juno-delegation-review.mjs');
   const { renderRuleReview } = await import('./juno-rule-review-view.mjs');
   let frozenViewEpoch = 0;
@@ -53,6 +60,7 @@
     }
   }
   async function verifyFrozenAction(values) {
+    assertProgrammeExecutionAvailable(JSON.parse(values.actions_json));
     const context = reviewContext();
     const frozen = await readProposalReview(values);
     if (frozen) {
@@ -1491,6 +1499,15 @@
       setEditable(false);
       plannerGov.render();
     }
+    if (native && !sharedFinal && selected?.source !== 'chain') {
+      try {
+        assertProgrammeExecutionAvailable(JSON.parse($('#proposal-actions').value || '[]'));
+      } catch (error) {
+        $('#primary-action').disabled = true;
+        $('#publish-revision').disabled = true;
+        $('#action-hint').textContent = error.message;
+      }
+    }
     renderReviewActivity();
   }
   async function nativeGet(path) {
@@ -1792,6 +1809,7 @@
       if (stored) stored.proposal = selected.proposal;
       renderVotingTotals(result.votes, true);
       $('#proposal-badge').textContent = chainLabel(selected.proposal.status);
+      renderExecutionFailure(selected.proposal);
       $('#voting-data-status').textContent =
         `${selected.proposal.status === 'open' ? 'Current tally' : selected.proposal.status === 'deposit' ? 'Voting has not started' : 'Final tally'} · ${new Date(result.checkedAt).toLocaleTimeString()} · Block ${result.height} · ${new URL(result.endpoint).hostname}`;
       updateCountdown();
@@ -1842,6 +1860,18 @@
         ? 'VOTING ENDED'
         : `${days ? `${days}D ` : ''}${hours}H ${minutes % 60}M REMAINING · ENDS ${new Date(target).toLocaleString()}`;
   }
+  function renderExecutionFailure(proposal) {
+    let target = $('#native-execution-failure');
+    if (!target) {
+      target = node('p', 'gov-status');
+      target.id = 'native-execution-failure';
+      target.dataset.state = 'error';
+      target.setAttribute('role', 'status');
+      $('#onchain-panel').prepend(target);
+    }
+    target.textContent = nativeExecutionFailure(proposal.raw);
+    target.hidden = !target.textContent;
+  }
   function selectChain(item, confirmed = false) {
     if (state.busy && !confirmed) return;
     stopNativeVoting();
@@ -1875,6 +1905,7 @@
     $('#proposal-heading').textContent = p.title;
     $('#proposal-badge').textContent = chainLabel(p.status);
     $('#onchain-panel').hidden = false;
+    renderExecutionFailure(p);
     nativeVote.render();
     renderVotingTotals(native ? p.votes : v, native);
     $('#voting-refresh').hidden = !native;

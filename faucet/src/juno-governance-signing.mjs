@@ -8,11 +8,17 @@ import { TxBody, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { VOTE, choices } from '../../native-voting-core.mjs';
 import { validateJunoAddress } from '../../names-profile-core.mjs';
 import { DEPOSIT } from '../../juno-community-governance.mjs';
-import { EXECUTE, SUBMIT, claimValidators } from '../../juno-governance-core.mjs';
+import {
+  EXECUTE,
+  SUBMIT,
+  claimValidators,
+  assertProgrammeExecutionAvailable
+} from '../../juno-governance-core.mjs';
 import { journalBroadcast } from './broadcast-journal.mjs';
 export { fixedFee } from './wynd-swap-fee.mjs';
 
 export function message(content, sender, deposit) {
+  assertProgrammeExecutionAvailable(content.messages);
   if (content.messages.length) claimValidators(content.messages);
   if (!/^[1-9]\d*$/.test(deposit)) throw Error('Invalid proposal deposit.');
   return {

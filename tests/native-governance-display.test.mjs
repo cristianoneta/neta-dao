@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { formatWholeVoteAmount, formatVoteAmount, nativeTally, normalizeNativeProposal, readNativeVoting, linkedNativeId } from '../native-governance-display.mjs';
 import { finalizedReview } from '../juno-community-governance.mjs';
-import { claimProposal } from '../planner-proposal-draft.mjs';
+import { legacyClaimDraft as claimProposal } from './fixtures/legacy-claim.mjs';
 import { fixture } from './fixtures/delegation-planner.mjs';
 
 const tally = { yes_count: '2099071009805', no_count: '123456', abstain_count: '0', no_with_veto_count: '9007199254740993' };

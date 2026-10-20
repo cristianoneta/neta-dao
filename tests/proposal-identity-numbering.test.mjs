@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { publicAuthorName } from '../proposal-identity.mjs';
 import { nextClaimTitle, roman, CLAIM_TITLE, readClaimTitle } from '../claim-numbering.mjs';
 import { rewardMessages } from '../juno-governance-core.mjs';
-import { claimProposal } from '../planner-proposal-draft.mjs';
+import { legacyClaimDraft as claimProposal } from './fixtures/legacy-claim.mjs';
 import { fixture } from './fixtures/delegation-planner.mjs';
 test('public names require matching reverse record, active ownership and expiry', async () => {
   const reader = {
@@ -62,7 +62,7 @@ test('numbering fails closed on unavailable or incomplete histories', async () =
   await assert.rejects(readClaimTitle(['https://one.test', 'https://two.test'], { fetcher }));
   assert.ok(calls >= 4);
 });
-test('new claim text includes a single Cosmoot attribution', () => {
+test('historical claim text retains a single Cosmoot attribution', () => {
   const s = fixture();
   const p = claimProposal(s);
   assert.equal(p.values.body.split('This proposal was created on cosmoot.com.').length - 1, 1);
