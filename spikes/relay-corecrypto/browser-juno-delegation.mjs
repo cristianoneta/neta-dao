@@ -17,6 +17,10 @@ import {
 import { rewardsFixture } from '../../tests/fixtures/claim-rewards.mjs';
 import { reviewSizeInput } from '../../tests/fixtures/delegation-review-size.mjs';
 import { exerciseReviewFunding } from './exercise-review-funding.mjs';
+import { ruleProposal } from '../../planner-proposal-draft.mjs';
+import { simulate as simulateRule, amount } from '../../juno-delegation-core.mjs';
+import { observed } from '../../tests/fixtures/delegation-planner.mjs';
+import { legacyClaimDraft } from '../../tests/fixtures/legacy-claim.mjs';
 const root = new URL('../../', import.meta.url),
   history = JSON.parse(await readFile(new URL('data/validator-upgrades/juno-v31.json', root)));
 const sample = fixture();
@@ -303,7 +307,7 @@ try {
     rewardsState = status;
     await page.locator('#refresh').click();
     await ready();
-    assert.equal(await page.locator('#claim-rewards').isEnabled(), true);
+    assert.equal(await page.locator('#claim-rewards').isDisabled(), true);
     const text = await page.locator('#claim-rewards-amount').textContent();
     assert.equal(text.includes('$'), false);
     assert.match(text, status === 'no-price' ? /3,837,025.34 JUNO/ : /unavailable/);
@@ -555,70 +559,51 @@ try {
       })
     )
   );
-  // A storage failure must be visible beside the real button and preserve drafts.
-  await page.evaluate(() => {
-    window.originalPlannerSetItem = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (key, value) {
-      if (key.startsWith('cosmoot:juno:planner-proposal:')) throw Error('quota');
-      return window.originalPlannerSetItem.call(this, key, value);
-    };
-  });
-  await page.locator('#claim-rewards').click();
-  assert.match(await page.locator('#claim-rewards-feedback').innerText(), /could not save/);
-  assert.equal(await page.locator('#claim-rewards-feedback').isVisible(), true);
-  assert.equal(await page.locator('#claim-rewards').isEnabled(), true);
-  assert.ok(page.url().includes('/community-tools/juno/delegation/'));
-  await page.evaluate(() => {
-    Storage.prototype.setItem = window.originalPlannerSetItem;
-  });
-  // Prepared text is rendered before the async workspace modules finish. Hold
-  // one module to prove that this intermediate state is still non-interactive.
-  let releaseWorkspace;
-  const workspaceModule = new Promise((resolve) => {
-    releaseWorkspace = resolve;
-  });
-  const moduleRoute = '**/planner-native-governance.mjs';
-  await page.route(moduleRoute, async (route) => {
-    await workspaceModule;
-    await route.continue();
-  });
-  await page.locator('#claim-rewards').press('Enter');
-  await page.waitForURL((url) => url.hash === '#governance');
+  assert.equal(await page.locator('#claim-rewards').isDisabled(), true);
+  assert.match(await page.locator('#claim-rewards-help').innerText(), /paused after proposal #381/);
+  const legacy = legacyClaimDraft(sample);
+  const openDraft = async (draft, id) => {
+    const url = await page.evaluate(
+      async ({ draft, id }) => {
+        const { savePlannerProposal } = await import('/planner-proposal-draft.mjs');
+        return savePlannerProposal(localStorage, draft, id);
+      },
+      { draft, id }
+    );
+    await page.goto(origin + url);
+    await page.waitForFunction(() => !!document.querySelector('#gov-connect').onclick);
+  };
+  await openDraft(legacy, '11111111-1111-4111-8111-111111111111');
   await page.waitForFunction(() =>
-    document.getElementById('proposal-title').value.includes('claim staking rewards')
+    document.querySelector('#action-hint').textContent.includes('paused after proposal #381')
   );
-  assert.equal(await page.locator('#proposal-title').isDisabled(), true);
+
   assert.equal(await page.locator('#primary-action').isDisabled(), true);
-  releaseWorkspace();
-  await page.waitForFunction(() => !document.getElementById('proposal-title').disabled);
-  await page.unroute(moduleRoute);
-  assert.equal(await page.locator('#governance-view').isVisible(), true);
-  assert.match(
-    await page.locator('#proposal-summary').inputValue(),
-    /claims the accrued staking rewards/
-  );
-  assert.doesNotMatch(await page.locator('#proposal-body').inputValue(), /USD|snapshot|Estimated/);
-  assert.equal(await page.locator('#subdao-select').inputValue(), 'juno-delegation');
-  const govMessages = JSON.parse(await page.locator('#proposal-actions').inputValue());
-  assert.equal(govMessages.length, 1);
-  assert.equal(govMessages[0]['@type'], '/cosmwasm.wasm.v1.MsgExecuteContract');
-  assert.equal(govMessages[0].msg.execute_admin_msgs.msgs.length, 25);
+  assert.match(await page.locator('#action-hint').innerText(), /paused after proposal #381/);
+  assert.equal(await page.locator('#proposal-title').inputValue(), legacy.values.title);
   assert.deepEqual(
-    govMessages[0].msg.execute_admin_msgs.msgs.map(
-      (v) => v.distribution.withdraw_delegator_reward.validator
-    ),
-    sample.validators.map((v) => v.address).sort(),
-    'Prepared reward validators must match the programme snapshot'
+    JSON.parse(await page.locator('#proposal-actions').inputValue()),
+    JSON.parse(legacy.values.actions_json)
   );
-  assert.match(
-    await page.locator('#planner-proposal-context-text').innerText(),
-    /Juno native governance/
+  // Submission/funding/journal coverage uses a text-only rule decision. A mocked
+  // successful submission is never evidence that a programme claim can execute.
+  const p = defaultPolicy();
+  const rule = ruleProposal({
+    proposalType: 'RULE_APPROVAL',
+    approval: null,
+    rule: p,
+    snapshot: sample,
+    simulation: simulateRule(p, sample, amount('3000'), observed(sample)),
+    policyHash: await fingerprint(p),
+    snapshotHash: 'b'.repeat(64),
+    evidenceHash: 'c'.repeat(64)
+  });
+  await openDraft(rule, '22222222-2222-4222-8222-222222222222');
+  await page.waitForFunction(
+    () => document.querySelector('#primary-action').textContent === 'PUBLISH FOR REVIEW'
   );
-  assert.match(
-    await page.locator('#planner-proposal-context a').getAttribute('href'),
-    /#overview$/
-  );
-  await exerciseReviewFunding(page, origin, sample, govMessages);
+  assert.deepEqual(JSON.parse(await page.locator('#proposal-actions').inputValue()), []);
+  await exerciseReviewFunding(page, origin, sample);
   await page.locator('#new-draft').click();
   assert.equal(
     await page.locator('#proposal-title').inputValue(),
@@ -702,6 +687,18 @@ try {
     );
     if (shots) await page.screenshot({ path: `${shots}/rule-voter-${width}.png`, fullPage: true });
   }
+  publishedRule.status = 'PROPOSAL_STATUS_FAILED';
+  publishedRule.failed_reason = 'Contract rejected <img src=x onerror=alert(1)> distribution';
+  await page.reload();
+  await page.locator('#native-execution-failure').waitFor({ state: 'visible' });
+  assert.match(
+    await page.locator('#native-execution-failure').innerText(),
+    /Contract rejected <img/
+  );
+  assert.equal(await page.locator('#native-execution-failure img').count(), 0);
+  assert.equal(await page.locator('#proposal-badge').innerText(), 'EXECUTION FAILED');
+  publishedRule.status = 'PROPOSAL_STATUS_VOTING_PERIOD';
+  delete publishedRule.failed_reason;
   publishedRule.summary = publishedRule.summary.replace(
     /Review SHA-256: [a-f0-9]{64}/,
     'Review SHA-256: ' + '0'.repeat(64)

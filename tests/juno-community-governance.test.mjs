@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { claimProposal } from '../planner-proposal-draft.mjs';
+import { legacyClaimDraft as claimProposal } from './fixtures/legacy-claim.mjs';
 import { fixture } from './fixtures/delegation-planner.mjs';
 import {
   finalizedReview,
@@ -161,6 +161,8 @@ test('funding proof rejects mismatched proposal identity, stale chain, incomplet
     await assert.rejects(fundingProof(sources, '900', 'wallet', { fetcher }));
   failure = '';
   await assert.rejects(fundingProof([sources[0], sources[0] + '/'], '900', null, { fetcher }));
+  p.messages = JSON.parse(claimProposal(fixture()).values.actions_json);
+  await assert.rejects(fundingProof(sources, '900', 'wallet', { fetcher }), /paused after proposal #381/);
 });
 test('review recheck binds a final revision from two UNI-7 sources and paginated mainnet duplicate detection', async () => {
   const { proposal, revision } = reviewed(),
@@ -214,12 +216,13 @@ test('review recheck binds a final revision from two UNI-7 sources and paginated
 });
 
 test('same numbered reviews on different chains retain separate submission identities and metadata', async () => {
-  const {proposal,revision}=reviewed();
-  const old=await finalizedReview(proposal,revision), main=await finalizedReview(proposal,revision,'juno-1');
-  assert.equal(old.id,`review-${proposal.id}-${proposal.finalized_hash}`);
-  assert.notEqual(old.id,main.id);
-  assert.notEqual(old.content.metadata,main.content.metadata);
-  assert.equal(main.chainId,'juno-1');
-  assert.match(main.content.metadata,/cosmoot:review:juno-1:/);
-  assert.equal(matchesReview({...main.content},old.content),false);
+  const { proposal, revision } = reviewed();
+  const old = await finalizedReview(proposal, revision),
+    main = await finalizedReview(proposal, revision, 'juno-1');
+  assert.equal(old.id, `review-${proposal.id}-${proposal.finalized_hash}`);
+  assert.notEqual(old.id, main.id);
+  assert.notEqual(old.content.metadata, main.content.metadata);
+  assert.equal(main.chainId, 'juno-1');
+  assert.match(main.content.metadata, /cosmoot:review:juno-1:/);
+  assert.equal(matchesReview({ ...main.content }, old.content), false);
 });

@@ -1,3 +1,4 @@
+import { legacyClaimDraft as claimProposal } from './fixtures/legacy-claim.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -13,11 +14,7 @@ import {
 } from '../juno-governance-core.mjs';
 import { PROGRAMME } from '../juno-delegation-core.mjs';
 import { fixture } from './fixtures/delegation-planner.mjs';
-import {
-  claimProposal,
-  readPlannerProposal,
-  PLANNER_DRAFT_PREFIX
-} from '../planner-proposal-draft.mjs';
+import { readPlannerProposal, PLANNER_DRAFT_PREFIX } from '../planner-proposal-draft.mjs';
 const validators = fixture()
   .validators.map((v) => v.address)
   .sort();
@@ -104,7 +101,7 @@ test('legacy handoff is upgraded without changing its original stored content', 
   assert.deepEqual(JSON.parse(restored.values.actions_json), messages);
   assert.equal(draft.schema, 1);
 });
-test('preflight pins all evidence to a fresh mainnet height and reads every delegation page', async () => {
+test('rule preflight pins deposit evidence to a fresh mainnet height and requires independent agreement', async () => {
   const data = evidence(),
     seen = [],
     now = Date.now();
@@ -132,25 +129,24 @@ test('preflight pins all evidence to a fresh mainnet height and reads every dele
     return new Response(JSON.stringify(body), { headers: { 'x-cosmos-block-height': '424242' } });
   };
   const nodes = ['https://one.example', 'https://two.example'];
-  const result = await preflight(nodes, { messages }, GOVERNANCE, {
+  const result = await preflight(nodes, { messages: [] }, GOVERNANCE, {
     fetcher,
     now
   });
   assert.equal(result.height, '424242');
-  assert.equal(seen.length, 20);
+  assert.equal(seen.length, 6);
   assert.ok(
     seen
       .filter((row) => !row.url.endsWith('/latest'))
       .every((row) => row.options.headers['x-cosmos-block-height'] === '424242')
   );
-  assert.ok(seen.at(-1).url.includes('pagination.key=a%2B%2F%3D'));
   assert.equal(result.sources.length, 2);
   await assert.rejects(
-    preflight([nodes[0], nodes[0] + '/'], { messages }, GOVERNANCE, { fetcher, now }),
+    preflight([nodes[0], nodes[0] + '/'], { messages: [] }, GOVERNANCE, { fetcher, now }),
     /Two independent/
   );
   await assert.rejects(
-    preflight(nodes, { messages }, GOVERNANCE, {
+    preflight(nodes, { messages: [] }, GOVERNANCE, {
       now,
       fetcher: async (url, options) => {
         const response = await fetcher(url, options);
@@ -164,11 +160,9 @@ test('preflight pins all evidence to a fresh mainnet height and reads every dele
     /disagree/
   );
   await assert.rejects(
-    preflight(nodes, { messages }, GOVERNANCE, { fetcher, now: now + 120001 }),
+    preflight(nodes, { messages: [] }, GOVERNANCE, { fetcher, now: now + 120001 }),
     /Fresh Juno/
   );
-  data.withdraw.withdraw_address = GOVERNANCE;
-  await assert.rejects(preflight(nodes, { messages }, GOVERNANCE, { fetcher, now }), /destination/);
 });
 test('unknown submissions need two matching inclusion receipts; status lookup never submits', async () => {
   const hash = 'A'.repeat(64),

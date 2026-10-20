@@ -1,3 +1,4 @@
+import { legacyClaimDraft } from './fixtures/legacy-claim.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -14,27 +15,8 @@ const memory = () => {
   const data = new Map();
   return { getItem: (key) => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) };
 };
-test('claims include all positions, including jailed/standby, with no transfers or delegation', () => {
-  const s = fixture();
-  s.validators[0].active = false;
-  s.activeCount--;
-  s.validators[1].jailed = true;
-  const d = claimProposal(s),
-    actions = JSON.parse(d.values.actions_json);
-  assert.equal(actions.length, 1);
-  assert.equal(actions[0]['@type'], EXECUTE);
-  assert.equal(actions[0].sender, GOVERNANCE);
-  assert.equal(d.governanceDaoId, 'juno');
-  assert.deepEqual(new Set(claimValidators(actions)), new Set(s.validators.map((v) => v.address)));
-  assert.match(d.values.body, /Existing delegations remain unchanged/);
-  assert.ok(d.values.body.split(/\s+/).length < 65);
-  assert.doesNotMatch(d.values.body, /snapshot|execute_admin_msgs|reserve|wallet|deposit/i);
-  s.blockTime = new Date(Date.now() - 3600001).toISOString();
-  assert.throws(() => claimProposal(s), /Refresh/);
-  s.blockTime = new Date(Date.now() + 600000).toISOString();
-  assert.throws(() => claimProposal(s), /Refresh/);
-  s.chainId = 'uni-7';
-  assert.throws(() => claimProposal(s));
+test('new rewards drafts are blocked after the incompatible programme execution', () => {
+  assert.throws(() => claimProposal(fixture()), /paused after proposal #381/);
 });
 test('rule proposal is a separate non-executable decision', () => {
   const s = fixture(),
@@ -60,7 +42,7 @@ test('unique proposal drafts preserve previous drafts and reject mismatched or c
   const storage = memory(),
     id = '11111111-1111-4111-8111-111111111111';
   storage.setItem('neta-governance-local-draft:juno-delegation', 'original');
-  const draft = claimProposal(fixture()),
+  const draft = legacyClaimDraft(fixture()),
     url = new URL(savePlannerProposal(storage, draft, id), 'https://example.org');
   assert.equal(url.hash, '#governance');
   assert.equal(url.searchParams.get('subdao'), 'juno-delegation');
@@ -92,14 +74,14 @@ test('unique proposal drafts preserve previous drafts and reject mismatched or c
     /could not save/
   );
 });
-test('native claims retain the long DAO validator addresses rejected by the former 20-byte-only check', () => {
+test('historical claims retain the long DAO validator addresses rejected by the former 20-byte-only check', () => {
   const source = fixture();
   const long = [
     'junovaloper185hgkqs8q8ysnc8cvkgd8j2knnq2m0ah6ae73gntv9ampgwpmrxqlfzywn',
     'junovaloper1pvuxgpct3n8pk4dk2vsvuz2y9tav62ug2c8n093dhzh5qqqe3w3qzgq2d7'
   ];
   long.forEach((v, i) => (source.validators[i].address = v));
-  const messages = JSON.parse(claimProposal(source).values.actions_json);
+  const messages = JSON.parse(legacyClaimDraft(source).values.actions_json);
   for (const address of long) assert.ok(claimValidators(messages).includes(address));
   for (const bad of [
     long[0] + 'q',

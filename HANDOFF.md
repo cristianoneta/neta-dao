@@ -6,6 +6,24 @@ boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
 
+## Proposal 381 execution incident — 20 October 2026 containment candidate
+
+Juno proposal 381 passed its vote but failed at contract deserialization. Cosmoot
+emitted DistributionMsg actions that the deployed DAO DAO Core 2.4.0 / code 4047
+does not support. The original binary and original payload reproduce the exact
+failure before any host call. Submission simulations and mocked browser responses
+had not tested the later contract execution. The 5,000 JUNO deposit refund is
+confirmed in execution block 42894587; none of the 37 withdrawals executed.
+
+The candidate pauses new programme claims and blocks publication, finalization,
+native submission and additional funding of programme execution payloads. Historical
+reviews and receipt recovery remain available. The native proposal view now shows
+the chain-reported failure reason. Replacement execution is not enabled. See
+[the incident evidence and remaining verification requirements](docs/INCIDENT_381_2026-10-20.md).
+CI, integration and manual website publication are still required. Nothing in
+this checkpoint claims the production claim control has already been disabled.
+
+
 ## Complete rule reviews within the proposal limit — 19 October 2026 candidate
 
 A real programme snapshot exceeded the proposal text limit even without rationale

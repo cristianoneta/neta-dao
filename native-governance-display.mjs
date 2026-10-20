@@ -21,6 +21,13 @@ export const nativeStatus = (value) => ({
   PROPOSAL_STATUS_FAILED: 'execution_failed'
 })[value] || 'closed';
 
+export function nativeExecutionFailure(proposal) {
+  if (proposal?.status !== 'PROPOSAL_STATUS_FAILED') return '';
+  return 'Execution failed. Chain-reported reason: ' +
+    (typeof proposal.failed_reason === 'string' && proposal.failed_reason.trim()
+      ? proposal.failed_reason : 'Unavailable.');
+}
+
 export function nativeTally(raw) {
   if (!raw) throw Error('Voting results unavailable.');
   return Object.fromEntries([

@@ -1,5 +1,14 @@
 # NETA DAO design system
 
+## Programme claim pause — 20 October 2026 candidate
+
+Show a disabled rewards-claim control and the concrete proposal-381 reason beside
+it. Keep balances and historical evidence visible. Saved claim reviews retain their
+content and withdrawal/receipt-recovery options, while new publication and submission
+are blocked. Display native execution failures with the chain-provided reason as
+plain text, without interpreting it as HTML or inventing a reason when unavailable.
+
+
 ## Complete rule proposal text — 19 October 2026 correction candidate
 
 Keep the full readable changes, rationale and validator comparison in the shared

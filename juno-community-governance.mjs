@@ -1,7 +1,12 @@
 import { reviewNetwork } from './juno-review-network.mjs';
 import { verifyMainnetReview } from './juno-review-mainnet-read.mjs';
 import { governanceFetch } from './governance-chain-read.mjs';
-import { claimValidators, depositTerms, proposalContent } from './juno-governance-core.mjs';
+import {
+  claimValidators,
+  depositTerms,
+  proposalContent,
+  assertProgrammeExecutionAvailable
+} from './juno-governance-core.mjs';
 import { readProposalReview } from './juno-delegation-review.mjs';
 
 export const REVIEW_CONTRACT = 'juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw';
@@ -91,7 +96,8 @@ export async function reader(
     });
     if (!response.ok) throw Error(`Chain query failed (HTTP ${response.status}).`);
     const returned = response.headers.get('x-cosmos-block-height');
-    if (height && ((requireHeight && !returned) || (returned && returned !== height))) throw Error('Chain query height mismatch.');
+    if (height && ((requireHeight && !returned) || (returned && returned !== height)))
+      throw Error('Chain query height mismatch.');
     return response.json();
   };
   const data = await get('/cosmos/base/tendermint/v1beta1/blocks/latest');
@@ -309,6 +315,7 @@ export async function fundingProof(endpoints, id, sender = null, options = {}) {
       ]);
       if (String(record.proposal?.id) !== String(id)) throw Error('Proposal identity mismatch.');
       const terms = fundingTerms(record.proposal, parameters.params, options.now ?? Date.now());
+      if (terms.open) assertProgrammeExecutionAvailable(record.proposal.messages);
       if (sender && (balance?.balance?.denom !== 'ujuno' || !/^\d+$/.test(balance.balance.amount)))
         throw Error('Spendable JUNO balance unavailable.');
       return {

@@ -9,9 +9,9 @@ import { message, submit, depositMessage, contribute } from '../src/juno-governa
 import { GOVERNANCE, SUBMIT, rewardMessages } from '../../juno-governance-core.mjs';
 const sender = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
 const content = {
-  title: 'Claim rewards',
+  title: 'Rule approval',
   summary: 'Reviewed full proposal',
-  messages: rewardMessages(['junovaloper1' + 'q'.repeat(38)])
+  messages: []
 };
 const fee = { gas: '100000', amount: [{ denom: 'ujuno', amount: '7500' }] };
 function harness(mode = '') {
@@ -82,15 +82,13 @@ function harness(mode = '') {
     guards: () => guards
   };
 }
-test('native submit proposer differs from governance execution authority and preserves the nested claim', () => {
+test('signer refuses the incompatible programme claim before simulation or signing', () => {
+  const blocked = { ...content, messages: rewardMessages(['junovaloper1' + 'q'.repeat(38)]) };
+  assert.throws(() => message(blocked, sender, '100000000'), /paused after proposal #381/);
   const msg = message(content, sender, '100000000');
-  const proposal = MsgSubmitProposal.decode(MsgSubmitProposal.encode(msg.value).finish());
-  assert.equal(proposal.proposer, sender);
-  assert.equal(proposal.expedited, false);
-  const execution = MsgExecuteContract.decode(proposal.messages[0].value);
-  assert.equal(execution.sender, GOVERNANCE);
-  assert.equal(execution.funds.length, 0);
-  assert.deepEqual(JSON.parse(new TextDecoder().decode(execution.msg)), content.messages[0].msg);
+  const decoded = MsgSubmitProposal.decode(MsgSubmitProposal.encode(msg.value).finish());
+  assert.equal(decoded.proposer, sender);
+  assert.equal(decoded.messages.length, 0);
 });
 test('reviewed native proposal signs once, checkpoints the attempt and uses the origin journal', async () => {
   const h = harness();

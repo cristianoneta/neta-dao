@@ -7,6 +7,8 @@ import {
 import {
   preflight,
   proposalContent,
+  CLAIM_REWARDS_BLOCK_REASON,
+  assertProgrammeExecutionAvailable,
   displayJuno,
   submissionReceipt
 } from './juno-governance-core.mjs';
@@ -74,6 +76,7 @@ export function nativePlanner({
   }
   async function loadTerms(force = false) {
     if (!active() || receipt()) return;
+    if (draft()?.kind === 'CLAIM_REWARDS') return;
     const id = draft().id;
     if (!force && termsState?.id === id) return;
     const request = { id, loading: true };
@@ -116,6 +119,13 @@ export function nativePlanner({
             ? `Transaction failed (code ${previous.code}). Review the failure before preparing a new draft.`
             : 'A submission is already recorded. Check its status without signing again.'
       }${previous.hash ? ' · TX ' + previous.hash : ''}`;
+      return;
+    }
+    if (draft()?.kind === 'CLAIM_REWARDS') {
+      $('#planner-native-inputs').hidden = true;
+      $('#planner-native-refresh').hidden = true;
+      $('#planner-native-terms').textContent = CLAIM_REWARDS_BLOCK_REASON;
+      $('#planner-native-terms').dataset.state = 'error';
       return;
     }
     if (termsState?.id !== draft().id) {
@@ -211,6 +221,7 @@ export function nativePlanner({
           ...proposalContent(draft().kind, values()),
           metadata: expectedReview.content.metadata
         };
+      assertProgrammeExecutionAvailable(content.messages);
       if (canonical(content) !== canonical(expectedReview.content))
         throw Error('The proposal differs from the finalized review.');
       await wallet(sender);
