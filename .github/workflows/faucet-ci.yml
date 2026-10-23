@@ -8,7 +8,7 @@ permissions:
 jobs:
   faucet:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -26,6 +26,13 @@ jobs:
       - run: npm test --prefix faucet
       - run: node --test tests/juno-faucet.test.mjs
       - run: npm ci --prefix spikes/relay-corecrypto
+      - name: Use Ubuntu HTTPS mirror for browser dependencies
+        run: |
+          for mirror in /etc/apt/apt-mirrors*.txt; do
+            if [ -f "$mirror" ]; then
+              sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' "$mirror"
+            fi
+          done
       - run: cd spikes/relay-corecrypto && npx playwright install --with-deps chromium
       - run: node spikes/relay-corecrypto/browser-faucet.mjs
       - run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/community-tools-screenshots" node spikes/relay-corecrypto/browser-community-tools.mjs
