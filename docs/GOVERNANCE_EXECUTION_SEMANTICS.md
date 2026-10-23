@@ -95,6 +95,28 @@ from subsequent claims on complete, agreed native claim history, not a transient
 browser flag or merely opening/discarding a draft. Freeze the explanation in the
 reviewed proposal body. Never rewrite the immutable content of proposal 381.
 
+## Community Pool conversion proposal
+
+The one-off DAI template uses a native MsgCommunityPoolSpend inside
+MsgSubmitProposal. Governance is the spend authority; the proposal submitter
+only supplies the deposit. No DAO DAO contract, admin hook or programme delegation
+is involved. The IBC asset is `transfer/channel-71/dai-wei`, with 18 decimals;
+460.9 axlDAI is the integer amount `460900000000000000000`.
+
+The template is limited to the exact reviewed denomination, amount and recipient
+from proposal 382. URL parameters cannot provide transaction fields. Opening its
+link does not connect a wallet or write to the chain. It preserves other drafts,
+then uses the existing review, finalization and native submission flow. It has no
+permanent site button. Publication and signing recheck the current pool balance,
+governance authority and exact IBC trace through independent fresh chain sources.
+
+The required execution regression seeds synthetic Community Pool DAI, passes a
+native vote, checks the exact recipient credit and pool debit, and checks unchanged
+programme delegations. Repeating the spend without funds must fail at execution
+without crediting the recipient. This verifies the native handler only: the later
+bridge, USDC swap on Injective and return to the pool are manual operations by the
+recipient. They are neither executed nor guaranteed by this governance message.
+
 ## Primary references
 
 - https://docs.daodao.zone/dao-management/subdaos/what

@@ -1,3 +1,9 @@
+import { MsgCommunityPoolSpend } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
+import {
+  COMMUNITY_POOL_SPEND,
+  isCommunityPoolSpend,
+  assertCommunityPoolSpend
+} from '../../juno-community-pool-proposal.mjs';
 import { sha256 } from '@cosmjs/crypto';
 import { toHex } from '@cosmjs/encoding';
 import { Registry } from '@cosmjs/proto-signing';
@@ -19,7 +25,9 @@ export { fixedFee } from './wynd-swap-fee.mjs';
 
 export function message(content, sender, deposit) {
   assertProgrammeExecutionAvailable(content.messages);
-  if (content.messages.length) claimValidators(content.messages);
+  const community = isCommunityPoolSpend(content.messages);
+  if (community) assertCommunityPoolSpend(content.messages);
+  else if (content.messages.length) claimValidators(content.messages);
   if (!/^[1-9]\d*$/.test(deposit)) throw Error('Invalid proposal deposit.');
   return {
     typeUrl: SUBMIT,
@@ -30,17 +38,30 @@ export function message(content, sender, deposit) {
       expedited: false,
       proposer: sender,
       initialDeposit: [{ denom: 'ujuno', amount: deposit }],
-      messages: content.messages.map((m) => ({
-        typeUrl: EXECUTE,
-        value: MsgExecuteContract.encode(
-          MsgExecuteContract.fromPartial({
-            sender: m.sender,
-            contract: m.contract,
-            funds: [],
-            msg: new TextEncoder().encode(JSON.stringify(m.msg))
-          })
-        ).finish()
-      }))
+      messages: content.messages.map((m) =>
+        community
+          ? {
+              typeUrl: COMMUNITY_POOL_SPEND,
+              value: MsgCommunityPoolSpend.encode(
+                MsgCommunityPoolSpend.fromPartial({
+                  authority: m.authority,
+                  recipient: m.recipient,
+                  amount: m.amount
+                })
+              ).finish()
+            }
+          : {
+              typeUrl: EXECUTE,
+              value: MsgExecuteContract.encode(
+                MsgExecuteContract.fromPartial({
+                  sender: m.sender,
+                  contract: m.contract,
+                  funds: [],
+                  msg: new TextEncoder().encode(JSON.stringify(m.msg))
+                })
+              ).finish()
+            }
+      )
     })
   };
 }

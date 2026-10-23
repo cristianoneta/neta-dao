@@ -1,3 +1,11 @@
+import {
+  COMMUNITY_POOL_KIND,
+  isCommunityPoolSpend,
+  assertCommunityPoolSpend,
+  verifyCommunityPoolState,
+  COMMUNITY_POOL_PATH,
+  DAI_DENOM_PATH
+} from './juno-community-pool-proposal.mjs';
 import { reviewNetwork } from './juno-review-network.mjs';
 import { verifyMainnetReview } from './juno-review-mainnet-read.mjs';
 import { governanceFetch } from './governance-chain-read.mjs';
@@ -27,6 +35,10 @@ const endpointsOf = (endpoints) => [
 ];
 export function reviewKind(values) {
   const messages = JSON.parse(values.actions_json);
+  if (isCommunityPoolSpend(messages)) {
+    assertCommunityPoolSpend(messages);
+    return COMMUNITY_POOL_KIND;
+  }
   if (messages.length) {
     claimValidators(messages);
     return 'CLAIM_REWARDS';
@@ -336,4 +348,22 @@ export async function fundingProof(endpoints, id, sender = null, options = {}) {
       proofs[0].balance
     )
   };
+}
+
+export async function readCommunityPool(endpoints, messages, options = {}) {
+  assertCommunityPoolSpend(messages);
+  return quorum(
+    endpoints,
+    async (endpoint) => {
+      const source = await reader(endpoint, 'juno-1', { ...options, requireHeight: true });
+      const [account, pool, denom] = await Promise.all([
+        source.get('/cosmos/auth/v1beta1/module_accounts/gov'),
+        source.get(COMMUNITY_POOL_PATH),
+        source.get(DAI_DENOM_PATH)
+      ]);
+      return verifyCommunityPoolState({ account, pool, denom }, messages);
+    },
+    (value) => value,
+    'Community Pool balance verification'
+  );
 }

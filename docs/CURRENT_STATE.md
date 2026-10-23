@@ -3,6 +3,23 @@
 Updated 23 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
+## One-off DAI proposal link — 23 October 2026 candidate
+
+The DAI conversion draft opens from a direct link shared with the owner; there is
+no permanent preparation button or navigation entry. Opening the link only saves
+an isolated local draft and fills the existing Juno Community Pool composer.
+Existing drafts remain intact. The prepared action sends exactly 460.9 axlDAI to
+the recipient of native proposal 382. Amount, denomination, authority and recipient
+are checked before review publication and native submission. Fresh independent
+chain reads verify the pool funds and IBC trace; missing evidence blocks writes.
+
+The native action is MsgCommunityPoolSpend, with independent protobuf validation
+and a real Juno v31 governance execution regression. Dimi's conversion into USDC
+on Injective and return to the pool are separate manual steps. Review finalization,
+JUNO deposit, wallet confirmation and pending-transaction recovery remain in place.
+This candidate is not published. PR checks and the owner's manual Cloudflare
+release remain required; no mainnet transaction or swap was performed.
+
 ## Programme claims repaired — 23 October 2026 release candidate
 
 The source now generates DAO DAO-compatible Stargate withdrawals with the

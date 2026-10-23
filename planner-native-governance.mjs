@@ -1,8 +1,10 @@
+import { isCommunityPoolSpend } from './juno-community-pool-proposal.mjs';
 import {
   verifyReview,
   findReviewSubmission,
   submissionTerms,
-  canonical
+  canonical,
+  readCommunityPool
 } from './juno-community-governance.mjs';
 import {
   preflight,
@@ -118,7 +120,7 @@ export function nativePlanner({
     if (previous) {
       $('#planner-native-terms').textContent = `${
         previous.state === 'included'
-          ? 'Proposal submission confirmed. This does not mean the proposal passed or rewards were claimed.'
+          ? 'Proposal submission confirmed. This does not mean the proposal passed or its actions executed.'
           : previous.state === 'failed'
             ? `Transaction failed (code ${previous.code}). Review the failure before preparing a new draft.`
             : 'A submission is already recorded. Check its status without signing again.'
@@ -233,7 +235,7 @@ export function nativePlanner({
       await wallet(sender);
       {
         localStorage.setItem(`cosmoot:juno:planner-proposal:${draft().id}:revision`, fingerprint);
-        status('CHECKING JUNO GOVERNANCE, DEPOSIT AND PROGRAMME AUTHORITY…');
+        status('CHECKING JUNO GOVERNANCE, DEPOSIT AND PROPOSED ACTIONS…');
         await verifyReview(reviewEndpoints(), expectedReview);
         const existing = await findReviewSubmission(rests, content);
         current(epoch, fingerprint, sender, id);
@@ -242,7 +244,8 @@ export function nativePlanner({
           return;
         }
         const proof = await preflight(rests, content, sender);
-        if (content.messages.length) assertClaimContext(content, await readClaimContext(rests));
+        if (content.messages.length && !isCommunityPoolSpend(content.messages))
+          assertClaimContext(content, await readClaimContext(rests));
         current(epoch, fingerprint, sender, id);
         if (canonical(proof.terms) !== canonical(displayed.terms)) {
           termsState = { id, terms: proof.terms, checkedAt: proof.checkedAt };
@@ -269,9 +272,11 @@ export function nativePlanner({
         $('#planner-native-review-text').textContent =
           `Juno mainnet · ${sender}\nInitial deposit: ${displayJuno(deposit)} JUNO · Estimated fee: ${displayJuno(fee.amount[0].amount)} JUNO\n` +
           `Total deposit needed for voting: ${displayJuno(proof.terms.total)} JUNO · Verified at block ${proof.height}.\n` +
-          (content.messages.length
-            ? 'Juno governance instructs the programme treasury to claim its staking rewards after approval.'
-            : 'Text-only rule approval. No delegation or treasury execution is authorized.') +
+          (isCommunityPoolSpend(content.messages)
+            ? 'After approval, Juno governance transfers 460.9 axlDAI from the Community Pool to the recipient in proposal #382. Dimi performs the USDC conversion and return separately.'
+            : content.messages.length
+              ? 'Juno governance instructs the programme treasury to claim its staking rewards after approval.'
+              : 'Text-only rule approval. No delegation or treasury execution is authorized.') +
           '\nThe deposit is subject to Juno’s refund and burn rules. If the total deposit is not reached in time, the proposal will not enter voting. The fee is paid when submitting.';
         $('#planner-native-review').hidden = false;
         status('PROPOSAL CHECKED · CONFIRM THE DEPOSIT AND FEE IN KEPLR');
@@ -283,7 +288,9 @@ export function nativePlanner({
           current(review.epoch, review.fingerprint, review.sender, review.id);
           if (receipt()) throw Error('A submission is already recorded for this draft.');
           await verifyReview(reviewEndpoints(), review.expectedReview);
-          if (review.content.messages.length)
+          if (isCommunityPoolSpend(review.content.messages))
+            await readCommunityPool(rests, review.content.messages);
+          else if (review.content.messages.length)
             assertClaimContext(review.content, await readClaimContext(rests));
           if ((await findReviewSubmission(rests, review.content)).length)
             throw Error(

@@ -1,3 +1,11 @@
+import {
+  COMMUNITY_POOL_KIND,
+  isCommunityPoolSpend,
+  assertCommunityPoolSpend,
+  verifyCommunityPoolState,
+  COMMUNITY_POOL_PATH,
+  DAI_DENOM_PATH
+} from './juno-community-pool-proposal.mjs';
 import { governanceFetch } from './governance-chain-read.mjs';
 import { PROGRAMME, operator } from './juno-delegation-core.mjs';
 
@@ -67,18 +75,16 @@ function rewardEnvelope(validators, legacy) {
       funds: [],
       msg: {
         execute_admin_msgs: {
-          msgs: [...validators]
-            .sort()
-            .map((validator) =>
-              legacy
-                ? { distribution: { withdraw_delegator_reward: { validator } } }
-                : {
-                    stargate: {
-                      type_url: WITHDRAW_REWARD,
-                      value: encodeRewardWithdrawal(validator)
-                    }
+          msgs: [...validators].sort().map((validator) =>
+            legacy
+              ? { distribution: { withdraw_delegator_reward: { validator } } }
+              : {
+                  stargate: {
+                    type_url: WITHDRAW_REWARD,
+                    value: encodeRewardWithdrawal(validator)
                   }
-            )
+                }
+          )
         }
       }
     }
@@ -119,7 +125,8 @@ export function proposalContent(kind, values) {
   if (new TextEncoder().encode(summary).length > 10000)
     throw Error('On-chain proposal text exceeds 10,000 bytes.');
   const messages = JSON.parse(values.actions_json);
-  if (kind === 'CLAIM_REWARDS') claimValidators(messages);
+  if (kind === COMMUNITY_POOL_KIND) assertCommunityPoolSpend(messages);
+  else if (kind === 'CLAIM_REWARDS') claimValidators(messages);
   else if (kind !== 'RULE_APPROVAL' || !same(messages, []))
     throw Error('Rule approval must contain no execution messages.');
   return { title: values.title.trim(), summary, messages, metadata: '', expedited: false };
@@ -211,7 +218,11 @@ async function preflightSource(
         });
         if (!response.ok) throw Error(`Juno preflight query failed (${response.status}).`);
         const returned = response.headers.get('x-cosmos-block-height');
-        if (height && returned && returned !== height)
+        if (
+          height &&
+          ((isCommunityPoolSpend(content.messages) && !returned) ||
+            (returned && returned !== height))
+        )
           throw Error('Juno preflight height mismatch.');
         return response.json();
       };
@@ -236,7 +247,14 @@ async function preflightSource(
       const terms = depositTerms(parameters.params);
       if (balance.balance?.denom !== 'ujuno' || !/^\d+$/.test(balance.balance?.amount))
         throw Error('Spendable JUNO balance unavailable.');
-      if (content.messages.length) {
+      if (isCommunityPoolSpend(content.messages)) {
+        const [account, pool, denom] = await Promise.all([
+          get('/cosmos/auth/v1beta1/module_accounts/gov'),
+          get(COMMUNITY_POOL_PATH),
+          get(DAI_DENOM_PATH)
+        ]);
+        verifyCommunityPoolState({ account, pool, denom }, content.messages);
+      } else if (content.messages.length) {
         const [account, info, code, admin, paused, withdraw] = await Promise.all([
           get('/cosmos/auth/v1beta1/module_accounts/gov'),
           get(`/cosmwasm/wasm/v1/contract/${PROGRAMME}`),

@@ -1,7 +1,7 @@
 (async () => {
   // Capture the incoming handoff before any asynchronous initialization.
   const plannerParams = new URLSearchParams(location.search);
-  if (plannerParams.has('plannerDraft')) {
+  if (plannerParams.has('plannerDraft') || plannerParams.has('proposalTemplate')) {
     document.querySelector('#planner-proposal-context').hidden = false;
     document.querySelector('#planner-proposal-context-text').textContent =
       'Loading your Juno governance draft…';
@@ -9,6 +9,13 @@
     for (const id of ['proposal-title', 'proposal-summary', 'proposal-body', 'proposal-actions'])
       document.getElementById(id).disabled = true;
   }
+  const {
+    COMMUNITY_POOL_TEMPLATE,
+    COMMUNITY_POOL_KIND,
+    communityPoolProposal,
+    isCommunityPoolSpend,
+    assertCommunityPoolSpend
+  } = await import('./juno-community-pool-proposal.mjs');
   const { normalizedComment } = await import('./src/governance/comments.mjs');
   const { unitsFor, resolveSelection, selectionParams } = await import(
     './dao-hierarchy.mjs?v=20261006-structure-1'
@@ -38,6 +45,21 @@
   const { renderRuleReview } = await import('./juno-rule-review-view.mjs');
   let frozenViewEpoch = 0;
   async function renderFrozenValues(v, editing = false) {
+    const transfer = document.querySelector('#community-pool-transfer');
+    transfer.hidden = true;
+    try {
+      const messages = JSON.parse(v.actions_json || '[]');
+      if (isCommunityPoolSpend(messages)) {
+        transfer.hidden = false;
+        assertCommunityPoolSpend(messages);
+        transfer.textContent =
+          'Transfer after approval: 460.9 axlDAI from the Juno Community Pool to Dimi · ' +
+          messages[0].recipient +
+          '. Conversion to USDC and return to the Community Pool are performed separately by Dimi.';
+      }
+    } catch (error) {
+      transfer.textContent = error.message;
+    }
     const epoch = ++frozenViewEpoch,
       host = document.querySelector('#proposal-rule-review');
     host.replaceChildren();
@@ -63,7 +85,10 @@
     const messages = JSON.parse(values.actions_json);
     assertProgrammeExecutionAvailable(messages);
     const context = reviewContext();
-    if (messages.length) {
+    if (isCommunityPoolSpend(messages)) {
+      const { readCommunityPool } = await import('./juno-community-governance.mjs');
+      await readCommunityPool(MAINNET_RESTS, messages);
+    } else if (messages.length) {
       const { readClaimContext, assertClaimContext } = await import('./claim-numbering.mjs');
       assertClaimContext(
         { title: values.title, summary: values.summary + '\n\n' + values.body, messages },
@@ -141,6 +166,28 @@
   let plannerDraft = null,
     plannerDraftError = null,
     PLANNER_DRAFT_PREFIX = null;
+  if (plannerParams.has('proposalTemplate')) {
+    try {
+      if (
+        plannerParams.get('proposalTemplate') !== COMMUNITY_POOL_TEMPLATE ||
+        plannerParams.getAll('proposalTemplate').length !== 1 ||
+        initialDao.id !== 'juno' ||
+        CHAIN_ID !== 'juno-1' ||
+        ['plannerDraft', 'review', 'proposal'].some((k) => plannerParams.has(k))
+      )
+        throw Error('Open the DAI conversion template in the Juno Community Pool workspace.');
+      const { savePlannerProposal } = await import('./planner-proposal-draft.mjs');
+      const prepared = new URL(
+        savePlannerProposal(localStorage, communityPoolProposal()),
+        location.origin
+      );
+      plannerParams.delete('proposalTemplate');
+      plannerParams.set('plannerDraft', prepared.searchParams.get('plannerDraft'));
+      history.replaceState(null, '', prepared);
+    } catch (error) {
+      plannerDraftError = error.message;
+    }
+  }
   if (plannerParams.has('plannerDraft')) {
     try {
       const bridge = await import('./planner-proposal-draft.mjs');
@@ -934,6 +981,11 @@
     const list = $('#proposal-accounting');
     list.replaceChildren();
     if (isPlannerGovernance()) return;
+    if (isNativeReview()) {
+      try {
+        if (isCommunityPoolSpend(JSON.parse($('#proposal-actions').value))) return;
+      } catch {}
+    }
     let actions;
     try {
       actions = payloadParts($('#proposal-actions').value).actions;
@@ -1077,7 +1129,8 @@
           );
     }
     const parts = payloadParts(v.actions_json);
-    validateCategories(parts.actions, parts.accounting);
+    if (isNativeReview() && isCommunityPoolSpend(parts.actions)) assertCommunityPoolSpend(actions);
+    else validateCategories(parts.actions, parts.accounting);
     actions
       .filter((item) => item?.type === DELIVERABLE_TYPE)
       .forEach((item, index) => {
@@ -1375,7 +1428,13 @@
     plannerGov.render();
     funding.render();
     nativeVote.render();
+    let community = false;
+    try {
+      community =
+        isNativeReview() && isCommunityPoolSpend(JSON.parse($('#proposal-actions').value));
+    } catch {}
     const planner =
+      community ||
       (isPlannerGovernance() && !state.selected) ||
       (isNativeReview() && !!state.selected && state.dao.id === 'juno-delegation');
     $('.deliverables-panel').hidden = planner;
@@ -1385,7 +1444,7 @@
     $('#new-draft').disabled = state.busy;
     $('#discard-action').disabled = state.busy;
     $('#save-local').disabled = state.busy;
-    if (plannerDraftError && planner) {
+    if (plannerDraftError) {
       $('#primary-action').disabled = true;
       $('#action-hint').textContent = plannerDraftError;
       return;
@@ -1593,8 +1652,7 @@
         .filter(({ latest_revision }) => {
           if (state.dao.id !== 'juno-delegation') return true;
           try {
-            reviewKind(latest_revision);
-            return true;
+            return reviewKind(latest_revision) !== COMMUNITY_POOL_KIND;
           } catch {
             return false;
           }
@@ -1991,15 +2049,23 @@
   function renderPlannerContext() {
     const panel = $('#planner-proposal-context');
     const current = plannerDraft && state.dao.id === plannerDraft.daoId && !state.selected;
-    panel.querySelector('a').href =
-      `/community-tools/juno/delegation/#${current && plannerDraft.kind === 'CLAIM_REWARDS' ? 'overview' : 'rules'}`;
+    const community = current && plannerDraft.kind === COMMUNITY_POOL_KIND;
+    panel.querySelector('a').href = community
+      ? '/?chain=juno&dao=juno#treasury'
+      : `/community-tools/juno/delegation/#${current && plannerDraft.kind === 'CLAIM_REWARDS' ? 'overview' : 'rules'}`;
+    panel.querySelector('a').textContent = community
+      ? 'View Community Pool →'
+      : 'Return to delegation planner →';
     panel.hidden = !current && !plannerDraftError;
     $('#planner-proposal-context-text').textContent =
       plannerDraftError ||
-      (current
-        ? `${plannerDraft.kind === 'CLAIM_REWARDS' ? 'Rewards claim' : 'Allocation rules'} draft from the planner · not submitted. Existing drafts are preserved. Topic: Delegation Programme · Submission and voting: Juno native governance. Publish this draft for community review. Mainnet funding is available after finalization.`
-        : '');
+      (community
+        ? 'DAI conversion draft · 460.9 axlDAI → Dimi → USDC via Injective → Juno Community Pool. Not published. Review the text and transfer below, then publish for community review. Dimi performs the swap and return separately.'
+        : current
+          ? `${plannerDraft.kind === 'CLAIM_REWARDS' ? 'Rewards claim' : 'Allocation rules'} draft from the planner · not submitted. Existing drafts are preserved. Topic: Delegation Programme · Submission and voting: Juno native governance. Publish this draft for community review. Mainnet funding is available after finalization.`
+          : '');
   }
+
   function saveLocal() {
     const button = $('#save-local'),
       original = button.textContent;
@@ -2410,6 +2476,7 @@
     plannerDraftError = null;
     const url = new URL(location.href);
     url.searchParams.delete('plannerDraft');
+    url.searchParams.delete('proposalTemplate');
     url.searchParams.delete('review');
     url.searchParams.delete('proposal');
     history.replaceState(null, '', url);

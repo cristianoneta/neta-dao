@@ -341,3 +341,5 @@ body.revision-dialog-open { overflow:hidden; }
 .native-voting-metrics strong { font-size: 22px; color: var(--neta-text); }
 .native-voting-metrics small { color: var(--neta-text-secondary); }
 @media (max-width: 600px) { .native-voting-metrics { grid-template-columns: 1fr; } }
+
+.community-pool-transfer { overflow-wrap: anywhere; line-height: 1.6; }

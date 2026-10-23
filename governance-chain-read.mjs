@@ -32,6 +32,8 @@ export function governanceReadTarget(source, path, height = '') {
   if (mainnet) {
     allowed ||=
       [
+        '/cosmos/distribution/v1beta1/community_pool',
+        '/ibc/apps/transfer/v1/denoms/171E8F6687D290D378678310F9F15D367DCD245BF06184532B703A92054A8A4F',
         '/cosmos/gov/v1/params/deposit',
         '/cosmos/gov/v1/params/tallying',
         '/cosmos/staking/v1beta1/pool',
