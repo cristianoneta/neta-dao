@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import {
   GOVERNANCE,
   rewardMessages,
+  legacyRewardMessages,
+  PROGRAMME_CODE_HASH,
   claimValidators,
   proposalContent,
   depositTerms,
@@ -22,6 +24,7 @@ const messages = rewardMessages(validators);
 const evidence = () => ({
   account: { account: { name: 'gov', base_account: { address: GOVERNANCE } } },
   info: { contract_info: { code_id: '4047' } },
+  code: { code_info: { data_hash: PROGRAMME_CODE_HASH.toUpperCase() } },
   admin: { data: GOVERNANCE },
   paused: { data: { unpaused: {} } },
   withdraw: { withdraw_address: PROGRAMME },
@@ -40,9 +43,7 @@ test('native claim authority and payload reject other senders, withdrawals, fund
     (v) => (v[0].sender = PROGRAMME),
     (v) => v[0].funds.push({ denom: 'ujuno', amount: '1' }),
     (v) =>
-      (v[0].msg.execute_admin_msgs.msgs[0].distribution.set_withdraw_address = {
-        address: GOVERNANCE
-      }),
+      (v[0].msg.execute_admin_msgs.msgs[0].stargate.type_url = '/cosmos.distribution.v1beta1.MsgSetWithdrawAddress'),
     (v) => v.push(v[0]),
     (v) => (v[0].msg.extra = {})
   ]) {
@@ -54,6 +55,7 @@ test('native claim authority and payload reject other senders, withdrawals, fund
     (v) => (v.admin.data = PROGRAMME),
     (v) => (v.account.account.name = 'bank'),
     (v) => (v.info.contract_info.code_id = '1'),
+    (v) => (v.code.code_info.data_hash = '0'.repeat(64)),
     (v) => (v.paused.data = { paused: { expiration: { at_height: 99999999 } } }),
     (v) => delete v.paused,
     (v) => (v.withdraw.withdraw_address = GOVERNANCE),
@@ -88,7 +90,7 @@ test('initial deposit uses exact integer ceiling and rejects unsupported assets/
 test('legacy handoff is upgraded without changing its original stored content', () => {
   const draft = claimProposal(fixture());
   draft.schema = 1;
-  draft.values.actions_json = JSON.stringify(messages[0].msg.execute_admin_msgs.msgs);
+  draft.values.actions_json = JSON.stringify(legacyRewardMessages(validators)[0].msg.execute_admin_msgs.msgs);
   const original = JSON.stringify(draft),
     id = '11111111-1111-4111-8111-111111111111';
   const restored = readPlannerProposal(
@@ -98,7 +100,7 @@ test('legacy handoff is upgraded without changing its original stored content', 
   );
   assert.equal(restored.schema, 2);
   assert.equal(restored.legacy, true);
-  assert.deepEqual(JSON.parse(restored.values.actions_json), messages);
+  assert.deepEqual(JSON.parse(restored.values.actions_json), legacyRewardMessages(validators));
   assert.equal(draft.schema, 1);
 });
 test('rule preflight pins deposit evidence to a fresh mainnet height and requires independent agreement', async () => {
@@ -121,6 +123,7 @@ test('rule preflight pins deposit evidence to a fresh mainnet height and require
     else if (url.includes('/smart/'))
       body = url.endsWith(btoa('{"pause_info":{}}')) ? data.paused : data.admin;
     else if (url.includes('/contract/')) body = data.info;
+    else if (url.includes('/code/4047')) body = data.code;
     else if (url.includes('/withdraw_address')) body = data.withdraw;
     else
       body = url.includes('pagination.key=')
@@ -141,6 +144,14 @@ test('rule preflight pins deposit evidence to a fresh mainnet height and require
       .every((row) => row.options.headers['x-cosmos-block-height'] === '424242')
   );
   assert.equal(result.sources.length, 2);
+  seen.length = 0;
+  await preflight(nodes, { messages }, GOVERNANCE, { fetcher, now });
+  assert.equal(seen.filter(row => row.url.includes('/code/4047')).length, 2);
+  assert.equal(seen.filter(row => row.url.includes('pagination.key=')).length, 2);
+  assert.ok(seen.filter(row => !row.url.endsWith('/latest')).every(row => row.options.headers['x-cosmos-block-height'] === '424242'));
+  data.code.code_info.data_hash = '0'.repeat(64);
+  await assert.rejects(preflight(nodes, { messages }, GOVERNANCE, { fetcher, now }), /authority/i);
+  data.code.code_info.data_hash = PROGRAMME_CODE_HASH;
   await assert.rejects(
     preflight([nodes[0], nodes[0] + '/'], { messages: [] }, GOVERNANCE, { fetcher, now }),
     /Two independent/

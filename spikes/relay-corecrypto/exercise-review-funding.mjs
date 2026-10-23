@@ -7,13 +7,15 @@ import {
   REVIEW_MAINNET_RELEASE as PIN,
   REVIEW_MAINNET_POLICY
 } from '../../juno-review-mainnet-config.mjs';
-import { GOVERNANCE } from '../../juno-governance-core.mjs';
+import { GOVERNANCE, PROGRAMME_CODE_HASH } from '../../juno-governance-core.mjs';
+import { CLAIM_381_EXPLANATION, CLAIM_TITLE } from '../../claim-numbering.mjs';
 import { UNI7_REVIEW_CONTRACT } from '../../juno-review-network.mjs';
 const REVIEW_CONTRACT = PIN.contract;
 
 // All external reads and wallet writes are synthetic. This exercises the actual
 // composer, shared-review deep link, sponsor handoff and deposit controls.
 export async function exerciseReviewFunding(page, origin, sample) {
+  const failedClaim = JSON.parse(await readFile(new URL('../../tests/fixtures/juno-proposal-381.json', import.meta.url))).proposal;
   const manifest = JSON.parse(
     await readFile(new URL('../../docs/deployments/nns-mainnet.json', import.meta.url))
   );
@@ -98,7 +100,7 @@ export async function exerciseReviewFunding(page, origin, sample) {
         body = {
           code_info: url.pathname.endsWith('/5171')
             ? { creator: PIN.creator, data_hash: PIN.codeHash }
-            : { data_hash: pin.sha256 }
+            : { data_hash: url.pathname.endsWith('/4047') ? PROGRAMME_CODE_HASH : pin.sha256 }
         };
       } else if (url.pathname.endsWith('/latest'))
         body = {
@@ -237,12 +239,12 @@ export async function exerciseReviewFunding(page, origin, sample) {
           proposals:
             last && native
               ? [
-                  {
+                  failedClaim, {
                     ...native,
                     ...(wrongDisplayed ? { title: 'Incorrect cached proposal title' } : {})
                   }
                 ]
-              : [],
+              : last ? [failedClaim] : [],
           pagination: { next_key: last ? null : 'older+/=' }
         };
       }
@@ -507,7 +509,8 @@ export async function exerciseReviewFunding(page, origin, sample) {
   await page.evaluate(() => window.__releaseReviewPublish());
   await primary('FINALIZE REVIEW');
   assert.equal(reviewWrites, 1);
-  assert.match(revision.title, /allocation rules$/);
+  assert.equal(revision.title, CLAIM_TITLE + ' II');
+  assert.ok(revision.body.includes(CLAIM_381_EXPLANATION));
   assert.match(revision.body, /This proposal was created on cosmoot.com\./);
   await page.waitForFunction(() =>
     document.querySelector('#shared-review-author').textContent.includes('cristiano.neta')
@@ -908,12 +911,14 @@ export async function exerciseReviewFunding(page, origin, sample) {
   await page.waitForFunction(
     () => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN'
   );
+  await page.waitForFunction(() => document.querySelector('#shared-review-author').textContent.includes('Review on UNI-7'));
   assert.match(await page.locator('#shared-review-author').textContent(), /Review on UNI-7/);
   assert.match(page.url(), /reviewChain=uni-7/);
   await page.goto(mainnetUrl);
   await page.waitForFunction(
     () => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN'
   );
+  await page.waitForFunction(() => document.querySelector('#shared-review-author').textContent.includes('Review on Juno mainnet'));
   assert.match(await page.locator('#shared-review-author').textContent(), /Review on Juno mainnet/);
   await page.goto(origin + '/name-profile.html?name=cristiano.neta');
   await page.locator('#profile-content').waitFor({state: 'visible'});

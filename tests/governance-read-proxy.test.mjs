@@ -7,6 +7,11 @@ import {
   governanceReadTarget
 } from '../governance-chain-read.mjs';
 const path = '/cosmos/gov/v1/params/deposit';
+test('programme code evidence is restricted to the reviewed mainnet code', () => {
+  assert.ok(governanceReadTarget('juno-stavr', '/cosmwasm/wasm/v1/code/4047'));
+  assert.throws(() => governanceReadTarget('uni7-stavr', '/cosmwasm/wasm/v1/code/4047'));
+  assert.throws(() => governanceReadTarget('juno-stavr', '/cosmwasm/wasm/v1/code/4048'));
+});
 const request = (extra = {}, method = 'GET') =>
   new Request(
     'https://cosmoot.com' +

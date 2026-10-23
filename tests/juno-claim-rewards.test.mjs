@@ -18,7 +18,7 @@ test('claim overview uses separately truncated current rewards, with optional US
   assert.equal(result.validatorCount, 25);
   assert.equal(result.observedAt, source.generated_at);
   assert.ok(Math.abs(result.usd - 33896.32022316852) < 0.000001);
-  assert.throws(() => claimProposal(planner), /paused after proposal #381/);
+  assert.equal(claimProposal(planner).kind, 'CLAIM_REWARDS');
   assert.equal(suggestedBudget(planner), before);
   source.assets[0].usd_price = null;
   source.status = 'PARTIAL';
@@ -45,7 +45,7 @@ test('missing, partial, stale and mismatched reward observations never become a 
     const source = rewardsFixture(planner);
     edit(source);
     assert.throws(() => claimRewardsOverview(source, planner));
-    assert.throws(() => claimProposal(planner, Date.now(), source), /paused after proposal #381/);
+    assert.throws(() => claimProposal(planner, Date.now(), source));
   }
   assert.throws(() => claimRewardsOverview(null, planner));
   const zero = rewardsFixture(planner, '0');

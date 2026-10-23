@@ -3,10 +3,14 @@ import assert from 'node:assert/strict';
 import { TxRaw, TxBody, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { MsgSubmitProposal, MsgDeposit } from 'cosmjs-types/cosmos/gov/v1/tx';
 import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
+import { MsgWithdrawDelegatorReward } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
+import { readFileSync } from 'node:fs';
+import { PROGRAMME } from '../../juno-delegation-core.mjs';
+import { claimValidators, WITHDRAW_REWARD } from '../../juno-governance-core.mjs';
 import { sha256 } from '@cosmjs/crypto';
 import { toHex } from '@cosmjs/encoding';
 import { message, submit, depositMessage, contribute } from '../src/juno-governance-signing.mjs';
-import { GOVERNANCE, SUBMIT, rewardMessages } from '../../juno-governance-core.mjs';
+import { GOVERNANCE, SUBMIT, rewardMessages, legacyRewardMessages } from '../../juno-governance-core.mjs';
 const sender = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
 const content = {
   title: 'Rule approval',
@@ -14,6 +18,39 @@ const content = {
   messages: []
 };
 const fee = { gas: '100000', amount: [{ denom: 'ujuno', amount: '7500' }] };
+test('independent SDK codecs decode all 37 corrected withdrawals inside native governance', () => {
+  const original = JSON.parse(readFileSync(new URL('../../tests/fixtures/juno-proposal-381.json', import.meta.url))).proposal;
+  const validators = original.messages[0].msg.execute_admin_msgs.msgs.map(m => m.distribution.withdraw_delegator_reward.validator).sort();
+  const messages = rewardMessages(validators);
+  const outer = message({ ...content, messages }, sender, '100000000');
+  const submit = MsgSubmitProposal.decode(MsgSubmitProposal.encode(outer.value).finish());
+  const execute = MsgExecuteContract.decode(submit.messages[0].value);
+  assert.equal(execute.sender, GOVERNANCE);
+  assert.equal(execute.contract, PROGRAMME);
+  assert.deepEqual(execute.funds, []);
+  const inner = JSON.parse(new TextDecoder().decode(execute.msg)).execute_admin_msgs.msgs;
+  assert.equal(inner.length, 37);
+  for (const [i, m] of inner.entries()) {
+    assert.equal(m.stargate.type_url, WITHDRAW_REWARD);
+    const bytes = Buffer.from(m.stargate.value, 'base64');
+    const withdrawal = MsgWithdrawDelegatorReward.decode(bytes);
+    assert.equal(withdrawal.delegatorAddress, PROGRAMME);
+    assert.equal(withdrawal.validatorAddress, validators[i]);
+    assert.deepEqual(Buffer.from(MsgWithdrawDelegatorReward.encode(withdrawal).finish()), bytes);
+  }
+  for (const mutate of [
+    m => m.value = Buffer.from(MsgWithdrawDelegatorReward.encode({ delegatorAddress: GOVERNANCE, validatorAddress: validators[0] }).finish()).toString('base64'),
+    m => m.value += '\n',
+    m => m.value = Buffer.concat([Buffer.from(m.value, 'base64'), Buffer.from([24, 1])]).toString('base64'),
+    m => m.type_url = '/cosmos.bank.v1beta1.MsgSend',
+    m => m.extra = true
+  ]) {
+    const bad = structuredClone(messages);
+    mutate(bad[0].msg.execute_admin_msgs.msgs[0].stargate);
+    assert.throws(() => claimValidators(bad, { allowLegacy: false }));
+    assert.throws(() => message({ ...content, messages: bad }, sender, '100000000'));
+  }
+});
 function harness(mode = '') {
   const rows = new Map(),
     storage = {
@@ -83,8 +120,8 @@ function harness(mode = '') {
   };
 }
 test('signer refuses the incompatible programme claim before simulation or signing', () => {
-  const blocked = { ...content, messages: rewardMessages(['junovaloper1' + 'q'.repeat(38)]) };
-  assert.throws(() => message(blocked, sender, '100000000'), /paused after proposal #381/);
+  const blocked = { ...content, messages: legacyRewardMessages(['junovaloper1' + 'q'.repeat(38)]) };
+  assert.throws(() => message(blocked, sender, '100000000'), /incompatible format from proposal #381/);
   const msg = message(content, sender, '100000000');
   const decoded = MsgSubmitProposal.decode(MsgSubmitProposal.encode(msg.value).finish());
   assert.equal(decoded.proposer, sender);

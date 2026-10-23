@@ -1,0 +1,45 @@
+{
+  "contract_info": {
+    "code_id": "4047",
+    "creator": "juno1s4ckh9405q0a3jhkwx9wkf9hsjh66nmu769tz5",
+    "admin": "juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730",
+    "label": "Council",
+    "created": {
+      "block_height": "12671900",
+      "tx_index": "0"
+    },
+    "ibc_port_id": "",
+    "extension": null,
+    "ibc2_port_id": ""
+  },
+  "models": [
+    {
+      "key": "001370726F706F73616C5F6D6F64756C65735F76326A756E6F3137326676787A39383036616536726A6563643039747267727A6B636C30303236793038386576336C7379673838676D7072376373373634657668",
+      "value": "eyJhZGRyZXNzIjoianVubzE3MmZ2eHo5ODA2YWU2cmplY2QwOXRyZ3J6a2NsMDAyNnkwODhldjNsc3lnODhnbXByN2NzNzY0ZXZoIiwicHJlZml4IjoiQSIsInN0YXR1cyI6ImVuYWJsZWQifQ=="
+    },
+    {
+      "key": "6163746976655F70726F706F73616C5F6D6F64756C655F636F756E74",
+      "value": "MQ=="
+    },
+    {
+      "key": "61646D696E",
+      "value": "Imp1bm8xMGQwN3kyNjVnbW11dnQ0ejB3OWF3ODgwam5zcjcwMGp2c3M3MzAi"
+    },
+    {
+      "key": "636F6E6669675F7632",
+      "value": "eyJuYW1lIjoiU2Vjb25kYXJ5IENvbW11bml0eSBQb29sIiwiZGVzY3JpcHRpb24iOiJVc2VkIHRvIGhhbmRsZSBkZWxlZ2F0aW9ucyBhbmQgb3RoZXIgSnVubyBEZWZpIGluaXRpYXRpdmVzLlxuXG5Bc3NldHMgYXJlIGNvbnRyb2xsZWQgYnkgb25jaGFpbiBnb3Zlcm5hbmNlLlxuRGVsZWdhdGlvbnMgYXJlIGNvbnRyb2xsZWQgYnkgdGhlIERlbGVnYXRpb25zIFN1YkRBTy4iLCJpbWFnZV91cmwiOiJpcGZzOi8vYmFma3JlaWV4b29uYnhvb3c2c2dvZTVyZWR3eWlkaGJ5a2dpbHQ2dWoybXVlYXMzejRpY3dldXBiamEiLCJhdXRvbWF0aWNhbGx5X2FkZF9jdzIwcyI6dHJ1ZSwiYXV0b21hdGljYWxseV9hZGRfY3c3MjFzIjp0cnVlLCJkYW9fdXJpIjpudWxsfQ=="
+    },
+    {
+      "key": "636F6E74726163745F696E666F",
+      "value": "eyJjb250cmFjdCI6ImNyYXRlcy5pbzpkYW8tZGFvLWNvcmUiLCJ2ZXJzaW9uIjoiMi40LjAifQ=="
+    },
+    {
+      "key": "746F74616C5F70726F706F73616C5F6D6F64756C655F636F756E74",
+      "value": "MQ=="
+    },
+    {
+      "key": "766F74696E675F6D6F64756C65",
+      "value": "Imp1bm8xdm5wbmw5eDdjMHh3ajBhNmxha3o1cnJ2MGV3eGN3ZWRtbjIwbGo1ZTd0OTRsbXJuNzR1cTBzdHE1bSI="
+    }
+  ]
+}

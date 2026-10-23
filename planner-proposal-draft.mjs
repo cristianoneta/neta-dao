@@ -1,7 +1,9 @@
 import { PROGRAMME, policy, snapshot, units } from './juno-delegation-core.mjs';
 
-import { rewardMessages, CLAIM_REWARDS_BLOCK_REASON } from './juno-governance-core.mjs';
+import { rewardMessages, legacyRewardMessages } from './juno-governance-core.mjs';
 import { encodeRuleReview, verifyRuleReview, ruleChanges } from './juno-delegation-review.mjs';
+import { withClaimContext } from './claim-numbering.mjs';
+import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
 
 export const PLANNER_DRAFT_PREFIX = 'cosmoot:juno:planner-proposal:';
@@ -128,8 +130,28 @@ export async function frozenRuleProposal(review) {
     );
   return draft('RULE_APPROVAL', 'Juno Delegation Programme — allocation rules', summary, body);
 }
-export function claimProposal() {
-  throw Error(CLAIM_REWARDS_BLOCK_REASON);
+export function claimProposal(input, now = Date.now(), rewardsSource = null, context = null) {
+  const s = snapshot(input);
+  for (const time of [s.blockTime, s.collectedAt]) {
+    const age = now - Date.parse(time);
+    if (age > 3600000 || age < -300000)
+      throw Error('Refresh programme data before preparing the rewards proposal.');
+  }
+  const validators = s.validators
+    .filter((v) => BigInt(v.currentRaw) > 0n)
+    .sort((a, b) => a.address.localeCompare(b.address));
+  if (!validators.length) throw Error('No current programme delegations to claim from.');
+  if (rewardsSource) claimRewardsOverview(rewardsSource, s, now);
+  const actions = rewardMessages(validators.map((v) => v.address));
+  const result = draft(
+    'CLAIM_REWARDS',
+    'Juno Delegation Programme — claim staking rewards',
+    `This proposal claims the accrued staking rewards from the Juno Delegation Programme’s ${validators.length} listed validator positions and makes them available in the programme treasury.`,
+    'Existing delegations remain unchanged. No tokens are delegated, redelegated or transferred to another recipient.',
+    actions
+  );
+  if (context) result.values = withClaimContext(result.values, context);
+  return result;
 }
 export function savePlannerProposal(storage, value, id = crypto.randomUUID()) {
   if (!identifier.test(id)) throw Error('Invalid planner draft identifier.');
@@ -173,5 +195,5 @@ export function upgradeLegacyPlannerValues(values, kind) {
     throw Error(
       'Legacy rewards actions were modified. Review the saved draft before preparing a new claim.'
     );
-  return { ...values, actions_json: JSON.stringify(rewardMessages(validators), null, 2) };
+  return { ...values, actions_json: JSON.stringify(legacyRewardMessages(validators), null, 2) };
 }

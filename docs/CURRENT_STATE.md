@@ -1,9 +1,36 @@
 # Current state — Cosmoot / NETA DAO
 
-Updated 19 October 2026. This is the public feature/deployment/evidence matrix.
+Updated 23 October 2026. This is the public feature/deployment/evidence matrix.
 Private operator records are governed by [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
-## Proposal 381 execution incident — 20 October 2026 containment candidate
+## Programme claims repaired — 23 October 2026 release candidate
+
+The source now generates DAO DAO-compatible Stargate withdrawals with the
+programme treasury as explicit delegator. Chain governance, DAO core authority,
+DAO proposal-module semantics and SDK execution are documented separately in
+[the mandatory engineering reference](GOVERNANCE_EXECUTION_SEMANTICS.md),
+linked from AGENTS.md for future work.
+
+The original deployed contract and pinned Juno v31 runtime were tested through
+actual native submission, voting and execution on an isolated local chain.
+Original format and wrong delegator fail; the corrected 37 withdrawals execute,
+reach the programme and preserve every delegation. The new required CI job
+repeats this check. See [the evidence and limits](PROGRAMME_CLAIM_REPAIR_2026-10-23.md).
+
+The first corrected native claim includes the proposal-381 explanation; subsequent
+claims omit it based on agreed complete chain history. Old reviews keep their
+original content and recovery paths, while incompatible writes remain blocked.
+The browser flow covers the corrected claim from preparation through review,
+finalization, submission and funding. CI must pass before integration.
+
+PRs #299 (review-size correction) and #300 (incident containment) are already
+merged. The owner requested the actual repair before one combined manual release;
+containment was not deployed separately. Last confirmed production source remains
+`3c978afc52cb5440b9e933c8e5f2dc4b77b0dc75` (PR #298). No new production deployment,
+real proposal submission or server installation is claimed here.
+
+## Historical checkpoint: proposal 381 containment — 20 October 2026
+
 
 Juno proposal 381 passed its vote but failed at contract deserialization. Cosmoot
 emitted DistributionMsg actions that the deployed DAO DAO Core 2.4.0 / code 4047

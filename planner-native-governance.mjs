@@ -7,11 +7,11 @@ import {
 import {
   preflight,
   proposalContent,
-  CLAIM_REWARDS_BLOCK_REASON,
   assertProgrammeExecutionAvailable,
   displayJuno,
   submissionReceipt
 } from './juno-governance-core.mjs';
+import { readClaimContext, assertClaimContext } from './claim-numbering.mjs';
 
 export function nativePlanner({
   active,
@@ -76,7 +76,11 @@ export function nativePlanner({
   }
   async function loadTerms(force = false) {
     if (!active() || receipt()) return;
-    if (draft()?.kind === 'CLAIM_REWARDS') return;
+    try {
+      assertProgrammeExecutionAvailable(JSON.parse(draft().values.actions_json));
+    } catch {
+      return;
+    }
     const id = draft().id;
     if (!force && termsState?.id === id) return;
     const request = { id, loading: true };
@@ -121,10 +125,12 @@ export function nativePlanner({
       }${previous.hash ? ' · TX ' + previous.hash : ''}`;
       return;
     }
-    if (draft()?.kind === 'CLAIM_REWARDS') {
+    try {
+      assertProgrammeExecutionAvailable(JSON.parse(draft().values.actions_json));
+    } catch (error) {
       $('#planner-native-inputs').hidden = true;
       $('#planner-native-refresh').hidden = true;
-      $('#planner-native-terms').textContent = CLAIM_REWARDS_BLOCK_REASON;
+      $('#planner-native-terms').textContent = error.message;
       $('#planner-native-terms').dataset.state = 'error';
       return;
     }
@@ -236,6 +242,7 @@ export function nativePlanner({
           return;
         }
         const proof = await preflight(rests, content, sender);
+        if (content.messages.length) assertClaimContext(content, await readClaimContext(rests));
         current(epoch, fingerprint, sender, id);
         if (canonical(proof.terms) !== canonical(displayed.terms)) {
           termsState = { id, terms: proof.terms, checkedAt: proof.checkedAt };
@@ -276,6 +283,8 @@ export function nativePlanner({
           current(review.epoch, review.fingerprint, review.sender, review.id);
           if (receipt()) throw Error('A submission is already recorded for this draft.');
           await verifyReview(reviewEndpoints(), review.expectedReview);
+          if (review.content.messages.length)
+            assertClaimContext(review.content, await readClaimContext(rests));
           if ((await findReviewSubmission(rests, review.content)).length)
             throw Error(
               'This review already has an on-chain proposal. Refresh to open its funding.'
