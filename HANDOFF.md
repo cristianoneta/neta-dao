@@ -6,6 +6,26 @@ boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
 
+## One-off DAI proposal link — 23 October 2026 candidate
+
+The DAI conversion draft opens from a direct link shared with the owner; there is
+no permanent preparation button or navigation entry. Opening the link only saves
+an isolated local draft and fills the existing Juno Community Pool composer.
+Existing drafts remain intact. The prepared action sends exactly 460.9 axlDAI to
+the recipient of native proposal 382. Amount, denomination, authority and recipient
+are checked before review publication and native submission. Fresh independent
+chain reads verify the pool funds and IBC trace; missing evidence blocks writes.
+
+The native action is MsgCommunityPoolSpend, with independent protobuf validation
+and a real Juno v31 governance execution regression. Dimi's conversion into USDC
+on Injective and return to the pool are separate manual steps. Review finalization,
+JUNO deposit, wallet confirmation and pending-transaction recovery remain in place.
+This candidate is not published. PR checks and the owner's manual Cloudflare
+release remain required; no mainnet transaction or swap was performed.
+The preceding claim repair (PR 301, source
+`88864ea19f02fa97e9a63683200bfbb391985cef`) was subsequently published by successful
+manual release [40020512048](https://github.com/cristianoneta/neta-dao/actions/runs/40020512048).
+
 ## Programme claims repaired — 23 October 2026 release candidate
 
 The source now generates DAO DAO-compatible Stargate withdrawals with the

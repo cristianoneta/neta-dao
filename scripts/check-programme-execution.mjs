@@ -1,3 +1,9 @@
+import {
+  communityPoolMessages,
+  DAI_DENOM,
+  DAI_AMOUNT,
+  DAI_RECIPIENT
+} from '../juno-community-pool-proposal.mjs';
 // Isolated execution regression: real Juno v31, original DAO DAO WASM/state,
 // synthetic balances/delegations and an ephemeral local-only test signer.
 import assert from 'node:assert/strict';
@@ -107,6 +113,12 @@ try {
     validators: [],
     delegations: []
   });
+  // Synthetic axlDAI funds exercise the native Community Pool handler, separately
+  // from the DAO DAO claims. No bridge or swap is simulated as an on-chain effect.
+  const daiCoin = { denom: DAI_DENOM, amount: DAI_AMOUNT };
+  a.bank.balances.find((b) => b.address === moduleAddress('distribution')).coins.unshift(daiCoin);
+  a.bank.supply.unshift(daiCoin);
+  d.fee_pool.community_pool = [{ denom: DAI_DENOM, amount: DAI_AMOUNT + '.000000000000000000' }];
   a.slashing.signing_infos = [
     {
       address: consensus,
@@ -379,6 +391,26 @@ try {
     withdrawals.map((e) => e.attributes.find((a) => a.key === 'validator').value).sort(),
     [...validators].sort()
   );
+  const daiBalance = async () =>
+    BigInt(
+      (
+        await get(
+          rest +
+            `/cosmos/bank/v1beta1/balances/${DAI_RECIPIENT}/by_denom?denom=${encodeURIComponent(DAI_DENOM)}`
+        )
+      ).balance.amount
+    );
+  assert.equal(await daiBalance(), 0n);
+  const transfer = await runProposal('community-pool-dai', communityPoolMessages());
+  assert.equal(transfer.status, 'PROPOSAL_STATUS_PASSED', transfer.failed_reason);
+  assert.equal(await daiBalance(), BigInt(DAI_AMOUNT));
+  const remainingPool = (await get(rest + '/cosmos/distribution/v1beta1/community_pool')).pool;
+  assert.ok(!remainingPool.some((c) => c.denom === DAI_DENOM && Number(c.amount) > 0));
+  assert.deepEqual(await positions(), originalPositions);
+  const overdraw = await runProposal('community-pool-insufficient', communityPoolMessages());
+  assert.equal(overdraw.status, 'PROPOSAL_STATUS_FAILED');
+  assert.match(overdraw.failed_reason, /community pool does not have sufficient coins/i);
+  assert.equal(await daiBalance(), BigInt(DAI_AMOUNT));
   const report = {
     chain,
     juno: 'v31.0.0',
@@ -391,6 +423,15 @@ try {
       status: fixed.status,
       withdrawals: withdrawals.length,
       programmeReceivedUjuno: String(after - before),
+      delegationsUnchanged: true
+    },
+    communityPool: {
+      status: transfer.status,
+      recipient: DAI_RECIPIENT,
+      amount: DAI_AMOUNT,
+      denom: DAI_DENOM,
+      poolDebited: true,
+      insufficientFunds: overdraw.status,
       delegationsUnchanged: true
     },
     scope:

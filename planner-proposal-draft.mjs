@@ -1,3 +1,4 @@
+import { COMMUNITY_POOL_KIND, assertCommunityPoolSpend } from './juno-community-pool-proposal.mjs';
 import { PROGRAMME, policy, snapshot, units } from './juno-delegation-core.mjs';
 
 import { rewardMessages, legacyRewardMessages } from './juno-governance-core.mjs';
@@ -9,12 +10,14 @@ import { historyCoverageText } from './juno-active-set-history.mjs';
 export const PLANNER_DRAFT_PREFIX = 'cosmoot:juno:planner-proposal:';
 const identifier = /^[a-f0-9-]{36}$/;
 export function validatePlannerDraft(value) {
+  const community = value?.kind === COMMUNITY_POOL_KIND;
   if (
     ![1, 2].includes(value?.schema) ||
-    value.daoId !== 'juno-delegation' ||
+    (community && (value.schema !== 2 || value.governanceDaoId !== 'juno')) ||
+    value.daoId !== (community ? 'juno' : 'juno-delegation') ||
     value.chainId !== 'juno-1' ||
-    value.programme !== PROGRAMME ||
-    !['RULE_APPROVAL', 'CLAIM_REWARDS'].includes(value.kind)
+    (!community && value.programme !== PROGRAMME) ||
+    !['RULE_APPROVAL', 'CLAIM_REWARDS', COMMUNITY_POOL_KIND].includes(value.kind)
   )
     throw Error('Invalid planner proposal context.');
   for (const [key, limit] of [
@@ -34,6 +37,7 @@ export function validatePlannerDraft(value) {
   }
   if (!Array.isArray(JSON.parse(value.values.actions_json)))
     throw Error('Invalid proposal actions.');
+  if (community) assertCommunityPoolSpend(JSON.parse(value.values.actions_json));
   const checked = structuredClone(value);
   if (checked.schema === 1 && checked.kind === 'CLAIM_REWARDS') {
     checked.values = upgradeLegacyPlannerValues(checked.values, checked.kind);
@@ -164,23 +168,26 @@ export function savePlannerProposal(storage, value, id = crypto.randomUUID()) {
     if (storage.getItem(key) !== encoded) throw Error('Draft was not retained.');
   } catch {
     throw Error(
-      'This browser could not save the claim or rule draft. Allow site storage or free space, then try again. Existing drafts have been kept.'
+      'This browser could not save the prepared proposal. Allow site storage or free space, then try again. Existing drafts have been kept.'
     );
   }
-  return `/?chain=juno&dao=juno&subdao=juno-delegation&plannerDraft=${id}#governance`;
+  return `/?chain=juno&dao=juno${checked.daoId === 'juno' ? '' : '&subdao=juno-delegation'}&plannerDraft=${id}#governance`;
 }
 export function readPlannerProposal(storage, params, daoId) {
   const id = params.get('plannerDraft');
   if (!id) return null;
-  if (!identifier.test(id) || daoId !== 'juno-delegation')
-    throw Error('Planner proposal belongs to the Juno Delegation Programme.');
+  if (!identifier.test(id) || !['juno', 'juno-delegation'].includes(daoId))
+    throw Error('Open this prepared proposal in its Juno treasury workspace.');
   const source = storage.getItem(PLANNER_DRAFT_PREFIX + id);
   if (!source || source.length > 150000)
     throw Error(
-      'Planner draft unavailable in this browser. Return to the planner to prepare it again.'
+      'Prepared draft unavailable in this browser. Open the original preparation link again.'
     );
   const parsed = JSON.parse(source);
-  return { id, ...validatePlannerDraft(parsed), legacy: parsed.schema === 1 };
+  const checked = validatePlannerDraft(parsed);
+  if (checked.daoId !== daoId)
+    throw Error('This prepared proposal belongs to a different treasury.');
+  return { id, ...checked, legacy: parsed.schema === 1 };
 }
 
 export function upgradeLegacyPlannerValues(values, kind) {

@@ -1,3 +1,5 @@
+import { MsgCommunityPoolSpend } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
+import { communityPoolMessages, COMMUNITY_POOL_SPEND, DAI_AMOUNT, DAI_DENOM, DAI_RECIPIENT } from '../../juno-community-pool-proposal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TxRaw, TxBody, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
@@ -306,4 +308,25 @@ test('native votes preserve exact proposal, voter, option and fee; uncertain wri
   for (const choice of ['__proto__', 'unknown', null])
     assert.throws(() => voteMessage('381', sender, choice));
   assert.throws(() => voteMessage('18446744073709551616', sender, 'yes'));
+});
+
+test('native Community Pool proposal protobuf preserves authority, recipient and 18-decimal amount', () => {
+  const raw = message({...content, messages:communityPoolMessages()}, sender, '1000000000');
+  const encoded = MsgSubmitProposal.decode(MsgSubmitProposal.encode(raw.value).finish());
+  assert.equal(encoded.proposer, sender);
+  assert.equal(encoded.initialDeposit[0].amount, '1000000000');
+  assert.equal(encoded.messages.length, 1);
+  assert.equal(encoded.messages[0].typeUrl, COMMUNITY_POOL_SPEND);
+  const transfer=MsgCommunityPoolSpend.decode(encoded.messages[0].value);
+  assert.equal(transfer.authority, GOVERNANCE);
+  assert.equal(transfer.recipient, DAI_RECIPIENT);
+  assert.deepEqual(transfer.amount, [{denom:DAI_DENOM,amount:DAI_AMOUNT}]);
+  for (const mutate of [
+    m => m[0].recipient = sender, m => m[0].authority = sender,
+    m => m[0].amount[0].amount = '460900000', m => m[0].amount[0].denom = 'ujuno',
+    m => m.push(m[0]), m => m[0].extra = true
+  ]) {
+    const messages=communityPoolMessages(); mutate(messages);
+    assert.throws(()=>message({...content,messages},sender,'1000000000'));
+  }
 });

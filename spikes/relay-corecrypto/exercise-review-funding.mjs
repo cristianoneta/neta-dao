@@ -1,3 +1,4 @@
+import { communityPoolMessages, COMMUNITY_POOL_URL, DAI_DENOM, DAI_AMOUNT, DAI_DENOM_PATH, COMMUNITY_POOL_PATH } from '../../juno-community-pool-proposal.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { toBech32, fromBech32 } from '../../faucet/node_modules/@cosmjs/encoding/build/index.js';
@@ -30,6 +31,7 @@ export async function exerciseReviewFunding(page, origin, sample) {
       ]
     }
   ];
+  let daiBalance = DAI_AMOUNT;
   let reviewWrites = 0,
     comments = [],
     failReviewReads = false,
@@ -124,6 +126,10 @@ export async function exerciseReviewFunding(page, origin, sample) {
       }
       else if (url.pathname.includes('/spendable_balances/'))
         body = { balance: { denom: 'ujuno', amount: '10000000000' } };
+      else if (url.pathname === COMMUNITY_POOL_PATH)
+        body = {pool:[{denom:DAI_DENOM,amount:daiBalance+'.000000000000000000'}]};
+      else if (url.pathname === DAI_DENOM_PATH)
+        body = {denom:{base:'dai-wei',trace:[{port_id:'transfer',channel_id:'channel-71'}]}};
       else if (url.pathname.includes('/module_accounts/gov'))
         body = { account: { name: 'gov', base_account: { address: GOVERNANCE } } };
       else if (url.pathname.includes('/smart/')) {
@@ -929,6 +935,71 @@ export async function exerciseReviewFunding(page, origin, sample) {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     await shot(`public-profile-${width}`);
   }
+  await page.goto(mainnetUrl);
+  await page.waitForFunction(() => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN');
+  // A one-off link opens a separate local draft; there is no permanent site button.
+  const savedState = {proposal, revision, native, comments};
+  proposal = revision = native = null; comments = [];
+  const communityDraftKey = `neta-governance-local-draft:juno:juno-1:${REVIEW_CONTRACT}`;
+  await page.evaluate((key) => localStorage.setItem(key, JSON.stringify({
+    title: 'Existing Community Pool draft', summary:'Keep', body:'Keep this draft', actions_json:'[]'
+  })), communityDraftKey);
+  const priorWrites=reviewWrites, priorSubmits=submits;
+  await page.goto(origin + COMMUNITY_POOL_URL);
+  await primary('PUBLISH FOR REVIEW');
+  assert.equal(await page.locator('#prepare-dai-proposal').count(), 0);
+  assert.equal(await page.locator('#proposal-title').inputValue(), 'Community Pool: convert remaining axlDAI to USDC via Injective');
+  assert.deepEqual(JSON.parse(await page.locator('#proposal-actions').inputValue()), communityPoolMessages());
+  assert.equal(reviewWrites, priorWrites); assert.equal(submits, priorSubmits);
+  assert.match(await page.locator('#planner-proposal-context-text').textContent(), /DAI conversion draft/);
+  assert.match(await page.locator('#community-pool-transfer').textContent(), /460.9 axlDAI/);
+  assert.equal(await page.evaluate((key)=>JSON.parse(localStorage.getItem(key)).title, communityDraftKey), 'Existing Community Pool draft');
+  const daiDraftUrl=page.url();
+  await page.locator('#new-draft').click();
+  assert.equal(await page.locator('#proposal-title').inputValue(), 'Existing Community Pool draft');
+  await page.goto(daiDraftUrl);
+  await primary('PUBLISH FOR REVIEW');
+  for (const width of [1440,390,320]) {
+    await page.setViewportSize({width,height:1000});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+1));
+    await shot('dai-draft-'+width);
+  }
+  await wallet(author); await page.locator('#gov-connect').click();
+  await page.waitForFunction(()=>!document.querySelector('#primary-action').disabled);
+  const tampered=communityPoolMessages(); tampered[0].recipient=author;
+  await page.locator('#proposal-actions').fill(JSON.stringify(tampered));
+  await page.locator('#primary-action').click();
+  await page.waitForFunction(()=>document.querySelector('#gov-status').textContent.includes('only authorizes 460.9'));
+  assert.equal(reviewWrites,priorWrites);
+  await page.locator('#proposal-actions').fill(JSON.stringify(communityPoolMessages()));
+  daiBalance='1';
+  await page.locator('#primary-action').click();
+  await page.waitForFunction(()=>document.querySelector('#gov-status').textContent.includes('no longer holds'));
+  assert.equal(reviewWrites,priorWrites);
+  daiBalance=DAI_AMOUNT;
+  await page.locator('#primary-action').click();
+  await primary('FINALIZE REVIEW');
+  assert.deepEqual(JSON.parse(revision.actions_json),communityPoolMessages());
+  assert.ok(!revision.body.includes(CLAIM_381_EXPLANATION));
+  await page.locator('#primary-action').click();
+  await page.locator('#planner-native-panel').waitFor({state:'visible'});
+  const daiReviewUrl=page.url();
+  await page.goto(daiReviewUrl);
+  await page.locator('#planner-native-panel').waitFor({state:'visible'});
+  await wallet(sponsor); await page.locator('#gov-connect').click();
+  await page.waitForFunction(()=>!document.querySelector('#planner-native-minimum').disabled);
+  daiBalance='1';
+  await page.locator('#planner-native-minimum').click();
+  await page.waitForFunction(()=>document.querySelector('#planner-native-status').textContent.includes('no longer holds'));
+  assert.equal(submits,priorSubmits);
+  daiBalance=DAI_AMOUNT;
+  await page.locator('#planner-native-minimum').click();
+  await page.waitForFunction(()=>document.querySelector('#proposal-badge').textContent==='FUNDING');
+  assert.equal(submits,priorSubmits+1);
+  assert.deepEqual(native.messages,communityPoolMessages());
+  assert.equal(native.total_deposit[0].amount,'1000000000');
+  ({proposal,revision,native,comments}=savedState);
+  await page.evaluate((key) => localStorage.removeItem(key), communityDraftKey);
   await page.goto(mainnetUrl);
   await page.waitForFunction(() => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN');
 }
