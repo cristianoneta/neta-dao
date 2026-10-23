@@ -21,6 +21,9 @@ import { ruleProposal } from '../../planner-proposal-draft.mjs';
 import { simulate as simulateRule, amount } from '../../juno-delegation-core.mjs';
 import { observed } from '../../tests/fixtures/delegation-planner.mjs';
 import { legacyClaimDraft } from '../../tests/fixtures/legacy-claim.mjs';
+import { claimValidators } from '../../juno-governance-core.mjs';
+import { CLAIM_381_EXPLANATION, CLAIM_TITLE } from '../../claim-numbering.mjs';
+const failedClaim = JSON.parse(await readFile(new URL('../../tests/fixtures/juno-proposal-381.json', import.meta.url))).proposal;
 const root = new URL('../../', import.meta.url),
   history = JSON.parse(await readFile(new URL('data/validator-upgrades/juno-v31.json', root)));
 const sample = fixture();
@@ -106,8 +109,8 @@ try {
         proposals:
           approvalState === 'empty' ||
           (approvalState === 'disagree' && url.searchParams.get('source') === 'juno-stavr')
-            ? []
-            : [approved, ...(publishedRule ? [publishedRule] : [])],
+            ? [failedClaim]
+            : [failedClaim, approved, ...(publishedRule ? [publishedRule] : [])],
         pagination: { next_key: null }
       };
     else return route.fallback();
@@ -307,7 +310,7 @@ try {
     rewardsState = status;
     await page.locator('#refresh').click();
     await ready();
-    assert.equal(await page.locator('#claim-rewards').isDisabled(), true);
+    assert.equal(await page.locator('#claim-rewards').isDisabled(), status !== 'no-price');
     const text = await page.locator('#claim-rewards-amount').textContent();
     assert.equal(text.includes('$'), false);
     assert.match(text, status === 'no-price' ? /3,837,025.34 JUNO/ : /unavailable/);
@@ -559,8 +562,13 @@ try {
       })
     )
   );
-  assert.equal(await page.locator('#claim-rewards').isDisabled(), true);
-  assert.match(await page.locator('#claim-rewards-help').innerText(), /paused after proposal #381/);
+  assert.equal(await page.locator('#claim-rewards').isDisabled(), false);
+  await page.locator('#claim-rewards').click();
+  await page.waitForFunction(() => !!document.querySelector('#gov-connect')?.onclick);
+  const correctedDraftUrl = page.url();
+  assert.equal(await page.locator('#proposal-title').inputValue(), CLAIM_TITLE + ' II');
+  assert.ok((await page.locator('#proposal-body').inputValue()).includes(CLAIM_381_EXPLANATION));
+  assert.equal(claimValidators(JSON.parse(await page.locator('#proposal-actions').inputValue()), { allowLegacy: false }).length, sample.validators.length);
   const legacy = legacyClaimDraft(sample);
   const openDraft = async (draft, id) => {
     const url = await page.evaluate(
@@ -575,18 +583,18 @@ try {
   };
   await openDraft(legacy, '11111111-1111-4111-8111-111111111111');
   await page.waitForFunction(() =>
-    document.querySelector('#action-hint').textContent.includes('paused after proposal #381')
+    document.querySelector('#action-hint').textContent.includes('incompatible format from proposal #381')
   );
 
   assert.equal(await page.locator('#primary-action').isDisabled(), true);
-  assert.match(await page.locator('#action-hint').innerText(), /paused after proposal #381/);
+  assert.match(await page.locator('#action-hint').innerText(), /incompatible format from proposal #381/);
   assert.equal(await page.locator('#proposal-title').inputValue(), legacy.values.title);
   assert.deepEqual(
     JSON.parse(await page.locator('#proposal-actions').inputValue()),
     JSON.parse(legacy.values.actions_json)
   );
-  // Submission/funding/journal coverage uses a text-only rule decision. A mocked
-  // successful submission is never evidence that a programme claim can execute.
+  // Text-only rule drafts remain valid. The corrected claim exercises the real UI
+  // publication/funding/journal flow; the isolated Juno check proves execution.
   const p = defaultPolicy();
   const rule = ruleProposal({
     proposalType: 'RULE_APPROVAL',
@@ -603,6 +611,8 @@ try {
     () => document.querySelector('#primary-action').textContent === 'PUBLISH FOR REVIEW'
   );
   assert.deepEqual(JSON.parse(await page.locator('#proposal-actions').inputValue()), []);
+  await page.goto(correctedDraftUrl);
+  await page.waitForFunction(() => !!document.querySelector('#gov-connect')?.onclick);
   await exerciseReviewFunding(page, origin, sample);
   await page.locator('#new-draft').click();
   assert.equal(

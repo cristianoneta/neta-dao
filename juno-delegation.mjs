@@ -10,7 +10,7 @@ import {
   savePlannerProposal
 } from './planner-proposal-draft.mjs';
 import { claimRewardsOverview } from './juno-claim-rewards.mjs';
-import { CLAIM_REWARDS_BLOCK_REASON } from './juno-governance-core.mjs';
+import { readClaimContext } from './claim-numbering.mjs';
 import {
   defaultPolicy,
   editablePolicy,
@@ -52,7 +52,11 @@ function claimFeedback(message, tone = 'info') {
     target.scrollIntoView({ block: 'nearest' });
   }
 }
+let preparingClaim = false;
 function renderClaimRewards() {
+  $('claim-rewards').disabled = true;
+  $('claim-rewards-help').textContent =
+    'Refresh current programme rewards data before preparing a claim.';
   $('claim-rewards-observed').textContent = '';
   if (!data || !rewardsSource) {
     $('claim-rewards-amount').textContent =
@@ -61,6 +65,10 @@ function renderClaimRewards() {
   }
   try {
     const value = claimRewardsOverview(rewardsSource, data);
+    $('claim-rewards').disabled =
+      loading || preparingClaim || !data.validators.some((v) => BigInt(v.currentRaw) > 0n);
+    $('claim-rewards-help').textContent =
+      'Prepare a community proposal to withdraw rewards into the programme treasury.';
     const amountLine = node('span', '', 'reward-value');
     amountLine.append(
       document.createTextNode(formatAmount(value.amountRaw) + ' '),
@@ -540,8 +548,6 @@ async function load() {
       BigInt(data.liquidRaw) < LIQUID_RESERVE
         ? 'Less than 50 JUNO is currently spendable. A lower target does not create immediate liquidity; any unstaking must complete before the reserve is available.'
         : 'At least 50 JUNO remains available outside the allocation; rounding can leave more.';
-    $('claim-rewards').disabled = true;
-    $('claim-rewards-help').textContent = CLAIM_REWARDS_BLOCK_REASON;
     $('simulate').disabled = false;
     renderRules();
     tell(
@@ -573,6 +579,7 @@ async function load() {
     tell(error.message, 'error');
   } finally {
     loading = false;
+    renderClaimRewards();
     $('refresh').disabled = false;
   }
 }
@@ -803,24 +810,28 @@ $('adopt-current-rules').onclick = () => {
   invalidate();
   renderRules();
 };
-$('claim-rewards').addEventListener('click', () => {
+$('claim-rewards').addEventListener('click', async () => {
   const button = $('claim-rewards');
+  if (preparingClaim) return;
   try {
-    if (!data || loading) throw Error('Load current programme data first.');
+    if (!data || loading || !rewardsSource) throw Error('Load current programme data first.');
+    preparingClaim = true;
     button.disabled = true;
     button.textContent = 'Preparing claim draft…';
     claimFeedback('Preparing a local draft. No wallet signature is required.');
     renderClaimRewards();
-    openProposal(claimProposal(data, Date.now(), rewardsSource));
+    const context = await readClaimContext([
+      'https://juno-api.polkachu.com',
+      'https://rest.lavenderfive.com/juno',
+      'https://juno.api.m.stavr.tech'
+    ]);
+    openProposal(claimProposal(data, Date.now(), rewardsSource, context));
   } catch (error) {
     claimFeedback(`Could not open the claim draft. ${error.message}`, 'error');
   } finally {
+    preparingClaim = false;
     button.textContent = 'Create claim rewards proposal';
-    button.disabled =
-      loading ||
-      !data ||
-      freshness() > 3600000 ||
-      !data.validators.some((v) => BigInt(v.currentRaw) > 0n);
+    renderClaimRewards();
   }
 });
 // Expire observations on long-open tabs without changing edited allocation inputs.

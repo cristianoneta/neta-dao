@@ -1,6 +1,10 @@
 # Working on NETA DAO
 
 Read `HANDOFF.md` and `docs/CURRENT_STATE.md` before changing the application.
+For every governance, DAO/SubDAO, staking or transaction change, also read
+`docs/GOVERNANCE_EXECUTION_SEMANTICS.md`. Keep Cosmos SDK proposal submission,
+DAO DAO authorization/serialization and chain message execution distinct. A
+successful submission simulation never establishes future proposal execution.
 For every UI change or new page, also read `docs/DESIGN_SYSTEM.md` and reuse its
 shared foundations, component rules and page-specific requirements. The owner chose
 the graphite/mint home concept with the voxel assembly plaza on 2026-10-03.

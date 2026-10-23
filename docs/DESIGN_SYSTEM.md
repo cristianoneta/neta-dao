@@ -1,6 +1,16 @@
 # NETA DAO design system
 
-## Programme claim pause — 20 October 2026 candidate
+## Corrected programme claims — 23 October 2026 candidate
+
+Enable claim preparation when programme holdings and reward quantities are fresh
+and complete; a missing USD price does not hide known JUNO rewards. The first
+replacement draft shows the single proposal-381 explanation in the editable body,
+then preserves it in the published review. Later claims omit it based on native
+chain history. Saved incompatible claims retain their historical content and
+show a specific instruction to prepare a new claim from the overview. Native
+execution failures still show the original chain reason as plain text.
+
+## Historical containment: programme claim pause — 20 October 2026
 
 Show a disabled rewards-claim control and the concrete proposal-381 reason beside
 it. Keep balances and historical evidence visible. Saved claim reviews retain their

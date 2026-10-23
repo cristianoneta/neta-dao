@@ -60,8 +60,16 @@
     }
   }
   async function verifyFrozenAction(values) {
-    assertProgrammeExecutionAvailable(JSON.parse(values.actions_json));
+    const messages = JSON.parse(values.actions_json);
+    assertProgrammeExecutionAvailable(messages);
     const context = reviewContext();
+    if (messages.length) {
+      const { readClaimContext, assertClaimContext } = await import('./claim-numbering.mjs');
+      assertClaimContext(
+        { title: values.title, summary: values.summary + '\n\n' + values.body, messages },
+        await readClaimContext(MAINNET_RESTS)
+      );
+    }
     const frozen = await readProposalReview(values);
     if (frozen) {
       const { currentApprovedRules } = await import('./juno-approved-rules.mjs');
@@ -2443,11 +2451,12 @@
             if (native && isPlannerGovernance() && plannerDraft.kind === 'CLAIM_REWARDS') {
               const context = reviewContext();
               actionFeedback('Checking the next mainnet claim number…');
-              const { readClaimTitle } = await import('./claim-numbering.mjs');
+              const { readClaimContext, withClaimContext } = await import('./claim-numbering.mjs');
               context.assert();
-              v.title = await readClaimTitle(MAINNET_RESTS);
+              Object.assign(v, withClaimContext(v, await readClaimContext(MAINNET_RESTS)));
               context.assert();
               $('#proposal-title').value = v.title;
+              $('#proposal-body').value = v.body;
             }
             if (!v.body.includes('This proposal was created on cosmoot.com.')) {
               v.body += '\n\nThis proposal was created on cosmoot.com.';

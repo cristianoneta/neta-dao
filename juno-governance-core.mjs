@@ -4,17 +4,53 @@ import { PROGRAMME, operator } from './juno-delegation-core.mjs';
 export const GOVERNANCE = 'juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730';
 export const EXECUTE = '/cosmwasm.wasm.v1.MsgExecuteContract';
 export const SUBMIT = '/cosmos.gov.v1.MsgSubmitProposal';
+export const PROGRAMME_CODE_HASH =
+  'cf70918a88a9e0654e6b439b8927e8d7897bf113f25909973910682af227e287';
+export const WITHDRAW_REWARD = '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward';
 export const CLAIM_REWARDS_BLOCK_REASON =
-  'Programme rewards claims are paused after proposal #381 failed. The generated actions were incompatible with the programme contract. A replacement requires verified execution before publication or submission.';
-// Historical review decoding is not permission to create a new write.
-export function assertProgrammeExecutionAvailable(messages) {
-  if (!Array.isArray(messages)) throw Error('Invalid proposal messages.');
-  if (messages.some((m) => m?.contract === PROGRAMME)) throw Error(CLAIM_REWARDS_BLOCK_REASON);
+  'This saved claim uses the incompatible format from proposal #381. Return to the programme overview and prepare a new claim; the original review remains unchanged.';
+const same = (a, b) => stable(a) === stable(b);
+
+// MsgWithdrawDelegatorReward has exactly two string fields. Both reviewed Bech32
+// addresses fit a canonical one-byte protobuf length; reject any other encoding.
+export function encodeRewardWithdrawal(validator) {
+  if (typeof validator !== 'string' || !operator.test(validator))
+    throw Error('Invalid programme reward validator.');
+  const delegator = new TextEncoder().encode(PROGRAMME),
+    target = new TextEncoder().encode(validator);
+  if (delegator.length >= 128 || target.length >= 128) throw Error('Invalid address length.');
+  return btoa(
+    String.fromCharCode(10, delegator.length, ...delegator, 18, target.length, ...target)
+  );
 }
-const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-// Historical format only. Code 4047 rejects DistributionMsg. Retain this exact
-// format to verify published review hashes and links, never to authorize a claim.
-export function rewardMessages(validators) {
+export function decodeRewardWithdrawal(message) {
+  if (message?.type_url !== WITHDRAW_REWARD || typeof message.value !== 'string')
+    throw Error('Expected a staking rewards withdrawal.');
+  const bytes = Uint8Array.from(atob(message.value), (c) => c.charCodeAt(0)),
+    split = 2 + bytes[1],
+    end = split + 2 + bytes[split + 1];
+  if (
+    bytes[0] !== 10 ||
+    bytes[1] >= 128 ||
+    bytes[split] !== 18 ||
+    bytes[split + 1] >= 128 ||
+    end !== bytes.length
+  )
+    throw Error('Invalid reward withdrawal protobuf.');
+  const decoder = new TextDecoder('utf-8', { fatal: true }),
+    delegator = decoder.decode(bytes.slice(2, split)),
+    validator = decoder.decode(bytes.slice(split + 2));
+  if (
+    delegator !== PROGRAMME ||
+    !same(message, {
+      type_url: WITHDRAW_REWARD,
+      value: encodeRewardWithdrawal(validator)
+    })
+  )
+    throw Error('Reward withdrawal must use the programme as delegator.');
+  return { delegator, validator };
+}
+function rewardEnvelope(validators, legacy) {
   if (
     !Array.isArray(validators) ||
     !validators.length ||
@@ -31,22 +67,45 @@ export function rewardMessages(validators) {
       funds: [],
       msg: {
         execute_admin_msgs: {
-          msgs: [...validators].sort().map((validator) => ({
-            distribution: { withdraw_delegator_reward: { validator } }
-          }))
+          msgs: [...validators]
+            .sort()
+            .map((validator) =>
+              legacy
+                ? { distribution: { withdraw_delegator_reward: { validator } } }
+                : {
+                    stargate: {
+                      type_url: WITHDRAW_REWARD,
+                      value: encodeRewardWithdrawal(validator)
+                    }
+                  }
+            )
         }
       }
     }
   ];
 }
-export function claimValidators(messages) {
+export const rewardMessages = (validators) => rewardEnvelope(validators, false);
+// Only for immutable historical reviews and schema-1 decoding. Never authorize a write.
+export const legacyRewardMessages = (validators) => rewardEnvelope(validators, true);
+export function claimValidators(messages, { allowLegacy = true } = {}) {
   const inner = messages?.[0]?.msg?.execute_admin_msgs?.msgs;
   if (!Array.isArray(inner)) throw Error('Expected a Juno governance programme rewards message.');
-  const validators = inner.map((v) => v?.distribution?.withdraw_delegator_reward?.validator);
-  // Exact allowlist: no funds, transfers, delegated signer or extra messages/fields.
-  if (!same(messages, rewardMessages(validators)))
+  const legacy = inner.some((v) => v?.distribution);
+  if (legacy && !allowLegacy) throw Error(CLAIM_REWARDS_BLOCK_REASON);
+  const validators = inner.map((v) =>
+    legacy
+      ? v?.distribution?.withdraw_delegator_reward?.validator
+      : decodeRewardWithdrawal(v?.stargate).validator
+  );
+  if (!same(messages, rewardEnvelope(validators, legacy)))
     throw Error('Only the reviewed programme rewards message is supported.');
   return validators;
+}
+// Gate every publication, submission and contribution. Reading old reviews is separate.
+export function assertProgrammeExecutionAvailable(messages) {
+  if (!Array.isArray(messages)) throw Error('Invalid proposal messages.');
+  if (messages.some((m) => m?.contract === PROGRAMME))
+    claimValidators(messages, { allowLegacy: false });
 }
 export function proposalContent(kind, values) {
   if (
@@ -95,11 +154,15 @@ export function displayJuno(raw) {
     fraction = (value % 1000000n).toString().padStart(6, '0').replace(/0+$/, '');
   return `${value / 1000000n}${fraction ? '.' + fraction : ''}`;
 }
-export function verifyProgramme({ account, info, admin, paused, withdraw, delegations }, messages) {
+export function verifyProgramme(
+  { account, info, code, admin, paused, withdraw, delegations },
+  messages
+) {
   if (
     account?.account?.base_account?.address !== GOVERNANCE ||
     account.account.name !== 'gov' ||
     Number(info?.contract_info?.code_id) !== 4047 ||
+    String(code?.code_info?.data_hash || '').toLowerCase() !== PROGRAMME_CODE_HASH ||
     admin?.data !== GOVERNANCE
   )
     throw Error('Juno governance authority over the programme could not be verified.');
@@ -109,7 +172,7 @@ export function verifyProgramme({ account, info, admin, paused, withdraw, delega
     throw Error('Programme pause state requires review before preparing a claim.');
   if (withdraw?.withdraw_address !== PROGRAMME)
     throw Error('Programme rewards withdrawal destination is not the programme treasury.');
-  const validators = claimValidators(messages);
+  const validators = claimValidators(messages, { allowLegacy: false });
   if (
     !Array.isArray(delegations) ||
     delegations.some(
@@ -174,9 +237,10 @@ async function preflightSource(
       if (balance.balance?.denom !== 'ujuno' || !/^\d+$/.test(balance.balance?.amount))
         throw Error('Spendable JUNO balance unavailable.');
       if (content.messages.length) {
-        const [account, info, admin, paused, withdraw] = await Promise.all([
+        const [account, info, code, admin, paused, withdraw] = await Promise.all([
           get('/cosmos/auth/v1beta1/module_accounts/gov'),
           get(`/cosmwasm/wasm/v1/contract/${PROGRAMME}`),
+          get('/cosmwasm/wasm/v1/code/4047'),
           get(`/cosmwasm/wasm/v1/contract/${PROGRAMME}/smart/${btoa('{"admin":{}}')}`),
           get(`/cosmwasm/wasm/v1/contract/${PROGRAMME}/smart/${btoa('{"pause_info":{}}')}`),
           get(`/cosmos/distribution/v1beta1/delegators/${PROGRAMME}/withdraw_address`)
@@ -196,7 +260,10 @@ async function preflightSource(
           if (seen.has(key) || page === 19) throw Error('Incomplete programme delegations.');
           seen.add(key);
         }
-        verifyProgramme({ account, info, admin, paused, withdraw, delegations }, content.messages);
+        verifyProgramme(
+          { account, info, code, admin, paused, withdraw, delegations },
+          content.messages
+        );
       }
       return {
         height,

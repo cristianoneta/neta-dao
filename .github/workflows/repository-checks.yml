@@ -54,6 +54,24 @@ jobs:
     needs: scope
     if: needs.scope.outputs.source == 'true'
     uses: ./.github/workflows/contract-ci.yml
+  programme_execution:
+    needs: scope
+    if: needs.scope.outputs.source == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - run: npm ci --prefix faucet --ignore-scripts
+      - name: Download the pinned Juno runtime
+        run: |
+          curl --fail --location --retry 3 https://github.com/CosmosContracts/juno/releases/download/v31.0.0/junod --output "$RUNNER_TEMP/junod"
+          echo "46fddb2c8c3fadcded48c63f72d88e9452cfd8a1da282892878a9f05d47f873c  $RUNNER_TEMP/junod" | sha256sum --check
+          chmod 700 "$RUNNER_TEMP/junod"
+      - name: Execute original and corrected claims through local Juno governance
+        run: node scripts/check-programme-execution.mjs "$RUNNER_TEMP/junod"
   wasm:
     needs: scope
     if: needs.scope.outputs.source == 'true'
@@ -77,7 +95,7 @@ jobs:
   required:
     name: Required repository checks
     if: always()
-    needs: [scope, general, contracts, wasm, browser, faucet, backup, names]
+    needs: [scope, general, contracts, programme_execution, wasm, browser, faucet, backup, names]
     runs-on: ubuntu-latest
     steps:
       - env:

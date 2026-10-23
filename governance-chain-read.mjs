@@ -36,6 +36,7 @@ export function governanceReadTarget(source, path, height = '') {
         '/cosmos/gov/v1/params/tallying',
         '/cosmos/staking/v1beta1/pool',
         '/cosmos/auth/v1beta1/module_accounts/gov',
+        '/cosmwasm/wasm/v1/code/4047',
         `/cosmwasm/wasm/v1/contract/${programme}`,
         `/cosmwasm/wasm/v1/contract/${REVIEW_MAINNET_RELEASE.contract}`,
         `/cosmwasm/wasm/v1/code/${REVIEW_MAINNET_RELEASE.codeId}`,

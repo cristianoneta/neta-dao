@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { claimProposal } from '../planner-proposal-draft.mjs';
 import {
   assertProgrammeExecutionAvailable,
   preflight,
@@ -65,17 +64,16 @@ test('proposal 381 reproduces the parser failure in the exact deployed code 4047
 });
 
 test('new claims and preflight reject the incident payload before network or wallet access', async () => {
-  assert.throws(() => claimProposal(), /paused after proposal #381/);
   assert.throws(
     () => assertProgrammeExecutionAvailable(proposal.messages),
-    /paused after proposal #381/
+    /incompatible format from proposal #381/
   );
   // A textual or encoded contract payload cannot bypass the contract-level pause.
   const encoded = proposal.messages.map((m) => ({
     ...m,
     msg: Buffer.from(JSON.stringify(m.msg)).toString('base64')
   }));
-  assert.throws(() => assertProgrammeExecutionAvailable(encoded), /paused after proposal #381/);
+  assert.throws(() => assertProgrammeExecutionAvailable(encoded));
   assert.doesNotThrow(() => assertProgrammeExecutionAvailable([]));
   let reads = 0;
   await assert.rejects(
@@ -85,7 +83,7 @@ test('new claims and preflight reject the incident payload before network or wal
         throw Error('Must not query');
       }
     }),
-    /paused after proposal #381/
+    /incompatible format from proposal #381/
   );
   assert.equal(reads, 0);
 });
