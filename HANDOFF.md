@@ -22,6 +22,9 @@ on Injective and return to the pool are separate manual steps. Review finalizati
 JUNO deposit, wallet confirmation and pending-transaction recovery remain in place.
 This candidate is not published. PR checks and the owner's manual Cloudflare
 release remain required; no mainnet transaction or swap was performed.
+The preceding claim repair (PR 301, source
+`88864ea19f02fa97e9a63683200bfbb391985cef`) was subsequently published by successful
+manual release [40020512048](https://github.com/cristianoneta/neta-dao/actions/runs/40020512048).
 
 ## Programme claims repaired — 23 October 2026 release candidate
 
