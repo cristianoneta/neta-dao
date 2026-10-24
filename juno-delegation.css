@@ -827,7 +827,8 @@
   font-size: 13px;
   font-weight: 500;
 }
-.criterion #commission {
+.criterion #commission,
+.criterion #uptime {
   max-width: 180px;
 }
 .delegation-hub .check-option {

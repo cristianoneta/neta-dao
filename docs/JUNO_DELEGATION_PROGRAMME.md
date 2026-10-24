@@ -1,5 +1,14 @@
 # Juno Delegation Programme
 
+24 October owner update (source candidate): schema 6 makes the minimum observed
+commit-signature ratio configurable from 95–100%, in 0.01-percentage-point steps,
+with 97.5% as the default. It is open criterion 6, after Manual exclusions at 5.
+The chosen minimum is frozen in the policy, compared against the approved value
+and applied with exact integer arithmetic. Editable historical drafts migrate;
+existing schema-6 choices survive save/reload and adoption of approved rules.
+Published schemas 2–5 remain unchanged; schema 5 still requires exactly 97.5%.
+Manual publication and a functioning public history export remain separate gates.
+
 19 October owner update (implementation candidate): schema 5 introduces the
 **97.5% observed commit-signature minimum now**, superseding the older planned
 95% gate. All editable drafts automatically use the shared available history
@@ -216,8 +225,8 @@ review/signing step described below.
 
 ## Revised controls and proposal handoff
 
-The five criteria (validator status, voting power, commission, upgrade participation
-and manual exclusions) use identical numbered headings, spacing and separators.
+The six criteria (validator status, voting power, commission, upgrade participation,
+manual exclusions and uptime) use identical numbered headings, spacing and separators.
 Manual exclusions are directly visible as point 5 inside the eligibility group;
 adding an exclusion remains optional. Policy schema 2 fingerprints the eligibility
 change and 50-JUNO reserve; old v1 local drafts are preserved and never silently approved or reinterpreted.

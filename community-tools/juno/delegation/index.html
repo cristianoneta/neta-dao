@@ -271,14 +271,13 @@
                 available capacity.
               </p>
               <details id="overview-eligibility-details" class="policy-details">
-                <summary>Eligibility criteria <span>5 checks</span></summary>
+                <summary>Eligibility criteria <span>6 checks</span></summary>
                 <dl class="eligibility-list">
                   <div>
                     <dt>Validator status</dt>
                     <dd>
-                      Continuous active-set membership and at least 97.5% observed commit
-                      signatures, with no current jail. Automatically uses all history collected so
-                      far, then the latest 90 days once available.
+                      Continuous active-set membership, with no current jail. Automatically uses all
+                      history collected so far, then the latest 90 days once available.
                     </dd>
                   </div>
                   <div>
@@ -304,6 +303,13 @@
                     <dd>
                       Explicit validator exclusions with a public reason; changes form part of the
                       rule proposal.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Uptime</dt>
+                    <dd>
+                      Minimum observed commit signatures: 95–100%, proposed default 97.5%. Uses the
+                      same available history, then the rolling 90-day window.
                     </dd>
                   </div>
                 </dl>
@@ -387,22 +393,18 @@
                 each target.
               </p>
               <details id="rules-eligibility-details" class="policy-details" open="">
-                <summary>Eligibility criteria · 5 checks</summary>
+                <summary>Eligibility criteria · 6 checks</summary>
                 <section class="criterion" aria-labelledby="status-criterion">
                   <h4 id="status-criterion"><span>1</span> Validator status</h4>
                   <p>
                     <span id="draft-eligibility-description"
                       >90 continuous days in the active set; while collecting, use the entire
-                      available period; not jailed; at least 97.5% observed commit signatures.</span
+                      available period; not jailed.</span
                     >
                   </p>
                   <p class="field-help">
-                    The window advances automatically with the snapshot. Commit signatures count
-                    against every expected active-set slot; absent and nil slots do not count as
-                    signed.
-                  </p>
-                  <p class="field-help" id="draft-history-coverage" aria-live="polite">
-                    Loading the observed history period…
+                    The window advances automatically with the snapshot. Membership must be
+                    continuous throughout the same observed period used for uptime below.
                   </p>
                 </section>
                 <section class="criterion" aria-labelledby="power-criterion">
@@ -517,6 +519,34 @@
                     No manual exclusions in this draft.
                   </p>
                 </section>
+                <section class="criterion" aria-labelledby="uptime-criterion">
+                  <h4 id="uptime-criterion"><span>6</span> Uptime</h4>
+                  <label for="uptime">Minimum uptime · %</label>
+                  <input
+                    id="uptime"
+                    type="number"
+                    min="95"
+                    max="100"
+                    step="0.01"
+                    value="97.5"
+                    inputmode="decimal"
+                    aria-describedby="uptime-help uptime-error"
+                  />
+                  <p id="uptime-help" class="field-help">
+                    Choose 95–100%, with up to two decimal places. Proposed default: 97.5%. Changing
+                    this threshold requires a new rule approval.
+                  </p>
+                  <p id="uptime-error" class="field-error" hidden>
+                    Enter an uptime threshold from 95 to 100 with up to two decimal places.
+                  </p>
+                  <p>
+                    Measured as signed blocks divided by expected active-set slots, not server
+                    availability. Absent and nil signatures do not count as signed.
+                  </p>
+                  <p class="field-help" id="draft-history-coverage" aria-live="polite">
+                    Loading the observed history period…
+                  </p>
+                </section>
               </details>
             </article>
             <div class="draft-actions">
@@ -546,6 +576,10 @@
               <div>
                 <dt>Manual exclusions</dt>
                 <dd id="draft-exclusions">None</dd>
+              </div>
+              <div>
+                <dt>Minimum uptime</dt>
+                <dd id="draft-uptime">97.5%</dd>
               </div>
             </dl>
             <label for="rule-rationale">Why this change? <small>Optional</small></label

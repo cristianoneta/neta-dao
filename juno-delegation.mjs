@@ -142,7 +142,7 @@ async function loadApprovedRules() {
       parent = structuredClone(result.current);
       rules = editablePolicy(parent?.rule);
       draftStarted = true;
-      restoreCommissionInput();
+      restoreRuleInputs();
     }
     renderRules();
     renderDraftBaseline();
@@ -181,6 +181,10 @@ async function loadApprovedRules() {
         rule.commissionMaxBps === null ? 'No limit' : `${rule.commissionMaxBps / 100}%`
       ],
       ['Validator status', eligibilityDescription(rule)],
+      [
+        'Minimum uptime · observed commit signatures',
+        rule.schema >= 5 ? `${rule.minParticipationBps / 100}%` : 'No signature minimum'
+      ],
       ['Upgrade participation', 'Juno v31 · within 5 hours of the halt'],
       ['Liquid reserve', `${formatAmount(rule.liquidReserveRaw)} JUNO`],
       ['Manual exclusions', String(rule.exclusions.length)],
@@ -350,13 +354,16 @@ function renderRuleSummary() {
     ? ((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2) + '%'
     : 'pending';
   $('rule-summary').textContent =
-    `Equal allocation · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · commit signatures ≥97.5% · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
+    `Equal allocation · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · commit signatures ≥${rules.minParticipationBps / 100}% · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
   $('draft-cap').textContent =
     $('factor-number').checkValidity() && $('factor-number').value ? capText : 'Check value';
   $('draft-commission').textContent = commissionValid()
     ? rules.commissionMaxBps === null
       ? 'No limit'
       : `${rules.commissionMaxBps / 100}%`
+    : 'Check value';
+  $('draft-uptime').textContent = uptimeValid()
+    ? `${rules.minParticipationBps / 100}%`
     : 'Check value';
   const changes = ruleChanges(parent?.rule, rules).filter((r) => r.changed);
   $('draft-change-count').textContent = parent
@@ -385,12 +392,23 @@ function showCommissionError() {
   $('commission-error').hidden = valid;
   $('commission').setAttribute('aria-invalid', String(!valid));
 }
-function restoreCommissionInput() {
+function uptimeValid() {
+  const input = $('uptime');
+  return input.value !== '' && input.checkValidity();
+}
+function showUptimeError() {
+  const valid = uptimeValid();
+  $('uptime-error').hidden = valid;
+  $('uptime').setAttribute('aria-invalid', String(!valid));
+}
+function restoreRuleInputs() {
   const unlimited = rules.commissionMaxBps === null;
   $('no-commission-limit').checked = unlimited;
   $('commission').disabled = unlimited;
   $('commission').value = unlimited ? '10' : String(rules.commissionMaxBps / 100);
   showCommissionError();
+  $('uptime').value = String(rules.minParticipationBps / 100);
+  showUptimeError();
 }
 function renderRules() {
   $('factor').value = rules.factorTenths;
@@ -417,7 +435,8 @@ function renderRules() {
   }
   for (const [input, field] of [
     ['factor-number', 'factorTenths'],
-    ['commission', 'commissionMaxBps']
+    ['commission', 'commissionMaxBps'],
+    ['uptime', 'minParticipationBps']
   ]) {
     const id = input + '-previous';
     let target = $(id);
@@ -428,12 +447,12 @@ function renderRules() {
     }
     const diff = ruleChanges(parent?.rule, rules).find((r) => r.key === field);
     target.replaceChildren(document.createTextNode(`Previously approved: ${diff.before}`));
-    if (parent && diff.changed) {
+    if (parent && diff.changed && (field !== 'minParticipationBps' || parent.rule.schema >= 5)) {
       const reset = node('button', 'Reset');
       reset.type = 'button';
       reset.onclick = () => {
         rules[field] = parent.rule[field];
-        restoreCommissionInput();
+        restoreRuleInputs();
         invalidate();
         renderRules();
       };
@@ -610,6 +629,10 @@ async function runSimulation() {
         'Enter a whole-number commission limit from 0 to 100, or select no commission limit.'
       );
     }
+    if (!uptimeValid()) {
+      focusRuleInput('uptime');
+      throw Error('Enter an uptime threshold from 95 to 100 with up to two decimal places.');
+    }
     invalidate('Calculating the proposed allocation…');
     const token = revision;
     if (approval.status !== 'verified')
@@ -689,6 +712,12 @@ function updateCommission() {
 }
 $('commission').addEventListener('input', updateCommission);
 $('no-commission-limit').addEventListener('change', updateCommission);
+$('uptime').addEventListener('input', () => {
+  showUptimeError();
+  if (uptimeValid()) rules.minParticipationBps = Math.round(Number($('uptime').value) * 100);
+  invalidate();
+  renderRules();
+});
 $('programme-amount').addEventListener('input', () => invalidate());
 $('add-exclusion').addEventListener('click', () => {
   try {
@@ -732,6 +761,11 @@ $('save-draft').addEventListener('click', () => {
       focusRuleInput('commission');
       return;
     }
+    if (!uptimeValid()) {
+      tell('Enter an uptime threshold from 95 to 100 before saving the rules.', 'error');
+      focusRuleInput('uptime');
+      return;
+    }
     localStorage.setItem(
       key,
       JSON.stringify({
@@ -752,7 +786,7 @@ $('save-draft').addEventListener('click', () => {
 $('reset-draft').addEventListener('click', () => {
   rules = editablePolicy(parent?.rule);
   $('rule-rationale').value = '';
-  restoreCommissionInput();
+  restoreRuleInputs();
   $('factor-error').hidden = true;
   $('factor-number').removeAttribute('aria-invalid');
   try {
@@ -806,7 +840,7 @@ $('adopt-current-rules').onclick = () => {
   if (approval.status !== 'verified') return;
   parent = structuredClone(approval.current);
   rules = editablePolicy(parent?.rule);
-  restoreCommissionInput();
+  restoreRuleInputs();
   invalidate();
   renderRules();
 };
@@ -886,7 +920,7 @@ try {
     $('rule-rationale').value = value.rationale || '';
     const migrated = original.schema !== rules.schema;
     $('draft-status').textContent = migrated
-      ? 'History and 97.5% signature rule updated automatically · unapproved'
+      ? 'Editable uptime rule updated automatically · unapproved'
       : 'Local draft restored · original baseline preserved';
     if (migrated || legacy) {
       try {
@@ -905,6 +939,6 @@ try {
   draftStarted = false;
   tell('Saved draft is invalid or unavailable. Default rules loaded.');
 }
-restoreCommissionInput();
+restoreRuleInputs();
 renderRules();
 load();
