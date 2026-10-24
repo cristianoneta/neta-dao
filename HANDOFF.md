@@ -4,10 +4,10 @@ Updated 24 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
-## Current work
+## Completed maintenance
 
 The owner requested the code-review improvements followed by a documentation
-revision. They are grouped in [PR #304](https://github.com/cristianoneta/neta-dao/pull/304)
+revision. They were implemented in [PR #304](https://github.com/cristianoneta/neta-dao/pull/304)
 (`refactor/cosmoot-maintenance-20261024`):
 
 - Explicit proxy trust and independent visitor admission, with spoofing and real
@@ -22,24 +22,28 @@ revision. They are grouped in [PR #304](https://github.com/cristianoneta/neta-da
 - Lockfile/WASM inventory and an explicit dependency-upgrade work plan before the
   temporary crypto-bigint applicability exception expires.
 
-See [implementation, validation and limits](docs/MAINTENANCE_2026-10-24.md).
-PR CI must pass on the final source. Integration, manual website publication and
-backend installation are separate states; do not mark a source change live merely
-because tests passed. The current published source is recorded only in CURRENT_STATE.
+See [implementation, validation and limits](docs/MAINTENANCE_2026-10-24.md) and
+[deployment acceptance](docs/DEPLOYMENT_ACCEPTANCE_2026-10-24.md). PR #304 is
+integrated. Its exact source was published in manual release 40086798887; the
+owner separately installed the tested backend image and proxy configuration.
+The current published source is recorded only in CURRENT_STATE.
 
-## Release continuation
+## Next work
 
-1. Inspect the one maintenance PR and all required final-head checks. Preserve
-   the real Juno execution regression and all artifact/audit/browser gates.
-2. After integration, the owner runs the deliberate Cloudflare release from `main`
-   with `deploy=true` and that exact merge SHA as `expected_commit`.
-3. The admission fix additionally requires the reviewed backend image and Caddy/
-   Compose configuration on OVH. Follow the private operator procedure and public
-   [template guidance](deploy/cosmoot/README.md); preserve the latest databases,
-   identities, quotas, allowlist and pending journals. No host installation is
-   claimed by this development handoff.
-4. Verify the released page and backend behavior separately, then update
-   CURRENT_STATE in place with the actual evidence.
+1. Do not repeat the completed host installation, export/import or website release.
+   Exact installation and rollback records are in the private operator handoff.
+   A future code rollback must preserve the latest production databases.
+2. Complete the remaining manual desktop/mobile and wallet acceptance when needed.
+   Existing browser CI is synthetic evidence; the fresh-browser encrypted-message
+   restore remains deferred. No live quota-exhaustion test was performed.
+3. Refresh outdated homepage status copy (the 10 October statements about native
+   voting and review-to-mainnet development). This is a separate editorial UI
+   follow-up, not an observed transaction failure.
+4. Finish the compatible dependency-upgrade work before the exception deadline.
+   Keep the real Juno execution, artifact, audit and browser gates. Do not extend
+   the exception automatically.
+5. Recurring independent backup retention and controlled live snapshot fallback
+   remain open. A local export and one reachable snapshot do not close those gates.
 
 ## Preservation and open product boundaries
 
