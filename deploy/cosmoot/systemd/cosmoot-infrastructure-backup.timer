@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily verified encrypted Cosmoot infrastructure backup
+
+[Timer]
+OnCalendar=*-*-* 03:40:00 UTC
+RandomizedDelaySec=10min
+Persistent=true
+Unit=cosmoot-infrastructure-backup@backup.service
+
+[Install]
+WantedBy=timers.target
