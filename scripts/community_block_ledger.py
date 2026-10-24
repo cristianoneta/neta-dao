@@ -191,6 +191,23 @@ def allocation(result, height):
 
 
 def batch(heights):
+    import block_results_cache as cache
+    found, missing = {}, []
+    for h in heights:
+        result = cache.get(RPC, CHAIN, h)
+        if result is None:
+            missing.append(h)
+        else:
+            amounts, extra, transactions = allocation(result, h)
+            digest = hashlib.sha256(json.dumps(result, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+            found[h] = (h, amounts, extra, transactions, digest)
+    if missing:
+        found.update((row[0], row) for row in uncached_batch(missing))
+    return [found[h] for h in heights]
+
+
+def uncached_batch(heights):
+    import block_results_cache as cache
     payload = [{'jsonrpc':'2.0', 'id':h, 'method':'block_results', 'params':{'height':str(h)}} for h in heights]
     data = request(RPC, payload)
     by_id = {}
@@ -225,6 +242,7 @@ def batch(heights):
         amounts, extra, transactions = allocation(row['result'], h)
         digest = hashlib.sha256(json.dumps(row['result'],sort_keys=True,separators=(',',':')).encode()).hexdigest()
         out.append((h, amounts, extra, transactions, digest))
+        cache.put(RPC, CHAIN, h, row['result'])
     return out
 
 
@@ -297,6 +315,8 @@ def run(path=OUT, seconds=180, workers=6):
             validate(data);write(path,data)
             print(json.dumps({'through':row['end']['timestamp'],'height':end,'target':target,'ranges':len(data['ranges']),'seconds':round(time.monotonic()-started)}),flush=True)
             start=end+1
+    from block_results_cache import metrics
+    print(json.dumps({'blockCache': metrics()}), flush=True)
     return data
 
 

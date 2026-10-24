@@ -3,8 +3,11 @@ import json
 import os
 import tempfile
 import unittest
+import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
+sys.path.insert(0, str(Path(__file__).parents[1] / 'scripts'))
 
 
 SPEC = importlib.util.spec_from_file_location(
@@ -25,6 +28,44 @@ def snapshot(stamp, total="1"):
 
 
 class TreasuryHistoryTests(unittest.TestCase):
+    def test_auto_keeps_latest_observation_even_when_evening_run_is_missing(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(treasury, 'OUT', Path(directory)), patch.dict(os.environ, {'TREASURY_DAILY_SNAPSHOT': 'auto'}):
+            for stamp, total in [('2026-10-24T06:00:00Z', '1'),
+                                 ('2026-10-24T16:00:00Z', '2'),
+                                 ('2026-10-24T10:00:00Z', 'old'),
+                                 ('2026-10-26T09:00:00Z', '3')]:
+                treasury.write_snapshot(snapshot(stamp, total))
+            rows = json.loads((Path(directory) / 'history.json').read_text())['snapshots']
+            self.assertEqual([(r['generated_at'], r['total_usd']) for r in rows],
+                [('2026-10-24T16:00:00Z', '2'), ('2026-10-26T09:00:00Z', '3')])
+
+    def test_corrupt_history_is_never_reset(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(treasury, 'OUT', Path(directory)):
+            path = Path(directory) / 'history.json'
+            path.write_text('{broken')
+            with self.assertRaises(json.JSONDecodeError):
+                treasury.write_snapshot(snapshot('2026-10-24T06:00:00Z'))
+            self.assertEqual(path.read_text(), '{broken')
+            self.assertFalse((Path(directory) / 'current.json').exists())
+
+    def test_hot_history_trims_only_after_exact_archive_and_survives_archive_failure(self):
+        from evidence_archive import read_bundle
+        with tempfile.TemporaryDirectory() as directory, patch.object(treasury, 'OUT', Path(directory)), patch.dict(os.environ, {'TREASURY_DAILY_SNAPSHOT': '0'}, clear=True):
+            path = Path(directory) / 'history.json'
+            rows = [snapshot((datetime(2024, 1, 1, tzinfo=timezone.utc) + timedelta(days=i)).isoformat()) for i in range(731)]
+            path.write_text(json.dumps({'schema_version': 1, 'snapshots': rows}))
+            treasury.write_snapshot(snapshot('2026-10-24T06:00:00Z'))
+            self.assertEqual(len(json.loads(path.read_text())['snapshots']), 731)
+            archive = Path(directory) / 'archive'
+            with patch.dict(os.environ, {'COSMOOT_ARCHIVE_DIRECTORY': str(archive)}):
+                with patch('evidence_archive.store', side_effect=OSError('disk full')), self.assertRaises(OSError):
+                    treasury.write_snapshot(snapshot('2026-10-24T07:00:00Z'))
+                self.assertEqual(len(json.loads(path.read_text())['snapshots']), 731)
+                treasury.write_snapshot(snapshot('2026-10-24T07:00:00Z'))
+            bundle = read_bundle(next(archive.rglob('*.json.gz')))
+            self.assertEqual(bundle['payload']['snapshots'], rows[:1])
+            self.assertEqual(json.loads(path.read_text())['snapshots'], rows[1:])
+
     def test_non_daily_run_preserves_existing_same_day_snapshot(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(treasury, "OUT", Path(directory)):
             history = Path(directory) / "history.json"

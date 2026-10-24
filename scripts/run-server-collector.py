@@ -32,7 +32,8 @@ def main():
     if len(sys.argv) != 2 or sys.argv[1] not in {"treasury", "main", "members"}:
         raise SystemExit("Choose treasury, main or members")
     job = sys.argv[1]
-    env = dict(os.environ, TREASURY_DAILY_SNAPSHOT="auto", PYTHONDONTWRITEBYTECODE="1")
+    env = dict(os.environ, TREASURY_DAILY_SNAPSHOT="auto", PYTHONDONTWRITEBYTECODE="1",
+               COSMOOT_ARCHIVE_DIRECTORY=str(STATE / 'archive'))
     # Never inherit the price authority into generic collectors.
     env.pop("NNS_PRICE_SIGNING_KEY", None)
     env.pop("CREDENTIALS_DIRECTORY", None)
@@ -73,6 +74,8 @@ def main():
                     print("Price authority missing; retaining previous signed price.", file=sys.stderr)
                     succeeded = False
             # Publish independent results without manufacturing freshness on source failure.
+            from public_observation_archive import capture
+            print(json.dumps({'archive': capture(ROOT, STATE / 'archive', job)}))
             spec = importlib.util.spec_from_file_location("publisher", ROOT / "scripts/publish-server-snapshots.py")
             publisher = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(publisher)

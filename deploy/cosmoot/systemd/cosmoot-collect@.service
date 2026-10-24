@@ -10,10 +10,12 @@ Group=cosmoot-collect
 WorkingDirectory=/srv/cosmoot/collectors/repo
 Environment=PATH=/opt/cosmoot/node/bin:/srv/cosmoot/collectors/venv/bin:/usr/bin:/bin
 Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=COSMOOT_BLOCK_CACHE_DIRECTORY=/var/lib/cosmoot-block-cache
 # Optional read-only history. Missing/lagging archives keep current holdings visible.
 Environment=COSMOOT_VALIDATOR_HISTORY_DB=/var/lib/cosmoot-validator-history/history.sqlite3
 ExecStart=/srv/cosmoot/collectors/venv/bin/python scripts/run-server-collector.py %i
-StateDirectory=cosmoot-collect
+StateDirectory=cosmoot-collect cosmoot-block-cache
+StateDirectoryMode=0700
 UMask=0022
 TimeoutStartSec=20min
 TimeoutStopSec=15s

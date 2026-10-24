@@ -268,9 +268,13 @@ class Reader:
         return rows
 
     def blocks(self, heights):
+        import block_results_cache as cache
+        cached = {h: cache.get(self.rpc_base, CHAIN, h) for h in heights}
         payload = []
         for height in heights:
             for method in ('commit', 'validators', 'block_results'):
+                if method == 'block_results' and cached[height] is not None:
+                    continue
                 params = {'height': str(height)}
                 if method == 'validators':
                     params.update(page='1', per_page='100')
@@ -284,9 +288,14 @@ class Reader:
         by_id = {row['id']: row for row in data}
         if set(by_id) != wanted or any(row.get('error') or not isinstance(row.get('result'), dict) for row in data):
             raise ValueError('RPC batch identity/error mismatch')
-        return [observation(h, by_id[f'{h}:commit']['result'],
-                            self.validators(h, by_id[f'{h}:validators']['result']),
-                            by_id[f'{h}:block_results']['result']) for h in heights]
+        output = []
+        for h in heights:
+            result = cached[h] if cached[h] is not None else by_id[f'{h}:block_results']['result']
+            output.append(observation(h, by_id[f'{h}:commit']['result'],
+                          self.validators(h, by_id[f'{h}:validators']['result']), result))
+            if cached[h] is None:
+                cache.put(self.rpc_base, CHAIN, h, result)
+        return output
 
     def pages(self, path, field, height):
         rows, key, seen = [], '', set()
@@ -473,17 +482,26 @@ def first_height(reader, target, low, high):
     return high
 
 
-def retain(db, through_time, days=120):
+def retain(db, through_time, days=120, archive_dir=None):
     # Retain exact blocks for the full 90-day window plus a 30-day cushion.
     cutoff = (instant(through_time) - timedelta(days=days)).timestamp()
+    if archive_dir is None:
+        # Collection without an archive destination must never discard evidence.
+        return {'status': 'retained', 'reason': 'archive-not-configured'}
+    from validator_archive import archive_prefix
     with db:
+        db.execute('BEGIN IMMEDIATE')
         heights = [r[0] for r in db.execute('SELECT height FROM blocks WHERE epoch<? ORDER BY height LIMIT 5000', (cutoff,))]
         if heights:
             end = heights[-1]
+            receipt = archive_prefix(db, archive_dir, end)
             db.execute('DELETE FROM events WHERE height<=?', (end,))
             db.execute('DELETE FROM blocks WHERE height<=?', (end,))
             db.execute('DELETE FROM transitions WHERE height<=?', (end,))
-            db.execute('DELETE FROM snapshots WHERE epoch<?', (cutoff,))
+            db.execute('DELETE FROM snapshots WHERE height<=?', (end,))
+            set_meta(db, 'lastArchive', receipt)
+            return {'status': 'archived', **receipt}
+    return {'status': 'not-due'}
     # No full VACUUM: freed pages are reused, avoiding large rewrites on this VPS.
 
 
@@ -533,7 +551,7 @@ def health(value, now=None):
     return {'ok': not issues, 'issues': issues, 'scope': 'Collection freshness, not validator eligibility'}
 
 
-def run(db, reader, start_time, max_blocks=120):
+def run(db, reader, start_time, max_blocks=120, archive_dir=None):
     info = reader.rpc('status')['sync_info']
     safe = integer(info['latest_block_height'], 4) - 2
     if info['catching_up'] is not False or abs((datetime.now(timezone.utc) - instant(info['latest_block_time'])).total_seconds()) > 180:
@@ -590,9 +608,9 @@ def run(db, reader, start_time, max_blocks=120):
             if error:
                 break
     cursor = get_meta(db, 'cursor')
-    if cursor:
-        retain(db, cursor['time'])
-    return report(db, safe, error, metadata_error)
+    retention = retain(db, cursor['time'], archive_dir=archive_dir) if cursor else None
+    from block_results_cache import metrics
+    return {**report(db, safe, error, metadata_error), 'archive': retention, 'blockCache': metrics()}
 
 
 def main():
@@ -629,7 +647,8 @@ def main():
         db = connect(args.state_dir / 'history.sqlite3')
         try:
             try:
-                result = run(db, Reader(args.rpc, args.rest, args.seconds), args.start_time, args.max_blocks)
+                result = run(db, Reader(args.rpc, args.rest, args.seconds), args.start_time,
+                             args.max_blocks, archive_dir=args.state_dir / 'archive')
             except Exception as exc:
                 result = report(db, error=f'{type(exc).__name__}: {exc}')
             atomic_json(args.state_dir / 'status.json', result)

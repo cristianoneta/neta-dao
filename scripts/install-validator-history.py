@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install only the reviewed validator-history script and two new systemd units.
+"""Install the reviewed validator collector/helpers and two systemd units.
 
 Run as root with an exact source commit. Existing differing files are never
 overwritten. --activate explicitly enables the timer and starts a bounded run.
@@ -18,8 +18,11 @@ import tempfile
 from urllib.request import urlopen
 
 FILES = {
-    'scripts/validator_history.py': 'da1b6c8f6ac3a87dd5b9879d899934d8bbaa4baacaf96e9e42cda494eac09ad5',
-    'deploy/cosmoot/systemd/cosmoot-validator-history.service': '63b416eb0c66d3a9e5e46257915bca4061d20256e125cccea318c46192bdd92a',
+    'scripts/validator_history.py': '7ad9c754e55f0c03e765a7352dca9fddc310a6a62c91b5360f51b1238935f77a',
+    'scripts/validator_archive.py': '727e467d119a746d38f8f7f47e5942daafea89479f1a2dba566b68cb6abbafb7',
+    'scripts/evidence_archive.py': 'd78df42887eddbea22e7b127032cf64196b50b9fb6a9afaeaa6c20c0c3ea3684',
+    'scripts/block_results_cache.py': 'ab8986cd26cf5cfc0277d81741aa2d4f327a2af2bbc70b88675a078333c35b03',
+    'deploy/cosmoot/systemd/cosmoot-validator-history.service': '8974a309b850dbf7983dec191da57cac9eabaaa88b95268189316afa382fb8a9',
     'deploy/cosmoot/systemd/cosmoot-validator-history.timer': '4587b0ac55cdcfb50e131b3351cc7a8a6a627f82aea154d55596bed30852e586',
 }
 REPO = Path('/srv/cosmoot/collectors/repo')

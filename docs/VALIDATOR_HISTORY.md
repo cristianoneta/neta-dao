@@ -170,10 +170,13 @@ Metadata failure is reported separately and does not erase collected blocks.
   may arrive out of order but must contain every exact requested ID once.
 - Default at most 120 blocks / 90 seconds per run; timer waits 30 seconds after a
   run finishes. A separate lock prevents manual/timer overlap.
-- The service is unprivileged and read-only outside its own state directory, has
+- The service is unprivileged and read-only outside its state and shared cache directories, has
   256 MiB maximum RAM, 40% of one CPU and a 120-second outer timeout. No credentials.
 - SQLite retains exact block evidence, selected events and hourly snapshots for
-  120 days. Pruning is bounded per run; daily aggregates and current streaks remain.
+  120 days. The 24 October source first archives and verifies exact expired rows
+  before pruning at most 5,000 blocks per run; archive failure retains the rows.
+  Daily aggregates and current streaks remain. Local archives have no expiry and
+  do not prove independent retention. [Details and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md).
   Freed pages are reused rather than fully vacuuming the database each run.
   Identical repeated consensus-parameter responses are stored once and again when
   they change; the full per-block result digest is still retained.
@@ -189,9 +192,10 @@ server performance benchmark. Check sustained throughput before increasing rate.
 ## Installation and acceptance
 
 Use the reviewed service/timer templates in `deploy/cosmoot/systemd`. Install only
-the new script and units from an exact checked commit with SHA-256 verification;
+the script, imported helpers and units from an exact checked commit with SHA-256 verification;
 use the private operator handoff for actual access and installation commands.
-No existing collector, publisher, snapshot allowlist or frontend file needs changing.
+The 24 October shared-cache change also updates the common collector service.
+The publisher allowlist and frontend need no changes for these archives.
 The service uses its own `StateDirectory`; history is not publicly served.
 
 1. Verify the existing collector account and root-owned code path, available disk,

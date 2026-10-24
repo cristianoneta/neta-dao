@@ -9,6 +9,9 @@ import tempfile
 import time
 import unittest
 import zlib
+import sys
+from unittest.mock import patch
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 
 spec = importlib.util.spec_from_file_location('history', Path(__file__).resolve().parents[1] / 'scripts/validator_history.py')
 history = importlib.util.module_from_spec(spec)
@@ -217,11 +220,64 @@ class HistoryTests(unittest.TestCase):
         self.initialize(10, '2026-01-01T00:00:00Z')
         history.append(self.db, item(10, '2026-01-01T00:00:00Z'))
         history.append(self.db, item(11, '2026-01-02T00:00:00Z'))
-        history.retain(self.db, '2026-05-01T12:00:00Z')
+        history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=Path(self.temp.name) / 'archive')
         self.assertEqual(self.db.execute('SELECT height FROM blocks').fetchall(), [(11,)])
         self.assertEqual(self.db.execute('SELECT sum(expected) FROM daily').fetchone()[0], 8)
         self.assertEqual(history.get_meta(self.db, 'cursor')['height'], 11)
         self.assertEqual(self.db.execute('SELECT count(*) FROM streaks').fetchone()[0], 4)
+
+    def test_archive_failure_or_missing_destination_cannot_delete_history(self):
+        self.initialize(10, '2026-01-01T00:00:00Z')
+        history.append(self.db, item(10, '2026-01-01T00:00:00Z'))
+        self.assertEqual(history.retain(self.db, '2026-05-01T12:00:00Z')['status'], 'retained')
+        with patch('validator_archive.store', side_effect=OSError('archive unavailable')), self.assertRaises(OSError):
+            history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=Path(self.temp.name) / 'archive')
+        self.assertEqual(self.db.execute('SELECT height FROM blocks').fetchall(), [(10,)])
+
+    def test_transaction_rollback_reuses_export_and_corrupt_export_blocks_pruning(self):
+        self.initialize(10, '2026-01-01T00:00:00Z')
+        history.append(self.db, item(10, '2026-01-01T00:00:00Z'))
+        root = Path(self.temp.name) / 'archive'
+        with patch.object(history, 'set_meta', side_effect=RuntimeError('interrupted before commit')), self.assertRaises(RuntimeError):
+            history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=root)
+        self.assertEqual(self.db.execute('SELECT height FROM blocks').fetchall(), [(10,)])
+        bundle = next(root.rglob('*.json.gz'))
+        original = bundle.read_bytes()
+        bundle.write_bytes(b'broken archive')
+        with self.assertRaises((ValueError, OSError)):
+            history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=root)
+        self.assertEqual(self.db.execute('SELECT height FROM blocks').fetchall(), [(10,)])
+        bundle.write_bytes(original)
+        history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=root)
+        self.assertEqual(len(list(root.rglob('*.json.gz'))), 1)
+        self.assertEqual(self.db.execute('SELECT height FROM blocks').fetchall(), [])
+
+    def test_archived_rows_restore_exactly_including_blobs_rosters_events_and_metadata(self):
+        from evidence_archive import read_bundle
+        from validator_archive import decode
+        self.initialize(10, '2026-01-01T00:00:00Z')
+        observed = item(10, '2026-01-01T00:00:00Z')
+        observed['events'] = [{'type': 'slash', 'attributes': []}]
+        history.append(self.db, observed)
+        with self.db:
+            self.db.execute('INSERT INTO snapshots VALUES (?,?,?,?)', (10, 1767225600, zlib.compress(b'{"validator":"original"}'), 'original'))
+        names = ('blocks', 'events', 'transitions', 'snapshots', 'rosters')
+        original = {name: self.db.execute('SELECT * FROM ' + name).fetchall() for name in names}
+        root = Path(self.temp.name) / 'archive'
+        receipt = history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=root)
+        bundle = read_bundle(root / receipt['path'])['payload']
+        restored = history.connect(Path(self.temp.name) / 'restored.sqlite3')
+        try:
+            for name in names:
+                record = bundle['tables'][name]
+                values = [tuple(decode(cell) for cell in row) for row in record['rows']]
+                placeholders = ','.join('?' for _ in record['columns'])
+                restored.executemany(f'INSERT INTO {name} VALUES ({placeholders})', values)
+                self.assertEqual(sorted(restored.execute('SELECT * FROM ' + name).fetchall()), sorted(original[name]))
+            self.assertEqual(bundle['identity'], history.get_meta(self.db, 'identity'))
+            self.assertEqual(self.db.execute('SELECT count(*) FROM blocks').fetchone()[0], 0)
+        finally:
+            restored.close()
 
     def test_repeated_parameters_are_deduplicated_but_changes_and_jail_events_remain(self):
         self.initialize()

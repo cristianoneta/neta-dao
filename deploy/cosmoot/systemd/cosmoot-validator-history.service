@@ -9,10 +9,11 @@ User=cosmoot-collect
 Group=cosmoot-collect
 WorkingDirectory=/srv/cosmoot/collectors/repo
 Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=COSMOOT_BLOCK_CACHE_DIRECTORY=/var/lib/cosmoot-block-cache
 # Explicit UTC coverage start: the owner's request to begin continuous capture.
 # Once initialized this identity cannot be silently moved forward after failures.
 ExecStart=/usr/bin/python3 scripts/validator_history.py --state-dir /var/lib/cosmoot-validator-history --start-time 2026-10-14T19:17:50Z --seconds 90 --max-blocks 120
-StateDirectory=cosmoot-validator-history
+StateDirectory=cosmoot-validator-history cosmoot-block-cache
 StateDirectoryMode=0700
 UMask=0077
 TimeoutStartSec=120s
