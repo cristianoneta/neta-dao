@@ -84,6 +84,13 @@ See [header semantics and limits](HOME_FALLBACK_2026-10-24.md#upstream-diagnosti
 
 ## Security and maintenance boundaries
 
+- Backup source-owner export: the installed first correction failed its new
+  backup acceptance. A synthetic host probe reproduced EXDEV at hard-link
+  publication across systemd mounts; the separately reported PermissionError
+  remains unattributed. The source follow-up uses a bounded copy, reclaims
+  temporary ownership on failure, permits worker termination and adds required
+  real-systemd sandbox regression checks. Installation and a new verified backup
+  followed by collector progress remain pending. See [backup runbook](INFRASTRUCTURE_BACKUPS.md).
 - `crypto-bigint 0.5.5` remains unpatched in the reviewed native test dependency
   graph. The guarded applicability exception expires **24 November 2026 00:00 UTC**;
   all seven WASM normal/build graphs must exclude that chain. Other advisories

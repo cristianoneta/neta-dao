@@ -71,6 +71,8 @@ jobs:
           chmod 700 "$RUNNER_TEMP/restic"
       - name: Verify SQLite WAL exports, encrypted download and failure handling
         run: sudo env COSMOOT_REQUIRE_OWNER_TESTS=1 RESTIC_BINARY="$RUNNER_TEMP/restic" python3 -m unittest discover -s tests -p test_infrastructure_backup.py -v
+      - name: Verify SQLite exports in the shipped systemd sandbox
+        run: sudo python3 tests/infrastructure_backup_sandbox.py
   contracts:
     needs: scope
     if: needs.scope.outputs.source == 'true'

@@ -39,7 +39,8 @@ RestrictSUIDSGID=yes
 RestrictRealtime=yes
 LockPersonality=yes
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
-CapabilityBoundingSet=CAP_DAC_READ_SEARCH CAP_DAC_OVERRIDE CAP_CHOWN CAP_SETUID CAP_SETGID
+# The root parent must also terminate its different-UID worker on timeout.
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH CAP_DAC_OVERRIDE CAP_CHOWN CAP_SETUID CAP_SETGID CAP_KILL
 # SQLite read-only connections may need writable WAL shared-memory sidecars.
 # The export worker creates them as the database owner, never as the root parent.
 # Match these generic paths to the private inventory before installation.
