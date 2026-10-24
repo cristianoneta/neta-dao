@@ -5,6 +5,14 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
+## Manual exclusions as criterion 5 — owner update, 24 October 2026
+
+Show Manual exclusions as the fifth open eligibility criterion, using the same
+numbered heading, spacing and divider as criteria 1–4. Keep validator selection,
+public reason, draft count and removal controls directly available inside the
+eligibility group. This supersedes the older separate-disclosure direction;
+exclusions remain optional and retain their existing policy and proposal behavior.
+
 ## Compact workspace header — owner update, 24 October 2026
 
 Remove the consolidated-scope explanation above the workspace tabs for every

@@ -848,12 +848,6 @@
 .delegation-hub input:disabled {
   color: var(--neta-text-secondary);
 }
-.manual-exclusions {
-  border-top: 1px solid var(--neta-border);
-  padding-top: 12px;
-  margin-top: 24px;
-  font-size: 13px;
-}
 .exclusions {
   list-style: none;
   padding: 0;
