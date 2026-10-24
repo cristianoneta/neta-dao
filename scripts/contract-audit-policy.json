@@ -1,0 +1,13 @@
+{
+  "expiresAt": "2026-11-24T00:00:00Z",
+  "inputsSha256": "e2faf911eb80921687f769bf336b22ecc874263b009e035be2a184fb546f99d6",
+  "contracts": [
+    "neta-proposal-workshop",
+    "workshop-access-mock",
+    "neta-names",
+    "neta-validator-profiles",
+    "neta-names-v2",
+    "neta-names-test-token",
+    "neta-relay-mailbox"
+  ]
+}

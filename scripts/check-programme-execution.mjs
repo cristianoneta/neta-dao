@@ -337,8 +337,14 @@ try {
     assert.ok(BigInt(proposal.final_tally_result.yes_count) > 0n);
     return proposal;
   };
-  const before = await balance(),
-    originalPositions = await positions();
+  // RPC height can advance before the REST query store is ready after genesis.
+  // Wait only for the initial read snapshot; later execution assertions stay strict.
+  const initialState = await until(async () => ({
+    balance: await balance(),
+    positions: await positions()
+  }));
+  const before = initialState.balance,
+    originalPositions = initialState.positions;
   const unauthorized = await tx(
     'wasm',
     'execute',
