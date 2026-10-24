@@ -37,6 +37,28 @@ TABLES = {
 }
 
 
+def error_details(error):
+    """Bounded operation names and errno only; never paths, values or messages."""
+    allowed = {'main', 'stage', 'backup', 'locked', 'copy_file', 'copy_tree',
+               'sqlite_copy', 'export_as_owner', 'export_database', 'validate_database',
+               'validate_config', 'credential_environment', 'validate_credential_separation',
+               'private_file', 'checked_path', 'verify_restore', 'run'}
+    operation = 'unknown'
+    tb = error.__traceback__
+    while tb:
+        if tb.tb_frame.f_globals.get('__name__') == __name__:
+            name = tb.tb_frame.f_code.co_name
+            if name in allowed:
+                operation = name
+        tb = tb.tb_next
+    details = getattr(error, '_backup_details', {})
+    if details.get('operation') in allowed:
+        operation = details['operation']
+    number = details.get('errno', getattr(error, 'errno', None))
+    return {'operation': operation,
+            'errno': number if type(number) is int and 0 < number < 4096 else None}
+
+
 def checked_path(value, kind=None):
     path = Path(value)
     if not path.is_absolute() or '..' in path.parts:
@@ -194,8 +216,6 @@ def export_as_owner(source, target, budget, timeout, owner):
     if parent.st_uid != os.geteuid() or parent.st_mode & 0o077:
         raise ValueError('SQLite staging parent must be owned and private')
     with tempfile.TemporaryDirectory(prefix='cosmoot-sqlite-export-', dir='/tmp') as outer:
-        if Path(outer).stat().st_dev != target.parent.stat().st_dev:
-            raise ValueError('SQLite temporary export and staging must share a filesystem')
         os.chmod(outer, 0o711)
         directory = Path(outer) / 'database'
         directory.mkdir(mode=0o700)
@@ -218,7 +238,8 @@ def export_as_owner(source, target, budget, timeout, owner):
                 except BaseException as error:
                     # Never send provider locations, source content or secrets.
                     try:
-                        os.write(write_fd, type(error).__name__.encode()[:100])
+                        report = {'error_type': type(error).__name__, **error_details(error)}
+                        os.write(write_fd, json.dumps(report).encode()[:512])
                     finally:
                         os._exit(1)
                 os._exit(0)
@@ -233,11 +254,17 @@ def export_as_owner(source, target, budget, timeout, owner):
                 if time.monotonic() > deadline:
                     raise TimeoutError('SQLite export deadline exceeded')
                 time.sleep(0.05)
-            failure = os.read(read_fd, 100).decode(errors='replace')
+            failure = os.read(read_fd, 512)
             if status:
+                try:
+                    details = json.loads(failure)
+                except (ValueError, UnicodeError):
+                    details = {}
                 error_type = {'TimeoutError': TimeoutError, 'ValueError': ValueError,
-                              'PermissionError': PermissionError}.get(failure, RuntimeError)
-                raise error_type('SQLite source-owner export failed')
+                              'PermissionError': PermissionError}.get(details.get('error_type'), RuntimeError)
+                error = error_type('SQLite source-owner export failed')
+                error._backup_details = details
+                raise error
         finally:
             if pid:
                 try:
@@ -248,17 +275,24 @@ def export_as_owner(source, target, budget, timeout, owner):
             os.close(read_fd)
             if write_fd is not None:
                 os.close(write_fd)
+            # Reclaim even failed exports before TemporaryDirectory cleanup.
+            # With CAP_FOWNER absent, rmtree cannot chmod an owner-created file
+            # while recovering from a permission error in an owner-only directory.
+            os.chown(directory, os.geteuid(), os.getegid())
+            os.chmod(directory, 0o700)
         # Revoke directory access before inspecting or changing the output file.
-        os.chown(directory, os.geteuid(), os.getegid())
-        os.chmod(directory, 0o700)
         exported = checked_path(directory / 'export.sqlite', 'file')
         if exported.stat().st_nlink != 1:
             raise ValueError('SQLite worker output must not be hard-linked')
         os.chown(exported, os.geteuid(), os.getegid())
         os.chmod(exported, 0o600)
-        # Same filesystem; exclusive publication without another full-size copy.
-        # link() refuses an existing target, including a dangling symlink.
-        os.link(exported, target, follow_symlinks=False)
+        # PrivateTmp and ReadWritePaths can be separate mounts with equal st_dev.
+        # A bounded exclusive copy works across those mounts; link/rename do not.
+        # Its reserve check covers staging + the later downloaded copy while the
+        # temporary export still occupies disk. Account the final export once.
+        transfer_budget = Budget(budget.root, budget.maximum, budget.reserve)
+        transfer_budget.used = budget.used
+        copy_file(exported, target, transfer_budget)
 
 
 def export_database(source, target, kind, budget, timeout=120):
@@ -438,7 +472,7 @@ def attempt(work, command):
         yield
     except BaseException as error:
         atomic_json(work / 'last-attempt.json', {**status, 'state': 'failed',
-            'finished_at': int(time.time()), 'error_type': type(error).__name__})
+            'finished_at': int(time.time()), 'error_type': type(error).__name__, **error_details(error)})
         raise
     else:
         atomic_json(work / 'last-attempt.json', {**status, 'state': 'succeeded',
@@ -548,6 +582,6 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as error:
-        print(json.dumps({'ok': False, 'error_type': type(error).__name__,
+        print(json.dumps({'ok': False, 'error_type': type(error).__name__, **error_details(error),
                           'scope': 'No new acceptance; inspect configuration and service state privately.'}))
         raise SystemExit(1)

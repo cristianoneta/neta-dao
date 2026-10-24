@@ -69,6 +69,8 @@ jobs:
           bzip2 --decompress --stdout "$RUNNER_TEMP/restic.bz2" > "$RUNNER_TEMP/restic"
           echo "20d4142678d0d95ec11a4759def1b73fd9190abc9ca19e4b62d067c0b387e639  $RUNNER_TEMP/restic" | sha256sum --check
           chmod 700 "$RUNNER_TEMP/restic"
+      - name: Verify SQLite exports in the shipped systemd sandbox
+        run: sudo python3 tests/infrastructure_backup_sandbox.py
       - name: Verify SQLite WAL exports, encrypted download and failure handling
         run: sudo env COSMOOT_REQUIRE_OWNER_TESTS=1 RESTIC_BINARY="$RUNNER_TEMP/restic" python3 -m unittest discover -s tests -p test_infrastructure_backup.py -v
   contracts:

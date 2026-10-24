@@ -170,6 +170,27 @@ else:
 
 
 class ExportTests(Fixture):
+    def test_error_details_do_not_include_exception_values_or_paths(self):
+        error = PermissionError(13, 'private-secret', '/private/source')
+        error._backup_details = {'operation': 'sqlite_copy', 'errno': 13,
+                                 'path': '/private/source', 'message': 'private-secret'}
+        self.assertEqual(backup.error_details(error), {'operation': 'sqlite_copy', 'errno': 13})
+        error._backup_details = {'operation': '/private/source', 'errno': 'private-secret'}
+        self.assertEqual(backup.error_details(error), {'operation': 'unknown', 'errno': None})
+
+    def test_copy_budget_counts_destination_once_and_preserves_existing_bytes(self):
+        source = self.work / 'temporary-export'
+        source.write_bytes(b'synthetic export')
+        target = self.work / 'published-export'
+        budget = backup.Budget(self.work, 10**7, 0)
+        budget.used = 100
+        backup.copy_file(source, target, budget)
+        self.assertEqual(budget.used, 100 + source.stat().st_size)
+        self.assertEqual(target.read_bytes(), source.read_bytes())
+        with self.assertRaises(FileExistsError):
+            backup.copy_file(source, target, budget)
+        self.assertEqual(budget.used, 100 + source.stat().st_size)
+
     @unittest.skipUnless(os.geteuid() == 0, 'Worker changes identity through root')
     def test_worker_path_with_current_owner(self):
         try:

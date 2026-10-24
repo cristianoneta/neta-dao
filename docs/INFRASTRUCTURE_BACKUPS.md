@@ -32,12 +32,21 @@ The source fix exports each database under its numeric owner in an isolated
 worker. A separate private temporary directory contains only that account's
 database export; credentials and other staging files stay root-only. The parent
 takes ownership of the completed export before publishing it into staging.
-The temporary directory and staging must share a filesystem so the export can
-be moved without an unbudgeted full-size copy. Online WAL visibility,
+The parent uses a bounded exclusive copy into staging, with room reserved for
+the temporary export, staging and the later downloaded copy. Hard links are not
+valid across the separate PrivateTmp/staging mounts even when device IDs match.
+Online WAL visibility,
 deadlines, disk budgets, source locks and restored-data verification remain in
 place. No source journals are deleted and no immutable SQLite mode is used.
 The systemd template additionally requires CHOWN, SETUID and SETGID capabilities
-for that worker; the source databases retain their read-only mount bindings.
+for that worker, plus KILL to terminate a different-UID worker on timeout; the
+source databases retain their read-only mount bindings. Temporary directory
+ownership is reclaimed before cleanup on both successful and failed exports.
+SETUID is also explicitly retained in AmbientCapabilities: systemd 255's seccomp
+setup otherwise drops it from the permitted/effective sets before execution,
+even though it remains in CapabilityBoundingSet. NoNewPrivileges remains enabled.
+The required sandbox test checks that each non-root worker loses all permitted,
+effective and ambient capabilities after changing identity.
 The database owner must be able to traverse its source path. An inaccessible
 path or failed privilege change fails the backup without a new success receipt.
 
@@ -45,7 +54,17 @@ Required root CI includes a quiescent service-owned WAL database, an existing
 uncheckpointed WAL, a subsequent service-account write, private staging access,
 budget failure, timeout cleanup and refusal to replace an existing destination.
 These cross-account checks must not be skipped in the required integration job.
-Host installation of the correction and a new backup followed by collector
+The first owner-export correction was installed, but its real backup failed
+with PermissionError. A subsequent synthetic host probe established EXDEV at
+hard-link publication for all three source owners. The matching CI sandbox also
+reproduced PermissionError at setuid with SETUID absent from the effective set;
+the systemd 255 startup implementation explains this missing capability. This is
+the identified source/configuration defect; host acceptance is still pending.
+The follow-up adds a
+required real-systemd CI probe using the shipped hardening, separate mounts,
+read-only source binds, two service UIDs, failure cleanup and subsequent writes.
+The earlier unrestricted-root CI did not exercise these restrictions.
+Installation of the follow-up and a new backup followed by collector
 success remain pending. Do not repeat repository initialization. Scheduled-run
 verification and the deferred recovery drill remain separate acceptance steps.
 
@@ -237,7 +256,10 @@ is not guaranteed secure erasure on SSDs; protect the host and backup work disk.
 Provider diagnostics may include sensitive paths/credentials and are written only
 as root-private `last-restic-error.json`, with a timestamp and bounded output.
 Do not post that file, the raw manifest, receipts or configuration to Git/CI/chat.
-Journal output contains only generic success/error type. If credentials are wrong,
+Journal output contains only generic success/error type, an allowlisted operation
+name and numeric errno; worker errors preserve these fields without raw messages,
+paths or values. The same bounded details appear in the private attempt record.
+If credentials are wrong,
 fix the private configuration; do not initialize another repository or unlock a
 repository without checking for an actual active client.
 
@@ -250,8 +272,10 @@ tests under sudo without production credentials. The latter use a synthetic chil
 process to verify redacted output, private diagnostics and SIGTERM cleanup.
 Normal `npm run verify` also runs the unit cases; real integration cases are skipped
 there unless `RESTIC_BINARY` is set; CLI boundary tests require root. Both are
-required in their own CI job.
-These tests do not prove R2 access, effective target-host sandboxing or recovery on
+required in their own CI job. That job also runs
+`sudo python3 tests/infrastructure_backup_sandbox.py` on a real systemd runner;
+missing sandbox support fails rather than skipping it.
+These tests do not prove R2 access, effective target-host configuration or recovery on
 another machine. Host service acceptance remains mandatory before enabling its timer.
 
 - [Restic restore and overwrite behavior](https://restic.readthedocs.io/en/stable/050_restore.html)
