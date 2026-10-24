@@ -4,10 +4,12 @@ import json
 import os
 from pathlib import Path
 import shutil
+import signal
 import sqlite3
 import subprocess
 import sys
 import tempfile
+import time
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -274,6 +276,61 @@ class ExportTests(Fixture):
                 backup.private_file(path)
 
 
+@unittest.skipUnless(os.getuid() == 0, 'Root-only CLI boundary; required integration job uses sudo')
+class CliTests(Fixture):
+    def command(self, program):
+        binary = self.root / 'fake-restic'
+        binary.write_text('#!/usr/bin/python3\n' + program)
+        binary.chmod(0o700)
+        config = self.root / 'config.json'
+        config.write_text(json.dumps({**self.config, 'restic': str(binary)}))
+        config.chmod(0o600)
+        creds = self.root / 'credentials'
+        creds.mkdir(mode=0o700)
+        values = {'repository': 's3:https://' + 'a'*32 + '.eu.r2.cloudflarestorage.com/synthetic-bucket',
+                  'password': 'synthetic-password-'*3, 'access-key': 'synthetic', 'secret-key': 'synthetic'}
+        for name, value in values.items():
+            (creds / name).write_text(value)
+            (creds / name).chmod(0o600)
+        return [sys.executable, backup.__file__, 'backup', '--config', str(config)], {
+            'PATH': '/usr/bin:/bin', 'CREDENTIALS_DIRECTORY': str(creds)}
+
+    def test_cli_failure_keeps_private_diagnostics_out_of_output(self):
+        command, env = self.command("import sys\nprint('synthetic-sensitive-detail', file=sys.stderr)\nsys.exit(42)\n")
+        result = subprocess.run(command, env=env, capture_output=True, text=True, timeout=5)
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn('synthetic-sensitive-detail', result.stdout + result.stderr)
+        self.assertEqual(json.loads((self.work / 'last-attempt.json').read_text())['state'], 'failed')
+        private = self.work / 'last-restic-error.json'
+        self.assertIn('synthetic-sensitive-detail', private.read_text())
+        self.assertEqual(private.stat().st_mode & 0o777, 0o600)
+        self.assertFalse((self.work / 'last-success.json').exists())
+
+    def test_sigterm_kills_child_and_records_failed_attempt(self):
+        marker = self.work / 'child.pid'
+        command, env = self.command("import os, time\nfrom pathlib import Path\nPath(" + repr(str(marker)) + ").write_text(str(os.getpid()))\ntime.sleep(60)\n")
+        process = subprocess.Popen(command, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            deadline = time.monotonic() + 5
+            while not marker.exists() and time.monotonic() < deadline:
+                time.sleep(0.02)
+            self.assertTrue(marker.exists())
+            child_pid = int(marker.read_text())
+            process.send_signal(signal.SIGTERM)
+            stdout, stderr = process.communicate(timeout=5)
+            self.assertEqual(process.returncode, 1)
+            self.assertIn('InterruptedError', stdout)
+            self.assertEqual(stderr, '')
+            with self.assertRaises(ProcessLookupError):
+                os.kill(child_pid, 0)
+            self.assertEqual(json.loads((self.work / 'last-attempt.json').read_text())['state'], 'failed')
+            self.assertFalse((self.work / 'last-success.json').exists())
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.communicate()
+
+
 @unittest.skipUnless(RESTIC, 'Set RESTIC_BINARY for real repository integration (required CI job)')
 class ResticTests(Fixture):
     def setUp(self):
@@ -383,9 +440,21 @@ class ResticTests(Fixture):
     def test_corrupt_remote_pack_fails_download_and_full_check(self):
         self.run_backup(self.restic)
         prior = (self.work / 'last-success.json').read_bytes()
-        pack = next(p for p in (self.repository / 'data').rglob('*') if p.is_file())
+        # Corrupt a referenced, unchanged source blob, not an arbitrary pack:
+        # old tree/manifest blobs need not be read by the next snapshot.
+        wanted = backup.hashlib.sha256(bytes(range(256))).hexdigest()
+        matches = []
+        for index_id in self.restic.run('list', 'index').splitlines():
+            index = json.loads(self.restic.run('cat', 'index', index_id))
+            for entry in index['packs']:
+                for blob in entry['blobs']:
+                    if blob['id'] == wanted:
+                        matches.append((entry['id'], blob['offset'], blob['length']))
+        self.assertEqual(len(matches), 1)
+        pack_id, offset, length = matches[0]
+        pack = self.repository / 'data' / pack_id[:2] / pack_id
         data = bytearray(pack.read_bytes())
-        data[len(data)//2] ^= 0xff
+        data[offset + length//2] ^= 0xff
         pack.chmod(0o600)
         pack.write_bytes(data)
         with self.assertRaises(RuntimeError):

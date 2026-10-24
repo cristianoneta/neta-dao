@@ -202,9 +202,12 @@ repository without checking for an actual active client.
 
 Run `RESTIC_BINARY=/absolute/verified/restic python3 -m unittest discover -s tests
 -p test_infrastructure_backup.py -v`. The required repository workflow downloads the
-pinned archive and runs real local repository tests without production credentials.
+pinned archive and runs real local repository tests plus root-only CLI failure/signal
+tests under sudo without production credentials. The latter use a synthetic child
+process to verify redacted output, private diagnostics and SIGTERM cleanup.
 Normal `npm run verify` also runs the unit cases; real integration cases are skipped
-there unless `RESTIC_BINARY` is set, and are required in their own CI job.
+there unless `RESTIC_BINARY` is set; CLI boundary tests require root. Both are
+required in their own CI job.
 These tests do not prove R2 access, effective target-host sandboxing or recovery on
 another machine. Host service acceptance remains mandatory before enabling its timer.
 
