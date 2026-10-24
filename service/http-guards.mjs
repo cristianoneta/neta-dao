@@ -1,15 +1,20 @@
-// Bounded, short-lived admission only. Forwarded headers are deliberately ignored.
+import { clientAddressResolver } from './client-address.mjs';
+
+// Bounded admission. Only explicitly trusted peers may supply the edge client IP.
 export function clientThrottle({
   now = Date.now,
   maximum = 60,
   windowMs = 60000,
-  capacity = 10000
+  capacity = 10000,
+  trustedProxies = []
 } = {}) {
   const clients = new Map();
+  const address = clientAddressResolver(trustedProxies);
   return (req) => {
     const time = now();
     for (const [key, value] of clients) if (value.expires <= time) clients.delete(key);
-    const key = req.socket.remoteAddress;
+    const key = address(req);
+    if (!key) return false;
     if (!clients.has(key)) {
       if (clients.size >= capacity) return false;
       clients.set(key, { count: 0, expires: time + windowMs });

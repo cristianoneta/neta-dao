@@ -1,30 +1,66 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { publicAuthorName } from '../proposal-identity.mjs';
-import { nextClaimTitle, roman, CLAIM_TITLE, readClaimTitle, nextClaimContext, withClaimContext, assertClaimContext, CLAIM_381_EXPLANATION } from '../claim-numbering.mjs';
+import {
+  nextClaimTitle,
+  roman,
+  CLAIM_TITLE,
+  readClaimTitle,
+  nextClaimContext,
+  withClaimContext,
+  assertClaimContext,
+  CLAIM_381_EXPLANATION
+} from '../claim-numbering.mjs';
 import { readFileSync } from 'node:fs';
 import { proposalContent } from '../juno-governance-core.mjs';
 import { rewardMessages } from '../juno-governance-core.mjs';
 import { legacyClaimDraft as claimProposal } from './fixtures/legacy-claim.mjs';
 import { fixture } from './fixtures/delegation-planner.mjs';
 test('explanation belongs to the first corrected native claim, never to local draft count', () => {
-  const old = JSON.parse(readFileSync(new URL('./fixtures/juno-proposal-381.json', import.meta.url))).proposal;
-  const messages = rewardMessages(fixture().validators.map(v => v.address));
+  const old = JSON.parse(
+    readFileSync(new URL('./fixtures/juno-proposal-381.json', import.meta.url))
+  ).proposal;
+  const messages = rewardMessages(fixture().validators.map((v) => v.address));
   const context = nextClaimContext([old]);
   assert.deepEqual(context, { title: CLAIM_TITLE + ' II', explain381: true });
-  const values = { title: '', summary: 'Claim', body: 'Rewards\n\nThis proposal was created on cosmoot.com.', actions_json: JSON.stringify(messages) };
+  const values = {
+    title: '',
+    summary: 'Claim',
+    body: 'Rewards\n\nThis proposal was created on cosmoot.com.',
+    actions_json: JSON.stringify(messages)
+  };
   const first = withClaimContext(values, context);
-  assert.deepEqual(withClaimContext(first, context), first, 'Repeated preparation retains exactly one explanation');
+  assert.deepEqual(
+    withClaimContext(first, context),
+    first,
+    'Repeated preparation retains exactly one explanation'
+  );
   assertClaimContext(proposalContent('CLAIM_REWARDS', first), context);
-  assert.throws(() => assertClaimContext(proposalContent('CLAIM_REWARDS', { ...first, body: 'Removed explanation' }), context));
-  const replacement = { id: '382', title: CLAIM_TITLE + ' II', messages, status: 'PROPOSAL_STATUS_DEPOSIT_PERIOD' };
+  assert.throws(() =>
+    assertClaimContext(
+      proposalContent('CLAIM_REWARDS', { ...first, body: 'Removed explanation' }),
+      context
+    )
+  );
+  const replacement = {
+    id: '382',
+    title: CLAIM_TITLE + ' II',
+    messages,
+    status: 'PROPOSAL_STATUS_DEPOSIT_PERIOD'
+  };
   const later = nextClaimContext([old, replacement]);
   assert.deepEqual(later, { title: CLAIM_TITLE + ' III', explain381: false });
   assert.equal(withClaimContext(first, later).body.includes(CLAIM_381_EXPLANATION), false);
   assert.throws(() => assertClaimContext(proposalContent('CLAIM_REWARDS', first), later));
   assert.equal(nextClaimContext([old, { ...replacement, messages: [] }]).explain381, true);
-  assert.equal(nextClaimContext([old, { ...replacement, messages: old.messages }]).explain381, true);
-  assert.equal(nextClaimContext([old, { ...replacement, status: 'PROPOSAL_STATUS_FAILED' }]).explain381, false);
+  assert.equal(
+    nextClaimContext([old, { ...replacement, messages: old.messages }]).explain381,
+    true
+  );
+  assert.equal(
+    nextClaimContext([old, { ...replacement, status: 'PROPOSAL_STATUS_FAILED' }]).explain381,
+    false
+  );
 });
 test('public names require matching reverse record, active ownership and expiry', async () => {
   const reader = {

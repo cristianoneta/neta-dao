@@ -21,16 +21,16 @@
     './dao-hierarchy.mjs?v=20261006-structure-1'
   );
   const ORGANIZATIONS = window.NetaDaoOrganizations;
-  const {
-    accountingType,
-    accountingOptions,
-    categoriesFor,
-    categoryRecords,
-    validateCategories,
-    isSpend
-  } = await import('./proposal-accounting.mjs?v=20261006-4');
-  const { publishedReview, indexingUnavailable, reviewEventId, reconcileReviewTransaction } =
-    await import('./review-publication.mjs');
+  const { reviewActionState, nativeSubmissionVisible } = await import(
+    './src/governance/review-state.mjs'
+  );
+  const { loadSocialsSigning } = await import('./browser-signing.mjs');
+  const { governanceQueries, deadline } = await import('./src/governance/queries.mjs');
+  const { reviewSession } = await import('./src/governance/review-session.mjs');
+  const { proposalEditor } = await import('./src/governance/proposal-editor.mjs');
+  const { publishedReview, indexingUnavailable, reviewEventId } = await import(
+    './review-publication.mjs'
+  );
   const {
     normalizeNativeProposal,
     linkedNativeId,
@@ -137,8 +137,7 @@
   const DAO_STORAGE_KEY = 'neta-governance-selected-dao',
     JUNO_REVIEW_CONTRACT_KEY = 'neta-governance-juno-review-contract',
     TEST_ACCESS_CONTRACT = 'juno10739807rjqkf4kmtvpu5ll5e67dkch82xzgph83cmn5h8n0fxmnszasg86',
-    TEST_ADMIN = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57',
-    DELIVERABLE_TYPE = 'dao_deliverable_v1';
+    TEST_ADMIN = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
   function storedScope() {
     try {
       return JSON.parse(localStorage.getItem('neta-governance-scope') || 'null');
@@ -250,8 +249,6 @@
     selected: null,
     revisions: [],
     comments: [],
-    deliverables: [],
-    accountingRecords: [],
     replyTo: null,
     nativeThreads: false,
     busy: false,
@@ -294,9 +291,12 @@
   const { nativePlanner } = await import('./planner-native-governance.mjs');
   const plannerGov = nativePlanner({
     active: () =>
-      (!!sharedFinal || hasLegacyReceipt()) &&
-      !plannerDraftError &&
-      document.body.dataset.workspaceView === 'governance',
+      nativeSubmissionVisible({
+        finalized: !!sharedFinal,
+        legacyReceipt: hasLegacyReceipt(),
+        invalid: !!plannerDraftError,
+        visible: document.body.dataset.workspaceView === 'governance'
+      }),
     draft: submissionDraft,
     values: () => (sharedFinal ? sharedFinal.values : values()),
     address: () => state.address,
@@ -350,6 +350,44 @@
       }, 0);
     }
   });
+  const reads = governanceQueries({
+    review: () => ({ rests: RESTS, contract: CONTRACT, address: state.address }),
+    mainnet: () => ({ rests: MAINNET_RESTS, proposalModule })
+  });
+  const {
+    query,
+    testnetGet,
+    nativeGet,
+    mainnetQuery,
+    queryAll,
+    findUploadedCode,
+    findReviewContract
+  } = reads;
+  const { reviewContext, receiptKey, saveReviewReceipt, pendingReview, reconcileReview } =
+    reviewSession({
+      context: () => ({
+        address: state.address,
+        contract: CONTRACT,
+        chainId: CHAIN_ID,
+        walletChain: state.walletChain,
+        walletEpoch: state.walletEpoch,
+        requestEpoch: state.requestEpoch,
+        selectedKey: state.selected?.key,
+        selectedId: state.selected?.id || null
+      }),
+      label: reviewLabel,
+      lookup: reads.transaction,
+      feedback: actionFeedback
+    });
+  const editor = proposalEditor({
+    $,
+    node,
+    isPlannerGovernance,
+    isNativeReview,
+    renderFrozenValues
+  });
+  const { values, setValues, validate, renderAccounting, renderDeliverables } = editor;
+
   async function openSubmittedProposal(id) {
     const epoch = state.requestEpoch;
     await load();
@@ -360,71 +398,12 @@
   }
   const short = (a) => (a ? `${a.slice(0, 9)}…${a.slice(-6)}` : '—'),
     when = (t) => new Date(Number(t) * 1000).toLocaleString(),
-    deadline = (p, ms, label) =>
-      Promise.race([
-        p,
-        new Promise((_, r) => setTimeout(() => r(new Error(`${label} TIMED OUT`)), ms))
-      ]);
-  const encode = (q) => encodeURIComponent(btoa(JSON.stringify(q))),
     indexingDisabled = indexingUnavailable;
   function status(text, error = false) {
     $('#gov-status').textContent = text;
     $('#gov-status').dataset.state = error ? 'error' : 'ready';
   }
-  function reviewContext() {
-    const address = state.address,
-      contract = CONTRACT,
-      chainId = CHAIN_ID,
-      epoch = state.walletEpoch,
-      request = state.requestEpoch,
-      selected = state.selected?.key;
-    return {
-      address,
-      contract,
-      chainId,
-      selectedId: state.selected?.id || null,
-      assert() {
-        if (
-          address !== state.address ||
-          contract !== CONTRACT ||
-          chainId !== CHAIN_ID ||
-          epoch !== state.walletEpoch ||
-          request !== state.requestEpoch ||
-          selected !== state.selected?.key ||
-          state.walletChain !== CHAIN_ID
-        )
-          throw Error(
-            'Governance context changed. Reconnect the original wallet and check transaction status.'
-          );
-      }
-    };
-  }
-  const receiptKey = (address = state.address) => `cosmoot:review-receipt:${CHAIN_ID}:${address}`;
-  function saveReviewReceipt(result, context, intent = null) {
-    if (result && result.code !== undefined && result.code !== 0) return;
-    const value = JSON.stringify({
-      result,
-      contract: context.contract,
-      chainId: context.chainId,
-      selectedId: context.selectedId,
-      intent
-    });
-    localStorage.setItem(receiptKey(context.address), value);
-    if (localStorage.getItem(receiptKey(context.address)) !== value)
-      throw Error('Confirmed transaction could not be saved. Do not repeat this action.');
-  }
-  function pendingReview() {
-    if (!state.address || state.walletChain !== CHAIN_ID) return false;
-    // Unreadable storage is also locked; never assume that it means no receipt.
-    try {
-      return (
-        !!localStorage.getItem(`neta-pending-tx-v1:${CHAIN_ID}:${state.address}`) ||
-        !!localStorage.getItem(receiptKey())
-      );
-    } catch {
-      return true;
-    }
-  }
+
   function actionFeedback(text, kind = 'pending') {
     state.actionMessage = text;
     state.actionKind = kind;
@@ -453,35 +432,7 @@
       state.actionButton.textContent = 'PROCESSING…';
     }
   }
-  async function reconcileReview(context = reviewContext(), intent = null) {
-    context.assert();
-    actionFeedback(
-      `Checking the previous ${reviewLabel()} transaction. No new signature is requested.`
-    );
-    return reconcileReviewTransaction({
-      storage: localStorage,
-      locks: navigator.locks,
-      sender: context.address,
-      chainId: context.chainId,
-      assertCurrent: context.assert,
-      onConfirmed: (result) => saveReviewReceipt(result, context, intent),
-      fetchTx: async (hash) => {
-        for (const base of RESTS) {
-          try {
-            const response = await deadline(
-              fetch(`${base}/cosmos/tx/v1beta1/txs/${hash}`, { cache: 'no-store' }),
-              8000,
-              'TRANSACTION LOOKUP'
-            );
-            if (!response.ok) continue;
-            const data = await response.json();
-            if (data.tx_response?.txhash?.toUpperCase() === hash) return data;
-          } catch {}
-        }
-        return null;
-      }
-    });
-  }
+
   async function refreshReviewResult(saved, context) {
     context.assert();
     if (saved.contract !== CONTRACT)
@@ -795,111 +746,7 @@
       return selectOrganization(ORGANIZATIONS.find((o) => o.chainId === chain.id));
     closeDaoOptions();
   }
-  async function query(q) {
-    const failures = [];
-    for (const base of RESTS)
-      try {
-        const r = await deadline(
-          fetch(`${base}/cosmwasm/wasm/v1/contract/${CONTRACT}/smart/${encode(q)}`, {
-            cache: 'no-store'
-          }),
-          15000,
-          'CONTRACT QUERY'
-        );
-        if (r.ok) return (await r.json()).data;
-        failures.push(`${base}: HTTP ${r.status}`);
-      } catch (e) {
-        failures.push(`${base}: ${e.message}`);
-      }
-    throw new Error(failures.join(' · '));
-  }
-  async function testnetGet(path) {
-    const failures = [];
-    for (const base of RESTS)
-      try {
-        const response = await deadline(
-          fetch(`${base}${path}`, { cache: 'no-store' }),
-          15000,
-          'UNI-7 QUERY'
-        );
-        if (response.ok) return response.json();
-        const detail = (await response.text()).replace(/\s+/g, ' ').slice(0, 240);
-        failures.push(`${base}: HTTP ${response.status}${detail ? ` · ${detail}` : ''}`);
-      } catch (error) {
-        failures.push(`${base}: ${error.message}`);
-      }
-    throw new Error(failures.join(' · '));
-  }
-  const hashHex = (value) =>
-    /^[0-9a-f]{64}$/i.test(value || '')
-      ? value.toLowerCase()
-      : Array.from(
-          Uint8Array.from(atob(value || ''), (character) => character.charCodeAt(0)),
-          (byte) => byte.toString(16).padStart(2, '0')
-        ).join('');
-  async function findUploadedCode(checksum) {
-    let key = '';
-    for (let page = 0; page < 100; page++) {
-      const result = await testnetGet(
-          `/cosmwasm/wasm/v1/code?pagination.limit=100${key ? `&pagination.key=${encodeURIComponent(key)}` : ''}`
-        ),
-        match = (result.code_infos || []).find(
-          (info) =>
-            info.creator === state.address && hashHex(info.data_hash) === checksum.toLowerCase()
-        );
-      if (match) return { codeId: Number(match.code_id) };
-      key = result.pagination?.next_key || '';
-      if (!key) return null;
-    }
-    throw new Error('CODE PAGINATION SAFETY LIMIT REACHED');
-  }
-  async function findReviewContract(codeId) {
-    const result = await testnetGet(
-        `/cosmwasm/wasm/v1/contracts/creator/${state.address}?pagination.limit=100`
-      ),
-      addresses = [...(result.contract_addresses || [])].reverse();
-    for (const address of addresses) {
-      const info = (await testnetGet(`/cosmwasm/wasm/v1/contract/${address}`)).contract_info;
-      if (
-        Number(info?.code_id) === Number(codeId) &&
-        info?.creator === state.address &&
-        info?.label === 'Juno Governance Community Review · UNI-7'
-      )
-        return { contractAddress: address };
-    }
-    return null;
-  }
-  async function mainnetQuery(q) {
-    const failures = [];
-    for (const base of MAINNET_RESTS)
-      try {
-        const r = await deadline(
-          fetch(`${base}/cosmwasm/wasm/v1/contract/${proposalModule}/smart/${encode(q)}`, {
-            cache: 'no-store'
-          }),
-          15000,
-          'MAINNET QUERY'
-        );
-        if (r.ok) return (await r.json()).data;
-        failures.push(`${base}: HTTP ${r.status}`);
-      } catch (e) {
-        failures.push(`${base}: ${e.message}`);
-      }
-    throw new Error(failures.join(' · '));
-  }
-  async function queryAll(pageQuery, cursorOf) {
-    const rows = [];
-    let cursor = null;
-    for (let page = 0; page < 100; page++) {
-      const batch = await query(pageQuery(cursor));
-      rows.push(...batch);
-      if (batch.length < 100) return rows;
-      const next = cursorOf(batch.at(-1));
-      if (next === cursor) throw new Error('PAGINATION DID NOT ADVANCE');
-      cursor = next;
-    }
-    throw new Error('PAGINATION SAFETY LIMIT REACHED');
-  }
+
   const draftKey = () =>
     plannerDraft && state.dao.id === plannerDraft.daoId
       ? `${PLANNER_DRAFT_PREFIX}${plannerDraft.id}:revision${CHAIN_ID === 'juno-1' ? ':juno-1:' + CONTRACT : ''}`
@@ -927,169 +774,7 @@
       return null;
     }
   }
-  function renderDeliverables() {
-    const list = $('#deliverable-list');
-    list.replaceChildren();
-    state.deliverables.forEach((item, index) => {
-      const row = node('div', 'deliverable-row'),
-        field = (label, key, type = 'text') => {
-          const wrap = node('label', key === 'evidence' ? 'deliverable-evidence' : null, label),
-            input = node('input');
-          input.type = type;
-          input.value = item[key] || '';
-          input.maxLength = key === 'evidence' ? 500 : 160;
-          input.dataset.deliverableField = key;
-          input.oninput = () => (item[key] = input.value);
-          wrap.append(input);
-          return wrap;
-        },
-        remove = node('button', null, 'REMOVE');
-      remove.type = 'button';
-      remove.dataset.removeDeliverable = String(index);
-      remove.onclick = () => {
-        state.deliverables.splice(index, 1);
-        renderDeliverables();
-      };
-      row.append(
-        field('MILESTONE / DELIVERABLE', 'title'),
-        field('DEADLINE', 'due_date', 'date'),
-        field('RESPONSIBLE', 'owner'),
-        field('CONFIRMED BY', 'verifier'),
-        remove,
-        field('EXPECTED RESULT / EVIDENCE', 'evidence')
-      );
-      list.append(row);
-    });
-    if (!state.deliverables.length)
-      list.append(node('div', 'deliverable-empty', 'NO DELIVERABLES DEFINED · OPTIONAL'));
-  }
-  function payloadParts(raw = '[]') {
-    const parsed = JSON.parse(raw || '[]');
-    if (!Array.isArray(parsed)) throw new Error('ACTIONS MUST BE A JSON ARRAY');
-    const metadata = parsed.filter((item) => item?.type === accountingType);
-    if (metadata.length > 1 || metadata.some((item) => !Array.isArray(item.allocations)))
-      throw new Error('INVALID SPENDING CATEGORIES');
-    return {
-      actions: parsed.filter((item) => ![DELIVERABLE_TYPE, accountingType].includes(item?.type)),
-      deliverables: parsed
-        .filter((item) => item?.type === DELIVERABLE_TYPE)
-        .map(({ type, ...item }) => item),
-      accounting: metadata[0]?.allocations || []
-    };
-  }
-  function renderAccounting() {
-    const list = $('#proposal-accounting');
-    list.replaceChildren();
-    if (isPlannerGovernance()) return;
-    if (isNativeReview()) {
-      try {
-        if (isCommunityPoolSpend(JSON.parse($('#proposal-actions').value))) return;
-      } catch {}
-    }
-    let actions;
-    try {
-      actions = payloadParts($('#proposal-actions').value).actions;
-    } catch {
-      list.append(node('p', null, 'Enter valid action JSON to choose spending categories.'));
-      return;
-    }
-    if (!actions.length) {
-      list.append(node('p', null, 'Add an action to assign its spending category.'));
-      return;
-    }
-    const categories = categoriesFor(actions, state.accountingRecords);
-    actions.forEach((action, index) => {
-      const label = node('label'),
-        title = node(
-          'span',
-          null,
-          `Action ${index + 1} · ${isSpend(action) ? 'Spending category (required)' : 'Spending category (if applicable)'}`
-        ),
-        select = node('select');
-      select.dataset.accountingAction = String(index);
-      select.setAttribute('aria-label', `Action ${index + 1} spending category`);
-      select.disabled = $('#proposal-actions').disabled;
-      const empty = node('option', null, 'Select category…');
-      empty.value = '';
-      select.append(empty);
-      accountingOptions.forEach((account) => {
-        const option = node('option', null, account.label);
-        option.value = account.id;
-        select.append(option);
-      });
-      select.value = categories[index];
-      select.onchange = () => {
-        categories[index] = select.value;
-        state.accountingRecords = categoryRecords(actions, categories);
-      };
-      label.append(title, select);
-      list.append(label);
-    });
-  }
-  function values() {
-    const raw = $('#proposal-actions').value.trim() || '[]';
-    let actions;
-    try {
-      actions = payloadParts(raw).actions;
-    } catch {
-      return {
-        title: $('#proposal-title').value.trim(),
-        summary: $('#proposal-summary').value.trim(),
-        body: $('#proposal-body').value.trim(),
-        actions_json: raw
-      };
-    }
-    const deliverables = state.deliverables.map((item) => ({
-      type: DELIVERABLE_TYPE,
-      title: (item.title || '').trim(),
-      due_date: (item.due_date || '').trim(),
-      owner: (item.owner || '').trim(),
-      verifier: (item.verifier || '').trim(),
-      evidence: (item.evidence || '').trim()
-    }));
-    return {
-      title: $('#proposal-title').value.trim(),
-      summary: $('#proposal-summary').value.trim(),
-      body: $('#proposal-body').value.trim(),
-      actions_json: JSON.stringify(
-        [
-          ...actions,
-          ...deliverables,
-          ...(state.accountingRecords.length
-            ? [
-                {
-                  type: accountingType,
-                  allocations: categoryRecords(
-                    actions,
-                    categoriesFor(actions, state.accountingRecords)
-                  )
-                }
-              ]
-            : [])
-        ],
-        null,
-        2
-      )
-    };
-  }
-  function setValues(v = {}) {
-    void renderFrozenValues(v);
-    $('#proposal-title').value = v.title || '';
-    $('#proposal-summary').value = v.summary || '';
-    $('#proposal-body').value = v.body || '';
-    try {
-      const parts = payloadParts(v.actions_json || '[]');
-      $('#proposal-actions').value = JSON.stringify(parts.actions, null, 2);
-      state.deliverables = parts.deliverables;
-      state.accountingRecords = parts.accounting;
-    } catch {
-      $('#proposal-actions').value = v.actions_json || '[]';
-      state.deliverables = [];
-      state.accountingRecords = [];
-    }
-    renderDeliverables();
-    renderAccounting();
-  }
+
   for (const id of ['proposal-title', 'proposal-summary', 'proposal-body', 'proposal-actions'])
     document.getElementById(id).addEventListener('input', () => {
       void renderFrozenValues(
@@ -1101,47 +786,7 @@
         true
       );
     });
-  function validate(v) {
-    if (v.title.length < 3) throw new Error('TITLE MUST CONTAIN AT LEAST 3 CHARACTERS');
-    if (!v.summary) throw new Error('SUMMARY IS REQUIRED');
-    if (!v.body) throw new Error('PROPOSAL BODY IS REQUIRED');
-    let actions;
-    try {
-      actions = JSON.parse(v.actions_json);
-    } catch {
-      throw new Error('ACTIONS MUST BE VALID JSON');
-    }
-    if (!Array.isArray(actions)) throw new Error('ACTIONS MUST BE A JSON ARRAY');
-    if (isNativeReview()) {
-      if (new TextEncoder().encode(`${v.summary.trim()}\n\n${v.body.trim()}`).length > 10000)
-        throw new Error(
-          'On-chain proposal text exceeds 10,000 bytes. Shorten the text or prepare a smaller frozen comparison; do not remove its data.'
-        );
-      for (const [field, max] of [
-        ['title', 100],
-        ['summary', 300],
-        ['body', 10000],
-        ['actions_json', 20000]
-      ])
-        if ([...v[field].trim()].length > max)
-          throw new Error(
-            `${field.toUpperCase()} EXCEEDS THE SHARED REVIEW LIMIT OF ${max} CHARACTERS`
-          );
-    }
-    const parts = payloadParts(v.actions_json);
-    if (isNativeReview() && isCommunityPoolSpend(parts.actions)) assertCommunityPoolSpend(actions);
-    else validateCategories(parts.actions, parts.accounting);
-    actions
-      .filter((item) => item?.type === DELIVERABLE_TYPE)
-      .forEach((item, index) => {
-        if (!item.title || !item.due_date || !item.owner || !item.verifier)
-          throw new Error(
-            `DELIVERABLE ${index + 1} REQUIRES TITLE, DEADLINE, RESPONSIBLE AND CONFIRMED BY`
-          );
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(item.due_date))
-          throw new Error(`DELIVERABLE ${index + 1} HAS AN INVALID DEADLINE`);
-      });
-  }
+
   const chainGroup = (s) =>
       ['passed', 'executed'].includes(s)
         ? 'approved'
@@ -1456,18 +1101,24 @@
       return;
     }
     const selected = state.selected,
-      member = !!state.access?.can_publish,
-      discussion = selected?.status === 'discussion',
       native = isNativeReview(),
+      permissions = reviewActionState({
+        selected,
+        native,
+        readOnly: state.dao.mode === 'dao-readonly',
+        address: state.address,
+        walletChain: state.walletChain,
+        reviewChain: CHAIN_ID,
+        canPublish: !!state.access?.can_publish,
+        contract: CONTRACT,
+        setupAdmin: TEST_ADMIN,
+        configOwner: state.configOwner,
+        busy: state.busy,
+        pending: pendingReview(),
+        hasSubmissionReceipt: !!sharedFinal && plannerGov.hasReceipt()
+      }),
+      { member, discussion, needsSetup, canSetup, withdrawable, canWithdraw } = permissions,
       access = native && state.address ? nativeAccess() : null,
-      needsSetup = native && !CONTRACT,
-      canSetup = needsSetup && state.address === TEST_ADMIN,
-      withdrawable = discussion || (native && selected?.status === 'ready'),
-      canWithdraw =
-        withdrawable &&
-        selected?.source === 'workshop' &&
-        selected.author === state.address &&
-        (native || state.address === state.configOwner),
       commentBlocked =
         discussion && !!state.address && !state.access?.can_comment && !!state.dao.commentStakeUrl;
     $('#native-review-setup').hidden = !native || !!CONTRACT;
@@ -1486,14 +1137,12 @@
     $('#discard-action').hidden =
       !!selected && !(withdrawable && selected.source === 'workshop' && native) && !canWithdraw;
     $('#discard-action').textContent = selected ? 'WITHDRAW REVIEW' : 'DISCARD DRAFT';
-    $('#discard-action').disabled =
-      state.busy ||
-      (!!selected && (!canWithdraw || pendingReview() || (sharedFinal && plannerGov.hasReceipt())));
+    $('#discard-action').disabled = selected ? !permissions.withdraw : state.busy;
     $('#discard-action').title =
       selected && !canWithdraw
         ? `Only the draft author can withdraw this review. Connect the author wallet on ${reviewLabel()}.`
         : `Withdraw this review on ${reviewLabel()} before native submission, keeping its public history.`;
-    setEditable(!state.busy && (!selected || (discussion && member)));
+    setEditable(permissions.edit);
     if (!selected) {
       $('#action-hint').textContent = needsSetup
         ? canSetup
@@ -1515,11 +1164,7 @@
         : native && access?.missing.length
           ? access.missing[0]
           : 'PUBLISH FOR REVIEW';
-      $('#primary-action').disabled =
-        (state.dao.mode === 'dao-readonly' && !isNativeReview()) ||
-        (needsSetup ? !canSetup : !member) ||
-        state.walletChain !== CHAIN_ID ||
-        state.busy;
+      $('#primary-action').disabled = !permissions.publish;
     } else if (discussion) {
       $('#action-hint').textContent = member
         ? native
@@ -1532,9 +1177,9 @@
           : 'Public Discussion view. DAO voting power is required to revise or finalize.';
       $('#save-local').hidden = false;
       $('#save-local').textContent = 'SAVE REVISION LOCALLY';
-      $('#publish-revision').disabled = !member || state.walletChain !== CHAIN_ID || state.busy;
+      $('#publish-revision').disabled = !permissions.revise;
       $('#primary-action').textContent = native ? 'FINALIZE REVIEW' : 'FINALIZE + SUBMIT ON-CHAIN';
-      $('#primary-action').disabled = !member || state.walletChain !== CHAIN_ID || state.busy;
+      $('#primary-action').disabled = !permissions.finalize;
     } else {
       $('#action-hint').textContent =
         native && selected?.status === 'ready'
@@ -1577,22 +1222,7 @@
     }
     renderReviewActivity();
   }
-  async function nativeGet(path) {
-    const failures = [];
-    for (const base of MAINNET_RESTS)
-      try {
-        const response = await deadline(
-          fetch(`${base}${path}`, { cache: 'no-store' }),
-          15000,
-          'JUNO QUERY'
-        );
-        if (response.ok) return response.json();
-        failures.push(`${base}: HTTP ${response.status}`);
-      } catch (error) {
-        failures.push(`${base}: ${error.message}`);
-      }
-    throw new Error(failures.join(' · '));
-  }
+
   const formatJuno = (amount) =>
       `${(Number(amount || 0) / 1e6).toLocaleString(undefined, { maximumFractionDigits: 6 })} JUNO`,
     formatDuration = (value) => {
@@ -2102,7 +1732,10 @@
   async function signer() {
     if (state.client) return state.client;
     if (!state.address) throw new Error('CONNECT KEPLR FIRST');
+    const context = reviewContext();
     if (CHAIN_ID === 'juno-1') await loadReviewSigning();
+    else await loadSocialsSigning();
+    context.assert();
     const base = window.keplr.getOfflineSigner?.(CHAIN_ID) || window.getOfflineSigner?.(CHAIN_ID);
     const wrapped = {
       getAccounts: () => base.getAccounts(),
@@ -2121,14 +1754,23 @@
     };
     for (const rpc of RPCS)
       try {
-        return (state.client = await deadline(
+        const connected = await deadline(
           CHAIN_ID === 'juno-1'
             ? NetaNamesSigning.connect(rpc, wrapped, CHAIN_ID)
             : NetaSocialsTestnet.connect(rpc, wrapped),
           45000,
           'RPC CONNECTION'
-        ));
-      } catch {}
+        );
+        try {
+          context.assert();
+        } catch (error) {
+          connected.disconnect?.();
+          throw error;
+        }
+        return (state.client = connected);
+      } catch (error) {
+        context.assert();
+      }
     throw new Error(`ALL ${reviewLabel().toUpperCase()} RPC ENDPOINTS FAILED`);
   }
   async function recover(check, label) {
@@ -2494,14 +2136,7 @@
     a.focus();
   };
   $('#add-deliverable').onclick = () => {
-    state.deliverables.push({
-      title: '',
-      due_date: '',
-      owner: state.address || '',
-      verifier: '',
-      evidence: ''
-    });
-    renderDeliverables();
+    editor.addDeliverable(state.address || '');
     setEditable(
       !state.selected || (state.selected.status === 'discussion' && !!state.access?.can_publish)
     );
@@ -2853,12 +2488,18 @@
       return 'Review withdrawn. Its proposal text and discussion remain available.';
     });
   };
-  async function mainnetSigner() {
+  async function mainnetSigner(assertCurrent) {
+    assertCurrent();
     if (state.mainnetClient) return state.mainnetClient;
+    await loadSocialsSigning();
+    assertCurrent();
     if (!window.keplr) throw new Error('KEPLR NOT FOUND');
     await window.keplr.enable('juno-1');
+    assertCurrent();
     const base = window.keplr.getOfflineSigner('juno-1'),
       account = (await base.getAccounts())[0];
+    assertCurrent();
+    if (!account?.address) throw new Error('NO KEPLR ACCOUNT AVAILABLE');
     state.address = account.address;
     state.walletChain = 'juno-1';
     renderWallet();
@@ -2869,8 +2510,17 @@
     };
     for (const rpc of MAINNET_RPCS)
       try {
-        return (state.mainnetClient = await NetaSocialsTestnet.connect(rpc, wrapped, '0.075ujuno'));
-      } catch {}
+        const connected = await NetaSocialsTestnet.connect(rpc, wrapped, '0.075ujuno');
+        try {
+          assertCurrent();
+        } catch (error) {
+          connected.disconnect?.();
+          throw error;
+        }
+        return (state.mainnetClient = connected);
+      } catch {
+        assertCurrent();
+      }
     throw new Error('ALL JUNO MAINNET RPC ENDPOINTS FAILED');
   }
   document.querySelectorAll('[data-vote]').forEach(
@@ -2879,19 +2529,25 @@
         run(button, async () => {
           const selected = state.selected,
             epoch = state.requestEpoch,
+            walletEpoch = state.walletEpoch,
             module = proposalModule,
             dao = state.dao;
           if (!dao.canVote || selected?.source !== 'chain' || selected.proposal.status !== 'open')
             throw new Error('VOTING IS NOT OPEN');
-          const client = await mainnetSigner();
-          if (
-            epoch !== state.requestEpoch ||
-            module !== proposalModule ||
-            dao !== state.dao ||
-            state.selected?.key !== selected.key
-          )
-            throw new Error('VOTING CONTEXT CHANGED · REVIEW AGAIN');
+          const assertCurrent = () => {
+            if (
+              epoch !== state.requestEpoch ||
+              walletEpoch !== state.walletEpoch ||
+              module !== proposalModule ||
+              dao !== state.dao ||
+              state.selected?.key !== selected.key
+            )
+              throw new Error('VOTING CONTEXT CHANGED · REVIEW AGAIN');
+          };
+          const client = await mainnetSigner(assertCurrent);
+          assertCurrent();
           const active = (await window.keplr.getOfflineSigner('juno-1').getAccounts())[0]?.address;
+          assertCurrent();
           if (active !== state.address) throw new Error('KEPLR ACCOUNT CHANGED · RECONNECT');
           await NetaSocialsTestnet.execute(
             client,
@@ -2962,6 +2618,7 @@
     renderComments();
   });
   newDraft();
+  renderWallet();
   load()
     .then(async () => {
       const reviewId = plannerParams.get('review'),

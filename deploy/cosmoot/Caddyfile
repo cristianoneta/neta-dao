@@ -6,5 +6,7 @@ api.cosmoot.com {
         X-Frame-Options DENY
         Referrer-Policy no-referrer
     }
-    reverse_proxy backend:8787
+    reverse_proxy backend:8787 {
+        header_up X-Cosmoot-Client-IP {remote_host}
+    }
 }

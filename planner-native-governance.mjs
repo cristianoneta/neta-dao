@@ -1,3 +1,4 @@
+import { loadGovernanceSigning } from './browser-signing.mjs';
 import { isCommunityPoolSpend } from './juno-community-pool-proposal.mjs';
 import {
   verifyReview,
@@ -257,7 +258,9 @@ export function nativePlanner({
         if (typeof base.signDirect !== 'function')
           throw Error('A Keplr account with direct signing support is required.');
         client?.disconnect();
-        client = await NetaJunoGovernance.connect(rpcs, {
+        client = await (
+          await loadGovernanceSigning()
+        ).connect(rpcs, {
           getAccounts: () => base.getAccounts(),
           signDirect: (a, d) =>
             window.keplr.signDirect('juno-1', a, d, { preferNoSetFee: true, preferNoSetMemo: true })

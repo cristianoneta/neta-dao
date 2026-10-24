@@ -1,48 +1,61 @@
-# Releases and rollback
+# Manual releases and rollback
 
-All executable PRs run `Repository checks` with an always-reported
-**Required repository checks** result. Configure that exact check as required in
-GitHub's branch rules. Current connected GitHub tools cannot administer rules;
-the observed main branch was unprotected on 7 October. Account for the existing
-bot snapshot writers when enabling rules: use a narrowly scoped approved bot bypass
-or move those writers to reviewed data PRs first, otherwise snapshots will stop.
-CI existing is not the same
-as branch protection being enabled.
+GitHub is the primary source/CI system. Cloudflare publishes the static website;
+OVH runs the backend and production data collection. Render is retired. Historical
+migration instructions do not authorize starting another writer or restoring an
+older database. The current source/publication receipt lives in [CURRENT_STATE](CURRENT_STATE.md).
 
-## Publish
+## Review and website publication
 
-1. Branch from current main; preserve generated bot data. Review the complete diff.
-2. Keep public Inbox deployment/release pins null unless a separate release review
-   explicitly activates them. Never infer activation from integrating source.
-3. Verify source builds and manifest checks; all required jobs must pass for the
-   exact head. Merge the PR with expected-head protection.
-4. Record source commit, frontend manifest, backend deployed commit, mailbox code/
-   checksum and backup schema in a release receipt. Check actual Pages bytes and
-   Render health; do not substitute workflow success for served-file verification.
-5. Publish an annotated release tag after verification. Backend should track main;
-   a manual Render deploy uses the selected branch, so inspect it before deploying.
-   No new service, disk or plan is needed.
+1. Branch from current main, preserve generated data and use one PR for related
+   changes. Inspect the complete diff, including generated and configuration files.
+2. Run `npm run verify` and the applicable service checks. Every required CI job
+   must pass for the final PR head: browser flows, Docker/Caddy, contract audit,
+   reproducible artifacts and real Juno execution are separate mandatory gates.
+3. Integrate through the protected required aggregate check with expected-head
+   protection. No automatic merge or deployment is implied by an audit exception.
+4. The owner opens [Deliberate Cloudflare release](https://github.com/cristianoneta/neta-dao/actions/workflows/cloudflare-release.yml),
+   selects `main`, sets `deploy=true` and supplies the exact integrated SHA as
+   `expected_commit`. A later main commit requires a new reviewed input.
+5. Confirm Publish succeeded, inspect the served assets and affected desktop/mobile
+   flow, and record the source/run/evidence in CURRENT_STATE in place. Do not claim
+   a real wallet transaction or future governance execution from workflow success.
 
-## Roll back without losing user state
+Keep public Inbox deployment/release pins null unless a separate release review
+explicitly activates messaging. Preserve wallet bindings, pending signatures,
+transaction receipts, original crypto state and frozen proposals.
 
-Retain the previous frontend manifest and deployed backend SHA. Select/redeploy
-that exact known-good application version, preserving disk, environment, allowlist,
-SQLite/WAL and client journals. Never copy an older database over the live store to
-roll back code. No schema migration is introduced in this cleanup (backup envelope
-v1 / SQLite backups table and Faucet quota tables stay compatible).
+## Backend changes
 
-Run the backup tests against previous persisted revisions before promotion and
-verify status/unauthenticated rejection after deployment. A rollback with new-schema
-writes requires its own compatibility review. Contract rollback is not a static
-site operation; it requires explicit upgrade administration and state preservation.
+A website release does not update the API or collectors. Backend changes require
+the reviewed image/configuration and the existing private operator procedure.
+`bash scripts/backend-host-check.sh` runs isolated template, image, restore and
+maintenance checks from a clean checkout. It does not activate production.
 
-## Embedding protection
+For the 24 October admission fix, update Caddy and backend together. The backend
+trusts only the edge's configured API-network address; Caddy overwrites the client
+address header. Keep the backend port unpublished, existing persistent budgets,
+databases, identity and allowlist. Verify two visitors have independent short-term
+limits and spoofed headers cannot bypass them. See [deployment guidance](../deploy/cosmoot/README.md).
+Record website and backend deployment receipts separately. Never infer live host
+configuration from the public Compose template.
 
-GitHub Pages does not accept a repository `_headers` file for custom HTTP headers.
-Do not claim `frame-ancestors` in a meta element protects embedding. Configure the
-edge/hosting HTTP response layer with CSP `frame-ancestors 'none'` and
-`X-Frame-Options: DENY` on user pages; `relay-personal-runtime.html` specifically
-needs `frame-ancestors 'self'` and `X-Frame-Options: SAMEORIGIN` for its crypto iframe.
-`deploy/security-headers.conf` is a reviewable reverse-proxy configuration fragment,
-not an applied GitHub Pages setting. Verify both responses and iframe operation
-before marking this operational item done. No hosting migration is part of this fix.
+## Rollback
+
+Retain the previous frontend manifest and backend source/image identity. Roll code
+back to the reviewed version while preserving current databases/WAL, environment,
+allowlist and browser journals. Never overwrite newer production state with an old
+backup to roll back an application change. Schema compatibility and contract
+upgrades require their own state-preservation and authority review.
+
+The admission change adds no database migration. Its application and proxy
+configuration should be rolled back together. Existing unconfirmed transactions
+remain locked; checking an exact hash must not re-sign or rebroadcast.
+
+## Response headers
+
+The Pages artifact includes the reviewed headers and compiled snapshot Worker.
+User pages deny foreign framing; the same-origin personal crypto runtime iframe
+retains its narrowly scoped embedding permission. Check actual response headers
+and iframe operation after publication; HTML meta tags do not implement
+`frame-ancestors` protection.

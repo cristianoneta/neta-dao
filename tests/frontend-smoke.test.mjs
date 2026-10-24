@@ -1,28 +1,36 @@
-import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import test from "node:test";
-import vm from "node:vm";
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readFileSync, readdirSync } from 'node:fs';
+import test from 'node:test';
+import vm from 'node:vm';
 
-const governance = readFileSync("neta-governance.js", "utf8");
-const html = readFileSync("index.html", "utf8");
-const treasury = readFileSync("treasury.js", "utf8");
-const ux = readFileSync("ux-draft.js", "utf8");
-const relay = readFileSync("relay.js", "utf8");
-const tokenRegistry = JSON.parse(readFileSync("data/treasury/token-registry.json", "utf8"));
+const governance = readFileSync('neta-governance.js', 'utf8');
+const html = readFileSync('index.html', 'utf8');
+const treasury = readFileSync('treasury.js', 'utf8');
+const ux = readFileSync('ux-draft.js', 'utf8');
+const relay = readFileSync('relay.js', 'utf8');
+const tokenRegistry = JSON.parse(readFileSync('data/treasury/token-registry.json', 'utf8'));
 
-test("browser scripts parse", () => {
-  execFileSync(process.execPath, ["--check", "neta-governance.js"]);
-  execFileSync(process.execPath, ["--check", "ux-draft.js"]);
-  execFileSync(process.execPath, ["--check", "treasury.js"]);
-  execFileSync(process.execPath, ["--check", "relay.js"]);
-  execFileSync(process.execPath, ["--check", "names.js"]);
-  execFileSync(process.execPath, ["--check", "names-workspace.js"]);
+test('browser scripts parse', () => {
+  execFileSync(process.execPath, ['--check', 'neta-governance.js']);
+  execFileSync(process.execPath, ['--check', 'ux-draft.js']);
+  execFileSync(process.execPath, ['--check', 'treasury.js']);
+  execFileSync(process.execPath, ['--check', 'relay.js']);
+  execFileSync(process.execPath, ['--check', 'names.js']);
+  execFileSync(process.execPath, ['--check', 'names-workspace.js']);
 });
 
-test("Relay follows DAOs and creates local governance notifications safely", () => {
-  for (const id of ["relay-view", "relay-unread-badge", "relay-feed", "relay-mark-read", "relay-new-message", "relay-composer", "relay-discard-message"]) {
+test('Relay follows DAOs and creates local governance notifications safely', () => {
+  for (const id of [
+    'relay-view',
+    'relay-unread-badge',
+    'relay-feed',
+    'relay-mark-read',
+    'relay-new-message',
+    'relay-composer',
+    'relay-discard-message'
+  ]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
   assert.match(relay, /neta-relay-favorites:v1/);
@@ -33,24 +41,27 @@ test("Relay follows DAOs and creates local governance notifications safely", () 
   assert.doesNotMatch(relay, /\.innerHTML\s*=|insertAdjacentHTML|\.outerHTML\s*=/);
 });
 
-test("Relay messaging remains locked behind explicit security gates", () => {
+test('Relay messaging remains locked behind explicit security gates', () => {
   assert.match(html, /Messaging is not active. This preview does not send or save your text/);
   assert.match(html, /ACTIVE .NETA NAME · NO STAKING REQUIREMENT/);
-  assert.match(html, /Sending is not active yet. Your draft stays in this browser and is never submitted/);
+  assert.match(
+    html,
+    /Sending is not active yet. Your draft stays in this browser and is never submitted/
+  );
   assert.match(html, /type="submit" disabled aria-describedby="relay-send-note">SEND MESSAGE/);
   assert.match(relay, /\(?event\)?\s*=>\s*event.preventDefault\(\)/);
   assert.match(relay, /closeComposer/);
 });
 
-test("Relay prioritizes messages before governance in the inbox", () => {
+test('Relay prioritizes messages before governance in the inbox', () => {
   const messages = html.indexOf('data-relay-filter="messages"');
   const governanceFilter = html.indexOf('data-relay-filter="governance"');
   assert.ok(messages > -1 && messages < governanceFilter);
   assert.doesNotMatch(html, /data-relay-filter="names"/);
 });
 
-test("Relay hides a zero badge and gives the inbox the full width", () => {
-  const relayCss = readFileSync("relay.css", "utf8");
+test('Relay hides a zero badge and gives the inbox the full width', () => {
+  const relayCss = readFileSync('relay.css', 'utf8');
   assert.match(relayCss, /relay-unread-badge\[hidden\]\{display:none\}/);
   assert.match(relayCss, /\.relay-layout\{display:block\}/);
   assert.doesNotMatch(html, /class="relay-watchlist/);
@@ -62,31 +73,38 @@ test("Relay hides a zero badge and gives the inbox the full width", () => {
   assert.doesNotMatch(html, /LIVE ALERTS/);
 });
 
-test("Juno community history is seeded with two daily snapshots", () => {
-  const history = JSON.parse(readFileSync("data/treasury/juno-community-history.json", "utf8"));
+test('Juno community history is seeded with two daily snapshots', () => {
+  const history = JSON.parse(readFileSync('data/treasury/juno-community-history.json', 'utf8'));
   assert.ok(history.snapshots.length >= 2);
-  assert.notEqual(history.snapshots.at(-2).generated_at.slice(0, 10), history.snapshots.at(-1).generated_at.slice(0, 10));
-  assert.ok(history.snapshots.every(snapshot => snapshot.assets.length > 0));
+  assert.notEqual(
+    history.snapshots.at(-2).generated_at.slice(0, 10),
+    history.snapshots.at(-1).generated_at.slice(0, 10)
+  );
+  assert.ok(history.snapshots.every((snapshot) => snapshot.assets.length > 0));
 });
 
-test("treasury renders LP ownership and underlying assets without HTML injection", () => {
+test('treasury renders LP ownership and underlying assets without HTML injection', () => {
   assert.match(treasury, /item\.type\s*===\s*['"]lp['"]/);
   assert.match(treasury, /item\.underlyings/);
   assert.doesNotMatch(treasury, /\.innerHTML\s*=|insertAdjacentHTML|\.outerHTML\s*=/);
-  for (const id of ["treasury-assets", "treasury-total", "treasury-updated", "treasury-refresh"]) {
+  for (const id of ['treasury-assets', 'treasury-total', 'treasury-updated', 'treasury-refresh']) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
 });
 
-test("DAO selection propagates to non-proposal workspace views", () => {
+test('DAO selection propagates to non-proposal workspace views', () => {
   assert.match(governance, /neta:dao-change/);
-  assert.equal(JSON.parse(readFileSync("data/dao-directory.json","utf8")).daos.find(d=>d.id==="juno").snapshot,"juno-community-pool.json");
+  assert.equal(
+    JSON.parse(readFileSync('data/dao-directory.json', 'utf8')).daos.find((d) => d.id === 'juno')
+      .snapshot,
+    'juno-community-pool.json'
+  );
   assert.match(treasury, /community_pool/);
   assert.match(ux, /window.NetaDaoDirectory/);
   assert.match(ux, /NO LIVE/);
 });
 
-test("workspace view survives refresh and supports direct links", () => {
+test('workspace view survives refresh and supports direct links', () => {
   assert.match(ux, /neta-workspace-active-view/);
   assert.match(ux, /window\.location\.hash/);
   assert.match(ux, /history\.replaceState/);
@@ -94,56 +112,76 @@ test("workspace view survives refresh and supports direct links", () => {
   assert.match(ux, /selectView\(initialView/);
 });
 
-test("treasury denom identities are persisted outside generated snapshots", () => {
-  assert.equal(tokenRegistry["ibc/4A482FA914A4B9B05801ED81C33713899F322B24F76A06F4B8FE872485EA22FF"].symbol, "USDC.n");
-  assert.equal(tokenRegistry["ibc/171E8F6687D290D378678310F9F15D367DCD245BF06184532B703A92054A8A4F"].decimals, 18);
-  assert.equal(tokenRegistry["ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9"].symbol, "ATOM");
+test('treasury denom identities are persisted outside generated snapshots', () => {
+  assert.equal(
+    tokenRegistry['ibc/4A482FA914A4B9B05801ED81C33713899F322B24F76A06F4B8FE872485EA22FF'].symbol,
+    'USDC.n'
+  );
+  assert.equal(
+    tokenRegistry['ibc/171E8F6687D290D378678310F9F15D367DCD245BF06184532B703A92054A8A4F'].decimals,
+    18
+  );
+  assert.equal(
+    tokenRegistry['ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9'].symbol,
+    'ATOM'
+  );
 });
 
-test("operations treasury includes the DAO-controlled Osmosis Polytone proxy", () => {
-  const collector = readFileSync("scripts/update_treasury.py", "utf8");
+test('operations treasury includes the DAO-controlled Osmosis Polytone proxy', () => {
+  const collector = readFileSync('scripts/update_treasury.py', 'utf8');
   assert.match(collector, /osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80/);
   assert.match(collector, /polytone-proxy/);
   assert.match(treasury, /source_chain/);
 });
 
-test("operations events replay the address index and keep a durable watermark", () => {
-  const collector = readFileSync("scripts/update_treasury_events.py", "utf8");
+test('operations events replay the address index and keep a durable watermark', () => {
+  const collector = readFileSync('scripts/update_treasury_events.py', 'utf8');
   assert.match(collector, /last_scanned_height/);
   assert.match(collector, /date-bounded-receipts-with-daily-replay/);
   assert.match(collector, /historical address index is empty/);
 });
 
-test("treasury events replace sample activity with verified linked transactions", () => {
-  for (const id of ["treasury-events", "treasury-events-toggle", "treasury-event-filters", "treasury-event-count"]) {
+test('treasury events replace sample activity with verified linked transactions', () => {
+  for (const id of [
+    'treasury-events',
+    'treasury-events-toggle',
+    'treasury-event-filters',
+    'treasury-event-count'
+  ]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
   assert.match(treasury, /dao.events/);
   assert.match(treasury, /neta:open-proposal/);
   assert.match(treasury, /testingaten/);
   assert.match(governance, /neta:open-proposal/);
-  assert.doesNotMatch(html, /4,200 USDC received from Osmosis|2,500 JUNO → 731\.42 NETA|Milestone 02 released/);
+  assert.doesNotMatch(
+    html,
+    /4,200 USDC received from Osmosis|2,500 JUNO → 731\.42 NETA|Milestone 02 released/
+  );
 });
 
-test("small and unpriced treasury assets are collapsed without changing totals", () => {
+test('small and unpriced treasury assets are collapsed without changing totals', () => {
   assert.match(treasury, /Number\(item\.usd_value\)\s*>=\s*50/);
   assert.match(treasury, /SMALL \/ UNPRICED ASSETS/);
-  assert.match(treasury, /renderAssets\(data\.assets,\s*Number\(data.total_usd\s*\|\|\s*0\),\s*data\.warnings\s*\|\|\s*\[\],\s*policyText\)/);
+  assert.match(
+    treasury,
+    /renderAssets\(data\.assets,\s*Number\(data.total_usd\s*\|\|\s*0\),\s*data\.warnings\s*\|\|\s*\[\],\s*policyText\)/
+  );
   assert.match(treasury, /details\.append\(warning\)/);
   assert.doesNotMatch(treasury, /assets\.after\(warning\)/);
   assert.match(treasury, /details\.append\(policy\)/);
 });
 
-test("treasury history uses daily snapshots and keeps attribution inputs", () => {
-  const collector = readFileSync("scripts/update_treasury.py", "utf8");
-  for (const field of ["symbol", "source_chain", "amount", "usd_price", "usd_value"]) {
+test('treasury history uses daily snapshots and keeps attribution inputs', () => {
+  const collector = readFileSync('scripts/update_treasury.py', 'utf8');
+  for (const field of ['symbol', 'source_chain', 'amount', 'usd_price', 'usd_value']) {
     assert.match(collector, new RegExp(`item\\.get\\(\\"${field}\\"|item\\[\\"${field}\\"\\]`));
   }
   assert.match(treasury, /dao.history/);
   assert.match(treasury, /priceEffect/);
   assert.match(treasury, /netFlow/);
   assert.match(treasury, /treasury-history-chart/);
-  for (const id of ["treasury-period-change", "treasury-net-flow", "treasury-market-effect"]) {
+  for (const id of ['treasury-period-change', 'treasury-net-flow', 'treasury-market-effect']) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
   assert.doesNotMatch(html, /CUSTODY BY CHAIN|LARGEST ASSETS/);
@@ -151,91 +189,92 @@ test("treasury history uses daily snapshots and keeps attribution inputs", () =>
   assert.match(treasury, /custody_address/);
 });
 
-test("user content is not rendered through HTML injection sinks", () => {
-  assert.doesNotMatch(governance, /\.innerHTML\s*=|insertAdjacentHTML|\.outerHTML\s*=/);
+test('user content is not rendered through HTML injection sinks', () => {
+  const sources = [
+    governance,
+    ...readdirSync('src/governance')
+      .filter((name) => name.endsWith('.mjs'))
+      .map((name) => readFileSync(`src/governance/${name}`, 'utf8'))
+  ];
+  for (const source of sources)
+    assert.doesNotMatch(source, /\.innerHTML\s*=|insertAdjacentHTML|\.outerHTML\s*=/);
 });
 
-test("governance controls referenced by JavaScript exist", () => {
+test('governance controls referenced by JavaScript exist', () => {
   for (const id of [
-    "gov-status",
-    "gov-connect",
-    "dao-search",
-    "dao-options",
-    "proposal-list",
-    "primary-action",
-    "eligibility-action",
-    "add-deliverable",
-    "deliverable-list",
-    "revision-dialog",
-    "comment-form",
+    'gov-status',
+    'gov-connect',
+    'dao-search',
+    'dao-options',
+    'proposal-list',
+    'primary-action',
+    'eligibility-action',
+    'add-deliverable',
+    'deliverable-list',
+    'revision-dialog',
+    'comment-form'
   ]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
 });
 
-test("shipped workshop WASM matches its reviewed checksum", () => {
-  const wasm = readFileSync("assets/neta_proposal_workshop.wasm");
-  const expected = readFileSync("assets/neta_proposal_workshop.sha256", "utf8")
+test('shipped workshop WASM matches its reviewed checksum', () => {
+  const wasm = readFileSync('assets/neta_proposal_workshop.wasm');
+  const expected = readFileSync('assets/neta_proposal_workshop.sha256', 'utf8')
     .trim()
     .split(/\s+/)[0];
-  assert.equal(createHash("sha256").update(wasm).digest("hex"), expected);
+  assert.equal(createHash('sha256').update(wasm).digest('hex'), expected);
 });
 
-test("mainnet Juno submission remains explicitly locked", () => {
-  assert.match(governance, /Mainnet deposit and submission remain locked/);
-  assert.match(governance, /nativeVoting/);
+test('UNI-7 indexing errors are detected in RPC data payloads', () => {
+  assert.match(
+    readFileSync(new URL('../review-publication.mjs', import.meta.url), 'utf8'),
+    /current\.cause/
+  );
+  assert.match(
+    readFileSync(new URL('../review-publication.mjs', import.meta.url), 'utf8'),
+    /transaction indexing is disabled/i
+  );
 });
 
-test("UNI-7 indexing errors are detected in RPC data payloads", () => {
-  assert.match(readFileSync(new URL('../review-publication.mjs', import.meta.url), 'utf8'), /current\.cause/);
-  assert.match(readFileSync(new URL('../review-publication.mjs', import.meta.url), 'utf8'), /transaction indexing is disabled/i);
+test('Juno review uses the canonical UNI-7 contract', () => {
+  assert.equal(
+    JSON.parse(readFileSync('data/dao-directory.json', 'utf8')).daos.find((d) => d.id === 'juno')
+      .workshopContract,
+    'juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw'
+  );
 });
 
-test("UNI-7 code discovery uses legacy-compatible pagination", () => {
-  assert.doesNotMatch(governance, /cosmwasm\/wasm\/v1\/code\?pagination\.reverse/);
-  assert.match(governance, /pagination\?\.next_key/);
-});
-
-test("UNI-7 code discovery accepts hexadecimal data hashes", () => {
-  assert.match(governance, /\^\[0-9a-f\]\{64\}\$/i);
-  assert.match(governance, /hashHex\(info\.data_hash\)/);
-});
-
-test("Juno review uses the canonical UNI-7 contract", () => {
-  assert.equal(JSON.parse(readFileSync("data/dao-directory.json","utf8")).daos.find(d=>d.id==="juno").workshopContract,"juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw");
-});
-
-test("Juno review explains each missing stake requirement", () => {
+test('Juno review explains each missing stake requirement', () => {
   assert.match(governance, /MORE \$\{reviewNetwork.coin\} DELEGATED/);
   assert.match(governance, /MORE TEST NETA STAKED/);
   assert.match(governance, /CURRENT:/);
 });
 
-test("comment staking actions are configured per DAO and contextual", () => {
+test('comment staking actions are configured per DAO and contextual', () => {
   assert.match(governance, /commentStakeUrl/);
   assert.match(governance, /commentBlocked\s*=\s*discussion/);
   assert.match(governance, /!state\.access\?\.can_comment/);
   assert.doesNotMatch(governance, /delegateTestJunox|TEST_DELEGATION_AMOUNT/);
 });
 
-test("deliverables are embedded in the revision payload", () => {
-  assert.match(governance, /DELIVERABLE_TYPE\s*=\s*['"]dao_deliverable_v1['"]/);
-  assert.match(governance, /MILESTONE \/ DELIVERABLE/);
-  assert.match(governance, /DEADLINE/);
-  assert.match(governance, /CONFIRMED BY/);
-  assert.match(governance, /EXPECTED RESULT \/ EVIDENCE/);
-});
-
-test("Names is a RELAY panel with legacy deep links and an honest deployment gate", () => {
-  const names=readFileSync("names.js", "utf8");
+test('Names is a RELAY panel with legacy deep links and an honest deployment gate', () => {
+  const names = readFileSync('names.js', 'utf8');
   assert.doesNotMatch(html, /data-workspace-view="names"/);
-  for (const panel of ["inbox","directory","contacts","profile","register"]) assert.match(html, new RegExp(`data-relay-panel="${panel}"`));
+  for (const panel of ['inbox', 'directory', 'contacts', 'profile', 'register'])
+    assert.match(html, new RegExp(`data-relay-panel="${panel}"`));
   assert.doesNotMatch(html, /id="relay-following-view"|class="names-tabs"/);
   assert.match(html, /id="relay-open-names"/);
   assert.match(html, /YOUR RELAY/);
-  assert.match(readFileSync("relay.css", "utf8"), /body\[data-workspace-view="relay"\] \.governance-selectors\{display:none!important\}/);
-  assert.match(readFileSync("relay.css", "utf8"), /\.gov-header \.relay-global-scope\{display:none/);
-  assert.match(ux, /panel:"directory"/);
+  assert.match(
+    readFileSync('relay.css', 'utf8'),
+    /body\[data-workspace-view="relay"\] \.governance-selectors\{display:none!important\}/
+  );
+  assert.match(
+    readFileSync('relay.css', 'utf8'),
+    /\.gov-header \.relay-global-scope\{display:none/
+  );
+  assert.match(ux, /panel:\s*['"]directory['"]/);
   assert.match(ux, /relay\/following/);
   assert.match(ux, /relayPanels\.forEach/);
   assert.match(html, /ux-draft\.js\?v=[^"\s]+/);
@@ -243,39 +282,54 @@ test("Names is a RELAY panel with legacy deep links and an honest deployment gat
   assert.doesNotMatch(html, /GOVERNANCE · ACCOUNTABILITY · TRANSPARENCY/);
   assert.match(html, /data-relay-panel-view="names"/);
   assert.match(html, /id="names-view"/);
-  assert.match(names, /const REGISTRY=null/);
+  assert.match(names, /const REGISTRY\s*=\s*null/);
   assert.match(html, /Annual registration and renewal/);
   assert.match(html, /id="nns-tariff-summary"/);
   assert.match(html, /fees are loaded from the selected registry/);
-  assert.doesNotMatch(html, /Mainnet registration is not active yet|name registration and lookup are not active yet/);
+  assert.doesNotMatch(
+    html,
+    /Mainnet registration is not active yet|name registration and lookup are not active yet/
+  );
   assert.doesNotMatch(html, /names-preview-entry|Explore the preview/);
   assert.match(html, /names-workspace\.js\?v=[^"\s]+/);
   assert.match(html, /data-name-panel="directory"/);
   assert.match(html, /id="nns-reserve" type="button" disabled/);
   assert.match(html, /names-v2-workspace\.mjs\?v=/);
   assert.match(names, /neta-names-v1:/);
-  assert.match(names, /config.treasury!==DAO_TREASURY/);
-  assert.match(names, /amount:INITIAL_FEE/);
-  assert.match(names, /current.renewal_fee!==amount/);
+  assert.match(names, /config\.treasury\s*!==\s*DAO_TREASURY/);
+  assert.match(names, /amount:\s*INITIAL_FEE/);
+  assert.match(names, /current\.renewal_fee\s*!==\s*amount/);
 });
 
-test("Names validates the full 5–32 character label and rejects ambiguous names", () => {
-  const context={window:{},document:{querySelector:()=>null},sessionStorage:{getItem:()=>null}};
-  vm.runInNewContext(readFileSync("names.js","utf8"),context);
-  const {validName}=context.window.NetaNames;
-  assert.equal(validName("cristiano.neta"),true);
-  assert.equal(validName(`${"a".repeat(32)}.neta`),true);
-  for(const value of ["abcd.neta",`${"a".repeat(33)}.neta`,"Admin.neta","admin.neta","a--name.neta","-owner.neta","owner-.neta","owner.juno"])
-    assert.equal(validName(value),false,value);
+test('Names validates the full 5–32 character label and rejects ambiguous names', () => {
+  const context = {
+    window: {},
+    document: { querySelector: () => null },
+    sessionStorage: { getItem: () => null }
+  };
+  vm.runInNewContext(readFileSync('names.js', 'utf8'), context);
+  const { validName } = context.window.NetaNames;
+  assert.equal(validName('cristiano.neta'), true);
+  assert.equal(validName(`${'a'.repeat(32)}.neta`), true);
+  for (const value of [
+    'abcd.neta',
+    `${'a'.repeat(33)}.neta`,
+    'Admin.neta',
+    'admin.neta',
+    'a--name.neta',
+    '-owner.neta',
+    'owner-.neta',
+    'owner.juno'
+  ])
+    assert.equal(validName(value), false, value);
 });
 
-test("Relay reading pane shows the proposal summary and message styling remains distinct", () => {
+test('Relay reading pane shows the proposal summary and message styling remains distinct', () => {
   assert.match(relay, /proposal\s*=\s*previous\?\.items\?\.\[selectedKey\]/);
   assert.match(relay, /summary\.textContent\s*=\s*proposal\?\.summary/);
   assert.match(relay, /summaryHeading\.textContent\s*=\s*['"]SUMMARY['"]/);
   assert.match(relay, /GOVERNANCE ·/);
-  assert.match(readFileSync("relay.css","utf8"), /\.relay-event-message\.selected/);
+  assert.match(readFileSync('relay.css', 'utf8'), /\.relay-event-message\.selected/);
   assert.match(html, /PREVIEW · SEND DISABLED/);
   assert.match(html, /type="submit" disabled aria-describedby="relay-send-note">SEND MESSAGE/);
 });
-

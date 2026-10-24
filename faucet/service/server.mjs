@@ -8,8 +8,11 @@ if (![undefined, 'false', 'true'].includes(maintenance))
 if (maintenance === 'true') {
   const server = http.createServer((request, response) => {
     response.writeHead(503, {
-      'content-type': 'application/json', 'cache-control': 'no-store',
-      'connection': 'close', 'retry-after': '60', 'x-cosmoot-maintenance': 'true'
+      'content-type': 'application/json',
+      'cache-control': 'no-store',
+      connection: 'close',
+      'retry-after': '60',
+      'x-cosmoot-maintenance': 'true'
     });
     response.end(JSON.stringify({ ok: false, maintenance: true }));
     request.resume();
@@ -19,7 +22,9 @@ if (maintenance === 'true') {
   server.headersTimeout = 5000;
   server.keepAliveTimeout = 1000;
   server.listen(Number(process.env.PORT || 8787), process.env.HOST || '127.0.0.1', () => {
-    console.log('Backend maintenance: no signing or database access; port ' + server.address().port);
+    console.log(
+      'Backend maintenance: no signing or database access; port ' + server.address().port
+    );
   });
   process.on('SIGTERM', () => {
     server.closeAllConnections();

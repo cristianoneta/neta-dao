@@ -12,13 +12,14 @@ const paths = {
   '/browser-key-vault.mjs': new URL('./browser-key-vault.mjs', import.meta.url),
   '/device-backup.js': new URL('./browser-device-backup.mjs', import.meta.url),
   '/device-lock.js': new URL('./browser-device-lock.mjs', import.meta.url),
-  '/envelope.js': new URL('./browser-envelope.mjs', import.meta.url),
+  '/envelope.js': new URL('./browser-envelope.mjs', import.meta.url)
 };
 const server = http.createServer(async (request, response) => {
   if (request.url === '/') {
     response.writeHead(200, {
       'content-type': 'text/html',
-      'content-security-policy': "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'; style-src 'none'; object-src 'none'; base-uri 'none'",
+      'content-security-policy':
+        "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self'; style-src 'none'; object-src 'none'; base-uri 'none'"
     });
     response.end('<!doctype html><title>RELAY browser crypto test</title>');
     return;
@@ -28,30 +29,37 @@ const server = http.createServer(async (request, response) => {
     return;
   }
   try {
-    response.writeHead(200, { 'content-type': request.url.endsWith('.wasm') ? 'application/wasm' : 'text/javascript' });
+    response.writeHead(200, {
+      'content-type': request.url.endsWith('.wasm') ? 'application/wasm' : 'text/javascript'
+    });
     response.end(await readFile(paths[request.url]));
   } catch (error) {
     response.writeHead(500).end(error.message);
   }
 });
-await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 let browser;
 
 async function startClient(page, name) {
   await page.goto(origin);
-  await page.evaluate(async name => {
+  await page.evaluate(async (name) => {
     const crypto = await import('/corecrypto.js');
     const { BrowserKeyVault } = await import('/vault.js');
     const { acquireDeviceLock } = await import('/device-lock.js');
     await crypto.initWasmModule('/index_bg.wasm');
     const address = `juno1${(name === 'alice' ? 'a' : 'b').repeat(38)}`;
-    window.relayDeviceLock = await acquireDeviceLock({ chain: 'uni-7', wallet: address, path: `${name}.db` });
+    window.relayDeviceLock = await acquireDeviceLock({
+      chain: 'uni-7',
+      wallet: address,
+      path: `${name}.db`
+    });
     const password = `independent browser vault password for ${name}`;
     const vault = await BrowserKeyVault.open(`${name}-vault`);
     let secret;
-    try { secret = await vault.unlock('uni-7', address, password); }
-    catch (error) {
+    try {
+      secret = await vault.unlock('uni-7', address, password);
+    } catch (error) {
       if (error.message !== 'No local vault for this wallet') throw error;
       secret = await vault.create('uni-7', address, password);
     }
@@ -59,7 +67,7 @@ async function startClient(page, name) {
     secret.fill(0);
     const db = await crypto.Database.open(`${name}.db`, key);
     const client = crypto.CoreCrypto.new(db);
-    await client.transaction(ctx => ctx.proteusInit());
+    await client.transaction((ctx) => ctx.proteusInit());
     window.relayClient = client;
     window.relayDatabase = db;
     window.relayVault = vault;
@@ -82,10 +90,13 @@ try {
     const { acquireDeviceLock } = await import('/device-lock.js');
     window.deviceLock = await acquireDeviceLock({ chain: 'uni-7', wallet: 'bob', path: 'bob.db' });
   });
-  await assert.rejects(competingPage.evaluate(async () => {
-    const { acquireDeviceLock } = await import('/device-lock.js');
-    await acquireDeviceLock({ chain: 'uni-7', wallet: 'alice', path: 'bob.db' });
-  }), 'a different wallet cannot concurrently access the same database path');
+  await assert.rejects(
+    competingPage.evaluate(async () => {
+      const { acquireDeviceLock } = await import('/device-lock.js');
+      await acquireDeviceLock({ chain: 'uni-7', wallet: 'alice', path: 'bob.db' });
+    }),
+    'a different wallet cannot concurrently access the same database path'
+  );
   const independent = await competingPage.evaluate(async () => {
     const { acquireDeviceLock } = await import('/device-lock.js');
     const lock = await acquireDeviceLock({ chain: 'uni-7', wallet: 'alice', path: 'alice.db' });
@@ -107,53 +118,107 @@ try {
   await startClient(bob, 'bob');
   const activeTab = await bobContext.newPage();
   await activeTab.goto(origin);
-  await assert.rejects(activeTab.evaluate(async () => {
-    const { acquireDeviceLock } = await import('/device-lock.js');
-    await acquireDeviceLock({ chain: 'uni-7', wallet: 'bob', path: 'bob.db' });
-  }), 'a tab cannot open an active CoreCrypto database');
+  await assert.rejects(
+    activeTab.evaluate(async () => {
+      const { acquireDeviceLock } = await import('/device-lock.js');
+      await acquireDeviceLock({ chain: 'uni-7', wallet: 'bob', path: 'bob.db' });
+    }),
+    'a tab cannot open an active CoreCrypto database'
+  );
   await activeTab.close();
 
   // A wallet signature is never used as the database password; the key
   // survives reload only inside a password-wrapped vault record.
-  const backup = await bob.evaluate(() => window.relayVault.exportEncrypted('uni-7', window.relayVaultAddress));
+  const backup = await bob.evaluate(() =>
+    window.relayVault.exportEncrypted('uni-7', window.relayVaultAddress)
+  );
   assert.ok(!backup.includes('independent browser vault password'), 'password leaked into backup');
   assert.equal(JSON.parse(backup).ciphertext.length, 48, 'database key is encrypted at rest');
-  await assert.rejects(bob.evaluate(() => window.relayVault.unlock('uni-7', window.relayVaultAddress, 'a different and long password')));
-  await assert.rejects(bob.evaluate(() => window.relayVault.unlock('uni-7', `juno1${'a'.repeat(38)}`, 'independent browser vault password for bob')));
-  await assert.rejects(bob.evaluate(async () => {
-    const wrong = JSON.parse(await window.relayVault.exportEncrypted('uni-7', window.relayVaultAddress));
-    wrong.ciphertext[0] ^= 1;
-    const { BrowserKeyVault } = await import('/vault.js');
-    const vault = await BrowserKeyVault.open('corrupted-vault');
-    await vault.importEncrypted('uni-7', window.relayVaultAddress, JSON.stringify(wrong));
-    await vault.unlock('uni-7', window.relayVaultAddress, 'independent browser vault password for bob');
-  }));
-  await assert.rejects(bob.evaluate(() => window.relayVault.importEncrypted('uni-7', window.relayVaultAddress, '{}')));
+  await assert.rejects(
+    bob.evaluate(() =>
+      window.relayVault.unlock('uni-7', window.relayVaultAddress, 'a different and long password')
+    )
+  );
+  await assert.rejects(
+    bob.evaluate(() =>
+      window.relayVault.unlock(
+        'uni-7',
+        `juno1${'a'.repeat(38)}`,
+        'independent browser vault password for bob'
+      )
+    )
+  );
+  await assert.rejects(
+    bob.evaluate(async () => {
+      const wrong = JSON.parse(
+        await window.relayVault.exportEncrypted('uni-7', window.relayVaultAddress)
+      );
+      wrong.ciphertext[0] ^= 1;
+      const { BrowserKeyVault } = await import('/vault.js');
+      const vault = await BrowserKeyVault.open('corrupted-vault');
+      await vault.importEncrypted('uni-7', window.relayVaultAddress, JSON.stringify(wrong));
+      await vault.unlock(
+        'uni-7',
+        window.relayVaultAddress,
+        'independent browser vault password for bob'
+      );
+    })
+  );
+  await assert.rejects(
+    bob.evaluate(() => window.relayVault.importEncrypted('uni-7', window.relayVaultAddress, '{}'))
+  );
   const backupContext = await browser.newContext();
   const backupPage = await backupContext.newPage();
   await backupPage.goto(origin);
-  const recoveredVaultKey = await backupPage.evaluate(async ({ backup, address }) => {
-    const { BrowserKeyVault } = await import('/vault.js');
-    const vault = await BrowserKeyVault.open('restored-bob-vault');
-    await vault.importEncrypted('uni-7', address, backup);
-    const key = await vault.unlock('uni-7', address, 'independent browser vault password for bob');
-    const length = key.length;
-    key.fill(0);
-    return length;
-  }, { backup, address: await bob.evaluate(() => window.relayVaultAddress) });
+  const recoveredVaultKey = await backupPage.evaluate(
+    async ({ backup, address }) => {
+      const { BrowserKeyVault } = await import('/vault.js');
+      const vault = await BrowserKeyVault.open('restored-bob-vault');
+      await vault.importEncrypted('uni-7', address, backup);
+      const key = await vault.unlock(
+        'uni-7',
+        address,
+        'independent browser vault password for bob'
+      );
+      const length = key.length;
+      key.fill(0);
+      return length;
+    },
+    { backup, address: await bob.evaluate(() => window.relayVaultAddress) }
+  );
   assert.equal(recoveredVaultKey, 32, 'encrypted backup restores the database key');
 
   // The wallet-signed registration would publish this fingerprint on-chain.
-  const bobRegisteredFingerprint = await bob.evaluate(() => window.relayClient.transaction(ctx => ctx.proteusFingerprint()));
-  const prekey = await bob.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusNewPrekey(1))));
-  const initial = await alice.evaluate(async ({ prekey, expected }) => Array.from(await window.relayClient.transaction(async ctx => {
-    await ctx.proteusSessionFromPrekey('bob', new Uint8Array(prekey));
-    if (await ctx.proteusFingerprintRemote('bob') !== expected) throw Error('Recipient device identity changed');
-    return ctx.proteusEncrypt('bob', new TextEncoder().encode('hello from Alice'));
-  })), { prekey, expected: bobRegisteredFingerprint });
-  const aliceSeesBob = await alice.evaluate(() => window.relayClient.transaction(ctx => ctx.proteusFingerprintRemote('bob')));
-  assert.equal(aliceSeesBob, bobRegisteredFingerprint, 'session identity must match registered device');
-  assert.ok(!new TextDecoder().decode(new Uint8Array(initial)).includes('hello from Alice'), 'ciphertext exposed plaintext');
+  const bobRegisteredFingerprint = await bob.evaluate(() =>
+    window.relayClient.transaction((ctx) => ctx.proteusFingerprint())
+  );
+  const prekey = await bob.evaluate(async () =>
+    Array.from(await window.relayClient.transaction((ctx) => ctx.proteusNewPrekey(1)))
+  );
+  const initial = await alice.evaluate(
+    async ({ prekey, expected }) =>
+      Array.from(
+        await window.relayClient.transaction(async (ctx) => {
+          await ctx.proteusSessionFromPrekey('bob', new Uint8Array(prekey));
+          if ((await ctx.proteusFingerprintRemote('bob')) !== expected)
+            throw Error('Recipient device identity changed');
+          return ctx.proteusEncrypt('bob', new TextEncoder().encode('hello from Alice'));
+        })
+      ),
+    { prekey, expected: bobRegisteredFingerprint }
+  );
+  const aliceSeesBob = await alice.evaluate(() =>
+    window.relayClient.transaction((ctx) => ctx.proteusFingerprintRemote('bob'))
+  );
+  assert.equal(
+    aliceSeesBob,
+    bobRegisteredFingerprint,
+    'session identity must match registered device'
+  );
+  assert.ok(
+    !new TextDecoder().decode(new Uint8Array(initial)).includes('hello from Alice'),
+    'ciphertext exposed plaintext'
+  );
 
   // An attacker can supply a valid prekey bundle for a different device.
   // The library accepts that bundle; the application must compare identities
@@ -164,11 +229,17 @@ try {
   const freshSender = await freshSenderContext.newPage();
   await startClient(attacker, 'attacker');
   await startClient(freshSender, 'fresh-sender');
-  const attackPrekey = await attacker.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusNewPrekey(1))));
-  const attackResult = await freshSender.evaluate(async bundle => window.relayClient.transaction(async ctx => {
-    await ctx.proteusSessionFromPrekey('claimed-bob', new Uint8Array(bundle));
-    return ctx.proteusFingerprintRemote('claimed-bob');
-  }), attackPrekey);
+  const attackPrekey = await attacker.evaluate(async () =>
+    Array.from(await window.relayClient.transaction((ctx) => ctx.proteusNewPrekey(1)))
+  );
+  const attackResult = await freshSender.evaluate(
+    async (bundle) =>
+      window.relayClient.transaction(async (ctx) => {
+        await ctx.proteusSessionFromPrekey('claimed-bob', new Uint8Array(bundle));
+        return ctx.proteusFingerprintRemote('claimed-bob');
+      }),
+    attackPrekey
+  );
   assert.notEqual(attackResult, bobRegisteredFingerprint, 'substituted prekey must be detected');
 
   // Back up the actual encrypted CoreCrypto blocks and wrapped database key
@@ -179,7 +250,13 @@ try {
     window.relayVault.close();
     const { exportDevice } = await import('/device-backup.js');
     try {
-      return await exportDevice({ chain: 'uni-7', wallet: window.relayVaultAddress, path: 'bob.db', vaultName: 'bob-vault', password: 'independent browser vault password for bob' });
+      return await exportDevice({
+        chain: 'uni-7',
+        wallet: window.relayVaultAddress,
+        path: 'bob.db',
+        vaultName: 'bob-vault',
+        password: 'independent browser vault password for bob'
+      });
     } finally {
       await window.relayDeviceLock.release();
     }
@@ -191,146 +268,363 @@ try {
   const restoredPage = await restoredContext.newPage();
   await restoredPage.goto(origin);
   const restoredAddress = await bob.evaluate(() => window.relayVaultAddress);
-  await assert.rejects(restoredPage.evaluate(async ({ backup, wallet }) => {
-    const { importDevice } = await import('/device-backup.js');
-    return importDevice({ chain: 'uni-7', wallet, path: 'bob.db', vaultName: 'bob-vault', password: 'independent browser vault password for bob', backup });
-  }, { backup: JSON.stringify(brokenBackup), wallet: restoredAddress }), 'tampered backup must fail before any import');
-  await assert.rejects(restoredPage.evaluate(async ({ backup, wallet }) => {
-    const { importDevice } = await import('/device-backup.js');
-    return importDevice({ chain: 'uni-7', wallet, path: 'bob.db', vaultName: 'bob-vault', password: 'independent browser vault password for bob', backup });
-  }, { backup: deviceBackup, wallet: `juno1${'a'.repeat(38)}` }), 'another wallet cannot import this backup');
-  await assert.rejects(restoredPage.evaluate(async ({ backup, wallet }) => {
-    const { importDevice } = await import('/device-backup.js');
-    return importDevice({ chain: 'uni-7', wallet, path: 'bob.db', vaultName: 'bob-vault', password: 'wrong password that is long', backup });
-  }, { backup: deviceBackup, wallet: restoredAddress }));
-  await restoredPage.evaluate(async ({ backup, wallet }) => {
-    const { importDevice } = await import('/device-backup.js');
-    await importDevice({ chain: 'uni-7', wallet, path: 'bob.db', vaultName: 'bob-vault', password: 'independent browser vault password for bob', backup });
-  }, { backup: deviceBackup, wallet: restoredAddress });
-  await assert.rejects(restoredPage.evaluate(async ({ backup, wallet }) => {
-    const { importDevice } = await import('/device-backup.js');
-    await importDevice({ chain: 'uni-7', wallet, path: 'bob.db', vaultName: 'bob-vault', password: 'independent browser vault password for bob', backup });
-  }, { backup: deviceBackup, wallet: restoredAddress }), 'import must not overwrite existing device');
+  await assert.rejects(
+    restoredPage.evaluate(
+      async ({ backup, wallet }) => {
+        const { importDevice } = await import('/device-backup.js');
+        return importDevice({
+          chain: 'uni-7',
+          wallet,
+          path: 'bob.db',
+          vaultName: 'bob-vault',
+          password: 'independent browser vault password for bob',
+          backup
+        });
+      },
+      { backup: JSON.stringify(brokenBackup), wallet: restoredAddress }
+    ),
+    'tampered backup must fail before any import'
+  );
+  await assert.rejects(
+    restoredPage.evaluate(
+      async ({ backup, wallet }) => {
+        const { importDevice } = await import('/device-backup.js');
+        return importDevice({
+          chain: 'uni-7',
+          wallet,
+          path: 'bob.db',
+          vaultName: 'bob-vault',
+          password: 'independent browser vault password for bob',
+          backup
+        });
+      },
+      { backup: deviceBackup, wallet: `juno1${'a'.repeat(38)}` }
+    ),
+    'another wallet cannot import this backup'
+  );
+  await assert.rejects(
+    restoredPage.evaluate(
+      async ({ backup, wallet }) => {
+        const { importDevice } = await import('/device-backup.js');
+        return importDevice({
+          chain: 'uni-7',
+          wallet,
+          path: 'bob.db',
+          vaultName: 'bob-vault',
+          password: 'wrong password that is long',
+          backup
+        });
+      },
+      { backup: deviceBackup, wallet: restoredAddress }
+    )
+  );
+  await restoredPage.evaluate(
+    async ({ backup, wallet }) => {
+      const { importDevice } = await import('/device-backup.js');
+      await importDevice({
+        chain: 'uni-7',
+        wallet,
+        path: 'bob.db',
+        vaultName: 'bob-vault',
+        password: 'independent browser vault password for bob',
+        backup
+      });
+    },
+    { backup: deviceBackup, wallet: restoredAddress }
+  );
+  await assert.rejects(
+    restoredPage.evaluate(
+      async ({ backup, wallet }) => {
+        const { importDevice } = await import('/device-backup.js');
+        await importDevice({
+          chain: 'uni-7',
+          wallet,
+          path: 'bob.db',
+          vaultName: 'bob-vault',
+          password: 'independent browser vault password for bob',
+          backup
+        });
+      },
+      { backup: deviceBackup, wallet: restoredAddress }
+    ),
+    'import must not overwrite existing device'
+  );
   await startClient(restoredPage, 'bob');
-  const restoredFingerprint = await restoredPage.evaluate(() => window.relayClient.transaction(ctx => ctx.proteusFingerprint()));
-  assert.equal(restoredFingerprint, bobRegisteredFingerprint, 'device identity must survive a full backup');
-  const restoredText = await restoredPage.evaluate(async envelope => new TextDecoder().decode(await window.relayClient.transaction(ctx => ctx.proteusDecryptSafe('alice', new Uint8Array(envelope)))), initial);
-  assert.equal(restoredText, 'hello from Alice', 'new browser profile must restore the prekey and decrypt');
+  const restoredFingerprint = await restoredPage.evaluate(() =>
+    window.relayClient.transaction((ctx) => ctx.proteusFingerprint())
+  );
+  assert.equal(
+    restoredFingerprint,
+    bobRegisteredFingerprint,
+    'device identity must survive a full backup'
+  );
+  const restoredText = await restoredPage.evaluate(
+    async (envelope) =>
+      new TextDecoder().decode(
+        await window.relayClient.transaction((ctx) =>
+          ctx.proteusDecryptSafe('alice', new Uint8Array(envelope))
+        )
+      ),
+    initial
+  );
+  assert.equal(
+    restoredText,
+    'hello from Alice',
+    'new browser profile must restore the prekey and decrypt'
+  );
 
   // Bind public routing to plaintext inside Proteus and to the sender's
   // registered fingerprint. The contract itself stores no plaintext.
-  const aliceFingerprint = await alice.evaluate(() => window.relayClient.transaction(ctx => ctx.proteusFingerprint()));
-  const meta = { chain: 'uni-7', contract: 'juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa', sender: `juno1${'a'.repeat(38)}`, senderGeneration: 1, senderFingerprint: aliceFingerprint, recipient: `juno1${'b'.repeat(38)}`, recipientGeneration: 1, recipientFingerprint: bobRegisteredFingerprint, messageId: '4'.repeat(64) };
-  const bound = await alice.evaluate(async meta => {
+  const aliceFingerprint = await alice.evaluate(() =>
+    window.relayClient.transaction((ctx) => ctx.proteusFingerprint())
+  );
+  const meta = {
+    chain: 'uni-7',
+    contract: 'juno13uft9dl34x9wdzcxnm80q8m8sh5cw04lkskzknm9vc0wduxchdxsrnr4pa',
+    sender: `juno1${'a'.repeat(38)}`,
+    senderGeneration: 1,
+    senderFingerprint: aliceFingerprint,
+    recipient: `juno1${'b'.repeat(38)}`,
+    recipientGeneration: 1,
+    recipientFingerprint: bobRegisteredFingerprint,
+    messageId: '4'.repeat(64)
+  };
+  const bound = await alice.evaluate(async (meta) => {
     const { sealEnvelope } = await import('/envelope.js');
-    return Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', sealEnvelope(meta, 'bound secret'))));
+    return Array.from(
+      await window.relayClient.transaction((ctx) =>
+        ctx.proteusEncrypt('bob', sealEnvelope(meta, 'bound secret'))
+      )
+    );
   }, meta);
-  const decrypted = await restoredPage.evaluate(async ({ bound, meta }) => {
-    const { openEnvelope } = await import('/envelope.js');
-    const plain = await window.relayClient.transaction(ctx => ctx.proteusDecryptSafe('alice', new Uint8Array(bound)));
-    const remote = await window.relayClient.transaction(ctx => ctx.proteusFingerprintRemote('alice'));
-    return { message: openEnvelope(plain, meta, remote), remote, raw: Array.from(plain) };
-  }, { bound, meta });
+  const decrypted = await restoredPage.evaluate(
+    async ({ bound, meta }) => {
+      const { openEnvelope } = await import('/envelope.js');
+      const plain = await window.relayClient.transaction((ctx) =>
+        ctx.proteusDecryptSafe('alice', new Uint8Array(bound))
+      );
+      const remote = await window.relayClient.transaction((ctx) =>
+        ctx.proteusFingerprintRemote('alice')
+      );
+      return { message: openEnvelope(plain, meta, remote), remote, raw: Array.from(plain) };
+    },
+    { bound, meta }
+  );
   assert.equal(decrypted.message, 'bound secret');
   assert.equal(decrypted.remote, aliceFingerprint);
   for (const changed of [
     { ...meta, sender: meta.recipient },
     { ...meta, messageId: '5'.repeat(64) },
     { ...meta, recipientGeneration: 2 },
-    { ...meta, senderFingerprint: 'f'.repeat(64) },
+    { ...meta, senderFingerprint: 'f'.repeat(64) }
   ]) {
-    await assert.rejects(restoredPage.evaluate(async ({ raw, changed, remote }) => {
-      const { openEnvelope } = await import('/envelope.js');
-      return openEnvelope(new Uint8Array(raw), changed, remote);
-    }, { raw: decrypted.raw, changed, remote: decrypted.remote }));
+    await assert.rejects(
+      restoredPage.evaluate(
+        async ({ raw, changed, remote }) => {
+          const { openEnvelope } = await import('/envelope.js');
+          return openEnvelope(new Uint8Array(raw), changed, remote);
+        },
+        { raw: decrypted.raw, changed, remote: decrypted.remote }
+      )
+    );
   }
 
   // A tab restart must restore the persisted ratchet and prekey before delivery.
   await bob.close();
   bob = await bobContext.newPage();
   await startClient(bob, 'bob');
-  const received = await bob.evaluate(async envelope => new TextDecoder().decode(await window.relayClient.transaction(ctx => ctx.proteusDecryptSafe('alice', new Uint8Array(envelope)))), initial);
+  const received = await bob.evaluate(
+    async (envelope) =>
+      new TextDecoder().decode(
+        await window.relayClient.transaction((ctx) =>
+          ctx.proteusDecryptSafe('alice', new Uint8Array(envelope))
+        )
+      ),
+    initial
+  );
   assert.equal(received, 'hello from Alice');
 
-  const reply = await bob.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('alice', new TextEncoder().encode('hello from Bob')))));
-  const response = await alice.evaluate(async envelope => new TextDecoder().decode(await window.relayClient.transaction(ctx => ctx.proteusDecryptSafe('bob', new Uint8Array(envelope)))), reply);
+  const reply = await bob.evaluate(async () =>
+    Array.from(
+      await window.relayClient.transaction((ctx) =>
+        ctx.proteusEncrypt('alice', new TextEncoder().encode('hello from Bob'))
+      )
+    )
+  );
+  const response = await alice.evaluate(
+    async (envelope) =>
+      new TextDecoder().decode(
+        await window.relayClient.transaction((ctx) =>
+          ctx.proteusDecryptSafe('bob', new Uint8Array(envelope))
+        )
+      ),
+    reply
+  );
   assert.equal(response, 'hello from Bob');
 
-  const older = await alice.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('older')))));
-  const newer = await alice.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('newer')))));
+  const older = await alice.evaluate(async () =>
+    Array.from(
+      await window.relayClient.transaction((ctx) =>
+        ctx.proteusEncrypt('bob', new TextEncoder().encode('older'))
+      )
+    )
+  );
+  const newer = await alice.evaluate(async () =>
+    Array.from(
+      await window.relayClient.transaction((ctx) =>
+        ctx.proteusEncrypt('bob', new TextEncoder().encode('newer'))
+      )
+    )
+  );
   async function receive(envelope) {
-    return bob.evaluate(async bytes => new TextDecoder().decode(await window.relayClient.transaction(ctx => ctx.proteusDecryptSafe('alice', new Uint8Array(bytes)))), envelope);
+    return bob.evaluate(
+      async (bytes) =>
+        new TextDecoder().decode(
+          await window.relayClient.transaction((ctx) =>
+            ctx.proteusDecryptSafe('alice', new Uint8Array(bytes))
+          )
+        ),
+      envelope
+    );
   }
   assert.equal(await receive(newer), 'newer');
   assert.equal(await receive(older), 'older');
   await assert.rejects(receive(newer), 'a replay must never be rendered as a new message');
-  const afterReplay = await alice.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('after replay')))));
+  const afterReplay = await alice.evaluate(async () =>
+    Array.from(
+      await window.relayClient.transaction((ctx) =>
+        ctx.proteusEncrypt('bob', new TextEncoder().encode('after replay'))
+      )
+    )
+  );
   assert.equal(await receive(afterReplay), 'after replay');
 
   // Simulate a crash after the ratchet commits but before an outbox write.
-  const stranded = await alice.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('stranded message')))));
+  const stranded = await alice.evaluate(async () =>
+    Array.from(
+      await window.relayClient.transaction((ctx) =>
+        ctx.proteusEncrypt('bob', new TextEncoder().encode('stranded message'))
+      )
+    )
+  );
   await alice.close();
   alice = await aliceContext.newPage();
   await startClient(alice, 'alice');
-  const replacement = await alice.evaluate(async () => Array.from(await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('stranded message')))));
-  assert.notDeepEqual(replacement, stranded, 're-encrypting after a crash must not be mistaken for the original ciphertext');
+  const replacement = await alice.evaluate(async () =>
+    Array.from(
+      await window.relayClient.transaction((ctx) =>
+        ctx.proteusEncrypt('bob', new TextEncoder().encode('stranded message'))
+      )
+    )
+  );
+  assert.notDeepEqual(
+    replacement,
+    stranded,
+    're-encrypting after a crash must not be mistaken for the original ciphertext'
+  );
   assert.equal(await receive(stranded), 'stranded message');
   assert.equal(await receive(replacement), 'stranded message');
 
   // Store an intent before advancing the ratchet. A persisted ready entry
   // survives a tab restart and can only retry the original ciphertext.
   const readyId = '1'.repeat(64);
-  await alice.evaluate(async id => {
+  await alice.evaluate(async (id) => {
     const { BrowserOutbox } = await import('/outbox.js');
     window.outbox = await BrowserOutbox.open('relay-outbox-test');
     await window.outbox.begin({ id, recipient: 'bob', generation: 1 });
   }, readyId);
-  const retryEnvelope = await alice.evaluate(async id => {
-    const envelope = await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('one safe retry')));
+  const retryEnvelope = await alice.evaluate(async (id) => {
+    const envelope = await window.relayClient.transaction((ctx) =>
+      ctx.proteusEncrypt('bob', new TextEncoder().encode('one safe retry'))
+    );
     await window.outbox.ready(id, envelope);
     return Array.from(envelope);
   }, readyId);
   await alice.close();
   alice = await aliceContext.newPage();
   await startClient(alice, 'alice');
-  const recovered = await alice.evaluate(async id => {
+  const recovered = await alice.evaluate(async (id) => {
     const { BrowserOutbox } = await import('/outbox.js');
     window.outbox = await BrowserOutbox.open('relay-outbox-test');
     const attempts = await window.outbox.entries();
-    if (attempts.some(entry => JSON.stringify(entry).includes('one safe retry'))) throw Error('Plaintext leaked into outbox');
-    try { await window.outbox.reconcile(id, async () => { throw Error('RPC unavailable'); }); }
-    catch (error) { if (error.message !== 'RPC unavailable') throw error; }
+    if (attempts.some((entry) => JSON.stringify(entry).includes('one safe retry')))
+      throw Error('Plaintext leaked into outbox');
+    try {
+      await window.outbox.reconcile(id, async () => {
+        throw Error('RPC unavailable');
+      });
+    } catch (error) {
+      if (error.message !== 'RPC unavailable') throw error;
+    }
     const retry = await window.outbox.reconcile(id, async () => null);
     return Array.from(retry.ciphertext);
   }, readyId);
   assert.deepEqual(recovered, retryEnvelope, 'retries must use identical ciphertext');
   assert.equal(await receive(recovered), 'one safe retry');
-  const confirmed = await alice.evaluate(id => window.outbox.reconcile(id, async () => 73), readyId);
+  const confirmed = await alice.evaluate(
+    (id) => window.outbox.reconcile(id, async () => 73),
+    readyId
+  );
   assert.deepEqual(confirmed, { state: 'confirmed', sequence: 73 });
 
   // A crash after encryption but before ready() leaves an intent. The sender
   // must lock this device instead of silently re-encrypting on restart.
   const crashId = '2'.repeat(64);
-  await alice.evaluate(async id => {
+  await alice.evaluate(async (id) => {
     await window.outbox.begin({ id, recipient: 'bob', generation: 1 });
-    await window.relayClient.transaction(ctx => ctx.proteusEncrypt('bob', new TextEncoder().encode('lost ciphertext')));
+    await window.relayClient.transaction((ctx) =>
+      ctx.proteusEncrypt('bob', new TextEncoder().encode('lost ciphertext'))
+    );
   }, crashId);
   await alice.close();
   alice = await aliceContext.newPage();
   await startClient(alice, 'alice');
-  const failureLocked = await alice.evaluate(async id => {
+  const failureLocked = await alice.evaluate(async (id) => {
     const { BrowserOutbox } = await import('/outbox.js');
     const outbox = await BrowserOutbox.open('relay-outbox-test');
     let failedRecovery = false;
     let blockedNewSend = false;
-    try { await outbox.reconcile(id, async () => null); } catch { failedRecovery = true; }
-    try { await outbox.begin({ id: '3'.repeat(64), recipient: 'bob', generation: 1 }); } catch { blockedNewSend = true; }
+    try {
+      await outbox.reconcile(id, async () => null);
+    } catch {
+      failedRecovery = true;
+    }
+    try {
+      await outbox.begin({ id: '3'.repeat(64), recipient: 'bob', generation: 1 });
+    } catch {
+      blockedNewSend = true;
+    }
     return failedRecovery && blockedNewSend;
   }, crashId);
   assert.equal(failureLocked, true, 'ambiguous send must lock the device');
 
-  console.log(JSON.stringify({ success: true, browserContexts: 6, passwordWrappedDatabaseKey: true, walletIsolation: true, wrongPasswordRejected: true, corruptedBackupRejected: true, encryptedBackupRestored: true, fullEncryptedDatabaseRestored: true, restoredPrekeyMessageDecrypted: true, registeredFingerprintMatches: true, substitutedPrekeyDetected: true, recoveredAfterTabRestart: true, outOfOrder: true, replayRejected: true, sessionRecoveredAfterReplay: true, crashWindowChangesCiphertext: true, persistedExactRetry: true, uncertainRpcFailsClosed: true, crashIntentLocksDevice: true, wasmOnlyCspException: true, initialCiphertextBytes: initial.length, replyCiphertextBytes: reply.length }));
+  console.log(
+    JSON.stringify({
+      success: true,
+      browserContexts: 6,
+      passwordWrappedDatabaseKey: true,
+      walletIsolation: true,
+      wrongPasswordRejected: true,
+      corruptedBackupRejected: true,
+      encryptedBackupRestored: true,
+      fullEncryptedDatabaseRestored: true,
+      restoredPrekeyMessageDecrypted: true,
+      registeredFingerprintMatches: true,
+      substitutedPrekeyDetected: true,
+      recoveredAfterTabRestart: true,
+      outOfOrder: true,
+      replayRejected: true,
+      sessionRecoveredAfterReplay: true,
+      crashWindowChangesCiphertext: true,
+      persistedExactRetry: true,
+      uncertainRpcFailsClosed: true,
+      crashIntentLocksDevice: true,
+      wasmOnlyCspException: true,
+      initialCiphertextBytes: initial.length,
+      replyCiphertextBytes: reply.length
+    })
+  );
 } finally {
   await browser?.close();
-  await new Promise(resolve => server.close(resolve));
+  await new Promise((resolve) => server.close(resolve));
 }

@@ -25,8 +25,12 @@ export class BrowserOutbox {
     return new BrowserOutbox(await requestResult(request));
   }
 
-  constructor(database) { this.database = database; }
-  close() { this.database.close(); }
+  constructor(database) {
+    this.database = database;
+  }
+  close() {
+    this.database.close();
+  }
 
   async entries() {
     const transaction = this.database.transaction(STORE, 'readonly');
@@ -36,11 +40,20 @@ export class BrowserOutbox {
   }
 
   async begin({ id, recipient, generation }) {
-    if (!/^[0-9a-f]{64}$/.test(id) || !recipient || !Number.isSafeInteger(generation) || generation < 1) throw Error('Invalid outbox intent');
+    if (
+      !/^[0-9a-f]{64}$/.test(id) ||
+      !recipient ||
+      !Number.isSafeInteger(generation) ||
+      generation < 1
+    )
+      throw Error('Invalid outbox intent');
     const transaction = this.database.transaction(STORE, 'readwrite');
     const store = transaction.objectStore(STORE);
     const existing = await requestResult(store.getAll());
-    if (existing.some(entry => entry.state !== 'confirmed') || existing.some(entry => entry.id === id)) {
+    if (
+      existing.some((entry) => entry.state !== 'confirmed') ||
+      existing.some((entry) => entry.id === id)
+    ) {
       transaction.abort();
       await transactionDone(transaction).catch(() => {});
       throw Error('Unresolved send: sending is locked');
@@ -64,9 +77,10 @@ export class BrowserOutbox {
   }
 
   async reconcile(id, lookupSent) {
-    const entry = (await this.entries()).find(value => value.id === id);
+    const entry = (await this.entries()).find((value) => value.id === id);
     if (!entry) throw Error('Outbox entry missing');
-    if (entry.state === 'intent') throw Error('Unrecoverable send: rotate device before sending again');
+    if (entry.state === 'intent')
+      throw Error('Unrecoverable send: rotate device before sending again');
     if (entry.state === 'confirmed') return { state: 'confirmed', sequence: entry.sequence };
     // Lookup errors must propagate; never infer "not sent" from an RPC timeout.
     const sequence = await lookupSent(id);
@@ -77,6 +91,12 @@ export class BrowserOutbox {
       await transactionDone(transaction);
       return { state: 'confirmed', sequence };
     }
-    return { state: 'ready', id, recipient: entry.recipient, generation: entry.generation, ciphertext: new Uint8Array(entry.ciphertext) };
+    return {
+      state: 'ready',
+      id,
+      recipient: entry.recipient,
+      generation: entry.generation,
+      ciphertext: new Uint8Array(entry.ciphertext)
+    };
   }
 }

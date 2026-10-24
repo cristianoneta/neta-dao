@@ -17,7 +17,14 @@ test('Docker COPY instructions include the complete relative backend import grap
           staged.set(posix.normalize(posix.join(destination, file)), resolve(sourcePath, file));
         }
       } else if (source.endsWith('.mjs')) {
-        staged.set(posix.normalize(destination.endsWith('/') ? posix.join(destination, posix.basename(source)) : destination), sourcePath);
+        staged.set(
+          posix.normalize(
+            destination.endsWith('/')
+              ? posix.join(destination, posix.basename(source))
+              : destination
+          ),
+          sourcePath
+        );
       }
     }
   }

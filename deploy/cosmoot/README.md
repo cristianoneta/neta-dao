@@ -109,3 +109,27 @@ dependencies, validates public templates, builds a commit-tagged image and runs
 synthetic restore/maintenance checks with no external container network or
 production mounts. It never runs Compose up, opens public ports, activates timers
 or reads an operator environment/key file. A passing check is not a cutover.
+
+## Visitor admission behind Caddy — 24 October maintenance
+
+The combined template gives the edge a fixed address on a dedicated `api` network.
+The backend joins that network without publishing its port and trusts exactly
+`COSMOOT_TRUSTED_PROXY_IPS`, set from the same Compose `COSMOOT_PROXY_IP` value.
+Default template values are `172.30.87.2` within `172.30.87.0/29`; these are generic
+network defaults, not evidence of a live installation. If they overlap a host
+network, supply a reviewed free `COSMOOT_PROXY_SUBNET` and matching proxy IP via
+Compose interpolation. `cosmoot.env` is a service env_file, not an interpolation file.
+
+Caddy overwrites `X-Cosmoot-Client-IP` with its direct visitor address. The backend
+ignores forwarded headers from untrusted peers and rejects missing/malformed client
+addresses from a trusted peer. It does not trust arbitrary X-Forwarded-For, CIDRs or
+DNS names. Standalone deployments default to direct-peer admission unless explicit
+trusted IPs are configured. A further upstream proxy/CDN needs a separately reviewed
+edge trust policy; the template does not invent the visitor address behind it.
+
+Deploy application and proxy configuration together using the existing private
+procedure. Preserve both live databases, wallet identity, limits and allowlist.
+This is separate from Cloudflare publication and does not require a new service.
+`check-backend-deployment.mjs` verifies Compose trust wiring and runs the real pinned
+Caddy on loopback with synthetic visitors; one visitor's exhausted quota and forged
+headers must not consume another's allowance. Live host acceptance remains separate.

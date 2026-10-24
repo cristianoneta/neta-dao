@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { BackupStore, MAX_BACKUP_BYTES } from './store.mjs';
 import { validWallet, verifyOwnership } from './auth.mjs';
 import { webOrigins } from '../service/web-origins.mjs';
+import { trustedProxyAddresses } from '../service/client-address.mjs';
 const token = () => randomBytes(32).toString('hex');
 export function backupServer({
   store,
@@ -15,7 +16,8 @@ export function backupServer({
   now = Date.now,
   verify = verifyOwnership,
   allowedWallets,
-  bodyTimeoutMs = 5000
+  bodyTimeoutMs = 5000,
+  trustedProxies = []
 }) {
   const allowedOrigins = webOrigins(origin);
   webOrigins(domain);
@@ -39,7 +41,7 @@ export function backupServer({
     rates = new Map();
   const active = { anonymous: 0, authenticated: 0 },
     walletActive = new Map();
-  const admitAnonymous = clientThrottle({ now, maximum: 30 });
+  const admitAnonymous = clientThrottle({ now, maximum: 30, trustedProxies });
   const purge = (map) => {
     for (const [k, v] of map) if (v.expires <= now()) map.delete(k);
   };
@@ -205,6 +207,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     domain: process.env.RELAY_BACKUP_ORIGIN || process.env.RENDER_EXTERNAL_URL,
     chain: 'juno-1',
     contract: process.env.RELAY_MAILBOX_CONTRACT,
+    trustedProxies: trustedProxyAddresses(process.env.COSMOOT_TRUSTED_PROXY_IPS),
     allowedWallets: (process.env.RELAY_BACKUP_WALLETS || '').split(',').filter(Boolean)
   });
   server.requestTimeout = 20000;

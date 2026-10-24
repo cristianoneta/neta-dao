@@ -54,7 +54,7 @@ export function governanceReadTarget(source, path, height = '') {
     }
     if (
       pathname === '/cosmos/gov/v1/proposals' ||
-      (/^\/cosmos\/staking\/v1beta1\/delegations\/juno1[a-z0-9]{38,58}$/.test(pathname)) ||
+      /^\/cosmos\/staking\/v1beta1\/delegations\/juno1[a-z0-9]{38,58}$/.test(pathname) ||
       pathname === '/cosmos/staking/v1beta1/validators' ||
       /^\/cosmos\/gov\/v1\/proposals\/[1-9]\d{0,19}\/votes$/.test(pathname)
     ) {

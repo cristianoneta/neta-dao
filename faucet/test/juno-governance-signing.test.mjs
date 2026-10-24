@@ -1,5 +1,11 @@
 import { MsgCommunityPoolSpend } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
-import { communityPoolMessages, COMMUNITY_POOL_SPEND, DAI_AMOUNT, DAI_DENOM, DAI_RECIPIENT } from '../../juno-community-pool-proposal.mjs';
+import {
+  communityPoolMessages,
+  COMMUNITY_POOL_SPEND,
+  DAI_AMOUNT,
+  DAI_DENOM,
+  DAI_RECIPIENT
+} from '../../juno-community-pool-proposal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TxRaw, TxBody, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
@@ -12,7 +18,12 @@ import { claimValidators, WITHDRAW_REWARD } from '../../juno-governance-core.mjs
 import { sha256 } from '@cosmjs/crypto';
 import { toHex } from '@cosmjs/encoding';
 import { message, submit, depositMessage, contribute } from '../src/juno-governance-signing.mjs';
-import { GOVERNANCE, SUBMIT, rewardMessages, legacyRewardMessages } from '../../juno-governance-core.mjs';
+import {
+  GOVERNANCE,
+  SUBMIT,
+  rewardMessages,
+  legacyRewardMessages
+} from '../../juno-governance-core.mjs';
 const sender = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
 const content = {
   title: 'Rule approval',
@@ -21,8 +32,12 @@ const content = {
 };
 const fee = { gas: '100000', amount: [{ denom: 'ujuno', amount: '7500' }] };
 test('independent SDK codecs decode all 37 corrected withdrawals inside native governance', () => {
-  const original = JSON.parse(readFileSync(new URL('../../tests/fixtures/juno-proposal-381.json', import.meta.url))).proposal;
-  const validators = original.messages[0].msg.execute_admin_msgs.msgs.map(m => m.distribution.withdraw_delegator_reward.validator).sort();
+  const original = JSON.parse(
+    readFileSync(new URL('../../tests/fixtures/juno-proposal-381.json', import.meta.url))
+  ).proposal;
+  const validators = original.messages[0].msg.execute_admin_msgs.msgs
+    .map((m) => m.distribution.withdraw_delegator_reward.validator)
+    .sort();
   const messages = rewardMessages(validators);
   const outer = message({ ...content, messages }, sender, '100000000');
   const submit = MsgSubmitProposal.decode(MsgSubmitProposal.encode(outer.value).finish());
@@ -41,11 +56,20 @@ test('independent SDK codecs decode all 37 corrected withdrawals inside native g
     assert.deepEqual(Buffer.from(MsgWithdrawDelegatorReward.encode(withdrawal).finish()), bytes);
   }
   for (const mutate of [
-    m => m.value = Buffer.from(MsgWithdrawDelegatorReward.encode({ delegatorAddress: GOVERNANCE, validatorAddress: validators[0] }).finish()).toString('base64'),
-    m => m.value += '\n',
-    m => m.value = Buffer.concat([Buffer.from(m.value, 'base64'), Buffer.from([24, 1])]).toString('base64'),
-    m => m.type_url = '/cosmos.bank.v1beta1.MsgSend',
-    m => m.extra = true
+    (m) =>
+      (m.value = Buffer.from(
+        MsgWithdrawDelegatorReward.encode({
+          delegatorAddress: GOVERNANCE,
+          validatorAddress: validators[0]
+        }).finish()
+      ).toString('base64')),
+    (m) => (m.value += '\n'),
+    (m) =>
+      (m.value = Buffer.concat([Buffer.from(m.value, 'base64'), Buffer.from([24, 1])]).toString(
+        'base64'
+      )),
+    (m) => (m.type_url = '/cosmos.bank.v1beta1.MsgSend'),
+    (m) => (m.extra = true)
   ]) {
     const bad = structuredClone(messages);
     mutate(bad[0].msg.execute_admin_msgs.msgs[0].stargate);
@@ -123,7 +147,10 @@ function harness(mode = '') {
 }
 test('signer refuses the incompatible programme claim before simulation or signing', () => {
   const blocked = { ...content, messages: legacyRewardMessages(['junovaloper1' + 'q'.repeat(38)]) };
-  assert.throws(() => message(blocked, sender, '100000000'), /incompatible format from proposal #381/);
+  assert.throws(
+    () => message(blocked, sender, '100000000'),
+    /incompatible format from proposal #381/
+  );
   const msg = message(content, sender, '100000000');
   const decoded = MsgSubmitProposal.decode(MsgSubmitProposal.encode(msg.value).finish());
   assert.equal(decoded.proposer, sender);
@@ -311,22 +338,26 @@ test('native votes preserve exact proposal, voter, option and fee; uncertain wri
 });
 
 test('native Community Pool proposal protobuf preserves authority, recipient and 18-decimal amount', () => {
-  const raw = message({...content, messages:communityPoolMessages()}, sender, '1000000000');
+  const raw = message({ ...content, messages: communityPoolMessages() }, sender, '1000000000');
   const encoded = MsgSubmitProposal.decode(MsgSubmitProposal.encode(raw.value).finish());
   assert.equal(encoded.proposer, sender);
   assert.equal(encoded.initialDeposit[0].amount, '1000000000');
   assert.equal(encoded.messages.length, 1);
   assert.equal(encoded.messages[0].typeUrl, COMMUNITY_POOL_SPEND);
-  const transfer=MsgCommunityPoolSpend.decode(encoded.messages[0].value);
+  const transfer = MsgCommunityPoolSpend.decode(encoded.messages[0].value);
   assert.equal(transfer.authority, GOVERNANCE);
   assert.equal(transfer.recipient, DAI_RECIPIENT);
-  assert.deepEqual(transfer.amount, [{denom:DAI_DENOM,amount:DAI_AMOUNT}]);
+  assert.deepEqual(transfer.amount, [{ denom: DAI_DENOM, amount: DAI_AMOUNT }]);
   for (const mutate of [
-    m => m[0].recipient = sender, m => m[0].authority = sender,
-    m => m[0].amount[0].amount = '460900000', m => m[0].amount[0].denom = 'ujuno',
-    m => m.push(m[0]), m => m[0].extra = true
+    (m) => (m[0].recipient = sender),
+    (m) => (m[0].authority = sender),
+    (m) => (m[0].amount[0].amount = '460900000'),
+    (m) => (m[0].amount[0].denom = 'ujuno'),
+    (m) => m.push(m[0]),
+    (m) => (m[0].extra = true)
   ]) {
-    const messages=communityPoolMessages(); mutate(messages);
-    assert.throws(()=>message({...content,messages},sender,'1000000000'));
+    const messages = communityPoolMessages();
+    mutate(messages);
+    assert.throws(() => message({ ...content, messages }, sender, '1000000000'));
   }
 });

@@ -33,7 +33,7 @@ function renderIdentity(element, owner, networkLabel, name) {
     const profile = doc.createElement('a');
     profile.className = 'review-author-name';
     profile.textContent = name;
-    profile.href = `/name-profile.html?${new URLSearchParams({name})}`;
+    profile.href = `/name-profile.html?${new URLSearchParams({ name })}`;
     profile.target = '_blank';
     profile.rel = 'noopener noreferrer';
     profile.setAttribute('aria-label', `View ${name} profile (opens in a new tab)`);
@@ -60,8 +60,7 @@ export function authorNameRenderer({ fetcher = fetch } = {}) {
         });
       const reader = new NamesV2Reader({ deployment: await manifest, fetcher });
       const name = await publicAuthorName(reader, owner);
-      if (name && current())
-        renderIdentity(element, owner, networkLabel, name);
+      if (name && current()) renderIdentity(element, owner, networkLabel, name);
     } catch {
       /* The full verifiable address remains the public fallback. */
     }

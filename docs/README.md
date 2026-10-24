@@ -1,6 +1,6 @@
 # Documentation map
 
-Updated 2026-10-08. Use current documents for decisions and dated evidence for
+Updated 2026-10-24. Use current documents for decisions and dated evidence for
 provenance. Do not read every historical handoff as an independent to-do list.
 
 | Purpose | Owning document |
@@ -11,7 +11,7 @@ provenance. Do not read every historical handoff as an independent to-do list.
 | Connected features, deployment boundaries and source map | [CURRENT_STATE](CURRENT_STATE.md) |
 | Open work across modules | [PROJECT_CHECKPOINT](../PROJECT_CHECKPOINT.md) |
 | Verification commands and repository overview | [Root README](../README.md) |
-| Latest maintenance scope and findings | [review remediation](REPO_REMEDIATION_2026-10-07.md) |
+| Latest maintenance scope and findings | [24 October maintenance](MAINTENANCE_2026-10-24.md) |
 | NNS mainnet continuation and preserved UNI-7 evidence | [NNS handoff](HANDOFF_NEXT_CHAT_NNS_2026-10-04.md) |
 | Existing/fresh UNI-7 test procedure | [Owner runbook](NNS_UNI7_OWNER_TEST_2026-10-04.md) |
 | Shared Treasury price snapshots and mainnet preparation | [NNS pricing runbook](../names/README.md) |
@@ -25,7 +25,7 @@ provenance. Do not read every historical handoff as an independent to-do list.
 | Shared Treasury schema and filtered NNS register | [Statement revision](TREASURY_STATEMENT_2026-10-06.md) |
 | UI/new pages | [Design system](DESIGN_SYSTEM.md) |
 | DAO addition and membership | [Onboarding checklist](DAO_ONBOARDING_CHECKLIST.md), [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md) |
-| Governance APIs and permissions | [Review architecture](../REVIEW_ARCHITECTURE.md) |
+| Governance authorities, serialization and execution | [Mandatory semantics](GOVERNANCE_EXECUTION_SEMANTICS.md), [Review architecture](../REVIEW_ARCHITECTURE.md) |
 | Encrypted messaging and recovery | [Implementation plan](RELAY_IMPLEMENTATION_PLAN.md), [recovery decision](RELAY_RECOVERY_DECISION.md), [security architecture](RELAY_SECURITY_ARCHITECTURE.md) |
 | Deferred delegation research | [Smart Delegation](SMART_DELEGATION_RESEARCH.md) |
 

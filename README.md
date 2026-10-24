@@ -1,51 +1,61 @@
-# NETA DAO Workspace
+# Cosmoot
 
-Static governance workspace at <https://dao.netareborn.com>.
-This repository owns the DAO app; `cristianoneta/neta-website` owns the separate
-<https://netareborn.com> site.
+Governance and community tools at <https://cosmoot.com>; the legacy
+<https://dao.netareborn.com> address remains supported. This repository owns the
+application, its contracts and collectors. The separate NETA homepage remains in
+`cristianoneta/neta-website`.
 
-Start with [current feature/deployment/evidence status](docs/CURRENT_STATE.md),
-then [next steps](HANDOFF.md). [Documentation map](docs/README.md) links the runbooks.
-Current status is maintained in one matrix, not appended to several histories.
+Read [current feature and release status](docs/CURRENT_STATE.md), then
+[the development handoff](HANDOFF.md). [Documentation map](docs/README.md).
+Current status is updated in place; historical checkpoints live in the archive.
 
 ## Develop and verify
 
-Node 24.19.0; Rust is pinned in `rust-toolchain.toml` for reproducible contract bytes.
+Use Node 24 (CI baseline 24.19.0), Python 3.11+ and the pinned Rust toolchain.
 
 ```sh
+npm ci --ignore-scripts
 npm ci --prefix faucet --ignore-scripts
 npm ci --prefix relay-backup --ignore-scripts
-node scripts/check-repository.mjs
-node scripts/build-personal-pilot.mjs --check
-node --test tests/*.test.mjs
-python3 -m unittest discover -s tests -p 'test_*.py'
+npm run verify
 npm test --prefix faucet
 npm test --prefix relay-backup
 node --test names/tests/*.test.mjs
-node scripts/check-contracts.mjs fmt
-node scripts/check-contracts.mjs test
-node scripts/check-contracts.mjs clippy
 ```
 
-Browser suites: install `spikes/relay-corecrypto` dependencies and Playwright
-Chromium; commands are in `.github/workflows/relay-crypto-browser.yml`.
-They use simulated wallet/chain actions; passing them is not live-wallet evidence.
-`Repository checks` runs every PR and exposes **Required repository checks**.
-Generated pilot files must match both their source build and manifest hashes.
-See [dependency policy](docs/DEPENDENCIES.md) and [release procedure](docs/RELEASES.md).
+`npm run verify` checks source formatting, ESLint correctness rules, explicitly
+annotated governance types, all root Node tests, executable syntax, the pinned
+pilot artifacts, generated DAO directory and Python tests. `npm run format`
+formats hand-written JavaScript automatically, excluding generated or
+manifest-pinned release artifacts. Type checking is incremental, not repo-wide.
+
+Additional mandatory CI gates cover Rust format/tests/Clippy/audit, byte-for-byte
+WASM builds, real local Juno governance execution, Docker/Caddy, signing bundles,
+browser flows and the Cloudflare Worker. Browser setup and commands are in
+`.github/workflows/relay-crypto-browser.yml` and `faucet-ci.yml`; the isolated
+maintenance suite uses Playwright Test with failure traces. Synthetic wallet
+responses do not establish live-wallet or future mainnet execution success.
+
+`python3 scripts/dependency-inventory.py` exports lockfile dependencies and exact
+WASM identities to `dist/dependency-inventory.json`. Its coverage limits distinguish
+contract test dependencies from deployed WASM and third-party embedded binaries.
+See [dependency maintenance](docs/DEPENDENCIES.md) and [releases](docs/RELEASES.md).
 
 ## Architecture and boundaries
 
-- Static frontend with feature-specific modules; [source map](docs/SOURCE_MAP.md).
-- On-chain contracts in `contracts/`; central inventory in `scripts/contracts.json`.
-- Read-only data collectors in `scripts/`, versioned snapshots in `data/`.
-- Existing Render service: Faucet plus separately authenticated encrypted backup,
-  separate SQLite databases on the retained disk. Shared process is a pilot compromise.
-- Personal mainnet messaging is a restricted two-wallet pilot. Public Inbox stays
-  gated. Only sending requires an owned active `.neta`; receiving needs no name or stake.
-- Names mainnet is active. Current deployment receipts and evidence limits belong
-  to CURRENT_STATE. Do not repeat completed wallet deployments.
+- Static frontend with feature modules; [source and responsibility map](docs/SOURCE_MAP.md).
+- Seven contract packages, inventoried in `scripts/contracts.json`.
+- Read-only collectors and published snapshots; production collection runs on OVH.
+- OVH hosts Faucet and the encrypted-message backup service with separate databases
+  and authentication. Their shared process remains a documented pilot compromise.
+  Render is retired; historical Render templates are not active deployment instructions.
+- Names is active on mainnet. Personal messaging remains a separate two-wallet
+  pilot; public Inbox activation is still gated in source.
+- Juno review, native submission and later DAO/chain execution are different
+  authorities and stages. Read [the mandatory semantics](docs/GOVERNANCE_EXECUTION_SEMANTICS.md).
 
-Use branches and PRs. Preserve generated data, URLs, browser storage keys, wallet
-bindings and uncertain transaction/crypto journals. UI work follows
-[DESIGN_SYSTEM](docs/DESIGN_SYSTEM.md). Do not delete safety checks for brevity.
+Use one branch/PR for related work. Preserve URLs, generated data, browser storage
+keys, contract identities and pending transaction/crypto journals. Website releases
+are manual and commit-bound. Backend installation is a separate host operation;
+a Cloudflare release does not update the backend. UI work follows
+[DESIGN_SYSTEM](docs/DESIGN_SYSTEM.md). Private operator information stays outside Git.

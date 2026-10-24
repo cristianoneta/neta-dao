@@ -10,11 +10,12 @@ export function createFaucetServer({
   origin,
   paused = false,
   now = Date.now,
-  backup = null
+  backup = null,
+  trustedProxies = []
 }) {
   const allowedOrigins = webOrigins(origin);
-  const admitCheap = clientThrottle({ now, maximum: 60 }),
-    admitClaim = clientThrottle({ now, maximum: 30 });
+  const admitCheap = clientThrottle({ now, maximum: 60, trustedProxies }),
+    admitClaim = clientThrottle({ now, maximum: 30, trustedProxies });
   let active = 0,
     snapshot = null,
     snapshotError = false,
