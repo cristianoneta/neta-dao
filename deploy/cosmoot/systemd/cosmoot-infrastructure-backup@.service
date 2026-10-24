@@ -1,0 +1,49 @@
+[Unit]
+Description=Cosmoot encrypted infrastructure repository (%i)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+WorkingDirectory=/opt/cosmoot-backup
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 /opt/cosmoot-backup/infrastructure_backup.py %i --config /etc/cosmoot-backup/config.json
+LoadCredential=repository:/etc/cosmoot-backup/credentials/repository
+LoadCredential=password:/etc/cosmoot-backup/credentials/password
+LoadCredential=access-key:/etc/cosmoot-backup/credentials/access-key
+LoadCredential=secret-key:/etc/cosmoot-backup/credentials/secret-key
+StateDirectory=cosmoot-infrastructure-backup
+StateDirectoryMode=0700
+TimeoutStartSec=50min
+TimeoutStopSec=30s
+KillMode=control-group
+MemoryHigh=768M
+MemoryMax=1024M
+CPUQuota=50%
+TasksMax=64
+Nice=15
+IOSchedulingClass=idle
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectKernelLogs=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH CAP_DAC_OVERRIDE
+# SQLite read-only connections may need writable WAL shared-memory sidecars.
+# Match these generic paths to the private inventory before installation.
+# Main database files remain read-only in this service's mount namespace.
+ReadWritePaths=/srv/cosmoot/state /var/lib/cosmoot-validator-history
+BindReadOnlyPaths=/srv/cosmoot/state/faucet.sqlite
+BindReadOnlyPaths=/srv/cosmoot/state/relay-backup/relay-backup.sqlite
+BindReadOnlyPaths=/var/lib/cosmoot-validator-history/history.sqlite3

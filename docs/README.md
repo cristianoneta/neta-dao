@@ -26,6 +26,7 @@ provenance. Do not read every historical handoff as an independent to-do list.
 | UI/new pages | [Design system](DESIGN_SYSTEM.md) |
 | DAO addition and membership | [Onboarding checklist](DAO_ONBOARDING_CHECKLIST.md), [People evidence](PEOPLE_MEMBERS_CONTRIBUTORS_2026-10-03.md) |
 | Governance authorities, serialization and execution | [Mandatory semantics](GOVERNANCE_EXECUTION_SEMANTICS.md), [Review architecture](../REVIEW_ARCHITECTURE.md) |
+| Independent infrastructure backup | [Online exports, encrypted repository, installation and recovery gates](INFRASTRUCTURE_BACKUPS.md) |
 | Encrypted messaging and recovery | [Implementation plan](RELAY_IMPLEMENTATION_PLAN.md), [recovery decision](RELAY_RECOVERY_DECISION.md), [security architecture](RELAY_SECURITY_ARCHITECTURE.md) |
 | Deferred delegation research | [Smart Delegation](SMART_DELEGATION_RESEARCH.md) |
 

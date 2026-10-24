@@ -43,12 +43,18 @@ The current published source is recorded only in CURRENT_STATE.
 4. Finish the compatible dependency-upgrade work before the exception deadline.
    Keep the real Juno execution, artifact, audit and browser gates. Do not extend
    the exception automatically.
-5. Recurring independent backup retention and controlled live snapshot fallback
-   remain open. A local export and one reachable snapshot do not close those gates.
-6. Install and accept the [collector archive changes](docs/COLLECTOR_ARCHIVING_2026-10-24.md)
-   after a fresh read-only inventory. Preserve running state and generated data.
-   Verify scheduled cycles, archives and actual RPC savings; independent storage
-   and complete governance history remain separate work.
+5. The owner confirmed infrastructure-backup installation, the first encrypted R2
+   backup with verified fresh download, and a separate full repository data check
+   on 24 October. The daily timer is enabled by explicit owner decision while
+   another-machine application recovery is deferred. Do not repeat installation
+   or repository initialization. Verify two unattended cycles and complete the
+   deferred recovery drill; retention remains preview-only. Exact receipts stay
+   in the private operator handoff. See [backup status and limits](docs/INFRASTRUCTURE_BACKUPS.md#operational-checkpoint--24-october-2026).
+   Controlled live snapshot fallback remains open.
+6. Collector archive installation and the manual collector/archive check were accepted
+   by the owner on 24 October; do not repeat them. Private operational evidence is
+   outside Git. Verify two regular scheduled cycles, multi-day archive growth and
+   measured RPC savings; complete governance history remains separate work.
 
 ## Preservation and open product boundaries
 

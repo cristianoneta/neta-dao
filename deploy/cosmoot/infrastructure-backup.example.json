@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "work": "/var/lib/cosmoot-infrastructure-backup",
+  "restic": "/opt/cosmoot-backup/restic-0.19.1",
+  "host": "replace-with-stable-backup-label",
+  "faucet": "/srv/cosmoot/state/faucet.sqlite",
+  "relay": "/srv/cosmoot/state/relay-backup/relay-backup.sqlite",
+  "collector_data": "/srv/cosmoot/collectors/repo/data",
+  "collector_state": "/var/lib/cosmoot-collect",
+  "validator_state": "/var/lib/cosmoot-validator-history",
+  "recovery_files": {
+    "REPLACE-WITH-REVIEWED-INVENTORY": "/etc/cosmoot/REPLACE-WITH-REAL-RECOVERY-FILE"
+  },
+  "max_bytes": 8589934592,
+  "reserve_bytes": 2147483648
+}

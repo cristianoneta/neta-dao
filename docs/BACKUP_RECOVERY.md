@@ -52,8 +52,12 @@ This is application/process evidence on the machine that runs it. It does not
 prove off-host retention, target-container configuration, real browser recovery
 or production migration. Perform it on the intended host as well as locally.
 
-## Access limitations
+## Infrastructure export and independent storage
 
-The connected Render tools expose deployment/health/logs, but not shell/database
-export or authenticated test-identity signing. A hosted restart alone cannot prove
-that a stored backup survived. Keep this gate open until the full drill is possible.
+The service runs on OVH; Render is retired. The separately reviewed
+[infrastructure backup runbook](INFRASTRUCTURE_BACKUPS.md) covers online exports of
+this database alongside other host state, Restic encryption, verified download,
+operator credential handling and another-machine recovery. Its service/timer source
+and synthetic tests do not establish production installation or recurring retention.
+A hosted restart or a same-machine repository download does not establish off-host
+application recovery or the deferred real fresh-browser restore.
