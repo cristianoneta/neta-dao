@@ -39,8 +39,9 @@ RestrictSUIDSGID=yes
 RestrictRealtime=yes
 LockPersonality=yes
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
-CapabilityBoundingSet=CAP_DAC_READ_SEARCH CAP_DAC_OVERRIDE
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH CAP_DAC_OVERRIDE CAP_CHOWN CAP_SETUID CAP_SETGID
 # SQLite read-only connections may need writable WAL shared-memory sidecars.
+# The export worker creates them as the database owner, never as the root parent.
 # Match these generic paths to the private inventory before installation.
 # Main database files remain read-only in this service's mount namespace.
 ReadWritePaths=/srv/cosmoot/state /var/lib/cosmoot-validator-history

@@ -73,7 +73,117 @@ class Fixture(unittest.TestCase):
             return backup.backup(self.config, restic)
 
 
+@unittest.skipUnless(os.geteuid() == 0, 'Source-owner regression requires root')
+class SourceOwnerTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.uid = self.gid = 65534
+        try:
+            os.chown(self.root, self.uid, self.gid)
+        except OSError:
+            if os.environ.get('COSMOOT_REQUIRE_OWNER_TESTS'):
+                raise
+            self.skipTest('A second mapped UID/GID is unavailable in this namespace')
+        self.work = self.root / 'private-stage'
+        self.work.mkdir(mode=0o700)
+        self.source = self.root / 'live.sqlite'
+        with closing(sqlite3.connect(self.source)) as db:
+            db.execute('PRAGMA journal_mode=WAL')
+            db.execute('CREATE TABLE backups(scope TEXT, revision INTEGER, digest TEXT, blob TEXT, updated INTEGER)')
+            db.execute("INSERT INTO backups VALUES('synthetic',1,'hash','encrypted',1)")
+            db.commit()
+        os.chown(self.source, self.uid, self.gid)
+        os.chmod(self.source, 0o600)
+        self.target = self.work / 'export.sqlite'
+        self.budget = backup.Budget(self.work, 10**7, 0)
+
+    def owner_python(self, code):
+        return subprocess.run([sys.executable, '-I', '-c', code, str(self.source), str(self.work)],
+            user=self.uid, group=self.gid, extra_groups=[], capture_output=True, text=True, timeout=10)
+
+    def test_quiescent_wal_export_preserves_owner_and_subsequent_writer(self):
+        self.assertFalse(Path(str(self.source) + '-wal').exists())
+        original = backup.digest(self.source)
+        backup.export_database(self.source, self.target, 'relay', self.budget)
+        self.assertEqual(backup.digest(self.source), original)
+        for suffix in ('-wal', '-shm'):
+            info = Path(str(self.source) + suffix).stat()
+            self.assertEqual((info.st_uid, info.st_gid), (self.uid, self.gid))
+            self.assertEqual(info.st_mode & 0o777, 0o600)
+        self.assertEqual(self.target.stat().st_uid, 0)
+        self.assertEqual(self.target.stat().st_mode & 0o777, 0o600)
+        self.assertEqual(self.budget.used, self.target.stat().st_size)
+        result = self.owner_python('''import sqlite3,sys
+from pathlib import Path
+db=sqlite3.connect(sys.argv[1]); db.execute('PRAGMA journal_mode=WAL')
+db.execute('UPDATE backups SET revision=2'); db.commit(); db.close()
+try:
+    list(Path(sys.argv[2]).iterdir())
+except PermissionError:
+    pass
+else:
+    raise AssertionError('Backup staging became accessible')
+''')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        with closing(sqlite3.connect(self.target)) as db:
+            self.assertEqual(db.execute('SELECT revision FROM backups').fetchone(), (1,))
+        self.assertEqual(list(self.work.glob('.sqlite-export-*')), [])
+
+    def test_existing_uncheckpointed_wal_is_exported(self):
+        # Keep the writer open so revision 3 exists only in WAL during export.
+        with closing(sqlite3.connect(self.source)) as db:
+            db.execute('PRAGMA wal_autocheckpoint=0')
+            db.execute('UPDATE backups SET revision=3')
+            db.commit()
+            for suffix in ('-wal', '-shm'):
+                os.chown(str(self.source) + suffix, self.uid, self.gid)
+                os.chmod(str(self.source) + suffix, 0o600)
+            backup.export_database(self.source, self.target, 'relay', self.budget)
+            with closing(sqlite3.connect(self.target)) as restored:
+                self.assertEqual(restored.execute('SELECT revision FROM backups').fetchone(), (3,))
+            self.assertEqual(db.execute('SELECT revision FROM backups').fetchone(), (3,))
+
+    def test_worker_budget_failure_leaves_no_export_and_writer_still_works(self):
+        with self.assertRaises(ValueError):
+            backup.export_database(self.source, self.target, 'relay', backup.Budget(self.work, 1, 0))
+        self.assertFalse(self.target.exists())
+        self.assertEqual(list(self.work.iterdir()), [])
+        result = self.owner_python("import sqlite3,sys; db=sqlite3.connect(sys.argv[1]); "
+                                   "db.execute('UPDATE backups SET revision=4'); db.commit()")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_worker_timeout_is_reaped_without_export(self):
+        with patch.object(backup, 'sqlite_copy', side_effect=lambda *args: time.sleep(10)):
+            started = time.monotonic()
+            with self.assertRaises(TimeoutError):
+                backup.export_database(self.source, self.target, 'relay', self.budget, timeout=0.1)
+            self.assertLess(time.monotonic() - started, 3)
+        self.assertEqual(list(self.work.iterdir()), [])
+
+    def test_existing_target_is_never_overwritten(self):
+        self.target.write_bytes(b'keep-existing-export')
+        with self.assertRaises(FileExistsError):
+            backup.export_database(self.source, self.target, 'relay', self.budget)
+        self.assertEqual(self.target.read_bytes(), b'keep-existing-export')
+
+
 class ExportTests(Fixture):
+    @unittest.skipUnless(os.geteuid() == 0, 'Worker changes identity through root')
+    def test_worker_path_with_current_owner(self):
+        try:
+            os.setgroups(os.getgroups())
+        except PermissionError:
+            if os.environ.get('COSMOOT_REQUIRE_OWNER_TESTS'):
+                raise
+            self.skipTest('Namespace forbids changing supplementary groups')
+        source = Path(self.config['relay'])
+        target = self.work / 'worker.sqlite'
+        backup.export_as_owner(source, target, backup.Budget(self.work, 10**7, 0), 10, source.stat())
+        backup.validate_database(target, 'relay')
+        self.assertEqual(list(self.work.glob('.sqlite-export-*')), [])
+
     def test_live_wal_and_all_journals_survive_without_source_mutation(self):
         originals = {kind: list(db.iterdump()) for kind, db in self.sources.items()}
         self.assertTrue(Path(self.config['faucet'] + '-wal').stat().st_size > 0)
