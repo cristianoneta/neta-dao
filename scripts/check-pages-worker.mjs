@@ -3,9 +3,13 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const paths = JSON.parse(await readFile(new URL('../deploy/cosmoot/snapshot-paths.json', import.meta.url)));
-const staticPaths = new Set(paths.map(path => `/${path}`));
-const staticBytes = new TextEncoder().encode('{"observed_at":"2026-10-01T00:00:00Z","source":"static"}');
+const paths = JSON.parse(
+  await readFile(new URL('../deploy/cosmoot/snapshot-paths.json', import.meta.url))
+);
+const staticPaths = new Set(paths.map((path) => `/${path}`));
+const staticBytes = new TextEncoder().encode(
+  '{"observed_at":"2026-10-01T00:00:00Z","source":"static"}'
+);
 const upstreamBytes = new Uint8Array([0, 1, 31, 139, 127, 255]);
 let mode = 'server';
 let calls = 0;
@@ -24,16 +28,28 @@ globalThis.fetch = async (url, options) => {
     headers: { 'Set-Cookie': 'upstream-private=1', 'X-Private': 'omit' }
   });
 };
-const env = { ASSETS: { fetch: async request => {
-  const path = new URL(request.url).pathname;
-  const exists = staticPaths.has(path) || ['/', '/relay-personal-runtime.html'].includes(path);
-  return new Response(request.method === 'HEAD' ? null : staticBytes, { status: exists ? 200 : 404 });
-} } };
+const env = {
+  ASSETS: {
+    fetch: async (request) => {
+      const path = new URL(request.url).pathname;
+      const exists = staticPaths.has(path) || ['/', '/relay-personal-runtime.html'].includes(path);
+      return new Response(request.method === 'HEAD' ? null : staticBytes, {
+        status: exists ? 200 : 404
+      });
+    }
+  }
+};
 try {
   const { default: worker } = await import(new URL('../dist/static/_worker.js', import.meta.url));
-  const request = (origin, path, method = 'GET') => worker.fetch(new Request(`${origin}${path}`, {
-    method, headers: { Cookie: 'private=1', Authorization: 'Bearer not-forwarded' }
-  }), env, { waitUntil() {} });
+  const request = (origin, path, method = 'GET') =>
+    worker.fetch(
+      new Request(`${origin}${path}`, {
+        method,
+        headers: { Cookie: 'private=1', Authorization: 'Bearer not-forwarded' }
+      }),
+      env,
+      { waitUntil() {} }
+    );
   for (const origin of ['https://cosmoot.com', 'https://dao.netareborn.com']) {
     mode = 'server';
     for (const path of paths) {
@@ -45,8 +61,14 @@ try {
         assert.equal(response.headers.get('X-Cosmoot-Snapshot'), 'server');
         assert.equal(response.headers.get('Set-Cookie'), null);
         assert.equal(response.headers.get('X-Private'), null);
-        assert.equal(response.headers.get('Content-Type'), path.endsWith('.gz') ? 'application/gzip' : 'application/json');
-        assert.deepEqual(new Uint8Array(await response.arrayBuffer()), method === 'HEAD' ? new Uint8Array() : upstreamBytes);
+        assert.equal(
+          response.headers.get('Content-Type'),
+          path.endsWith('.gz') ? 'application/gzip' : 'application/json'
+        );
+        assert.deepEqual(
+          new Uint8Array(await response.arrayBuffer()),
+          method === 'HEAD' ? new Uint8Array() : upstreamBytes
+        );
       }
     }
     for (const failure of ['offline', 'unavailable']) {
@@ -58,14 +80,26 @@ try {
       assert.deepEqual(new Uint8Array(await response.arrayBuffer()), staticBytes);
     }
     const before = calls;
-    for (const path of ['/receipt.json', '/faucet.sqlite', '/.env', '/data/private.sqlite', '/data/unbekannt.json'])
+    for (const path of [
+      '/receipt.json',
+      '/faucet.sqlite',
+      '/.env',
+      '/data/private.sqlite',
+      '/data/unbekannt.json'
+    ])
       assert.equal((await request(origin, path)).status, 404);
     for (const path of ['/', '/relay-personal-runtime.html'])
       assert.equal((await request(origin, path)).status, 200);
     await request(origin, `/${paths[0]}`, 'POST');
-    assert.equal(calls, before, 'Static routes, private paths and writes must not contact the origin');
+    assert.equal(
+      calls,
+      before,
+      'Static routes, private paths and writes must not contact the origin'
+    );
   }
-  console.log(`Compiled Pages Worker passed: ${paths.length} GET/HEAD paths on both origins, exact bytes, static fallback and private-path routing.`);
+  console.log(
+    `Compiled Pages Worker passed: ${paths.length} GET/HEAD paths on both origins, exact bytes, static fallback and private-path routing.`
+  );
 } finally {
   globalThis.fetch = originalFetch;
 }

@@ -8,29 +8,47 @@ import { createHash } from 'node:crypto';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = resolve(root, 'dist/static');
 const files = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' })
-  .split('\0').filter(Boolean);
-const browserNames = new Set([
-  'mainnet-artifacts.mjs', 'mainnet-config.mjs', 'mainnet-deploy.mjs',
-  'mainnet-deploy-core.mjs', 'mainnet-setup.mjs', 'networks.mjs',
-  'plan-core.mjs', 'price-key.mjs', 'snapshot-client.mjs', 'snapshot-deployment.mjs',
-  'service/constants.mjs'
-].map(name => `names/${name}`));
+  .split('\0')
+  .filter(Boolean);
+const browserNames = new Set(
+  [
+    'mainnet-artifacts.mjs',
+    'mainnet-config.mjs',
+    'mainnet-deploy.mjs',
+    'mainnet-deploy-core.mjs',
+    'mainnet-setup.mjs',
+    'networks.mjs',
+    'plan-core.mjs',
+    'price-key.mjs',
+    'snapshot-client.mjs',
+    'snapshot-deployment.mjs',
+    'service/constants.mjs'
+  ].map((name) => `names/${name}`)
+);
 const manifests = new Set([
   'docs/deployments/nns-mainnet.json',
   'docs/deployments/nns-uni7-owner-2026-10-04.json'
 ]);
-const browserSpikeModules = new Set([
-  'browser-device-lock.mjs', 'browser-envelope.mjs', 'browser-key-vault.mjs',
-  'browser-outbox.mjs', 'mailbox-transport.mjs'
-].map(name => `spikes/relay-corecrypto/${name}`));
+const browserSpikeModules = new Set(
+  [
+    'browser-device-lock.mjs',
+    'browser-envelope.mjs',
+    'browser-key-vault.mjs',
+    'browser-outbox.mjs',
+    'mailbox-transport.mjs'
+  ].map((name) => `spikes/relay-corecrypto/${name}`)
+);
 const publicSuffixes = new Set(['.html', '.css', '.js', '.mjs', '.ico']);
 function isPublic(path) {
-  if (path.split('/').some(part => part.startsWith('.'))) return false;
+  if (path === 'eslint.config.mjs') return false;
+  if (path.split('/').some((part) => part.startsWith('.'))) return false;
   if (!path.includes('/')) return publicSuffixes.has(extname(path));
   if (browserNames.has(path) || manifests.has(path) || browserSpikeModules.has(path)) return true;
   if (path.startsWith('assets/'))
-    return ['.js', '.wasm', '.sha256', '.png', '.webp', '.svg', '.ico'].includes(extname(path))
-      || /\/(LICENSE|SHA256SUMS)$/.test(path);
+    return (
+      ['.js', '.wasm', '.sha256', '.png', '.webp', '.svg', '.ico'].includes(extname(path)) ||
+      /\/(LICENSE|SHA256SUMS)$/.test(path)
+    );
   if (path.startsWith('data/')) return ['.json', '.gz'].includes(extname(path));
   if (path.startsWith('community-tools/')) return publicSuffixes.has(extname(path));
   return path.startsWith('src/') && ['.js', '.mjs'].includes(extname(path));
@@ -49,16 +67,36 @@ const hashes = {};
 for (const path of selected) {
   await mkdir(dirname(resolve(output, path)), { recursive: true });
   await cp(resolve(root, path), resolve(output, path));
-  hashes[path] = createHash('sha256').update(await readFile(resolve(output, path))).digest('hex');
+  hashes[path] = createHash('sha256')
+    .update(await readFile(resolve(output, path)))
+    .digest('hex');
 }
 // Preserve the application's existing CSP. This additional policy prevents foreign
 // framing while allowing the existing same-origin encryption runtime iframe.
 await cp(resolve(root, 'deploy/cosmoot/pages-headers'), resolve(output, '_headers'));
-hashes._headers = createHash('sha256').update(await readFile(resolve(output, '_headers'))).digest('hex');
-await writeFile(resolve(root, 'dist/static-manifest.json'), JSON.stringify({
-  sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
-  workingTree: execFileSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }).trim()
-    ? 'modified' : 'clean',
-  files: hashes
-}, null, 2) + '\n');
-console.log(`Exported ${Object.keys(hashes).length} public files to dist/static; no backend data or credentials.`);
+hashes._headers = createHash('sha256')
+  .update(await readFile(resolve(output, '_headers')))
+  .digest('hex');
+await writeFile(
+  resolve(root, 'dist/static-manifest.json'),
+  JSON.stringify(
+    {
+      sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], {
+        cwd: root,
+        encoding: 'utf8'
+      }).trim(),
+      workingTree: execFileSync('git', ['status', '--porcelain'], {
+        cwd: root,
+        encoding: 'utf8'
+      }).trim()
+        ? 'modified'
+        : 'clean',
+      files: hashes
+    },
+    null,
+    2
+  ) + '\n'
+);
+console.log(
+  `Exported ${Object.keys(hashes).length} public files to dist/static; no backend data or credentials.`
+);

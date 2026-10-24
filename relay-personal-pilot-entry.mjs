@@ -1,2 +1,2 @@
-import {mountPersonalPilot} from './relay-personal-pilot.mjs';
+import { mountPersonalPilot } from './relay-personal-pilot.mjs';
 mountPersonalPilot();

@@ -1,3 +1,4 @@
+import { loadGovernanceSigning } from './browser-signing.mjs';
 import {
   readParticipation,
   voteProof,
@@ -264,7 +265,6 @@ export function nativeVoting({
       $('native-participation-status').textContent =
         `Reconciled with the chain tally · Block ${result.height} · ${new Date(result.checkedAt).toLocaleTimeString()} · ${new URL(result.endpoint).hostname}`;
       $('native-participation-data').hidden = false;
-
     } catch (error) {
       if (generation === epoch) {
         clearData();
@@ -365,7 +365,9 @@ export function nativeVoting({
         if (typeof base.signDirect !== 'function')
           throw Error('Direct signing support is required.');
         client?.disconnect();
-        client = await NetaJunoGovernance.connect(rpcs, {
+        client = await (
+          await loadGovernanceSigning()
+        ).connect(rpcs, {
           getAccounts: () => base.getAccounts(),
           signDirect: (a, d) =>
             window.keplr.signDirect('juno-1', a, d, { preferNoSetFee: true, preferNoSetMemo: true })

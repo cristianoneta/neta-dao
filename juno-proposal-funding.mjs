@@ -1,3 +1,4 @@
+import { loadGovernanceSigning } from './browser-signing.mjs';
 import {
   fundingProof,
   validateContribution,
@@ -55,17 +56,18 @@ export function proposalFunding({
   function render() {
     const id = currentId(),
       panel = $('#proposal-funding-panel');
-    const r = receipt(), outsideDeposit = selected()?.proposal?.status !== 'deposit';
+    const r = receipt(),
+      outsideDeposit = selected()?.proposal?.status !== 'deposit';
     panel.hidden = !id || outsideDeposit;
     const recovery = $('#contribution-recovery');
     recovery.hidden = !id || !outsideDeposit || !['broadcast', 'unreadable'].includes(r?.state);
-    $('#contribution-recovery-text').textContent = r?.state === 'unreadable'
-      ? 'Saved contribution record unreadable. No new contribution will be sent.'
-      : 'A previous contribution still needs confirmation.';
+    $('#contribution-recovery-text').textContent =
+      r?.state === 'unreadable'
+        ? 'Saved contribution record unreadable. No new contribution will be sent.'
+        : 'A previous contribution still needs confirmation.';
     $('#contribution-recovery-check').disabled = working || r?.state !== 'broadcast';
     if (!id) return;
-    const
-      known = proof && String(proof.proposal.id) === id,
+    const known = proof && String(proof.proposal.id) === id,
       t = known && proof.terms;
     $('#proposal-funding-total').textContent = known
       ? `${displayJuno(t.funded)} / ${displayJuno(t.total)} JUNO`
@@ -197,7 +199,9 @@ export function proposalFunding({
         if (typeof base.signDirect !== 'function')
           throw Error('Direct signing support is required.');
         client?.disconnect();
-        client = await NetaJunoGovernance.connect(rpcs, {
+        client = await (
+          await loadGovernanceSigning()
+        ).connect(rpcs, {
           getAccounts: () => base.getAccounts(),
           signDirect: (a, d) =>
             window.keplr.signDirect('juno-1', a, d, { preferNoSetFee: true, preferNoSetMemo: true })

@@ -23,7 +23,9 @@ import { observed } from '../../tests/fixtures/delegation-planner.mjs';
 import { legacyClaimDraft } from '../../tests/fixtures/legacy-claim.mjs';
 import { claimValidators } from '../../juno-governance-core.mjs';
 import { CLAIM_381_EXPLANATION, CLAIM_TITLE } from '../../claim-numbering.mjs';
-const failedClaim = JSON.parse(await readFile(new URL('../../tests/fixtures/juno-proposal-381.json', import.meta.url))).proposal;
+const failedClaim = JSON.parse(
+  await readFile(new URL('../../tests/fixtures/juno-proposal-381.json', import.meta.url))
+).proposal;
 const root = new URL('../../', import.meta.url),
   history = JSON.parse(await readFile(new URL('data/validator-upgrades/juno-v31.json', root)));
 const sample = fixture();
@@ -568,7 +570,12 @@ try {
   const correctedDraftUrl = page.url();
   assert.equal(await page.locator('#proposal-title').inputValue(), CLAIM_TITLE + ' II');
   assert.ok((await page.locator('#proposal-body').inputValue()).includes(CLAIM_381_EXPLANATION));
-  assert.equal(claimValidators(JSON.parse(await page.locator('#proposal-actions').inputValue()), { allowLegacy: false }).length, sample.validators.length);
+  assert.equal(
+    claimValidators(JSON.parse(await page.locator('#proposal-actions').inputValue()), {
+      allowLegacy: false
+    }).length,
+    sample.validators.length
+  );
   const legacy = legacyClaimDraft(sample);
   const openDraft = async (draft, id) => {
     const url = await page.evaluate(
@@ -583,11 +590,16 @@ try {
   };
   await openDraft(legacy, '11111111-1111-4111-8111-111111111111');
   await page.waitForFunction(() =>
-    document.querySelector('#action-hint').textContent.includes('incompatible format from proposal #381')
+    document
+      .querySelector('#action-hint')
+      .textContent.includes('incompatible format from proposal #381')
   );
 
   assert.equal(await page.locator('#primary-action').isDisabled(), true);
-  assert.match(await page.locator('#action-hint').innerText(), /incompatible format from proposal #381/);
+  assert.match(
+    await page.locator('#action-hint').innerText(),
+    /incompatible format from proposal #381/
+  );
   assert.equal(await page.locator('#proposal-title').inputValue(), legacy.values.title);
   assert.deepEqual(
     JSON.parse(await page.locator('#proposal-actions').inputValue()),

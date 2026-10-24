@@ -12,16 +12,38 @@ try {
   for (const file of ['compose.yaml', 'compose.snapshots.yaml', 'Caddyfile', 'Caddyfile.snapshots'])
     await copyFile(join(source, file), join(directory, file));
   await copyFile(join(source, 'cosmoot.env.example'), join(directory, 'cosmoot.env'));
-  const config = file => JSON.parse(execFileSync('docker', ['compose', '--profile', 'backend', '-f',
-    join(directory, file), 'config', '--format', 'json'], { encoding: 'utf8', env: { PATH: process.env.PATH } }));
-  const combined = config('compose.yaml'), snapshots = config('compose.snapshots.yaml');
-  const edge = combined.services.edge, previous = snapshots.services.edge;
-  assert.equal(combined.name, snapshots.name, 'Preserve the Compose project and certificate volumes');
+  const config = (file) =>
+    JSON.parse(
+      execFileSync(
+        'docker',
+        [
+          'compose',
+          '--profile',
+          'backend',
+          '-f',
+          join(directory, file),
+          'config',
+          '--format',
+          'json'
+        ],
+        { encoding: 'utf8', env: { PATH: process.env.PATH } }
+      )
+    );
+  const combined = config('compose.yaml'),
+    snapshots = config('compose.snapshots.yaml');
+  const edge = combined.services.edge,
+    previous = snapshots.services.edge;
+  assert.equal(
+    combined.name,
+    snapshots.name,
+    'Preserve the Compose project and certificate volumes'
+  );
   assert.equal(edge.image, previous.image, 'Use the previously pinned data-edge image');
   assert.match(edge.image, /@sha256:[0-9a-f]{64}$/);
   assert.ok(!edge.depends_on, 'Public data must survive backend downtime');
   for (const target of ['/snapshots', '/data', '/config']) {
-    const next = edge.volumes.find(v => v.target === target), old = previous.volumes.find(v => v.target === target);
+    const next = edge.volumes.find((v) => v.target === target),
+      old = previous.volumes.find((v) => v.target === target);
     assert.ok(next && old);
     assert.equal(next.source, old.source);
     assert.equal(next.type, old.type);
@@ -32,18 +54,63 @@ try {
     }
   }
   assert.equal(combined.services.backend.ports, undefined, 'Expose the API through the edge only');
+  assert.equal(
+    combined.services.backend.environment.COSMOOT_TRUSTED_PROXY_IPS,
+    edge.networks.api.ipv4_address,
+    'Only the edge address on the dedicated API network may identify visitors'
+  );
+  assert.deepEqual(Object.keys(combined.services.backend.networks), ['api']);
+  assert.equal(combined.networks.api.ipam.config[0].subnet, '172.30.87.0/29');
   assert.equal(combined.services.backend.environment.FAUCET_PAUSED, 'true');
   assert.equal(combined.services.backend.environment.RELAY_BACKUP_ENABLED, 'false');
   assert.deepEqual(combined.services.backend.cap_drop, ['ALL']);
   // A comma in an unquoted YAML flow item becomes a second, invalid mount.
   const backendTmpfs = combined.services.backend.tmpfs;
-  assert.deepEqual(backendTmpfs, ['/tmp:size=16m,mode=1777'],
-    'Keep backend tmpfs options in one absolute mount specification');
-  execFileSync('docker', ['run', '--rm', '--entrypoint', 'caddy', '-v', `${directory}:/etc/caddy:ro`,
-    edge.image, 'validate', '--config', '/etc/caddy/Caddyfile'], { stdio: 'inherit' });
+  assert.deepEqual(
+    backendTmpfs,
+    ['/tmp:size=16m,mode=1777'],
+    'Keep backend tmpfs options in one absolute mount specification'
+  );
+  execFileSync(
+    'docker',
+    [
+      'run',
+      '--rm',
+      '--entrypoint',
+      'caddy',
+      '-v',
+      `${directory}:/etc/caddy:ro`,
+      edge.image,
+      'validate',
+      '--config',
+      '/etc/caddy/Caddyfile'
+    ],
+    { stdio: 'inherit' }
+  );
   // Validate mounts with Docker itself; Compose config alone accepts relative targets.
-  execFileSync('docker', ['run', '--rm', '--network', 'none', '--read-only', '--cap-drop', 'ALL',
-    '--security-opt', 'no-new-privileges', '--entrypoint', '/bin/true',
-    ...backendTmpfs.flatMap(mount => ['--tmpfs', mount]), edge.image], { stdio: 'inherit' });
+  execFileSync(
+    'docker',
+    [
+      'run',
+      '--rm',
+      '--network',
+      'none',
+      '--read-only',
+      '--cap-drop',
+      'ALL',
+      '--security-opt',
+      'no-new-privileges',
+      '--entrypoint',
+      '/bin/true',
+      ...backendTmpfs.flatMap((mount) => ['--tmpfs', mount]),
+      edge.image
+    ],
+    { stdio: 'inherit' }
+  );
+  execFileSync(process.execPath, ['scripts/check-proxy-admission.mjs', edge.image], {
+    stdio: 'inherit'
+  });
   console.log('Combined edge configuration preserves public data and certificate storage.');
-} finally { await rm(directory, { recursive: true, force: true }); }
+} finally {
+  await rm(directory, { recursive: true, force: true });
+}

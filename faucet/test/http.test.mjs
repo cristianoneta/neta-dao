@@ -1,70 +1,155 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {FaucetLedger} from '../service/ledger.mjs';
-import {createFaucetServer} from '../service/http.mjs';
-import {CONFIRMATION_VERSION} from '../service/confirmation.mjs';
-const origin='https://dao.netareborn.com';
-async function setup(t,{limits,paused=false,balance,clock,origins=origin}={}){
-  let calls=0;const adapter={confirmation:CONFIRMATION_VERSION,address:'juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt',balance:async()=>{calls++;return balance?balance():'100000000';},lookup:async()=>null};
-  const ledger=new FaucetLedger(':memory:',adapter,{verify:async()=>false,domain:'https://faucet.test',limits,...(clock?{now:clock}:{})});
-  const server=createFaucetServer({ledger,adapter,origin:origins,paused,...(clock?{now:clock}:{})});
-  await new Promise(r=>server.listen(0,'127.0.0.1',r));
-  t.after(async()=>{server.closeAllConnections();await new Promise(r=>server.close(r));ledger.close();});
-  return {ledger,get calls(){return calls;},get:(path,options)=>fetch(`http://127.0.0.1:${server.address().port}${path}`,options)};
+import { FaucetLedger } from '../service/ledger.mjs';
+import { createFaucetServer } from '../service/http.mjs';
+import { CONFIRMATION_VERSION } from '../service/confirmation.mjs';
+const origin = 'https://dao.netareborn.com';
+async function setup(t, { limits, paused = false, balance, clock, origins = origin } = {}) {
+  let calls = 0;
+  const adapter = {
+    confirmation: CONFIRMATION_VERSION,
+    address: 'juno12jc8ekvrvml9jtk5pvl4tpddj5pep5m5hd8aqt',
+    balance: async () => {
+      calls++;
+      return balance ? balance() : '100000000';
+    },
+    lookup: async () => null
+  };
+  const ledger = new FaucetLedger(':memory:', adapter, {
+    verify: async () => false,
+    domain: 'https://faucet.test',
+    limits,
+    ...(clock ? { now: clock } : {})
+  });
+  const server = createFaucetServer({
+    ledger,
+    adapter,
+    origin: origins,
+    paused,
+    ...(clock ? { now: clock } : {})
+  });
+  await new Promise((r) => server.listen(0, '127.0.0.1', r));
+  t.after(async () => {
+    server.closeAllConnections();
+    await new Promise((r) => server.close(r));
+    ledger.close();
+  });
+  return {
+    ledger,
+    get calls() {
+      return calls;
+    },
+    get: (path, options) => fetch(`http://127.0.0.1:${server.address().port}${path}`, options)
+  };
 }
-test('both approved origins pass preflight and POST admission; lookalikes cannot reach the ledger',async t=>{
-  const origins=[origin,'https://cosmoot.com'];const s=await setup(t,{origins});
-  for(const allowed of origins){
-    const response=await s.get('/challenge',{method:'OPTIONS',headers:{origin:allowed}});
-    assert.equal(response.status,204);assert.equal(response.headers.get('access-control-allow-origin'),allowed);
-    assert.equal(response.headers.get('vary'),'Origin');
-    const invalid=await s.get('/challenge',{method:'POST',headers:{origin:allowed,'content-type':'application/json'},body:JSON.stringify({address:'invalid'})});
-    assert.equal(invalid.status,400);
+test('both approved origins pass preflight and POST admission; lookalikes cannot reach the ledger', async (t) => {
+  const origins = [origin, 'https://cosmoot.com'];
+  const s = await setup(t, { origins });
+  for (const allowed of origins) {
+    const response = await s.get('/challenge', { method: 'OPTIONS', headers: { origin: allowed } });
+    assert.equal(response.status, 204);
+    assert.equal(response.headers.get('access-control-allow-origin'), allowed);
+    assert.equal(response.headers.get('vary'), 'Origin');
+    const invalid = await s.get('/challenge', {
+      method: 'POST',
+      headers: { origin: allowed, 'content-type': 'application/json' },
+      body: JSON.stringify({ address: 'invalid' })
+    });
+    assert.equal(invalid.status, 400);
   }
-  for(const denied of ['https://cosmoot.com.evil.example','https://preview.cosmoot.com','http://cosmoot.com','null']){
-    for(const method of ['OPTIONS','POST']){
-      const response=await s.get('/challenge',{method,headers:{origin:denied,'content-type':'application/json'},...(method==='POST'?{body:'{}'}:{})});
-      assert.equal(response.status,403);assert.equal(response.headers.get('access-control-allow-origin'),null);
+  for (const denied of [
+    'https://cosmoot.com.evil.example',
+    'https://preview.cosmoot.com',
+    'http://cosmoot.com',
+    'null'
+  ]) {
+    for (const method of ['OPTIONS', 'POST']) {
+      const response = await s.get('/challenge', {
+        method,
+        headers: { origin: denied, 'content-type': 'application/json' },
+        ...(method === 'POST' ? { body: '{}' } : {})
+      });
+      assert.equal(response.status, 403);
+      assert.equal(response.headers.get('access-control-allow-origin'), null);
     }
   }
-  assert.equal(s.ledger.db.prepare('SELECT count(*) AS n FROM challenges').get().n,0);
-  assert.equal(s.ledger.db.prepare('SELECT count(*) AS n FROM claims').get().n,0);
+  assert.equal(s.ledger.db.prepare('SELECT count(*) AS n FROM challenges').get().n, 0);
+  assert.equal(s.ledger.db.prepare('SELECT count(*) AS n FROM claims').get().n, 0);
 });
-test('cheap and invalid requests cannot exhaust persistent payout work budget',async t=>{
-  const s=await setup(t,{limits:{requestsPerDay:1}});
-  assert.equal((await s.get('/unknown')).status,404);
-  assert.equal((await s.get('/unknown')).status,404);
-  const results=await Promise.all(Array.from({length:4},()=>s.get('/status')));
-  assert.ok(results.every(r=>r.status===200));assert.equal(s.calls,1);
-  assert.equal(s.ledger.guard.admitRequest(),null);
-  assert.match(s.ledger.guard.admitRequest().reason,/day request limit/);
-  assert.equal((await s.get('/status')).status,200);
+test('cheap and invalid requests cannot exhaust persistent payout work budget', async (t) => {
+  const s = await setup(t, { limits: { requestsPerDay: 1 } });
+  assert.equal((await s.get('/unknown')).status, 404);
+  assert.equal((await s.get('/unknown')).status, 404);
+  const results = await Promise.all(Array.from({ length: 4 }, () => s.get('/status')));
+  assert.ok(results.every((r) => r.status === 200));
+  assert.equal(s.calls, 1);
+  assert.equal(s.ledger.guard.admitRequest(), null);
+  assert.match(s.ledger.guard.admitRequest().reason, /day request limit/);
+  assert.equal((await s.get('/status')).status, 200);
 });
-test('concurrent status reads share one RPC refresh and cache it for 30 seconds',async t=>{
-  let now=Date.UTC(2026,9,4,12),release;const pending=new Promise(r=>release=r);
-  const s=await setup(t,{clock:()=>now,balance:async()=>{await pending;return '100000000';}});
-  const requests=Array.from({length:4},()=>s.get('/status'));await new Promise(r=>setTimeout(r,25));release();
-  const results=await Promise.all(requests);assert.ok(results.every(r=>r.status===200));assert.equal(s.calls,1);
-  const status=await (await s.get('/status')).json();assert.equal(status.ready,true);assert.equal(status.protection,'usage-guards-v1');assert.equal(status.confirmation,CONFIRMATION_VERSION);assert.equal(s.calls,1);
-  now+=30001;await s.get('/status');assert.equal(s.calls,2);
+test('concurrent status reads share one RPC refresh and cache it for 30 seconds', async (t) => {
+  let now = Date.UTC(2026, 9, 4, 12),
+    release;
+  const pending = new Promise((r) => (release = r));
+  const s = await setup(t, {
+    clock: () => now,
+    balance: async () => {
+      await pending;
+      return '100000000';
+    }
+  });
+  const requests = Array.from({ length: 4 }, () => s.get('/status'));
+  await new Promise((r) => setTimeout(r, 25));
+  release();
+  const results = await Promise.all(requests);
+  assert.ok(results.every((r) => r.status === 200));
+  assert.equal(s.calls, 1);
+  const status = await (await s.get('/status')).json();
+  assert.equal(status.ready, true);
+  assert.equal(status.protection, 'usage-guards-v1');
+  assert.equal(status.confirmation, CONFIRMATION_VERSION);
+  assert.equal(s.calls, 1);
+  now += 30001;
+  await s.get('/status');
+  assert.equal(s.calls, 2);
 });
-test('failed RPC is cached too, without exposing its error',async t=>{
-  const s=await setup(t,{balance:()=>{throw Error('sensitive RPC detail');}});
-  for(let i=0;i<3;i++){const r=await s.get('/status');assert.equal(r.status,503);assert.doesNotMatch(await r.text(),/sensitive/);}
-  assert.equal(s.calls,1);
+test('failed RPC is cached too, without exposing its error', async (t) => {
+  const s = await setup(t, {
+    balance: () => {
+      throw Error('sensitive RPC detail');
+    }
+  });
+  for (let i = 0; i < 3; i++) {
+    const r = await s.get('/status');
+    assert.equal(r.status, 503);
+    assert.doesNotMatch(await r.text(), /sensitive/);
+  }
+  assert.equal(s.calls, 1);
 });
-test('operator pause causes no chain calls',async t=>{
-  const s=await setup(t,{paused:true});assert.equal((await s.get('/status')).status,503);assert.equal(s.calls,0);
+test('operator pause causes no chain calls', async (t) => {
+  const s = await setup(t, { paused: true });
+  assert.equal((await s.get('/status')).status, 503);
+  assert.equal(s.calls, 0);
 });
-test('status reports not ready when global payout budget is exhausted',async t=>{
-  const s=await setup(t,{limits:{payoutsPerDay:1}});
-  s.ledger.db.prepare("INSERT INTO claims(id,address,status,created) VALUES('old','alice','failed',?)").run(Date.now());
-  const status=await (await s.get('/status')).json();assert.equal(status.ready,false);assert.match(status.pause.reason,/day payout limit/);
+test('status reports not ready when global payout budget is exhausted', async (t) => {
+  const s = await setup(t, { limits: { payoutsPerDay: 1 } });
+  s.ledger.db
+    .prepare("INSERT INTO claims(id,address,status,created) VALUES('old','alice','failed',?)")
+    .run(Date.now());
+  const status = await (await s.get('/status')).json();
+  assert.equal(status.ready, false);
+  assert.match(status.pause.reason, /day payout limit/);
 });
-test('readiness covers the 25 JUNOX payout plus 2 JUNOX buffer',async t=>{
-  let now=1800000000000,balance='26999999';
-  const s=await setup(t,{clock:()=>now,balance:()=>balance});
-  let status=await (await s.get('/status')).json();
-  assert.equal(status.amount,'25000000');assert.equal(status.intervalSeconds,86400);assert.equal(status.ready,false);
-  balance='27000000';now+=30001;status=await (await s.get('/status')).json();assert.equal(status.ready,true);
+test('readiness covers the 25 JUNOX payout plus 2 JUNOX buffer', async (t) => {
+  let now = 1800000000000,
+    balance = '26999999';
+  const s = await setup(t, { clock: () => now, balance: () => balance });
+  let status = await (await s.get('/status')).json();
+  assert.equal(status.amount, '25000000');
+  assert.equal(status.intervalSeconds, 86400);
+  assert.equal(status.ready, false);
+  balance = '27000000';
+  now += 30001;
+  status = await (await s.get('/status')).json();
+  assert.equal(status.ready, true);
 });

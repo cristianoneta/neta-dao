@@ -11,7 +11,10 @@
 
   function hex(value) {
     if (/^[0-9a-f]{64}$/i.test(value || '')) return value.toLowerCase();
-    return Array.from(Uint8Array.from(atob(value || ''), char => char.charCodeAt(0)), byte => byte.toString(16).padStart(2, '0')).join('');
+    return Array.from(
+      Uint8Array.from(atob(value || ''), (char) => char.charCodeAt(0)),
+      (byte) => byte.toString(16).padStart(2, '0')
+    ).join('');
   }
   async function get(base, path) {
     const controller = new AbortController();
@@ -20,14 +23,21 @@
       const response = await fetch(base + path, { signal: controller.signal, cache: 'no-store' });
       if (!response.ok) throw Error(`HTTP ${response.status}`);
       return await response.json();
-    } finally { clearTimeout(timer); }
+    } finally {
+      clearTimeout(timer);
+    }
   }
   async function check(base) {
     const node = await get(base, '/cosmos/base/tendermint/v1beta1/node_info');
     if (node.default_node_info?.network !== 'uni-7') throw Error('WRONG CHAIN');
     const contract = await get(base, `/cosmwasm/wasm/v1/contract/${ADDRESS}`);
     const info = contract.contract_info;
-    if (info?.creator !== CREATOR || info.label !== LABEL || !/^[1-9]\d*$/.test(String(info.code_id))) throw Error('CONTRACT IDENTITY MISMATCH');
+    if (
+      info?.creator !== CREATOR ||
+      info.label !== LABEL ||
+      !/^[1-9]\d*$/.test(String(info.code_id))
+    )
+      throw Error('CONTRACT IDENTITY MISMATCH');
     const code = await get(base, `/cosmwasm/wasm/v1/code/${info.code_id}`);
     if (hex(code.code_info?.data_hash) !== HASH) throw Error('CODE HASH MISMATCH');
   }

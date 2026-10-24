@@ -33,12 +33,17 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24.19.0'
+      - run: npm ci --ignore-scripts
+      - run: npm audit --audit-level=high
       - run: npm ci --prefix faucet --ignore-scripts
-      - run: node scripts/format-sources.mjs
-      - run: node scripts/check-repository.mjs
-      - run: node scripts/build-personal-pilot.mjs --check
-      - run: node --test tests/*.test.mjs
-      - run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - run: npm run verify
+      - run: python3 scripts/dependency-inventory.py
+      - name: Retain dependency and WASM artifact inventory
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dependency-inventory
+          path: dist/dependency-inventory.json
+          if-no-files-found: error
       - run: node scripts/check-backend-deployment.mjs
       - run: docker build --tag cosmoot-backend-ci --file faucet/Dockerfile .
       - name: Verify image maintenance without network, keys or production state

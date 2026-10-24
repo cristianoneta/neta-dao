@@ -1,7 +1,7 @@
 // Public data only. No request cookies, wallet tokens, query strings or user-
 // selected destinations leave Pages. Existing static data remains the fallback.
 export function snapshotProxy(paths, fetcher = fetch) {
-  const allowed = new Set(paths.map(path => `/${path}`));
+  const allowed = new Set(paths.map((path) => `/${path}`));
   return async function onRequest(context) {
     const { request } = context;
     const path = new URL(request.url).pathname;

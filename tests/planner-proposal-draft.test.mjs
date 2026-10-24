@@ -19,7 +19,7 @@ test('new rewards drafts contain the supported exact programme withdrawal', () =
   const result = claimProposal(fixture());
   const messages = JSON.parse(result.values.actions_json);
   assert.equal(claimValidators(messages, { allowLegacy: false }).length, 25);
-  assert.ok(messages[0].msg.execute_admin_msgs.msgs.every(m => m.stargate));
+  assert.ok(messages[0].msg.execute_admin_msgs.msgs.every((m) => m.stargate));
 });
 test('rule proposal is a separate non-executable decision', () => {
   const s = fixture(),

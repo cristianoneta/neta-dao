@@ -115,11 +115,7 @@ export function renderFuturePolicy(host, prefix) {
   const header = node('div', undefined, 'category-header');
   const copy = node('div');
   copy.append(heading, node('p', 'Measured contributions earn points after eligibility checks.'));
-  const ow = categoryWeight(
-    'Objective weight · %',
-    objectiveShare,
-    `${prefix}-objective-share`
-  );
+  const ow = categoryWeight('Objective weight · %', objectiveShare, `${prefix}-objective-share`);
   ow.querySelector('input').setAttribute('aria-describedby', mix.id);
   header.append(copy, ow);
   objective.append(header);
@@ -177,11 +173,7 @@ export function renderFuturePolicy(host, prefix) {
     node('p', 'An appointed external DAO or person assesses documented contributions.')
   );
   const sch = node('div', undefined, 'category-header');
-  const sw = categoryWeight(
-    'Subjective weight · %',
-    subjectiveShare,
-    `${prefix}-subjective-share`
-  );
+  const sw = categoryWeight('Subjective weight · %', subjectiveShare, `${prefix}-subjective-share`);
   sw.querySelector('input').setAttribute('aria-describedby', mix.id);
   sch.append(sc, sw);
   subjective.append(sch);

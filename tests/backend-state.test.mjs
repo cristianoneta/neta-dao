@@ -8,9 +8,15 @@ import { exportState, verifyState } from '../scripts/backend-state.mjs';
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'cosmoot-state-'));
-  const faucet = join(root, 'faucet.sqlite'), relay = join(root, 'relay.sqlite');
-  const db = new DatabaseSync(faucet), backup = new DatabaseSync(relay);
-  t.after(async () => { db.close(); backup.close(); await rm(root, { recursive: true, force: true }); });
+  const faucet = join(root, 'faucet.sqlite'),
+    relay = join(root, 'relay.sqlite');
+  const db = new DatabaseSync(faucet),
+    backup = new DatabaseSync(relay);
+  t.after(async () => {
+    db.close();
+    backup.close();
+    await rm(root, { recursive: true, force: true });
+  });
   db.exec(`PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0;
     CREATE TABLE challenges(id TEXT PRIMARY KEY,address TEXT,message TEXT,expires INTEGER,used INTEGER);
     CREATE TABLE claims(id TEXT PRIMARY KEY,address TEXT,status TEXT,slot INTEGER UNIQUE,hash TEXT,bytes TEXT,confirmed INTEGER,created INTEGER);
@@ -25,28 +31,42 @@ async function fixture(t) {
   return { root, faucet, relay, db, backup, target: join(root, 'export') };
 }
 
-test('export captures live WAL, all payout locks/quotas and encrypted revisions without exposing them', async t => {
+test('export captures live WAL, all payout locks/quotas and encrypted revisions without exposing them', async (t) => {
   const f = await fixture(t);
   const receipt = await exportState(f.faucet, f.relay, f.target);
   assert.equal(receipt.files[0].rows.claims, 3);
   assert.equal(receipt.files[0].unresolvedClaims, 2);
   assert.equal(receipt.files[1].rows.backups, 1);
-  assert.doesNotMatch(JSON.stringify(receipt), /synthetic-wallet|SYNTHETIC_HASH|signed fixture|encrypted fixture/);
+  assert.doesNotMatch(
+    JSON.stringify(receipt),
+    /synthetic-wallet|SYNTHETIC_HASH|signed fixture|encrypted fixture/
+  );
   const restored = new DatabaseSync(join(f.target, 'faucet.sqlite'), { readOnly: true });
   try {
-    assert.deepEqual(restored.prepare('SELECT * FROM claims ORDER BY id').all(), f.db.prepare('SELECT * FROM claims ORDER BY id').all());
+    assert.deepEqual(
+      restored.prepare('SELECT * FROM claims ORDER BY id').all(),
+      f.db.prepare('SELECT * FROM claims ORDER BY id').all()
+    );
     assert.equal(restored.prepare('SELECT n FROM request_usage').get().n, 12);
-  } finally { restored.close(); }
+  } finally {
+    restored.close();
+  }
   f.db.exec("UPDATE claims SET status='confirmed',slot=NULL WHERE id='pending'");
   f.backup.exec('UPDATE backups SET revision=8');
   assert.deepEqual(await verifyState(f.target), receipt);
-  const relay = new DatabaseSync(join(f.target, 'relay-backup/relay-backup.sqlite'), { readOnly: true });
-  try { assert.equal(relay.prepare('SELECT revision FROM backups').get().revision, 7); } finally { relay.close(); }
+  const relay = new DatabaseSync(join(f.target, 'relay-backup/relay-backup.sqlite'), {
+    readOnly: true
+  });
+  try {
+    assert.equal(relay.prepare('SELECT revision FROM backups').get().revision, 7);
+  } finally {
+    relay.close();
+  }
   assert.equal((await stat(f.target)).mode & 0o777, 0o700);
   assert.equal((await stat(join(f.target, 'faucet.sqlite'))).mode & 0o777, 0o600);
 });
 
-test('existing destinations and missing/wrong-role source databases fail without modifying source state', async t => {
+test('existing destinations and missing/wrong-role source databases fail without modifying source state', async (t) => {
   const f = await fixture(t);
   await exportState(f.faucet, f.relay, f.target);
   const before = await readFile(join(f.target, 'state-manifest.json'));
@@ -61,7 +81,7 @@ test('existing destinations and missing/wrong-role source databases fail without
   assert.equal(f.db.prepare('SELECT count(*) AS n FROM claims').get().n, 3);
 });
 
-test('verification rejects incomplete, tampered, unsafe-path and publicly readable exports', async t => {
+test('verification rejects incomplete, tampered, unsafe-path and publicly readable exports', async (t) => {
   const f = await fixture(t);
   const receipt = await exportState(f.faucet, f.relay, f.target);
   const manifest = join(f.target, 'state-manifest.json');

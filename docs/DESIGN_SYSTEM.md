@@ -1,5 +1,10 @@
 # NETA DAO design system
 
+Dated sections preserve design decisions, not current deployment status. For status,
+use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersedes
+an earlier design note. The 24 October maintenance changes module boundaries and
+loading behavior without introducing a new visual theme or activating features.
+
 ## Corrected programme claims — 23 October 2026 candidate
 
 Enable claim preparation when programme holdings and reward quantities are fresh

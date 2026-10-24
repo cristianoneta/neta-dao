@@ -116,25 +116,49 @@ test('browser transport avoids provider CORS preflights while retaining provider
 });
 
 test('mainnet review reads are limited to the pinned instance and code on mainnet providers', async () => {
-  const {REVIEW_MAINNET_RELEASE:pin}=await import('../juno-review-mainnet-config.mjs');
-  const instance='/cosmwasm/wasm/v1/contract/'+pin.contract,code='/cosmwasm/wasm/v1/code/'+pin.codeId;
-  const paths=[instance,code,instance+'/smart/'+btoa(JSON.stringify({config:{}})),instance+'/smart/'+btoa(JSON.stringify({proposal:{proposal_id:1}}))];
-  for(const path of paths){assert.ok(governanceReadTarget('juno-stavr',path));assert.throws(()=>governanceReadTarget('uni7-stavr',path));}
-  assert.throws(()=>governanceReadTarget('juno-stavr',code+'0'));
-  assert.throws(()=>governanceReadTarget('juno-stavr',instance+'/smart/'+btoa(JSON.stringify({set_paused:{paused:false}}))));
+  const { REVIEW_MAINNET_RELEASE: pin } = await import('../juno-review-mainnet-config.mjs');
+  const instance = '/cosmwasm/wasm/v1/contract/' + pin.contract,
+    code = '/cosmwasm/wasm/v1/code/' + pin.codeId;
+  const paths = [
+    instance,
+    code,
+    instance + '/smart/' + btoa(JSON.stringify({ config: {} })),
+    instance + '/smart/' + btoa(JSON.stringify({ proposal: { proposal_id: 1 } }))
+  ];
+  for (const path of paths) {
+    assert.ok(governanceReadTarget('juno-stavr', path));
+    assert.throws(() => governanceReadTarget('uni7-stavr', path));
+  }
+  assert.throws(() => governanceReadTarget('juno-stavr', code + '0'));
+  assert.throws(() =>
+    governanceReadTarget(
+      'juno-stavr',
+      instance + '/smart/' + btoa(JSON.stringify({ set_paused: { paused: false } }))
+    )
+  );
 });
 
 test('native tally bridge permits only exact positive proposal IDs with optional pinned height', async () => {
-  const path='/cosmos/gov/v1/proposals/381/tally';
-  assert.equal(governanceReadTarget('juno-stavr',path,'42730124'),'https://juno.api.m.stavr.tech'+path);
-  const result=await governanceReadProxy(request({path}),async(url,options)=>{
+  const path = '/cosmos/gov/v1/proposals/381/tally';
+  assert.equal(
+    governanceReadTarget('juno-stavr', path, '42730124'),
+    'https://juno.api.m.stavr.tech' + path
+  );
+  const result = await governanceReadProxy(request({ path }), async (url, options) => {
     assert.ok(url.endsWith(path));
-    assert.equal(options.headers['x-cosmos-block-height'],'123');
-    return new Response('{"tally":{"yes_count":"1"}}',{headers:{'x-cosmos-block-height':'123'}});
+    assert.equal(options.headers['x-cosmos-block-height'], '123');
+    return new Response('{"tally":{"yes_count":"1"}}', {
+      headers: { 'x-cosmos-block-height': '123' }
+    });
   });
-  assert.equal(result.status,200);
-  for(const bad of [path+'?extra=1',path+'/private',path.replace('381','0'),path.replace('381','-1')])
-    assert.throws(()=>governanceReadTarget('juno-stavr',bad));
-  assert.throws(()=>governanceReadTarget('uni7-stavr',path));
-  assert.equal((await governanceReadProxy(request({path},'POST'))).status,405);
+  assert.equal(result.status, 200);
+  for (const bad of [
+    path + '?extra=1',
+    path + '/private',
+    path.replace('381', '0'),
+    path.replace('381', '-1')
+  ])
+    assert.throws(() => governanceReadTarget('juno-stavr', bad));
+  assert.throws(() => governanceReadTarget('uni7-stavr', path));
+  assert.equal((await governanceReadProxy(request({ path }, 'POST'))).status, 405);
 });

@@ -1,4 +1,4 @@
-import {personalMainnetProfile} from './relay-personal-network.mjs';
+import { personalMainnetProfile } from './relay-personal-network.mjs';
 
 // A reviewed source change must pin the real contract and approved backup origin.
 // URL parameters, local storage and page globals cannot activate messaging.
@@ -10,5 +10,8 @@ export function verifiedPersonalRelease(release = PERSONAL_MAINNET_RELEASE) {
   const url = new URL(release.backupUrl);
   if (url.protocol !== 'https:' || url.origin !== release.backupUrl || url.username || url.password)
     throw Error('A pinned HTTPS backup origin is required');
-  return Object.freeze({deployment: Object.freeze({...release.deployment}), backupUrl: url.origin});
+  return Object.freeze({
+    deployment: Object.freeze({ ...release.deployment }),
+    backupUrl: url.origin
+  });
 }

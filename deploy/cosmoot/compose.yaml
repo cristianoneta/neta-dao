@@ -5,6 +5,10 @@ services:
     image: caddy@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
     profiles: [backend]
     restart: unless-stopped
+    networks:
+      default: {}
+      api:
+        ipv4_address: ${COSMOOT_PROXY_IP:-172.30.87.2}
     ports:
       - "80:80"
       - "443:443"
@@ -34,6 +38,7 @@ services:
 
   backend:
     profiles: [backend]
+    networks: [api]
     build:
       context: ../..
       dockerfile: faucet/Dockerfile
@@ -45,6 +50,7 @@ services:
       FAUCET_DB: /data/faucet.sqlite
       FAUCET_MNEMONIC_FILE: /run/secrets/faucet_mnemonic
       RELAY_BACKUP_DIRECTORY: /data/relay-backup
+      COSMOOT_TRUSTED_PROXY_IPS: ${COSMOOT_PROXY_IP:-172.30.87.2}
     # Refuse a fresh ledger. The original identity AND its complete payout journal
     # must be migrated together; an empty volume must never reset existing limits.
     entrypoint: ["/bin/sh", "-ec"]
@@ -77,6 +83,12 @@ services:
     logging:
       driver: json-file
       options: {max-size: "10m", max-file: "3"}
+
+networks:
+  api:
+    ipam:
+      config:
+        - subnet: ${COSMOOT_PROXY_SUBNET:-172.30.87.0/29}
 
 secrets:
   faucet_mnemonic:

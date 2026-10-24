@@ -162,7 +162,10 @@ test('funding proof rejects mismatched proposal identity, stale chain, incomplet
   failure = '';
   await assert.rejects(fundingProof([sources[0], sources[0] + '/'], '900', null, { fetcher }));
   p.messages = JSON.parse(claimProposal(fixture()).values.actions_json);
-  await assert.rejects(fundingProof(sources, '900', 'wallet', { fetcher }), /incompatible format from proposal #381/);
+  await assert.rejects(
+    fundingProof(sources, '900', 'wallet', { fetcher }),
+    /incompatible format from proposal #381/
+  );
 });
 test('review recheck binds a final revision from two UNI-7 sources and paginated mainnet duplicate detection', async () => {
   const { proposal, revision } = reviewed(),
