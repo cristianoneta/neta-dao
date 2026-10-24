@@ -591,6 +591,14 @@ try {
         releaseNetaMembers = resolve;
       });
     await page.reload();
+    // Reload finishes before the async workspace restores its selected DAO.
+    // Wait for the visible selector before checking that DAO's held snapshot.
+    await page.waitForFunction(
+      (selectedDao) =>
+        !document.querySelector('#dao-search').disabled &&
+        document.querySelector('#subdao-select').value === selectedDao,
+      id
+    );
     assert.equal(new URL(page.url()).hash, '#people/contributors');
     await page.locator('[data-people-panel="members"]').click();
     assert.equal(await page.locator('#dao-members-panel').isVisible(), true);
