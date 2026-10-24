@@ -107,7 +107,7 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
 .gov-shell, .community-tools-footer { width: min(1280px, calc(100% - 64px)); margin: 0 auto; }
 .gov-shell { padding: 0 0 72px; }
 .workspace-tabs {
-  display: flex; gap: 12px; margin: 0 0 40px; padding: 10px 0 0;
+  display: flex; gap: 12px; margin: 0 0 24px; padding: 10px 0 0;
   border: 0; border-bottom: 1px solid var(--neta-border); background: transparent;
 }
 .workspace-tabs button { flex: 0 0 auto; padding: 16px 18px; border: 0; border-radius: 0; border-bottom: 2px solid transparent; color: var(--neta-text-secondary); font-size: 15px; font-weight: 500; }
@@ -313,7 +313,7 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
   .gov-header .gov-controls { gap: 8px; }
   .gov-header .gov-controls button { min-width: 108px; font-size: 12px; padding: 8px 10px; }
   .testnet-pill { font-size: 11px; padding: 4px 8px; }
-  .workspace-tabs { display: flex; overflow-x: auto; gap: 0; margin-bottom: 28px; scrollbar-width: thin; }
+  .workspace-tabs { display: flex; overflow-x: auto; gap: 0; margin-bottom: 24px; scrollbar-width: thin; }
   .workspace-tabs button { font-size: 14px; padding: 14px 16px; flex-shrink: 0; }
   .home-hero { display: grid !important; grid-template-columns: 1fr; gap: 8px; padding-top: 0 !important; }
   .home-hero h1 { font-size: clamp(30px, 6.5vw, 42px); }
@@ -503,9 +503,6 @@ body[data-workspace-view=relay] .gov-header { grid-template-columns: auto 1fr au
 .subdao-picker { min-width: 0; }
 .subdao-picker > label { display: block; }
 .subdao-picker select { width: 100%; }
-.organization-scope-note { color: var(--neta-text-secondary); font-size: 13px; margin: 16px 0; }
-body[data-workspace-view=treasury] #organization-scope-note,
-body[data-workspace-view=relay] #organization-scope-note { display: none; }
 .treasury-units { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; margin: 16px 0 24px; }
 .treasury-unit { background: var(--neta-surface); border: 1px solid var(--neta-border); border-radius: 10px; padding: 14px; min-width: 0; }
 .treasury-unit a, .pnl-unit-link { color: var(--neta-accent); }

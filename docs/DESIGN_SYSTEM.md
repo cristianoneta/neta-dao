@@ -5,6 +5,14 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
+## Compact workspace header — owner update, 24 October 2026
+
+Remove the consolidated-scope explanation above the workspace tabs for every
+DAO and route. The labelled DAO/SubDAO selectors retain the current selection.
+Remove the redundant “NETA DAO · PROPOSAL STUDIO” eyebrow from Proposals and
+use a shared 24 px gap below the navigation on desktop and mobile. Preserve
+page headings, network/status labels, actions and the existing artwork.
+
 ## Corrected programme claims — 23 October 2026 candidate
 
 Enable claim preparation when programme holdings and reward quantities are fresh

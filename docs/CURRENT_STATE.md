@@ -8,9 +8,9 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `828059b4734530f237507700655f8b80e69f9986` (PR #304), including #301–#303 | [Manual release 40086798887](https://github.com/cristianoneta/neta-dao/actions/runs/40086798887) completed successfully on 24 October, including publication. |
+| Last successful website release | Source `41effcaa027796bdd8d55ad49df5c7a7c1fe8a71` (through PR #309) | [Manual release 40106761715](https://github.com/cristianoneta/neta-dao/actions/runs/40106761715) completed successfully on 24 October, including publication. |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
-| Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Manual publication and controlled live fallback acceptance remain pending. |
+| Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Published in release 40106761715; updated homepage observed on both website domains. Responsive CI passed at 320/390/768/1440 px; separate mobile live acceptance and controlled live fallback remain open. |
 | Collector archives / efficiency | Source captures UTC Treasury days, archives expired validator evidence before pruning, preserves daily membership/planner observations and signed prices, and shares bounded RPC results | [Scope and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md). Owner confirmed host installation and successful manual collector/archive checks on 24 October; regular cycles, multi-day growth and measured savings remain pending. Local archives do not prove independent retention. |
 | Infrastructure backup | Online SQLite exports, locked collector/validator evidence, explicit recovery files, encrypted Restic backup plus verified fresh download; units and retention preview provided | [Runbook and boundaries](INFRASTRUCTURE_BACKUPS.md). Owner confirmed installation, first verified R2 backup/download and full repository data check on 24 October. Daily timer enabled with explicit deferral of another-machine application recovery; unattended cycles and destructive retention remain unaccepted. Private receipts remain outside Git. |
 | Backend / public data | OVH backend updated from the reviewed #304 source; Render is retired | Owner-confirmed healthy replacement, successful isolated host checks and independent public API/data probes. Private operational receipts remain outside Git. |
@@ -26,7 +26,15 @@ on source `54121449927f30af6e5d590051d0e4323da19b04` was blocked before publicat
 the browser test counted main-DAO member rows before their asynchronous snapshot
 was ready after reload. The test now holds that fixture response and waits for the
 expected membership state before retaining the row assertion. No production UI,
-membership rules or wallet behavior changed. A new manual release is still required.
+membership rules or wallet behavior changed. PR #309 fixed the test; successful
+release 40106761715 supersedes that failed attempt.
+
+## Compact header follow-up
+
+The owner requested removal of the consolidated-scope note above all workspace
+routes and the Proposals eyebrow. Source removes both and reduces the shared
+navigation-to-content gap to 24 px. This follow-up is not yet published; DAO
+selection, Treasury consolidation and transaction behavior are unchanged.
 
 ## Features
 
