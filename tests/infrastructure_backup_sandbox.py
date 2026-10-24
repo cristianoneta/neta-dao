@@ -107,7 +107,9 @@ def main():
     assert os.geteuid() == 0, 'Run with sudo on a real systemd host'
     repo = Path(__file__).resolve().parents[1]
     name = 'cosmoot-backup-ci-' + uuid.uuid4().hex
-    with tempfile.TemporaryDirectory(prefix=name + '-', dir='/run') as tmp:
+    # /run is tmpfs on the runner; use /var/lib like production staging so
+    # the regression specifically covers equal device IDs on different mounts.
+    with tempfile.TemporaryDirectory(prefix=name + '-', dir='/var/lib') as tmp:
         root = Path(tmp)
         root.chmod(0o711)
         (root / 'work').mkdir(mode=0o700)
