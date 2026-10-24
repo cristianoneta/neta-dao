@@ -39,5 +39,12 @@ export default [
       'use-isnan': 'error',
       'valid-typeof': 'error'
     }
+  },
+  {
+    files: ['src/governance/*.mjs'],
+    rules: {
+      'no-shadow': 'error',
+      'no-use-before-define': ['error', { functions: false }]
+    }
   }
 ];

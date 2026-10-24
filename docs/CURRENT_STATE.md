@@ -9,7 +9,7 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
 | Last successful website release | Source `7830385c85d11140978860a69dd48fedea09ffff` (PR #303), including #301/#302 | [Manual release 40077525373](https://github.com/cristianoneta/neta-dao/actions/runs/40077525373) completed successfully on 24 October. |
-| Maintenance candidate | Branch `refactor/cosmoot-maintenance-20261024` | [Changes and validation](MAINTENANCE_2026-10-24.md). Requires final PR checks, integration and a separate manual website release. |
+| Maintenance candidate | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304), branch `refactor/cosmoot-maintenance-20261024` | [Changes and validation](MAINTENANCE_2026-10-24.md). Requires final PR checks, integration and a separate manual website release. |
 | Backend / public data | OVH is the active host; Render is retired | Existing activation and collection evidence is retained in dated records/private operations. This maintenance task has not installed a backend update. |
 | Source and CI | GitHub primary; GitLab dormant reserve | One PR per related batch. Protected required aggregate check; security audits retained. Production data writers do not run on GitHub schedules. |
 

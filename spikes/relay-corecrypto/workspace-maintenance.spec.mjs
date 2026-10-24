@@ -72,3 +72,31 @@ test('real native signing bundle loads once on demand and retries a failed downl
   expect(result).toEqual({ same: true, submit: 'function', vote: 'function', calls: 0 });
   expect(requests).toBe(2);
 });
+
+test('wallet connection stays disabled until the workspace handlers are ready', async ({
+  page
+}) => {
+  let release;
+  let requested = false;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/src/governance/review-state.mjs', async (route) => {
+    requested = true;
+    await gate;
+    await route.continue();
+  });
+  try {
+    await page.goto('/index.html#relay/register', { waitUntil: 'domcontentloaded' });
+    await expect.poll(() => requested).toBe(true);
+    await expect(page.locator('#gov-connect')).toBeDisabled();
+    expect(await page.evaluate(() => window.__walletCalls)).toBe(0);
+  } finally {
+    release();
+  }
+  await expect(page.locator('#gov-connect')).toBeEnabled();
+  expect(await page.evaluate(() => typeof document.querySelector('#gov-connect').onclick)).toBe(
+    'function'
+  );
+  expect(await page.evaluate(() => window.__walletCalls)).toBe(0);
+});

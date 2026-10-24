@@ -1,7 +1,8 @@
 # Cosmoot maintenance — 24 October 2026
 
 Owner-requested follow-up to the codebase review. One branch/PR groups the related
-changes; production publication and backend installation remain separate.
+changes in [PR #304](https://github.com/cristianoneta/neta-dao/pull/304); production
+publication and backend installation remain separate.
 
 ## Behavior and structure
 
@@ -15,14 +16,17 @@ changes; production publication and backend installation remain separate.
 - Main workspace native/legacy signing bundles load only on demand, with one shared
   concurrent request, a timeout and explicit retry. Previously they added 3,342,390
   uncompressed bytes to every root page load. This is file-size evidence, not a
-  measured production latency/LCP improvement. Wallet and transaction checks remain.
+  measured production latency/LCP improvement. Wallet connection stays disabled
+  until its handler is ready, including delayed module downloads. Wallet and
+  transaction checks remain.
 - Text-presence tests for the review lock, code discovery and deliverable payload
   were replaced with behavior tests. Existing integrity/source guards retain their
   narrower purpose. Isolated Playwright Test cases exercise real lazy bundle loading
   and preserve failure traces; the full review/funding/voting flow remains mandatory.
 - Automatic formatting covers hand-written JavaScript, with explicit generated and
   manifest-pinned exceptions. ESLint correctness checks and incremental typed
-  review-state/context checks run through `npm run verify`. Whole-repository typing
+  review-state/context checks run through `npm run verify`. Extracted governance
+  modules also reject shadowed variables and reads before initialization. Whole-repository typing
   and a wholesale stylesheet/controller rewrite are not claimed.
 - The pinned CosmWasm checker is cached. The root suite has one required CI owner
   instead of being rerun inside the Rust job. Contract, real-chain, browser and
@@ -40,8 +44,12 @@ automatic config discovery, so strict checking does not change runtime output.
 Local verification records 383 root Node tests, 169 Python tests, 85 Faucet tests,
 14 encrypted-backup tests and 22 Names tests passing. Format/lint/type checks,
 source/inventory integrity, root npm audit and reproduced signing/pilot artifacts
-also pass. Final GitHub CI results are recorded in the maintenance PR; update this
-paragraph after final validation rather than appending another status block.
+also pass. [CI run 40081262610](https://github.com/cristianoneta/neta-dao/actions/runs/40081262610)
+verified real Caddy admission, Docker/Pages runtime, all seven WASM builds, the
+actual Juno execution fixture and the complete review/funding/voting browser flow.
+Its later Names recovery test exposed early wallet clicks during initialization;
+the final candidate disables connection until ready and adds a delayed-module
+regression. Final-head aggregate results are linked in PR #304.
 
 Local Chromium download returned an invalid archive. The retained local Juno binary
 also failed the required checksum, so it was not executed. These local limitations

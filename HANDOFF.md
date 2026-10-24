@@ -7,7 +7,8 @@ Private host access, backup locations and installation receipts remain outside G
 ## Current work
 
 The owner requested the code-review improvements followed by a documentation
-revision. They are grouped in `refactor/cosmoot-maintenance-20261024`:
+revision. They are grouped in [PR #304](https://github.com/cristianoneta/neta-dao/pull/304)
+(`refactor/cosmoot-maintenance-20261024`):
 
 - Explicit proxy trust and independent visitor admission, with spoofing and real
   Caddy integration regressions; existing payout quotas and databases remain intact.

@@ -2618,6 +2618,7 @@
     renderComments();
   });
   newDraft();
+  renderWallet();
   load()
     .then(async () => {
       const reviewId = plannerParams.get('review'),
