@@ -63,6 +63,12 @@ Existing required CI still rebuilds contracts, compares shipped artifact bytes,
 executes the real Juno governance regression and exercises the browser flows.
 No contract source, lockfile, compiler, shipped WASM or on-chain state is changed.
 
+During this CI run the local Juno test exposed a separate startup race: RPC
+reported block 1 before the REST bank query was ready (HTTP 500, before any
+transaction). The harness now waits for its initial balance/delegation snapshot
+within its existing bounded startup poll. All later queries and execution
+assertions retain their strict behavior.
+
 ## Upstream follow-up
 
 elliptic-curve 0.13.8 requires crypto-bigint 0.5; 0.7.6 is not a compatible

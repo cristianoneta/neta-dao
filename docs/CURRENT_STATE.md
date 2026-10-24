@@ -17,6 +17,8 @@ at 00:00 UTC. Changed Rust inputs, a changed inventory, missing evidence or a
 crypto dependency entering the WASM graph block the audit. Other advisories and
 required artifact/execution/browser checks remain enabled. The library itself
 remains unpatched; see [assessment, evidence and limits](SECURITY_REVIEW_2026-10-24.md).
+The local Juno execution harness also waits for its initial REST state to become
+queryable after the first RPC block; subsequent execution assertions stay strict.
 No contract, lockfile, compiler or on-chain state changes. Required PR checks and
 a separate owner-triggered Cloudflare release remain the publication gates.
 
