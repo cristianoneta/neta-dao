@@ -8,14 +8,15 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `7830385c85d11140978860a69dd48fedea09ffff` (PR #303), including #301/#302 | [Manual release 40077525373](https://github.com/cristianoneta/neta-dao/actions/runs/40077525373) completed successfully on 24 October. |
-| Maintenance candidate | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304), branch `refactor/cosmoot-maintenance-20261024` | [Changes and validation](MAINTENANCE_2026-10-24.md). Requires final PR checks, integration and a separate manual website release. |
-| Backend / public data | OVH is the active host; Render is retired | Existing activation and collection evidence is retained in dated records/private operations. This maintenance task has not installed a backend update. |
+| Last successful website release | Source `828059b4734530f237507700655f8b80e69f9986` (PR #304), including #301–#303 | [Manual release 40086798887](https://github.com/cristianoneta/neta-dao/actions/runs/40086798887) completed successfully on 24 October, including publication. |
+| Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
+| Backend / public data | OVH backend updated from the reviewed #304 source; Render is retired | Owner-confirmed healthy replacement, successful isolated host checks and independent public API/data probes. Private operational receipts remain outside Git. |
 | Source and CI | GitHub primary; GitLab dormant reserve | One PR per related batch. Protected required aggregate check; security audits retained. Production data writers do not run on GitHub schedules. |
 
 The failed pre-#303 release 40073942022 did not publish #302. The successful
 release above supersedes that checkpoint. Workflow publication is separate from
-live-wallet acceptance, current collector health and a new backend installation.
+live-wallet acceptance and current collector health. The backend installation has its
+own dated acceptance record; no new wallet transaction or browser restore is claimed.
 
 ## Features
 
@@ -32,7 +33,7 @@ live-wallet acceptance, current collector health and a new backend installation.
 | Names | Mainnet registry v0.3.1 / profiles v0.1.0; purchases active | Published code 5168/5169; recorded registration/fee evidence. Preserve renewal/transfer/validator acceptance limits. [Deployment](NNS_MAINNET_DEPLOYMENT_2026-10-05.md). |
 | Personal messaging | Separate two-wallet mainnet pilot, code 5170 | Public release pin remains null. Send/read/reload evidence exists; fresh-profile restore/rotation was deferred. Sending requires an active owned name; receiving does not. [Pilot](deployments/PERSONAL_PILOT_2026-10-07.md). |
 | Encrypted backup | Authenticated, scoped envelopes and separate database on the existing backend | Original allowlist retained; synthetic restore/restart evidence exists. Recurring independent retention remains an operational follow-up. [Recovery](BACKUP_RECOVERY.md). |
-| Faucet | 25 JUNOX per wallet per 24 hours; ownership proof and durable payout journal | Maintenance candidate corrects visitor admission behind Caddy, without changing persistent payout quotas. Requires backend installation. |
+| Faucet | 25 JUNOX per wallet per 24 hours; ownership proof and durable payout journal | Visitor admission fix installed behind Caddy; original public identity and 25 JUNOX/24-hour limit confirmed. Per-visitor separation tested with isolated real Caddy; no production quota-exhaustion test. |
 | DAO Inbox / payments | Gated protocol/UI groundwork; no activated DAO message writes or payment execution | Further recovery, permission and workflow work remains. |
 | Notifications / People / Delivery | Browser-local notices and real membership reads | No push/email, cross-device notice sync or fictional live contributor/delivery data. |
 | DEX | Unlisted browser simulation with orbital/list views, liquidity forms and unfunded incentive planning | No live swaps, token issuance, funded incentives or DCA; session/demo values. Contract/custody/audit work remains separate. |
