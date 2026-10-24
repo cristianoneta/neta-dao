@@ -651,10 +651,6 @@
     select.append(group);
     select.value = scope.consolidated ? 'all' : state.dao.id;
     document.body.dataset.consolidated = String(scope.consolidated);
-    $('#organization-scope-note').textContent = scope.consolidated
-      ? `${scope.organization.name} · Consolidated Treasury includes ${scope.units.map((d) => d.unitName).join(' + ')}. Proposals and Members show ${scope.dao.unitName}; select a SubDAO to work with that unit.`
-      : '';
-    $('#organization-scope-note').hidden = !scope.consolidated;
   }
   function notifyDaoSelection() {
     renderScope();
