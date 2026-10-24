@@ -70,7 +70,12 @@ const mf = new Miniflare(
       }
       return new HostResponse(request.method === 'HEAD' ? null : upstreamBytes, {
         status: mode,
-        headers: { Location: 'https://redirect.invalid/private', 'Set-Cookie': 'private=1' }
+        headers: {
+          Location: 'https://redirect.invalid/private',
+          'Set-Cookie': 'private=1',
+          'CF-Cache-Status': mode === 200 ? 'HIT' : 'MISS',
+          Age: '73'
+        }
       });
     },
     serviceBindings: {
@@ -102,6 +107,9 @@ try {
           `${method} ${origin}/${path}`
         );
         assert.equal(response.status, 200);
+        assert.equal(response.headers.get('X-Cosmoot-Upstream-Status'), '200');
+        assert.equal(response.headers.get('X-Cosmoot-Upstream-Cache'), 'HIT');
+        assert.equal(response.headers.get('X-Cosmoot-Upstream-Age'), '73');
         assert.equal(response.headers.get('Set-Cookie'), null);
         assert.equal(response.headers.get('Location'), null);
         assert.deepEqual(
@@ -120,6 +128,9 @@ try {
         const response = await request(origin, paths[0], method);
         assert.equal(response.headers.get('X-Cosmoot-Snapshot'), 'static-fallback');
         assert.equal(response.headers.get('Cache-Control'), 'no-cache');
+        assert.equal(response.headers.get('X-Cosmoot-Upstream-Status'), String(status));
+        assert.equal(response.headers.get('X-Cosmoot-Upstream-Cache'), 'MISS');
+        assert.equal(response.headers.get('X-Cosmoot-Upstream-Age'), '73');
         assert.equal(response.status, 200);
         assert.deepEqual(
           new Uint8Array(await response.arrayBuffer()),
