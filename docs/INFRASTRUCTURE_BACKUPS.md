@@ -3,8 +3,27 @@
 This is an operator-run infrastructure backup, separate from browser message
 recovery. The implementation uses SQLite's online backup API and a Restic v2
 repository. Synthetic local tests exercise actual Restic encryption and download.
-Production credentials, first external backup, another-machine application recovery,
-scheduled cycles and retention acceptance remain separate operational gates.
+The dated checkpoint below records owner-confirmed host operations separately
+from synthetic test evidence and the remaining recovery/retention gates.
+
+## Operational checkpoint — 24 October 2026
+
+The owner provided successful installation output, successful repository
+initialization and backup service results, a matching successful attempt/receipt
+for the freshly downloaded and verified snapshot, and a separate successful
+`check --read-data` service result. The daily timer is enabled and waiting.
+Exact host, provider, inventory and receipt details remain in the private operator
+handoff; this status does not imply direct authenticated host access by the assistant.
+
+The owner explicitly chose to enable daily backups while deferring the
+another-machine application recovery drill. This is a recorded exception to the
+recommended installation sequence below, not evidence that recovery was tested.
+Two unattended runs, off-host application recovery, measured RPO/RTO and the
+separate fresh-browser message restore remain unaccepted. Retention is still
+preview-only; no destructive retention or automatic pruning was enabled.
+
+Do not repeat the completed installation or initialize a replacement repository.
+Continue with scheduled-run verification and the deferred recovery drill.
 
 ## What is captured
 
