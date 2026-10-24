@@ -114,7 +114,7 @@ export function proposalEditor({
         actions_json: raw
       };
     }
-    const deliverables = deliverables.map((item) => ({
+    const serializedDeliverables = deliverables.map((item) => ({
       type: DELIVERABLE_TYPE,
       title: (item.title || '').trim(),
       due_date: (item.due_date || '').trim(),
@@ -129,7 +129,7 @@ export function proposalEditor({
       actions_json: JSON.stringify(
         [
           ...actions,
-          ...deliverables,
+          ...serializedDeliverables,
           ...(accountingRecords.length
             ? [
                 {

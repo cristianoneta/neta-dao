@@ -678,6 +678,8 @@ try {
   // Exercise the actual shared generated bundle with synthetic TxRaw data only.
   const attempt = () =>
     page.evaluate(async () => {
+      const { loadSocialsSigning } = await import('/browser-signing.mjs');
+      await loadSocialsSigning();
       let signs = 0,
         broadcasts = 0;
       const client = {
@@ -727,7 +729,6 @@ try {
   assert.equal(first.broadcasts, 1);
   assert.equal(first.record.sequence, '7');
   await page.reload();
-  await page.waitForFunction(() => !!window.NetaSocialsTestnet);
   const second = await attempt();
   assert.match(second.error, /RETRY LOCKED/);
   assert.equal(second.signs, 0);

@@ -2488,13 +2488,18 @@
       return 'Review withdrawn. Its proposal text and discussion remain available.';
     });
   };
-  async function mainnetSigner() {
+  async function mainnetSigner(assertCurrent) {
+    assertCurrent();
     if (state.mainnetClient) return state.mainnetClient;
     await loadSocialsSigning();
+    assertCurrent();
     if (!window.keplr) throw new Error('KEPLR NOT FOUND');
     await window.keplr.enable('juno-1');
+    assertCurrent();
     const base = window.keplr.getOfflineSigner('juno-1'),
       account = (await base.getAccounts())[0];
+    assertCurrent();
+    if (!account?.address) throw new Error('NO KEPLR ACCOUNT AVAILABLE');
     state.address = account.address;
     state.walletChain = 'juno-1';
     renderWallet();
@@ -2505,8 +2510,17 @@
     };
     for (const rpc of MAINNET_RPCS)
       try {
-        return (state.mainnetClient = await NetaSocialsTestnet.connect(rpc, wrapped, '0.075ujuno'));
-      } catch {}
+        const connected = await NetaSocialsTestnet.connect(rpc, wrapped, '0.075ujuno');
+        try {
+          assertCurrent();
+        } catch (error) {
+          connected.disconnect?.();
+          throw error;
+        }
+        return (state.mainnetClient = connected);
+      } catch {
+        assertCurrent();
+      }
     throw new Error('ALL JUNO MAINNET RPC ENDPOINTS FAILED');
   }
   document.querySelectorAll('[data-vote]').forEach(
@@ -2515,19 +2529,25 @@
         run(button, async () => {
           const selected = state.selected,
             epoch = state.requestEpoch,
+            walletEpoch = state.walletEpoch,
             module = proposalModule,
             dao = state.dao;
           if (!dao.canVote || selected?.source !== 'chain' || selected.proposal.status !== 'open')
             throw new Error('VOTING IS NOT OPEN');
-          const client = await mainnetSigner();
-          if (
-            epoch !== state.requestEpoch ||
-            module !== proposalModule ||
-            dao !== state.dao ||
-            state.selected?.key !== selected.key
-          )
-            throw new Error('VOTING CONTEXT CHANGED · REVIEW AGAIN');
+          const assertCurrent = () => {
+            if (
+              epoch !== state.requestEpoch ||
+              walletEpoch !== state.walletEpoch ||
+              module !== proposalModule ||
+              dao !== state.dao ||
+              state.selected?.key !== selected.key
+            )
+              throw new Error('VOTING CONTEXT CHANGED · REVIEW AGAIN');
+          };
+          const client = await mainnetSigner(assertCurrent);
+          assertCurrent();
           const active = (await window.keplr.getOfflineSigner('juno-1').getAccounts())[0]?.address;
+          assertCurrent();
           if (active !== state.address) throw new Error('KEPLR ACCOUNT CHANGED · RECONNECT');
           await NetaSocialsTestnet.execute(
             client,

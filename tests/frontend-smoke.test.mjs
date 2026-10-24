@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 
@@ -190,7 +190,14 @@ test('treasury history uses daily snapshots and keeps attribution inputs', () =>
 });
 
 test('user content is not rendered through HTML injection sinks', () => {
-  assert.doesNotMatch(governance, /\.innerHTML\s*=|insertAdjacentHTML|\.outerHTML\s*=/);
+  const sources = [
+    governance,
+    ...readdirSync('src/governance')
+      .filter((name) => name.endsWith('.mjs'))
+      .map((name) => readFileSync(`src/governance/${name}`, 'utf8'))
+  ];
+  for (const source of sources)
+    assert.doesNotMatch(source, /\.innerHTML\s*=|insertAdjacentHTML|\.outerHTML\s*=/);
 });
 
 test('governance controls referenced by JavaScript exist', () => {

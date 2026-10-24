@@ -34,10 +34,10 @@ Original browser routes, storage keys, DAO/native authority distinctions and
 on-chain contract identities remain. Historical reviews and pending transaction/
 crypto journals retain their original meaning. All four signing bundles and the
 personal pilot rebuild to the existing bytes; no contract or Cargo lock changed.
-Type analysis must not alter runtime output (`alwaysStrict` emission is explicitly
-false while strict type checks remain enabled).
+Type analysis uses an explicitly named no-emit configuration, outside esbuild’s
+automatic config discovery, so strict checking does not change runtime output.
 
-Local verification records 382 root Node tests, 169 Python tests, 85 Faucet tests,
+Local verification records 383 root Node tests, 169 Python tests, 85 Faucet tests,
 14 encrypted-backup tests and 22 Names tests passing. Format/lint/type checks,
 source/inventory integrity, root npm audit and reproduced signing/pilot artifacts
 also pass. Final GitHub CI results are recorded in the maintenance PR; update this

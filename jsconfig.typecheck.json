@@ -4,7 +4,6 @@
     "checkJs": false,
     "noEmit": true,
     "strict": true,
-    "alwaysStrict": false,
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",

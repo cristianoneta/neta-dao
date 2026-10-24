@@ -4,7 +4,7 @@ import { sourceFiles } from './source-files.mjs';
 const files = [
   ...sourceFiles(),
   'package.json',
-  'jsconfig.json',
+  'jsconfig.typecheck.json',
   '.prettierrc.json',
   'scripts/contract-audit-policy.json'
 ];

@@ -28,9 +28,9 @@ and pinned bytes retain their independent integrity and reproduction checks.
 
 ESLint applies correctness checks to executable source. Type checking currently
 covers the explicitly annotated review permission/context modules. It does not
-claim to type-check every legacy controller. `strict` type analysis is enabled;
-`alwaysStrict` emission is explicitly disabled so a tooling configuration does not
-add new directives to previously reviewed esbuild output.
+claim to type-check every legacy controller. `strict` type analysis is enabled
+in `jsconfig.typecheck.json`. The explicit filename keeps this no-emit configuration
+out of esbuild’s automatic config discovery and preserves reviewed bundle output.
 
 The root workspace no longer eagerly includes the native and legacy signing
 bundles. Dedicated legacy test/setup pages and the isolated pilot retain their
