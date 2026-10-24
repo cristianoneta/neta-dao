@@ -21,6 +21,13 @@ release above supersedes that checkpoint. Workflow publication is separate from
 live-wallet acceptance and current collector health. The backend installation has its
 own dated acceptance record; no new wallet transaction or browser restore is claimed.
 
+[Release 40105745463](https://github.com/cristianoneta/neta-dao/actions/runs/40105745463)
+on source `54121449927f30af6e5d590051d0e4323da19b04` was blocked before publication:
+the browser test counted main-DAO member rows before their asynchronous snapshot
+was ready after reload. The test now holds that fixture response and waits for the
+expected membership state before retaining the row assertion. No production UI,
+membership rules or wallet behavior changed. A new manual release is still required.
+
 ## Features
 
 | Feature | Current implementation / publication | Limits and owning reference |

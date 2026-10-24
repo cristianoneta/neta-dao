@@ -183,8 +183,10 @@ try {
       ]
     });
   });
-  await context.route('**/data/daos/neta.json', (route) =>
-    json(route, {
+  let netaMembersReady = Promise.resolve();
+  await context.route('**/data/daos/neta.json', async (route) => {
+    await netaMembersReady;
+    return json(route, {
       adapter: 'cw20-staked-legacy',
       power_decimals: 6,
       power_unit: 'NETA',
@@ -198,8 +200,8 @@ try {
       total_power_raw: '1000000',
       height: 100,
       generated_at: '2026-10-03T18:00:00Z'
-    })
-  );
+    });
+  });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -581,10 +583,28 @@ try {
       /No contributor records are connected/
     );
     assert.equal(await page.locator('#dao-members-panel').isVisible(), false);
+    // Hold the main DAO snapshot across reload so the readiness race is exercised
+    // on every run, regardless of runner speed. Other DAO fixtures stay unchanged.
+    let releaseNetaMembers;
+    if (id === 'neta')
+      netaMembersReady = new Promise((resolve) => {
+        releaseNetaMembers = resolve;
+      });
     await page.reload();
     assert.equal(new URL(page.url()).hash, '#people/contributors');
     await page.locator('[data-people-panel="members"]').click();
     assert.equal(await page.locator('#dao-members-panel').isVisible(), true);
+    if (id === 'neta') {
+      assert.equal(await page.locator('#dao-members-panel .dao-member-row').count(), 0);
+      const rendered = page.waitForFunction(() =>
+        document
+          .querySelector('#dao-members-panel')
+          .textContent.includes('1 active staking addresses')
+      );
+      releaseNetaMembers();
+      await rendered;
+      netaMembersReady = Promise.resolve();
+    }
     if (id === 'neta-operations')
       await page.waitForFunction(() =>
         document
