@@ -10,6 +10,7 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 | --- | --- | --- |
 | Last successful website release | Source `828059b4734530f237507700655f8b80e69f9986` (PR #304), including #301–#303 | [Manual release 40086798887](https://github.com/cristianoneta/neta-dao/actions/runs/40086798887) completed successfully on 24 October, including publication. |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
+| Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Manual publication and controlled live fallback acceptance remain pending. |
 | Backend / public data | OVH backend updated from the reviewed #304 source; Render is retired | Owner-confirmed healthy replacement, successful isolated host checks and independent public API/data probes. Private operational receipts remain outside Git. |
 | Source and CI | GitHub primary; GitLab dormant reserve | One PR per related batch. Protected required aggregate check; security audits retained. Production data writers do not run on GitHub schedules. |
 

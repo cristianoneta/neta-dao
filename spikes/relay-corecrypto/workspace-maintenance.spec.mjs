@@ -1,4 +1,6 @@
 import { test, expect } from 'playwright/test';
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 
 test.beforeEach(async ({ page }) => {
   await page.route(/^https?:\/\/(?!127\.0\.0\.1[:/])/, (route) =>
@@ -21,6 +23,29 @@ test.beforeEach(async ({ page }) => {
     );
   });
 });
+
+for (const width of [1440, 768, 390, 320]) {
+  test(`home remains readable and opens proposals at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/index.html');
+    await expect(page.locator('#gov-connect')).toBeEnabled();
+    await expect(page.locator('#home-view')).toBeVisible();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+    ).toBe(true);
+    if (process.env.NNS_SCREENSHOT_DIR) {
+      await mkdir(process.env.NNS_SCREENSHOT_DIR, { recursive: true });
+      await page.screenshot({
+        path: join(process.env.NNS_SCREENSHOT_DIR, `home-${width}.png`),
+        fullPage: true
+      });
+    }
+    await page.getByRole('button', { name: 'Open proposals →', exact: true }).click();
+    await expect(page.locator('#home-view')).toBeHidden();
+    await expect(page.locator('#gov-status')).toBeVisible();
+    expect(await page.evaluate(() => window.__walletCalls)).toBe(0);
+  });
+}
 
 for (const width of [1440, 390]) {
   test(`read-only workspace does not fetch signing bundles at ${width}px`, async ({ page }) => {
