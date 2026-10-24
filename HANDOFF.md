@@ -1,10 +1,27 @@
 # Cosmoot public handoff
 
-Updated 23 October 2026. This file contains public project status and development
+Updated 24 October 2026. This file contains public project status and development
 boundaries. Read [CURRENT_STATE](docs/CURRENT_STATE.md), the
 [documentation policy](docs/DOCUMENTATION_PRIVACY.md) and applicable AGENTS.md.
 Operator access, private backup locations and exact continuation commands belong
 in the owner's private operations handoff, outside this repository.
+
+## Contract dependency applicability review — 24 October 2026
+
+PR #302 is integrated at `789aa2195a42a68b181e73a5ba9ca6373a349863`.
+Its manual release [40073942022](https://github.com/cristianoneta/neta-dao/actions/runs/40073942022)
+stopped on RUSTSEC-2026-0387 before publication. Last confirmed production remains
+`88864ea19f02fa97e9a63683200bfbb391985cef` from release 40020512048.
+
+All seven locked WASM normal/build graphs exclude crypto-bigint and its crypto
+call chain. Native test signing uses public deterministic fixtures. The candidate
+adds a visible, source-pinned applicability exception expiring 24 November 2026
+at 00:00 UTC. Changed Rust inputs, a changed inventory, missing evidence or a
+crypto dependency entering the WASM graph block the audit. Other advisories and
+required artifact/execution/browser checks remain enabled. The library itself
+remains unpatched; see [assessment, evidence and limits](docs/SECURITY_REVIEW_2026-10-24.md).
+No contract, lockfile, compiler or on-chain state changes. Required PR checks and
+a separate owner-triggered Cloudflare release remain the publication gates.
 
 ## One-off DAI proposal link — 23 October 2026 candidate
 

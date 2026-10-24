@@ -3,5 +3,7 @@
   "service/http-guards.mjs", "faucet/service/http.mjs", "faucet/service/ledger.mjs",
   "faucet/service/limits.mjs", "relay-backup/server.mjs", "relay-backup/store.mjs",
   "relay-backup/auth.mjs", "scripts/build-signing.mjs", "scripts/check-contracts.mjs",
-  "scripts/check-repository.mjs", "juno-community-pool-proposal.mjs"
+  "scripts/check-repository.mjs", "juno-community-pool-proposal.mjs",
+  "scripts/contract-audit-scope.mjs", "scripts/contract-audit-policy.json",
+  "tests/contract-audit-scope.test.mjs"
 ]
