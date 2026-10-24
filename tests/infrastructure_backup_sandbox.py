@@ -27,6 +27,8 @@ def inside(root):
         if event == 'exception' and isinstance(arg[1], PermissionError):
             print('PERMISSION:', Path(frame.f_code.co_filename).name,
                   frame.f_lineno, frame.f_code.co_name, arg[1].errno, flush=True)
+            print('IDENTITY:', [line for line in Path('/proc/self/status').read_text().splitlines()
+                                if line.startswith(('Uid:', 'Gid:', 'CapEff:', 'CapPrm:', 'NoNewPrivs:', 'Seccomp:'))], flush=True)
         return trace
     sys.settrace(trace)
     # Prove the regression is exercised: same backing filesystem, different mount.
@@ -155,7 +157,27 @@ def main():
                    '-p', 'RuntimeMaxSec=60s', '-p', 'TimeoutStartSec=60s', '-p', 'TimeoutStopSec=5s',
                    *properties, '/usr/bin/python3', '-I', str(root / 'probe.py'), '--inside', str(root)]
         try:
-            subprocess.run(command, check=True, timeout=75)
+            result = subprocess.run(command, timeout=75)
+            if result.returncode:
+                # Synthetic-only differential diagnostics; never weaken the
+                # shipped service or accept a run that needs an override.
+                probe = "import os; os.setgroups([]); os.setgid(65534); os.setuid(65534); print('UID-SWITCH-OK')"
+                candidates = ['FULL', 'NoNewPrivileges', 'PrivateTmp', 'PrivateDevices',
+                              'ProtectSystem', 'ProtectHome', 'ProtectKernelTunables',
+                              'ProtectKernelModules', 'ProtectControlGroups', 'ProtectKernelLogs',
+                              'RestrictSUIDSGID', 'RestrictRealtime', 'LockPersonality',
+                              'RestrictAddressFamilies', 'Nice', 'IOSchedulingClass']
+                for index, candidate in enumerate(candidates):
+                    props = []
+                    for offset in range(0, len(properties), 2):
+                        if properties[offset + 1].split('=', 1)[0] != candidate:
+                            props += properties[offset:offset + 2]
+                    diagnostic = subprocess.run(['systemd-run', '--wait', '--pipe', '--collect',
+                        '--unit=' + name + '-diag-' + str(index), '-p', 'TimeoutStartSec=5s',
+                        *props, '/usr/bin/python3', '-I', '-c', probe],
+                        capture_output=True, text=True, timeout=10)
+                    print('UID-DIFFERENTIAL:', candidate, diagnostic.returncode, flush=True)
+                raise AssertionError('Shipped sandbox export failed; overrides are diagnostic only')
         finally:
             subprocess.run(['systemctl', 'stop', name + '.service'], capture_output=True, timeout=10)
         for source in sources:
