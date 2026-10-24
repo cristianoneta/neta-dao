@@ -12,8 +12,8 @@ import time
 from server_job_status import check as check_jobs
 from server_source_status import check as check_sources
 
-TIMERS = ['cosmoot-' + name + '.timer' for name in ('treasury', 'main', 'members', 'health')]
-SERVICES = ['cosmoot-collect@' + name + '.service' for name in ('treasury', 'main', 'members')] + ['cosmoot-health.service']
+TIMERS = ['cosmoot-' + name + '.timer' for name in ('treasury', 'main', 'members', 'health', 'validator-history')]
+SERVICES = ['cosmoot-collect@' + name + '.service' for name in ('treasury', 'main', 'members')] + ['cosmoot-health.service', 'cosmoot-validator-history.service']
 PROPERTIES = ['Id', 'LoadState', 'ActiveState', 'SubState', 'UnitFileState', 'Result',
               'ExecMainStatus', 'NextElapseUSecRealtime', 'LastTriggerUSec']
 
@@ -40,7 +40,11 @@ def units():
 def report(repo, state, snapshots):
     fingerprints = {}
     for name in ('scripts/run-server-collector.py', 'scripts/server_job_status.py',
-                 'scripts/server_source_status.py', 'scripts/publish-server-snapshots.py'):
+                 'scripts/server_source_status.py', 'scripts/publish-server-snapshots.py',
+                 'scripts/update_treasury.py', 'scripts/community_block_ledger.py',
+                 'scripts/validator_history.py', 'scripts/validator_archive.py',
+                 'scripts/evidence_archive.py', 'scripts/block_results_cache.py',
+                 'scripts/public_observation_archive.py', 'scripts/verify-evidence-archive.py'):
         path = Path(repo) / name
         try:
             fingerprints[name] = hashlib.sha256(path.read_bytes()).hexdigest()

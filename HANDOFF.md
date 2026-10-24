@@ -45,6 +45,10 @@ The current published source is recorded only in CURRENT_STATE.
    the exception automatically.
 5. Recurring independent backup retention and controlled live snapshot fallback
    remain open. A local export and one reachable snapshot do not close those gates.
+6. Install and accept the [collector archive changes](docs/COLLECTOR_ARCHIVING_2026-10-24.md)
+   after a fresh read-only inventory. Preserve running state and generated data.
+   Verify scheduled cycles, archives and actual RPC savings; independent storage
+   and complete governance history remain separate work.
 
 ## Preservation and open product boundaries
 

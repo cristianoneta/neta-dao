@@ -6,8 +6,8 @@ operator record. These checks do not install source or activate timers.
 
 ## Read-only inventory
 
-`python3 scripts/collector-host-report.py` reports the four timer states, three
-collector services, health service, hashes of the installed collector/checker code,
+`python3 scripts/collector-host-report.py` reports five timer states, three
+collector services, health and validator services, hashes of collector/checker/archive code,
 private completion status and published observation freshness. Optional `--repo`,
 `--state` and `--snapshots` arguments select an installation. The report deliberately
 does not read environment configuration, keys, databases or journal contents.
@@ -16,6 +16,12 @@ Its successful exit means the inventory completed, not that all components passe
 Compare installed hashes and systemd units with reviewed source before updating.
 Preserve generated data, the existing signing credential drop-in and active state.
 Do not overwrite the collector checkout with a clean repository export.
+
+The [24 October archive follow-up](COLLECTOR_ARCHIVING_2026-10-24.md) needs the
+new imported helpers and both updated service templates. Compare unit files and
+drop-ins separately; the inventory reports unit state, not configuration contents.
+Verify both local archives after collection. The initial validator installer
+refuses differing existing files and is not an upgrade override.
 
 ## Acceptance and activation sequence
 

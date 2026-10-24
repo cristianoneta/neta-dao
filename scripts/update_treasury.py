@@ -13,7 +13,6 @@ import urllib.request
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "treasury"
@@ -304,17 +303,30 @@ def build(dao_id="neta-operations"):
 
 
 def write_snapshot(snapshot, name="current", history_name="history"):
+    from evidence_archive import atomic_json, store
     OUT.mkdir(parents=True, exist_ok=True)
     current = OUT / f"{name}.json"
-    current.write_text(json.dumps(snapshot, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     history_path = OUT / f"{history_name}.json"
     try:
         history = json.loads(history_path.read_text(encoding="utf-8"))
-    except (FileNotFoundError, json.JSONDecodeError):
+    except FileNotFoundError:
         history = {"schema_version": 1, "snapshots": []}
     if snapshot.get("treasury_address") and snapshot.get("treasury_type") != "dao-and-cross-chain":
+        for field in ('chain_id', 'treasury_address'):
+            if field in history and history[field] != snapshot[field]:
+                raise ValueError('Treasury history identity changed')
         history.update({"chain_id": snapshot["chain_id"], "treasury_address": snapshot["treasury_address"]})
-    day = snapshot["generated_at"][:10]
+    observed = datetime.fromisoformat(snapshot['generated_at'].replace('Z', '+00:00'))
+    if observed.tzinfo is None:
+        raise ValueError('Snapshot observation timezone missing')
+    update_current = True
+    if current.exists():
+        previous = json.loads(current.read_text())
+        previous_time = datetime.fromisoformat(previous['generated_at'].replace('Z', '+00:00'))
+        if previous_time.tzinfo is None:
+            raise ValueError('Previous snapshot timezone missing')
+        update_current = observed >= previous_time
+    day = observed.astimezone(timezone.utc).date().isoformat()
     compact = {key: snapshot[key] for key in ("generated_at", "height", "status", "total_usd")}
     compact["assets"] = [
         {
@@ -332,12 +344,29 @@ def write_snapshot(snapshot, name="current", history_name="history"):
     ]
     rows = list(history.get("snapshots", []))
     daily_mode = os.environ.get("TREASURY_DAILY_SNAPSHOT")
-    berlin = datetime.now(ZoneInfo("Europe/Berlin"))
-    if daily_mode == "1" or daily_mode == "auto" and berlin.hour == 21:
-        rows = [row for row in rows if row.get("generated_at", "")[:10] != day]
-        rows.append(compact)
-    history["snapshots"] = rows[-730:]
-    history_path.write_text(json.dumps(history, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if daily_mode in ('1', 'auto'):
+        def timestamp(row):
+            value = datetime.fromisoformat(row['generated_at'].replace('Z', '+00:00'))
+            if value.tzinfo is None:
+                raise ValueError('History observation timezone missing')
+            return value.astimezone(timezone.utc)
+        same_day = [row for row in rows if timestamp(row).date().isoformat() == day]
+        # Repeated/stale inputs must not overwrite a newer observed daily value.
+        if not same_day or observed > max(timestamp(row) for row in same_day):
+            rows = [row for row in rows if timestamp(row).date().isoformat() != day]
+            rows.append(compact)
+        rows.sort(key=timestamp)
+    archive_dir = os.environ.get('COSMOOT_ARCHIVE_DIRECTORY')
+    if len(rows) > 730 and archive_dir:
+        # Keep exact expired rows before trimming the website's working history.
+        store(archive_dir, 'treasury-daily', {'series': history_name,
+              'identity': {k: v for k, v in history.items() if k != 'snapshots'},
+              'snapshots': rows[:-730]})
+        rows = rows[-730:]
+    history['snapshots'] = rows
+    atomic_json(history_path, history, mode=0o644)
+    if update_current:
+        atomic_json(current, snapshot, mode=0o644)
 
 
 if __name__ == "__main__":
