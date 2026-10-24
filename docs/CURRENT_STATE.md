@@ -8,7 +8,7 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `41effcaa027796bdd8d55ad49df5c7a7c1fe8a71` (through PR #309) | [Manual release 40106761715](https://github.com/cristianoneta/neta-dao/actions/runs/40106761715) completed successfully on 24 October, including publication. |
+| Last successful website release | Source `7b21fe1979afb31f0cf0bb18cc70a9e312684ea3` (through PR #310) | [Manual release 40108859541](https://github.com/cristianoneta/neta-dao/actions/runs/40108859541) completed successfully on 24 October, including publication. |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
 | Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Published in release 40106761715; updated homepage observed on both website domains. Responsive CI passed at 320/390/768/1440 px; separate mobile live acceptance and controlled live fallback remain open. |
 | Collector archives / efficiency | Source captures UTC Treasury days, archives expired validator evidence before pruning, preserves daily membership/planner observations and signed prices, and shares bounded RPC results | [Scope and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md). Owner confirmed host installation and successful manual collector/archive checks on 24 October; regular cycles, multi-day growth and measured savings remain pending. Local archives do not prove independent retention. |
@@ -33,8 +33,22 @@ release 40106761715 supersedes that failed attempt.
 
 The owner requested removal of the consolidated-scope note above all workspace
 routes and the Proposals eyebrow. Source removes both and reduces the shared
-navigation-to-content gap to 24 px. This follow-up is not yet published; DAO
+navigation-to-content gap to 24 px. Published in release 40108859541; DAO
 selection, Treasury consolidation and transaction behavior are unchanged.
+
+## Snapshot diagnostics follow-up
+
+Controlled single-file origin failure exercises restored the original configuration
+and normal responses, but did not demonstrate the packaged fallback: both website
+domains continued returning the previous server bytes beyond the configured cache
+TTL. The specific cause is not established. Private operational evidence remains
+outside Git. Source now adds bounded `X-Cosmoot-Upstream-Status`,
+`X-Cosmoot-Upstream-Cache` and optional `X-Cosmoot-Upstream-Age` diagnostics to both
+server and fallback responses. These describe what the Worker's fetch observed,
+not proof of an origin connection or snapshot freshness. This addition is **not yet
+published**; caching, routing and fallback bytes are unchanged. After the manual
+release, inspect normal responses before considering another controlled exercise.
+See [header semantics and limits](HOME_FALLBACK_2026-10-24.md#upstream-diagnostics).
 
 ## Features
 

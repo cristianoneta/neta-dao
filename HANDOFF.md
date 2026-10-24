@@ -36,11 +36,14 @@ The current published source is recorded only in CURRENT_STATE.
 2. Complete the remaining manual desktop/mobile and wallet acceptance when needed.
    Existing browser CI is synthetic evidence; the fresh-browser encrypted-message
    restore remains deferred. No live quota-exhaustion test was performed.
-3. The homepage/fallback correction was published in release 40106761715.
-   Both website domains show the updated copy; controlled live fallback remains
-   open. The owner's compact-header follow-up removes redundant scope/Proposals
-   labels and reduces navigation spacing; publish it through a separate manual
-   release after its checks pass. [Fallback evidence](docs/HOME_FALLBACK_2026-10-24.md).
+3. The homepage/fallback correction and compact-header follow-up are published;
+   the latest release is recorded in CURRENT_STATE. Controlled single-file failure
+   exercises restored the original configuration, but both websites continued
+   returning prior server bytes: packaged live fallback remains unproven.
+   The snapshot proxy now adds bounded upstream status/cache/age diagnostics in
+   source, not yet published. After checks and manual release, inspect normal
+   responses first; do not repeat an unchanged failure exercise or infer origin
+   freshness from a successful cached fetch. [Evidence and header contract](docs/HOME_FALLBACK_2026-10-24.md).
 4. Finish the compatible dependency-upgrade work before the exception deadline.
    Keep the real Juno execution, artifact, audit and browser gates. Do not extend
    the exception automatically.

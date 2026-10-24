@@ -77,6 +77,12 @@ try {
       assert.equal(response.status, 200);
       assert.equal(response.headers.get('X-Cosmoot-Snapshot'), 'static-fallback');
       assert.equal(response.headers.get('Cache-Control'), 'no-cache');
+      assert.equal(
+        response.headers.get('X-Cosmoot-Upstream-Status'),
+        failure === 'offline' ? 'unavailable' : '503'
+      );
+      assert.equal(response.headers.get('X-Cosmoot-Upstream-Cache'), 'unknown');
+      assert.equal(response.headers.get('X-Cosmoot-Upstream-Age'), null);
       assert.deepEqual(new Uint8Array(await response.arrayBuffer()), staticBytes);
     }
     const before = calls;
