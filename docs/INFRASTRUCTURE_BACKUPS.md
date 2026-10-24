@@ -29,8 +29,11 @@ the sidecar ownership restored collection; the historical cursor is being caught
 up, not reset. This does not yet establish current planner history.
 
 The source fix exports each database under its numeric owner in an isolated
-worker. A private staging directory is entered before dropping privileges; the
-parent retains ownership of the completed export. Online WAL visibility,
+worker. A separate private temporary directory contains only that account's
+database export; credentials and other staging files stay root-only. The parent
+takes ownership of the completed export before publishing it into staging.
+The temporary directory and staging must share a filesystem so the export can
+be moved without an unbudgeted full-size copy. Online WAL visibility,
 deadlines, disk budgets, source locks and restored-data verification remain in
 place. No source journals are deleted and no immutable SQLite mode is used.
 The systemd template additionally requires CHOWN, SETUID and SETGID capabilities

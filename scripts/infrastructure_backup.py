@@ -185,14 +185,20 @@ def sqlite_copy(source, target, budget, timeout):
 
 
 def export_as_owner(source, target, budget, timeout, owner):
-    # The worker enters this directory before dropping privileges. Its absolute
-    # path stays inaccessible to the source account behind the private parent.
-    # Only the worker's relative destination is writable; no credentials or
-    # unrelated staged files become accessible to that account.
+    # SQLite resolves destination filenames to absolute paths, so a cwd beneath
+    # root-only staging is insufficient after dropping privileges. Use a separate
+    # directory containing only this owner's database export. The root-owned
+    # outer directory allows traversal but prevents the worker from replacing its
+    # parent. Credentials and other staging files remain behind the private root.
     parent = checked_path(target.parent, 'directory').stat()
     if parent.st_uid != os.geteuid() or parent.st_mode & 0o077:
         raise ValueError('SQLite staging parent must be owned and private')
-    with tempfile.TemporaryDirectory(prefix='.sqlite-export-', dir=target.parent) as directory:
+    with tempfile.TemporaryDirectory(prefix='cosmoot-sqlite-export-', dir='/tmp') as outer:
+        if Path(outer).stat().st_dev != target.parent.stat().st_dev:
+            raise ValueError('SQLite temporary export and staging must share a filesystem')
+        os.chmod(outer, 0o711)
+        directory = Path(outer) / 'database'
+        directory.mkdir(mode=0o700)
         os.chown(directory, owner.st_uid, owner.st_gid)
         read_fd, write_fd = os.pipe()
         pid = None
@@ -242,7 +248,12 @@ def export_as_owner(source, target, budget, timeout, owner):
             os.close(read_fd)
             if write_fd is not None:
                 os.close(write_fd)
-        exported = checked_path(Path(directory) / 'export.sqlite', 'file')
+        # Revoke directory access before inspecting or changing the output file.
+        os.chown(directory, os.geteuid(), os.getegid())
+        os.chmod(directory, 0o700)
+        exported = checked_path(directory / 'export.sqlite', 'file')
+        if exported.stat().st_nlink != 1:
+            raise ValueError('SQLite worker output must not be hard-linked')
         os.chown(exported, os.geteuid(), os.getegid())
         os.chmod(exported, 0o600)
         # Same filesystem; exclusive publication without another full-size copy.
