@@ -36,9 +36,10 @@ The current published source is recorded only in CURRENT_STATE.
 2. Complete the remaining manual desktop/mobile and wallet acceptance when needed.
    Existing browser CI is synthetic evidence; the fresh-browser encrypted-message
    restore remains deferred. No live quota-exhaustion test was performed.
-3. Refresh outdated homepage status copy (the 10 October statements about native
-   voting and review-to-mainnet development). This is a separate editorial UI
-   follow-up, not an observed transaction failure.
+3. Publish the reviewed homepage/fallback correction through a manual website
+   release. The source now describes available native voting/submission and packages
+   the missing public delegation-planner fallback without changing its timestamps.
+   [Validation and live boundary](docs/HOME_FALLBACK_2026-10-24.md).
 4. Finish the compatible dependency-upgrade work before the exception deadline.
    Keep the real Juno execution, artifact, audit and browser gates. Do not extend
    the exception automatically.

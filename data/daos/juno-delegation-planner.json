@@ -1,0 +1,3588 @@
+{
+  "schema": 1,
+  "chainId": "juno-1",
+  "programme": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+  "height": 43027252,
+  "blockTime": "2026-10-24T11:06:28.847859938Z",
+  "collectedAt": "2026-10-24T11:07:23.249783+00:00",
+  "source": "https://juno.api.m.stavr.tech",
+  "activeCount": 25,
+  "liquidRaw": "3343320543692",
+  "validators": [
+    {
+      "address": "junovaloper106y6thy7gphzrsqq443hl69vfdvntgz260uxlc",
+      "consensusAddress": "7992AB6A4A94EB3EE9D5D3E6E4129D2F0AF5D2D3",
+      "name": "Inactive",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "155683038604",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1083svrca4t350mphfv9x45wq9asrs60cpqzg0y",
+      "consensusAddress": "6EC804DBB72380D0AA5AC6A82650A1FA75FBABC5",
+      "name": "notional",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "11592993675",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper10gqlzj5cv4lq2tu8zwrz4c7nezukj3ukay7swq",
+      "consensusAddress": "7480F4BE6932F0F2478D0663591D71E2BF61DF76",
+      "name": "Earn Network",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1179563949",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper10jm8fvdyqlj78w0j5nawc76wsn4pqmdxnpxsgg",
+      "consensusAddress": "154B35F02A0881E71F45CDDC4AA46FD310E20812",
+      "name": "NosNode\ud83d\udd2e",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "17082404188",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper10m832x3h3lv2d7t75hm26w04kly607nqqvkccp",
+      "consensusAddress": "6675542B68D334FD23273DCD58223AD54700B1BD",
+      "name": "\ud83d\udc4b 79anvi \ud83c\udf40",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "254452057",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper10wq46f8du234aqtlucv7h9jtrfuxmcnt9ln69l",
+      "consensusAddress": "175DF90C23CDAB4965DBE0433AF7E850FAF9E4DC",
+      "name": "chainvibes",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "8009495086",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper10wxn2lv29yqnw2uf4jf439kwy5ef00qdelfp7r",
+      "consensusAddress": "687E9D3B8DBC07E22DBA8A8FABBD1E7C51EB48C6",
+      "name": " kingnodes \ud83d\udc51",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "152440630701",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper10y7ucn6jhjtakwchgpw32y0tgaku6yn255z7gm",
+      "consensusAddress": "CB8E49AB7CC1F4F17E79B2C14D31A9C0EE8ABBA6",
+      "name": "Golden Ratio Staking",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "155943427868",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1200yhj9ptjv78huj804z5lwz7kahhd458pmqdr",
+      "consensusAddress": "A3513488C04FED0BD7CCFB9EC9EBC6D98AEE35B0",
+      "name": "K-BLOCK",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "189058768",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1244ahujswqc5ce784mkvsxsyrjwdxkhrtj27ca",
+      "consensusAddress": "B9F4C7A240A54FB28FEFDAA95623A0C41F78CD06",
+      "name": "[SHUTTING DOWN] PLEASE REDELEGATE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1394189437",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper124maqmcqv8tquy764ktz7cu0gxnzfw54l2d073",
+      "consensusAddress": "083C4506AA1315D8DDF8A0CD59E67714A101C05B",
+      "name": "Simply Staking",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2712731019",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper124zdfuezwxhupszd2emylge6k9hdl0af32h7ze",
+      "consensusAddress": "92F31A899B44637E32044E5D69EBF733C5D4DA51",
+      "name": "Huginn",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "19477309",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1297950qqq6yxhgsms6t5dks66gyk6sctplnyd7",
+      "consensusAddress": "AC4122002F3EF3D6FFBF4B84234E7F0B417B3132",
+      "name": "QuantumNode.io - Token and NFT airdrops to all delegators",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2603197802",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper12f9k9a922qpzcwmgt50utd5cfa5ksnl0lv8taw",
+      "consensusAddress": "3D2076729D004846B593635F4539A5873A5B1676",
+      "name": "InSecurityDAO",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "500",
+      "currentRaw": "0",
+      "commissionBps": 628
+    },
+    {
+      "address": "junovaloper12fzv0wrkllkzkwfv9tch07s3gj9ajhye0y4llv",
+      "consensusAddress": "6510479A7C51F07FD37625F6D1CD94484EF26AB3",
+      "name": "ZenChainLabs - ** Has Shut Down. Please Redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "10081404513",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper12rkgnycfaqqyclrhquzerrm4nfwg6um26l2aqw",
+      "consensusAddress": "3835FDDA7D3C8DB75A233494C950C5916219B1B9",
+      "name": "StakeTown",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "489343647285",
+      "currentRaw": "488165680500",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper12t53fc7yl34psqylanekcwvu45lm2wu420kyg2",
+      "consensusAddress": "54D27A7E67A0A82F5C85945793EB559C0C7EB5F3",
+      "name": "VoidStake",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "862660",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper12udz3pg72mr3yupsguf29nj3gfqlluwq04rg0k",
+      "consensusAddress": "468F19774D884937ECAC184F1704B280A52684C5",
+      "name": "Tessellated",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "34400287651",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper12x3cw57qhsplp4y2x7tuvq4mua9w4rggzv2afa",
+      "consensusAddress": "A2030D99EAAC20C91C30F635CED07C275C2F884F",
+      "name": "VALIDEXIS",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "313968602",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper12xy55slwuzuzeyfwnv3u5mdglk05k9fgsfnhgp",
+      "consensusAddress": "4E4C5959918F4B05126F7701A226A41C2D631375",
+      "name": "decommissioned",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "11703",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper130mdu9a0etmeuw52qfxk73pn0ga6gawk2tz77l",
+      "consensusAddress": "D21150DC3691E006B169748003944172CB4B0A74",
+      "name": "strangelove",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "13311891696",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1340rlqnel7ykw0wv6e7sfz5ay95v8ae87fm8xy",
+      "consensusAddress": "62E0EBE353647DE9AFB4483DFD0126EE29CA0424",
+      "name": "Sunsettin validator.Please redelegate.",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "5576934129",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1345rra7x6uswe2z708zx3q7wj04e6wsykw2mk6",
+      "consensusAddress": "F4C65C2B8D8BD96037652F375E789E2EEA4305DB",
+      "name": "Please redelegate to another node. StakeCraft",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "12286552031",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1353ewfc0v7pnn3xre6v9lraghxrhenswmsjhv0",
+      "consensusAddress": "EAB33CDAD8D5B57DB5BCD0F176CB9D170A6DA200",
+      "name": "cyberG",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "6552526390",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper13aacv0pmzmsmm55a5dcqqdak275j38u5rk9dg7",
+      "consensusAddress": "54A97DEDF84ABCAEC242C4E40E871764C9D17E6E",
+      "name": "Zenscape",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "6048453254",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper13qjgwewgrwu979wn8xxrh274rjtwk4m5gqkehp",
+      "consensusAddress": "BBF8660F15743AE127DBF277E31B6F5EEE326268",
+      "name": "DEACTIVATED - PLEASE REDELEGATE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "10583560671",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper13srvt078sl2f8vluvyrjd6wew800vdsnk6l8zk",
+      "consensusAddress": "6C3496C82413D9D38236FA20FD274DD281387FC9",
+      "name": "nixowedip",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "197980224",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper13uflwz6ncv7wuey55rhh08nlmskpdpfevckja0",
+      "consensusAddress": "ACAB12936A238CE7F4B521871F907FF6A9729282",
+      "name": "\ud83d\udc3eTRACE\u2122",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "581648427028",
+      "currentRaw": "576807698137",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper13v4spsah85ps4vtrw07vzea37gq5la5gktlkeu",
+      "consensusAddress": "82B52E238C9A4506E00CEDE1D6A167A2EF1EE4F5",
+      "name": "Sentinel dVPN",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "127185490165",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper13x4pynlp86prhcmtns742kgsgu7pjtzjeknkwx",
+      "consensusAddress": "26C5A7EFCD9F11ED7E846F7EC63DEF2D5A55969D",
+      "name": "CryptoDungeon",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "77806450704",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper13x77yexvf6qexfjg9czp6jhpv7vpjdww6lkc9h",
+      "consensusAddress": "10DED706EFAE3E176E39559EB9927AC30DB1F0E8",
+      "name": "blockscape",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "12811252386",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper13xuwhn3mjk3zkwhn69ct2w9eavd26q2n8r6tg4",
+      "consensusAddress": "0AB7E7DB919482E82228E6720D6A0DA1B546B477",
+      "name": "BlackLION",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999803",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper142vtwu440zchsws4llnq5rknmslvw2fx55yswx",
+      "consensusAddress": "5D9A2D9666D5E9360A384858584398CB6ACEBCBE",
+      "name": "BasBlock",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2778692375",
+      "currentRaw": "0",
+      "commissionBps": 800
+    },
+    {
+      "address": "junovaloper1470qn8y9xy40ta3zdphn3t4tgnvhrenuql7rwt",
+      "consensusAddress": "1ED6D5060EA190165843C6DBE6D6A6D5884A6BD9",
+      "name": "LuckyFriday.io",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "208396945",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper14hjeful9axpphxh8r7mzs2ek3uu66pvts4n227",
+      "consensusAddress": "17126AD0F79280B6674C0FF2F5AD2EBC9A58665B",
+      "name": "TerranOne is shutting down. Plz undelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "109895",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper14rh74wew4gwcp0xddekdk400p5r9qvd0uv40p2",
+      "consensusAddress": "83A23C2022490B2910C2F0D6927A08C576893BD7",
+      "name": "Angel Protocol",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1999804",
+      "currentRaw": "0",
+      "commissionBps": 10000
+    },
+    {
+      "address": "junovaloper14ts0j42qkpr43a3tgxr7zz6l6zdf7hdethuxxd",
+      "consensusAddress": "617BBE455CEDA6B9FC25ADAA01F7BD0B8A6BE4E7",
+      "name": "Obi",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1534210",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper14xmyp2hdd586frvl0d5mpqy5j9rjkt4khdp5hd",
+      "consensusAddress": "EE5E6EE4DA40A30F18BC1EE052AC4F9C84D35F00",
+      "name": "Tedcrypto.io \ud83e\uddf8 | TedLotto",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "206572495784",
+      "currentRaw": "177497041483",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper14yd4q0lp7meujqvexvjxfgu5wd7zelheqpnqqz",
+      "consensusAddress": "BCC4B2DFEA8AB3471138CFD9333945AED74D60DA",
+      "name": "qf3l3k",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3999600",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper14ym8eg2y2790ukngeqgsncmz5egta2h2h3weun",
+      "consensusAddress": "7096E1DAF349BFBEECCB6E1687DD7044A4EB385C",
+      "name": "Albara",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "101989600",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper15004ysvmqnqzkvt7x6s4cd53flmmvgfvpgmrc5",
+      "consensusAddress": "E55E97C4D347FCDE1CDF75B1868B93D788DB4E31",
+      "name": "Interbloc",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1350492439",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper15acsr3568j43yqp2sa3ngaaxvaqs40zewlnmyg",
+      "consensusAddress": "2D71CB60236372A63DBB1444D6F1BD83A22D6D87",
+      "name": "AnalyticDynamix",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "8056295",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper15ergmc0qgf44na9rnhqpf9lxxeh0gvzwmyf5uy",
+      "consensusAddress": "7F6638154F3D28C4FBAB6ADF437D9D208A853F89",
+      "name": "onestaketest",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 1500
+    },
+    {
+      "address": "junovaloper15jzyvydxj7x94rxcmqzcd7x84zvk5sy0832kdk",
+      "consensusAddress": "7514D6BD2300E78864DE41ED7FAF14FBDA6328BF",
+      "name": "Antrix Validators",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "516845411",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper15mlr3tp7le827h7x597rcl4ykyc3vufgd55t9c",
+      "consensusAddress": "4FA401E3C19D49035123992E6E90A36012338A5C",
+      "name": "Inactive",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "60411324346",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper15ntrq4rmmd2vtrj5hvczfhqus3v4pqpuxfvj0e",
+      "consensusAddress": "6FD2BA3BA00E6AB6BF43B0A7FBE486C541288F99",
+      "name": "Yurbason",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "52095753103",
+      "currentRaw": "44378698220",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper15qdgx74pa7x7mvulqs0mp29n2sfxt40aakqegu",
+      "consensusAddress": "42CC64917B7ACB29A4F4B2B7D3C0187B9DFA372A",
+      "name": "Calibr",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper15qpazr8ygkgy2sqc33wkr3q6tzmnrupx9xcr07",
+      "consensusAddress": "B06065FA67D7833FBC54DABF65C90C887499B5BC",
+      "name": "Fist of the North Star",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "9999005",
+      "currentRaw": "0",
+      "commissionBps": 600
+    },
+    {
+      "address": "junovaloper15r6svq3ecxzq60rzn2tx7u2vqmq5e30ryrtneu",
+      "consensusAddress": "4CEEAB2CCAA9E9CD5EAB94238F7AF4658C364605",
+      "name": "KEgoRAval",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999805",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper15urq2dtp9qce4fyc85m6upwm9xul304945tllg",
+      "consensusAddress": "65974BBB920B9393C197F195FB7B214739DBEC70",
+      "name": "Shutting down please redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "61805672620",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper15xl8lrtz65dm7yqtnpntmmv7asl0jqk82r4nae",
+      "consensusAddress": "A0BBC0AF68327777B3863494C9AC334AD2BD4120",
+      "name": "Station8",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "94763701",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper15yuuev6n8sfvvkqx2m4rqvrnu8vyuzvmkku3fm",
+      "consensusAddress": "8B68344DC158475291B2AC6B668E931A77BAFDA4",
+      "name": " AutoStake \ud83d\udee1\ufe0f Slash Protected",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "354755775142",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1626v0ct6cdtnx5kme9ycs09x06e8vnn7q3j8vu",
+      "consensusAddress": "C77CD7A9739CD4B4F21FD860C99BD6DF119F4AD1",
+      "name": "CoolCat by Digital Kitchen",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1689514",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper16467xlswtq874gj30lrwgae2jqfn64du24w7wx",
+      "consensusAddress": "5769ACC80F37286F65AB75D03F659506DAC4EB8E",
+      "name": "Messi",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "211447473",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper164a805d3zq6yealtfzh5y0vvjna882y2fujmhp",
+      "consensusAddress": "1CF638663CB5BE9F2D10C1FBBF47E5157EB6329F",
+      "name": "REDELEGATE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3392858",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper166r5ylkp70xe0ysq2hjxn26m4q9vfn8q3lv46c",
+      "consensusAddress": "A758F131985687FE5F72DEC968B96C21C20DC93D",
+      "name": " RHINO \ud83e\udd8f",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "45953556482",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper16gm3cvhluf9xfurkx9qgxq7pldvd479l5359xq",
+      "consensusAddress": "CEE07615BB3D2467E0982E9F6EEBCB4197AF041E",
+      "name": "Sunsetting - please redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "40360945144",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper16msryt3fqlxtvsy8u5ay7wv2p8mglfg9g70e3q",
+      "consensusAddress": "3E1DEB86DB0748495A5C7D0E3D89AEDB68BDBD32",
+      "name": "Witval",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "22220017266",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper16p8274n5zaeaqv2u7msu27p54clum56grzz5zk",
+      "consensusAddress": "5D0C8C47492C7B5806C6A0AEC2B61A22BABDF304",
+      "name": "[Beehive]",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1846126518",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper16s96n9k9zztdgjy8q4qcxp4hn7ww98qk0du5jq",
+      "consensusAddress": "E9874B0B0E95D84925928565222604549133B254",
+      "name": "Oni \u26e9\ufe0f",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "51004046249",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper16unj78sydkkj0lrvm69uu42gc8cqgxc2wgjhyd",
+      "consensusAddress": "7990B032D89DB6DFB2368B09BB961D1E1BB932DA",
+      "name": "CM_Validator",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "255441",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper170hk97tm6nhrygx463ec38n6q8z4h6sv8tugam",
+      "consensusAddress": "2C29874572B01497C5172E55E0FEF80E105DB4EC",
+      "name": "SHUTTING DOWN",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "766019209",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper175q6smvgnuec5e62rs4chnu5cs8d98q2e4l6cl",
+      "consensusAddress": "889BE248D8CA73655A61BA48CF5EBBCC036DC183",
+      "name": "elsehow",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1898152674",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper176qmnrvnr5pmfret9l36xqpm87e4l3ww6mjwtv",
+      "consensusAddress": "391701110383CAE0A1EC45209C8DD8F245C1CBBB",
+      "name": "nRide.com Validator",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "365504701",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper177svs8gyz28pupaj6amgls6rahcmwmwq06fukv",
+      "consensusAddress": "1FF354C5F1F9112F7EF36642369861814B85ECEA",
+      "name": "\ud83d\udd25STAVR\ud83d\udd25 REStake ON\u2705",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "877437531842",
+      "currentRaw": "732248520698",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper179fv09z9lhsyduf5xkgyc3ytelljtddxtgylgh",
+      "consensusAddress": "36308901CC216719B512D4EF13E1A7C6588EEE4B",
+      "name": "Blockpower",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1337052510",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper17dn5e2n6w60pzyxeq79apr05r6jzfw7wgq3m07",
+      "consensusAddress": "A36CA0EC8C74C3F6774FE1DBCB66D77085A8B44D",
+      "name": "needlecast | PLEASE REDELEGATE, SHUTTING DOWN",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "20938605355",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper17h2x3j7u44qkrq0sk8ul0r2qr440rwgj6jfwcp",
+      "consensusAddress": "A19F8CA134065BDBC764D53A5A024F091F8D58F0",
+      "name": "FreshSTAKING",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "5886340899",
+      "currentRaw": "0",
+      "commissionBps": 890
+    },
+    {
+      "address": "junovaloper17mggn4znyeyg25wd7498qxl7r2jhgue8swpngk",
+      "consensusAddress": "729C998ADA302CBA74B0F8887A9E23B49E0EF5B1",
+      "name": "01node",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "5299853559",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper17n3w6v5q3n0tws4xv8upd9ul4qqes0nlg7q0xd",
+      "consensusAddress": "FCF0C1EAE20E3C808B4C3E5112AA49AE01C60F8C",
+      "name": "Imperator.co",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "361954142688",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper17q802krsnxmntnt8ufhhq2trx27rf9fnpserxr",
+      "consensusAddress": "C35F6D9736D8039C585CB420A17F4FE95132385D",
+      "name": "Blockwavelabs",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper17rl2chwufuvaetwc0vqane04sr8luhzcf874r6",
+      "consensusAddress": "AF9408C088DB1E7ADA52A764C5645B792C977825",
+      "name": "SHUTDOWN NODE | REDELEGATE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "30972156",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper17skjxhtt54prnpxcs7a5rv9znlldpe5k3x99gp",
+      "consensusAddress": "1A3535BCDDE63C6620F13E5E558418C87C2A0E05",
+      "name": "DEUS LABS",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1985513711",
+      "currentRaw": "0",
+      "commissionBps": 800
+    },
+    {
+      "address": "junovaloper17uvf0rvjt68v0k9he33djvxg8v9kyaf5je7yg7",
+      "consensusAddress": "C386D5DB95FAC2233189A04A0F104C215CDBAB70",
+      "name": "juno-mainnet-sk",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3997284",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1836fhsg6yqpu98vezfc7caakchqe8pvske7t8q",
+      "consensusAddress": "E85369365EFAF2003506117F8BEC27AD5B03D4A6",
+      "name": "Cosmos Spaces \u262e\ufe0f \ud83d\udc9c \u269b\ufe0f",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "719745677274",
+      "currentRaw": "355029585854",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper184faqy958htcwzhgxqrpv0e3kcwhr3yqzqst0f",
+      "consensusAddress": "70E0B6751BFBBD85152AC2D5CB9396719529571E",
+      "name": "Plurigrid",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "123407484",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper185hgkqs8q8ysnc8cvkgd8j2knnq2m0ah6ae73gntv9ampgwpmrxqlfzywn",
+      "consensusAddress": "4947683341BA5ED2E583032F237AF51E9FB98E82",
+      "name": "DAO DAO",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2762360694709",
+      "currentRaw": "798736686443",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper189nl8q7rm4ks2t2l7qwe7j49w7sagw4y8uk2nd",
+      "consensusAddress": "39C506F01CD03BE7E9470D439356744737669761",
+      "name": "Active Nodes",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "5667804438",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper189p0ze3jue9vxhm8pe3jy0gn3vkgyf2jhewtls",
+      "consensusAddress": "9FBFCDFF95858685E5E51CDD46D4C91DB5392C99",
+      "name": "GOAT V \ud83d\udc10\ud83d\ude80",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "1376588310",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper18eancryfzd7n0ag9xy3azqvxgkjla2mrs2uznx",
+      "consensusAddress": "2C06679174476CFE44D3699A05505360FF0DC6CD",
+      "name": "(Closing) Please redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "26188166697",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper18lxh6zxpe9jksjh8kclc38724prl8uek8q7f0a",
+      "consensusAddress": "85CC27A8E856A64268F75F0D52CAD5DDD3C454DB",
+      "name": "Domerium Labs",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "7947690113",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper18qw9ydpewh405w4lvmuhlg9gtaep79vy44dycn",
+      "consensusAddress": "F926A3623785CBCFC200B78122CF977E31392BAA",
+      "name": "DAO Maximalist",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1134320237",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper18rk2nfz7u7294gzlwx7nunudje5kul6w62akq6",
+      "consensusAddress": "800FE546B30EF262E17068B98957920A7F7ADCAA",
+      "name": "gladder",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3999606",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper18tjj8ang9pelwxhdj8uuta6pchz292suncrlrq",
+      "consensusAddress": "891B7D6D28C39786EA4FF974231D3856EB3E27F6",
+      "name": "Enigma",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "72894727154",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper18wkkhsrsw7gwl3z9gn6e25ag3sn0crzp3g0zkl",
+      "consensusAddress": "196A514C2DFB411C94018A109C461F92CCF5837D",
+      "name": "White Marlin Staking",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "14029443",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper193486ateqqf3v7z89x74zx9s85xketdyu9ttts",
+      "consensusAddress": "15BBFCA9F07F8AD7D40D657157C3E7F824C02C25",
+      "name": "Nodes.Guru",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "7551383934",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper193xl2tqh2tjkld2zv49ku5s44ee4qmgr65jcep",
+      "consensusAddress": "7A81D65970042457FA7E4A3DA96C4B73D52DBF8D",
+      "name": "SHUTTING DOWN - PLEASE REDELEGATE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "43641429093",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper194v8uwee2fvs2s8fa5k7j03ktwc87h5ym39jfv",
+      "consensusAddress": "6678356FBEC44F52259BC8711B35400F440FC8EB",
+      "name": "Disperze",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "202570471030",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcqcnylw",
+      "consensusAddress": "1470B9237056641663CB4DFDEC86B064578B29BF",
+      "name": "SG-1",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2006383638483",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper19cdcyqej774srr90qdyxggdf3hcqzq9mknqutc",
+      "consensusAddress": "530D85C6F9691EE68D834AE9EF95887537906183",
+      "name": "a41",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "5596720956",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper19cg7hegkp7z5gpv8xgm3y0wxkzzmw8knsc28rg",
+      "consensusAddress": "CABF6F72DF30E58B6193C7F2250FB99F3510393C",
+      "name": "The Expanse | Infinite Possibilities",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "559395777",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper19j2hd230c3hw6ds843yu8akc0xgvdvyuw7dw66",
+      "consensusAddress": "1CA96468950FF6094E0B1EB197436B832D6FCBCB",
+      "name": "syncnode",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3885479",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper19pv2aqe63c849j9hdnqhytrs9h8uukwqeynuat",
+      "consensusAddress": "9F0045CDD323BD2384203115D44D6D16C915E5FC",
+      "name": "StarCluster",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "11794192",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper19ur8r2l25qhsy9xvej5zgpuc5cpn6syydmwtrt",
+      "consensusAddress": "FDA22C79E4C93CBEACD0297036F7650839D6223D",
+      "name": "ECO Stake \ud83c\udf31 | REStake.app",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "2355219809958",
+      "currentRaw": "199704142000",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper19v94c3z7ckarwsum76kaagma0wqsqhh5w9jlsx",
+      "consensusAddress": "CB55FF4C609E11A0C417D95A0F697F3B33284BA6",
+      "name": "Validatus",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "817564186220",
+      "currentRaw": "732248520699",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper19w9huamhq32shes95dr4kmqequ5pe450up6wvf",
+      "consensusAddress": "45F6C4DF42C56876B4FD7B26CD79981EDE6472E6",
+      "name": "Invicta Stake",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1039434048",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1a879gp98rqs2gqsqjnc8av7vgnmh94aywzpyhl",
+      "consensusAddress": "FE5E815CF0B90A4A8F1AFEE9E6767CDA53917F86",
+      "name": "Pati",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "28997100",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1aar0u2ta3x9waemz7d9ad0x228kv82a7uqgmfl",
+      "consensusAddress": "7FFA36BEA1097E241F1E6C3EFB2FFA02220717DB",
+      "name": "Sr20de. Please, redelegate. Validator will be disabled on August 10th",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "267379931",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1aevx3gfvvdce60ql75fp6j4fzj42lru9h0vhqq",
+      "consensusAddress": "E04A7742ACD0163004B664A703B7920488A2AE86",
+      "name": "OranG3cluB",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "89468729005",
+      "currentRaw": "88757396456",
+      "commissionBps": 800
+    },
+    {
+      "address": "junovaloper1afhtjur8js4589xymu346ca7a5y5293x7p64ca",
+      "consensusAddress": "D971748C41BD4B777502DCABE903A71A3669A77A",
+      "name": "Shutdown, plz redelegate (OmniFlix Network)",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "419442045215",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1am80fauk3gnzcr76ylg0yju4f0chen5x6zmq7q",
+      "consensusAddress": "83F286870F6AD40171663EAB308ADA7770550EBC",
+      "name": "redelegate before the 15th February 2025",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "32779184733",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1av9s094qhy56egrrqxpdyzjcupde3v48y5nva5",
+      "consensusAddress": "2CAE9101577A270CAC64523902D3AC918004D779",
+      "name": "TR-3B ASTRA",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "95266066",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1avqy4mqg3fexnkcg533qwzc93x4mycdek67wgy",
+      "consensusAddress": "3D781000ED6DE85956B23AB6BDC3E192A5E4D606",
+      "name": "OWALLET",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "110929611",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ax4c40gn3s74xxm75g6cmts3fw7rq64gweqg8q",
+      "consensusAddress": "EBAAECF31EC18DC4234E01C82B749AE2CD7A9577",
+      "name": "Decloud Nodes Lab",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "91350521781",
+      "currentRaw": "88757396468",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1c0r2r5e3usyjjy55dk5ktql9nc5nljk3jn6mkq",
+      "consensusAddress": "B710EE0B854C93C1AF657D2F2A56D42D01205245",
+      "name": "Chainroot",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "894824705808",
+      "currentRaw": "887485207178",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1c200tr9z6x053ttggzgwlpms2xw3ptkqr0ffqw",
+      "consensusAddress": "423CA1F816C8A8223A8524256D04AD2030F9E915",
+      "name": "0% fee - GunniStake.com",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "94341",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1c3g697srryr0slg835u375t2j6tqxl489dgnc2",
+      "consensusAddress": "45226E6BC30DBEC14D0242ADADDC9110C4581D72",
+      "name": "Perseverance \ud83c\udde9\ud83c\uddea",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "8238631811",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1c3svv8kgq5w37r2ge0ux74dz8kpkrza7v8jg9w",
+      "consensusAddress": "8F5A8A0899E031318C7BE2651223F9898E84677C",
+      "name": "Undelegate | The Crypto Gateway",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "158476426",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1c53el6jh90cu99wyc5rx60zymqd8svxfc6ll5f",
+      "consensusAddress": "49CC3E18B688BE70AD1FB8D9AD7D18CA8F9628ED",
+      "name": " ",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "16646944903",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1c6ph5kkan8wvndg644vu6wnu3ef4dvc86a42kx",
+      "consensusAddress": "7C19A125149AB080B32D6259C4A5D7D92B832C9A",
+      "name": "EthicalNode",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999902",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1c9ye54e3pzwm3e0zpdlel6pnavrj9qqv0rx2l4",
+      "consensusAddress": "71BDF6B1FBF997AD1875B74F4796CD3D6A5F6D69",
+      "name": "DO-NOT-DELEGATE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "6416882158",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1cc99d3xcukhedg4wcw53j7a9q68uza70jhqgfg",
+      "consensusAddress": "CF0FAE85885EFE00C2990761578E8FF8D5454369",
+      "name": "dForce",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "105907885",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1cgh5ksjwy2sd407lyre4l3uj2fdrqhpkw6wmfv",
+      "consensusAddress": "BF480EF88DB244A6DEFC6EF6C739720124CB8AFE",
+      "name": "HashKey Cloud",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "943052531",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1cj500uet7ssegwsmh24kt0hjw89ugez0q4wylf",
+      "consensusAddress": "8D56A016414356DD90C35D88E68465BA5E41FAD1",
+      "name": "Validavia",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "465669613",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1cqdhr7arcezmkhy32qzsqsjvq2rheuhx4xj867",
+      "consensusAddress": "A318B3EA83A87531C2BE401173FE60954E0E4D5F",
+      "name": "Gelotto \ud83d\udee1 Slash Protected",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "102066671565",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1cv4leeaavx5lu5n7jgrdklt76rgx2xtdgczfwv",
+      "consensusAddress": "BA9653E03DA56F88BC1C79B091227AE9DE9D30A7",
+      "name": "Mr.K",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "164134544",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1d4u38zjqdgx2r6uk2r5hgrvarfxcyeapwtyqsm",
+      "consensusAddress": "0A3E9FE28731A6A1DC9C298DE8714248950963EE",
+      "name": "dune",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "100002",
+      "currentRaw": "0",
+      "commissionBps": 600
+    },
+    {
+      "address": "junovaloper1d724739m72r4nlla9tdz5eqy4t8hmmhxnplda8",
+      "consensusAddress": "3E3106E5E8E59D38C56DD55EB037B9EED7D3727F",
+      "name": "Supernova",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1d9qtem5hjk8y6qrq6jdcm2wgajqssuvd25ymz7",
+      "consensusAddress": "F4CE68B63CF1C1D8032DE75ED673A4E22C6D2EA3",
+      "name": "Jupiter",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "129772189",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1daf07ltw44wyxvp9358kdzsj3pfq57aut5dqfu",
+      "consensusAddress": "49563885FE8F88C2B58B0A9D3CAC487E1DF4A6F6",
+      "name": "CauseLessHarmDAO",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999902",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1de7qx00pz2j6gn9k88ntxxylelkazfk3yugf8n",
+      "consensusAddress": "1A0FB0B119DD4A7606EAA5ACE96C59A8EDA70734",
+      "name": "Cosmic Validator | 100% MEV revenue to Juno stakers! & Auto-compound",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "26299178106",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1dfeenydr9f2vggp8m7jpalvy8jv7fdndncedrm",
+      "consensusAddress": "8E7A970AB8AEF7B361B01BBD730285C5D4EFD30F",
+      "name": "SHUTTING DOWN",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "51109221192",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1dgz54p4tm6dqk6nujstadeuenm0vr4hz35jr3j",
+      "consensusAddress": "2F5621A9CB2B9D14F696CE085AD261ED1A628153",
+      "name": "Please Redelegate to LIFE AND CRYPTO",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "610000",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1dpvrxryu22vcdghpnfw90u4pevpgk9crrkgry4",
+      "consensusAddress": "C8A8655FCAE6933D03C2C8703431D502D24971E0",
+      "name": "Valligator \ud83d\udc0a",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "65627974",
+      "currentRaw": "0",
+      "commissionBps": 2000
+    },
+    {
+      "address": "junovaloper1dqhxzkkkc4frsleknwn8gr9xxg9kynfvj8ky44",
+      "consensusAddress": "7BC6768A0B45EC84A40AC8EC013B1ED022D5E303",
+      "name": "CosmosPug \ud83c\udf52",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "37809912986",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1dru5985k4n5q369rxeqfdsjl8ezutch8mc6nx9",
+      "consensusAddress": "EF5DC39DD40EFF73A2ACD4318812CAFF2EAAA2A9",
+      "name": "ChainTools",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "100710922018",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1dt93l3qgmhhlp97srjyqyendrgu9nx0ssa20f3",
+      "consensusAddress": "45127DE87972C6E2648BEBABD31304542C8DF0D0",
+      "name": "please redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3366672079",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1e8238v24qccht9mqc2w0r4luq462yxttjzn7qt",
+      "consensusAddress": "0F1ED70645D475745565C702588BD1EEBA62C28B",
+      "name": "POSTHUMAN \ud83e\uddec StakeDrop",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "1922535902179",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1efrfyvlmr87aksdx4fhvnwm6h3cfemq0rg789p",
+      "consensusAddress": "AD5A60669AA62661BB26073DAC1CA9A6EA807084",
+      "name": "NodeMgr",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "16645367",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1eh5mwu044gd5ntkkc2xgfg8247mgc56fww3vc8",
+      "consensusAddress": "8118709AEA2CF6775E97021180F4F17FFF545523",
+      "name": "BouBouNode",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "62576314044",
+      "currentRaw": "0",
+      "commissionBps": 610
+    },
+    {
+      "address": "junovaloper1ehkfl7palwrh6w2hhr2yfrgrq8jetgucskr2e0",
+      "consensusAddress": "376258981B5C8270319BE5CD655C628903DC41C1",
+      "name": "KalpaTech",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "80654472150",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ej2es5fjztqjcd4pwa0zyvaevtjd2y5w2aqycm",
+      "consensusAddress": "6D2B3AC0DEC4412CA87714E1F1B1BEE882E62F5A",
+      "name": "Frens (\ud83e\udd1d,\ud83e\udd1d)",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "393690806102",
+      "currentRaw": "0",
+      "commissionBps": 2000
+    },
+    {
+      "address": "junovaloper1ekdheza4a0h0766ruzursdpz53j5vs7jtflx5q",
+      "consensusAddress": "18B6175355A4339700BD0FDCDEEFD6A644B5D46B",
+      "name": "StakeFrite",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "120000",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1eqwz3j9cv7q3jjy2alzy02hy5amlqmacm0z65q",
+      "consensusAddress": "A958667703E4097A2A949F46321CAFFC794F52DD",
+      "name": "Earth+ (shutting down 5/19, pls redelegate \ud83c\udf0e\ud83d\udc99)",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "6243214880",
+      "currentRaw": "0",
+      "commissionBps": 700
+    },
+    {
+      "address": "junovaloper1er9dwgh4lzfwvy3qde82vef3fafg0l07hhp5w0",
+      "consensusAddress": "CDE60B9DF2D73866ED69D1C36ADB4227DF7C3B61",
+      "name": "SeganJ",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "27994424",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1eslgmvrdyfr7rzkur93q7u6wnknv56lrwsht0c",
+      "consensusAddress": "CBD64AE3ADCFDD6021AF7E986E1156B11904A30F",
+      "name": "DOMA\ud83c\udfe0NODES",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1097896",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ew0fwm73fl4g237xhynj6dcts2dxgwdafkdrnv",
+      "consensusAddress": "8010EEC57B376F6695D909400B9E2DF665A9F018",
+      "name": "DOUBLETOP",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "285021253",
+      "currentRaw": "0",
+      "commissionBps": 700
+    },
+    {
+      "address": "junovaloper1f2jpv5sc6ur6yurq5w0t2chphrznpy8lfvj9vs",
+      "consensusAddress": "BF478CB00B077F25476731D70D27D94CFA3EC10D",
+      "name": "Neta DAO",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1083050306934",
+      "currentRaw": "954142011909",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1fcve3lyvtddet4zxlqvar94v9xxhrj858aakxl",
+      "consensusAddress": "7E36265106A258FEA7940B0F5E7103C83919D7EB",
+      "name": "S16 Research Ventures",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "441608902",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1fgt8za7gs87ulr9ny9jnm48c5tvauwnwfma684",
+      "consensusAddress": "E0B60E080B3BD962BBD6D09218944C1CDAAAF3BC",
+      "name": "mbrazen",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999912",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1fj75m0v53ezdd8mlknzgdg4l3hvwh0h20sg4a8",
+      "consensusAddress": "87EB79967FEE5FC636AF59391AB5B6DA6E5FF253",
+      "name": "Validator.run",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "18075188331",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1fsa7hy2qgq8xnfpnendmch3v8035529g3cwcms",
+      "consensusAddress": "402E75A3D9066001190D92D1A50AABA01E26300B",
+      "name": "COSM\u00d8STAKE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "368735636",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1fv38y5g8xwxa88g00epp2qyht3qysecvle9r6x",
+      "consensusAddress": "B68D2DC265D11C3CC7541D6A824A94868E3DD4E7",
+      "name": "Tremont",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "6",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1fy2s7er0c6uxc8hmnqfgukvkf7xh22s47w4jvf",
+      "consensusAddress": "77786C9FC06A603B92403FD611D40ED9D9C306ED",
+      "name": "\ud83d\udef9 Stake or Die! \ud83d\udc1d\ud83d\udc1d\ud83d\udc1d",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 800
+    },
+    {
+      "address": "junovaloper1g4yxykw8ac3h0rnn9glchc2naz53hpj9wa77al",
+      "consensusAddress": "D0E74922B151F7CB27B31B2B136192D45C6DE60D",
+      "name": "Flywheel A&M | Powered by NextNet.Works",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3268711981",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1g7vnxcuu22qtqrpuh0gn750esrq7yhnzfmwvfh",
+      "consensusAddress": "3B9C598088C0293344D69216420E5E7B5E014D46",
+      "name": "sousam",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999901",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1g9n52v3l6e0thg4mw4ed988t9ur6lr0dkehsk7",
+      "consensusAddress": "CF650E17BFC68704F9B03B5D0C8E7B7A1C1762B9",
+      "name": "Shutting down, redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "229785",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1gea6xdwqfcex9e9pyt695u5ylc8c69yw8xnrrg",
+      "consensusAddress": "1BFCE18F8C599E1D2A5C9ED397C3DAA68B223300",
+      "name": "\u2018jam2\u2019",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999901",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1gjtvly9lel6zskvwtvlg5vhwpu9c9wawjt8r7s",
+      "consensusAddress": "05F1DCE023B7415274B8400D7D8B95AE95E625F3",
+      "name": "\tEZ Staking",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "94720471486",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1gp957czryfgyvxwn3tfnyy2f0t9g2p4pvzc6k3",
+      "consensusAddress": "011CA32A120D5F8007BE9D2AA60C1C7AE8F02634",
+      "name": "     polkachu.com",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "2187141924232",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1gr56uqre7dsqjkknssne7rc9wunsk08gmh3c7h",
+      "consensusAddress": "FEFE87FF0E1766CA5788EF4FFD56DD218DD55299",
+      "name": "SG-1 does blowjobs for spare change",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "6897102552",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1gsjfwpfskfzkwl97tlsph8n2ap0gyjucp0j72x",
+      "consensusAddress": "1E2AD3EFCB84B3484D33F9F171DDC389C5FABC69",
+      "name": "ALTER | pathrock",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "6146966778",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1gwd9l44t22e3nteu68akfgykuxu6lq6m6u786d",
+      "consensusAddress": "D2C08B4DB6CC564701FA562DA96E54F04BE5857C",
+      "name": "Oldcat",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "123431449126",
+      "currentRaw": "110935651021",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1gwrxgf6l5zf2jgfh79fetxanvf34ky8x3fdmuf",
+      "consensusAddress": "E6C08FFF8CCE31BFA2F4B239050E15B4F53DB374",
+      "name": "HEILI",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1h53j7ayqlp6ld3njt5h3jleeus50lyle3rukqe",
+      "consensusAddress": "9814652033452AEAC7F2501708BBB601D7873C80",
+      "name": "VALIDARIOS",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "52876216",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1hgh0pgpjmvcfsyl3qg7axux0fx4q469m8nel0p",
+      "consensusAddress": "A2FA96ABE3A05B48FFA603694512B513BABE70CB",
+      "name": "HEXXAGON",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1165570095",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1hjct6q7npsspsg3dgvzk3sdf89spmlpfpgm64m",
+      "consensusAddress": "27CA3B44886E4E2B33784D49E6EB60072B7788B1",
+      "name": "Figment",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "15457337286",
+      "currentRaw": "0",
+      "commissionBps": 700
+    },
+    {
+      "address": "junovaloper1hlx9v3wjwkywyakeum83z9evq7rdhpa080fsr8",
+      "consensusAddress": "5ABCB089C45F2AF38985855E34F4A9EC98A8EE00",
+      "name": "skillz-beta",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999907",
+      "currentRaw": "0",
+      "commissionBps": 3000
+    },
+    {
+      "address": "junovaloper1hslxk7km5z6srvmr993hsgcdxnezg8a5kt45zf",
+      "consensusAddress": "4E6F0443575D135BFC7E036E95D00A79CBECB023",
+      "name": "MEME-Foundation",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1768203026",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1hu22k8kjlvdqthfpj39p7q3a4rkeup3z9tlq8s",
+      "consensusAddress": "692B943BCFA079E81024CC3BE69AB9ABC55A3155",
+      "name": "MartianForest",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1099442",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1hvhyunq7qvykzvrcnhjj4xnkcla58xusk6r60g",
+      "consensusAddress": "F81AF64A49D9FCF0AC5ABA9676B84E71CCDC7623",
+      "name": "Architect Nodes",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3218696638",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1hx9yj7qgnp8zhkrqfanvz74mcsg9d8eyskvsxg",
+      "consensusAddress": "C0CA289D913689AC0A9450375E4208F473FD5A2D",
+      "name": "PLEASE REDELEGATE | Stakely.io",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "69503661022",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1hy0ghet66ckm6ejmnh8eaawqadf7gp22d2y3lf",
+      "consensusAddress": "621A52ABA8102B704A188A7272F98F0A41343FE7",
+      "name": "Please undelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "26231885",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1j3hyu6hfvup7scca9jah3r02glpdh7xemjhxd4",
+      "consensusAddress": "5B5C0B0620718F191AE1495E3EA3D3C214D7FCA6",
+      "name": "DECOMMISSIONED",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "59027479",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1j7euyj85fv2jugejrktj540emh9353ltgppc3g",
+      "consensusAddress": "41A3D786449ADED408EB9D3202236D6179E68BA4",
+      "name": "Komikuri",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1669900",
+      "currentRaw": "0",
+      "commissionBps": 888
+    },
+    {
+      "address": "junovaloper1j9644d7qyln8smd2t42jvymj0yhjw5qkmw9fms",
+      "consensusAddress": "DDDE88D0B6E9ECCB109037704E35592B243FFE2B",
+      "name": "Basement Nodes \u26a1",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "446767978784",
+      "currentRaw": "443786982207",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1jc9fr7s5kal8878trt86ne0k353r4yd6a60zak",
+      "consensusAddress": "970C896E7C2CE31811E2BC784167108AFC1F44B0",
+      "name": "Provalidator",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "177648557834",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1jfsj6a0yduh5wmsktk5tzumzzlsgdz5s5fm65q",
+      "consensusAddress": "01F43E2A3965EBE898FB61AFBEC41725B8597B50",
+      "name": "Please Redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "480000",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1jg883pqeatkj66jw0hxpv8hk2ydp99shn3wd6a",
+      "consensusAddress": "6F498C46600C23A3DB103E133E3117AF368A63A5",
+      "name": "NITAWA",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "960019",
+      "currentRaw": "0",
+      "commissionBps": 800
+    },
+    {
+      "address": "junovaloper1jghdavdegcujzg96l08ghx086u0dwyjctw28d2",
+      "consensusAddress": "149825C294B6936AD8833F5F2055AFD64B6E260F",
+      "name": "Please redelegate voted out by top 25",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "77817694698",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1jkfmt9tgkgsqy023a4e3p750ek8t2uxs4945yn",
+      "consensusAddress": "C67AA20E0F092159E8033332EE430C37F6F1441C",
+      "name": "SoloNation.io",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "493539287",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1juczud9nep06t0khghvm643hf9usw45r23gsmr",
+      "consensusAddress": "31E927F677282369B7E57D39FF9C47E3845BFDEA",
+      "name": "Kintsugi Nodes",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "2241469395593",
+      "currentRaw": "1264792899000",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1jw8rl2t8g530yzwv6pn6xt5xcjkwfz8hzm5asq",
+      "consensusAddress": "9A9AC87A427992FB205ED24BCCB34C775DF62423",
+      "name": "Malder",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "73346903",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1jxv0u20scum4trha72c7ltfgfqef6nscm9pmg2",
+      "consensusAddress": "3393EB61A267BBAFBE93E1494B498D24BDC7B9F7",
+      "name": "Please Redelegate to other validator",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2446230627",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1k0hmfxjj3thuc47057cxuhxneu8rmseuje72k5",
+      "consensusAddress": "E9D4585FE1FEC3B317A9C69F233A19A0281F3C43",
+      "name": "Blockdaemon",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "381429509",
+      "currentRaw": "0",
+      "commissionBps": 700
+    },
+    {
+      "address": "junovaloper1k9cjml2nn2cfqpw75ragfy0wadjtmlgyc4za2l",
+      "consensusAddress": "C0CD2CC17779D78583F8A5ECEBC1C38D505FAC89",
+      "name": "Shutdown",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "4998605",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1ka8v934kgrw6679fs9cuu0kesyl0ljjy2kdtrl",
+      "consensusAddress": "FDA77E3592437D1B06EEF7F858363587A38E1D12",
+      "name": "Shutting down. Please re-delegate by July 15th",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "286007431917",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1kefmunkqureju38j2s6jdjk5tvug6ewtz5ws6a",
+      "consensusAddress": "563C92FA0CC34870FFF19A766075E8442FD98F68",
+      "name": "Validatrium.com",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "44821129",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1kf6cge2yw0ht7u4yfmklcgtklvel5wzwwry29h",
+      "consensusAddress": "1A69FE8EF997D7842A5DE52EDB10C10BB7CE9030",
+      "name": " INFINITY \u267e\ufe0f",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "6010",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1kg99k8wd67r0ffxwavgnxup7yk46rvtt2r4szg",
+      "consensusAddress": "8C8AAF3D135AA21DB51EA0A82D7B2FEF79E56281",
+      "name": "\u22a4\u22a5",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2375066558",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1kgddca7qj96z0qcxr2c45z73cfl0c75pjjs360",
+      "consensusAddress": "B7466FE6CB3118D8FD4E5F57717024E435CC0B1A",
+      "name": "ChainLayer",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "4319714587",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1kkqy7vc58txjj67m2xg4q440rdmw4el2e6h8fr",
+      "consensusAddress": "C9A9BFC2FA98D7D067103FC4417BE11AFF03398A",
+      "name": "Insight Finance",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "51822036",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1kq9xehhmgl6yv850y8r273e2z5qtus30srxx83",
+      "consensusAddress": "95D4821111AEA9045EB4A6E6EB38BC70F511DD98",
+      "name": "Coef 120",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "101441233",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ktns465hmtp80t34s6tldvdyxs807e8faugymd",
+      "consensusAddress": "6C8D93A2FE89B3ABFCEC7EFDE49FCAD63794D6E6",
+      "name": "NodeStake",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "91994297",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1kuu0a4d5a50wvmhv8x0hh4snvncqr3qsfmrknp",
+      "consensusAddress": "6F3CC00E9F04A61C74DF1AB9DCBE479658A26566",
+      "name": "Centurion",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "4",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1kzmkj9897ahl9cn0n9xdrwed39e05vcfx5374q",
+      "consensusAddress": "E91824908E632B360F385AD643ECB694C087BC52",
+      "name": "ACI69\u269b\ufe0f\ud83c\uddee\ud83c\uddf9 | Free Trading Bot | Airdrops",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999704",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1la7th9kc3gdltl53cedxxqpkyk5runudrzwx55",
+      "consensusAddress": "FEE0233B3771EAEB26617E367138A0A6EFAA79B1",
+      "name": "StakeLab.zone",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "345129723294",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1le9skfk7m6564ltcmjc4m62nevactpkdd5n4yk",
+      "consensusAddress": "6B56C304343B1171BB9849DCA325376F1C2DF7FC",
+      "name": "Bi23 Labs",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "379277111",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1lleut9n2j8rww87pzqu92l4rjtm72nv82ew08c",
+      "consensusAddress": "1E07465E9E4EDF4C225B1C617E95C82E9163848A",
+      "name": "3stakes.com",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1913959699",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1lzhlnpahvznwfv4jmay2tgaha5kmz5qx4cuznf",
+      "consensusAddress": "A50CF609192A6CF1C6835D56274D18B30459425E",
+      "name": "Shutting down, please redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "330779369548",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1m55p4c956dawa95uhzz027p4pwm3fedfkdtnyj",
+      "consensusAddress": "2C4671AC70314659E307C510876484D2920F2358",
+      "name": "\t  Crypteloid",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2656653849",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1me5ts52qg98s76nketn5gckj9p6nu9zc79a68u",
+      "consensusAddress": "37BB078B4A900ACC802D026FDA21A51153663E3A",
+      "name": "DO NOT DELEGATE HERE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "6146010",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1mkwjmcya6329eyjkswlzeshaqsuc2m5q0mn04y",
+      "consensusAddress": "4ADDB982E2AB4C80ED5523416979FB8DE6F8212F",
+      "name": "milkstake",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3073322221",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1mmfzuqy83vl5vz2l8r4zmy9pwu3fgdevpc3an3",
+      "consensusAddress": "07D54B2ABF0EF1C9DA724CB45AF5D77479C7D515",
+      "name": "StakeThat",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999905",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1mxpyg8u68k6a8wdu3hs5whcpw9q285pcpxm5yx",
+      "consensusAddress": "7926DCCFF4CD77DD8F842BB79FB96679C1635AF4",
+      "name": "web34ever",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "16917585273",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1mzqqrctm0hvkghf66jruxjtggd5j447dmugz0j",
+      "consensusAddress": "554CC1217B3BA242C5F3BD11DC377C2800147EA5",
+      "name": "Chill Validation",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "144593819731",
+      "currentRaw": "133122781141",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1mzxz7c8ek62zpk5vwp5fg7u7dx39uxj8ts0gdv",
+      "consensusAddress": "D808C4F5CA325F1CB779DB69A2A8EEFB19EAB02C",
+      "name": "offline",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2999700",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1n33nhm7fes7umlw58lld77pkgh7qlp8lhupe76",
+      "consensusAddress": "E23E2D4F46F7A3A079633F81BA5CD77D42A74E48",
+      "name": "securityDAO",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "118702522",
+      "currentRaw": "0",
+      "commissionBps": 1137
+    },
+    {
+      "address": "junovaloper1n3mhyp9fvcmuu8l0q8qvjy07x0rql8q4kjctkq",
+      "consensusAddress": "1B431E63CC50C7BA283AC9E2F0A13FDD1FC86F74",
+      "name": "0base.vc",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "977484925258",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1n4mcuz6eukfqtnc0zsvzgxut87xg3npyux9mpm",
+      "consensusAddress": "620924E751600A5222017221FD7066E8DF0C38DF",
+      "name": "Stakefy",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "19029984",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1n6sqhcpypv9ln7f5x3mxleh4rdqr3vz5tymw9e",
+      "consensusAddress": "0C64C97FA93202F4655BFE4B971EC6B75E0D90F9",
+      "name": "Agaram.ai",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "582049790",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1n74zmyvm554yhspdtgpkv0rnedxc3e8neu2v55",
+      "consensusAddress": "B98BE1B1512DF47CE0EA0228CDACBDB040D5DA8A",
+      "name": "Redelegate please",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "161754782",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ncu32g0lzhk0epzdar7smd3qv9da2n8w8mwn4k",
+      "consensusAddress": "9945C4BCA1EFAD0E461EB84D79CC283130AD569E",
+      "name": "INACTIVE - DO NOT DELEGATE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "86287384144",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1nh67j720gdsqguz24ext3gl8c4lqt6y4495kl0",
+      "consensusAddress": "30795CFA451DE58B6B4F7A34FC73AFF9ED16CAE0",
+      "name": "MOVE_TO_OTHER_VALIDATOR",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "323886119",
+      "currentRaw": "0",
+      "commissionBps": 600
+    },
+    {
+      "address": "junovaloper1nj5eq3pszk6wk4tytjzya4vwaqvf3y7kjhw22n",
+      "consensusAddress": "88E2D2C9BDC98E96A1773F29BCB2CE0AEEAC6487",
+      "name": "Do not delegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "8998126",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1nna7k5lywn99cd63elcfqm6p8c5c4qcup6gd43",
+      "consensusAddress": "B1AF1820ADDDB6F06C6B76BF46C86A98CA88D244",
+      "name": "IcyCRO \ud83e\uddca",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "246983473157",
+      "currentRaw": "133122781139",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1p0r4znp29547d8ra5k8t6ls0ztm3tj74ak38wz",
+      "consensusAddress": "D8D80BD5D6D758C3014374AA8EEC545F46686151",
+      "name": "Crosnest",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "901649529856",
+      "currentRaw": "465976331400",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1p8uxq4ska2psv2k8wknljh568k5qfnwtrqsaaq",
+      "consensusAddress": "ACE19B76F6930961391DB3AAEC95BCCE042AF524",
+      "name": "Encapsulate",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "1000000",
+      "currentRaw": "0",
+      "commissionBps": 700
+    },
+    {
+      "address": "junovaloper1pa5md4yuw07d32stnh0pfp2ndt84sczj3d4cjw",
+      "consensusAddress": "1CC1EF50A6F798482DE91B9EC3C57618B4D2BEE8",
+      "name": "Pequod",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "10998900",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1pdaytfw658846at9tle2tgezgv9vj52vuc4tm0",
+      "consensusAddress": "2AA4BB7B2B4091B26AC454F1FBFFBF6232426F9B",
+      "name": "SolidStake",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "98709943",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1pjmngrwcsatsuyy8m3qrunaun67sr9x7w0ztsx",
+      "consensusAddress": "640B7E370FE54961870389E2BE27F616E72CDB16",
+      "name": "Cypher Core",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "766617234",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1pr5qgj4jg47lvsnejtfvk78090shvuctgdwdm5",
+      "consensusAddress": "5B7CC9574D53BB02F34B1F36911BC9CF58EDD42D",
+      "name": "please redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "20375954154",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ps0cgfpywgsc0n43javvcdqa0eqyjsmjhzwdeg",
+      "consensusAddress": "6C33E1F1DA090C8231E5ECEFD5CA841CB766B367",
+      "name": "Expedition Juno",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "5499901",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ptyzewnns2kn37ewtmv6ppsvhdnmeapv8jey5z",
+      "consensusAddress": "4E59DD9BDC58EAEFC5057511EF116663A75221C7",
+      "name": "WeStaking",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "28998891683",
+      "currentRaw": "0",
+      "commissionBps": 2000
+    },
+    {
+      "address": "junovaloper1pvuxgpct3n8pk4dk2vsvuz2y9tav62ug2c8n093dhzh5qqqe3w3qzgq2d7",
+      "consensusAddress": "915AA53F225DAEC36E11C0359D28070B2AEF833F",
+      "name": "Juno Outreach DAO",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "15000000",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1pvwqfze548z95sdhun58trrvxhlhfrvky5ejtk",
+      "consensusAddress": "33A4BCD188146464F0F0847C80B3C00CCE74F4C2",
+      "name": "[Decommissioned. Please redelegate.] Forbole",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "473033518",
+      "currentRaw": "0",
+      "commissionBps": 10000
+    },
+    {
+      "address": "junovaloper1q3jsx9dpfhtyqqgetwpe5tmk8f0ms5qywje8tw",
+      "consensusAddress": "64B93D226FD19BFFE48A802ED742D1DC427693EF",
+      "name": "SmartNodes \ud83d\udee1 Slash Protected",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "813935007812",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1q5ku90atkhktze83j9xjaks2p7uruag5zp6wt7",
+      "consensusAddress": "3BFB748CEBB70B9F88F1288D2C04A0D3D13BA70F",
+      "name": "Noderunners",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "130000",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1q67q32lhwwup32cn35v2d9qf2jeh2n9s5z3w43",
+      "consensusAddress": "271EEFF9C3D044159FBDC51916E11067AE8259DC",
+      "name": "MAGELAN",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "43501734",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1q6d3d089hg59x6gcx92uumx70s5y5wad6yachx",
+      "consensusAddress": "8703BDC711573BB0DA8B3BC58B49D4ED75508F4A",
+      "name": "CLOSING - REDELGATE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "274555456",
+      "currentRaw": "0",
+      "commissionBps": 989
+    },
+    {
+      "address": "junovaloper1qcrjhyp0x7ft5k0duz8gxx4cmwqaxv7lr0lxa5",
+      "consensusAddress": "144A5AE055C986FFE593DD90FFCB93C96A957C5D",
+      "name": "STC Capital",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2996877966",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1qh8rgkdm77wrhlf7un20gz9gmtpxkyaeqsaq63",
+      "consensusAddress": "B5FC262FAF1E6C526B18C7199722D0F9432E216C",
+      "name": "VairagyaNodes",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "8642153644",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1qpnrhv3uuzkhgneurk203pxpdp7tzmur552qms",
+      "consensusAddress": "C13CEECC5720DBAEEF575506514F6BE5CB92370F",
+      "name": "This node will go down, please redelegate asap",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "145650566",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1qr78535yz60zemv82sww948c6azx40gnawnh6r",
+      "consensusAddress": "2A8023A1977E7C521107502B803AEC57FFAA6094",
+      "name": "Stakewolle.com | Auto-compound",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "36956507721",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1quqxfrxkycr0uzt4yk0d57tcq3zk7srm7sm6r8",
+      "consensusAddress": "71D07A7BA468ABC50B234F93200F4D91B4AA784A",
+      "name": "Please redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "57794000061",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1qylzyxxz8x358670tpuqnf2kjezacahcegx06e",
+      "consensusAddress": "21F2E30ECC6F02B6BDCDF7B50F6CA8C28D527AE8",
+      "name": "Redline Validation",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "45131287809",
+      "currentRaw": "0",
+      "commissionBps": 10000
+    },
+    {
+      "address": "junovaloper1r548wap0a96rfqj0s9lwcylnqe90v7wvgtqssf",
+      "consensusAddress": "C33EE69852CC4EF4408FEC0F1756895A4AACF652",
+      "name": "Levana \ud83d\udc09 Powered by Cros Nest",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2088703942",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1rdtztev7z7udxnq4nl74l9976ww6u7tkpnadvs",
+      "consensusAddress": "8EE87E2FBCC518774574652AA8F82BFA3FCDFF9D",
+      "name": "UniverseDAO",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "12857800865",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1rerlmsw8urn2wcr898pja6py2x2cpgf3pfzlu6",
+      "consensusAddress": "8D72310382238EF0EDAE64E57DFE9D9D8333C6E4",
+      "name": "LogiCrypt",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "4999500",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1rhjvcesshc833dqwdlwskwcjz08gcnxq9jr5ag",
+      "consensusAddress": "D24AA323EF77312855D4266F6D40723514733C89",
+      "name": "artifact",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "4765538636",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1rqlg705s4ghtu42a58qgncfz6w80jwflaad05j",
+      "consensusAddress": "9129B225A2C5B33F1E6CBD622C97F940E847432C",
+      "name": "Sarvodaya Validators",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3008425878",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1rqmmaxkzy3jujgatn2walhnjf92zye7myf79mx",
+      "consensusAddress": "6BAE36E65B4D487DAB771AE0BD6229795189C6D7",
+      "name": "Shutting Down Redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1487687102",
+      "currentRaw": "0",
+      "commissionBps": 900
+    },
+    {
+      "address": "junovaloper1rue2fn8h0skd2xe3tsmjqqs6cwn4rqgk2s9vr6",
+      "consensusAddress": "06A934471FD8CD6BF983AB2208DFF8B683605B53",
+      "name": "Aqua Wellspring \ud83d\udca7",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2144919193",
+      "currentRaw": "0",
+      "commissionBps": 10000
+    },
+    {
+      "address": "junovaloper1s05va5d09xlq3et8mapsesqh6r5lqy7m6v038d",
+      "consensusAddress": "3C882F62D072CA22CF996B3EFC9E889D14DA56EC",
+      "name": "Wetez",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "218240843",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1s0lankh33kprer2l22nank5rvsuh9ksahu7s62",
+      "consensusAddress": "82594A20244F29C881CDE573F82D7A334BB54770",
+      "name": "Encapsulate (fka KingSuper)",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "133586630094",
+      "currentRaw": "133122781100",
+      "commissionBps": 700
+    },
+    {
+      "address": "junovaloper1s33zct2zhhaf60x4a90cpe9yquw99jj0ay9g6j",
+      "consensusAddress": "488AB967720358A2EFAEE5922617148978AF546C",
+      "name": "dimi \ud83e\udd99",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "923247034",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1scjnqmc4aprrej7wmlvltufsj5q6gs43z6mplr",
+      "consensusAddress": "EDE26627AD2EAFD02774CD642236D41ABDD92EE5",
+      "name": "vv3po",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999708",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1sd4r3dhmzgasfcjv95gj3v9vc5zpwe83xpuwj0",
+      "consensusAddress": "E22CD4E96D2255B560F81DD4039F465EBB55DCB3",
+      "name": "Quasar",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1sfw4nl8fq9u3987vand6yjwdhvgw5phewpvg3l",
+      "consensusAddress": "CA329DA9589ACDC1C32DAB6541F49577F306118E",
+      "name": "nysa.network",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "333974540",
+      "currentRaw": "0",
+      "commissionBps": 700
+    },
+    {
+      "address": "junovaloper1sgghjqdrj9kujkx38q04d99qsljwfd6mxyrssk",
+      "consensusAddress": "BC5FDEE9EDB99B23AA43459488422CE7B0D17FC5",
+      "name": "[ block pane ]",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "12589339578",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1shgwh20zdmtu63z3ls97wdsxnhrlssz9vgd3e2",
+      "consensusAddress": "8F3122884B2C07B761A52468D9879A880DBF4DCF",
+      "name": "tor",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1",
+      "currentRaw": "0",
+      "commissionBps": 700
+    },
+    {
+      "address": "junovaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9uxyejze",
+      "consensusAddress": "9BE207CC004A3336DC527480141573DCE984FA59",
+      "name": "stakefish",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "638025060338",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1sjq3sxz55eqs4jfvmgaw4p5j5xzwwdwvm2aqaz",
+      "consensusAddress": "18042A417D9175BD0A3D02826A9D7FE40EA2D111",
+      "name": "Interstellr",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2814762299",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1skc8aut895jvg4hdxx7q89sus5x63edezqxz3r",
+      "consensusAddress": "7956E63DEC2E38ED84A10840050305EB66DFED35",
+      "name": "LMECripto",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "39366085",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1skggcgkqjc4gv96tujncy2q87avpman8ngz4a6",
+      "consensusAddress": "3D680F8EF25FCF01FCD24957C665E8F23D07EA66",
+      "name": "\ud83d\ude4f uGaenn \u26c5",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "6607004466",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1snn4uhxh04gzpgk4l8naw3n6fu7ucwx35yj8aj",
+      "consensusAddress": "482B8D3344C8F5B9FB65E697A273E6EB0D162C23",
+      "name": "Chainflow",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "5693170624",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ss7cl5ftt323pm9h79nxnxqdgfd2nv7ttlsz3x",
+      "consensusAddress": "B63D3F912814E95FA12CB58461763E1F3C087DC0",
+      "name": "trustednode",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ss7vkqzfal7h4m8ug8lh8peqqyt7vq3s33yv7a",
+      "consensusAddress": "61005496A6BA51A66653DACA655BE31197313975",
+      "name": "BH - closing",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2241906242",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ssmt2aveqpc7e0ncgxt0tpj83ur623dvk7uvng",
+      "consensusAddress": "7F530838B75FD46D07133BFAE4383AA2123C96A2",
+      "name": "Stakeflow",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "1587258852874",
+      "currentRaw": "643491124300",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1ssptq8zljxmvm9h7g5yaxyv9khpf84793dkt3j",
+      "consensusAddress": "D220A836BC9111784A3A3B330D2AAF08CC0D4F97",
+      "name": "Tradooors [Closing 3/31 Redelegate]",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2310217125",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1symf474wnypes2d3mecllqk6l26rwz8m9fpvvx",
+      "consensusAddress": "126D191091FFB0C205CEDE35AA71896B54C2E0F0",
+      "name": "[Redelegate] BH - Shutting down 2026",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "50887340021",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1sz9nuewea8dlje7lzqymzyww8q0hun5q5ryep7",
+      "consensusAddress": "72C874A2BC59B8E3316DDE995CB9368E79529A3E",
+      "name": "Cogwheel \u2699\ufe0f",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "253437466910",
+      "currentRaw": "221893491100",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1t3cjxseweyyy5ssckdr2ynn0qx283hza33p056",
+      "consensusAddress": "5CAB7FDB5BF71DA91A39C46A130FEF51868ADDCC",
+      "name": "owlstake",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "377564178346",
+      "currentRaw": "377143495041",
+      "commissionBps": 10000
+    },
+    {
+      "address": "junovaloper1t5h2yjst9x673eqgtljeh94d5tk826e7xnald8",
+      "consensusAddress": "FCC9422C4ECC0A7B6BBAA844A8FF4351D5ED5E29",
+      "name": "stakelan",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1210193810",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1t8ehvswxjfn3ejzkjtntcyrqwvmvuknzmvtaaa",
+      "consensusAddress": "80F24BFDA3E6A8C1BAC0517E7665AC9145D609F7",
+      "name": "Cosmostation",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2105632238792",
+      "currentRaw": "221893491100",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1te74kqdrj02shcwlmj0degvrhe2muts9u37y7t",
+      "consensusAddress": "655D1DBAEE8993CAC1C69077502005DB11286709",
+      "name": "Inter Blockchain Services (formerly 3Tekos)",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1teekgw89a9mx8jhpvuhyx2u6c6neazv80z22gw",
+      "consensusAddress": "895AE6DEA762125D1D3EA62735CE28F4079448A3",
+      "name": "Shutdown in July | Please redelegate | Meria",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "267371075729",
+      "currentRaw": "244082840200",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1tksh2f6fgwdpn2p73e8wvc2zkl9ey6e954hkaa",
+      "consensusAddress": "3A99B2B2F2009E4B1DC70F08C652534673A0AE78",
+      "name": "DO NOT DELEGATE HERE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "602442",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1tmwt5q22qqafyznjhhydn2u6kwpwn2r8sgzv59",
+      "consensusAddress": "26290387E2DFABD44425D10EA13E64EC116E3708",
+      "name": "Apeiron Nodes | 1% Fee",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999804",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1twrgyxhra09v8k95g60tge4mdqle8q5yc9cuqc",
+      "consensusAddress": "2E01731A5D83D5FCBCD61165475BF7760DB0D1AF",
+      "name": "SunFace.org",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1tx2u0nvjwregdv6a5t5k7z0krv6l8l6hgq4z85",
+      "consensusAddress": "B59D3818B5030B39FF2D9AF2A2C823333C1A9B78",
+      "name": "Shutting Down | Redelegating",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "370770118615",
+      "currentRaw": "354994082950",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ty57mt8ess8fry3k6llmv2m2lhj90xpqpmyk0c",
+      "consensusAddress": "3E4603F2F603EBE3C0DAD6168D1AEBD9E34BF6F5",
+      "name": "PoorButHappy",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ty96k6wly7k9ualepv2hs258u29esn6mq02yd4",
+      "consensusAddress": "D87730AAF169362894C9EA7AA423B96D1EA957D9",
+      "name": "Consensus One",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "17054420062",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1u3czw59ysyu94lgr2cmhm06vc9ttz64wvqtgn2",
+      "consensusAddress": "FB24F5EB23261FC8C8F347ECB7E19078AD19ACDC",
+      "name": "abcdjuno",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "100000",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1u6q84vthrx54d6tmpycvpc8z557wg0etn037lx",
+      "consensusAddress": "C931354468268C73D3B356E704C4A469A9544725",
+      "name": "SHUTTING DOWN PLEASE REDELEGATE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "4265644823",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1u8zm7zk9w4n0h9x4fyxq936axv6xe4y73qtlyd",
+      "consensusAddress": "3F4B0F2EF123DBE25BC5B7108FE05620D975D73B",
+      "name": "Cocorech",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999930",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1u9xeaqdjz3kky2ymdhdsn0ra5uy9tc3e6685u6",
+      "consensusAddress": "C55563E7FAD03561899AC6638E3E1E07DCB68D99",
+      "name": "Interop (shutting down Feb 28th 2024)",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "697604000",
+      "currentRaw": "0",
+      "commissionBps": 800
+    },
+    {
+      "address": "junovaloper1ualhu3fjgg77g485gmyswkq3w0dp7gyskmr0n6",
+      "consensusAddress": "42706A040AB648A3D298025AEAB6B82F80A152D8",
+      "name": "stake.systems",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "5609898786",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1uc25srx7kf5wp7r2x4reksg92f5yqt5tcte082",
+      "consensusAddress": "135523D0C2541E1EEBADE7440AC2D3AF2CF3DC62",
+      "name": "0% FEES | Zoomer Labs",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999906",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1udpsgkgyutgsglauk9vk9rs03a3skc62y8qyrj",
+      "consensusAddress": "0EA2C640858FE3DED7DF3C1FCAD15CF1A4DD8D22",
+      "name": "[SHUTTING DOWN] AUDIT.one",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "5993071157",
+      "currentRaw": "0",
+      "commissionBps": 700
+    },
+    {
+      "address": "junovaloper1uepjmgfuk6rnd0djsglu88w7d0t49lml7kqufu",
+      "consensusAddress": "09C809054D9CCEDB5594CBFC96CFFA053D7DD02E",
+      "name": "Stake Frites \ud83e\udd69 \ud83c\udf5f",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "18650378747",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1upt70vzj5ug5tmrgsx4quusuj6h73syjz0shxq",
+      "consensusAddress": "19E216695CC82CCBB646D23245593A4C9E6A82A1",
+      "name": "IceFrosTv2",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999903",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1upy09fgzzzpdmgqcz2jh7642c8hp0lw3lwxve6",
+      "consensusAddress": "A3221EC68FF207830B6C725486F4956A95A4EFA6",
+      "name": "not_active",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "4",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1uwm8vhauj6wfj8ydlty3nr6ffeu9lg6j3ma59s",
+      "consensusAddress": "706AED795780D65B06127B2CB7BF08961116C9FF",
+      "name": "NacionCrypto - Parceros",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "36475597226",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1v3lnt5cjjk9658yyrv2673pcqx3nzvkg256xjp",
+      "consensusAddress": "B2F50E82D354517E17E37178A0D4A8A9644C4D4D",
+      "name": "Allnodes",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "1884395915755",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1v4ukcu8pty0tzdd2kwausw0wtdt5pwx8q9zrek",
+      "consensusAddress": "01AA3C530811032ED2395ED3C8B0122DEABA3DBD",
+      "name": "commercio.network",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "998132035",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1v676erkdwd3hq2n2a7xte5qpymdfa8c8uyatcw",
+      "consensusAddress": "596CC5372AC7DF5E8F80D4F73F84A1B3E835EA6A",
+      "name": "Silk Nodes",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "955136592000",
+      "currentRaw": "465976331400",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1vahajh6g7lakhzj846tdcf8x4gnmhfs2ngl3p7",
+      "consensusAddress": "ACC2C4736C0804C99D150CBC1862D7FA36E9D60B",
+      "name": "\ud83e\udd16 TOT AI BOT FREE\u2705",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3906634684",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1vd02f9cshv2ur4zvm68zgvwxsmtpn69kqhdv4p",
+      "consensusAddress": "33A5CC28558845925923E8B5492E5064DB8A8D90",
+      "name": "SOLAR Validator",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3979973",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1vnqrnr27qpt27cpdqm742mlwlhvtced8ffjv8d",
+      "consensusAddress": "A6C8D279FCC4A4525B72137531CC5EBC31D7A175",
+      "name": " Stakepile - Auto-restake enable",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "8583103488",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1vp4xljeylw36866gnm8gtfaw2rv2df24sns2sr",
+      "consensusAddress": "091D986FDCE4697A63A79EAAD54C79C3F0DD17BA",
+      "name": "sainttech",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999903",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1vq8tw77kp8lvxq9u3c8eeln9zymn68rng8pgt4",
+      "consensusAddress": "ED5A383F89D74B59E040E1D33E78C9EF5323FD53",
+      "name": "Secure Secrets",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "26390295483",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1vqun68xz03pj63njyqse09rmzjwkdj84nagera",
+      "consensusAddress": "9764A129141805A79703E9AEEFC1D0ABCDB35F86",
+      "name": "StakeTartare",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "57306898",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1w26jnzrjje9udydh0vmn0nc2nuay93zka9c87e",
+      "consensusAddress": "BF7E76BEFF6DA87D1618127208C4A2C0CE745EF9",
+      "name": "validator.cafe",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1w2ux4x68tn4x4mgg8u0mn8rz5hchfrc8mvwmgj",
+      "consensusAddress": "D88899651B0E78D95A01B696D616584AB2A17836",
+      "name": " \u2609 Mercury",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "16369290895",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1w8az00hy6p5gdq873sw9rvvp9whdvd6s0up0zy",
+      "consensusAddress": "62EDE28F1D3B216E8D067374D92C96805B08100D",
+      "name": "No slashing | Mintia Decentralized",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1wd02ktcvpananlvd9u6jm3x3ap3vmw59jv9vez",
+      "consensusAddress": "3876144FE42DD069E414F648A9FA2C933D4939DF",
+      "name": "REDELEGATE BY JANUARY 15TH",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "155396549101",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1wj4jhrll90knap3vt8z4qs5rrm9cla2kpc5944",
+      "consensusAddress": "CE7B52696BC06193E36BFB10E6CC0A3561D837D4",
+      "name": "Shutdown | redelegate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "126539349979",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1wjcvwh03rege9ypfy3z42f99dcd4m9cqasw8fn",
+      "consensusAddress": "5888E69235F3219A983A391C4EA5637D8242B7E1",
+      "name": "studentmtk",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1wke3ev9ja6rxsngld75r3vppcpet94xx4m43gu",
+      "consensusAddress": "BD499BD54FDABBA28EEC8B31E657F3284351DEF0",
+      "name": "Please redelegate, closing down 30/6",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2209889951",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1wsq0wp50pt9zmakxpzc5m7f5f5yknqfwgdwjdc",
+      "consensusAddress": "88F7EB5531CFB73E3C32C863675C498C327E4AC5",
+      "name": "4000validator",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999902",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1wszlc0l5tfh37mq24009pzf24mavlkx4p97jjz",
+      "consensusAddress": "213643E026A49E93FAB4E53D54C18A77F9B651B1",
+      "name": "Klub Staking - SHUTTING DOWN - Redelegate to Meria",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "34162322220",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1wtv0kp6ydt03edd8kyr5arr4f3yc52vpa8t8p2",
+      "consensusAddress": "24AFE3C52125B8A0C5E59B109C2F561A38A37B53",
+      "name": "kytzu",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "37810880",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1wu44v32fvlkcy0rdqtx4x2ywr7nzw4jyfhacga",
+      "consensusAddress": "C2887963EF9D93F6F490EBD7686FE303DA218F7A",
+      "name": "HexalithNode",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1wukvsnakslx4qupegw5n7fwavlzwgk7ajxgg2j",
+      "consensusAddress": "E3A16135F74AC8A2F3DE70E62BC6B94F1BD2E316",
+      "name": "Dilay",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "20003691",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ww5s8k6820cft2v75cdptesqz3kc27n333arp2",
+      "consensusAddress": "A5A57699ED5519B2B1521EBBD4B5E4E49397A898",
+      "name": "Wave",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "233365019",
+      "currentRaw": "0",
+      "commissionBps": 900
+    },
+    {
+      "address": "junovaloper1x20lytyf6zkcrv5edpkfkn8sz578qg5sujlhnj",
+      "consensusAddress": "942EE4CEC79B9B74F95681A1C7FEC8A6C9C0389C",
+      "name": "[Sunsetting, please redelegate] Informal Systems",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "259379008870",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1x3g7eljx3yvg5gqt3hyf6km94r5j7gftfvcrh3",
+      "consensusAddress": "14A20AA53BDBF26BB22B9A62D56ED600553D4C15",
+      "name": "metil",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "306488366",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1x4099qczhcsv8k67an9r952mcna68zey99ppyk",
+      "consensusAddress": "EABC60310C97873654AFE0ED43971F90503659D0",
+      "name": "nodeworld",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "11330729",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1x6zpulz2s3a2prljtpqjn8tew69qe3l23dz9z7",
+      "consensusAddress": "1F710B7D5023168F0CAAD78C35EDB2BBAD11A600",
+      "name": "Blockport",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999902",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1x73p5aukx7ak8c2gss3ctvdlqyln38xjnkdj83",
+      "consensusAddress": "0855A780C7EABDAB44FC31341278D7B41ED9CE96",
+      "name": "Stakers",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "88963458785",
+      "currentRaw": "88757396450",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1x7xkvflswrxnkwd42t55jxl9hkhtnnltm36k4r",
+      "consensusAddress": "AE7BD4821D88D0486ECB5E223544FAEBABE2B8E7",
+      "name": "Vault Staking",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1170000",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1x8u2ypdr35802tjyjqyxan8x85fzxe6sk0qmh8",
+      "consensusAddress": "33E7D788A563CF87FA86AA63817A198A43364EDE",
+      "name": "Kleomedes",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "1332060403592",
+      "currentRaw": "532544378700",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1x9rrelp6pte5fy2znysr8cks8jkhwwtn8mk9mz",
+      "consensusAddress": "B6EA3C303BAC4A74B49188966DD2FAAEF35BB0F8",
+      "name": "Kersoras",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999900",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1xc4ujgkk5ss765vdhregmndxzkgqhpfkayzv6g",
+      "consensusAddress": "A66ECD1C1A2B1A191B85984CED6ADED4AE159162",
+      "name": "redelegate_please",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "28992298",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1xdywquvz5g6r5wv6tpkj6chad0fkk459gf9ny6",
+      "consensusAddress": "3B7925E257959679621E750F69FE97277B8DD9FC",
+      "name": "Stakin",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "4680044188",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1xeuvxfdw4cdcu0zcusrmufp97z9mnhfddfaz5k",
+      "consensusAddress": "560F1B2786B4B854C756B49ABCED9AC4A26B7FFF",
+      "name": "ZenLounge",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "94080952309",
+      "currentRaw": "88757396463",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1xsakv5cq2e5wcql2a3wg2wwgrhn6akzdjs04we",
+      "consensusAddress": "150708B520627549A35B34AF8E1054CF0B2F695E",
+      "name": "Polaris",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1xvm3d0k8gwuptdvcvy9udp0j9l9pm8dzwt65ut",
+      "consensusAddress": "A5DE67B5C9BF39CF0B61B5D9CE773F1AEEC10992",
+      "name": "carbonZERO\ud83c\udf32 | 30% TO DAO",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "150852575",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1xwazl8ftks4gn00y5x3c47auquc62ssuvynw64",
+      "consensusAddress": "04A6A9DF0BE221876FAFDBF8DAAE94732484F14A",
+      "name": "jabbey",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "31615192087",
+      "currentRaw": "0",
+      "commissionBps": 600
+    },
+    {
+      "address": "junovaloper1xxz3vnr4gvv3s6rzmeavstk39c00z2m5s02763",
+      "consensusAddress": "15A810CB5F3148F0F4DCE73E6D436DBDB182DA52",
+      "name": "ICEBREAKER",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "10567322",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1xzazvxepd4x62refq45czlhgulf6xmt8dqhr3k",
+      "consensusAddress": "ACA34A224E3A6C50ED3366E22FAF43DB5E3D7520",
+      "name": "Hindsight",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1199900",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1y0us8xvsvfvqkk9c6nt5cfyu5au5tww2wsdcwk",
+      "consensusAddress": "F9D7C618E5E46C3B942EC35BCC8145BA3DB8423F",
+      "name": "Phoenix Prime",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "635489640266",
+      "currentRaw": "0",
+      "commissionBps": 2500
+    },
+    {
+      "address": "junovaloper1y3aaqvxn6hyqh05ektsy0zrymvne3qcqkqggve",
+      "consensusAddress": "059C81DA7BC445A170F356779894257D2A587A6D",
+      "name": "ShuttingDown",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "2996193916",
+      "currentRaw": "0",
+      "commissionBps": 2000
+    },
+    {
+      "address": "junovaloper1y3u3ht35yn82j72sejtf85dkvqwlt302x47lk9",
+      "consensusAddress": "0CE325E2DDFD572A20C834017B933008195596E9",
+      "name": "coinhall.org \ud83d\udcc8\ud83d\udd04 Data/Charts for Juno",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "32012165717",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1yeaw3dv6jk3hr290l2tsew7rr2vjykynme37s2",
+      "consensusAddress": "D226E146E35E3097E53C09147F5F6E89E4C83EFF",
+      "name": "GATA HUB",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "221370035229",
+      "currentRaw": "133122781111",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1yfx5x9cs3nvncprlw0kuw2cgs9qq38uqnwfhd8",
+      "consensusAddress": "980644C9C8033945BA54EF32C053C395D0269EEA",
+      "name": "The_Cybernetics",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "7057139255169",
+      "currentRaw": "421597633117",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1yg0h9xeseq3qfu2vkwj3m29yf42lnyfmqasn35",
+      "consensusAddress": "A3F728A1BEF2B4860A7B8104C9CE56ACFFC85561",
+      "name": "Stake&Relax \ud83e\udda5",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "1141755255881",
+      "currentRaw": "599112426000",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1yrflehtlc52dwv8ugwr8m2jgvu93a7gnkyuzsq",
+      "consensusAddress": "738BCC05064336C6217389E29F0C57C36EE3AA5C",
+      "name": "\u2728starchild.stars",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999904",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1yrxgwd5sw0anscnmw07p049wnt0en533qx0722",
+      "consensusAddress": "D8DE48CA8BE54D26913EE8B4F9A06416B77AB71B",
+      "name": "REDELEGATE",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "278212543",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ytlms83e2qjan94y0nxl6vlm2gjgxp44varq2z",
+      "consensusAddress": "C5185BCF3AD9E4B90E1103D7EBCEB503AE3E263D",
+      "name": "BlackNodes",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "3977124852",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1yvc0sefqy9f8t852r97mnetuk6u85hupqlul2p",
+      "consensusAddress": "7DA27F5D08D984D2CCB10701BD99236F1EE2C001",
+      "name": "Consensus-Guards",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "10998907",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1ywk2vuqezuslxxs8s7lv2t2622j6raf346guh6",
+      "consensusAddress": "042CA91A597C492082FEFCE5D022035F106C71EB",
+      "name": "Regenerator | Green Validator \ud83c\udf31",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "74042520868",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1yy3tnegzmkdcm7czzcy3flw5z0zyr9vkkxrfse",
+      "consensusAddress": "26DD4D34B61136958ED2E7E0BE710291417F77E9",
+      "name": "Stakecito",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "931823470196",
+      "currentRaw": "221893491100",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1z3svprqzmquw6mckh6rgyt0dmd4yhv7c6l58qc",
+      "consensusAddress": "B57D60F0B3E0F9548D1C60385D46584356DD61DC",
+      "name": "\tBlueStake \ud83d\ude80 | 100% insurance",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "1376001230126",
+      "currentRaw": "599112426000",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1z4l0y0e3h8hwm9grkl34qs505utgy6g7gp9e5z",
+      "consensusAddress": "7CB50685B8184410E9C47EECB6201E9ADCEE99EC",
+      "name": "Stakefy",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "969914",
+      "currentRaw": "0",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1z89utvygweg5l56fsk8ak7t6hh88fd0aa9ywed",
+      "consensusAddress": "FCB482F4E0111DF6C85DB7099B473608ED67248F",
+      "name": "Inotel",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "293818507736",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1za6z32wkgcuyues2z3yjjds6gvew8qrgfd684l",
+      "consensusAddress": "1A86BFBC6B28EACDD5E0522A0A02F213506FD5F3",
+      "name": "SHUTTING DOWN - PLEASE REDELEGATE",
+      "active": false,
+      "jailed": false,
+      "tokensRaw": "5034881857",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1zhgppyrs988x4spqxqchflg74qusw2cxxeqmnn",
+      "consensusAddress": "D3885E6EEAA87E1D4537C2D582E628A8E150F521",
+      "name": "LOA Labs",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "1238987167",
+      "currentRaw": "0",
+      "commissionBps": 550
+    },
+    {
+      "address": "junovaloper1zl2hh2ae0hvxutl9d9tlsxpyk3a5n7ltwwsk6g",
+      "consensusAddress": "85A5B36FFE368704D6639CD72310F53DDF26896D",
+      "name": "  Earn Stash",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "644834",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1znzl2nsn7za3ejtkxsx77g22r8ry0386kfhc77",
+      "consensusAddress": "E5E7AEA7DE6B3D2620A6C7680A02DCD33539479A",
+      "name": "checkmate",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "999904",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1ztx53a02e292sf7gedj56f29ynvmcas03kz09c",
+      "consensusAddress": "7ABD48C0559A2F1C0157AFE17ADE7D6178A1A26F",
+      "name": "Bored Ape Server",
+      "active": false,
+      "jailed": true,
+      "tokensRaw": "995786754",
+      "currentRaw": "0",
+      "commissionBps": 500
+    },
+    {
+      "address": "junovaloper1zvuyw9utsdp3w0mnrructw87p8sy8a3snclwet",
+      "consensusAddress": "2586F90EE50AFDB92FBEB01A026E66FAFD00096D",
+      "name": "NodesHub",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "629739067551",
+      "currentRaw": "599112426001",
+      "commissionBps": 1000
+    },
+    {
+      "address": "junovaloper1zxx8j75ngm8m38v9l5wreaavwnsuun7gcq5cu8",
+      "consensusAddress": "B67DDDDF3392C5980B4E0868CC1770BE9118FE65",
+      "name": "Shutting down - REDELEGATE ASAP",
+      "active": true,
+      "jailed": false,
+      "tokensRaw": "438512991730",
+      "currentRaw": "377218934900",
+      "commissionBps": 500
+    }
+  ],
+  "redelegations": [],
+  "authority": {
+    "coreCodeId": "4047",
+    "votingModule": "juno1vnpnl9x7c0xwj0a6lakz5rrv0ewxcwedmn20lj5e7t94lmrn74uq0stq5m",
+    "proposalModule": "juno172fvxz9806ae6rjecd09trgrzkcl0026y088ev3lsyg88gmpr7cs764evh",
+    "executionVerified": false
+  },
+  "activeSetHistory": {
+    "schema": 2,
+    "chainId": "juno-1",
+    "source": "https://juno.rpc.m.stavr.tech",
+    "collectionStart": {
+      "height": 42701361,
+      "time": "2026-10-14T19:17:50.221235511Z"
+    },
+    "spans": [
+      {
+        "firstHeight": 42701361,
+        "lastHeight": 43027252,
+        "startTime": "2026-10-14T19:17:50.221235511Z",
+        "endTime": "2026-10-24T11:06:28.847859938Z",
+        "addresses": [
+          "011CA32A120D5F8007BE9D2AA60C1C7AE8F02634",
+          "0F1ED70645D475745565C702588BD1EEBA62C28B",
+          "1B431E63CC50C7BA283AC9E2F0A13FDD1FC86F74",
+          "1FF354C5F1F9112F7EF36642369861814B85ECEA",
+          "2586F90EE50AFDB92FBEB01A026E66FAFD00096D",
+          "31E927F677282369B7E57D39FF9C47E3845BFDEA",
+          "33E7D788A563CF87FA86AA63817A198A43364EDE",
+          "468F19774D884937ECAC184F1704B280A52684C5",
+          "596CC5372AC7DF5E8F80D4F73F84A1B3E835EA6A",
+          "5CAB7FDB5BF71DA91A39C46A130FEF51868ADDCC",
+          "64B93D226FD19BFFE48A802ED742D1DC427693EF",
+          "6FD2BA3BA00E6AB6BF43B0A7FBE486C541288F99",
+          "72C874A2BC59B8E3316DDE995CB9368E79529A3E",
+          "7F530838B75FD46D07133BFAE4383AA2123C96A2",
+          "980644C9C8033945BA54EF32C053C395D0269EEA",
+          "A3F728A1BEF2B4860A7B8104C9CE56ACFFC85561",
+          "B2F50E82D354517E17E37178A0D4A8A9644C4D4D",
+          "B57D60F0B3E0F9548D1C60385D46584356DD61DC",
+          "B67DDDDF3392C5980B4E0868CC1770BE9118FE65",
+          "CB55FF4C609E11A0C417D95A0F697F3B33284BA6",
+          "D226E146E35E3097E53C09147F5F6E89E4C83EFF",
+          "D8D80BD5D6D758C3014374AA8EEC545F46686151",
+          "E85369365EFAF2003506117F8BEC27AD5B03D4A6",
+          "F9D7C618E5E46C3B942EC35BCC8145BA3DB8423F",
+          "FDA22C79E4C93CBEACD0297036F7650839D6223D"
+        ]
+      }
+    ],
+    "participation": {
+      "schema": 1,
+      "firstHeight": 42701361,
+      "startTime": "2026-10-14T19:17:50.221235511Z",
+      "lastHeight": 43027252,
+      "endTime": "2026-10-24T11:06:28.847859938Z",
+      "validators": [
+        {
+          "address": "011CA32A120D5F8007BE9D2AA60C1C7AE8F02634",
+          "expected": 325892,
+          "signed": 325891,
+          "absent": 1,
+          "nil": 0
+        },
+        {
+          "address": "0F1ED70645D475745565C702588BD1EEBA62C28B",
+          "expected": 325892,
+          "signed": 317508,
+          "absent": 5688,
+          "nil": 2696
+        },
+        {
+          "address": "1B431E63CC50C7BA283AC9E2F0A13FDD1FC86F74",
+          "expected": 325892,
+          "signed": 325722,
+          "absent": 169,
+          "nil": 1
+        },
+        {
+          "address": "1FF354C5F1F9112F7EF36642369861814B85ECEA",
+          "expected": 325892,
+          "signed": 325890,
+          "absent": 2,
+          "nil": 0
+        },
+        {
+          "address": "2586F90EE50AFDB92FBEB01A026E66FAFD00096D",
+          "expected": 325892,
+          "signed": 325866,
+          "absent": 21,
+          "nil": 5
+        },
+        {
+          "address": "31E927F677282369B7E57D39FF9C47E3845BFDEA",
+          "expected": 325892,
+          "signed": 325890,
+          "absent": 2,
+          "nil": 0
+        },
+        {
+          "address": "33E7D788A563CF87FA86AA63817A198A43364EDE",
+          "expected": 325892,
+          "signed": 325566,
+          "absent": 316,
+          "nil": 10
+        },
+        {
+          "address": "468F19774D884937ECAC184F1704B280A52684C5",
+          "expected": 325892,
+          "signed": 325588,
+          "absent": 303,
+          "nil": 1
+        },
+        {
+          "address": "596CC5372AC7DF5E8F80D4F73F84A1B3E835EA6A",
+          "expected": 325892,
+          "signed": 325858,
+          "absent": 32,
+          "nil": 2
+        },
+        {
+          "address": "5CAB7FDB5BF71DA91A39C46A130FEF51868ADDCC",
+          "expected": 325892,
+          "signed": 322623,
+          "absent": 2960,
+          "nil": 309
+        },
+        {
+          "address": "64B93D226FD19BFFE48A802ED742D1DC427693EF",
+          "expected": 325892,
+          "signed": 316111,
+          "absent": 9033,
+          "nil": 748
+        },
+        {
+          "address": "6FD2BA3BA00E6AB6BF43B0A7FBE486C541288F99",
+          "expected": 325892,
+          "signed": 325888,
+          "absent": 4,
+          "nil": 0
+        },
+        {
+          "address": "72C874A2BC59B8E3316DDE995CB9368E79529A3E",
+          "expected": 325892,
+          "signed": 325780,
+          "absent": 105,
+          "nil": 7
+        },
+        {
+          "address": "7F530838B75FD46D07133BFAE4383AA2123C96A2",
+          "expected": 325892,
+          "signed": 325778,
+          "absent": 89,
+          "nil": 25
+        },
+        {
+          "address": "980644C9C8033945BA54EF32C053C395D0269EEA",
+          "expected": 325892,
+          "signed": 325882,
+          "absent": 7,
+          "nil": 3
+        },
+        {
+          "address": "A3F728A1BEF2B4860A7B8104C9CE56ACFFC85561",
+          "expected": 325892,
+          "signed": 325888,
+          "absent": 4,
+          "nil": 0
+        },
+        {
+          "address": "B2F50E82D354517E17E37178A0D4A8A9644C4D4D",
+          "expected": 325892,
+          "signed": 325884,
+          "absent": 8,
+          "nil": 0
+        },
+        {
+          "address": "B57D60F0B3E0F9548D1C60385D46584356DD61DC",
+          "expected": 325892,
+          "signed": 325888,
+          "absent": 4,
+          "nil": 0
+        },
+        {
+          "address": "B67DDDDF3392C5980B4E0868CC1770BE9118FE65",
+          "expected": 325892,
+          "signed": 311943,
+          "absent": 12784,
+          "nil": 1165
+        },
+        {
+          "address": "CB55FF4C609E11A0C417D95A0F697F3B33284BA6",
+          "expected": 325892,
+          "signed": 325880,
+          "absent": 12,
+          "nil": 0
+        },
+        {
+          "address": "D226E146E35E3097E53C09147F5F6E89E4C83EFF",
+          "expected": 325892,
+          "signed": 317892,
+          "absent": 5315,
+          "nil": 2685
+        },
+        {
+          "address": "D8D80BD5D6D758C3014374AA8EEC545F46686151",
+          "expected": 325892,
+          "signed": 325889,
+          "absent": 3,
+          "nil": 0
+        },
+        {
+          "address": "E85369365EFAF2003506117F8BEC27AD5B03D4A6",
+          "expected": 325892,
+          "signed": 325853,
+          "absent": 28,
+          "nil": 11
+        },
+        {
+          "address": "F9D7C618E5E46C3B942EC35BCC8145BA3DB8423F",
+          "expected": 325892,
+          "signed": 313459,
+          "absent": 11118,
+          "nil": 1315
+        },
+        {
+          "address": "FDA22C79E4C93CBEACD0297036F7650839D6223D",
+          "expected": 325892,
+          "signed": 325834,
+          "absent": 56,
+          "nil": 2
+        }
+      ]
+    }
+  }
+}

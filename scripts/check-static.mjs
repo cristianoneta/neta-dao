@@ -6,6 +6,12 @@ import { createHash } from 'node:crypto';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = resolve(root, 'dist/static');
 const manifest = JSON.parse(await readFile(resolve(root, 'dist/static-manifest.json'), 'utf8'));
+const snapshotPaths = JSON.parse(
+  await readFile(resolve(root, 'deploy/cosmoot/snapshot-paths.json'), 'utf8')
+);
+for (const path of snapshotPaths) {
+  if (!manifest.files[path]) throw Error(`Missing packaged snapshot fallback: ${path}`);
+}
 if (process.argv.includes('--require-worker') && !manifest.pagesFunction)
   throw Error('Deployment requires a compiled Pages function');
 if (manifest.pagesFunction) {

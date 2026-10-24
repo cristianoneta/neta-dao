@@ -183,7 +183,10 @@ Published output: `data/daos/juno-delegation-planner.json`. It is included in th
 snapshot allowlist and the existing hourly `main` collector job (165-second
 process bound). Source health checks both block and collection timestamps. The
 frontend uses the existing same-origin snapshot proxy, without direct browser RPC
-fan-out. No production snapshot or synthetic live fallback is committed here.
+fan-out. The public snapshot collected on 24 October 2026 at 11:07:23 UTC is
+retained byte-for-byte as the packaged release fallback. Its block and collection
+timestamps are unchanged; fallback availability does not establish freshness or
+authorize transactions. Live production collection continues on the data server.
 
 The original collector installation and website rollout were accepted on 9 October.
 For future collector revisions, generate and inspect the snapshot with the existing

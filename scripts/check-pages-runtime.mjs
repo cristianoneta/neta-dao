@@ -34,8 +34,15 @@ const paths = JSON.parse(
   await readFile(resolve(root, 'deploy/cosmoot/snapshot-paths.json'), 'utf8')
 );
 const allowed = new Set(paths.map((path) => `/${path}`));
-const staticBytes = new TextEncoder().encode(
-  '{"observed_at":"2026-10-01T00:00:00Z","source":"static"}'
+// Use the actual packaged snapshots: a fallback must not substitute fixtures,
+// lose gzip bytes, or refresh observation timestamps/signatures.
+const staticAssets = new Map(
+  await Promise.all(
+    paths.map(async (path) => [
+      `/${path}`,
+      new Uint8Array(await readFile(resolve(root, 'dist/static', path)))
+    ])
+  )
 );
 const upstreamBytes = new Uint8Array([0, 1, 31, 139, 127, 255]);
 const calls = [];
@@ -68,9 +75,12 @@ const mf = new Miniflare(
     },
     serviceBindings: {
       ASSETS: (request) =>
-        new HostResponse(request.method === 'HEAD' ? null : staticBytes, {
-          status: allowed.has(new URL(request.url).pathname) ? 200 : 404
-        })
+        new HostResponse(
+          request.method === 'HEAD' ? null : staticAssets.get(new URL(request.url).pathname),
+          {
+            status: allowed.has(new URL(request.url).pathname) ? 200 : 404
+          }
+        )
     }
   })
 );
@@ -113,11 +123,32 @@ try {
         assert.equal(response.status, 200);
         assert.deepEqual(
           new Uint8Array(await response.arrayBuffer()),
-          method === 'HEAD' ? new Uint8Array() : staticBytes
+          method === 'HEAD' ? new Uint8Array() : staticAssets.get(`/${paths[0]}`)
         );
         assert.equal(calls.length, before + 1, `Must not follow HTTP ${status}`);
         assert.equal(calls.at(-1).url, `https://data.cosmoot.com/${paths[0]}`);
       }
+    }
+    // Exhaust the real release inventory, including the compressed dataset.
+    // This covers success -> outage -> recovery in the same worker instance.
+    mode = 503;
+    for (const path of paths) {
+      for (const method of ['GET', 'HEAD']) {
+        const response = await request(origin, path, method);
+        assert.equal(response.status, 200, `Fallback asset missing: ${path}`);
+        assert.equal(response.headers.get('X-Cosmoot-Snapshot'), 'static-fallback');
+        assert.equal(response.headers.get('Cache-Control'), 'no-cache');
+        assert.deepEqual(
+          new Uint8Array(await response.arrayBuffer()),
+          method === 'HEAD' ? new Uint8Array() : staticAssets.get(`/${path}`)
+        );
+      }
+    }
+    mode = 200;
+    for (const path of paths) {
+      const response = await request(origin, path, 'GET');
+      assert.equal(response.headers.get('X-Cosmoot-Snapshot'), 'server');
+      assert.deepEqual(new Uint8Array(await response.arrayBuffer()), upstreamBytes);
     }
     const before = calls.length;
     for (const path of [
@@ -151,7 +182,7 @@ try {
   assert.equal(calls.at(-1).cookie, false);
   assert.equal(calls.at(-1).authorization, false);
   console.log(
-    `workerd passed: ${paths.length} GET/HEAD paths on both domains; exact bytes, credential stripping and redirect/error fallback.`
+    `workerd passed: ${paths.length} GET/HEAD paths on both domains; exact packaged fallback bytes, recovery, credential stripping and redirect/error fallback.`
   );
 } finally {
   await mf.dispose();
