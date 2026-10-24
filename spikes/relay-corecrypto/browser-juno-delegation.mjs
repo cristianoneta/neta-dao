@@ -454,7 +454,18 @@ try {
     (await comparison.locator('.rr-stats > div').nth(2).textContent()).match(/→ (\d+)/)[1]
   );
   await step('rules');
-  await page.locator('#manual-exclusions summary').click();
+  assert.deepEqual(
+    await page.locator('#rules-eligibility-details > .criterion h4').allTextContents(),
+    [
+      '1 Validator status',
+      '2 Voting power',
+      '3 Commission',
+      '4 Upgrade participation',
+      '5 Manual exclusions'
+    ]
+  );
+  assert.equal(await page.getByLabel('Juno validator', { exact: true }).isVisible(), true);
+  assert.equal(await page.getByLabel('Public reason', { exact: true }).isVisible(), true);
   await page.locator('#excluded-validator').fill(selected.name);
   await page.locator('#excluded-reason').fill('Exchange-operated fixture');
   await page.locator('#add-exclusion').click();

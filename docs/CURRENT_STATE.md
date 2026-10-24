@@ -29,6 +29,13 @@ expected membership state before retaining the row assertion. No production UI,
 membership rules or wallet behavior changed. PR #309 fixed the test; successful
 release 40106761715 supersedes that failed attempt.
 
+## Manual exclusion criterion — source follow-up
+
+Manual exclusions now appear as open criterion 5 beside the four existing
+eligibility criteria, with matching numbered headings, spacing and dividers.
+The validator and public-reason inputs remain directly visible. Draft persistence,
+exclusion rules and proposal behavior are unchanged. Manual release is pending.
+
 ## Compact header follow-up
 
 The owner requested removal of the consolidated-scope note above all workspace

@@ -216,10 +216,11 @@ review/signing step described below.
 
 ## Revised controls and proposal handoff
 
-The four criteria (validator status, voting power, commission, upgrade participation)
-use identical numbered headings, spacing and separators. Optional manual exclusions
-remain separate. Policy schema 2 fingerprints the eligibility change and 50-JUNO
-reserve; old v1 local drafts are preserved and never silently approved or reinterpreted.
+The five criteria (validator status, voting power, commission, upgrade participation
+and manual exclusions) use identical numbered headings, spacing and separators.
+Manual exclusions are directly visible as point 5 inside the eligibility group;
+adding an exclusion remains optional. Policy schema 2 fingerprints the eligibility
+change and 50-JUNO reserve; old v1 local drafts are preserved and never silently approved or reinterpreted.
 
 The mint **Create claim rewards proposal** button belongs in Programme amount.
 It prepares one CosmWasm `distribution.withdraw_delegator_reward` draft action for
