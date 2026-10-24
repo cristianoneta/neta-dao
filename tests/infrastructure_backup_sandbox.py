@@ -23,14 +23,20 @@ def inside(root):
     sys.path.insert(0, str(root / 'code'))
     import infrastructure_backup as backup
     work = root / 'work'
-    def trace(frame, event, arg):
-        if event == 'exception' and isinstance(arg[1], PermissionError):
-            print('PERMISSION:', Path(frame.f_code.co_filename).name,
-                  frame.f_lineno, frame.f_code.co_name, arg[1].errno, flush=True)
-            print('IDENTITY:', [line for line in Path('/proc/self/status').read_text().splitlines()
-                                if line.startswith(('Uid:', 'Gid:', 'CapEff:', 'CapPrm:', 'NoNewPrivs:', 'Seccomp:'))], flush=True)
-        return trace
-    sys.settrace(trace)
+    def capabilities():
+        values = dict(line.split(':', 1) for line in Path('/proc/self/status').read_text().splitlines())
+        return {key: int(values[key].strip(), 16) for key in ('CapEff', 'CapPrm', 'CapAmb')}, values
+    caps, status = capabilities()
+    assert caps['CapEff'] == 0xe7, caps  # CHOWN, DAC overrides, KILL, SETGID, SETUID only
+    assert status['NoNewPrivs'].strip() == '1'
+    original_sqlite_copy = backup.sqlite_copy
+    def checked_worker(*args):
+        if os.geteuid() != 0:
+            caps, _ = capabilities()
+            assert caps == {'CapEff': 0, 'CapPrm': 0, 'CapAmb': 0}, caps
+            assert os.getgroups() == []
+        return original_sqlite_copy(*args)
+    backup.sqlite_copy = checked_worker
     # Prove the regression is exercised: same backing filesystem, different mount.
     with tempfile.NamedTemporaryFile() as src:
         assert Path(src.name).stat().st_dev == work.stat().st_dev
@@ -157,27 +163,7 @@ def main():
                    '-p', 'RuntimeMaxSec=60s', '-p', 'TimeoutStartSec=60s', '-p', 'TimeoutStopSec=5s',
                    *properties, '/usr/bin/python3', '-I', str(root / 'probe.py'), '--inside', str(root)]
         try:
-            result = subprocess.run(command, timeout=75)
-            if result.returncode:
-                # Synthetic-only differential diagnostics; never weaken the
-                # shipped service or accept a run that needs an override.
-                probe = "import os; os.setgroups([]); os.setgid(65534); os.setuid(65534); print('UID-SWITCH-OK')"
-                candidates = ['FULL', 'NoNewPrivileges', 'PrivateTmp', 'PrivateDevices',
-                              'ProtectSystem', 'ProtectHome', 'ProtectKernelTunables',
-                              'ProtectKernelModules', 'ProtectControlGroups', 'ProtectKernelLogs',
-                              'RestrictSUIDSGID', 'RestrictRealtime', 'LockPersonality',
-                              'RestrictAddressFamilies', 'Nice', 'IOSchedulingClass']
-                for index, candidate in enumerate(candidates):
-                    props = []
-                    for offset in range(0, len(properties), 2):
-                        if properties[offset + 1].split('=', 1)[0] != candidate:
-                            props += properties[offset:offset + 2]
-                    diagnostic = subprocess.run(['systemd-run', '--wait', '--pipe', '--collect',
-                        '--unit=' + name + '-diag-' + str(index), '-p', 'TimeoutStartSec=5s',
-                        *props, '/usr/bin/python3', '-I', '-c', probe],
-                        capture_output=True, text=True, timeout=10)
-                    print('UID-DIFFERENTIAL:', candidate, diagnostic.returncode, flush=True)
-                raise AssertionError('Shipped sandbox export failed; overrides are diagnostic only')
+            subprocess.run(command, check=True, timeout=75)
         finally:
             subprocess.run(['systemctl', 'stop', name + '.service'], capture_output=True, timeout=10)
         for source in sources:

@@ -42,6 +42,11 @@ The systemd template additionally requires CHOWN, SETUID and SETGID capabilities
 for that worker, plus KILL to terminate a different-UID worker on timeout; the
 source databases retain their read-only mount bindings. Temporary directory
 ownership is reclaimed before cleanup on both successful and failed exports.
+SETUID is also explicitly retained in AmbientCapabilities: systemd 255's seccomp
+setup otherwise drops it from the permitted/effective sets before execution,
+even though it remains in CapabilityBoundingSet. NoNewPrivileges remains enabled.
+The required sandbox test checks that each non-root worker loses all permitted,
+effective and ambient capabilities after changing identity.
 The database owner must be able to traverse its source path. An inaccessible
 path or failed privilege change fails the backup without a new success receipt.
 
@@ -51,8 +56,11 @@ budget failure, timeout cleanup and refusal to replace an existing destination.
 These cross-account checks must not be skipped in the required integration job.
 The first owner-export correction was installed, but its real backup failed
 with PermissionError. A subsequent synthetic host probe established EXDEV at
-hard-link publication for all three source owners. Those are distinct observations;
-the earlier PermissionError is not yet fully attributed. The follow-up adds a
+hard-link publication for all three source owners. The matching CI sandbox also
+reproduced PermissionError at setuid with SETUID absent from the effective set;
+the systemd 255 startup implementation explains this missing capability. This is
+the identified source/configuration defect; host acceptance is still pending.
+The follow-up adds a
 required real-systemd CI probe using the shipped hardening, separate mounts,
 read-only source binds, two service UIDs, failure cleanup and subsequent writes.
 The earlier unrestricted-root CI did not exercise these restrictions.

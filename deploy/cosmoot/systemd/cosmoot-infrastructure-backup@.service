@@ -41,6 +41,9 @@ LockPersonality=yes
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 # The root parent must also terminate its different-UID worker on timeout.
 CapabilityBoundingSet=CAP_DAC_READ_SEARCH CAP_DAC_OVERRIDE CAP_CHOWN CAP_SETUID CAP_SETGID CAP_KILL
+# systemd 255's seccomp setup drops SETUID unless explicitly retained here.
+# Keep NoNewPrivileges; the worker's non-root setuid clears effective/ambient caps.
+AmbientCapabilities=CAP_SETUID
 # SQLite read-only connections may need writable WAL shared-memory sidecars.
 # The export worker creates them as the database owner, never as the root parent.
 # Match these generic paths to the private inventory before installation.
