@@ -5,6 +5,20 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
+## Configurable uptime as criterion 6 — owner update, 24 October 2026
+
+Keep Manual exclusions at point 5. Add Uptime as open point 6 with the same
+numbered heading, divider and spacing. Use a labelled numeric minimum from
+95–100%, up to two decimal places, default 97.5%. Show the approved baseline,
+inline validation, selected minimum in the draft summary, and old/new threshold
+in the shared author/voter comparison. A changed minimum needs a new rule approval.
+
+Explain uptime as observed signed blocks divided by expected active-set slots,
+not server availability. Keep the actual common observation period visible:
+use the entire collected period until 90 days exist, then the rolling window.
+Missing or incomplete observations never become zero or full uptime. Published
+historical policies retain their original schema, threshold and fingerprints.
+
 ## Manual exclusions as criterion 5 — owner update, 24 October 2026
 
 Show Manual exclusions as the fifth open eligibility criterion, using the same

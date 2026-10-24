@@ -1,5 +1,16 @@
 # Juno validator history
 
+## Configurable minimum — 24 October 2026 source candidate
+
+Policy schema 6 uses the same observed counters and continuous shared history
+window as schema 5. Its minimum is an integer from 9500 to 10000 basis points,
+chosen in the planner, default 9750. Eligibility compares signed * 10000 with
+expected * minimum exactly; rounded display percentages never decide eligibility.
+Schema 5 remains fixed at 9750 and historical frozen reviews retain their hashes.
+This changes no collection method, archive, chain transaction or scoring model.
+During the 24 October check, the public planner reported an unavailable archive;
+server diagnosis and a successful history-bearing snapshot are still required.
+
 ## Planner commit-count export — 19 October 2026 candidate
 
 The existing schema-2 active-set history gains an optional `participation` object

@@ -1,0 +1,773 @@
+{
+  "sourceCommit": "9248be65918ceef302bd8d77c5109a184e29badf",
+  "hash": "147d04ea162b9ba073b4bddd3136c097f04f86511322f150ffed3edff41e1e79",
+  "value": {
+    "schema": 1,
+    "engine": "equal-capped-review-1",
+    "kind": "RULE_APPROVAL",
+    "createdAt": "2026-10-24T18:00:00.000Z",
+    "parent": null,
+    "rule": {
+      "schema": 5,
+      "chainId": "juno-1",
+      "programme": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+      "method": "equal-capped-v1",
+      "eligibility": "continuous-active-set-observed-commits-90-days-v1",
+      "liquidReserveRaw": "50000000",
+      "factorTenths": 15,
+      "commissionMaxBps": 1000,
+      "upgrade": {
+        "id": "juno-v31",
+        "anchor": "halt-block-time",
+        "height": 42452000,
+        "haltTime": "2026-10-07T06:56:31.235578431Z",
+        "windowSeconds": 18000,
+        "requireObservedParticipation": true,
+        "unknownHandling": "no-target-review-required"
+      },
+      "exclusions": [],
+      "minParticipationBps": 9750
+    },
+    "policyHash": "e217172921c0cb2fcee37c5c6ca152b2012c562d0e60f06858aae2639b74afa4",
+    "rationale": "",
+    "budgetRaw": "2500000000",
+    "snapshot": {
+      "schema": 1,
+      "chainId": "juno-1",
+      "programme": "juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0",
+      "height": 42500000,
+      "blockTime": "2026-10-24T18:00:00.000Z",
+      "collectedAt": "2026-10-24T18:00:00.000Z",
+      "source": "https://example.org",
+      "activeCount": 25,
+      "liquidRaw": "1000000000",
+      "redelegations": [],
+      "validators": [
+        {
+          "address": "junovaloper10qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "000000000000000000000000000000000000000F",
+          "name": "Validator 16",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper12qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "000000000000000000000000000000000000000A",
+          "name": "Validator 11",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper13qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000011",
+          "name": "Validator 18",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper14qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000015",
+          "name": "Validator 22",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper15qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000014",
+          "name": "Validator 21",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper18qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000007",
+          "name": "Validator 8",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper19qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000005",
+          "name": "Validator 6",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1cqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000018",
+          "name": "Validator 25",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1dqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "000000000000000000000000000000000000000D",
+          "name": "Validator 14",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1fqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000009",
+          "name": "Validator 10",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1gqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000008",
+          "name": "Validator 9",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1hqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000017",
+          "name": "Validator 24",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1jqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000012",
+          "name": "Validator 19",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1kqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000016",
+          "name": "Validator 23",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1nqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000013",
+          "name": "Validator 20",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1pqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000001",
+          "name": "Validator 2",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000000",
+          "name": "Validator 1",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1rqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000003",
+          "name": "Validator 4",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1sqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000010",
+          "name": "Validator 17",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1tqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "000000000000000000000000000000000000000B",
+          "name": "Validator 12",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1vqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "000000000000000000000000000000000000000C",
+          "name": "Validator 13",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1wqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "000000000000000000000000000000000000000E",
+          "name": "Validator 15",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1xqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000006",
+          "name": "Validator 7",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1yqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000004",
+          "name": "Validator 5",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        },
+        {
+          "address": "junovaloper1zqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+          "consensusAddress": "0000000000000000000000000000000000000002",
+          "name": "Validator 3",
+          "tokensRaw": "1100000000",
+          "currentRaw": "100000000",
+          "active": true,
+          "jailed": false,
+          "commissionBps": 500
+        }
+      ]
+    },
+    "sourceSnapshotHash": "cef9ff8b3acd6229a08dd5f6674f7840c7b52c17fb14dbb07740e787d99fbff2",
+    "sourceValidatorCount": 25,
+    "existingRedelegationCount": 0,
+    "evidence": {
+      "window": {
+        "coverageComplete": true
+      },
+      "records": [
+        [
+          "0000000000000000000000000000000000000000",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000001",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000002",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000003",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000004",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000005",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000006",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000007",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000008",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000009",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "000000000000000000000000000000000000000A",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "000000000000000000000000000000000000000B",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "000000000000000000000000000000000000000C",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "000000000000000000000000000000000000000D",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "000000000000000000000000000000000000000E",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "000000000000000000000000000000000000000F",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000010",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000011",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000012",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000013",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000014",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000015",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000016",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000017",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ],
+        [
+          "0000000000000000000000000000000000000018",
+          {
+            "status": "observed",
+            "timestamp": "2026-10-07T08:00:00Z",
+            "evidence": "commit"
+          }
+        ]
+      ]
+    },
+    "activeHistory": {
+      "schema": 2,
+      "chainId": "juno-1",
+      "source": "https://history.example.org",
+      "spans": [
+        {
+          "firstHeight": 39300000,
+          "lastHeight": 42500000,
+          "startTime": "2026-10-19T18:00:00.000Z",
+          "endTime": "2026-10-24T18:00:00.000Z",
+          "addresses": [
+            "0000000000000000000000000000000000000000",
+            "0000000000000000000000000000000000000001",
+            "0000000000000000000000000000000000000002",
+            "0000000000000000000000000000000000000003",
+            "0000000000000000000000000000000000000004",
+            "0000000000000000000000000000000000000005",
+            "0000000000000000000000000000000000000006",
+            "0000000000000000000000000000000000000007",
+            "0000000000000000000000000000000000000008",
+            "0000000000000000000000000000000000000009",
+            "000000000000000000000000000000000000000A",
+            "000000000000000000000000000000000000000B",
+            "000000000000000000000000000000000000000C",
+            "000000000000000000000000000000000000000D",
+            "000000000000000000000000000000000000000E",
+            "000000000000000000000000000000000000000F",
+            "0000000000000000000000000000000000000010",
+            "0000000000000000000000000000000000000011",
+            "0000000000000000000000000000000000000012",
+            "0000000000000000000000000000000000000013",
+            "0000000000000000000000000000000000000014",
+            "0000000000000000000000000000000000000015",
+            "0000000000000000000000000000000000000016",
+            "0000000000000000000000000000000000000017",
+            "0000000000000000000000000000000000000018"
+          ]
+        }
+      ],
+      "collectionStart": {
+        "height": 39300000,
+        "time": "2026-10-19T18:00:00.000Z"
+      },
+      "participation": {
+        "schema": 1,
+        "firstHeight": 39300000,
+        "lastHeight": 42500000,
+        "startTime": "2026-10-19T18:00:00.000Z",
+        "endTime": "2026-10-24T18:00:00.000Z",
+        "validators": [
+          {
+            "address": "0000000000000000000000000000000000000000",
+            "expected": 3200001,
+            "signed": 3110001,
+            "absent": 90000,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000001",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000002",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000003",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000004",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000005",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000006",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000007",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000008",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000009",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "000000000000000000000000000000000000000A",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "000000000000000000000000000000000000000B",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "000000000000000000000000000000000000000C",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "000000000000000000000000000000000000000D",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "000000000000000000000000000000000000000E",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "000000000000000000000000000000000000000F",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000010",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000011",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000012",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000013",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000014",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000015",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000016",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000017",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          },
+          {
+            "address": "0000000000000000000000000000000000000018",
+            "expected": 3200001,
+            "signed": 3200001,
+            "absent": 0,
+            "nil": 0
+          }
+        ]
+      }
+    },
+    "previous": null,
+    "proposed": {
+      "status": "calculated",
+      "reason": null,
+      "targets": [
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "104166667",
+        "0",
+        "104166666",
+        "104166666",
+        "104166666",
+        "104166666",
+        "104166666",
+        "104166666",
+        "104166666",
+        "104166666"
+      ],
+      "allocatedRaw": "2500000000",
+      "unallocatedRaw": "0",
+      "projectedBondedRaw": "27500000000"
+    },
+    "messages": []
+  }
+}

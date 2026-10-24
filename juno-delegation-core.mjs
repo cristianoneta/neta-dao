@@ -66,7 +66,7 @@ export function collectingPolicy() {
     eligibility: 'continuous-active-set-90-days-collecting-v1'
   };
 }
-export function defaultPolicy() {
+export function observedCommitPolicy() {
   return {
     ...collectingPolicy(),
     schema: 5,
@@ -76,6 +76,9 @@ export function defaultPolicy() {
 }
 // Only editable planner drafts adopt the current rule. Stored approvals and
 // frozen proposal reviews always go through policy() with their original schema.
+export function defaultPolicy() {
+  return { ...observedCommitPolicy(), schema: 6 };
+}
 export function editablePolicy(input = defaultPolicy()) {
   const current = policy(input),
     template = defaultPolicy();
@@ -83,7 +86,8 @@ export function editablePolicy(input = defaultPolicy()) {
     ...current,
     schema: template.schema,
     eligibility: template.eligibility,
-    minParticipationBps: template.minParticipationBps
+    minParticipationBps:
+      current.schema >= 5 ? current.minParticipationBps : template.minParticipationBps
   });
 }
 const policyTemplate = (schema) =>
@@ -93,25 +97,33 @@ const policyTemplate = (schema) =>
       ? strictHistoryPolicy()
       : schema === 4
         ? collectingPolicy()
-        : defaultPolicy();
+        : schema === 5
+          ? observedCommitPolicy()
+          : defaultPolicy();
 export function eligibilityDescription(p) {
-  return p.schema === 5
-    ? '90 continuous days in the active set; automatically use the entire available period until 90 days exist; not jailed; at least 97.5% observed commit signatures'
-    : p.schema === 4
-      ? '90 continuous days in the active set; while collecting, use the entire available period; not jailed'
-      : p.schema === 3
-        ? '90 continuous days in the active set; not jailed'
-        : 'Legacy: non-jailed with participation evidence; standby allowed';
+  return p.schema === 6
+    ? '90 continuous days in the active set; automatically use the entire available period until 90 days exist; not jailed'
+    : p.schema === 5
+      ? '90 continuous days in the active set; automatically use the entire available period until 90 days exist; not jailed; at least 97.5% observed commit signatures'
+      : p.schema === 4
+        ? '90 continuous days in the active set; while collecting, use the entire available period; not jailed'
+        : p.schema === 3
+          ? '90 continuous days in the active set; not jailed'
+          : 'Legacy: non-jailed with participation evidence; standby allowed';
 }
 export function policy(input) {
   const p = structuredClone(input);
   if (
-    ![2, 3, 4, 5].includes(p?.schema) ||
+    ![2, 3, 4, 5, 6].includes(p?.schema) ||
     p.chainId !== 'juno-1' ||
     p.programme !== PROGRAMME ||
     p.method !== 'equal-capped-v1' ||
     p.eligibility !== policyTemplate(p.schema).eligibility ||
     (p.schema === 5 && p.minParticipationBps !== 9750) ||
+    (p.schema === 6 &&
+      (!Number.isInteger(p.minParticipationBps) ||
+        p.minParticipationBps < 9500 ||
+        p.minParticipationBps > 10000)) ||
     p.liquidReserveRaw !== LIQUID_RESERVE.toString() ||
     !Number.isInteger(p.factorTenths) ||
     p.factorTenths < 10 ||
@@ -154,6 +166,7 @@ export function policy(input) {
   // Explicit allowlist prevents imported fields from changing the approved meaning.
   return {
     ...policyTemplate(p.schema),
+    ...(p.schema >= 5 ? { minParticipationBps: p.minParticipationBps } : {}),
     factorTenths: p.factorTenths,
     commissionMaxBps: p.commissionMaxBps,
     exclusions: p.exclusions
@@ -269,7 +282,7 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
   const continuity =
     p.schema >= 3 ? activeSetEvidence(history, s, { allowCollecting: p.schema >= 4 }) : null;
   if (continuity && !continuity.complete) throw Error(continuity.reason);
-  const participation = p.schema === 5 ? participationEvidence(history, s) : null;
+  const participation = p.schema >= 5 ? participationEvidence(history, s) : null;
   if (participation && !participation.complete) throw Error(participation.reason);
   const excluded = new Map(p.exclusions.map((e) => [e.validator, e.reason])),
     cap = capFraction(p, s.activeCount);
@@ -292,7 +305,11 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
       );
     const counts = participation?.records.get(v.consensusAddress) ?? null;
     if (participation && !meetsParticipation(counts, p.minParticipationBps))
-      reasons.push(counts ? 'Observed commit signatures below 97.5%' : 'No observed commit slots');
+      reasons.push(
+        counts
+          ? `Observed commit signatures below ${p.minParticipationBps / 100}%`
+          : 'No observed commit slots'
+      );
     if (p.commissionMaxBps !== null && v.commissionBps > p.commissionMaxBps)
       reasons.push('Commission above limit');
     if (excluded.has(v.address)) reasons.push(`Manual exclusion: ${excluded.get(v.address)}`);

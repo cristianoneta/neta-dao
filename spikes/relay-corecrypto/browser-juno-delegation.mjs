@@ -7,6 +7,7 @@ import {
   legacyPolicy as defaultPolicy,
   strictHistoryPolicy,
   collectingPolicy,
+  observedCommitPolicy,
   fingerprint
 } from '../../juno-delegation-core.mjs';
 import {
@@ -328,7 +329,7 @@ try {
   assert.equal(await page.locator('#factor-number').inputValue(), '1.8');
   assert.equal(await page.locator('#commission').inputValue(), '7');
   assert.equal(await page.locator('#use-current-model').count(), 0);
-  assert.match(await page.locator('#draft-eligibility-description').textContent(), /97.5%/);
+  assert.equal(await page.locator('#uptime').inputValue(), '97.5');
   await page.locator('#factor-number').fill('1.5');
   await page.locator('#commission').fill('10');
   assert.deepEqual(
@@ -338,7 +339,8 @@ try {
       '2 Voting power',
       '3 Commission',
       '4 Upgrade participation',
-      '5 Manual exclusions'
+      '5 Manual exclusions',
+      '6 Uptime'
     ]
   );
   assert.equal(await page.getByLabel('Juno validator', { exact: true }).isVisible(), true);
@@ -465,6 +467,24 @@ try {
     (await comparison.locator('.rr-stats > div').nth(2).textContent()).match(/→ (\d+)/)[1]
   );
   await step('rules');
+  for (const value of ['', '94.99', '100.01', '97.555']) {
+    await page.locator('#uptime').fill(value);
+    assert.equal(await page.locator('#uptime-error').isVisible(), true);
+    assert.equal(await page.locator('#draft-uptime').textContent(), 'Check value');
+    await page.locator('#save-draft').click();
+    assert.match(await page.locator('#feedback').textContent(), /uptime threshold/);
+    await page.locator('#simulate').click();
+    assert.equal(await page.locator('#export-json').isDisabled(), true);
+    assert.equal(
+      await page.locator('#uptime').evaluate((el) => el === document.activeElement),
+      true
+    );
+  }
+  for (const value of ['95', '100', '99.01']) {
+    await page.locator('#uptime').fill(value);
+    assert.equal(await page.locator('#uptime-error').isVisible(), false);
+    assert.equal(await page.locator('#draft-uptime').textContent(), value + '%');
+  }
   await page.locator('#excluded-validator').fill(selected.name);
   await page.locator('#excluded-reason').fill('Exchange-operated fixture');
   await page.locator('#add-exclusion').click();
@@ -481,6 +501,7 @@ try {
   await ready();
   assert.equal(await page.locator('#exclusions li').count(), 2);
   assert.equal(await page.locator('#commission').inputValue(), '19');
+  assert.equal(await page.locator('#uptime').inputValue(), '99.01');
   await simulate();
   await page.locator('#review-proposal').click();
   assert.equal(await page.locator('#proposal-review').isVisible(), true);
@@ -497,7 +518,8 @@ try {
   assert.ok(review.rule.exclusions.some((v) => v.validator === selected.address));
   assert.equal(review.rule.commissionMaxBps, 1900);
   assert.deepEqual(review.messages, []);
-  assert.equal(review.rule.schema, 5);
+  assert.equal(review.rule.schema, 6);
+  assert.equal(review.rule.minParticipationBps, 9901);
   assert.equal(review.policyHash.length, 64);
   const shots = process.env.NNS_SCREENSHOT_DIR;
   if (shots) await mkdir(shots, { recursive: true });
@@ -758,7 +780,7 @@ try {
     document.getElementById('current-rules-state').textContent.includes('Rules approved')
   );
   assert.equal(await page.locator('#use-current-model').count(), 0);
-  assert.match(await page.locator('#draft-eligibility-description').textContent(), /97.5%/);
+  assert.equal(await page.locator('#uptime').inputValue(), '97.5');
   await page.locator('#programme-amount').fill('99999999');
   await page.locator('#simulate').click();
   await page.waitForFunction(() =>
@@ -836,7 +858,12 @@ try {
     rule: approvedPolicy,
     hash: await fingerprint(approvedPolicy)
   };
-  for (const old of [defaultPolicy(), strictHistoryPolicy(), collectingPolicy()]) {
+  for (const old of [
+    defaultPolicy(),
+    strictHistoryPolicy(),
+    collectingPolicy(),
+    observedCommitPolicy()
+  ]) {
     old.factorTenths = 19;
     old.commissionMaxBps = null;
     old.exclusions = structuredClone(approvedPolicy.exclusions);
@@ -874,7 +901,7 @@ try {
     const stored = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3'))
     );
-    assert.equal(stored.rule.schema, 5);
+    assert.equal(stored.rule.schema, 6);
     assert.equal(stored.rule.minParticipationBps, 9750);
     assert.deepEqual(stored.parent, old.schema === 2 ? null : preservedParent);
     assert.equal(stored.rationale, old.schema === 2 ? '' : 'Preserved migration rationale');

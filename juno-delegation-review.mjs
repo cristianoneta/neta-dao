@@ -39,6 +39,12 @@ export function ruleChanges(before, after) {
     ['liquidReserveRaw', 'Liquid reserve', () => '50 JUNO'],
     ['upgrade', 'Upgrade participation', () => 'Juno v31 · within 5 hours of the halt']
   ];
+  if (p.schema >= 6 || old?.schema >= 6)
+    fields.push([
+      'minParticipationBps',
+      'Minimum uptime · observed commit signatures',
+      (v) => (v.schema >= 5 ? `${v.minParticipationBps / 100}%` : 'No signature minimum')
+    ]);
   const rows = fields.map(([key, label, format]) => ({
     key,
     label,
@@ -96,7 +102,7 @@ function calculate(p, s, budget, evidence, history) {
   let coverage = null;
   if (p.schema >= 3) {
     coverage =
-      p.schema === 5
+      p.schema >= 5
         ? participationEvidence(history, s)
         : activeSetEvidence(history, s, { allowCollecting: p.schema >= 4 });
     if (!coverage.complete) return { status: 'unavailable', reason: coverage.reason, result: null };
@@ -429,7 +435,7 @@ export async function readProposalReview(values) {
       );
   } else {
     const section = values.body?.match(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/m);
-    if (section && [3, 4, 5].includes(JSON.parse(section[1])?.schema))
+    if (section && [3, 4, 5, 6].includes(JSON.parse(section[1])?.schema))
       throw Error(
         'This policy version requires its complete frozen comparison. Return to the planner to prepare it.'
       );

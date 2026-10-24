@@ -8,7 +8,7 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `7b21fe1979afb31f0cf0bb18cc70a9e312684ea3` (through PR #310) | [Manual release 40108859541](https://github.com/cristianoneta/neta-dao/actions/runs/40108859541) completed successfully on 24 October, including publication. |
+| Last successful website release | Source `036f3b5f3d5c369fb49c1c112cde4aa91df320b5` (through PR #311) | [Manual release 40115824821](https://github.com/cristianoneta/neta-dao/actions/runs/40115824821) completed successfully on 24 October, including publication. |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
 | Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Published in release 40106761715; updated homepage observed on both website domains. Responsive CI passed at 320/390/768/1440 px; separate mobile live acceptance and controlled live fallback remain open. |
 | Collector archives / efficiency | Source captures UTC Treasury days, archives expired validator evidence before pruning, preserves daily membership/planner observations and signed prices, and shares bounded RPC results | [Scope and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md). Owner confirmed host installation and successful manual collector/archive checks on 24 October; regular cycles, multi-day growth and measured savings remain pending. Local archives do not prove independent retention. |
@@ -29,12 +29,15 @@ expected membership state before retaining the row assertion. No production UI,
 membership rules or wallet behavior changed. PR #309 fixed the test; successful
 release 40106761715 supersedes that failed attempt.
 
-## Manual exclusion criterion — source follow-up
+## Eligibility controls — source follow-up
 
-Manual exclusions now appear as open criterion 5 beside the four existing
-eligibility criteria, with matching numbered headings, spacing and dividers.
-The validator and public-reason inputs remain directly visible. Draft persistence,
-exclusion rules and proposal behavior are unchanged. Manual release is pending.
+PR #312 integrates open Manual exclusions at point 5. The next source candidate
+adds Uptime as point 6 with a 95–100% input (default 97.5%), preserved draft values
+and a frozen old/new threshold comparison. Policy schema 6 applies the chosen
+minimum; historical schemas and approvals retain their original meaning. Both
+UI changes await a combined manual release. The public planner reported an
+unavailable history archive during the 24 October check; host diagnosis and a
+successful history-bearing snapshot remain necessary for live acceptance.
 
 ## Compact header follow-up
 
@@ -52,9 +55,10 @@ TTL. The specific cause is not established. Private operational evidence remains
 outside Git. Source now adds bounded `X-Cosmoot-Upstream-Status`,
 `X-Cosmoot-Upstream-Cache` and optional `X-Cosmoot-Upstream-Age` diagnostics to both
 server and fallback responses. These describe what the Worker's fetch observed,
-not proof of an origin connection or snapshot freshness. This addition is **not yet
-published**; caching, routing and fallback bytes are unchanged. After the manual
-release, inspect normal responses before considering another controlled exercise.
+not proof of an origin connection or snapshot freshness. Published in manual release 40115824821; normal responses exposed upstream
+cache HIT/EXPIRED as expected. Caching, routing and fallback bytes are unchanged.
+The owner paused further live failure exercises; packaged live fallback remains
+unproven.
 See [header semantics and limits](HOME_FALLBACK_2026-10-24.md#upstream-diagnostics).
 
 ## Features
@@ -62,7 +66,7 @@ See [header semantics and limits](HOME_FALLBACK_2026-10-24.md#upstream-diagnosti
 | Feature | Current implementation / publication | Limits and owning reference |
 | --- | --- | --- |
 | Delegation Programme | Overview → Set rules → Review distribution → Review proposal; actual holdings/rewards and approved-policy discovery | Frozen old/new rules and allocation impacts; rule approval does not authorize redistribution. [Programme](JUNO_DELEGATION_PROGRAMME.md), [review](DELEGATION_RULE_CHANGE_UX.md). |
-| Validator history | Automatic use of the collected period until 90 days exist, then the rolling window; at least 97.5% observed commit signatures in schema 5 | Continuous observed membership, exact counts and original collection start; unavailable/gapped evidence blocks eligibility. Historical schemas retain their meaning. [History](VALIDATOR_HISTORY.md). |
+| Validator history | Automatic use of the collected period until 90 days exist, then the rolling window; schema 5 fixes the minimum at 97.5%; source candidate schema 6 permits 95–100% | Continuous observed membership, exact counts and original collection start; unavailable/gapped evidence blocks eligibility. Historical schemas retain their meaning. [History](VALIDATOR_HISTORY.md). |
 | Programme reward claim | Correct DAO DAO Stargate withdrawals with the programme as delegator and destination | Required real local Juno test reproduces old/wrong-authority failures and verifies 37 withdrawals plus unchanged delegations. First replacement includes the #381 explanation; later omission uses agreed chain history. [Repair](PROGRAMME_CLAIM_REPAIR_2026-10-23.md). |
 | Juno community review | Mainnet review v0.3.1, finalization, author withdrawal, native submission/deposits and voting | Fresh authority/content/balance checks; explicit wallet confirmation; pending outcomes remain locked. Operations legacy review is a separate UNI-7 flow. [Semantics](GOVERNANCE_EXECUTION_SEMANTICS.md), [funding](JUNO_COMMUNITY_FUNDING.md). |
 | Native voting display | Four choices, live tally, direct voting, participation and validator/direct-address views | Incomplete detail is unavailable, not zero; no invented historical final participation. [Voting](JUNO_GOVERNANCE_VOTING.md). |
