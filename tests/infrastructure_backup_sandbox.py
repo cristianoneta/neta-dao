@@ -23,6 +23,12 @@ def inside(root):
     sys.path.insert(0, str(root / 'code'))
     import infrastructure_backup as backup
     work = root / 'work'
+    def trace(frame, event, arg):
+        if event == 'exception' and isinstance(arg[1], PermissionError):
+            print('PERMISSION:', Path(frame.f_code.co_filename).name,
+                  frame.f_lineno, frame.f_code.co_name, arg[1].errno, flush=True)
+        return trace
+    sys.settrace(trace)
     # Prove the regression is exercised: same backing filesystem, different mount.
     with tempfile.NamedTemporaryFile() as src:
         assert Path(src.name).stat().st_dev == work.stat().st_dev
