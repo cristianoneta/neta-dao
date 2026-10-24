@@ -163,9 +163,8 @@ def validate_database(path, kind):
                 raise ValueError('Database is missing required columns')
 
 
-def export_database(source, target, kind, budget, timeout=120):
-    checked_path(source, 'file')
-    target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+def sqlite_copy(source, target, budget, timeout):
+    """Online backup under the source owner's filesystem identity."""
     # Exclusive creation before SQLite opens the destination; never overwrite.
     with target.open('xb'):
         os.chmod(target, 0o600)
@@ -183,6 +182,85 @@ def export_database(source, target, kind, budget, timeout=120):
         with closing(sqlite3.connect(target)) as dst:
             src.backup(dst, pages=256, progress=progress, sleep=0.05)
             dst.execute('PRAGMA journal_mode=DELETE')
+
+
+def export_as_owner(source, target, budget, timeout, owner):
+    # The worker enters this directory before dropping privileges. Its absolute
+    # path stays inaccessible to the source account behind the private parent.
+    # Only the worker's relative destination is writable; no credentials or
+    # unrelated staged files become accessible to that account.
+    parent = checked_path(target.parent, 'directory').stat()
+    if parent.st_uid != os.geteuid() or parent.st_mode & 0o077:
+        raise ValueError('SQLite staging parent must be owned and private')
+    with tempfile.TemporaryDirectory(prefix='.sqlite-export-', dir=target.parent) as directory:
+        os.chown(directory, owner.st_uid, owner.st_gid)
+        read_fd, write_fd = os.pipe()
+        pid = None
+        try:
+            pid = os.fork()
+            if pid == 0:
+                os.close(read_fd)
+                try:
+                    os.chdir(directory)
+                    os.setgroups([])
+                    os.setgid(owner.st_gid)
+                    os.setuid(owner.st_uid)
+                    os.umask(0o077)
+                    child_budget = Budget(Path('.'), budget.maximum, budget.reserve)
+                    child_budget.used = budget.used
+                    sqlite_copy(source, Path('export.sqlite'), child_budget, timeout)
+                except BaseException as error:
+                    # Never send provider locations, source content or secrets.
+                    try:
+                        os.write(write_fd, type(error).__name__.encode()[:100])
+                    finally:
+                        os._exit(1)
+                os._exit(0)
+            os.close(write_fd)
+            write_fd = None
+            deadline = time.monotonic() + timeout
+            while True:
+                finished, status = os.waitpid(pid, os.WNOHANG)
+                if finished:
+                    pid = None
+                    break
+                if time.monotonic() > deadline:
+                    raise TimeoutError('SQLite export deadline exceeded')
+                time.sleep(0.05)
+            failure = os.read(read_fd, 100).decode(errors='replace')
+            if status:
+                error_type = {'TimeoutError': TimeoutError, 'ValueError': ValueError,
+                              'PermissionError': PermissionError}.get(failure, RuntimeError)
+                raise error_type('SQLite source-owner export failed')
+        finally:
+            if pid:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                os.waitpid(pid, 0)
+            os.close(read_fd)
+            if write_fd is not None:
+                os.close(write_fd)
+        exported = checked_path(Path(directory) / 'export.sqlite', 'file')
+        os.chown(exported, os.geteuid(), os.getegid())
+        os.chmod(exported, 0o600)
+        # Same filesystem; exclusive publication without another full-size copy.
+        # link() refuses an existing target, including a dangling symlink.
+        os.link(exported, target, follow_symlinks=False)
+
+
+def export_database(source, target, kind, budget, timeout=120):
+    owner = checked_path(source, 'file').stat()
+    target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if timeout <= 0:
+        raise TimeoutError('SQLite export deadline exceeded')
+    if (owner.st_uid, owner.st_gid) == (os.geteuid(), os.getegid()):
+        sqlite_copy(source, target, budget, timeout)
+    else:
+        if os.geteuid() != 0:
+            raise PermissionError('Cannot export a different source owner')
+        export_as_owner(source, target, budget, timeout, owner)
     validate_database(target, kind)
     budget.check(target.stat().st_size, written=target.stat().st_size)
     budget.used += target.stat().st_size

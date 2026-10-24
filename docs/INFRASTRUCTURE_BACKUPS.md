@@ -22,8 +22,29 @@ Two unattended runs, off-host application recovery, measured RPO/RTO and the
 separate fresh-browser message restore remain unaccepted. Retention is still
 preview-only; no destructive retention or automatic pruning was enabled.
 
-Do not repeat the completed installation or initialize a replacement repository.
-Continue with scheduled-run verification and the deferred recovery drill.
+An archive access incident subsequently exposed a source-permissions defect:
+a root read-only SQLite connection can create root-owned WAL/shared-memory
+sidecars and prevent the service account from reopening its database. Correcting
+the sidecar ownership restored collection; the historical cursor is being caught
+up, not reset. This does not yet establish current planner history.
+
+The source fix exports each database under its numeric owner in an isolated
+worker. A private staging directory is entered before dropping privileges; the
+parent retains ownership of the completed export. Online WAL visibility,
+deadlines, disk budgets, source locks and restored-data verification remain in
+place. No source journals are deleted and no immutable SQLite mode is used.
+The systemd template additionally requires CHOWN, SETUID and SETGID capabilities
+for that worker; the source databases retain their read-only mount bindings.
+The database owner must be able to traverse its source path. An inaccessible
+path or failed privilege change fails the backup without a new success receipt.
+
+Required root CI includes a quiescent service-owned WAL database, an existing
+uncheckpointed WAL, a subsequent service-account write, private staging access,
+budget failure, timeout cleanup and refusal to replace an existing destination.
+These cross-account checks must not be skipped in the required integration job.
+Host installation of the correction and a new backup followed by collector
+success remain pending. Do not repeat repository initialization. Scheduled-run
+verification and the deferred recovery drill remain separate acceptance steps.
 
 ## What is captured
 
