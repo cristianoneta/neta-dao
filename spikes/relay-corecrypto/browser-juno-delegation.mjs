@@ -331,7 +331,18 @@ try {
   assert.match(await page.locator('#draft-eligibility-description').textContent(), /97.5%/);
   await page.locator('#factor-number').fill('1.5');
   await page.locator('#commission').fill('10');
-  assert.equal(await page.locator('.criterion h4').count(), 4);
+  assert.deepEqual(
+    await page.locator('#rules-eligibility-details > .criterion h4').allTextContents(),
+    [
+      '1 Validator status',
+      '2 Voting power',
+      '3 Commission',
+      '4 Upgrade participation',
+      '5 Manual exclusions'
+    ]
+  );
+  assert.equal(await page.getByLabel('Juno validator', { exact: true }).isVisible(), true);
+  assert.equal(await page.getByLabel('Public reason', { exact: true }).isVisible(), true);
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
   assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), true);
   assert.equal(await page.locator('#draft-budget').textContent(), '15,000,900.00 JUNO');
@@ -454,18 +465,6 @@ try {
     (await comparison.locator('.rr-stats > div').nth(2).textContent()).match(/→ (\d+)/)[1]
   );
   await step('rules');
-  assert.deepEqual(
-    await page.locator('#rules-eligibility-details > .criterion h4').allTextContents(),
-    [
-      '1 Validator status',
-      '2 Voting power',
-      '3 Commission',
-      '4 Upgrade participation',
-      '5 Manual exclusions'
-    ]
-  );
-  assert.equal(await page.getByLabel('Juno validator', { exact: true }).isVisible(), true);
-  assert.equal(await page.getByLabel('Public reason', { exact: true }).isVisible(), true);
   await page.locator('#excluded-validator').fill(selected.name);
   await page.locator('#excluded-reason').fill('Exchange-operated fixture');
   await page.locator('#add-exclusion').click();
