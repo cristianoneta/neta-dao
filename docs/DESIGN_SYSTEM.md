@@ -5,30 +5,38 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
-## Delegation workspace — owner-approved lab adaptation, 25 October 2026
+## Delegation lab parity — owner correction, 25 October 2026
 
-Use five directly accessible views: Overview, Rules, Compare, Review and Rebalance.
-The live overview retains holdings, rewards and approval discovery. Criteria show
-only their names on the left and aligned controls on the right; explanations open
-on hover, keyboard focus or touch, and Escape dismisses them. Keep exclusions and
-inline errors accessible. Put the available budget, exact Max action and draft
-summary beside the eligibility form; stack them on narrow screens.
+The approved design is the actual lab, not a lightly restyled legacy planner.
+The owner explicitly approved the mint four-square Cosmoot logo in both the
+header and browser tab on 25 October. Reuse `assets/cosmoot-mark.svg` as its favicon;
+the compact header uses the matching four-square mark with the muted fourth tile.
+The first transfer in #316 did not satisfy this. Use **Eligibility, Distribution,
+Compare, Review, Rebalance** as the five directly accessible planning views.
+Default to Eligibility. Keep Programme overview outside this numbered sequence;
+it retains actual holdings, rewards and approval discovery.
 
-Rebalance is independent of the rule editor. Read the exact on-chain approved
-policy, including historical semantics, and calculate fresh holdings → target →
-change. Local edits and a rule-review draft never count as approval. Downloaded
-allocation drafts are non-executable; the execution-proposal action stays disabled
-until transaction constraints and real Juno execution are verified.
+Match the lab's compact four-square Cosmoot mark, context header, graphite/mint
+palette, light/dark switch, title, spacing and 350px left controls beside the wide
+impact area. Inputs and impact belong in the same viewport. On narrow screens,
+stack complete sections and retain current, target and change for every row.
+Criteria show concise names, aligned values and hover/focus/touch help with Escape.
+The observed-history summary must disclose partial coverage rather than imply that
+90 days were collected. Manual exclusions are accessible in a compact disclosure.
 
-The planned model is mandatory yes/no gates, then identical base points plus a
-bounded bonus per validator; base + maximum bonus = 1,000. Show an exploratory
-slider, without preset switches. This supersedes the older objective/subjective
-80/20 roadmap. The slider does not alter the live equal-capped policy. Explain
-that point weights are not a fixed token-budget split. Bonus evidence, operator
-independence, measurement windows, expiry and appeals must be approved before
-activation; never substitute fictional measurements for production evidence.
+Distribution shows the base/bonus explorer openly, plus the actual available
+budget and exact Max. Do not restore preset switches or an unexplained fixed-budget
+mode. Bonus criteria also use contextual help. Missing production bonus evidence
+must never be replaced with the lab's fictional validators or measurements. State
+plainly that point/weight exploration does not yet alter production proposals.
 
-See [implementation and limits](DELEGATION_WORKSPACE_2026-10-25.md).
+Immediate impact is a read-only use of the same production calculation as review.
+Freeze exact inputs/evidence at comparison; maintain existing governance handoffs.
+Rebalance uses only the verified approved policy and independent budget, with
+non-executable exports until staking execution is separately implemented/tested.
+
+Validate against the actual approved lab layout, desktop and narrow screens, not
+merely a successful CI run or a new asset version. See [implementation and limits](DELEGATION_WORKSPACE_2026-10-25.md).
 
 ## Configurable uptime as criterion 6 — owner update, 24 October 2026
 

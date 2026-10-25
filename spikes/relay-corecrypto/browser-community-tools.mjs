@@ -171,7 +171,7 @@ try {
   await page.getByRole('link', { name: /Open Juno programme/ }).focus();
   await page.keyboard.press('Enter');
   await page.waitForURL('**/community-tools/juno/delegation/');
-  await page.locator('.tool-breadcrumb a[href="/community-tools/delegation/"]').click();
+  await page.getByRole('link', { name: 'JUNO MAINNET', exact: true }).click();
   assert.equal(new URL(page.url()).pathname, '/community-tools/delegation/');
   await page.locator('.tool-breadcrumb a[href="/community-tools/#interchain"]').click();
   await page.waitForFunction(

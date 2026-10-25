@@ -4,21 +4,32 @@ The owner approved transfer of the separate policy lab’s presentation and proc
 into the real Delegation Programme. This source candidate preserves the live data
 readers, rule schemas, frozen review format and native governance handoffs.
 
-## User flow
+## Corrected user flow
 
-- **Overview:** real holdings, rewards and independently discovered approved rules.
-- **Rules:** compact names with hover/focus/touch explanations, aligned inputs,
-  unchanged eligibility semantics and explicit exclusions. Available funds and Max
-  use delegated plus spendable micro-JUNO less the 50 JUNO reserve; rewards and
-  unbonding funds are excluded. The editable amount remains independent of policy.
-- **Compare:** the existing frozen actual-versus-target and rule-effect comparison.
-- **Review:** the existing rule proposal draft, community review and wallet flow.
-- **Rebalance:** exact approved rules, independently chosen budget and fresh complete
-  observations. Shows current, target and change, including held ineligible positions.
-  Mobile preserves all three values. A fresh approval read is required at simulation
-  and download. A changed approval, refreshed snapshot or edited budget invalidates
-  the current result. Expired snapshots cannot be downloaded as current allocation
-  drafts. The JSON preserves exact inputs, output and fingerprints, with no messages.
+The initial #316 release published on 25 October but did not reproduce the approved
+lab. The owner explicitly corrected that mismatch. The correction uses the lab's
+actual composition, rather than treating any restyled production page as equivalent.
+
+- **Eligibility:** narrow left panel with concise gates, contextual help and aligned
+  inputs; the wide right panel recalculates eligibility, concentration and exact
+  current/target/change outcomes as valid inputs change.
+- **Distribution:** visible base/bonus exploration and relative criterion weights,
+  actual available budget and exact Max, beside the same production impact view.
+  Available funds are delegated plus spendable micro-JUNO less the 50 JUNO reserve;
+  rewards and unbonding funds are excluded. The amount is independent of policy.
+- **Compare:** frozen actual-versus-target and old/new-policy comparison using the
+  same evidence; invalid fields and unavailable observations never become zeros.
+- **Review:** existing rule proposal draft, community review and wallet flow.
+- **Rebalance:** exact approved rules, separate budget and fresh observations, with
+  current/target/change including held ineligible positions. Approval, snapshot,
+  budget changes and expiry invalidate stale exports. The export contains no messages.
+- **Programme overview:** secondary header action for holdings, rewards and approved
+  rules; legacy overview links still work, outside the five planning stages.
+
+The compact header, four-square Cosmoot mark, spacing, graphite/mint palette and
+light/dark appearance follow the actual lab. No test-environment label or fictional
+sample data is carried into production. Appearance is stored locally and separately
+from rule drafts, frozen reviews and transaction journals.
 
 ## Proposal capabilities
 
@@ -39,6 +50,7 @@ Mandatory gates precede scoring; a bonus cannot compensate for failed eligibilit
 Each eligible validator would get the same base B and at most W bonus, B+W=1,000.
 The interactive explanatory slider starts at 900/100 and also supports 100/900.
 Illustrative bonus weights are RPC 40, testnet 30, archive 20 and governance 10.
+The exploration permits relative-weight edits and shows their normalized shares.
 They are not live validator measurements or editable proposal fields.
 
 For normalized verified contribution q, points are B+Wq; the token share follows
@@ -55,7 +67,12 @@ equal-capped; no policy migration or fictitious allocation is introduced by this
 
 ## Verification
 
-New unit cases cover exact Max, reserve conservation, immutable historical policy,
+The correction adds independent impact checks for exact conservation, changing gates,
+unavailable evidence, invalid inputs and stale snapshots. Browser regressions cover
+the five planning views plus the retained overview, immediate impact, theme, exact
+budget and preserved real proposal handoffs.
+
+Earlier unit cases cover exact Max, reserve conservation, immutable historical policy,
 missing approval/evidence, invalid budgets, zero recipients, stale/future observations,
 changed approval/snapshot and modified exports. The existing browser regression
 adds five-view navigation, slider isolation, frozen Rebalance export, edit isolation

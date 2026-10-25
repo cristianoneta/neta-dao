@@ -24,10 +24,11 @@ const node = (tag, text, className) => {
   return el;
 };
 export function renderFuturePolicy(host, prefix) {
+  const explorer = prefix === 'rules';
   const card = node('section', undefined, 'planner-card points-preview');
   const heading = node('div', undefined, 'policy-heading');
   heading.append(
-    node('h3', 'A shared base. A bonus for useful work.'),
+    node('h3', 'Base & bonus points'),
     node('span', 'Planned · preview only', 'state-pill neutral')
   );
   card.append(
@@ -40,8 +41,17 @@ export function renderFuturePolicy(host, prefix) {
   const values = node('div', undefined, 'point-values');
   const base = node('div'),
     bonus = node('div');
-  const baseValue = node('strong', '900'),
+  const baseValue = explorer ? node('input') : node('strong', '900'),
     bonusValue = node('strong', '100');
+  if (explorer) {
+    baseValue.type = 'number';
+    baseValue.min = '0';
+    baseValue.max = '1000';
+    baseValue.step = '10';
+    baseValue.value = '900';
+    baseValue.className = 'base-points-entry';
+    baseValue.setAttribute('aria-label', 'Base points per eligible validator · preview');
+  }
   baseValue.id = `${prefix}-base-points`;
   bonusValue.id = `${prefix}-bonus-points`;
   base.append(baseValue, node('span', 'Base points · each eligible validator'));
@@ -63,7 +73,8 @@ export function renderFuturePolicy(host, prefix) {
   const update = () => {
     const b = Number(slider.value),
       w = 1000 - b;
-    baseValue.textContent = String(b);
+    if (explorer) baseValue.value = String(b);
+    else baseValue.textContent = String(b);
     bonusValue.textContent = String(w);
     slider.setAttribute('aria-valuetext', `${b} base points and up to ${w} bonus points`);
     effect.textContent =
@@ -73,15 +84,69 @@ export function renderFuturePolicy(host, prefix) {
       'Preview only: the current equal-allocation rules and proposal remain unchanged.';
   };
   slider.addEventListener('input', update);
+  if (explorer)
+    baseValue.addEventListener('input', () => {
+      if (baseValue.value !== '' && baseValue.checkValidity()) {
+        slider.value = baseValue.value;
+        update();
+      }
+    });
   update();
   card.append(label, slider, effect);
   const details = node('details', undefined, 'policy-details');
   details.id = `${prefix}-bonus-details`;
+  if (explorer) details.open = true;
   details.append(node('summary', 'Bonus criteria · illustrative weights'));
+  const weights = [];
+  const weightTotal = node('p', '', 'field-help');
+  const updateWeights = () => {
+    if (weights.some(({ input }) => input.value === '' || !input.checkValidity())) {
+      weightTotal.textContent = 'Enter whole-number weights from 0 to 100.';
+      for (const item of weights) item.share.textContent = 'Check weight';
+      return;
+    }
+    const total = weights.reduce((sum, item) => sum + Number(item.input.value || 0), 0);
+    for (const item of weights)
+      item.share.textContent = total
+        ? `${Math.round((Number(item.input.value || 0) / total) * 100)}% of bonus`
+        : 'Disabled';
+    weightTotal.textContent = total
+      ? 'Relative weights, normalized across enabled criteria. No production bonus measurements are connected.'
+      : 'All bonus criteria are disabled in this exploration. No bonus could be earned.';
+  };
   for (const [name, value, help] of bonuses) {
     const row = node('div', undefined, 'bonus-preview-row');
-    row.append(node('strong', name), node('span', `${value}%`), node('p', help));
+    if (explorer) {
+      const label = node('div', undefined, 'criterion-label');
+      const button = node('button', name, 'criterion-help');
+      button.type = 'button';
+      const tip = node('div', help, 'criterion-tooltip');
+      tip.id = `${prefix}-bonus-help-${weights.length}`;
+      tip.hidden = true;
+      tip.setAttribute('role', 'tooltip');
+      button.setAttribute('aria-controls', tip.id);
+      button.setAttribute('aria-expanded', 'false');
+      label.append(button, tip);
+      const weight = node('input');
+      weight.type = 'number';
+      weight.min = '0';
+      weight.max = '100';
+      weight.step = '1';
+      weight.value = String(value);
+      weight.className = 'bonus-weight-input';
+      weight.setAttribute('aria-label', `${name} relative weight · preview`);
+      const share = node('small');
+      const control = node('div', undefined, 'bonus-weight-control');
+      control.append(weight, share);
+      weights.push({ input: weight, share });
+      weight.addEventListener('input', updateWeights);
+      row.append(label, control);
+    } else row.append(node('strong', name), node('span', `${value}%`), node('p', help));
     details.append(row);
+  }
+  if (explorer) {
+    updateWeights();
+    details.append(weightTotal);
   }
   details.append(
     node(
