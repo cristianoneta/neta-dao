@@ -32,7 +32,7 @@ export function movementPlan(rows) {
     throw Error('Invalid allocation positions.');
   const positions = rows
     .map(({ address, currentRaw, targetRaw }) => ({ address, currentRaw, targetRaw }))
-    .sort((a, b) => a.address.localeCompare(b.address));
+    .sort((a, b) => (a.address < b.address ? -1 : a.address > b.address ? 1 : 0));
   const donors = [],
     recipients = [],
     moves = [];
@@ -263,7 +263,8 @@ export function checkCurrentAllocation(calculation, plan, state) {
         ? -1
         : a.projected < b.projected
           ? 1
-          : Number(b.active) - Number(a.active) || a.address.localeCompare(b.address)
+          : Number(b.active) - Number(a.active) ||
+            (a.address < b.address ? -1 : a.address > b.address ? 1 : 0)
     )
     .slice(0, count);
   const total = projected.reduce((n, v) => n + v.projected, 0n),
