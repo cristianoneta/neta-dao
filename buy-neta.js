@@ -132,6 +132,7 @@ import {
   }
 
   function renderPools() {
+    const focusedPool = document.activeElement?.dataset.pool;
     const rows = POOLS.map((p) => {
       const state = poolStates.get(p.id);
       const valuation =
@@ -168,6 +169,10 @@ import {
         return button;
       })
     );
+    if (focusedPool)
+      [...dom.poolList.querySelectorAll('button')]
+        .find((button) => button.dataset.pool === focusedPool)
+        ?.focus({ preventScroll: true });
   }
 
   function renderPoolOverview(state = '') {
@@ -598,6 +603,7 @@ import {
   function openPreview() {
     if (!signingAuthority().ok) return;
     closeAssetMenu();
+    document.querySelector('#wynd-offline-ghost').classList.remove('visible');
     const address = window.NETA_WALLET_STATE.address,
       tx = buildTransaction(quote, address);
     previewIntent = {
@@ -800,6 +806,7 @@ import {
   }
   function openAssetMenu(side) {
     if (signing || dom.modal.open) return;
+    document.querySelector('#wynd-offline-ghost').classList.remove('visible');
     if (menuSide === side && !dom.assetMenu.hidden) return closeAssetMenu(true);
     closeAssetMenu();
     menuSide = side;

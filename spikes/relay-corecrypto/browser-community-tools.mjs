@@ -46,7 +46,10 @@ try {
     badCode = false,
     returned = '10094',
     poolJuno = '100000000000',
-    badToken = false;
+    badToken = false,
+    holdQuote = false,
+    quoteStarted = () => {};
+  const heldQuotes = [];
   const samplePools = Object.fromEntries(
     POOLS.map((p) => [
       p.id,
@@ -108,6 +111,10 @@ try {
       }
       if (query.balance) data = { balance: '100000000' };
       if (query.simulation) {
+        if (holdQuote && selected.id === 'juno-neta') {
+          quoteStarted();
+          await new Promise((resolve) => heldQuotes.push(resolve));
+        }
         if (selected.id === 'juno-neta')
           data = {
             return_amount: query.simulation.offer_asset.info.token ? '983732' : returned,
@@ -398,7 +405,12 @@ try {
   assert.equal(await page.locator('#swap-action').isDisabled(), true);
   await page.locator('#connect-wallet').click();
   // Both selectors expose all six assets and move to an existing direct pair.
+  await page.evaluate(() => document.querySelector('#wynd-offline-ghost').classList.add('visible'));
   await page.locator('#offer-asset').click();
+  assert.equal(
+    await page.locator('#wynd-offline-ghost').evaluate((e) => e.classList.contains('visible')),
+    false
+  );
   assert.equal(await page.getByRole('option').count(), 6);
   await page.keyboard.press('Escape');
   assert.equal(
@@ -415,8 +427,10 @@ try {
   await textIs('#contract-state', 'Verified');
   await textIs('#offer-symbol', 'JUNO');
   for (const target of POOLS) {
-    await page.locator('[data-pool="' + target.id + '"]').click();
+    await page.locator('[data-pool="' + target.id + '"]').focus();
+    await page.keyboard.press('Enter');
     await textIs('#contract-state', 'Verified');
+    assert.equal(await page.evaluate(() => document.activeElement.dataset.pool), target.id);
     for (let direction = 0; direction < 2; direction++) {
       if (direction) await page.locator('#reverse-swap').click();
       await page.locator('#offer-amount').fill('1');
@@ -442,6 +456,25 @@ try {
       await page.locator('#close-swap').click();
     }
   }
+  // A delayed quote for the previous pair cannot replace the new asset/quote.
+  await page.locator('[data-pool="juno-neta"]').click();
+  await textIs('#contract-state', 'Verified');
+  holdQuote = true;
+  const started = new Promise((resolve) => {
+    quoteStarted = resolve;
+  });
+  await page.locator('#offer-amount').fill('2');
+  await started;
+  await page.locator('[data-pool="juno-atom"]').click();
+  await textIs('#contract-state', 'Verified');
+  assert.equal(await page.locator('#offer-amount').inputValue(), '');
+  await page.locator('#offer-amount').fill('1');
+  await ready();
+  holdQuote = false;
+  heldQuotes.splice(0).forEach((resolve) => resolve());
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator('#receive-symbol').textContent(), 'ATOM');
+  assert.match(await page.locator('#quote-rate').textContent(), /ATOM$/);
   // Max and exact $50 boundary for the explicitly labelled Axelar USDC.
   await page.locator('[data-pool="juno-usdc"]').click();
   await textIs('#contract-state', 'Verified');
