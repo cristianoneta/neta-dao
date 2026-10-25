@@ -39,7 +39,7 @@ export function signingLoader({
 
 export const loadGovernanceSigning = signingLoader({
   name: 'NetaJunoGovernance',
-  source: '/assets/juno-governance-signing.js?v=20261023-dao-dao-claim-1'
+  source: '/assets/juno-governance-signing.js?v=20261025-rebalance-1'
 });
 export const loadSocialsSigning = signingLoader({
   name: 'NetaSocialsTestnet',

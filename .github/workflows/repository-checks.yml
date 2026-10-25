@@ -93,7 +93,7 @@ jobs:
           curl --fail --location --retry 3 https://github.com/CosmosContracts/juno/releases/download/v31.0.0/junod --output "$RUNNER_TEMP/junod"
           echo "46fddb2c8c3fadcded48c63f72d88e9452cfd8a1da282892878a9f05d47f873c  $RUNNER_TEMP/junod" | sha256sum --check
           chmod 700 "$RUNNER_TEMP/junod"
-      - name: Execute original and corrected claims through local Juno governance
+      - name: Execute claims, staking and Community Pool proposals through local Juno governance
         run: node scripts/check-programme-execution.mjs "$RUNNER_TEMP/junod"
   wasm:
     needs: scope

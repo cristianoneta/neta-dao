@@ -7,6 +7,12 @@ import {
   DAI_RECIPIENT
 } from '../../juno-community-pool-proposal.mjs';
 import test from 'node:test';
+import {
+  MsgDelegate,
+  MsgBeginRedelegate,
+  MsgUndelegate
+} from 'cosmjs-types/cosmos/staking/v1beta1/tx';
+import { stakingMessages } from '../../juno-programme-staking.mjs';
 import assert from 'node:assert/strict';
 import { TxRaw, TxBody, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { MsgSubmitProposal, MsgDeposit } from 'cosmjs-types/cosmos/gov/v1/tx';
@@ -31,6 +37,36 @@ const content = {
   messages: []
 };
 const fee = { gas: '100000', amount: [{ denom: 'ujuno', amount: '7500' }] };
+test('independent SDK codecs verify every staking type inside the native programme envelope', () => {
+  const validators = JSON.parse(
+    readFileSync(new URL('../../tests/fixtures/juno-proposal-381.json', import.meta.url))
+  ).proposal.messages[0].msg.execute_admin_msgs.msgs.map(
+    (m) => m.distribution.withdraw_delegator_reward.validator
+  );
+  const moves = [
+    { kind: 'delegate', destination: validators[0], amountRaw: '9007199254740993' },
+    { kind: 'redelegate', source: validators[1], destination: validators[2], amountRaw: '1234567' },
+    { kind: 'undelegate', source: validators[3], amountRaw: '7654321' }
+  ];
+  const outer = message({ ...content, messages: stakingMessages(moves) }, sender, '100000000');
+  const native = MsgSubmitProposal.decode(MsgSubmitProposal.encode(outer.value).finish());
+  const execute = MsgExecuteContract.decode(native.messages[0].value);
+  assert.equal(execute.sender, GOVERNANCE);
+  assert.equal(execute.contract, PROGRAMME);
+  assert.deepEqual(execute.funds, []);
+  const inner = JSON.parse(new TextDecoder().decode(execute.msg)).execute_admin_msgs.msgs;
+  for (const [i, codec] of [MsgDelegate, MsgBeginRedelegate, MsgUndelegate].entries()) {
+    const bytes = Buffer.from(inner[i].stargate.value, 'base64'),
+      decoded = codec.decode(bytes);
+    assert.equal(decoded.delegatorAddress, PROGRAMME);
+    assert.deepEqual(decoded.amount, { denom: 'ujuno', amount: moves[i].amountRaw });
+    if (i === 1) {
+      assert.equal(decoded.validatorSrcAddress, moves[i].source);
+      assert.equal(decoded.validatorDstAddress, moves[i].destination);
+    } else assert.equal(decoded.validatorAddress, moves[i].source || moves[i].destination);
+    assert.deepEqual(Buffer.from(codec.encode(decoded).finish()), bytes);
+  }
+});
 test('independent SDK codecs decode all 37 corrected withdrawals inside native governance', () => {
   const original = JSON.parse(
     readFileSync(new URL('../../tests/fixtures/juno-proposal-381.json', import.meta.url))

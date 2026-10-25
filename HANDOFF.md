@@ -4,6 +4,17 @@ Updated 25 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
+## Active product work: checked Rebalance
+
+The owner clarified that the Delegation Programme is an independent product,
+integrated with Cosmoot and bringing users into it, not Cosmoot's product core.
+Continue with the [checked execution specification](docs/REBALANCE_EXECUTION_2026-10-25.md).
+Preserve rule approval versus fund execution and the exploratory status of bonus
+points. PR #318's compact criteria, monetary sorting and unified Review are live
+in manual release 40200433577 at source e7fb5c966ba99b7265e3ce25053920da5c7c5b3c.
+The new execution implementation needs its own deliberate manual website release.
+No host installation, contract deployment or custody change is involved.
+
 ## Current delegation workspace refinement
 
 The owner approved bringing the separate design lab into the real application.
@@ -11,7 +22,7 @@ PR #316 only partially transferred it; PR #317 restored its composition and was
 published in release 40196047184. The current refinement responds to the owner's
 remaining screenshot feedback: compact aligned criteria, sortable current/target/
 change columns, and a single Review instead of duplicate Compare and Review pages.
-The candidate navigation is Eligibility → Distribution → Review → Rebalance.
+The published navigation is Eligibility → Distribution → Review → Rebalance.
 Programme overview remains a secondary link; legacy #simulation links reach Review.
 See [scope, proposal capabilities and remaining boundaries](docs/DELEGATION_WORKSPACE_2026-10-25.md).
 Preserve exact approved rule versions; local policy edits must never alter a

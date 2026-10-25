@@ -5,6 +5,17 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
+## Programme product boundary and execution — owner update, 25 October 2026
+
+Treat the Delegation Programme as an independent integrated product, not Cosmoot's
+product core. Keep planning focused; use the Cosmoot proposal workspace for
+community review and native governance. Rebalance reports target allocations,
+concrete delegate/redelegate/unbond amounts and current blockers separately.
+Only offer Open execution proposal draft after complete movement checks; recheck
+when selected. Keep approval identity, source date, unbonding delay and eventual
+execution status explicit. Preserve the non-executable allocation export and
+historical rule semantics. See [execution specification](REBALANCE_EXECUTION_2026-10-25.md).
+
 ## Delegation clarity — owner refinement, 25 October 2026
 
 Use four planning views: **Eligibility, Distribution, Review, Rebalance**.

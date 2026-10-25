@@ -1,3 +1,4 @@
+import { stakingMessages } from '../juno-programme-staking.mjs';
 import {
   communityPoolMessages,
   DAI_DENOM,
@@ -143,7 +144,7 @@ try {
       jailed: false,
       status: i === 0 ? 'BOND_STATUS_BONDED' : 'BOND_STATUS_UNBONDED',
       tokens: String(tokens),
-      delegator_shares: tokens + '.000000000000000000',
+      delegator_shares: (i === 36 ? tokens * 0.99 : tokens) + '.000000000000000000',
       description: {
         moniker: `LOCAL TEST ${i}`,
         identity: '',
@@ -170,7 +171,7 @@ try {
       s.delegations.push({
         delegator_address: who,
         validator_address: address,
-        shares: stake + '.000000000000000000'
+        shares: (i === 36 ? stake * 0.99 : stake) + '.000000000000000000'
       });
       d.delegator_starting_infos.push({
         delegator_address: who,
@@ -417,6 +418,77 @@ try {
   assert.equal(overdraw.status, 'PROPOSAL_STATUS_FAILED');
   assert.match(overdraw.failed_reason, /community pool does not have sufficient coins/i);
   assert.equal(await daiBalance(), BigInt(DAI_AMOUNT));
+  const funded = await tx('bank', 'send', voter, PROGRAMME, '100000000ujuno');
+  assert.equal(funded.code, 0, funded.raw_log);
+  const stakeBefore = await positions();
+  const stake = await runProposal(
+    'programme-staking',
+    stakingMessages([
+      {
+        kind: 'redelegate',
+        source: validators[0],
+        destination: validators[1],
+        amountRaw: '2000000'
+      },
+      {
+        kind: 'redelegate',
+        source: validators[36],
+        destination: validators[35],
+        amountRaw: '1234567'
+      },
+      { kind: 'delegate', destination: validators[2], amountRaw: '5000000' },
+      { kind: 'undelegate', source: validators[3], amountRaw: '3000000' }
+    ])
+  );
+  assert.equal(stake.status, 'PROPOSAL_STATUS_PASSED', stake.failed_reason);
+  const stakeAfter = await positions();
+  const held = (rows, address) =>
+    BigInt(rows.find((p) => p.delegation.validator_address === address)?.balance.amount || '0');
+  for (const [i, delta] of [
+    [0, -2000000n],
+    [1, 2000000n],
+    [2, 5000000n],
+    [3, -3000000n]
+  ])
+    assert.equal(held(stakeAfter, validators[i]) - held(stakeBefore, validators[i]), delta);
+  const fractionalCredit = held(stakeAfter, validators[35]) - held(stakeBefore, validators[35]);
+  assert.ok(
+    fractionalCredit >= 1234566n && fractionalCredit <= 1234567n,
+    'Non-unit share exchange rate rounding is bounded'
+  );
+  const unbondings = (
+    await get(rest + `/cosmos/staking/v1beta1/delegators/${PROGRAMME}/unbonding_delegations`)
+  ).unbonding_responses;
+  assert.equal(
+    unbondings.find((v) => v.validator_address === validators[3]).entries[0].balance,
+    '3000000'
+  );
+  assert.ok((await balance()) >= 50000000n, 'Liquid reserve remains available');
+  const atomicBefore = await balance();
+  const blocked = await runProposal(
+    'programme-transitive-atomic',
+    stakingMessages([
+      { kind: 'delegate', destination: validators[4], amountRaw: '1000000' },
+      {
+        kind: 'redelegate',
+        source: validators[1],
+        destination: validators[2],
+        amountRaw: '1000000'
+      }
+    ])
+  );
+  assert.equal(blocked.status, 'PROPOSAL_STATUS_FAILED');
+  assert.match(blocked.failed_reason, /redelegation to this validator already in progress/i);
+  assert.deepEqual(
+    await positions(),
+    stakeAfter,
+    'Failed staking proposal rolls back earlier movements'
+  );
+  assert.equal(
+    await balance(),
+    atomicBefore,
+    'Failed proposal leaves programme liquid funds intact'
+  );
   const report = {
     chain,
     juno: 'v31.0.0',
@@ -430,6 +502,14 @@ try {
       withdrawals: withdrawals.length,
       programmeReceivedUjuno: String(after - before),
       delegationsUnchanged: true
+    },
+    staking: {
+      status: stake.status,
+      movements: 4,
+      fractionalCreditUjuno: String(fractionalCredit),
+      unbondingUjuno: '3000000',
+      transitiveFailure: blocked.status,
+      atomicRollback: true
     },
     communityPool: {
       status: transfer.status,

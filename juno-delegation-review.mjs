@@ -423,6 +423,8 @@ export async function decodeRuleReview(body) {
   return review;
 }
 export async function readProposalReview(values) {
+  const { readExecutionReview } = await import('./juno-rebalance-execution.mjs');
+  if (await readExecutionReview(values)) return null;
   const review = await decodeRuleReview(values.body);
   if (review) {
     if (

@@ -17,7 +17,9 @@ export function validatePlannerDraft(value) {
     value.daoId !== (community ? 'juno' : 'juno-delegation') ||
     value.chainId !== 'juno-1' ||
     (!community && value.programme !== PROGRAMME) ||
-    !['RULE_APPROVAL', 'CLAIM_REWARDS', COMMUNITY_POOL_KIND].includes(value.kind)
+    !['RULE_APPROVAL', 'CLAIM_REWARDS', 'ALLOCATION_EXECUTION', COMMUNITY_POOL_KIND].includes(
+      value.kind
+    )
   )
     throw Error('Invalid planner proposal context.');
   for (const [key, limit] of [
@@ -203,4 +205,18 @@ export function upgradeLegacyPlannerValues(values, kind) {
       'Legacy rewards actions were modified. Review the saved draft before preparing a new claim.'
     );
   return { ...values, actions_json: JSON.stringify(legacyRewardMessages(validators), null, 2) };
+}
+
+export async function rebalanceProposal(review) {
+  const { executionValues } = await import('./juno-rebalance-execution.mjs');
+  return validatePlannerDraft({
+    schema: 2,
+    governanceDaoId: 'juno',
+    daoId: 'juno-delegation',
+    chainId: 'juno-1',
+    programme: PROGRAMME,
+    kind: 'ALLOCATION_EXECUTION',
+    createdAt: new Date().toISOString(),
+    values: await executionValues(review)
+  });
 }

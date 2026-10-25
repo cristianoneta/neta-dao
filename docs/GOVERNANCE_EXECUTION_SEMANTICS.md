@@ -87,6 +87,15 @@ The [23 October repair report](PROGRAMME_CLAIM_REPAIR_2026-10-23.md) records the
 real Juno execution regression, runtime pins and fixture limitations. The
 required `programme_execution` CI job reruns it for source changes and releases.
 
+## Staking execution
+
+The checked Rebalance path uses the same governance/admin/Stargate authority
+boundaries for MsgDelegate, MsgBeginRedelegate and MsgUndelegate. It binds approved
+rules, sufficient calculation evidence and exact movement amounts, and independently
+checks current holdings, funds and staking locks. The required local Juno regression
+now covers successful staking, unbonding records, non-unit share rates and atomic
+rollback after a transitive-redelegation failure. [Specification and limits](REBALANCE_EXECUTION_2026-10-25.md).
+
 ## One-time replacement explanation
 
 The first corrected claim after proposal 381 must explain the incompatible old

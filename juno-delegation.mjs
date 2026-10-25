@@ -1036,6 +1036,7 @@ try {
 rebalance = mountRebalance({
   getContext: () => ({ approval, data, evidence }),
   readApproval: async () => (await currentApprovedRules()).current,
+  openProposal,
   download
 });
 restoreRuleInputs();

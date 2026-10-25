@@ -1,3 +1,4 @@
+import { isStaking } from './juno-programme-staking.mjs';
 import { loadGovernanceSigning } from './browser-signing.mjs';
 import { isCommunityPoolSpend } from './juno-community-pool-proposal.mjs';
 import {
@@ -245,7 +246,11 @@ export function nativePlanner({
           return;
         }
         const proof = await preflight(rests, content, sender);
-        if (content.messages.length && !isCommunityPoolSpend(content.messages))
+        if (
+          content.messages.length &&
+          !isCommunityPoolSpend(content.messages) &&
+          !isStaking(content.messages)
+        )
           assertClaimContext(content, await readClaimContext(rests));
         current(epoch, fingerprint, sender, id);
         if (canonical(proof.terms) !== canonical(displayed.terms)) {
@@ -277,9 +282,11 @@ export function nativePlanner({
           `Total deposit needed for voting: ${displayJuno(proof.terms.total)} JUNO · Verified at block ${proof.height}.\n` +
           (isCommunityPoolSpend(content.messages)
             ? 'After approval, Juno governance transfers 460.9 axlDAI from the Community Pool to the recipient in proposal #382. Dimi performs the USDC conversion and return separately.'
-            : content.messages.length
-              ? 'Juno governance instructs the programme treasury to claim its staking rewards after approval.'
-              : 'Text-only rule approval. No delegation or treasury execution is authorized.') +
+            : isStaking(content.messages)
+              ? 'Juno governance executes the exact reviewed staking movements after approval. Changes during voting can cause execution to fail.'
+              : content.messages.length
+                ? 'Juno governance instructs the programme treasury to claim its staking rewards after approval.'
+                : 'Text-only rule approval. No delegation or treasury execution is authorized.') +
           '\nThe deposit is subject to Juno’s refund and burn rules. If the total deposit is not reached in time, the proposal will not enter voting. The fee is paid when submitting.';
         $('#planner-native-review').hidden = false;
         status('PROPOSAL CHECKED · CONFIRM THE DEPOSIT AND FEE IN KEPLR');
@@ -293,7 +300,7 @@ export function nativePlanner({
           await verifyReview(reviewEndpoints(), review.expectedReview);
           if (isCommunityPoolSpend(review.content.messages))
             await readCommunityPool(rests, review.content.messages);
-          else if (review.content.messages.length)
+          else if (review.content.messages.length && !isStaking(review.content.messages))
             assertClaimContext(review.content, await readClaimContext(rests));
           if ((await findReviewSubmission(rests, review.content)).length)
             throw Error(
