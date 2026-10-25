@@ -47,7 +47,7 @@ export function renderPolicyImpact(host, model) {
   );
   head.append(
     heading,
-    node('span', model.historical ? 'Historical snapshot' : 'Live-data model', 'impact-source')
+    node('span', model.historical ? 'Historical snapshot' : 'Programme snapshot', 'impact-source')
   );
   const metrics = node('div', undefined, 'impact-metrics');
   const result = model.result;
@@ -129,7 +129,7 @@ export function renderPolicyImpact(host, model) {
       const line = node('tr');
       const name = node('td');
       const details = node('details');
-      const summary = node('summary', row.name);
+      const summary = node('summary', row.name.trim() || row.address);
       details.append(
         summary,
         node(
