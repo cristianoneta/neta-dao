@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -12,53 +12,48 @@
       name="description"
       content="Set Juno delegation rules, review their impact and prepare a community rule proposal."
     />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" href="/assets/cosmoot-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/neta-ui.css" />
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
     <link rel="stylesheet" href="/juno-delegation.css?v=9" />
-    <script type="module" src="/juno-delegation.mjs?v=20261025-workspace-1"></script>
+    <script type="module" src="/juno-delegation.mjs?v=20261025-lab-2"></script>
     <link rel="stylesheet" href="/juno-rule-review.css?v=20261017-1" />
-    <link rel="stylesheet" href="/juno-delegation-workspace.css?v=1" />
+    <link rel="stylesheet" href="/juno-delegation-workspace.css?v=2" />
   </head>
   <body>
     <a class="planner-skip" href="#planner-heading">Skip to planner</a>
-    <header class="gov-header faucet-header delegation-header">
-      <a class="gov-brand" href="/index.html">COSMOOT</a>
-      <a class="faucet-header-label" href="/community-tools/">COMMUNITY TOOLS</a>
-      <a class="workspace-link" href="/index.html" aria-label="Open the Cosmoot DAO workspace"
-        >DAO workspace <span aria-hidden="true">↗</span></a
+    <header class="policy-header">
+      <a class="policy-brand" href="/index.html"
+        ><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span
+        ><span>COSMOOT<span class="brand-sub">Delegation Programme</span></span></a
       >
-      <div class="gov-controls"><span class="community-network">Juno mainnet</span></div>
+      <div class="policy-context">
+        <span>JUNO MAINNET</span><a href="/community-tools/">Community Tools</a>
+      </div>
+      <div class="policy-header-actions">
+        <span>Local rule draft</span
+        ><button id="theme-toggle" type="button" aria-label="Switch to light appearance">◐</button>
+      </div>
     </header>
     <main class="tools-hub delegation-hub">
-      <nav class="tool-breadcrumb" aria-label="Breadcrumb">
-        <a href="/community-tools/">Community Tools</a><span aria-hidden="true"> / </span
-        ><a href="/community-tools/#interchain">Interchain</a><span aria-hidden="true"> / </span
-        ><a href="/community-tools/delegation/">Delegation Programme</a
-        ><span aria-hidden="true"> / </span><span>Juno</span>
-      </nav>
       <header class="delegation-intro">
-        <div class="programme-identity">
-          <img src="/assets/juno-chain.png" width="48" height="48" alt="" />
-          <div>
-            <p class="eyebrow">COMMUNITY CAPITAL · JUNO</p>
-            <h1 id="planner-heading" tabindex="-1">Delegation Programme</h1>
-            <p class="intro-copy">See the programme today. Shape its next allocation.</p>
-          </div>
+        <div>
+          <h1 id="planner-heading" tabindex="-1">Design a delegation policy.</h1>
+          <p class="intro-copy">
+            Eligibility first. Then a shared base and rewards for useful contribution.
+          </p>
         </div>
-        <a
-          class="intro-link"
-          href="/index.html?chain=juno&amp;dao=juno&amp;subdao=juno-delegation#treasury"
-          >Programme treasury <span aria-hidden="true">↗</span></a
+        <a class="programme-overview-link" href="#overview" data-step="overview"
+          >Programme overview ↗</a
         >
       </header>
       <nav class="planner-steps" aria-label="Programme views">
-        <a href="#overview" data-step="overview" aria-current="step"
-          ><span class="step-number" aria-hidden="true">01</span>Overview</a
+        <a href="#rules" data-step="rules" aria-current="step"
+          ><span class="step-number" aria-hidden="true">01</span>Eligibility</a
         >
-        <a href="#rules" data-step="rules"
-          ><span class="step-number" aria-hidden="true">02</span>Rules</a
+        <a href="#distribution" data-step="distribution"
+          ><span class="step-number" aria-hidden="true">02</span>Distribution</a
         >
         <a href="#simulation" data-step="simulation"
           ><span class="step-number" aria-hidden="true">03</span>Compare</a
@@ -355,55 +350,122 @@
         </details>
       </section>
       <section id="rules" class="planner-panel" aria-labelledby="rules-title" hidden>
-        <div class="section-heading">
-          <h2 id="rules-title" tabindex="-1">Shape the next allocation</h2>
-          <span class="state-pill neutral">Equal distribution</span>
-        </div>
-        <p class="section-description">
-          Eligibility first. Then a shared allocation within the voting-power limit.
-        </p>
-        <div id="draft-parent-notice" aria-live="polite">
-          <p id="draft-parent-note">Checking the approved baseline…</p>
-          <button id="adopt-current-rules" type="button" hidden>
-            Start from current approved rules
-          </button>
-        </div>
-        <div class="rules-workspace">
-          <div class="rules-form">
+        <div class="policy-workspace">
+          <div class="policy-controls">
             <article class="planner-card eligibility-rules">
               <div class="policy-heading">
-                <h3>Validator eligibility</h3>
-                <span class="state-pill neutral">V1 · evidence required</span>
+                <h2 id="rules-title" tabindex="-1">Who is eligible?</h2>
+                <span class="state-pill neutral">All must pass</span>
               </div>
-              <p>
-                These checks decide who can receive an allocation. The voting-power limit also caps
-                each target.
-              </p>
-              <details id="rules-eligibility-details" class="policy-details" open="">
-                <summary>Eligibility criteria · 6 checks</summary>
-                <section class="criterion compact-criterion" aria-labelledby="status-criterion">
+              <p class="policy-subtitle">Entry rules are independent of bonus points.</p>
+              <p class="safety-line">✓ Not jailed · always required</p>
+              <details id="rules-eligibility-details" class="policy-details" open>
+                <summary>Eligibility criteria</summary>
+                <section class="criterion compact-criterion" aria-labelledby="uptime-criterion">
                   <div class="criterion-label">
-                    <h4 id="status-criterion">
+                    <h4 id="uptime-criterion">
                       <button
                         type="button"
                         class="criterion-help"
                         aria-expanded="false"
-                        aria-controls="status-tooltip"
+                        aria-controls="uptime-tooltip"
                       >
-                        Validator status
+                        Minimum uptime
                       </button>
                     </h4>
-                    <div class="criterion-tooltip" id="status-tooltip" role="tooltip" hidden>
-                      <span id="draft-eligibility-description"
-                        >Continuous active-set membership; not jailed.</span
-                      >
-                      The observation window grows with collected history, then rolls over the
-                      latest 90 days. Unknown evidence does not qualify.
+                    <div class="criterion-tooltip" id="uptime-tooltip" role="tooltip" hidden>
+                      Signed blocks divided by expected active-set slots, not server availability.
+                      Absent and nil signatures do not count. Choose 95–100% in steps of 0.01%.
+                      Changing the threshold requires a new rule approval.
                     </div>
                   </div>
                   <div class="criterion-control">
-                    <span class="fixed-rule">Active · not jailed</span>
+                    <label class="sr-only" for="uptime">Minimum uptime · %</label>
+                    <div class="number-unit">
+                      <input
+                        id="uptime"
+                        type="number"
+                        min="95"
+                        max="100"
+                        step="0.01"
+                        value="97.5"
+                        inputmode="decimal"
+                        aria-describedby="uptime-help uptime-error"
+                      /><span>%</span>
+                    </div>
                   </div>
+                  <p id="uptime-help" class="sr-only">
+                    Minimum observed commit signatures; proposed default 97.5%.
+                  </p>
+                  <p id="uptime-error" class="field-error criterion-detail" hidden>
+                    Enter an uptime threshold from 95 to 100 with up to two decimal places.
+                  </p>
+                </section>
+                <section class="criterion compact-criterion" aria-labelledby="commission-criterion">
+                  <div class="criterion-label">
+                    <h4 id="commission-criterion">
+                      <button
+                        type="button"
+                        class="criterion-help"
+                        aria-expanded="false"
+                        aria-controls="commission-tooltip"
+                      >
+                        Maximum commission
+                      </button>
+                    </h4>
+                    <div class="criterion-tooltip" id="commission-tooltip" role="tooltip" hidden>
+                      Maximum validator commission. Enter a whole number from 0 to 100, or
+                      explicitly remove this limit. Proposed default: 10%.
+                    </div>
+                  </div>
+                  <div class="criterion-control">
+                    <label class="sr-only" for="commission">Maximum commission · %</label>
+                    <div class="number-unit">
+                      <input
+                        id="commission"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value="10"
+                        inputmode="numeric"
+                        aria-describedby="commission-help commission-error"
+                      /><span>%</span>
+                    </div>
+                    <label class="check-option" for="no-commission-limit"
+                      ><input id="no-commission-limit" type="checkbox" />No limit</label
+                    >
+                  </div>
+                  <p id="commission-help" class="sr-only">Whole numbers from 0 to 100.</p>
+                  <p id="commission-error" class="field-error criterion-detail" hidden>
+                    Enter a whole-number commission limit from 0 to 100.
+                  </p>
+                </section>
+                <section class="criterion compact-criterion" aria-labelledby="history-criterion">
+                  <div class="criterion-label">
+                    <h4 id="history-criterion">
+                      <button
+                        type="button"
+                        class="criterion-help"
+                        aria-expanded="false"
+                        aria-controls="history-tooltip"
+                      >
+                        Active-set history
+                      </button>
+                    </h4>
+                    <div class="criterion-tooltip" id="history-tooltip" role="tooltip" hidden>
+                      <span id="draft-eligibility-description"></span> The window grows
+                      automatically with collected history until 90 days are available. Missing
+                      observations remain unavailable.
+                    </div>
+                  </div>
+                  <div class="criterion-control">
+                    <div class="number-unit"><output>90</output><span>days</span></div>
+                  </div>
+                  <details class="criterion-detail quiet-details">
+                    <summary id="history-window-summary">Observed history</summary>
+                    <p id="draft-history-coverage" class="field-help"></p>
+                  </details>
                 </section>
                 <section class="criterion compact-criterion" aria-labelledby="power-criterion">
                   <div class="criterion-label">
@@ -454,46 +516,6 @@
                     <summary id="cap-description">Projected voting-power limit</summary>
                     <p id="cap-formula">Cap = min(30%, factor × 100% / active validator count).</p>
                   </details>
-                </section>
-                <section class="criterion compact-criterion" aria-labelledby="commission-criterion">
-                  <div class="criterion-label">
-                    <h4 id="commission-criterion">
-                      <button
-                        type="button"
-                        class="criterion-help"
-                        aria-expanded="false"
-                        aria-controls="commission-tooltip"
-                      >
-                        Maximum commission
-                      </button>
-                    </h4>
-                    <div class="criterion-tooltip" id="commission-tooltip" role="tooltip" hidden>
-                      Maximum validator commission. Enter a whole number from 0 to 100, or
-                      explicitly remove this limit. Proposed default: 10%.
-                    </div>
-                  </div>
-                  <div class="criterion-control">
-                    <label class="sr-only" for="commission">Maximum commission · %</label>
-                    <div class="number-unit">
-                      <input
-                        id="commission"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value="10"
-                        inputmode="numeric"
-                        aria-describedby="commission-help commission-error"
-                      /><span>%</span>
-                    </div>
-                    <label class="check-option" for="no-commission-limit"
-                      ><input id="no-commission-limit" type="checkbox" />No limit</label
-                    >
-                  </div>
-                  <p id="commission-help" class="sr-only">Whole numbers from 0 to 100.</p>
-                  <p id="commission-error" class="field-error criterion-detail" hidden>
-                    Enter a whole-number commission limit from 0 to 100.
-                  </p>
                 </section>
                 <section class="criterion compact-criterion" aria-labelledby="upgrade-criterion">
                   <div class="criterion-label">
@@ -547,73 +569,29 @@
                   <div class="criterion-control">
                     <span class="fixed-rule" id="exclusion-count" aria-live="polite">· none</span>
                   </div>
-                  <div class="exclusion-editor criterion-detail">
-                    <label for="excluded-validator">Juno validator</label
-                    ><input
-                      id="excluded-validator"
-                      list="validator-options"
-                      placeholder="Validator name or junovaloper1…"
-                      autocomplete="off"
-                      spellcheck="false"
-                    /><datalist id="validator-options"></datalist
-                    ><label for="excluded-reason">Public reason</label
-                    ><input
-                      id="excluded-reason"
-                      maxlength="300"
-                      placeholder="For example: exchange-operated validator"
-                    /><button id="add-exclusion" type="button">Add exclusion</button>
-                    <ul id="exclusions" class="exclusions"></ul>
-                    <p id="empty-exclusions" class="field-help">
-                      No manual exclusions in this draft.
-                    </p>
-                  </div>
-                </section>
-                <section class="criterion compact-criterion" aria-labelledby="uptime-criterion">
-                  <div class="criterion-label">
-                    <h4 id="uptime-criterion">
-                      <button
-                        type="button"
-                        class="criterion-help"
-                        aria-expanded="false"
-                        aria-controls="uptime-tooltip"
-                      >
-                        Minimum uptime
-                      </button>
-                    </h4>
-                    <div class="criterion-tooltip" id="uptime-tooltip" role="tooltip" hidden>
-                      Signed blocks divided by expected active-set slots, not server availability.
-                      Absent and nil signatures do not count. Choose 95–100% in steps of 0.01%.
-                      Changing the threshold requires a new rule approval.
+                  <details class="criterion-detail quiet-details">
+                    <summary>Edit exclusions</summary>
+                    <div class="exclusion-editor criterion-detail">
+                      <label for="excluded-validator">Juno validator</label
+                      ><input
+                        id="excluded-validator"
+                        list="validator-options"
+                        placeholder="Validator name or junovaloper1…"
+                        autocomplete="off"
+                        spellcheck="false"
+                      /><datalist id="validator-options"></datalist
+                      ><label for="excluded-reason">Public reason</label
+                      ><input
+                        id="excluded-reason"
+                        maxlength="300"
+                        placeholder="For example: exchange-operated validator"
+                      /><button id="add-exclusion" type="button">Add exclusion</button>
+                      <ul id="exclusions" class="exclusions"></ul>
+                      <p id="empty-exclusions" class="field-help">
+                        No manual exclusions in this draft.
+                      </p>
                     </div>
-                  </div>
-                  <div class="criterion-control">
-                    <label class="sr-only" for="uptime">Minimum uptime · %</label>
-                    <div class="number-unit">
-                      <input
-                        id="uptime"
-                        type="number"
-                        min="95"
-                        max="100"
-                        step="0.01"
-                        value="97.5"
-                        inputmode="decimal"
-                        aria-describedby="uptime-help uptime-error"
-                      /><span>%</span>
-                    </div>
-                  </div>
-                  <p id="uptime-help" class="sr-only">
-                    Minimum observed commit signatures; proposed default 97.5%.
-                  </p>
-                  <p id="uptime-error" class="field-error criterion-detail" hidden>
-                    Enter an uptime threshold from 95 to 100 with up to two decimal places.
-                  </p>
-                  <p
-                    class="field-help criterion-detail"
-                    id="draft-history-coverage"
-                    aria-live="polite"
-                  >
-                    Loading the observed history period…
-                  </p>
+                  </details>
                 </section>
               </details>
             </article>
@@ -622,8 +600,23 @@
               ><button id="reset-draft" type="button">Reset rules</button
               ><span id="draft-status" class="field-help">Not saved · unapproved</span>
             </div>
+            <a
+              class="action-link primary-action next-distribution"
+              href="#distribution"
+              data-step="distribution"
+              >Continue to distribution →</a
+            >
           </div>
-          <div class="rules-sidebar">
+          <div class="policy-impact" id="rules-impact"></div>
+        </div>
+      </section>
+      <section id="distribution" class="planner-panel" aria-labelledby="distribution-title" hidden>
+        <h2 id="distribution-title" class="sr-only" tabindex="-1">Shape the distribution</h2>
+        <div class="policy-workspace">
+          <div class="policy-controls">
+            <section id="roadmap" aria-label="Future policy settings">
+              <div id="rules-future-policy"></div>
+            </section>
             <article class="planner-card allocation-settings">
               <h3>Allocation budget</h3>
               <div class="budget-available">
@@ -650,6 +643,9 @@
               </details>
               <p id="reserve-note" class="field-help"></p>
             </article>
+          </div>
+          <div class="policy-impact">
+            <div id="distribution-impact"></div>
             <aside class="planner-card draft-summary" aria-label="Your allocation draft">
               <p class="eyebrow">YOUR DRAFT</p>
               <h3>Equal allocation</h3>
@@ -685,22 +681,21 @@
                 placeholder="Explain the decision to voters"
               ></textarea
               ><button id="simulate" class="primary-action" type="button" disabled>
-                Review rules &amp; impact →
+                Freeze comparison →
               </button>
               <p class="field-help">
                 Next: compare current and proposed allocations. No wallet connection required.
               </p>
               <span class="draft-local">Local draft · not submitted</span>
             </aside>
+            <div id="draft-parent-notice" aria-live="polite">
+              <p id="draft-parent-note">Checking the approved baseline…</p>
+              <button id="adopt-current-rules" type="button" hidden>
+                Start from current approved rules
+              </button>
+            </div>
           </div>
         </div>
-        <details id="roadmap" class="model-details" aria-label="Future policy settings">
-          <summary>
-            <span>Future scoring models</span
-            ><span class="summary-meta">Base + bonus · planned</span>
-          </summary>
-          <div id="rules-future-policy" class="future-policy-grid"></div>
-        </details>
       </section>
       <section id="simulation" class="planner-panel" aria-labelledby="simulation-title" hidden>
         <div class="section-heading">
@@ -713,7 +708,7 @@
         </p>
         <div class="rule-summary">
           <p id="rule-summary">Review the draft rules before simulating.</p>
-          <a href="#rules" data-step="rules">Edit rules or amount</a>
+          <a href="#rules" data-step="rules">Edit eligibility</a>
         </div>
         <div id="simulation-comparison">
           <p>Review the draft to see its rules and allocation impact.</p>
@@ -737,7 +732,7 @@
           </p>
         </details>
         <div class="step-actions">
-          <a href="#rules" data-step="rules">← Edit rules or amount</a
+          <a href="#rules" data-step="rules">← Edit eligibility</a
           ><button id="review-proposal" type="button" class="primary-action" disabled>
             Review rule proposal →
           </button>
@@ -787,7 +782,7 @@
           </p>
         </details>
         <div class="step-actions">
-          <a href="#simulation" data-step="simulation">← Back to distribution</a>
+          <a href="#simulation" data-step="simulation">← Back to comparison</a>
           <div class="draft-actions">
             <button id="export-json" type="button" disabled>Download review data</button
             ><button id="publish-proposal" class="primary-action" type="button" disabled>

@@ -156,15 +156,23 @@ try {
   });
   const ready = () => page.waitForFunction(() => !document.getElementById('simulate').disabled);
   const step = async (name) => {
-    await page.locator(`.planner-steps [data-step="${name}"]`).click();
+    await page
+      .locator(
+        name === 'overview' ? '.programme-overview-link' : `.planner-steps [data-step="${name}"]`
+      )
+      .click();
     assert.equal(await page.locator('#' + name).isVisible(), true);
     assert.equal(
-      await page.locator(`.planner-steps [data-step="${name}"]`).getAttribute('aria-current'),
-      'step'
+      await page
+        .locator(
+          name === 'overview' ? '.programme-overview-link' : `.planner-steps [data-step="${name}"]`
+        )
+        .getAttribute('aria-current'),
+      name === 'overview' ? 'page' : 'step'
     );
   };
   const simulate = async () => {
-    await step('rules');
+    await step('distribution');
     await page.locator('#simulate').click();
     await page.waitForFunction(() => !document.getElementById('export-json').disabled);
   };
@@ -284,7 +292,7 @@ try {
     for (const group of ['eligibility', 'bonus', 'points'])
       assert.equal(
         await page.locator(`#${prefix}-${group}-details`).evaluate((el) => el.open),
-        prefix === 'rules' && group === 'eligibility'
+        prefix === 'rules' && (group === 'eligibility' || group === 'bonus')
       );
   }
   assert.equal(await page.locator('#overview-points-balance').isVisible(), false);
@@ -326,7 +334,10 @@ try {
   assert.equal(await page.locator('#current-position-rows tr').count(), 25);
   await page.locator('#current-positions-toggle').click();
   for (const prefix of ['overview', 'rules']) {
-    assert.equal(await page.locator(`#${prefix}-future-policy input:enabled`).count(), 1);
+    assert.equal(
+      await page.locator(`#${prefix}-future-policy input:enabled`).count(),
+      prefix === 'rules' ? 6 : 1
+    );
     assert.equal(await page.locator(`#${prefix}-future-policy .bonus-preview-row`).count(), 4);
   }
   await page.reload();
@@ -368,22 +379,25 @@ try {
       (text) => text.trim()
     ),
     [
-      'Validator status',
-      'Voting power',
+      'Minimum uptime',
       'Maximum commission',
+      'Active-set history',
+      'Voting power',
       'Upgrade participation',
-      'Manual exclusions',
-      'Minimum uptime'
+      'Manual exclusions'
     ]
   );
+  await page.getByText('Edit exclusions', { exact: true }).click();
   assert.equal(await page.getByLabel('Juno validator', { exact: true }).isVisible(), true);
   assert.equal(await page.getByLabel('Public reason', { exact: true }).isVisible(), true);
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
   assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), true);
   assert.equal(await page.locator('#draft-budget').textContent(), '15,000,900.00 JUNO');
+  await step('distribution');
   await page.locator('#budget-max').click();
   assert.equal(await page.locator('#programme-amount').inputValue(), '15000953.086400');
   await page.locator('#programme-amount').fill('15000900');
+  await step('rules');
   const criterionHelp = page.getByRole('button', { name: 'Minimum uptime', exact: true });
   await criterionHelp.focus();
   assert.equal(await page.locator('#uptime-tooltip').isVisible(), true);
@@ -424,7 +438,6 @@ try {
   for (const value of ['13.5', '-1', '101', '']) {
     await page.locator('#commission').fill(value);
     assert.equal(await page.locator('#commission-error').isVisible(), true);
-    await page.locator('#rules-eligibility-details > summary').click();
     await page.locator('#save-draft').click();
     assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), true);
     assert.equal(
@@ -432,6 +445,7 @@ try {
       true
     );
     assert.match(await page.locator('#feedback').textContent(), /whole-number commission/);
+    await step('distribution');
     await page.locator('#simulate').click();
     assert.equal(await page.locator('#export-json').isDisabled(), true);
     assert.match(await page.locator('#feedback').textContent(), /whole-number commission/);
@@ -515,6 +529,7 @@ try {
     assert.equal(await page.locator('#draft-uptime').textContent(), 'Check value');
     await page.locator('#save-draft').click();
     assert.match(await page.locator('#feedback').textContent(), /uptime threshold/);
+    await step('distribution');
     await page.locator('#simulate').click();
     assert.equal(await page.locator('#export-json').isDisabled(), true);
     assert.equal(
@@ -568,7 +583,14 @@ try {
   await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
-    for (const stage of ['overview', 'rules', 'simulation', 'proposals', 'rebalance']) {
+    for (const stage of [
+      'overview',
+      'rules',
+      'distribution',
+      'simulation',
+      'proposals',
+      'rebalance'
+    ]) {
       await step(stage);
       await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
       assert.ok(
@@ -596,27 +618,17 @@ try {
   }
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 1000 });
-    for (const stage of ['overview', 'rules']) {
-      await step(stage);
-      const model = stage === 'overview' ? '#overview-model' : '#roadmap';
-      await page.locator(model + ' > summary').click();
-      for (const group of ['eligibility', 'bonus', 'points'])
-        await page.locator(`#${stage}-${group}-details`).evaluate((el) => (el.open = true));
-      assert.ok(
-        await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
-        `${stage} expanded overflow at ${width}`
-      );
-      if (shots)
-        await page.screenshot({
-          path: `${shots}/juno-delegation-${stage}-expanded-${width}.png`,
-          fullPage: true
-        });
-      for (const group of ['eligibility', 'bonus', 'points'])
-        await page
-          .locator(`#${stage}-${group}-details`)
-          .evaluate((el, open) => (el.open = open), stage === 'rules' && group === 'eligibility');
-      await page.locator(model + ' > summary').click();
-    }
+    await step('distribution');
+    assert.equal(await page.locator('#rules-points-balance').isVisible(), true);
+    await page.locator('#rules-points-balance').fill('100');
+    assert.equal(await page.locator('#rules-base-points').inputValue(), '100');
+    assert.equal(await page.locator('#rules-bonus-points').textContent(), '900');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.locator('#theme-toggle').click();
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
+    if (shots)
+      await page.screenshot({ path: `${shots}/distribution-light-${width}.png`, fullPage: true });
+    await page.locator('#theme-toggle').click();
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await step('overview');
@@ -823,6 +835,7 @@ try {
   );
   assert.equal(await page.locator('#use-current-model').count(), 0);
   assert.equal(await page.locator('#uptime').inputValue(), '97.5');
+  await step('distribution');
   await page.locator('#programme-amount').fill('99999999');
   await page.locator('#simulate').click();
   await page.waitForFunction(() =>
@@ -830,6 +843,7 @@ try {
   );
   assert.equal(await page.locator('#export-json').isDisabled(), true);
   await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
+  await step('rules');
   await page.locator('#factor').press('End');
   assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
   state = 'stale';
@@ -1039,7 +1053,7 @@ try {
   }
   assert.deepEqual(errors, []);
   console.log(
-    'Juno delegation browser: overview/current holdings, base/bonus preview isolation and approved-rule Rebalance, claim placement, stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all five views at four viewports passed.'
+    'Juno delegation browser: overview/current holdings, base/bonus preview isolation and approved-rule Rebalance, claim placement, stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all five planning views and the programme overview at four viewports passed.'
   );
 } catch (error) {
   if (diagnosticPage && !diagnosticPage.isClosed()) {

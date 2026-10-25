@@ -1,11 +1,12 @@
 import { availableBudget } from './juno-rebalance.mjs';
+import { policyImpact, renderPolicyImpact } from './juno-policy-impact.mjs';
 import { mountRebalance } from './juno-rebalance-view.mjs';
 import { buildRuleReview, ruleChanges, parentMatches } from './juno-delegation-review.mjs';
 import { renderRuleReview } from './juno-rule-review-view.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
 import { participationEvidence } from './juno-participation-history.mjs';
 import { currentApprovedRules } from './juno-approved-rules.mjs';
-import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=3';
+import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=4';
 import {
   frozenRuleProposal,
   claimProposal,
@@ -100,14 +101,18 @@ function renderClaimRewards() {
   }
 }
 function setStep(step, focus = true) {
-  if (!['overview', 'rules', 'simulation', 'proposals', 'rebalance'].includes(step))
-    step = 'overview';
+  if (!['overview', 'rules', 'distribution', 'simulation', 'proposals', 'rebalance'].includes(step))
+    step = 'rules';
   if (focus && $('feedback').dataset.tone !== 'warning') tell('');
   for (const panel of document.querySelectorAll('.planner-panel')) panel.hidden = panel.id !== step;
   for (const link of document.querySelectorAll('.planner-steps [data-step]')) {
     if (link.dataset.step === step) link.setAttribute('aria-current', 'step');
     else link.removeAttribute('aria-current');
   }
+  document
+    .querySelector('.programme-overview-link')
+    .setAttribute('aria-current', step === 'overview' ? 'page' : 'false');
+  if (step === 'rules' || step === 'distribution') scheduleImpact();
   if (location.hash !== '#' + step) history.replaceState(null, '', '#' + step);
   if (focus) {
     const heading = $(
@@ -115,11 +120,13 @@ function setStep(step, focus = true) {
         ? 'overview-title'
         : step === 'rules'
           ? 'rules-title'
-          : step === 'simulation'
-            ? 'simulation-title'
-            : step === 'rebalance'
-              ? 'rebalance-title'
-              : 'proposals-title'
+          : step === 'distribution'
+            ? 'distribution-title'
+            : step === 'simulation'
+              ? 'simulation-title'
+              : step === 'rebalance'
+                ? 'rebalance-title'
+                : 'proposals-title'
     );
     heading.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -357,6 +364,7 @@ function invalidate(message = 'Rules or amount changed. Review again to refresh 
   renderRuleSummary();
 }
 function renderRuleSummary() {
+  scheduleImpact();
   const cap = data ? capFraction(rules, data.activeCount) : null;
   const capText = cap
     ? ((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2) + '%'
@@ -387,6 +395,24 @@ function renderRuleSummary() {
   } catch {
     $('draft-budget').textContent = 'Check amount';
   }
+}
+let impactTimer;
+function scheduleImpact() {
+  clearTimeout(impactTimer);
+  impactTimer = setTimeout(() => {
+    const model = policyImpact({
+      rules,
+      data,
+      evidence,
+      budget: $('programme-amount').value.trim(),
+      valid:
+        commissionValid() &&
+        uptimeValid() &&
+        !!$('factor-number').value &&
+        $('factor-number').checkValidity()
+    });
+    for (const id of ['rules-impact', 'distribution-impact']) renderPolicyImpact($(id), model);
+  }, 100);
 }
 function commissionValid() {
   const input = $('commission');
@@ -441,6 +467,7 @@ function renderRules() {
   } catch (error) {
     coverage.textContent = error.message;
   }
+  $('history-window-summary').textContent = coverage.textContent.split('. ')[0];
   for (const [input, field] of [
     ['factor-number', 'factorTenths'],
     ['commission', 'commissionMaxBps'],
@@ -629,10 +656,11 @@ function renderResult() {
   renderRuleSummary();
 }
 function focusRuleInput(id) {
+  setStep('rules', false);
   $('rules-eligibility-details').open = true;
   $(id).focus();
 }
-async function runSimulation() {
+async function runSimulation(destination = 'simulation') {
   try {
     if (!data || !evidence) throw Error('Load programme data first.');
     if (!$('factor-number').checkValidity() || !$('factor-number').value) {
@@ -676,7 +704,7 @@ async function runSimulation() {
     $('export-json').disabled = false;
     $('review-proposal').disabled = false;
     renderDraftBaseline();
-    setStep('simulation');
+    setStep(destination === 'proposals' ? 'proposals' : 'simulation');
     tell(
       review.model.proposed.result
         ? 'Comparison ready. Review the rule changes and allocation impact before opening the proposal.'
@@ -703,29 +731,31 @@ $('budget-max').addEventListener('click', () => {
   renderRuleSummary();
 });
 // Criteria help is available with a mouse, keyboard and touch; Escape dismisses it.
-for (const button of document.querySelectorAll('.criterion-help')) {
-  const tip = $(button.getAttribute('aria-controls'));
-  button.setAttribute('aria-describedby', tip.id);
-  const region = button.closest('.criterion-label');
-  const show = (open) => {
-    tip.hidden = !open;
-    button.setAttribute('aria-expanded', String(open));
-  };
-  region.addEventListener('mouseenter', () => show(true));
-  region.addEventListener('mouseleave', () => {
-    if (!region.contains(document.activeElement)) show(false);
-  });
-  button.addEventListener('focus', () => show(true));
-  region.addEventListener('focusout', (event) => {
-    if (!region.contains(event.relatedTarget)) show(false);
-  });
-  button.addEventListener('click', () => show(true));
-  button.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') show(false);
-  });
-  document.addEventListener('pointerdown', (event) => {
-    if (!region.contains(event.target)) show(false);
-  });
+function mountCriterionHelp() {
+  for (const button of document.querySelectorAll('.criterion-help')) {
+    const tip = $(button.getAttribute('aria-controls'));
+    button.setAttribute('aria-describedby', tip.id);
+    const region = button.closest('.criterion-label');
+    const show = (open) => {
+      tip.hidden = !open;
+      button.setAttribute('aria-expanded', String(open));
+    };
+    region.addEventListener('mouseenter', () => show(true));
+    region.addEventListener('mouseleave', () => {
+      if (!region.contains(document.activeElement)) show(false);
+    });
+    button.addEventListener('focus', () => show(true));
+    region.addEventListener('focusout', (event) => {
+      if (!region.contains(event.relatedTarget)) show(false);
+    });
+    button.addEventListener('click', () => show(true));
+    button.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') show(false);
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (!region.contains(event.target)) show(false);
+    });
+  }
 }
 $('factor').addEventListener('input', () => {
   $('factor-error').hidden = true;
@@ -845,7 +875,7 @@ $('reset-draft').addEventListener('click', () => {
   tell('Rule draft reset.');
 });
 $('refresh').addEventListener('click', load);
-$('simulate').addEventListener('click', runSimulation);
+$('simulate').addEventListener('click', () => runSimulation());
 $('export-json').addEventListener('click', () => {
   if (review)
     download(
@@ -924,6 +954,7 @@ document.addEventListener('visibilitychange', () => {
 });
 renderFuturePolicy($('overview-future-policy'), 'overview');
 renderFuturePolicy($('rules-future-policy'), 'rules');
+mountCriterionHelp();
 $('current-positions-toggle').onclick = () => {
   showAllCurrentPositions = !showAllCurrentPositions;
   renderCurrentPositions();
@@ -932,22 +963,42 @@ document.querySelectorAll('[data-step]').forEach((link) =>
   link.addEventListener('click', (event) => {
     event.preventDefault();
     setStep(link.dataset.step);
+    if (['simulation', 'proposals'].includes(link.dataset.step) && !review)
+      void runSimulation(link.dataset.step);
   })
 );
 $('review-proposal').addEventListener('click', () => {
   if (review) setStep('proposals');
 });
+const themeKey = 'cosmoot:delegation:appearance';
+function applyTheme(value) {
+  document.documentElement.dataset.theme = value;
+  $('theme-toggle').setAttribute(
+    'aria-label',
+    `Switch to ${value === 'dark' ? 'light' : 'dark'} appearance`
+  );
+}
+try {
+  applyTheme(localStorage.getItem(themeKey) === 'light' ? 'light' : 'dark');
+} catch {
+  applyTheme('dark');
+}
+$('theme-toggle').onclick = () => {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try {
+    localStorage.setItem(themeKey, next);
+  } catch {}
+};
 window.addEventListener('hashchange', () => {
   if (location.hash === '#roadmap') {
-    setStep('rules');
-    $('roadmap').open = true;
+    setStep('distribution');
     $('roadmap').scrollIntoView({ block: 'start' });
   } else setStep(location.hash.slice(1));
 });
 const initialStep = location.hash.slice(1);
-setStep(initialStep === 'roadmap' ? 'rules' : initialStep, false);
+setStep(initialStep === 'roadmap' ? 'distribution' : initialStep, false);
 if (initialStep === 'roadmap') {
-  $('roadmap').open = true;
   $('roadmap').scrollIntoView({ block: 'start' });
 } else {
   // A deep link selects the view; keep its title and navigation in sight.
