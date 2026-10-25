@@ -404,12 +404,70 @@ try {
       .locator('.planner-steps a')
       .allTextContents()
       .then((items) => items.map((t) => t.replace(/\d+/g, '').trim())),
-    ['Eligibility', 'Distribution', 'Compare', 'Review', 'Rebalance']
+    ['Eligibility', 'Distribution', 'Review', 'Rebalance']
   );
   assert.equal(await page.locator('#rules-impact img, #rules-impact script').count(), 0);
+  // Every monetary header toggles numerical order; the full dataset is sorted before slicing.
+  for (const [label, column] of [
+    ['Current · JUNO', 1],
+    ['Target · JUNO', 2],
+    ['Change', 3]
+  ]) {
+    for (const direction of ['descending', 'ascending']) {
+      const header = page.locator('#rules-impact th').nth(column);
+      if ((await header.getAttribute('aria-sort')) !== direction)
+        await header.getByRole('button').click();
+      assert.equal(await header.getAttribute('aria-sort'), direction);
+      const values = await page
+        .locator('#rules-impact tbody tr')
+        .evaluateAll(
+          (rows, index) =>
+            rows.map((row) =>
+              Number(row.cells[index].textContent.replaceAll(',', '').replace('−', '-'))
+            ),
+          column
+        );
+      assert.ok(
+        values.every(
+          (value, i) =>
+            !i || (direction === 'ascending' ? values[i - 1] <= value : values[i - 1] >= value)
+        ),
+        label
+      );
+    }
+  }
+  await page.setViewportSize({ width: 390, height: 1000 });
+  await page
+    .getByLabel('Sort validator outcomes')
+    .filter({ visible: true })
+    .selectOption('currentRaw:descending');
+  assert.equal(
+    await page.locator('#rules-impact th').nth(1).getAttribute('aria-sort'),
+    'descending'
+  );
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const criterionAlignment = await page
+    .locator('#rules-eligibility-details > .criterion .number-unit')
+    .evaluateAll((nodes) =>
+      nodes.map((el) => ({ x: el.getBoundingClientRect().x, h: el.getBoundingClientRect().height }))
+    );
+  assert.equal(criterionAlignment.length, 5);
+  assert.ok(
+    criterionAlignment.every(
+      ({ x, h }) =>
+        Math.abs(x - criterionAlignment[0].x) < 1 && Math.abs(h - criterionAlignment[0].h) < 1
+    ),
+    'criterion values share an edge and height'
+  );
+
   await page.locator('#commission').fill('0');
   await page.waitForFunction(() =>
     document.querySelector('#rules-impact .impact-metrics strong').textContent.startsWith('0 /')
+  );
+  assert.equal(
+    await page.locator('#rules-impact th').nth(1).getAttribute('aria-sort'),
+    'descending',
+    'sorting survives recalculation'
   );
   await page.locator('#commission').fill('10');
   await page.waitForFunction(
@@ -438,6 +496,7 @@ try {
   await page.locator('#factor-number').fill('2');
   assert.equal(await page.locator('#factor').inputValue(), '20');
   assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
+  await page.locator('#additional-rule-options > summary').click();
   await page.locator('#factor').press('Home');
   assert.equal(await page.locator('#factor-number').inputValue(), '1.0');
   await page.locator('#factor-number').fill('2.1');
@@ -477,8 +536,15 @@ try {
   assert.equal(await page.locator('#commission').isEnabled(), true);
   await page.locator('#commission').fill('19');
   await simulate();
-  assert.equal(await page.locator('#simulation').isVisible(), true);
+  assert.equal(await page.locator('#proposals').isVisible(), true);
+  assert.equal(await page.locator('#simulation-comparison').count(), 1);
+  assert.equal(await page.locator('#simulation').count(), 0);
   assert.equal(await page.locator('#rules').isVisible(), false);
+  await page.evaluate(() => {
+    location.hash = 'simulation';
+  });
+  await page.waitForFunction(() => location.hash === '#proposals');
+  assert.equal(await page.locator('#proposals').isVisible(), true);
   const comparison = page.locator('#simulation-comparison');
   assert.equal(await comparison.locator('img').count(), 0, 'validator names are rendered as text');
   assert.equal(await page.locator('#rebalance-proposal').isDisabled(), true);
@@ -578,9 +644,11 @@ try {
   assert.equal(await page.locator('#commission').inputValue(), '19');
   assert.equal(await page.locator('#uptime').inputValue(), '99.01');
   await simulate();
-  await page.locator('#review-proposal').click();
-  assert.equal(await page.locator('#proposal-review').isVisible(), true);
-  assert.match(await page.locator('#proposal-review').textContent(), /Exchange-operated fixture/);
+  assert.equal(await page.locator('#simulation-comparison').isVisible(), true);
+  assert.match(
+    await page.locator('#simulation-comparison').textContent(),
+    /Exchange-operated fixture/
+  );
   const pendingDownload = page.waitForEvent('download');
   await page.locator('#export-json').click();
   const download = await pendingDownload;
@@ -601,14 +669,7 @@ try {
   await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
-    for (const stage of [
-      'overview',
-      'rules',
-      'distribution',
-      'simulation',
-      'proposals',
-      'rebalance'
-    ]) {
+    for (const stage of ['overview', 'rules', 'distribution', 'proposals', 'rebalance']) {
       await step(stage);
       await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
       assert.ok(
@@ -749,7 +810,6 @@ try {
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
   await simulate();
-  await page.locator('#review-proposal').click();
   await page.locator('#publish-proposal').click();
   await page.waitForURL((url) => url.hash === '#governance');
   await page.waitForFunction(
@@ -862,6 +922,7 @@ try {
   assert.equal(await page.locator('#export-json').isDisabled(), true);
   await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
   await step('rules');
+  await page.locator('#additional-rule-options').evaluate((el) => (el.open = true));
   await page.locator('#factor').press('End');
   assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
   state = 'stale';
@@ -887,7 +948,7 @@ try {
   );
   await step('rules');
   assert.match(await page.locator('#draft-history-coverage').textContent(), /3 \/ 90/);
-  await step('simulation');
+  await step('proposals');
   if (process.env.NNS_SCREENSHOT_DIR)
     await page.screenshot({
       path: `${process.env.NNS_SCREENSHOT_DIR}/collecting-history.png`,
@@ -1071,7 +1132,7 @@ try {
   }
   assert.deepEqual(errors, []);
   console.log(
-    'Juno delegation browser: overview/current holdings, base/bonus preview isolation and approved-rule Rebalance, claim placement, stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all five planning views and the programme overview at four viewports passed.'
+    'Juno delegation browser: overview/current holdings, base/bonus preview isolation and approved-rule Rebalance, claim placement, stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all four planning views and the programme overview at four viewports passed.'
   );
 } catch (error) {
   if (diagnosticPage && !diagnosticPage.isClosed()) {

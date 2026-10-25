@@ -8,7 +8,7 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `17e04a21855095155c5b5615a0c5f4382c347242` | [Manual release 40192326607](https://github.com/cristianoneta/neta-dao/actions/runs/40192326607) published on 25 October. The served HTML matched this source, but its layout did not match the approved lab. |
+| Last successful website release | Source `3bfafe97ae75271894366817167891a9b1d70196` | [Manual release 40196047184](https://github.com/cristianoneta/neta-dao/actions/runs/40196047184) published on 25 October. Publish step succeeded; served delegation HTML matches this source. Further criterion-density and duplicate-review corrections are source-only below. |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
 | Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Published in release 40106761715; updated homepage observed on both website domains. Responsive CI passed at 320/390/768/1440 px; separate mobile live acceptance and controlled live fallback remain open. |
 | Collector archives / efficiency | Source captures UTC Treasury days, archives expired validator evidence before pruning, preserves daily membership/planner observations and signed prices, and shares bounded RPC results | [Scope and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md). Owner confirmed host installation and successful manual collector/archive checks on 24 October; regular cycles, multi-day growth and measured savings remain pending. Local archives do not prove independent retention. |
@@ -29,25 +29,29 @@ expected membership state before retaining the row assertion. No production UI,
 membership rules or wallet behavior changed. PR #309 fixed the test; successful
 release 40106761715 supersedes that failed attempt.
 
-## Delegation lab parity correction — source candidate, 25 October
+## Delegation workspace refinement — source candidate, 25 October
 
 Release 40192326607 published PR #316 successfully, but that implementation adapted
 only parts of the lab. The owner identified the mismatch against the actual lab
 screenshot. It was an implementation mismatch, not a failed deployment or evidence
 of a browser-cache issue.
 
-The correction uses Eligibility → Distribution → Compare → Review → Rebalance,
-with the lab's compact brand/header, graphite/mint palette, theme switch and narrow
-left controls beside a wide allocation-impact view. The default entry is Eligibility;
-Programme overview retains real holdings, reward claims and approved-rule discovery.
-Eligibility/budget edits recalculate the existing production model automatically.
-Comparison/review still freeze exact rules and evidence before the native workspace.
+PR #317 restored the lab composition and was published in release 40196047184.
+The owner then identified remaining criterion-density differences and redundant
+Compare/Review pages, and requested monetary-column sorting.
+
+The new candidate uses Eligibility → Distribution → Review → Rebalance. One review
+contains the frozen policy and allocation comparison, exact export and proposal
+handoff; old #simulation links select #proposals. Criteria share aligned 42px value
+fields. Secondary controls/evidence sit below the concise rows. Observed partial
+history stays visible. Current, target and change sort both ways using exact signed
+micro-units, with a mobile selector and ordering retained across recalculations.
 
 Base/bonus controls remain explicitly exploratory: production bonus measurements
 and a scoring policy schema are not connected. The right-hand production targets
 use equal-capped allocation, not fictional lab evidence. Rebalance retains exact
 approved-policy isolation and non-executable exports. [Scope and verification](DELEGATION_WORKSPACE_2026-10-25.md).
-The correction still requires integration and the deliberate manual release.
+This refinement requires integration and the deliberate manual release.
 
 ## Eligibility controls — published 24 October
 
@@ -84,7 +88,7 @@ See [header semantics and limits](HOME_FALLBACK_2026-10-24.md#upstream-diagnosti
 
 | Feature | Current implementation / publication | Limits and owning reference |
 | --- | --- | --- |
-| Delegation Programme | Published rule workflow with actual holdings/rewards and approved-policy discovery; published #316 added Rebalance but did not match the lab; the correction candidate restores its composition and five planning views | Frozen old/new rules and allocation impacts; rule approval does not authorize redistribution. [Programme](JUNO_DELEGATION_PROGRAMME.md), [review](DELEGATION_RULE_CHANGE_UX.md). |
+| Delegation Programme | Published rule workflow with actual holdings/rewards and approved-policy discovery; published #317 restored the lab composition; the new refinement candidate compacts criteria, adds monetary sorting and merges duplicate comparison/review into one step | Frozen old/new rules and allocation impacts; rule approval does not authorize redistribution. [Programme](JUNO_DELEGATION_PROGRAMME.md), [review](DELEGATION_RULE_CHANGE_UX.md). |
 | Validator history | Automatic use of the collected period until 90 days exist, then the rolling window; schema 5 fixes the minimum at 97.5%; published schema 6 permits 95–100% | Continuous observed membership, exact counts and original collection start; unavailable/gapped evidence blocks eligibility. Historical schemas retain their meaning. [History](VALIDATOR_HISTORY.md). |
 | Programme reward claim | Correct DAO DAO Stargate withdrawals with the programme as delegator and destination | Required real local Juno test reproduces old/wrong-authority failures and verifies 37 withdrawals plus unchanged delegations. First replacement includes the #381 explanation; later omission uses agreed chain history. [Repair](PROGRAMME_CLAIM_REPAIR_2026-10-23.md). |
 | Juno community review | Mainnet review v0.3.1, finalization, author withdrawal, native submission/deposits and voting | Fresh authority/content/balance checks; explicit wallet confirmation; pending outcomes remain locked. Operations legacy review is a separate UNI-7 flow. [Semantics](GOVERNANCE_EXECUTION_SEMANTICS.md), [funding](JUNO_COMMUNITY_FUNDING.md). |

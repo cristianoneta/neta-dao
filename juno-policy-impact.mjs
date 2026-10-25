@@ -10,6 +10,26 @@ const node = (tag, text, className) => {
 const percent = (value, total) =>
   total > 0n ? (Number((value * 10000n) / total) / 100).toFixed(2) + '%' : '—';
 
+const impactState = new WeakMap();
+const sortColumns = [
+  ['currentRaw', 'Current · JUNO'],
+  ['targetRaw', 'Target · JUNO'],
+  ['deltaRaw', 'Change']
+];
+export function sortImpactRows(rows, key = 'targetRaw', direction = 'descending') {
+  if (!sortColumns.some(([field]) => field === key)) throw Error('Unknown allocation column.');
+  return [...rows].sort((a, b) => {
+    const x = BigInt(a[key]),
+      y = BigInt(b[key]);
+    const order = x < y ? -1 : x > y ? 1 : 0;
+    return (
+      (direction === 'ascending' ? order : -order) ||
+      (a.name.trim() || a.address).localeCompare(b.name.trim() || b.address) ||
+      a.address.localeCompare(b.address)
+    );
+  });
+}
+
 // This is an unfrozen view of the existing production engine, never a proposal.
 export function policyImpact({ rules, data, evidence, budget, valid = true }) {
   if (!valid) return { error: 'Check the highlighted criteria before calculating the impact.' };
@@ -39,6 +59,12 @@ export function policyImpact({ rules, data, evidence, budget, valid = true }) {
 }
 
 export function renderPolicyImpact(host, model) {
+  const state = impactState.get(host) || {
+    key: 'targetRaw',
+    direction: 'descending',
+    expanded: false
+  };
+  impactState.set(host, state);
   const head = node('div', undefined, 'impact-heading');
   const heading = node('div');
   heading.append(
@@ -101,31 +127,67 @@ export function renderPolicyImpact(host, model) {
     node('h3', 'Validator outcomes'),
     node('span', 'Current → target', 'policy-subtitle')
   );
+  const sortLabel = node('label', 'Sort by', 'impact-sort-mobile');
+  const sortSelect = node('select');
+  sortSelect.setAttribute('aria-label', 'Sort validator outcomes');
+  for (const [key, label] of sortColumns) {
+    for (const [direction, title] of [
+      ['descending', 'High to low'],
+      ['ascending', 'Low to high']
+    ]) {
+      const option = node('option', `${label} · ${title}`);
+      option.value = `${key}:${direction}`;
+      sortSelect.append(option);
+    }
+  }
+  sortLabel.append(sortSelect);
   const table = node('table', undefined, 'impact-table');
   const caption = node('caption', 'Estimated programme allocations in JUNO');
   caption.className = 'sr-only';
   const thead = node('thead');
   const tr = node('tr');
-  for (const name of ['Validator', 'Current · JUNO', 'Target · JUNO', 'Change']) {
-    const th = node('th', name);
+  const headers = [];
+  for (const [key, name] of [['name', 'Validator'], ...sortColumns]) {
+    const th = node('th');
     th.scope = 'col';
+    if (key === 'name') th.textContent = name;
+    else {
+      const button = node('button', undefined, 'impact-sort');
+      button.type = 'button';
+      const arrow = node('span');
+      arrow.setAttribute('aria-hidden', 'true');
+      button.append(node('span', name), arrow);
+      button.onclick = () => {
+        state.direction =
+          state.key === key && state.direction === 'descending' ? 'ascending' : 'descending';
+        state.key = key;
+        renderRows();
+      };
+      th.append(button);
+      headers.push({ th, button, arrow, key, name });
+    }
     tr.append(th);
   }
   thead.append(tr);
   const tbody = node('tbody');
   table.append(caption, thead, tbody);
-  const rows = [...result.rows].sort((a, b) => {
-    const x = BigInt(a.targetRaw),
-      y = BigInt(b.targetRaw);
-    return x === y ? a.name.localeCompare(b.name) : x > y ? -1 : 1;
-  });
-  let expanded = false;
-  const toggle = node('button', `Show all ${rows.length} validators`, 'impact-show-all');
+  const toggle = node('button', '', 'impact-show-all');
   toggle.type = 'button';
-  toggle.hidden = rows.length <= 8;
+  toggle.hidden = result.rows.length <= 8;
   const renderRows = () => {
+    const rows = sortImpactRows(result.rows, state.key, state.direction);
+    sortSelect.value = `${state.key}:${state.direction}`;
+    for (const { th, button, arrow, key, name } of headers) {
+      const active = state.key === key;
+      th.setAttribute('aria-sort', active ? state.direction : 'none');
+      arrow.textContent = active ? (state.direction === 'ascending' ? '↑' : '↓') : '↕';
+      button.setAttribute(
+        'aria-label',
+        `${name}: sort ${active && state.direction === 'descending' ? 'ascending' : 'descending'}`
+      );
+    }
     tbody.replaceChildren();
-    for (const row of expanded ? rows : rows.slice(0, 8)) {
+    for (const row of state.expanded ? rows : rows.slice(0, 8)) {
       const line = node('tr');
       const name = node('td');
       const details = node('details');
@@ -167,23 +229,28 @@ export function renderPolicyImpact(host, model) {
       }
       tbody.append(line);
     }
-    toggle.textContent = expanded
+    toggle.textContent = state.expanded
       ? 'Show first 8 validators'
       : `Show all ${rows.length} validators`;
-    toggle.setAttribute('aria-expanded', String(expanded));
+    toggle.setAttribute('aria-expanded', String(state.expanded));
+  };
+  sortSelect.onchange = () => {
+    [state.key, state.direction] = sortSelect.value.split(':');
+    renderRows();
   };
   toggle.onclick = () => {
-    expanded = !expanded;
+    state.expanded = !state.expanded;
     renderRows();
   };
   renderRows();
   host.append(
     toolbar,
+    sortLabel,
     table,
     toggle,
     node(
       'p',
-      'Exploration only. Compare freezes the rules and evidence for review. No funds move here.',
+      'Exploration only. Review freezes the rules and evidence for the proposal. No funds move here.',
       'policy-subtitle'
     )
   );

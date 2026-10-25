@@ -17,14 +17,23 @@ actual composition, rather than treating any restyled production page as equival
   actual available budget and exact Max, beside the same production impact view.
   Available funds are delegated plus spendable micro-JUNO less the 50 JUNO reserve;
   rewards and unbonding funds are excluded. The amount is independent of policy.
-- **Compare:** frozen actual-versus-target and old/new-policy comparison using the
-  same evidence; invalid fields and unavailable observations never become zeros.
-- **Review:** existing rule proposal draft, community review and wallet flow.
+- **Review:** one frozen actual-versus-target and old/new-policy comparison using
+  the same evidence, exact export and Open proposal draft. The previous Compare
+  and Review pages duplicated this component; they are now combined. Legacy
+  #simulation links alias #proposals. Invalid fields and unavailable observations
+  never become zeros; failed review preparation shows its reason, not an endless
+  calculating message. The community review and wallet handoff remain unchanged.
 - **Rebalance:** exact approved rules, separate budget and fresh observations, with
   current/target/change including held ineligible positions. Approval, snapshot,
   budget changes and expiry invalidate stale exports. The export contains no messages.
 - **Programme overview:** secondary header action for holdings, rewards and approved
-  rules; legacy overview links still work, outside the five planning stages.
+  rules; legacy overview links still work, outside the four planning stages.
+
+Criteria use aligned 42px values. Optional no-limit/cap-slider controls and upgrade
+evidence are secondary disclosures; partial-history coverage remains visible.
+Current, target and signed change headers toggle exact numerical sorting, with a
+mobile selector. Sorting is retained during recalculation and applies to all rows
+before the show-first-eight limit. It never modifies calculated/frozen evidence.
 
 The compact header, four-square Cosmoot mark, spacing, graphite/mint palette and
 light/dark appearance follow the actual lab. No test-environment label or fictional
@@ -69,13 +78,15 @@ equal-capped; no policy migration or fictitious allocation is introduced by this
 
 The correction adds independent impact checks for exact conservation, changing gates,
 unavailable evidence, invalid inputs and stale snapshots. Browser regressions cover
-the five planning views plus the retained overview, immediate impact, theme, exact
-budget and preserved real proposal handoffs.
+the four planning views plus the retained overview, immediate impact, theme, exact
+budget and preserved real proposal handoffs. This refinement adds exact signed
+BigInt ordering tests, keyboard-accessible sortable headers/mobile selection,
+recalculation persistence, aligned-field geometry and legacy-link routing.
 
 Earlier unit cases cover exact Max, reserve conservation, immutable historical policy,
 missing approval/evidence, invalid budgets, zero recipients, stale/future observations,
 changed approval/snapshot and modified exports. The existing browser regression
-adds five-view navigation, slider isolation, frozen Rebalance export, edit isolation
+adds four-view navigation, slider isolation, frozen Rebalance export, edit isolation
 and mobile current/target/change layout. Existing rule/claim workspace and stale-data
 regressions remain. Required release gates include programme execution and full
 browser CI; their actual results belong to the associated PR and workflow run.
