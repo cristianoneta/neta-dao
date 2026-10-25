@@ -635,6 +635,9 @@
   --neta-accent: #246c4d;
   --neta-selected: #e1f4e9;
   --neta-on-accent: #fff;
+  --neta-warning: #95651e;
+  --neta-danger: #b43b4b;
+  --neta-success: #246c4d;
   --policy-bonus: #98682e;
 }
 body {
@@ -691,7 +694,7 @@ body {
   border-left: 1px solid var(--neta-border);
   font-size: 12px;
 }
-.policy-context span {
+.policy-context .chain-context {
   font-size: 10px;
   letter-spacing: 0.09em;
   color: var(--neta-accent);
@@ -1137,7 +1140,7 @@ body {
   grid-template-columns: 1fr 1fr;
   margin: 24px 0 10px;
 }
-.policy-controls .point-values strong {
+.policy-controls .point-values > div:last-child strong {
   color: var(--policy-bonus);
   font-size: 36px;
 }
@@ -1239,7 +1242,7 @@ body {
     border: 0;
     padding: 0;
   }
-  .policy-context a {
+  .policy-context a:not(.chain-context) {
     display: none;
   }
   .policy-header-actions {

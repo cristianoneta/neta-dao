@@ -398,6 +398,24 @@ try {
   assert.equal(await page.locator('#programme-amount').inputValue(), '15000953.086400');
   await page.locator('#programme-amount').fill('15000900');
   await step('rules');
+  await page.waitForFunction(() => document.querySelector('#rules-impact .impact-table tbody tr'));
+  assert.deepEqual(
+    await page
+      .locator('.planner-steps a')
+      .allTextContents()
+      .then((items) => items.map((t) => t.replace(/\d+/g, '').trim())),
+    ['Eligibility', 'Distribution', 'Compare', 'Review', 'Rebalance']
+  );
+  assert.equal(await page.locator('#rules-impact img, #rules-impact script').count(), 0);
+  await page.locator('#commission').fill('0');
+  await page.waitForFunction(() =>
+    document.querySelector('#rules-impact .impact-metrics strong').textContent.startsWith('0 /')
+  );
+  await page.locator('#commission').fill('10');
+  await page.waitForFunction(
+    () =>
+      !document.querySelector('#rules-impact .impact-metrics strong').textContent.startsWith('0 /')
+  );
   const criterionHelp = page.getByRole('button', { name: 'Minimum uptime', exact: true });
   await criterionHelp.focus();
   assert.equal(await page.locator('#uptime-tooltip').isVisible(), true);

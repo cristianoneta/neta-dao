@@ -100,6 +100,11 @@ export function renderFuturePolicy(host, prefix) {
   const weights = [];
   const weightTotal = node('p', '', 'field-help');
   const updateWeights = () => {
+    if (weights.some(({ input }) => input.value === '' || !input.checkValidity())) {
+      weightTotal.textContent = 'Enter whole-number weights from 0 to 100.';
+      for (const item of weights) item.share.textContent = 'Check weight';
+      return;
+    }
     const total = weights.reduce((sum, item) => sum + Number(item.input.value || 0), 0);
     for (const item of weights)
       item.share.textContent = total
