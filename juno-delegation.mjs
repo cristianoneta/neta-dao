@@ -705,6 +705,7 @@ $('budget-max').addEventListener('click', () => {
 // Criteria help is available with a mouse, keyboard and touch; Escape dismisses it.
 for (const button of document.querySelectorAll('.criterion-help')) {
   const tip = $(button.getAttribute('aria-controls'));
+  button.setAttribute('aria-describedby', tip.id);
   const region = button.closest('.criterion-label');
   const show = (open) => {
     tip.hidden = !open;

@@ -364,7 +364,9 @@ try {
   await page.locator('#factor-number').fill('1.5');
   await page.locator('#commission').fill('10');
   assert.deepEqual(
-    await page.locator('#rules-eligibility-details > .criterion h4').allTextContents(),
+    (await page.locator('#rules-eligibility-details > .criterion h4').allTextContents()).map(
+      (text) => text.trim()
+    ),
     [
       'Validator status',
       'Voting power',
@@ -379,6 +381,15 @@ try {
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
   assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), true);
   assert.equal(await page.locator('#draft-budget').textContent(), '15,000,900.00 JUNO');
+  await page.locator('#budget-max').click();
+  assert.equal(await page.locator('#programme-amount').inputValue(), '15000953.086400');
+  await page.locator('#programme-amount').fill('15000900');
+  const criterionHelp = page.getByRole('button', { name: 'Minimum uptime', exact: true });
+  await criterionHelp.focus();
+  assert.equal(await page.locator('#uptime-tooltip').isVisible(), true);
+  await criterionHelp.press('Escape');
+  assert.equal(await page.locator('#uptime-tooltip').isVisible(), false);
+
   assert.equal(await page.locator('#rules-points-balance').isVisible(), false);
   assert.equal(
     await page
@@ -438,7 +449,7 @@ try {
   assert.equal(await page.locator('#rules').isVisible(), false);
   const comparison = page.locator('#simulation-comparison');
   assert.equal(await comparison.locator('img').count(), 0, 'validator names are rendered as text');
-  assert.equal(await page.locator('.execution-details button').isDisabled(), true);
+  assert.equal(await page.locator('#rebalance-proposal').isDisabled(), true);
   assert.equal(await comparison.locator('.rr-validator').count(), 10);
   assert.match(await comparison.locator('.rr-pagination').textContent(), /1–10 of 25/);
   await comparison.getByRole('button', { name: 'Next →', exact: true }).click();

@@ -10,6 +10,7 @@
   font-weight: 600;
 }
 .planner-steps {
+  display: flex;
   border: 0;
   border-bottom: 1px solid var(--neta-border);
   border-radius: 0;
