@@ -14,7 +14,13 @@ PR #321 and the rule-approval correction below were published in release
 40223522400 at source `71b0dd2d51cadebb51f6cef6294916a85b9d18e0`.
 The owner's follow-up adds missing token logos, compatible receive-only choices,
 individual pool token prices and a larger original mascot. Continue from the
-refinement section of the same checkpoint; those changes need another release.
+refinement section of the same checkpoint; PR #322 was published in release
+40225307377 at source `2f15eee46c2b6460788424ab62ab0747e794170a`.
+The subsequent Keplr acceptance attempt stopped before broadcast because the
+wallet returned a different fee. The follow-up passes the reviewed-fee/memo
+preferences to the swap signer while preserving exact signed-byte validation.
+See the fee correction in the same checkpoint; it needs a new deliberate release
+and live wallet acceptance.
 
 ## Rule approval follow-up
 
