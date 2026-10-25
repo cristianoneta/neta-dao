@@ -1,9 +1,11 @@
+import { availableBudget } from './juno-rebalance.mjs';
+import { mountRebalance } from './juno-rebalance-view.mjs';
 import { buildRuleReview, ruleChanges, parentMatches } from './juno-delegation-review.mjs';
 import { renderRuleReview } from './juno-rule-review-view.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
 import { participationEvidence } from './juno-participation-history.mjs';
 import { currentApprovedRules } from './juno-approved-rules.mjs';
-import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=2';
+import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=3';
 import {
   frozenRuleProposal,
   claimProposal,
@@ -19,6 +21,7 @@ import {
   snapshot,
   upgradeEvidence,
   amount,
+  units,
   capFraction,
   suggestedBudget,
   LIQUID_RESERVE
@@ -37,7 +40,8 @@ let rules = defaultPolicy(),
 let approval = { status: 'loading', current: null },
   parent = null,
   draftStarted = false;
-let rewardsSource = null;
+let rewardsSource = null,
+  rebalance = null;
 const fmt = (value) => formatAmount(value, true);
 const tell = (message, tone = 'info') => {
   $('feedback').textContent = message;
@@ -96,7 +100,8 @@ function renderClaimRewards() {
   }
 }
 function setStep(step, focus = true) {
-  if (!['overview', 'rules', 'simulation', 'proposals'].includes(step)) step = 'overview';
+  if (!['overview', 'rules', 'simulation', 'proposals', 'rebalance'].includes(step))
+    step = 'overview';
   if (focus && $('feedback').dataset.tone !== 'warning') tell('');
   for (const panel of document.querySelectorAll('.planner-panel')) panel.hidden = panel.id !== step;
   for (const link of document.querySelectorAll('.planner-steps [data-step]')) {
@@ -112,7 +117,9 @@ function setStep(step, focus = true) {
           ? 'rules-title'
           : step === 'simulation'
             ? 'simulation-title'
-            : 'proposals-title'
+            : step === 'rebalance'
+              ? 'rebalance-title'
+              : 'proposals-title'
     );
     heading.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -307,6 +314,7 @@ function freshness() {
     : Infinity;
 }
 function renderDraftBaseline() {
+  rebalance?.refresh();
   const valid = approval.status === 'verified',
     matches = valid && parentMatches(parent, approval.current);
   $('draft-parent-note').textContent = !valid
@@ -443,8 +451,9 @@ function renderRules() {
     if (!target) {
       target = node('p', '', 'rule-previous');
       target.id = id;
-      ($(input).closest('.factor-control') || $(input)).after(target);
+      ($(input).closest('.criterion-control') || $(input)).after(target);
     }
+    target.hidden = !parent;
     const diff = ruleChanges(parent?.rule, rules).find((r) => r.key === field);
     target.replaceChildren(document.createTextNode(`Previously approved: ${diff.before}`));
     if (parent && diff.changed && (field !== 'minParticipationBps' || parent.rule.schema >= 5)) {
@@ -494,6 +503,8 @@ async function fetchJSON(url) {
 async function load() {
   if (loading) return;
   loading = true;
+  $('budget-max').disabled = true;
+  $('available-total').textContent = 'Loading…';
   void loadApprovedRules();
   $('refresh').disabled = true;
   $('claim-rewards').disabled = true;
@@ -536,6 +547,8 @@ async function load() {
     $('snapshot-source').textContent =
       `Block ${data.height.toLocaleString('en-US')} · ${new URL(data.source).hostname} · collected ${new Date(data.collectedAt).toLocaleString()}`;
     $('programme-amount').value = String(suggestedBudget(data) / 1000000n);
+    $('available-total').textContent = `${fmt(availableBudget(data))} JUNO`;
+    $('budget-max').disabled = false;
     $('current-total').textContent = formatAmount(sumCurrent());
     const held = data.validators.filter((v) => BigInt(v.currentRaw) > 0n),
       inactive = held.filter((v) => !v.active),
@@ -586,6 +599,8 @@ async function load() {
     $('snapshot-source').textContent = 'No usable programme snapshot.';
     renderCurrentPositions();
     $('programme-amount').value = '';
+    $('available-total').textContent = 'Unavailable';
+    $('budget-max').disabled = true;
     $('reserve-note').textContent = '';
     $('claim-rewards-help').textContent = 'Load a valid current programme snapshot first.';
     $('current-breakdown').textContent =
@@ -600,6 +615,7 @@ async function load() {
     loading = false;
     renderClaimRewards();
     $('refresh').disabled = false;
+    rebalance?.refresh();
   }
 }
 function renderResult() {
@@ -679,6 +695,36 @@ function download(name, body, type) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$('budget-max').addEventListener('click', () => {
+  if (!data) return;
+  $('programme-amount').value = units(availableBudget(data));
+  invalidate();
+  renderRuleSummary();
+});
+// Criteria help is available with a mouse, keyboard and touch; Escape dismisses it.
+for (const button of document.querySelectorAll('.criterion-help')) {
+  const tip = $(button.getAttribute('aria-controls'));
+  const region = button.closest('.criterion-label');
+  const show = (open) => {
+    tip.hidden = !open;
+    button.setAttribute('aria-expanded', String(open));
+  };
+  region.addEventListener('mouseenter', () => show(true));
+  region.addEventListener('mouseleave', () => {
+    if (!region.contains(document.activeElement)) show(false);
+  });
+  button.addEventListener('focus', () => show(true));
+  region.addEventListener('focusout', (event) => {
+    if (!region.contains(event.relatedTarget)) show(false);
+  });
+  button.addEventListener('click', () => show(true));
+  button.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') show(false);
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (!region.contains(event.target)) show(false);
+  });
 }
 $('factor').addEventListener('input', () => {
   $('factor-error').hidden = true;
@@ -939,6 +985,11 @@ try {
   draftStarted = false;
   tell('Saved draft is invalid or unavailable. Default rules loaded.');
 }
+rebalance = mountRebalance({
+  getContext: () => ({ approval, data, evidence }),
+  readApproval: async () => (await currentApprovedRules()).current,
+  download
+});
 restoreRuleInputs();
 renderRules();
 load();

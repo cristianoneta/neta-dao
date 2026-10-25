@@ -1,50 +1,21 @@
-// Display-only roadmap. These examples never enter the V1 policy or simulation.
-export const objectiveCriteria = [
+// Interactive explanation only. No values from this module enter a policy or proposal.
+const bonuses = [
   [
     'Public RPC / API',
-    30,
-    'Operator-attributed endpoints; independently measured availability, freshness and latency. Aliases earn no extra points.'
-  ],
-  [
-    'Mainnet uptime',
-    10,
-    'Expected signatures during active participation, with monitoring gaps visible.'
-  ],
-  [
-    'Upgrade responsiveness',
-    10,
-    'Points for independently evidenced participation within an approved observation window.'
+    40,
+    'Verified operator linkage, availability, freshness and latency; aliases earn no extra points.'
   ],
   [
     'Testnet participation',
-    10,
-    'Active UNI-7 membership at the snapshot; active .neta name and verified operator linkage for this bonus only.'
+    30,
+    'Sustained, verifiable participation and useful results on the approved testnet.'
   ],
+  ['Archive services', 20, 'Independent checks of access and historical coverage.'],
   [
     'Governance participation',
     10,
-    'Own votes on completed proposals, with every vote option treated equally and a fair historical denominator.'
-  ],
-  [
-    'Archive services',
-    10,
-    'Attributed archive access and historical coverage, measured independently.'
-  ],
-  [
-    'Geographic diversity',
-    10,
-    'Evidence of country concentration; inferred location is not an exact or verified physical location.'
-  ],
-  [
-    'Hosting diversity',
-    10,
-    'Evidence of provider concentration and independent infrastructure. Unknown attribution stays unassessed.'
+    'Own votes on completed proposals; every voting option counts equally.'
   ]
-];
-export const subjectiveCriteria = [
-  'Ecosystem development',
-  'Community contributions',
-  'Other documented contributions'
 ];
 const node = (tag, text, className) => {
   const el = document.createElement(tag);
@@ -52,179 +23,94 @@ const node = (tag, text, className) => {
   if (className) el.className = className;
   return el;
 };
-function weight(label, value, id) {
-  const wrap = node('label', label, 'future-weight');
-  const input = node('input');
-  input.id = id;
-  input.type = 'number';
-  input.min = '0';
-  input.max = '100';
-  input.disabled = true;
-  if (value !== null) input.value = String(value);
-  else input.placeholder = 'Not set';
-  wrap.append(input);
-  return wrap;
-}
-// Preview only. Keeping C complementary also keeps the displayed total at 100%.
-const objectiveShare = 80;
-const subjectiveShare = 100 - objectiveShare;
-function categoryWeight(label, value, id) {
-  const wrap = node('label', undefined, 'category-weight');
-  wrap.append(node('span', label));
-  const control = node('span', undefined, 'category-weight-control');
-  const input = node('input');
-  input.id = id;
-  input.type = 'number';
-  input.min = '0';
-  input.max = '100';
-  input.step = '1';
-  input.value = String(value);
-  input.disabled = true;
-  const suffix = node('span', '%');
-  suffix.setAttribute('aria-hidden', 'true');
-  control.append(input, suffix);
-  wrap.append(control);
-  return wrap;
-}
-function disclosure(id, label, hint) {
-  const details = node('details', undefined, 'policy-details');
-  details.id = id;
-  const summary = node('summary', label);
-  summary.append(node('span', hint));
-  details.append(summary);
-  return details;
-}
 export function renderFuturePolicy(host, prefix) {
-  const mix = node('div', undefined, 'scoring-mix');
-  mix.append(
-    node('strong', `V3 weighting preview · B ${objectiveShare}% + C ${subjectiveShare}% = 100%`)
-  );
-  mix.append(
-    node(
-      'p',
-      'Percentage inputs unlock when both categories are available. B + C must always total 100%. V2 uses objective scoring only (B = 100%).'
-    )
-  );
-  mix.id = `${prefix}-weighting-help`;
-  const objective = node('section', undefined, 'planner-card future-policy');
-  objective.setAttribute('aria-labelledby', `${prefix}-objective-title`);
+  const card = node('section', undefined, 'planner-card points-preview');
   const heading = node('div', undefined, 'policy-heading');
-  const title = node('h3', 'B · Objective scoring');
-  title.id = `${prefix}-objective-title`;
-  heading.append(title, node('span', 'V2 · Planned', 'state-pill neutral'));
-  const header = node('div', undefined, 'category-header');
-  const copy = node('div');
-  copy.append(heading, node('p', 'Measured contributions earn points after eligibility checks.'));
-  const ow = categoryWeight('Objective weight · %', objectiveShare, `${prefix}-objective-share`);
-  ow.querySelector('input').setAttribute('aria-describedby', mix.id);
-  header.append(copy, ow);
-  objective.append(header);
-  const od = disclosure(
-    `${prefix}-objective-details`,
-    'Objective criteria & weights',
-    '8 criteria · planned'
+  heading.append(
+    node('h3', 'A shared base. A bonus for useful work.'),
+    node('span', 'Planned · preview only', 'state-pill neutral')
   );
-  const settings = node('fieldset');
-  settings.disabled = true;
-  settings.append(node('legend', 'Within-category weighting example · inactive'));
-  const rows = node('div', undefined, 'future-criteria');
-  for (const [index, [name, value]] of objectiveCriteria.entries()) {
-    const row = node('div', undefined, 'future-criterion');
-    row.append(
-      node('h4', name),
-      weight('Within objective · %', value, `${prefix}-objective-${index}`)
-    );
-    rows.append(row);
-  }
-  settings.append(rows);
-  od.append(settings);
-  od.append(
+  card.append(
+    heading,
     node(
       'p',
-      'Example: 80% objective × 30% RPC = 24% of the total score. The other seven criteria each contribute 8%. Within-group weights total 100%.',
-      'weight-explanation'
+      'All mandatory checks must pass first. Every eligible validator then receives the same base; verified contributions can earn additional points.'
     )
   );
-  const measurements = node('div', undefined, 'future-measurements');
-  measurements.append(node('h4', 'How these future criteria would be measured'));
-  for (const [name, , help] of objectiveCriteria) {
-    const item = node('p');
-    item.append(node('strong', name + ': '), node('span', help));
-    measurements.append(item);
+  const values = node('div', undefined, 'point-values');
+  const base = node('div'),
+    bonus = node('div');
+  const baseValue = node('strong', '900'),
+    bonusValue = node('strong', '100');
+  baseValue.id = `${prefix}-base-points`;
+  bonusValue.id = `${prefix}-bonus-points`;
+  base.append(baseValue, node('span', 'Base points · each eligible validator'));
+  bonus.append(bonusValue, node('span', 'Maximum bonus · each validator'));
+  values.append(base, bonus);
+  card.append(values);
+  const label = node('label', 'Explore the base / bonus balance');
+  label.htmlFor = `${prefix}-points-balance`;
+  const slider = node('input');
+  slider.type = 'range';
+  slider.min = '0';
+  slider.max = '1000';
+  slider.step = '10';
+  slider.value = '900';
+  slider.id = label.htmlFor;
+  const effect = node('p', undefined, 'field-help');
+  effect.id = `${prefix}-points-effect`;
+  slider.setAttribute('aria-describedby', effect.id);
+  const update = () => {
+    const b = Number(slider.value),
+      w = 1000 - b;
+    baseValue.textContent = String(b);
+    bonusValue.textContent = String(w);
+    slider.setAttribute('aria-valuetext', `${b} base points and up to ${w} bonus points`);
+    effect.textContent =
+      (b
+        ? `Before caps, a full-bonus validator can receive up to ${(1000 / b).toLocaleString('en-US', { maximumFractionDigits: 2 })}× the points of a base-only validator. `
+        : 'With no base, a validator with no verified bonus earns no points. If nobody earns points, the budget stays unallocated. ') +
+      'Preview only: the current equal-allocation rules and proposal remain unchanged.';
+  };
+  slider.addEventListener('input', update);
+  update();
+  card.append(label, slider, effect);
+  const details = node('details', undefined, 'policy-details');
+  details.id = `${prefix}-bonus-details`;
+  details.append(node('summary', 'Bonus criteria · illustrative weights'));
+  for (const [name, value, help] of bonuses) {
+    const row = node('div', undefined, 'bonus-preview-row');
+    row.append(node('strong', name), node('span', `${value}%`), node('p', help));
+    details.append(row);
   }
-  od.append(
-    measurements,
+  details.append(
     node(
       'p',
-      'Proposed observation windows: 30 days for uptime and infrastructure; 20 completed proposals for governance. Missing evidence is unassessed, not a zero score. Measurement methods, thresholds and weights require community approval.',
+      'Each criterion needs an approved measurement, observation window, reviewer and expiry. Unknown bonus evidence earns no verified points and remains labelled unknown. Bonus points never override a failed mandatory check.',
       'field-help'
     )
   );
-  objective.append(od);
-  const subjective = node('section', undefined, 'planner-card future-policy');
-  const sh = node('div', undefined, 'policy-heading');
-  const st = node('h3', 'C · Subjective assessment');
-  st.id = `${prefix}-subjective-title`;
-  subjective.setAttribute('aria-labelledby', st.id);
-  sh.append(st, node('span', 'V3 · Planned', 'state-pill neutral'));
-  const sc = node('div');
-  sc.append(
-    sh,
-    node('p', 'An appointed external DAO or person assesses documented contributions.')
-  );
-  const sch = node('div', undefined, 'category-header');
-  const sw = categoryWeight('Subjective weight · %', subjectiveShare, `${prefix}-subjective-share`);
-  sw.querySelector('input').setAttribute('aria-describedby', mix.id);
-  sch.append(sc, sw);
-  subjective.append(sch);
-  const sd = disclosure(
-    `${prefix}-subjective-details`,
-    'Subjective criteria & assessor',
-    '3 criteria · planned'
-  );
-  const sf = node('fieldset');
-  sf.disabled = true;
-  sf.append(node('legend', 'Future assessment settings · inactive'));
-  const reviewer = node('div', undefined, 'assessor-settings');
-  const typeLabel = node('label', 'Assessor type');
-  const type = node('select');
-  type.disabled = true;
-  type.append(
-    node('option', 'Not appointed'),
-    node('option', 'External DAO'),
-    node('option', 'Person')
-  );
-  typeLabel.append(type);
-  const addressLabel = node('label', 'Assessor address or DAO');
-  const address = node('input');
-  address.disabled = true;
-  address.placeholder = 'Chosen in an approved V3 rule';
-  addressLabel.append(address);
-  reviewer.append(typeLabel, addressLabel);
-  sf.append(reviewer);
-  for (const [index, name] of subjectiveCriteria.entries()) {
-    const row = node('div', undefined, 'future-criterion');
-    row.append(
-      node('h4', name),
-      weight('Within subjective · %', null, `${prefix}-subjective-${index}`)
-    );
-    sf.append(row);
-  }
-  sd.append(
-    sf,
+  const methods = node('details', undefined, 'policy-details');
+  methods.id = `${prefix}-points-details`;
+  methods.append(node('summary', 'Points, budget shares & launch requirements'));
+  methods.append(
     node(
       'p',
-      'Illustrative categories; no assessor, subjective weights or scores are set. Each future criterion and group weight will be configurable. Group weights must total 100%, and each group’s criterion weights must total 100%.',
-      'field-help'
+      'Points per validator = base + maximum bonus × verified contribution. Allocations follow each validator’s share of all earned points, subject to separately approved caps. 900 / 100 points does not reserve exactly 10% of the tokens for bonus.'
     )
   );
-  sd.append(
+  methods.append(
     node(
       'p',
-      'The appointed assessor supplies scores and reasons, not permission to move funds. Changes to criteria, weights or assessor require a new community-approved rule version.',
-      'field-help'
+      'A fixed budget split would instead reserve a defined pool for bonus. It can concentrate that pool in a few recipients. This alternative is not the selected model.'
     )
   );
-  subjective.append(sd);
-  host.replaceChildren(mix, objective, subjective);
+  methods.append(
+    node(
+      'p',
+      'Before activation: approve evidence and scoring rules, prevent duplicate operator rewards, define appeals and transition periods, and validate the allocation and execution paths. Production bonus data is not connected yet.'
+    )
+  );
+  card.append(details, methods);
+  host.replaceChildren(card);
 }

@@ -1,6 +1,6 @@
 # Current state — Cosmoot
 
-Updated 24 October 2026. This is the authoritative current feature and release
+Updated 25 October 2026. This is the authoritative current feature and release
 inventory. Update rows in place; retain dated evidence separately. Public/private
 boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
@@ -8,7 +8,7 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `036f3b5f3d5c369fb49c1c112cde4aa91df320b5` (through PR #311) | [Manual release 40115824821](https://github.com/cristianoneta/neta-dao/actions/runs/40115824821) completed successfully on 24 October, including publication. |
+| Last successful website release | Source `daeb0006bf30167fe1a444e4bd34f9164dfaadb0` | [Manual release 40128216384](https://github.com/cristianoneta/neta-dao/actions/runs/40128216384) completed successfully on 24 October, including publication. |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
 | Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Published in release 40106761715; updated homepage observed on both website domains. Responsive CI passed at 320/390/768/1440 px; separate mobile live acceptance and controlled live fallback remain open. |
 | Collector archives / efficiency | Source captures UTC Treasury days, archives expired validator evidence before pruning, preserves daily membership/planner observations and signed prices, and shares bounded RPC results | [Scope and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md). Owner confirmed host installation and successful manual collector/archive checks on 24 October; regular cycles, multi-day growth and measured savings remain pending. Local archives do not prove independent retention. |
@@ -29,15 +29,27 @@ expected membership state before retaining the row assertion. No production UI,
 membership rules or wallet behavior changed. PR #309 fixed the test; successful
 release 40106761715 supersedes that failed attempt.
 
-## Eligibility controls — source follow-up
+## Delegation workspace — source candidate, 25 October
 
-PR #312 integrates open Manual exclusions at point 5. The next source candidate
-adds Uptime as point 6 with a 95–100% input (default 97.5%), preserved draft values
-and a frozen old/new threshold comparison. Policy schema 6 applies the chosen
-minimum; historical schemas and approvals retain their original meaning. Both
-UI changes await a combined manual release. The public planner reported an
-unavailable history archive during the 24 October check; host diagnosis and a
-successful history-bearing snapshot remain necessary for live acceptance.
+The owner approved transfer of the separate design lab into the real application.
+Source now uses Overview → Rules → Compare → Review → Rebalance, compact
+accessible criterion help, aligned controls and exact available-budget Max.
+Rebalance verifies the approved policy separately from the editor, requires fresh
+complete observations and exports a frozen non-executable allocation draft.
+Rule and claim proposals retain the existing native governance workspace.
+Base/bonus points are an interactive explanation only: verified production bonus
+measurements and the new scoring policy are not connected. Allocation execution
+remains disabled. [Scope and verification](DELEGATION_WORKSPACE_2026-10-25.md).
+Publication of this candidate requires the deliberate release workflow.
+
+## Eligibility controls — published 24 October
+
+Manual exclusions at point 5 and configurable Uptime at point 6 (95–100%, default
+97.5%) were published in release 40128216384. Policy schema 6 applies the selected
+minimum; historical schemas and approvals retain their original meaning.
+The repaired history collector had resumed progress at the last operational
+checkpoint. Completion of catch-up requires a fresh history-bearing public
+snapshot; publication alone does not establish complete or current observations.
 
 ## Compact header follow-up
 
@@ -65,8 +77,8 @@ See [header semantics and limits](HOME_FALLBACK_2026-10-24.md#upstream-diagnosti
 
 | Feature | Current implementation / publication | Limits and owning reference |
 | --- | --- | --- |
-| Delegation Programme | Overview → Set rules → Review distribution → Review proposal; actual holdings/rewards and approved-policy discovery | Frozen old/new rules and allocation impacts; rule approval does not authorize redistribution. [Programme](JUNO_DELEGATION_PROGRAMME.md), [review](DELEGATION_RULE_CHANGE_UX.md). |
-| Validator history | Automatic use of the collected period until 90 days exist, then the rolling window; schema 5 fixes the minimum at 97.5%; source candidate schema 6 permits 95–100% | Continuous observed membership, exact counts and original collection start; unavailable/gapped evidence blocks eligibility. Historical schemas retain their meaning. [History](VALIDATOR_HISTORY.md). |
+| Delegation Programme | Published rule workflow with actual holdings/rewards and approved-policy discovery; source candidate adds the five-view workspace and approved-rule Rebalance | Frozen old/new rules and allocation impacts; rule approval does not authorize redistribution. [Programme](JUNO_DELEGATION_PROGRAMME.md), [review](DELEGATION_RULE_CHANGE_UX.md). |
+| Validator history | Automatic use of the collected period until 90 days exist, then the rolling window; schema 5 fixes the minimum at 97.5%; published schema 6 permits 95–100% | Continuous observed membership, exact counts and original collection start; unavailable/gapped evidence blocks eligibility. Historical schemas retain their meaning. [History](VALIDATOR_HISTORY.md). |
 | Programme reward claim | Correct DAO DAO Stargate withdrawals with the programme as delegator and destination | Required real local Juno test reproduces old/wrong-authority failures and verifies 37 withdrawals plus unchanged delegations. First replacement includes the #381 explanation; later omission uses agreed chain history. [Repair](PROGRAMME_CLAIM_REPAIR_2026-10-23.md). |
 | Juno community review | Mainnet review v0.3.1, finalization, author withdrawal, native submission/deposits and voting | Fresh authority/content/balance checks; explicit wallet confirmation; pending outcomes remain locked. Operations legacy review is a separate UNI-7 flow. [Semantics](GOVERNANCE_EXECUTION_SEMANTICS.md), [funding](JUNO_COMMUNITY_FUNDING.md). |
 | Native voting display | Four choices, live tally, direct voting, participation and validator/direct-address views | Incomplete detail is unavailable, not zero; no invented historical final participation. [Voting](JUNO_GOVERNANCE_VOTING.md). |
@@ -90,8 +102,9 @@ See [header semantics and limits](HOME_FALLBACK_2026-10-24.md#upstream-diagnosti
   missing effective SETUID capability at the worker's identity transition; the
   unit now retains it explicitly while keeping NoNewPrivileges. The source follow-up uses a bounded copy, reclaims
   temporary ownership on failure, permits worker termination and adds required
-  real-systemd sandbox regression checks. Installation and a new verified backup
-  followed by collector progress remain pending. See [backup runbook](INFRASTRUCTURE_BACKUPS.md).
+  real-systemd sandbox regression checks. The owner confirmed installation, a successful new backup with fresh download
+  and SQLite verification, followed by collector progress on 24 October. Do not
+  repeat the repair; unattended cycles and the deferred recovery drill remain open. See [backup runbook](INFRASTRUCTURE_BACKUPS.md).
 - `crypto-bigint 0.5.5` remains unpatched in the reviewed native test dependency
   graph. The guarded applicability exception expires **24 November 2026 00:00 UTC**;
   all seven WASM normal/build graphs must exclude that chain. Other advisories

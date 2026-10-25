@@ -213,6 +213,50 @@ try {
   );
   assert.equal(await page.locator('#factor-number').inputValue(), '1.5');
   assert.equal(await page.locator('#commission').inputValue(), '10');
+  // Rebalance uses the exact verified historical approval, independently of editable rules.
+  await step('rebalance');
+  assert.equal(await page.locator('#rebalance-rule-title').textContent(), 'Proposal #950');
+  assert.equal(await page.locator('#rebalance-proposal').isDisabled(), true);
+  await page.locator('#rebalance-max').click();
+  const rebalanceBudget = await page.locator('#rebalance-amount').inputValue();
+  assert.match(rebalanceBudget, /\.\d{6}$/);
+  await page.locator('#rebalance-simulate').click();
+  await page.waitForFunction(() => !document.getElementById('rebalance-export').disabled);
+  assert.ok((await page.locator('#rebalance-rows tr').count()) > 0);
+  assert.equal(await page.locator('#rebalance-result script, #rebalance-result img').count(), 0);
+  const frozenAllocation = await page.locator('#rebalance-identifiers').textContent();
+  await step('rules');
+  await page.locator('#commission').fill('11');
+  await step('rebalance');
+  assert.equal(await page.locator('#rebalance-identifiers').textContent(), frozenAllocation);
+  assert.equal(await page.locator('#rebalance-result').isVisible(), true);
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+      `Rebalance overflow at ${width}`
+    );
+  }
+  const allocationDownload = page.waitForEvent('download');
+  await page.locator('#rebalance-export').click();
+  const allocationFile = await allocationDownload;
+  const allocation = JSON.parse(await readFile(await allocationFile.path(), 'utf8'));
+  assert.equal(allocation.kind, 'ALLOCATION_SIMULATION');
+  assert.equal(allocation.executionEnabled, false);
+  assert.deepEqual(allocation.messages, []);
+  assert.equal(allocation.calculation.rule.schema, 2);
+  assert.equal(allocation.calculation.rule.commissionMaxBps, 700);
+  await page.locator('#rebalance-amount').fill('0');
+  assert.equal(await page.locator('#rebalance-export').isDisabled(), true);
+  await page.locator('#rebalance-simulate').click();
+  await page.waitForFunction(
+    () => document.getElementById('rebalance-feedback').dataset.tone === 'error'
+  );
+  assert.equal(await page.locator('#rebalance-result').isVisible(), false);
+  await step('rules');
+  await page.locator('#commission').fill('10');
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await step('overview');
   approvalState = 'disagree';
   await page.locator('#refresh').click();
   await ready();
@@ -237,28 +281,29 @@ try {
     true
   );
   for (const prefix of ['overview', 'rules']) {
-    for (const group of ['eligibility', 'objective', 'subjective'])
+    for (const group of ['eligibility', 'bonus', 'points'])
       assert.equal(
         await page.locator(`#${prefix}-${group}-details`).evaluate((el) => el.open),
         prefix === 'rules' && group === 'eligibility'
       );
   }
-  assert.equal(await page.locator('#overview-objective-share').isVisible(), false);
+  assert.equal(await page.locator('#overview-points-balance').isVisible(), false);
   await page.locator('#overview-model > summary').click();
-  for (const group of ['objective', 'subjective']) {
-    assert.equal(await page.locator(`#overview-${group}-share`).isVisible(), true);
+  for (const group of ['bonus', 'points']) {
     const toggle = page.locator(`#overview-${group}-details > summary`);
     await toggle.press('Enter');
     assert.equal(await page.locator(`#overview-${group}-details`).evaluate((el) => el.open), true);
     await toggle.press('Enter');
   }
+  assert.equal(await page.locator('#overview-base-points').textContent(), '900');
+  await page.locator('#overview-points-balance').fill('100');
+  assert.equal(await page.locator('#overview-bonus-points').textContent(), '900');
   assert.match(
-    await page.locator('#overview-weighting-help').textContent(),
-    /B 80% \+ C 20% = 100%/
+    await page.locator('#overview-points-effect').textContent(),
+    /10×.*current equal-allocation rules and proposal remain unchanged/
   );
-
   await page.locator('#overview-model > summary').click();
-  assert.equal(await page.locator('#overview-objective-share').isVisible(), false);
+  assert.equal(await page.locator('#overview-points-balance').isVisible(), false);
   assert.equal(await page.locator('#rules').isVisible(), false);
   assert.equal(await page.locator('#overview #claim-rewards').isVisible(), true);
   assert.equal(await page.locator('#rules #claim-rewards').count(), 0);
@@ -281,22 +326,8 @@ try {
   assert.equal(await page.locator('#current-position-rows tr').count(), 25);
   await page.locator('#current-positions-toggle').click();
   for (const prefix of ['overview', 'rules']) {
-    assert.equal(
-      await page
-        .locator(`#${prefix}-future-policy input:enabled, #${prefix}-future-policy select:enabled`)
-        .count(),
-      0
-    );
-    assert.equal(await page.locator(`#${prefix}-objective-share`).inputValue(), '80');
-    assert.equal(await page.locator(`#${prefix}-subjective-share`).inputValue(), '20');
-    const weights = await page
-      .locator(`#${prefix}-future-policy .future-criteria input`)
-      .evaluateAll((nodes) => nodes.map((n) => Number(n.value)));
-    assert.deepEqual(weights, [30, 10, 10, 10, 10, 10, 10, 10]);
-    assert.equal(
-      weights.reduce((a, b) => a + b, 0),
-      100
-    );
+    assert.equal(await page.locator(`#${prefix}-future-policy input:enabled`).count(), 1);
+    assert.equal(await page.locator(`#${prefix}-future-policy .bonus-preview-row`).count(), 4);
   }
   await page.reload();
   await ready();
@@ -335,12 +366,12 @@ try {
   assert.deepEqual(
     await page.locator('#rules-eligibility-details > .criterion h4').allTextContents(),
     [
-      '1 Validator status',
-      '2 Voting power',
-      '3 Commission',
-      '4 Upgrade participation',
-      '5 Manual exclusions',
-      '6 Uptime'
+      'Validator status',
+      'Voting power',
+      'Maximum commission',
+      'Upgrade participation',
+      'Manual exclusions',
+      'Minimum uptime'
     ]
   );
   assert.equal(await page.getByLabel('Juno validator', { exact: true }).isVisible(), true);
@@ -348,14 +379,14 @@ try {
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
   assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), true);
   assert.equal(await page.locator('#draft-budget').textContent(), '15,000,900.00 JUNO');
-  assert.equal(await page.locator('#rules-objective-share').isVisible(), false);
+  assert.equal(await page.locator('#rules-points-balance').isVisible(), false);
   assert.equal(
     await page
       .locator('.allocation-settings')
       .evaluate(
         (el) =>
           !!(
-            el.compareDocumentPosition(document.querySelector('.eligibility-rules')) &
+            document.querySelector('.eligibility-rules').compareDocumentPosition(el) &
             Node.DOCUMENT_POSITION_FOLLOWING
           )
       ),
@@ -526,7 +557,7 @@ try {
   await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
-    for (const stage of ['overview', 'rules', 'simulation', 'proposals']) {
+    for (const stage of ['overview', 'rules', 'simulation', 'proposals', 'rebalance']) {
       await step(stage);
       await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
       assert.ok(
@@ -558,7 +589,7 @@ try {
       await step(stage);
       const model = stage === 'overview' ? '#overview-model' : '#roadmap';
       await page.locator(model + ' > summary').click();
-      for (const group of ['eligibility', 'objective', 'subjective'])
+      for (const group of ['eligibility', 'bonus', 'points'])
         await page.locator(`#${stage}-${group}-details`).evaluate((el) => (el.open = true));
       assert.ok(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
@@ -569,7 +600,7 @@ try {
           path: `${shots}/juno-delegation-${stage}-expanded-${width}.png`,
           fullPage: true
         });
-      for (const group of ['eligibility', 'objective', 'subjective'])
+      for (const group of ['eligibility', 'bonus', 'points'])
         await page
           .locator(`#${stage}-${group}-details`)
           .evaluate((el, open) => (el.open = open), stage === 'rules' && group === 'eligibility');
@@ -997,7 +1028,7 @@ try {
   }
   assert.deepEqual(errors, []);
   console.log(
-    'Juno delegation browser: overview/current holdings, disabled V2/V3 weights, claim placement, stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all four views at four viewports passed.'
+    'Juno delegation browser: overview/current holdings, base/bonus preview isolation and approved-rule Rebalance, claim placement, stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all five views at four viewports passed.'
   );
 } catch (error) {
   if (diagnosticPage && !diagnosticPage.isClosed()) {
