@@ -33,10 +33,30 @@ export async function verifyExecutionReview(value) {
     throw Error('Rebalance evidence or movements changed.');
   return rebuilt;
 }
+function executionDescription(c, plan, legacy = false) {
+  if (legacy)
+    return (
+      `Approved policy: Juno proposal #${c.parent.proposalId}\nPolicy SHA-256: ${c.policyHash}\nAllocation observations: block ${c.snapshot.height} · ${c.snapshot.blockTime}\n\n` +
+      `Delegate: ${units(plan.totals.delegate)} JUNO\nRedelegate: ${units(plan.totals.redelegate)} JUNO\nBegin unbonding: ${units(plan.totals.undelegate)} JUNO\n\n` +
+      'This proposal authorizes the exact movements below. Unbonding funds are unavailable until chain completion. Staking share rounding can leave micro-JUNO differences. Checks describe current state; changes during voting can make execution fail. A successful submission is not execution.\n\n'
+    );
+  return (
+    `Rules #${c.parent.proposalId} · observations: block ${c.snapshot.height} (${c.snapshot.blockTime}).\n` +
+    `JUNO: delegate ${units(plan.totals.delegate)}; redelegate ${units(plan.totals.redelegate)}; begin unbonding ${units(plan.totals.undelegate)}.\n\n` +
+    'Unbonding is delayed; share rounding may leave dust. State changes during voting can cause execution to fail. Submission is not execution.\n\n'
+  );
+}
 export async function executionValues(review) {
   const checked = await verifyExecutionReview(review.value),
     { calculation: c, plan } = checked.value;
-  const packet = { ...checked.value, calculation: packReview(c) };
+  // Format 2 reconstructs the deterministic plan from the complete frozen
+  // calculation. Its full-value hash and separately reviewed messages still bind
+  // every movement; only redundant transport bytes are removed.
+  const packet = {
+    schema: checked.value.schema,
+    kind: checked.value.kind,
+    calculation: packReview(c)
+  };
   const bytes = new TextEncoder().encode(canonical(packet));
   if (bytes.length > 750000) throw Error('Rebalance evidence exceeds the supported size.');
   const zipped = new Uint8Array(
@@ -49,10 +69,8 @@ export async function executionValues(review) {
     title: REBALANCE_TITLE,
     summary: `Execute ${plan.moves.length} staking movements under approved rule proposal #${c.parent.proposalId}.`,
     body:
-      `Approved policy: Juno proposal #${c.parent.proposalId}\nPolicy SHA-256: ${c.policyHash}\nAllocation observations: block ${c.snapshot.height} · ${c.snapshot.blockTime}\n\n` +
-      `Delegate: ${units(plan.totals.delegate)} JUNO\nRedelegate: ${units(plan.totals.redelegate)} JUNO\nBegin unbonding: ${units(plan.totals.undelegate)} JUNO\n\n` +
-      'This proposal authorizes the exact movements below. Unbonding funds are unavailable until chain completion. Staking share rounding can leave micro-JUNO differences. Checks describe current state; changes during voting can make execution fail. A successful submission is not execution.\n\n' +
-      `${marker}\n\nFormat: cosmoot-rebalance-1+gzip\nReview SHA-256: ${checked.hash}\n\n\`\`\`cosmoot-rebalance\n${encoded}\n\`\`\`\n\nThis proposal was created on cosmoot.com.`,
+      executionDescription(c, plan) +
+      `${marker}\n\nFormat: cosmoot-rebalance-2+gzip\nReview SHA-256: ${checked.hash}\n\n\`\`\`cosmoot-rebalance\n${encoded}\n\`\`\`\n\nThis proposal was created on cosmoot.com.`,
     actions_json: JSON.stringify(checked.messages, null, 2)
   };
   if (
@@ -77,12 +95,12 @@ export async function readExecutionReview(values) {
     throw Error('Invalid rebalance proposal identity.');
   const blocks = [
     ...body.matchAll(
-      /^## Frozen rebalance execution\n\nFormat: cosmoot-rebalance-1\+gzip\nReview SHA-256: ([a-f0-9]{64})\n\n```cosmoot-rebalance\n([A-Za-z0-9+/=]+)\n```/gm
+      /^## Frozen rebalance execution\n\nFormat: cosmoot-rebalance-([12])\+gzip\nReview SHA-256: ([a-f0-9]{64})\n\n```cosmoot-rebalance\n([A-Za-z0-9+/=]+)\n```/gm
     )
   ];
   if (blocks.length !== 1 || body.split(marker).length !== 2)
     throw Error('Complete frozen rebalance evidence is required.');
-  const zipped = Uint8Array.from(atob(blocks[0][2]), (c) => c.charCodeAt(0));
+  const zipped = Uint8Array.from(atob(blocks[0][3]), (c) => c.charCodeAt(0));
   const reader = new Blob([zipped])
     .stream()
     .pipeThrough(new DecompressionStream('gzip'))
@@ -101,24 +119,41 @@ export async function readExecutionReview(values) {
     await reader.cancel();
   }
   const packet = JSON.parse(await new Blob(chunks).text());
-  const checked = await verifyExecutionReview({
-    ...packet,
-    calculation: unpackReview(packet.calculation)
-  });
-  if (checked.hash !== blocks[0][1] || canonical(messages) !== canonical(checked.messages))
+  const calculation = unpackReview(packet.calculation);
+  const checked =
+    blocks[0][1] === '1'
+      ? await verifyExecutionReview({ ...packet, calculation })
+      : await executionReview(calculation);
+  if (
+    blocks[0][1] === '2' &&
+    canonical(packet) !==
+      canonical({
+        schema: checked.value.schema,
+        kind: checked.value.kind,
+        calculation: packReview(calculation)
+      })
+  )
+    throw Error('Invalid compact rebalance transport.');
+  if (checked.hash !== blocks[0][2] || canonical(messages) !== canonical(checked.messages))
     throw Error('Rebalance messages do not match the frozen allocation.');
   // Bind human-readable amounts/identity without requiring identical gzip bytes
   // across browser zlib versions or identical REST object-key order.
   const expectedValues = await executionValues(checked);
   const textWithoutPacket = (text) =>
     text.replace(
-      /^## Frozen rebalance execution\n\nFormat: cosmoot-rebalance-1\+gzip\nReview SHA-256: [a-f0-9]{64}\n\n```cosmoot-rebalance\n[A-Za-z0-9+/=]+\n```/gm,
+      /^## Frozen rebalance execution\n\nFormat: cosmoot-rebalance-[12]\+gzip\nReview SHA-256: [a-f0-9]{64}\n\n```cosmoot-rebalance\n[A-Za-z0-9+/=]+\n```/gm,
       '<verified rebalance evidence>'
     );
   if (
     values.title !== expectedValues.title ||
     values.summary !== expectedValues.summary ||
-    textWithoutPacket(values.body) !== textWithoutPacket(expectedValues.body)
+    (textWithoutPacket(values.body) !== textWithoutPacket(expectedValues.body) &&
+      !(
+        blocks[0][1] === '1' &&
+        textWithoutPacket(values.body) ===
+          executionDescription(checked.value.calculation, checked.value.plan, true) +
+            '<verified rebalance evidence>\n\nThis proposal was created on cosmoot.com.'
+      ))
   )
     throw Error(
       'Rebalance text differs from its frozen evidence. Return to Rebalance to prepare a new draft.'

@@ -202,6 +202,7 @@ export function mountRebalance({ getContext, readApproval, download, openProposa
         'Targets calculated. Checking exact staking movements, programme authority and current chain limits…'
       );
       const candidate = await executionReview(value.value.calculation);
+      await rebalanceProposal(candidate); // Check complete proposal size before enabling its action.
       const proofs = await checkRebalance(candidate);
       if (token !== revision) return;
       execution = candidate;

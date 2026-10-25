@@ -23,7 +23,9 @@ import {
   preflight
 } from '../juno-governance-core.mjs';
 import { reviewKind, finalizedReview } from '../juno-community-governance.mjs';
-import { readProposalReview } from '../juno-delegation-review.mjs';
+import { readFile } from 'node:fs/promises';
+import { reviewSizeInput } from './fixtures/delegation-review-size.mjs';
+import { buildRuleReview, readProposalReview } from '../juno-delegation-review.mjs';
 import {
   rebalanceProposal,
   savePlannerProposal,
@@ -183,7 +185,7 @@ test('frozen execution round-trips the exact approved calculation and proposal h
   for (const altered of [
     { ...values, summary: 'Different amount' },
     { ...values, title: 'Different title' },
-    { ...values, body: values.body.replace('Delegate:', 'Claim:') },
+    { ...values, body: values.body.replace('delegate ', 'claim ') },
     { ...values, actions_json: '[]' },
     { ...values, body: values.body + '\n## Frozen rebalance execution' }
   ])
@@ -364,4 +366,42 @@ test('proxy allows only bounded programme-specific staking evidence', () => {
       governanceReadTarget('juno-stavr', path.replace(PROGRAMME, GOVERNANCE), '123')
     );
   }
+});
+
+test('complete 37- and 55-position executions fit without losing calculation evidence; oversized portfolios remain blocked', async () => {
+  for (const count of [37, 55, 100]) {
+    const input = reviewSizeInput({ count: 100 });
+    if (count !== 37)
+      input.snapshot.validators.forEach(
+        (v, i) => (v.currentRaw = i < count ? (BigInt(v.tokensRaw) / 3n).toString() : '0')
+      );
+    input.parent = {
+      proposalId: '950',
+      votingEndedAt: '2026-10-19T17:00:00Z',
+      rule: input.rule,
+      hash: await fingerprint(input.rule)
+    };
+    const review = await executionReview((await buildRuleReview(input)).value);
+    if (count === 100) {
+      await assert.rejects(executionValues(review), /exceeds governance limits/);
+      continue;
+    }
+    const values = await executionValues(review),
+      restored = await readExecutionReview(values);
+    assert.ok(Buffer.byteLength(values.summary + '\n\n' + values.body) <= 10000);
+    assert.deepEqual(restored.value, review.value);
+    assert.deepEqual(restored.messages, review.messages);
+    assert.equal(
+      restored.value.plan.positions.filter((v) => BigInt(v.currentRaw) > 0n).length,
+      count
+    );
+  }
+});
+test('original format-1 execution transport remains readable with its exact immutable hash', async () => {
+  const legacy = JSON.parse(
+    await readFile(new URL('./fixtures/frozen-rebalance-v1.json', import.meta.url), 'utf8')
+  );
+  const restored = await readExecutionReview(legacy.values);
+  assert.equal(restored.hash, legacy.hash);
+  await assert.rejects(readExecutionReview({ ...legacy.values, summary: 'Changed approval' }));
 });

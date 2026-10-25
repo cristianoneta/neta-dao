@@ -39,8 +39,12 @@ unmeasured RPC/testnet scoring model.
    entries count until the chain removes them, even after their nominal date;
    holds can delay completion. No partial plan is published as a full rebalance.
 6. Open a scoped proposal draft. The frozen evidence is compressed losslessly into
-   its immutable text; the exact actions must reproduce that evidence. Oversized
-   proposals fail rather than dropping evidence. Recheck at publication,
+   its immutable text; the exact actions must reproduce that evidence. Format 2
+   reconstructs the deterministic movement plan from the complete calculation,
+   retaining the full review hash and exact action comparison. Format 1 remains
+   readable. Synthetic 37- and 55-position portfolios fit the 10,000-byte text
+   limit; oversized proposals fail before enabling the draft action rather than
+   dropping evidence. Recheck at publication,
    finalization, native preparation, immediately before signing and contribution.
 7. Reuse the established community review, finalization, deposit, wallet signature,
    pending transaction recovery, native vote and execution-status display.
