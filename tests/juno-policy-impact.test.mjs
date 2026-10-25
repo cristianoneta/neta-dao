@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { policyImpact } from '../juno-policy-impact.mjs';
+import { policyImpact, sortImpactRows } from '../juno-policy-impact.mjs';
 import { defaultPolicy } from '../juno-delegation-core.mjs';
 import {
   fixture,
@@ -55,4 +55,50 @@ test('historical observations remain explicitly historical', () => {
   const input = context();
   input.data.collectedAt = new Date(Date.now() - 7200000).toISOString();
   assert.equal(policyImpact(input).historical, true);
+});
+
+test('allocation sorting uses exact signed micro-units, stable ties and leaves evidence unchanged', () => {
+  const rows = [
+    {
+      name: 'B',
+      address: 'b',
+      currentRaw: '9007199254740993',
+      targetRaw: '2',
+      deltaRaw: '-9007199254740991'
+    },
+    {
+      name: 'A',
+      address: 'a',
+      currentRaw: '9007199254740992',
+      targetRaw: '2',
+      deltaRaw: '-9007199254740990'
+    },
+    { name: '', address: 'c', currentRaw: '0', targetRaw: '1', deltaRaw: '1' }
+  ];
+  const original = structuredClone(rows);
+  assert.deepEqual(
+    sortImpactRows(rows, 'currentRaw', 'descending').map((r) => r.address),
+    ['b', 'a', 'c']
+  );
+  assert.deepEqual(
+    sortImpactRows(rows, 'currentRaw', 'ascending').map((r) => r.address),
+    ['c', 'a', 'b']
+  );
+  assert.deepEqual(
+    sortImpactRows(rows, 'targetRaw', 'descending').map((r) => r.address),
+    ['a', 'b', 'c']
+  );
+  assert.deepEqual(
+    sortImpactRows(rows, 'targetRaw', 'ascending').map((r) => r.address),
+    ['c', 'a', 'b']
+  );
+  assert.deepEqual(
+    sortImpactRows(rows, 'deltaRaw', 'descending').map((r) => r.address),
+    ['c', 'a', 'b']
+  );
+  assert.deepEqual(
+    sortImpactRows(rows, 'deltaRaw', 'ascending').map((r) => r.address),
+    ['b', 'a', 'c']
+  );
+  assert.deepEqual(rows, original);
 });

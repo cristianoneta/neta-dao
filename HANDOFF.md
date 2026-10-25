@@ -4,20 +4,19 @@ Updated 25 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
-## Current delegation lab parity correction
+## Current delegation workspace refinement
 
 The owner approved bringing the separate design lab into the real application.
-PR #316 was published in release 40192326607, but its partial adaptation did not
-match the approved lab. The owner supplied the lab screenshot and requested parity.
-The correction restores Eligibility → Distribution → Compare → Review → Rebalance,
-left-side controls and immediate right-side impact. Overview is a secondary link.
-Use the actual lab as the visual reference; publication of any new code is not proof
-that the requested design was transferred.
+PR #316 only partially transferred it; PR #317 restored its composition and was
+published in release 40196047184. The current refinement responds to the owner's
+remaining screenshot feedback: compact aligned criteria, sortable current/target/
+change columns, and a single Review instead of duplicate Compare and Review pages.
+The candidate navigation is Eligibility → Distribution → Review → Rebalance.
+Programme overview remains a secondary link; legacy #simulation links reach Review.
 See [scope, proposal capabilities and remaining boundaries](docs/DELEGATION_WORKSPACE_2026-10-25.md).
-The candidate adds the Rebalance view without authorizing staking transactions.
 Preserve exact approved rule versions; local policy edits must never alter a
 Rebalance calculation. Rule and reward-claim proposals keep their existing flow.
-Verify the required repository gates and use the deliberate manual website release;
+Verify required repository gates and use the deliberate manual website release;
 no host installation or backup changes are required for this UI work.
 
 ## Completed maintenance

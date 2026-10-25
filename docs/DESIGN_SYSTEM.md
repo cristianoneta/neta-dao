@@ -5,6 +5,25 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
+## Delegation clarity — owner refinement, 25 October 2026
+
+Use four planning views: **Eligibility, Distribution, Review, Rebalance**.
+The earlier Compare and Review pages rendered the same comparison twice; combine
+that material with exact export and Open proposal draft in one Review. Retain old
+#simulation links as aliases. Rebalance remains a separate approved-rule task.
+
+Match the lab's concise criterion rhythm: five 42px aligned value fields with short
+labels and contextual help. Put the optional no-limit switch and cap slider in
+Additional rule options. Keep partial-history coverage visible below the rows;
+upgrade evidence and manual exclusions remain inspectable. Read-only 90-day and
+5-hour policy values must never be presented as editable.
+
+Allocation tables sort Current JUNO, Target JUNO and signed Change in either
+direction. Expose the active direction in headers and aria-sort, with an equivalent
+mobile control. Compare exact micro-units, sort the entire set before truncation,
+and retain the chosen ordering when inputs recalculate. Never alter frozen evidence
+just to change its display order.
+
 ## Delegation lab parity — owner correction, 25 October 2026
 
 The approved design is the actual lab, not a lightly restyled legacy planner.
@@ -12,7 +31,7 @@ The owner explicitly approved the mint four-square Cosmoot logo in both the
 header and browser tab on 25 October. Reuse `assets/cosmoot-mark.svg` as its favicon;
 the compact header uses the matching four-square mark with the muted fourth tile.
 The first transfer in #316 did not satisfy this. Use **Eligibility, Distribution,
-Compare, Review, Rebalance** as the five directly accessible planning views.
+Compare, Review, Rebalance** as the five directly accessible planning views at that checkpoint; the later clarity decision above merges Compare and Review.
 Default to Eligibility. Keep Programme overview outside this numbered sequence;
 it retains actual holdings, rewards and approval discovery.
 

@@ -1,5 +1,5 @@
 import { availableBudget } from './juno-rebalance.mjs';
-import { policyImpact, renderPolicyImpact } from './juno-policy-impact.mjs';
+import { policyImpact, renderPolicyImpact } from './juno-policy-impact.mjs?v=20261025-clarity-1';
 import { mountRebalance } from './juno-rebalance-view.mjs';
 import { buildRuleReview, ruleChanges, parentMatches } from './juno-delegation-review.mjs';
 import { renderRuleReview } from './juno-rule-review-view.mjs';
@@ -101,7 +101,8 @@ function renderClaimRewards() {
   }
 }
 function setStep(step, focus = true) {
-  if (!['overview', 'rules', 'distribution', 'simulation', 'proposals', 'rebalance'].includes(step))
+  if (step === 'simulation') step = 'proposals';
+  if (!['overview', 'rules', 'distribution', 'proposals', 'rebalance'].includes(step))
     step = 'rules';
   if (focus && $('feedback').dataset.tone !== 'warning') tell('');
   for (const panel of document.querySelectorAll('.planner-panel')) panel.hidden = panel.id !== step;
@@ -122,11 +123,9 @@ function setStep(step, focus = true) {
           ? 'rules-title'
           : step === 'distribution'
             ? 'distribution-title'
-            : step === 'simulation'
-              ? 'simulation-title'
-              : step === 'rebalance'
-                ? 'rebalance-title'
-                : 'proposals-title'
+            : step === 'rebalance'
+              ? 'rebalance-title'
+              : 'proposals-title'
     );
     heading.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -354,12 +353,11 @@ function invalidate(message = 'Rules or amount changed. Review again to refresh 
     $('draft-status').textContent = 'Draft changed · save rules to keep them locally';
   }
   review = null;
-  for (const id of ['export-json', 'publish-proposal', 'review-proposal']) $(id).disabled = true;
+  for (const id of ['export-json', 'publish-proposal']) $(id).disabled = true;
   $('simulation-state').textContent = 'Not reviewed';
   $('rule-fingerprint').textContent =
     'Review the draft to identify its exact rules and observations.';
   $('simulation-comparison').replaceChildren(node('p', message));
-  $('proposal-review').hidden = true;
   $('proposal-empty').hidden = false;
   renderRuleSummary();
 }
@@ -438,6 +436,7 @@ function showUptimeError() {
 function restoreRuleInputs() {
   const unlimited = rules.commissionMaxBps === null;
   $('no-commission-limit').checked = unlimited;
+  $('additional-rule-options').open = unlimited;
   $('commission').disabled = unlimited;
   $('commission').value = unlimited ? '10' : String(rules.commissionMaxBps / 100);
   showCommissionError();
@@ -647,9 +646,7 @@ async function load() {
 }
 function renderResult() {
   renderRuleReview($('simulation-comparison'), review);
-  renderRuleReview($('proposal-review'), review);
   $('proposal-empty').hidden = true;
-  $('proposal-review').hidden = false;
   $('simulation-state').textContent = review.model.proposed.result
     ? 'Draft comparison'
     : 'Evidence incomplete';
@@ -660,7 +657,7 @@ function focusRuleInput(id) {
   $('rules-eligibility-details').open = true;
   $(id).focus();
 }
-async function runSimulation(destination = 'simulation') {
+async function runSimulation() {
   try {
     if (!data || !evidence) throw Error('Load programme data first.');
     if (!$('factor-number').checkValidity() || !$('factor-number').value) {
@@ -702,15 +699,18 @@ async function runSimulation(destination = 'simulation') {
     $('rule-fingerprint').textContent =
       `Rule SHA-256: ${review.value.policyHash} · Review SHA-256: ${review.hash}`;
     $('export-json').disabled = false;
-    $('review-proposal').disabled = false;
     renderDraftBaseline();
-    setStep(destination === 'proposals' ? 'proposals' : 'simulation');
+    setStep('proposals');
     tell(
       review.model.proposed.result
         ? 'Comparison ready. Review the rule changes and allocation impact before opening the proposal.'
         : 'Rules are ready to review. The allocation estimate remains unavailable until the required history is complete.'
     );
   } catch (error) {
+    if (!review) {
+      $('simulation-comparison').replaceChildren(node('p', error.message, 'review-notice'));
+      $('simulation-state').textContent = 'Review unavailable';
+    }
     tell(error.message, 'error');
   }
 }
@@ -963,13 +963,9 @@ document.querySelectorAll('[data-step]').forEach((link) =>
   link.addEventListener('click', (event) => {
     event.preventDefault();
     setStep(link.dataset.step);
-    if (['simulation', 'proposals'].includes(link.dataset.step) && !review)
-      void runSimulation(link.dataset.step);
+    if (['simulation', 'proposals'].includes(link.dataset.step) && !review) void runSimulation();
   })
 );
-$('review-proposal').addEventListener('click', () => {
-  if (review) setStep('proposals');
-});
 const themeKey = 'cosmoot:delegation:appearance';
 function applyTheme(value) {
   document.documentElement.dataset.theme = value;

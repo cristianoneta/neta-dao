@@ -13,13 +13,13 @@
       content="Set Juno delegation rules, review their impact and prepare a community rule proposal."
     />
     <link rel="icon" href="/assets/cosmoot-mark.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/neta-ui.css" />
+    <link rel="stylesheet" href="/neta-ui.css?v=20261025" />
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
     <link rel="stylesheet" href="/juno-delegation.css?v=9" />
-    <script type="module" src="/juno-delegation.mjs?v=20261025-lab-2"></script>
+    <script type="module" src="/juno-delegation.mjs?v=20261025-clarity-1"></script>
     <link rel="stylesheet" href="/juno-rule-review.css?v=20261017-1" />
-    <link rel="stylesheet" href="/juno-delegation-workspace.css?v=2" />
+    <link rel="stylesheet" href="/juno-delegation-workspace.css?v=3" />
   </head>
   <body>
     <a class="planner-skip" href="#planner-heading">Skip to planner</a>
@@ -56,14 +56,11 @@
         <a href="#distribution" data-step="distribution"
           ><span class="step-number" aria-hidden="true">02</span>Distribution</a
         >
-        <a href="#simulation" data-step="simulation"
-          ><span class="step-number" aria-hidden="true">03</span>Compare</a
-        >
         <a href="#proposals" data-step="proposals"
-          ><span class="step-number" aria-hidden="true">04</span>Review</a
+          ><span class="step-number" aria-hidden="true">03</span>Review</a
         >
         <a href="#rebalance" data-step="rebalance"
-          ><span class="step-number" aria-hidden="true">05</span>Rebalance</a
+          ><span class="step-number" aria-hidden="true">04</span>Rebalance</a
         >
       </nav>
       <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
@@ -433,9 +430,6 @@
                         aria-describedby="commission-help commission-error"
                       /><span>%</span>
                     </div>
-                    <label class="check-option" for="no-commission-limit"
-                      ><input id="no-commission-limit" type="checkbox" />No limit</label
-                    >
                   </div>
                   <p id="commission-help" class="sr-only">Whole numbers from 0 to 100.</p>
                   <p id="commission-error" class="field-error criterion-detail" hidden>
@@ -463,10 +457,6 @@
                   <div class="criterion-control">
                     <div class="number-unit"><output>90</output><span>days</span></div>
                   </div>
-                  <details class="criterion-detail quiet-details">
-                    <summary id="history-window-summary">Observed history</summary>
-                    <p id="draft-history-coverage" class="field-help"></p>
-                  </details>
                 </section>
                 <section class="criterion compact-criterion" aria-labelledby="power-criterion">
                   <div class="criterion-label">
@@ -484,20 +474,15 @@
                       Limits projected total stake, including other delegators. All active
                       validators count, including programme exclusions. The factor ranges from 1.0
                       to 2.0.
+                      <p id="cap-description">Projected voting-power limit</p>
+                      <p id="cap-formula">
+                        Cap = min(30%, factor × 100% / active validator count).
+                      </p>
                     </div>
                   </div>
                   <div class="criterion-control">
-                    <label class="sr-only" for="factor">Voting power cap factor</label>
-                    <div class="factor-control">
-                      <input
-                        id="factor"
-                        type="range"
-                        min="10"
-                        max="20"
-                        step="1"
-                        value="15"
-                        aria-describedby="cap-description"
-                      /><label class="sr-only" for="factor-number"
+                    <div class="number-unit">
+                      <label class="sr-only" for="factor-number"
                         >Exact voting power cap factor</label
                       ><input
                         id="factor-number"
@@ -507,16 +492,15 @@
                         step="0.1"
                         value="1.5"
                         aria-describedby="factor-error"
-                      /><output id="factor-value" for="factor factor-number">1.5×</output>
+                      /><span aria-hidden="true">×</span
+                      ><output id="factor-value" class="sr-only" for="factor factor-number"
+                        >1.5×</output
+                      >
                     </div>
                   </div>
                   <p id="factor-error" class="field-error criterion-detail" hidden>
                     Enter a factor from 1.0 to 2.0 in steps of 0.1.
                   </p>
-                  <details class="calculation-help criterion-detail">
-                    <summary id="cap-description">Projected voting-power limit</summary>
-                    <p id="cap-formula">Cap = min(30%, factor × 100% / active validator count).</p>
-                  </details>
                 </section>
                 <section class="criterion compact-criterion" aria-labelledby="upgrade-criterion">
                   <div class="criterion-label">
@@ -536,15 +520,11 @@
                     </div>
                   </div>
                   <div class="criterion-control">
-                    <span class="fixed-rule">Juno v31 · within 5h</span>
+                    <div class="number-unit">
+                      <output aria-label="Juno v31 participation deadline">5</output
+                      ><span>hours</span>
+                    </div>
                   </div>
-                  <details class="criterion-detail quiet-details">
-                    <summary>Participation evidence</summary>
-                    <p id="upgrade-window" class="field-help">Loading archived observations.</p>
-                    <a href="/community-tools/validator-upgrades/juno-v31/"
-                      >Open the v31 evidence ↗</a
-                    >
-                  </details>
                 </section>
                 <section
                   id="manual-exclusions"
@@ -594,6 +574,31 @@
                     </div>
                   </details>
                 </section>
+              </details>
+              <details class="criterion-evidence">
+                <summary id="history-window-summary">Observed history</summary>
+                <p id="draft-history-coverage" class="field-help"></p>
+              </details>
+              <details id="additional-rule-options" class="criterion-evidence">
+                <summary>Additional rule options</summary>
+                <label class="check-option" for="no-commission-limit"
+                  ><input id="no-commission-limit" type="checkbox" />No commission limit</label
+                >
+                <label class="field-help" for="factor">Voting power cap factor</label>
+                <input
+                  id="factor"
+                  type="range"
+                  min="10"
+                  max="20"
+                  step="1"
+                  value="15"
+                  aria-describedby="cap-description"
+                />
+              </details>
+              <details class="criterion-evidence">
+                <summary>Participation evidence</summary>
+                <p id="upgrade-window" class="field-help">Loading archived observations.</p>
+                <a href="/community-tools/validator-upgrades/juno-v31/">Open the v31 evidence ↗</a>
               </details>
             </article>
             <div class="draft-actions">
@@ -682,10 +687,11 @@
                 placeholder="Explain the decision to voters"
               ></textarea
               ><button id="simulate" class="primary-action" type="button" disabled>
-                Freeze comparison →
+                Review rules &amp; impact →
               </button>
               <p class="field-help">
-                Next: compare current and proposed allocations. No wallet connection required.
+                Freeze this draft and its evidence for a single review. No wallet connection
+                required.
               </p>
               <span class="draft-local">Local draft · not submitted</span>
             </aside>
@@ -698,18 +704,23 @@
           </div>
         </div>
       </section>
-      <section id="simulation" class="planner-panel" aria-labelledby="simulation-title" hidden>
+      <section id="proposals" class="planner-panel" aria-labelledby="proposals-title" hidden>
         <div class="section-heading">
-          <h2 id="simulation-title" tabindex="-1">Review the distribution</h2>
-          <span id="simulation-state" class="state-pill neutral">Not simulated</span>
+          <h2 id="proposals-title" tabindex="-1">Review rules &amp; impact</h2>
+          <span id="simulation-state" class="state-pill neutral">Not reviewed</span>
         </div>
-        <p class="section-description">
-          Compare the proposed distribution with today’s positions. Expand any validator to inspect
-          the evidence.
+        <p class="proposal-intro">
+          The community would approve the allocation rules. Simulation amounts illustrate their
+          impact; they do not authorize a transfer.
         </p>
+        <div id="proposal-empty" class="review-notice">
+          Review rules and impact to prepare the frozen proposal comparison. Rules can be proposed
+          while allocation evidence is incomplete.
+        </div>
         <div class="rule-summary">
-          <p id="rule-summary">Review the draft rules before simulating.</p>
+          <p id="rule-summary">Review the draft rules before preparing a proposal.</p>
           <a href="#rules" data-step="rules">Edit eligibility</a>
+          <a href="#distribution" data-step="distribution">Edit distribution</a>
         </div>
         <div id="simulation-comparison">
           <p>Review the draft to see its rules and allocation impact.</p>
@@ -732,12 +743,6 @@
             power for a fixed validator set.
           </p>
         </details>
-        <div class="step-actions">
-          <a href="#rules" data-step="rules">← Edit eligibility</a
-          ><button id="review-proposal" type="button" class="primary-action" disabled>
-            Review rule proposal →
-          </button>
-        </div>
         <details class="calculation-help">
           <summary>Historical context: the 2025-1 programme</summary>
           <p>
@@ -761,29 +766,15 @@
             >
           </p>
         </details>
-      </section>
-      <section id="proposals" class="planner-panel" aria-labelledby="proposals-title" hidden>
-        <div class="section-heading">
-          <h2 id="proposals-title" tabindex="-1">Review the rule proposal</h2>
-          <span class="state-pill neutral">Rule approval · unsubmitted</span>
-        </div>
-        <p class="proposal-intro">
-          The community would approve the allocation rules. Simulation amounts illustrate their
-          impact; they do not authorize a transfer.
-        </p>
-        <div id="proposal-empty" class="review-notice">
-          Review rules and impact to prepare the frozen proposal comparison. Rules can be proposed
-          while allocation evidence is incomplete.
-        </div>
-        <div id="proposal-review" hidden></div>
+
         <details class="calculation-help">
           <summary>Exact rule and snapshot identifiers</summary>
           <p id="rule-fingerprint" class="field-help">
-            Simulate to identify this exact rule and data version.
+            Review to identify this exact rule and data version.
           </p>
         </details>
         <div class="step-actions">
-          <a href="#simulation" data-step="simulation">← Back to comparison</a>
+          <a href="#distribution" data-step="distribution">← Edit distribution</a>
           <div class="draft-actions">
             <button id="export-json" type="button" disabled>Download review data</button
             ><button id="publish-proposal" class="primary-action" type="button" disabled>

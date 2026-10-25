@@ -612,6 +612,7 @@
 
 /* Exact lab composition, now backed by the production programme readers. */
 :root {
+  --neta-font: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   --neta-bg: #11171b;
   --neta-surface: #192127;
   --neta-surface-raised: #1d272e;
@@ -641,7 +642,7 @@
   --policy-bonus: #98682e;
 }
 body {
-  font-size: 14px;
+  font: 14px/1.55 var(--neta-font);
 }
 .policy-header {
   display: flex;
@@ -861,6 +862,36 @@ body {
   line-height: 1.45;
   font-weight: 500;
 }
+.policy-controls .criterion-help {
+  font-family: var(--neta-font);
+}
+.policy-controls .criterion-control input[type='number'],
+.policy-controls .criterion-control .number-unit output {
+  height: 42px;
+  min-height: 42px;
+  padding: 8px;
+  font-size: 16px;
+  line-height: 24px;
+}
+.policy-controls .criterion-evidence {
+  padding: 12px 0 0;
+  margin: 0;
+  border: 0;
+  font-size: 12px;
+  color: var(--neta-text-secondary);
+}
+.criterion-evidence summary {
+  padding: 4px 0;
+  cursor: pointer;
+}
+.criterion-evidence .check-option {
+  justify-content: flex-start;
+  font-size: 12px;
+}
+.criterion-evidence input[type='range'] {
+  display: block;
+  width: 100%;
+}
 .criterion-control .number-unit {
   width: 110px;
   grid-template-columns: 76px 27px;
@@ -1057,6 +1088,49 @@ body {
 .impact-table th:last-child,
 .impact-table td:last-child {
   padding-right: 0;
+}
+.impact-table th {
+  padding-block: 0;
+}
+.impact-table .impact-sort {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 10px 0;
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+}
+.impact-table .impact-sort:hover,
+.impact-table th[aria-sort='ascending'],
+.impact-table th[aria-sort='descending'] {
+  color: var(--neta-accent);
+}
+.delegation-hub .impact-sort-mobile {
+  display: none;
+}
+@media (max-width: 600px) {
+  .delegation-hub .impact-sort-mobile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0;
+    color: var(--neta-text-secondary);
+    font-size: 12px;
+  }
+  .impact-sort-mobile select {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 12px;
+    padding: 8px;
+  }
 }
 .impact-table details {
   margin: 0;
