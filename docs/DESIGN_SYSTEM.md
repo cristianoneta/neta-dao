@@ -8,8 +8,13 @@ loading behavior without introducing a new visual theme or activating features.
 ## WYND swap — owner update, 25 October 2026
 
 Replace the redundant explanation card with five selectable pool rows and aligned
-USD liquidity. Both asset pills open an accessible six-asset dropdown, retaining
-an existing direct pair or visibly updating the counterpart. Clear the prior
+USD liquidity. The pay selector exposes all six assets; the receive selector shows
+only direct counterparts of the chosen pay asset and never changes that pay asset.
+Changing pay retains a valid receive asset or selects a supported counterpart.
+Use actual local token logos in both pills and menus. Show both token USD prices
+below reserves, with small-value precision and a label for pool estimates. The
+owner requested a larger original mascot (175px wide on desktop) in the available
+header space; retain mobile and reduced-motion behavior. Clear the prior
 amount/quote when changing the pair. Preserve the selected row and explicit wallet
 review. Use the original WYND mascot as a small header detail, not a fixed overlay;
 no flashes during review or selection, and honor reduced motion. All visible

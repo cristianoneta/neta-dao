@@ -9,7 +9,7 @@ import {
   parseSwapQuote,
   buildSwapTransaction,
   receivedFromEvents
-} from './wynd-swap-core.mjs';
+} from './wynd-swap-core.mjs?v=2';
 // Adapted from neta-website 7ad0bbf: direct WYND swap, current Cosmoot shell.
 (() => {
   'use strict';
@@ -190,6 +190,34 @@ import {
               })
             : '—';
         value.dataset.reserve = symbol;
+        row.append(label, value);
+        return row;
+      }),
+      ...selected.assets.map((symbol) => {
+        const row = document.createElement('div'),
+          label = document.createElement('dt'),
+          value = document.createElement('dd'),
+          price = valuation?.prices[symbol];
+        label.textContent = symbol + ' price';
+        value.dataset.price = symbol;
+        value.textContent = price
+          ? price < 0.00000001
+            ? '< $0.00000001'
+            : '≈ ' +
+              price.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: price < 1 ? 8 : 4
+              })
+          : '—';
+        if (price) value.title = `1 ${symbol} = ${price} USD`;
+        if (valuation?.derived.includes(symbol)) {
+          const note = document.createElement('small');
+          note.className = 'pool-price-note';
+          note.textContent = 'Pool estimate';
+          value.append(note);
+        }
         row.append(label, value);
         return row;
       })
@@ -813,26 +841,39 @@ import {
     menuTrigger = dom[side + 'Select'];
     menuTrigger.parentElement.append(dom.assetMenu);
     const current = side === 'offer' ? offer : receive;
+    dom.assetMenu.querySelector('.asset-menu-note').textContent =
+      side === 'offer'
+        ? 'Choose what to pay. The receive asset updates if needed for a direct pool.'
+        : `Only tokens with a direct ${offer} pool are shown.`;
     dom.assetOptions.setAttribute('aria-label', side === 'offer' ? 'Pay asset' : 'Receive asset');
     dom.assetOptions.replaceChildren(
-      ...Object.values(assets).map((asset) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.role = 'option';
-        button.dataset.asset = asset.symbol;
-        button.setAttribute('aria-selected', String(asset.symbol === current));
-        const label = document.createElement('strong'),
-          detail = document.createElement('small');
-        label.textContent = asset.symbol;
-        detail.textContent = asset.name;
-        button.append(label, detail);
-        button.addEventListener('click', () => {
-          const next = selectAssets(side, asset.symbol, offer, receive);
-          closeAssetMenu(true);
-          changePair(next.offer, next.receive);
-        });
-        return button;
-      })
+      ...Object.values(assets)
+        .filter((asset) => side === 'offer' || findPool(offer, asset.symbol))
+        .map((asset) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.role = 'option';
+          button.dataset.asset = asset.symbol;
+          button.setAttribute('aria-selected', String(asset.symbol === current));
+          const icon = document.createElement('img'),
+            text = document.createElement('span'),
+            label = document.createElement('strong'),
+            detail = document.createElement('small');
+          icon.src = asset.logo;
+          icon.alt = '';
+          icon.width = icon.height = 28;
+          text.className = 'asset-option-copy';
+          label.textContent = asset.symbol;
+          detail.textContent = asset.name;
+          text.append(label, detail);
+          button.append(icon, text);
+          button.addEventListener('click', () => {
+            const next = selectAssets(side, asset.symbol, offer, receive);
+            closeAssetMenu(true);
+            changePair(next.offer, next.receive);
+          });
+          return button;
+        })
     );
     dom.assetMenu.hidden = false;
     menuTrigger.setAttribute('aria-expanded', 'true');

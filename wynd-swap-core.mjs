@@ -18,24 +18,28 @@ export const ASSETS = freeze({
     symbol: 'ATOM',
     name: 'Cosmos Hub · IBC on Juno',
     decimals: 6,
+    logo: '/assets/tokens/atom.svg',
     info: { native: 'ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9' }
   },
   USDC: {
     symbol: 'USDC',
     name: 'Axelar USDC · IBC on Juno',
     decimals: 6,
+    logo: '/assets/tokens/usdc.svg',
     info: { native: 'ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034' }
   },
   OSMO: {
     symbol: 'OSMO',
     name: 'Osmosis · IBC on Juno',
     decimals: 6,
+    logo: '/assets/tokens/osmo.svg',
     info: { native: 'ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518' }
   },
   WYND: {
     symbol: 'WYND',
     name: 'WYND DAO · CW20 on Juno',
     decimals: 6,
+    logo: '/assets/tokens/wynd.svg',
     info: { token: 'juno1mkw83sv6c7sjdvsaplrzc8yaes9l42p4mhy0ssuxjnyzl87c9eps7ce3m9' }
   },
   NETA: {
@@ -90,12 +94,14 @@ export function findPool(offer, receive) {
 export function selectAssets(side, symbol, offer, receive) {
   if (!ASSETS[symbol] || !['offer', 'receive'].includes(side)) throw Error('Unsupported asset');
   if (side === 'offer') offer = symbol;
-  else receive = symbol;
+  else {
+    if (!findPool(offer, symbol)) throw Error('No direct pool for the selected pay asset');
+    receive = symbol;
+  }
   if (!findPool(offer, receive)) {
     const pair = POOLS.find((p) => p.assets.includes(symbol));
     const counterpart = pair.assets.find((s) => s !== symbol);
-    if (side === 'offer') receive = counterpart;
-    else offer = counterpart;
+    receive = counterpart;
   }
   return { offer, receive, pool: findPool(offer, receive) };
 }
