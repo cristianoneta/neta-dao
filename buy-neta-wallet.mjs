@@ -18,7 +18,12 @@ connect.addEventListener('click', async () => {
   try {
     if (!window.keplr) throw Error('Open this page in a browser with Keplr installed.');
     await window.keplr.enable('juno-1');
-    const signer = await window.keplr.getOfflineSignerAuto('juno-1');
+    // Keep the simulated fee and reviewed memo when Keplr constructs its sign
+    // response. The signing bridge still verifies both before any broadcast.
+    const signer = await window.keplr.getOfflineSignerAuto('juno-1', {
+      preferNoSetFee: true,
+      preferNoSetMemo: true
+    });
     const accounts = await signer.getAccounts(),
       key = await window.keplr.getKey('juno-1');
     if (attempt !== revision) return;
