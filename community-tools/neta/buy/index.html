@@ -7,8 +7,8 @@
   <title>Swap on WYND · Community Tools</title>
   <meta name="description" content="Swap assets through five existing WYND pools on Juno. Live quotes, explicit transaction review and Keplr signing.">
   <link rel="icon" href="/assets/cosmoot-mark.svg"><link rel="stylesheet" href="/neta-ui.css">
-  <link rel="stylesheet" href="/community-tools.css?v=2"><link rel="stylesheet" href="/community-tools-header.css?v=1"><link rel="stylesheet" href="/buy-neta.css?v=3">
-  <script src="/buy-neta-client.js?v=1" defer></script><script src="/buy-neta-config.js?v=2" defer></script><script src="/assets/wynd-swap-signing.js?v=1" defer></script><script type="module" src="/buy-neta.js?v=3"></script><script type="module" src="/buy-neta-wallet.mjs?v=1"></script>
+  <link rel="stylesheet" href="/community-tools.css?v=2"><link rel="stylesheet" href="/community-tools-header.css?v=1"><link rel="stylesheet" href="/buy-neta.css?v=4">
+  <script src="/buy-neta-client.js?v=1" defer></script><script src="/buy-neta-config.js?v=2" defer></script><script src="/assets/wynd-swap-signing.js?v=1" defer></script><script type="module" src="/buy-neta.js?v=4"></script><script type="module" src="/buy-neta-wallet.mjs?v=1"></script>
 </head>
 <body>
 <a class="tool-skip" href="#buy-main">Skip to swap</a>
@@ -41,6 +41,6 @@
   </div>
   <footer class="tool-footer"><a href="/community-tools/#neta">← NETA tools</a><span>A community tool by NETA Reborn.</span></footer>
 </main>
-<div id="asset-menu" class="asset-menu" hidden><p>Choose an asset</p><div id="asset-options" role="listbox" aria-label="Assets on Juno"></div><p class="asset-menu-note">Direct pools only. The other asset updates when a different pair is needed.</p></div>
+<div id="asset-menu" class="asset-menu" hidden><p>Choose an asset</p><div id="asset-options" role="listbox" aria-label="Assets on Juno"></div><p class="asset-menu-note">Only direct trading pairs are available.</p></div>
 <dialog id="swap-modal" aria-labelledby="swap-modal-title" aria-describedby="swap-modal-message"><div class="swap-modal-card"><p class="eyebrow">JUNO MAINNET</p><h2 id="swap-modal-title">Review your swap</h2><p id="swap-modal-state" class="swap-modal-state" role="status">Review your swap</p><dl class="swap-review"><div><dt>You pay</dt><dd id="review-pay"></dd></div><div><dt>Estimated receipt</dt><dd id="review-receive"></dd></div><div><dt>Minimum received</dt><dd id="review-minimum"></dd></div><div><dt>Network fee</dt><dd id="review-fee"></dd></div><div><dt>Your wallet</dt><dd id="review-wallet"></dd></div></dl><p id="swap-modal-message">Your quote, balance and $50 limit are checked again before Keplr opens. A network fee in JUNO applies.</p><details class="transaction-details"><summary>Transaction details</summary><pre id="swap-preview"></pre></details><div id="swap-result" class="swap-result" hidden><strong id="swap-result-label">Transaction confirmed</strong><span id="swap-result-hash"></span><a id="swap-explorer" target="_blank" rel="noopener noreferrer">View on Atomscan ↗</a></div><div class="swap-modal-actions"><button id="confirm-swap" class="neta-primary" type="button">Confirm with Keplr</button><button id="close-swap" type="button">Close</button></div></div></dialog>
 </body></html>

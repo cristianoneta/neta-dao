@@ -24,7 +24,9 @@ const server = http.createServer(async (req, res) => {
                 ? 'image/png'
                 : path.endsWith('.webp')
                   ? 'image/webp'
-                  : 'text/html'
+                  : path.endsWith('.svg')
+                    ? 'image/svg+xml'
+                    : 'text/html'
       })
       .end(body);
   } catch {
@@ -404,7 +406,7 @@ try {
   await page.evaluate(() => dispatchEvent(new Event('keplr_keystorechange')));
   assert.equal(await page.locator('#swap-action').isDisabled(), true);
   await page.locator('#connect-wallet').click();
-  // Both selectors expose all six assets and move to an existing direct pair.
+  // Pay offers all six assets, with loaded logos. Receive is constrained by pay.
   await page.evaluate(() => document.querySelector('#wynd-offline-ghost').classList.add('visible'));
   await page.locator('#offer-asset').click();
   assert.equal(
@@ -412,6 +414,13 @@ try {
     false
   );
   assert.equal(await page.getByRole('option').count(), 6);
+  await page.waitForFunction(
+    () =>
+      [...document.querySelectorAll('#asset-options img')].length === 6 &&
+      [...document.querySelectorAll('#asset-options img')].every(
+        (img) => img.complete && img.naturalWidth > 0
+      )
+  );
   await page.keyboard.press('Escape');
   assert.equal(
     await page.locator('#offer-asset').evaluate((e) => e === document.activeElement),
@@ -423,9 +432,38 @@ try {
   await textIs('#receive-symbol', 'USDC');
   assert.equal(await page.locator('#offer-amount').inputValue(), '');
   await page.locator('#receive-asset').click();
-  await page.locator('[data-asset="ATOM"]').click();
+  assert.deepEqual(
+    await page.getByRole('option').evaluateAll((items) => items.map((e) => e.dataset.asset)),
+    ['USDC']
+  );
+  await page.keyboard.press('Escape');
+  await page.locator('#offer-asset').click();
+  await page.locator('[data-asset="USDC"]').click();
   await textIs('#contract-state', 'Verified');
-  await textIs('#offer-symbol', 'JUNO');
+  await textIs('#receive-symbol', 'JUNO');
+  await page.locator('#offer-amount').fill('1');
+  await ready();
+  await page.locator('#receive-asset').click();
+  assert.deepEqual(
+    await page.getByRole('option').evaluateAll((items) => items.map((e) => e.dataset.asset)),
+    ['JUNO', 'WYND']
+  );
+  await page.locator('[data-asset="WYND"]').click();
+  await textIs('#contract-state', 'Verified');
+  await textIs('#offer-symbol', 'USDC');
+  await textIs('#receive-symbol', 'WYND');
+  assert.equal(await page.locator('#offer-amount').inputValue(), '');
+  assert.equal(await page.locator('#receive-amount').textContent(), '0.0');
+  assert.equal(await page.locator('[data-price="USDC"]').textContent(), '≈ $1.00');
+  assert.equal(await page.locator('[data-price="WYND"]').textContent(), '≈ $0.000375Pool estimate');
+  const expectedReceivers = {
+    JUNO: ['ATOM', 'USDC', 'OSMO', 'NETA'],
+    ATOM: ['JUNO'],
+    USDC: ['JUNO', 'WYND'],
+    OSMO: ['JUNO'],
+    WYND: ['USDC'],
+    NETA: ['JUNO']
+  };
   for (const target of POOLS) {
     await page.locator('[data-pool="' + target.id + '"]').focus();
     await page.keyboard.press('Enter');
@@ -433,6 +471,25 @@ try {
     assert.equal(await page.evaluate(() => document.activeElement.dataset.pool), target.id);
     for (let direction = 0; direction < 2; direction++) {
       if (direction) await page.locator('#reverse-swap').click();
+      const pay = direction ? target.assets[1] : target.assets[0];
+      await page.locator('#receive-asset').click();
+      assert.deepEqual(
+        await page.getByRole('option').evaluateAll((items) => items.map((e) => e.dataset.asset)),
+        expectedReceivers[pay]
+      );
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(() =>
+        ['offer', 'receive'].every((side) => {
+          const img = document.querySelector('#' + side + '-logo');
+          return !img.hidden && img.complete && img.naturalWidth > 0;
+        })
+      );
+      assert.deepEqual(
+        await page
+          .locator('[data-price]')
+          .evaluateAll((items) => items.map((e) => e.dataset.price)),
+        target.assets
+      );
       await page.locator('#offer-amount').fill('1');
       await ready();
       await page.locator('#swap-action').click();
@@ -500,11 +557,26 @@ try {
     'none'
   );
   await screenshot('wynd-five-pools-1440');
+  assert.ok(
+    (await page.locator('#wynd-offline-ghost').evaluate((e) => e.getBoundingClientRect().width)) >=
+      170
+  );
+  await page.locator('[data-pool="wynd-usdc"]').click();
+  await textIs('#contract-state', 'Verified');
+  await page.locator('#reverse-swap').click();
+  await page.locator('.pool-overview summary').click();
+  await screenshot('wynd-token-prices-1440');
+  await page.locator('#receive-asset').click();
+  await screenshot('wynd-usdc-receive-menu-1440');
+  await page.keyboard.press('Escape');
   await page.setViewportSize({ width: 320, height: 1100 });
   await page.locator('#receive-asset').click();
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await screenshot('wynd-asset-menu-320');
   await page.keyboard.press('Escape');
+  await screenshot('wynd-token-prices-320');
+  await page.locator('[data-pool="juno-neta"]').click();
+  await textIs('#contract-state', 'Verified');
   badToken = true;
   await page.locator('#refresh-pool').click();
   await textIs('#contract-state', 'Unavailable');
@@ -514,7 +586,7 @@ try {
   await page.reload();
   await textIs('#contract-state', 'Unavailable');
   assert.equal(await page.locator('#swap-action').isDisabled(), true);
-  assert.deepEqual(await page.locator('#pool-reserves dd').allTextContents(), ['—', '—']);
+  assert.deepEqual(await page.locator('#pool-reserves dd').allTextContents(), ['—', '—', '—', '—']);
   assert.equal(await page.locator('.pool-liquidity').filter({ hasText: '≈ $' }).count(), 0);
   stale = false;
   badCode = true;

@@ -10,8 +10,11 @@ The owner requested five pools with current USD liquidity, clickable asset menus
 the original flickering WYND mascot and a 50-USD cap. Continue from the
 [scope and validation checkpoint](docs/WYND_SWAP_2026-10-25.md). Preserve the
 existing transaction review, chain/asset checks and pending-broadcast journal.
-The rule-approval fix below is already merged and should ship with the next
-manual website release; the currently published source does not include it.
+PR #321 and the rule-approval correction below were published in release
+40223522400 at source `71b0dd2d51cadebb51f6cef6294916a85b9d18e0`.
+The owner's follow-up adds missing token logos, compatible receive-only choices,
+individual pool token prices and a larger original mascot. Continue from the
+refinement section of the same checkpoint; those changes need another release.
 
 ## Rule approval follow-up
 
@@ -22,7 +25,7 @@ identity lines needed for approval discovery. PR #320, merged at
 drafts and verifies immutable older compact envelopes through their frozen
 comparison. See [correction and validation](docs/REBALANCE_EXECUTION_2026-10-25.md#compact-rule-approval-correction).
 Do not equate a submitted rule proposal with an approved rulebook or a deployed
-rule-enforcement contract. That published Rebalance release predates this correction.
+rule-enforcement contract. The correction is published in the subsequent five-pool release 40223522400.
 
 ## Active product work: checked Rebalance
 
@@ -32,8 +35,8 @@ Continue with the [checked execution specification](docs/REBALANCE_EXECUTION_202
 Preserve rule approval versus fund execution and the exploratory status of bonus
 points. PR #319's checked execution is live in manual release 40219239387 at
 source ae29770b07bfa09b092b87bb69c6d336ae816e5e, retaining PR #318's compact
-criteria, monetary sorting and unified Review. The rule-discovery correction above
-needs its own deliberate manual website release.
+criteria, monetary sorting and unified Review. The rule-discovery correction above was subsequently published in the
+five-pool release 40223522400.
 No host installation, contract deployment or custody change is involved.
 
 ## Current delegation workspace refinement

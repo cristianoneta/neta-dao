@@ -41,17 +41,24 @@ test('all five allowlisted pools match observed contract identities, assets, fee
   }
 });
 
-test('every asset choice yields a real direct pair, retaining the opposite asset when supported', () => {
+test('pay selection chooses a direct pair; receive selection never changes the pay asset', () => {
   assert.equal(findPool('ATOM', 'NETA'), undefined);
   assert.equal(findPool('JUNO', 'JUNO'), false);
   assert.equal(selectAssets('offer', 'WYND', 'JUNO', 'NETA').receive, 'USDC');
-  assert.equal(selectAssets('receive', 'ATOM', 'WYND', 'USDC').offer, 'JUNO');
+  assert.throws(() => selectAssets('receive', 'ATOM', 'WYND', 'USDC'), /No direct pool/);
+  assert.throws(() => selectAssets('receive', 'NETA', 'USDC', 'JUNO'), /No direct pool/);
+  assert.equal(selectAssets('receive', 'WYND', 'USDC', 'JUNO').offer, 'USDC');
   assert.equal(selectAssets('offer', 'USDC', 'JUNO', 'WYND').receive, 'WYND');
   for (const p of POOLS)
     for (const side of ['offer', 'receive'])
       for (const symbol of Object.keys(ASSETS)) {
+        if (side === 'receive' && !findPool(p.assets[0], symbol)) {
+          assert.throws(() => selectAssets(side, symbol, ...p.assets), /No direct pool/);
+          continue;
+        }
         const selected = selectAssets(side, symbol, ...p.assets);
         assert.equal(selected[side], symbol);
+        if (side === 'receive') assert.equal(selected.offer, p.assets[0]);
         assert.ok(POOLS.includes(selected.pool));
         assert.notEqual(selected.offer, selected.receive);
       }
