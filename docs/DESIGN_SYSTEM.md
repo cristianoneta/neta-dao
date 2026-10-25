@@ -5,6 +5,31 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
+## Delegation workspace — owner-approved lab adaptation, 25 October 2026
+
+Use five directly accessible views: Overview, Rules, Compare, Review and Rebalance.
+The live overview retains holdings, rewards and approval discovery. Criteria show
+only their names on the left and aligned controls on the right; explanations open
+on hover, keyboard focus or touch, and Escape dismisses them. Keep exclusions and
+inline errors accessible. Put the available budget, exact Max action and draft
+summary beside the eligibility form; stack them on narrow screens.
+
+Rebalance is independent of the rule editor. Read the exact on-chain approved
+policy, including historical semantics, and calculate fresh holdings → target →
+change. Local edits and a rule-review draft never count as approval. Downloaded
+allocation drafts are non-executable; the execution-proposal action stays disabled
+until transaction constraints and real Juno execution are verified.
+
+The planned model is mandatory yes/no gates, then identical base points plus a
+bounded bonus per validator; base + maximum bonus = 1,000. Show an exploratory
+slider, without preset switches. This supersedes the older objective/subjective
+80/20 roadmap. The slider does not alter the live equal-capped policy. Explain
+that point weights are not a fixed token-budget split. Bonus evidence, operator
+independence, measurement windows, expiry and appeals must be approved before
+activation; never substitute fictional measurements for production evidence.
+
+See [implementation and limits](DELEGATION_WORKSPACE_2026-10-25.md).
+
 ## Configurable uptime as criterion 6 — owner update, 24 October 2026
 
 Keep Manual exclusions at point 5. Add Uptime as open point 6 with the same

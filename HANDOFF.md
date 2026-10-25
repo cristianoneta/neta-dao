@@ -1,8 +1,18 @@
 # Cosmoot public development handoff
 
-Updated 24 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
+Updated 25 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
+
+## Current delegation workspace candidate
+
+The owner approved bringing the separate design lab into the real application.
+See [scope, proposal capabilities and remaining boundaries](docs/DELEGATION_WORKSPACE_2026-10-25.md).
+The candidate adds the Rebalance view without authorizing staking transactions.
+Preserve exact approved rule versions; local policy edits must never alter a
+Rebalance calculation. Rule and reward-claim proposals keep their existing flow.
+Verify the required repository gates and use the deliberate manual website release;
+no host installation or backup changes are required for this UI work.
 
 ## Completed maintenance
 
@@ -41,7 +51,7 @@ The current published source is recorded only in CURRENT_STATE.
    exercises restored the original configuration, but both websites continued
    returning prior server bytes: packaged live fallback remains unproven.
    The snapshot proxy now adds bounded upstream status/cache/age diagnostics in
-   source, not yet published. After checks and manual release, inspect normal
+   the published website. Inspect normal
    responses first; do not repeat an unchanged failure exercise or infer origin
    freshness from a successful cached fetch. [Evidence and header contract](docs/HOME_FALLBACK_2026-10-24.md).
 4. Finish the compatible dependency-upgrade work before the exception deadline.

@@ -16,9 +16,10 @@
     <link rel="stylesheet" href="/neta-ui.css" />
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
-    <link rel="stylesheet" href="/juno-delegation.css?v=8" />
-    <script type="module" src="/juno-delegation.mjs?v=20261023-dao-dao-claim-1"></script>
+    <link rel="stylesheet" href="/juno-delegation.css?v=9" />
+    <script type="module" src="/juno-delegation.mjs?v=20261025-workspace-1"></script>
     <link rel="stylesheet" href="/juno-rule-review.css?v=20261017-1" />
+    <link rel="stylesheet" href="/juno-delegation-workspace.css?v=1" />
   </head>
   <body>
     <a class="planner-skip" href="#planner-heading">Skip to planner</a>
@@ -52,16 +53,21 @@
           >Programme treasury <span aria-hidden="true">↗</span></a
         >
       </header>
-      <nav class="planner-steps" aria-label="Planning steps">
-        <a href="#overview" data-step="overview" aria-current="step" class="overview-tab"
-          >Overview</a
-        ><span class="workflow-label">PLAN A CHANGE</span
-        ><a href="#rules" data-step="rules"
-          ><span class="step-number" aria-hidden="true">1</span>Set rules</a
-        ><a href="#simulation" data-step="simulation"
-          ><span class="step-number" aria-hidden="true">2</span>Review distribution</a
-        ><a href="#proposals" data-step="proposals"
-          ><span class="step-number" aria-hidden="true">3</span>Review proposal</a
+      <nav class="planner-steps" aria-label="Programme views">
+        <a href="#overview" data-step="overview" aria-current="step"
+          ><span class="step-number" aria-hidden="true">01</span>Overview</a
+        >
+        <a href="#rules" data-step="rules"
+          ><span class="step-number" aria-hidden="true">02</span>Rules</a
+        >
+        <a href="#simulation" data-step="simulation"
+          ><span class="step-number" aria-hidden="true">03</span>Compare</a
+        >
+        <a href="#proposals" data-step="proposals"
+          ><span class="step-number" aria-hidden="true">04</span>Review</a
+        >
+        <a href="#rebalance" data-step="rebalance"
+          ><span class="step-number" aria-hidden="true">05</span>Rebalance</a
         >
       </nav>
       <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
@@ -204,15 +210,16 @@
               </div>
             </section>
             <details id="approved-allocation-next" class="quiet-details" hidden>
-              <summary>Allocation execution · not yet available</summary>
+              <summary>After rule approval · Rebalance</summary>
               <p class="eyebrow">AFTER RULE APPROVAL</p>
               <h3>Prepare a separate allocation</h3>
               <p id="approved-allocation-reference"></p>
-              <button type="button" disabled>Prepare allocation proposal</button>
+              <a class="action-link" href="#rebalance" data-step="rebalance"
+                >Simulate with approved rules →</a
+              >
               <p class="field-help">
-                Not yet available. This needs programme execution authority, fresh movement
-                constraints and approval of the exact transactions. Approval of rules alone cannot
-                move funds.
+                The simulation uses the approved policy. An executable allocation proposal still
+                needs transaction-level movement checks; rule approval alone cannot move funds.
               </p>
             </details>
             <section class="next-allocation" aria-labelledby="next-allocation-title">
@@ -257,8 +264,8 @@
               <a href="#rules" data-step="rules">Set rules →</a>
             </div>
             <p class="overview-intro">
-              V1 uses equal allocation within eligibility and voting-power limits. V2 and V3 are
-              planned; their preview settings do not affect your draft.
+              V1 uses equal allocation within eligibility and voting-power limits. Base and bonus
+              points are planned; their preview settings do not affect your draft.
             </p>
             <article class="planner-card eligibility-overview">
               <div class="policy-heading">
@@ -349,11 +356,11 @@
       </section>
       <section id="rules" class="planner-panel" aria-labelledby="rules-title" hidden>
         <div class="section-heading">
-          <h2 id="rules-title" tabindex="-1">Set the allocation rules</h2>
+          <h2 id="rules-title" tabindex="-1">Shape the next allocation</h2>
           <span class="state-pill neutral">Equal distribution</span>
         </div>
         <p class="section-description">
-          Choose the budget and limits. You can compare the outcome before sharing anything.
+          Eligibility first. Then a shared allocation within the voting-power limit.
         </p>
         <div id="draft-parent-notice" aria-live="polite">
           <p id="draft-parent-note">Checking the approved baseline…</p>
@@ -363,26 +370,6 @@
         </div>
         <div class="rules-workspace">
           <div class="rules-form">
-            <article class="planner-card allocation-settings">
-              <h3>Allocation budget</h3>
-              <label for="programme-amount">Amount to distribute · JUNO</label
-              ><input
-                id="programme-amount"
-                type="text"
-                inputmode="decimal"
-                placeholder="Waiting for snapshot"
-                autocomplete="off"
-                aria-describedby="available-funds"
-              />
-              <details class="quiet-details">
-                <summary>How this budget is calculated</summary>
-                <p class="field-help" id="available-funds">
-                  Includes delegated and available JUNO, keeps at least 50 JUNO in reserve and
-                  rounds down to whole hundreds.
-                </p>
-              </details>
-              <p id="reserve-note" class="field-help"></p>
-            </article>
             <article class="planner-card eligibility-rules">
               <div class="policy-heading">
                 <h3>Validator eligibility</h3>
@@ -394,94 +381,143 @@
               </p>
               <details id="rules-eligibility-details" class="policy-details" open="">
                 <summary>Eligibility criteria · 6 checks</summary>
-                <section class="criterion" aria-labelledby="status-criterion">
-                  <h4 id="status-criterion"><span>1</span> Validator status</h4>
-                  <p>
-                    <span id="draft-eligibility-description"
-                      >90 continuous days in the active set; while collecting, use the entire
-                      available period; not jailed.</span
-                    >
-                  </p>
-                  <p class="field-help">
-                    The window advances automatically with the snapshot. Membership must be
-                    continuous throughout the same observed period used for uptime below.
-                  </p>
-                </section>
-                <section class="criterion" aria-labelledby="power-criterion">
-                  <h4 id="power-criterion"><span>2</span> Voting power</h4>
-                  <label for="factor">Voting power cap factor</label>
-                  <div class="factor-control">
-                    <input
-                      id="factor"
-                      type="range"
-                      min="10"
-                      max="20"
-                      step="1"
-                      value="15"
-                      aria-describedby="cap-description"
-                    /><label class="sr-only" for="factor-number"
-                      >Exact voting power cap factor</label
-                    ><input
-                      id="factor-number"
-                      type="number"
-                      min="1"
-                      max="2"
-                      step="0.1"
-                      value="1.5"
-                      aria-describedby="factor-error"
-                    /><output id="factor-value" for="factor factor-number">1.5×</output>
+                <section class="criterion compact-criterion" aria-labelledby="status-criterion">
+                  <div class="criterion-label">
+                    <h4 id="status-criterion">
+                      <button
+                        type="button"
+                        class="criterion-help"
+                        aria-expanded="false"
+                        aria-controls="status-tooltip"
+                      >
+                        Validator status
+                      </button>
+                    </h4>
+                    <div class="criterion-tooltip" id="status-tooltip" role="tooltip" hidden>
+                      <span id="draft-eligibility-description"
+                        >Continuous active-set membership; not jailed.</span
+                      >
+                      The observation window grows with collected history, then rolls over the
+                      latest 90 days. Unknown evidence does not qualify.
+                    </div>
                   </div>
-                  <p id="factor-error" class="field-error" hidden>
+                  <div class="criterion-control">
+                    <span class="fixed-rule">Active · not jailed</span>
+                  </div>
+                </section>
+                <section class="criterion compact-criterion" aria-labelledby="power-criterion">
+                  <div class="criterion-label">
+                    <h4 id="power-criterion">
+                      <button
+                        type="button"
+                        class="criterion-help"
+                        aria-expanded="false"
+                        aria-controls="power-tooltip"
+                      >
+                        Voting power
+                      </button>
+                    </h4>
+                    <div class="criterion-tooltip" id="power-tooltip" role="tooltip" hidden>
+                      Limits projected total stake, including other delegators. All active
+                      validators count, including programme exclusions. The factor ranges from 1.0
+                      to 2.0.
+                    </div>
+                  </div>
+                  <div class="criterion-control">
+                    <label class="sr-only" for="factor">Voting power cap factor</label>
+                    <div class="factor-control">
+                      <input
+                        id="factor"
+                        type="range"
+                        min="10"
+                        max="20"
+                        step="1"
+                        value="15"
+                        aria-describedby="cap-description"
+                      /><label class="sr-only" for="factor-number"
+                        >Exact voting power cap factor</label
+                      ><input
+                        id="factor-number"
+                        type="number"
+                        min="1"
+                        max="2"
+                        step="0.1"
+                        value="1.5"
+                        aria-describedby="factor-error"
+                      /><output id="factor-value" for="factor factor-number">1.5×</output>
+                    </div>
+                  </div>
+                  <p id="factor-error" class="field-error criterion-detail" hidden>
                     Enter a factor from 1.0 to 2.0 in steps of 0.1.
                   </p>
-                  <p id="cap-description" class="cap-result">
-                    The voting power limit will appear after data loads.
-                  </p>
-                  <details class="calculation-help">
-                    <summary>How the limit is calculated</summary>
+                  <details class="calculation-help criterion-detail">
+                    <summary id="cap-description">Projected voting-power limit</summary>
                     <p id="cap-formula">Cap = min(30%, factor × 100% / active validator count).</p>
-                    <p>
-                      All active validators count, including programme exclusions. The cap limits
-                      projected total stake, including other delegators. There is no separate
-                      minimum or maximum programme amount per validator.
-                    </p>
                   </details>
                 </section>
-                <section class="criterion" aria-labelledby="commission-criterion">
-                  <h4 id="commission-criterion"><span>3</span> Commission</h4>
-                  <label for="commission">Maximum commission · %</label>
-                  <input
-                    id="commission"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="1"
-                    value="10"
-                    inputmode="numeric"
-                    aria-describedby="commission-help commission-error"
-                  />
-                  <p id="commission-help" class="field-help">
-                    Whole numbers from 0 to 100. Proposed default: 10%.
-                  </p>
-                  <p id="commission-error" class="field-error" hidden>
+                <section class="criterion compact-criterion" aria-labelledby="commission-criterion">
+                  <div class="criterion-label">
+                    <h4 id="commission-criterion">
+                      <button
+                        type="button"
+                        class="criterion-help"
+                        aria-expanded="false"
+                        aria-controls="commission-tooltip"
+                      >
+                        Maximum commission
+                      </button>
+                    </h4>
+                    <div class="criterion-tooltip" id="commission-tooltip" role="tooltip" hidden>
+                      Maximum validator commission. Enter a whole number from 0 to 100, or
+                      explicitly remove this limit. Proposed default: 10%.
+                    </div>
+                  </div>
+                  <div class="criterion-control">
+                    <label class="sr-only" for="commission">Maximum commission · %</label>
+                    <div class="number-unit">
+                      <input
+                        id="commission"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value="10"
+                        inputmode="numeric"
+                        aria-describedby="commission-help commission-error"
+                      /><span>%</span>
+                    </div>
+                    <label class="check-option" for="no-commission-limit"
+                      ><input id="no-commission-limit" type="checkbox" />No limit</label
+                    >
+                  </div>
+                  <p id="commission-help" class="sr-only">Whole numbers from 0 to 100.</p>
+                  <p id="commission-error" class="field-error criterion-detail" hidden>
                     Enter a whole-number commission limit from 0 to 100.
                   </p>
-                  <label class="check-option" for="no-commission-limit"
-                    ><input id="no-commission-limit" type="checkbox" />No commission limit</label
-                  >
                 </section>
-                <section class="criterion" aria-labelledby="upgrade-criterion">
-                  <h4 id="upgrade-criterion"><span>4</span> Upgrade participation</h4>
-                  <p>Juno v31 participation within five hours</p>
-                  <p>
-                    Archived participation is required. Missing or late evidence needs review; it
-                    does not prove a late software installation.
-                  </p>
-                  <details>
-                    <summary>Review the participation evidence</summary>
-                    <p id="upgrade-window" class="field-help">
-                      Loading the archived halt time and observation coverage.
-                    </p>
+                <section class="criterion compact-criterion" aria-labelledby="upgrade-criterion">
+                  <div class="criterion-label">
+                    <h4 id="upgrade-criterion">
+                      <button
+                        type="button"
+                        class="criterion-help"
+                        aria-expanded="false"
+                        aria-controls="upgrade-tooltip"
+                      >
+                        Upgrade participation
+                      </button>
+                    </h4>
+                    <div class="criterion-tooltip" id="upgrade-tooltip" role="tooltip" hidden>
+                      Archived Juno v31 participation within five hours. Missing or late
+                      observations require review; they do not prove a late software installation.
+                    </div>
+                  </div>
+                  <div class="criterion-control">
+                    <span class="fixed-rule">Juno v31 · within 5h</span>
+                  </div>
+                  <details class="criterion-detail quiet-details">
+                    <summary>Participation evidence</summary>
+                    <p id="upgrade-window" class="field-help">Loading archived observations.</p>
                     <a href="/community-tools/validator-upgrades/juno-v31/"
                       >Open the v31 evidence ↗</a
                     >
@@ -489,61 +525,93 @@
                 </section>
                 <section
                   id="manual-exclusions"
-                  class="criterion"
+                  class="criterion compact-criterion"
                   aria-labelledby="exclusions-criterion"
                 >
-                  <h4 id="exclusions-criterion"><span>5</span> Manual exclusions</h4>
-                  <p class="field-help" aria-live="polite">
-                    In this draft <span id="exclusion-count">· none</span>
-                  </p>
-                  <p>
-                    Exclude a validator by name or address, with a public reason. This changes the
-                    rule proposal.
-                  </p>
-                  <label for="excluded-validator">Juno validator</label
-                  ><input
-                    id="excluded-validator"
-                    list="validator-options"
-                    placeholder="Validator name or junovaloper1…"
-                    autocomplete="off"
-                    spellcheck="false"
-                  /><datalist id="validator-options"></datalist
-                  ><label for="excluded-reason">Public reason</label
-                  ><input
-                    id="excluded-reason"
-                    maxlength="300"
-                    placeholder="For example: exchange-operated validator"
-                  /><button id="add-exclusion" type="button">Add exclusion</button>
-                  <ul id="exclusions" class="exclusions"></ul>
-                  <p id="empty-exclusions" class="field-help">
-                    No manual exclusions in this draft.
-                  </p>
+                  <div class="criterion-label">
+                    <h4 id="exclusions-criterion">
+                      <button
+                        type="button"
+                        class="criterion-help"
+                        aria-expanded="false"
+                        aria-controls="exclusions-tooltip"
+                      >
+                        Manual exclusions
+                      </button>
+                    </h4>
+                    <div class="criterion-tooltip" id="exclusions-tooltip" role="tooltip" hidden>
+                      Exclude a validator by name or address and state a public reason. This forms
+                      part of the rules and requires a new rule approval.
+                    </div>
+                  </div>
+                  <div class="criterion-control">
+                    <span class="fixed-rule" id="exclusion-count" aria-live="polite">· none</span>
+                  </div>
+                  <div class="exclusion-editor criterion-detail">
+                    <label for="excluded-validator">Juno validator</label
+                    ><input
+                      id="excluded-validator"
+                      list="validator-options"
+                      placeholder="Validator name or junovaloper1…"
+                      autocomplete="off"
+                      spellcheck="false"
+                    /><datalist id="validator-options"></datalist
+                    ><label for="excluded-reason">Public reason</label
+                    ><input
+                      id="excluded-reason"
+                      maxlength="300"
+                      placeholder="For example: exchange-operated validator"
+                    /><button id="add-exclusion" type="button">Add exclusion</button>
+                    <ul id="exclusions" class="exclusions"></ul>
+                    <p id="empty-exclusions" class="field-help">
+                      No manual exclusions in this draft.
+                    </p>
+                  </div>
                 </section>
-                <section class="criterion" aria-labelledby="uptime-criterion">
-                  <h4 id="uptime-criterion"><span>6</span> Uptime</h4>
-                  <label for="uptime">Minimum uptime · %</label>
-                  <input
-                    id="uptime"
-                    type="number"
-                    min="95"
-                    max="100"
-                    step="0.01"
-                    value="97.5"
-                    inputmode="decimal"
-                    aria-describedby="uptime-help uptime-error"
-                  />
-                  <p id="uptime-help" class="field-help">
-                    Choose 95–100%, with up to two decimal places. Proposed default: 97.5%. Changing
-                    this threshold requires a new rule approval.
+                <section class="criterion compact-criterion" aria-labelledby="uptime-criterion">
+                  <div class="criterion-label">
+                    <h4 id="uptime-criterion">
+                      <button
+                        type="button"
+                        class="criterion-help"
+                        aria-expanded="false"
+                        aria-controls="uptime-tooltip"
+                      >
+                        Minimum uptime
+                      </button>
+                    </h4>
+                    <div class="criterion-tooltip" id="uptime-tooltip" role="tooltip" hidden>
+                      Signed blocks divided by expected active-set slots, not server availability.
+                      Absent and nil signatures do not count. Choose 95–100% in steps of 0.01%.
+                      Changing the threshold requires a new rule approval.
+                    </div>
+                  </div>
+                  <div class="criterion-control">
+                    <label class="sr-only" for="uptime">Minimum uptime · %</label>
+                    <div class="number-unit">
+                      <input
+                        id="uptime"
+                        type="number"
+                        min="95"
+                        max="100"
+                        step="0.01"
+                        value="97.5"
+                        inputmode="decimal"
+                        aria-describedby="uptime-help uptime-error"
+                      /><span>%</span>
+                    </div>
+                  </div>
+                  <p id="uptime-help" class="sr-only">
+                    Minimum observed commit signatures; proposed default 97.5%.
                   </p>
-                  <p id="uptime-error" class="field-error" hidden>
+                  <p id="uptime-error" class="field-error criterion-detail" hidden>
                     Enter an uptime threshold from 95 to 100 with up to two decimal places.
                   </p>
-                  <p>
-                    Measured as signed blocks divided by expected active-set slots, not server
-                    availability. Absent and nil signatures do not count as signed.
-                  </p>
-                  <p class="field-help" id="draft-history-coverage" aria-live="polite">
+                  <p
+                    class="field-help criterion-detail"
+                    id="draft-history-coverage"
+                    aria-live="polite"
+                  >
                     Loading the observed history period…
                   </p>
                 </section>
@@ -555,52 +623,81 @@
               ><span id="draft-status" class="field-help">Not saved · unapproved</span>
             </div>
           </div>
-          <aside class="planner-card draft-summary" aria-label="Your allocation draft">
-            <p class="eyebrow">YOUR DRAFT</p>
-            <h3>Equal allocation</h3>
-            <p id="draft-change-count"></p>
-            <p>Eligible validators share the budget, within the voting-power limit.</p>
-            <dl class="draft-facts">
-              <div>
-                <dt>Allocation budget</dt>
-                <dd id="draft-budget">—</dd>
+          <div class="rules-sidebar">
+            <article class="planner-card allocation-settings">
+              <h3>Allocation budget</h3>
+              <div class="budget-available">
+                <span>Available for allocation</span><strong id="available-total">—</strong
+                ><small>Delegated + spendable, less the 50 JUNO reserve</small>
               </div>
-              <div>
-                <dt>Voting-power limit</dt>
-                <dd id="draft-cap">—</dd>
+              <label for="programme-amount">Allocation budget · JUNO</label>
+              <div class="budget-entry">
+                <input
+                  id="programme-amount"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="Waiting for snapshot"
+                  autocomplete="off"
+                  aria-describedby="available-funds"
+                /><button type="button" id="budget-max" disabled>Max</button>
               </div>
-              <div>
-                <dt>Maximum commission</dt>
-                <dd id="draft-commission">10%</dd>
-              </div>
-              <div>
-                <dt>Manual exclusions</dt>
-                <dd id="draft-exclusions">None</dd>
-              </div>
-              <div>
-                <dt>Minimum uptime</dt>
-                <dd id="draft-uptime">97.5%</dd>
-              </div>
-            </dl>
-            <label for="rule-rationale">Why this change? <small>Optional</small></label
-            ><textarea
-              id="rule-rationale"
-              maxlength="1000"
-              rows="3"
-              placeholder="Explain the decision to voters"
-            ></textarea
-            ><button id="simulate" class="primary-action" type="button" disabled>
-              Review rules &amp; impact →
-            </button>
-            <p class="field-help">
-              Next: compare current and proposed allocations. No wallet connection required.
-            </p>
-            <span class="draft-local">Local draft · not submitted</span>
-          </aside>
+              <details class="quiet-details">
+                <summary>How this budget is calculated</summary>
+                <p class="field-help" id="available-funds">
+                  Includes delegated and available JUNO, keeps at least 50 JUNO in reserve and
+                  rounds down to whole hundreds.
+                </p>
+              </details>
+              <p id="reserve-note" class="field-help"></p>
+            </article>
+            <aside class="planner-card draft-summary" aria-label="Your allocation draft">
+              <p class="eyebrow">YOUR DRAFT</p>
+              <h3>Equal allocation</h3>
+              <p id="draft-change-count"></p>
+              <p>Eligible validators share the budget, within the voting-power limit.</p>
+              <dl class="draft-facts">
+                <div>
+                  <dt>Allocation budget</dt>
+                  <dd id="draft-budget">—</dd>
+                </div>
+                <div>
+                  <dt>Voting-power limit</dt>
+                  <dd id="draft-cap">—</dd>
+                </div>
+                <div>
+                  <dt>Maximum commission</dt>
+                  <dd id="draft-commission">10%</dd>
+                </div>
+                <div>
+                  <dt>Manual exclusions</dt>
+                  <dd id="draft-exclusions">None</dd>
+                </div>
+                <div>
+                  <dt>Minimum uptime</dt>
+                  <dd id="draft-uptime">97.5%</dd>
+                </div>
+              </dl>
+              <label for="rule-rationale">Why this change? <small>Optional</small></label
+              ><textarea
+                id="rule-rationale"
+                maxlength="1000"
+                rows="3"
+                placeholder="Explain the decision to voters"
+              ></textarea
+              ><button id="simulate" class="primary-action" type="button" disabled>
+                Review rules &amp; impact →
+              </button>
+              <p class="field-help">
+                Next: compare current and proposed allocations. No wallet connection required.
+              </p>
+              <span class="draft-local">Local draft · not submitted</span>
+            </aside>
+          </div>
         </div>
         <details id="roadmap" class="model-details" aria-label="Future policy settings">
           <summary>
-            <span>Future scoring models</span><span class="summary-meta">V2 / V3 · planned</span>
+            <span>Future scoring models</span
+            ><span class="summary-meta">Base + bonus · planned</span>
           </summary>
           <div id="rules-future-policy" class="future-policy-grid"></div>
         </details>
@@ -711,18 +808,110 @@
           </ol>
           <p>Approval of the rules and execution of an allocation remain separate decisions.</p>
         </div>
-        <details class="execution-details">
-          <summary>Later: update allocations under approved rules</summary>
-          <p>
-            An allocation update needs a verified on-chain rule version and a separate execution
-            proposal. Changed criteria or exclusions require new rule approval first.
-          </p>
-          <button type="button" disabled>Prepare execution proposal</button>
-          <p class="field-help">
-            Unavailable: programme execution authority and transaction-level redelegation checks are
-            not connected yet.
-          </p>
-        </details>
+        <a class="action-link" href="#rebalance" data-step="rebalance"
+          >After approval: open Rebalance →</a
+        >
+      </section>
+      <section id="rebalance" class="planner-panel" aria-labelledby="rebalance-title" hidden>
+        <div class="section-heading">
+          <h2 id="rebalance-title" tabindex="-1">Put approved rules to work.</h2>
+          <span id="rebalance-state" class="state-pill neutral">Checking approval…</span>
+        </div>
+        <p class="section-description">
+          Keep the rules. Refresh the data. Review the next allocation.
+        </p>
+        <div class="rebalance-workspace">
+          <aside class="planner-card rebalance-controls">
+            <p class="eyebrow">APPROVED RULEBOOK</p>
+            <h3 id="rebalance-rule-title">Verifying on-chain approval…</h3>
+            <p id="rebalance-approval-note" class="field-help"></p>
+            <dl id="rebalance-rule-facts" class="draft-facts"></dl>
+            <a href="#rules" data-step="rules" class="text-link">Propose a rule change →</a>
+            <div class="budget-available">
+              <span>Available for allocation</span><strong id="rebalance-available">—</strong
+              ><small>Delegated + spendable, less the 50 JUNO reserve</small>
+            </div>
+            <label for="rebalance-amount">Allocation budget · JUNO</label>
+            <div class="budget-entry">
+              <input
+                id="rebalance-amount"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                aria-describedby="rebalance-budget-note"
+              /><button id="rebalance-max" type="button" disabled>Max</button>
+            </div>
+            <p id="rebalance-budget-note" class="field-help">
+              Unclaimed rewards and unbonding funds are excluded. The budget is independent of your
+              rule draft.
+            </p>
+            <button id="rebalance-simulate" class="primary-action" type="button" disabled>
+              Simulate allocation →
+            </button>
+            <p id="rebalance-feedback" class="field-help" role="status" aria-live="polite"></p>
+          </aside>
+          <div class="rebalance-impact">
+            <div class="rebalance-empty" id="rebalance-empty">
+              <span class="eyebrow">NEXT ALLOCATION</span>
+              <h3>A fresh view of the approved policy.</h3>
+              <p id="rebalance-empty-text">
+                A verified rule approval and complete observations are needed to calculate targets.
+              </p>
+            </div>
+            <div id="rebalance-result" hidden>
+              <div class="rebalance-metrics">
+                <div>
+                  <span>Eligible validators</span><strong id="rebalance-eligible">—</strong>
+                </div>
+                <div><span>Allocated · JUNO</span><strong id="rebalance-allocated">—</strong></div>
+                <div>
+                  <span>Unallocated · JUNO</span><strong id="rebalance-unallocated">—</strong>
+                </div>
+              </div>
+              <p id="rebalance-observed" class="field-help"></p>
+              <table class="rebalance-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Validator</th>
+                    <th scope="col">Current · JUNO</th>
+                    <th scope="col">Target · JUNO</th>
+                    <th scope="col">Change · JUNO</th>
+                  </tr>
+                </thead>
+                <tbody id="rebalance-rows"></tbody>
+              </table>
+              <details class="quiet-details">
+                <summary>Exact rules, amounts &amp; evidence</summary>
+                <p id="rebalance-identifiers" class="field-help"></p>
+                <p class="field-help">
+                  The download preserves six-decimal amounts, frozen observations and the approved
+                  rule version. It contains no executable transactions.
+                </p>
+              </details>
+              <div class="step-actions">
+                <button id="rebalance-export" type="button" disabled>
+                  Download allocation draft</button
+                ><button
+                  id="rebalance-proposal"
+                  type="button"
+                  class="primary-action"
+                  disabled
+                  aria-describedby="rebalance-execution-note"
+                >
+                  Create execution proposal
+                </button>
+              </div>
+            </div>
+            <div class="execution-note" id="rebalance-execution-note">
+              <strong>Execution proposal · not yet available</strong>
+              <p>
+                Targets can be simulated and downloaded. Creating the on-chain allocation proposal
+                still requires checked delegation messages, current redelegation limits and a
+                successful execution test. No funds move from this screen.
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
       <section class="snapshot-bar" aria-label="Programme data">
         <div>
