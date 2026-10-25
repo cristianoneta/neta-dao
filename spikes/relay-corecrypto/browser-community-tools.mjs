@@ -1,3 +1,4 @@
+import { ASSETS, POOLS } from '../../wynd-swap-core.mjs';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
@@ -44,7 +45,28 @@ try {
   let stale = false,
     badCode = false,
     returned = '10094',
-    poolJuno = '100000000000';
+    poolJuno = '100000000000',
+    badToken = false;
+  const samplePools = Object.fromEntries(
+    POOLS.map((p) => [
+      p.id,
+      {
+        assets: p.assets.map((symbol, i) => ({
+          info: ASSETS[symbol].info,
+          amount:
+            symbol === 'WYND'
+              ? '4000000000000'
+              : symbol === 'NETA'
+                ? '1000000000'
+                : symbol === 'JUNO'
+                  ? '100000000000'
+                  : i === 1
+                    ? '1500000000'
+                    : '100000000000'
+        }))
+      }
+    ])
+  );
   await page.route('https://**/*', async (route) => {
     const url = new URL(route.request().url());
     assert.equal(route.request().method(), 'GET', 'Fixtures never submit a real transaction');
@@ -56,8 +78,10 @@ try {
       return route.abort();
     const headers = { 'access-control-allow-origin': '*', 'content-type': 'application/json' };
     let response;
+    const contract = url.pathname.split('/contract/')[1]?.split('/')[0];
+    const selected = POOLS.find((p) => p.address === contract);
     if (url.pathname.includes('/balances/'))
-      response = { balance: { denom: 'ujuno', amount: '100000000' } };
+      response = { balance: { denom: url.searchParams.get('denom'), amount: '100000000' } };
     else if (!url.pathname.includes('/smart/'))
       response = { contract_info: { code_id: badCode ? '999' : '2289' } };
     else {
@@ -65,26 +89,48 @@ try {
         Buffer.from(decodeURIComponent(url.pathname.split('/smart/')[1]), 'base64').toString('utf8')
       );
       let data = {};
+      if (query.token_info)
+        data = {
+          symbol: Object.values(ASSETS).find((a) => a.info.token === contract)?.symbol,
+          decimals: badToken ? 18 : 6
+        };
       if (query.pair)
         data = {
-          contract_addr: pair,
-          asset_infos: [{ native: 'ujuno' }, { token: neta }],
+          contract_addr: contract,
+          asset_infos: selected.assets.map((s) => ASSETS[s].info),
+          pair_type: { xyk: {} },
           fee_config: { total_fee_bps: 30 }
         };
-      if (query.pool)
-        data = {
-          assets: [
-            { info: { native: 'ujuno' }, amount: poolJuno },
-            { info: { token: neta }, amount: '1000000000' }
-          ]
-        };
-      if (query.balance) data = { balance: '1000000' };
-      if (query.simulation)
-        data = {
-          return_amount: query.simulation.offer_asset.info.token ? '983732' : returned,
-          commission_amount: '30',
-          spread_amount: '0'
-        };
+      if (query.pool) {
+        data = structuredClone(samplePools[selected.id]);
+        if (selected.id === 'juno-neta')
+          data.assets.find((a) => a.info.native === 'ujuno').amount = poolJuno;
+      }
+      if (query.balance) data = { balance: '100000000' };
+      if (query.simulation) {
+        if (selected.id === 'juno-neta')
+          data = {
+            return_amount: query.simulation.offer_asset.info.token ? '983732' : returned,
+            commission_amount: '30',
+            spread_amount: '0'
+          };
+        else {
+          const reserves = samplePools[selected.id].assets;
+          const source = reserves.find(
+            (a) => JSON.stringify(a.info) === JSON.stringify(query.simulation.offer_asset.info)
+          );
+          const target = reserves.find((a) => a !== source);
+          const gross =
+            (BigInt(query.simulation.offer_asset.amount) * BigInt(target.amount)) /
+            BigInt(source.amount);
+          const fee = (gross * 30n) / 10000n;
+          data = {
+            return_amount: String(gross - fee),
+            commission_amount: String(fee),
+            spread_amount: '0'
+          };
+        }
+      }
       response = { data };
     }
     await route.fulfill({ headers, body: JSON.stringify(response) });
@@ -97,7 +143,12 @@ try {
         dao_id: 'juno-delegation',
         status: 'LIVE',
         generated_at: new Date(Date.now() - (stale ? 48 * 3600000 : 0)).toISOString(),
-        assets: [{ key: 'juno:native:ujuno', source_chain: 'juno', decimals: 6, usd_price: 0.03 }]
+        assets: ['JUNO', 'ATOM', 'USDC', 'OSMO'].map((symbol) => ({
+          key: 'juno:native:' + ASSETS[symbol].info.native,
+          source_chain: 'juno',
+          decimals: 6,
+          usd_price: { JUNO: 0.03, ATOM: 2, USDC: 1, OSMO: 0.03 }[symbol]
+        }))
       })
     })
   );
@@ -212,15 +263,26 @@ try {
   }
   await page.goto(origin + '/community-tools/neta/buy/');
   await textIs('#contract-state', 'Verified');
-  assert.equal(await page.locator('#pool-juno').textContent(), '100,000');
-  assert.equal(await page.locator('#pool-neta').textContent(), '1,000');
-  assert.equal(await page.locator('#juno-usd-price').textContent(), '≈ $0.03');
-  assert.equal(await page.locator('#neta-usd-price').textContent(), '≈ $3.00');
-  assert.match(await page.locator('#price-observed').textContent(), /JUNO USD snapshot:/);
+  assert.equal(await page.locator('.pool-row').count(), 5);
+  assert.equal(await page.locator('[data-reserve="JUNO"]').textContent(), '100,000');
+  assert.equal(await page.locator('[data-reserve="NETA"]').textContent(), '1,000');
+  assert.equal(
+    await page.locator('[data-pool="juno-neta"] .pool-liquidity').textContent(),
+    '≈ $6,000'
+  );
+  assert.match(await page.locator('#price-observed').textContent(), /USD snapshot:/);
+  assert.match(await page.locator('.swap-limit').textContent(), /\$50 per swap/);
+  assert.equal(
+    await page.locator('#wynd-offline-ghost img').getAttribute('src'),
+    '/assets/wynd-offline-mascot.png'
+  );
   poolJuno = '200000123456';
   await page.locator('#refresh-pool').click();
-  await textIs('#pool-juno', '200,000.123456');
-  assert.equal(await page.locator('#neta-usd-price').textContent(), '≈ $6.0000037');
+  await textIs('[data-reserve="JUNO"]', '200,000.123456');
+  assert.equal(
+    await page.locator('[data-pool="juno-neta"] .pool-liquidity').textContent(),
+    '≈ $12,000'
+  );
   await page.locator('#settings-toggle').click();
   await page.locator('#custom-slippage').fill('0.125');
   await textIs('#slippage-summary', '0.13%');
@@ -269,8 +331,13 @@ try {
     true
   );
   await page.locator('#offer-amount').fill('1000');
+  await page.waitForFunction(
+    () => document.querySelector('#quote-error').textContent === 'Quote ready to review'
+  );
+  assert.match(await page.locator('#offer-usd').textContent(), /30.00/);
+  await page.locator('#offer-amount').fill('2000');
   await page.waitForFunction(() =>
-    document.querySelector('#quote-error').textContent.includes('$25 LIMIT')
+    document.querySelector('#quote-error').textContent.includes('$50 LIMIT')
   );
   assert.equal(await page.locator('#swap-action').isDisabled(), true);
   await page.locator('#offer-amount').fill('1');
@@ -329,12 +396,93 @@ try {
   await ready();
   await page.evaluate(() => dispatchEvent(new Event('keplr_keystorechange')));
   assert.equal(await page.locator('#swap-action').isDisabled(), true);
+  await page.locator('#connect-wallet').click();
+  // Both selectors expose all six assets and move to an existing direct pair.
+  await page.locator('#offer-asset').click();
+  assert.equal(await page.getByRole('option').count(), 6);
+  await page.keyboard.press('Escape');
+  assert.equal(
+    await page.locator('#offer-asset').evaluate((e) => e === document.activeElement),
+    true
+  );
+  await page.locator('#offer-asset').click();
+  await page.locator('[data-asset="WYND"]').click();
+  await textIs('#contract-state', 'Verified');
+  await textIs('#receive-symbol', 'USDC');
+  assert.equal(await page.locator('#offer-amount').inputValue(), '');
+  await page.locator('#receive-asset').click();
+  await page.locator('[data-asset="ATOM"]').click();
+  await textIs('#contract-state', 'Verified');
+  await textIs('#offer-symbol', 'JUNO');
+  for (const target of POOLS) {
+    await page.locator('[data-pool="' + target.id + '"]').click();
+    await textIs('#contract-state', 'Verified');
+    for (let direction = 0; direction < 2; direction++) {
+      if (direction) await page.locator('#reverse-swap').click();
+      await page.locator('#offer-amount').fill('1');
+      await ready();
+      await page.locator('#swap-action').click();
+      const p = JSON.parse(await page.locator('#swap-preview').textContent());
+      const source = ASSETS[direction ? target.assets[1] : target.assets[0]];
+      const destination = ASSETS[direction ? target.assets[0] : target.assets[1]];
+      if (source.info.native) {
+        assert.equal(p.contract, target.address);
+        assert.deepEqual(p.funds, [{ denom: source.info.native, amount: '1000000' }]);
+        assert.deepEqual(p.message.swap.ask_asset_info, destination.info);
+      } else {
+        assert.equal(p.contract, source.info.token);
+        assert.deepEqual(p.funds, []);
+        assert.equal(p.message.send.contract, target.address);
+        assert.deepEqual(
+          JSON.parse(Buffer.from(p.message.send.msg, 'base64').toString()).swap.ask_asset_info,
+          destination.info
+        );
+      }
+      assert.equal(p.per_swap_limit_usd, 50);
+      await page.locator('#close-swap').click();
+    }
+  }
+  // Max and exact $50 boundary for the explicitly labelled Axelar USDC.
+  await page.locator('[data-pool="juno-usdc"]').click();
+  await textIs('#contract-state', 'Verified');
+  await page.locator('#reverse-swap').click();
+  await page.waitForFunction(() => !document.querySelector('#max-button').disabled);
+  await page.locator('#max-button').click();
+  assert.equal(await page.locator('#offer-amount').inputValue(), '50');
+  await ready();
+  await page.locator('#offer-amount').fill('50.01');
+  await page.waitForFunction(() =>
+    document.querySelector('#quote-error').textContent.includes('$50 LIMIT')
+  );
+  assert.equal(await page.locator('#swap-action').isDisabled(), true);
+  await page.locator('[data-pool="juno-neta"]').click();
+  await textIs('#contract-state', 'Verified');
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.locator('#offer-asset').click();
+  await screenshot('wynd-asset-menu-1440');
+  await page.keyboard.press('Escape');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(
+    await page.locator('#wynd-offline-ghost').evaluate((e) => getComputedStyle(e).animationName),
+    'none'
+  );
+  await screenshot('wynd-five-pools-1440');
+  await page.setViewportSize({ width: 320, height: 1100 });
+  await page.locator('#receive-asset').click();
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await screenshot('wynd-asset-menu-320');
+  await page.keyboard.press('Escape');
+  badToken = true;
+  await page.locator('#refresh-pool').click();
+  await textIs('#contract-state', 'Unavailable');
+  assert.equal(await page.locator('#swap-action').isDisabled(), true);
+  badToken = false;
   stale = true;
   await page.reload();
   await textIs('#contract-state', 'Unavailable');
   assert.equal(await page.locator('#swap-action').isDisabled(), true);
-  for (const id of ['pool-juno', 'pool-neta', 'juno-usd-price', 'neta-usd-price'])
-    assert.equal(await page.locator('#' + id).textContent(), '—');
+  assert.deepEqual(await page.locator('#pool-reserves dd').allTextContents(), ['—', '—']);
+  assert.equal(await page.locator('.pool-liquidity').filter({ hasText: '≈ $' }).count(), 0);
   stale = false;
   badCode = true;
   await page.locator('#refresh-pool').click();

@@ -64,6 +64,15 @@ approval, exploratory point settings and uncertain transaction journals retain
 separate meanings. [Specification, validation and limits](REBALANCE_EXECUTION_2026-10-25.md).
 PR #319 is integrated and published in manual release 40219239387 at the source recorded above.
 
+## Five-pool WYND swap — source candidate, 25 October
+
+The owner requested five selectable WYND pools, current USD liquidity, dropdown
+asset selection, the original flickering WYND mascot and a 50-USD swap cap.
+The source replaces the explanatory sidebar with pool rows and extends the existing
+review/signing path to the exact configured native/IBC/CW20 pairs. The URL remains
+`/community-tools/neta/buy/`. [Scope, provenance, validation and release boundary](WYND_SWAP_2026-10-25.md).
+This is not yet in the last published website release above.
+
 ## Compact rule-approval discovery — correction candidate, 25 October
 
 PR #319 integrated checked Rebalance execution at source
@@ -71,7 +80,8 @@ PR #319 integrated checked Rebalance execution at source
 40219239387, which completed successfully. Served execution-module bytes match
 this source on both public website domains. A subsequent full-lifecycle
 check found missing identity lines in compact rule proposals, which prevented
-their recognition after passage. The correction retains these lines in new drafts
+their recognition after passage. PR #320 integrated the correction at `de1fa55c5ada9848f09c933b61083eed25223db0`
+after all 18 required checks passed. It retains these lines in new drafts
 and verifies immutable older compact approvals from their complete frozen
 comparison. [Cause, lifecycle coverage and meaning of rule approval](REBALANCE_EXECUTION_2026-10-25.md#compact-rule-approval-correction).
 The published Rebalance release does not include this correction.

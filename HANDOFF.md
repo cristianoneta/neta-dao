@@ -4,11 +4,21 @@ Updated 25 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
+## Active product work: five-pool WYND swap
+
+The owner requested five pools with current USD liquidity, clickable asset menus,
+the original flickering WYND mascot and a 50-USD cap. Continue from the
+[scope and validation checkpoint](docs/WYND_SWAP_2026-10-25.md). Preserve the
+existing transaction review, chain/asset checks and pending-broadcast journal.
+The rule-approval fix below is already merged and should ship with the next
+manual website release; the currently published source does not include it.
+
 ## Rule approval follow-up
 
 PR #319 is integrated and published in deliberate release 40219239387.
 A subsequent lifecycle check found that compact rule proposal text omitted the
-identity lines needed for approval discovery. The follow-up restores them in new
+identity lines needed for approval discovery. PR #320, merged at
+`de1fa55c5ada9848f09c933b61083eed25223db0` with all 18 checks passing, restores them in new
 drafts and verifies immutable older compact envelopes through their frozen
 comparison. See [correction and validation](docs/REBALANCE_EXECUTION_2026-10-25.md#compact-rule-approval-correction).
 Do not equate a submitted rule proposal with an approved rulebook or a deployed
