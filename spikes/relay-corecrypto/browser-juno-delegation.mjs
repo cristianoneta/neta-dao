@@ -1230,6 +1230,26 @@ try {
     if (shots)
       await page.screenshot({ path: `${shots}/rule-compact-voter-${width}.png`, fullPage: true });
   }
+  // Complete the lifecycle: native passage must activate this exact compact
+  // rulebook for the planner, including immutable older compact envelopes.
+  publishedRule.status = 'PROPOSAL_STATUS_PASSED';
+  publishedRule.voting_end_time = new Date(Date.now() - 1000).toISOString();
+  for (const legacy of [false, true]) {
+    if (legacy)
+      publishedRule.summary = publishedRule.summary.replace(
+        /^Chain: juno-1\nProgramme: [^\n]+\n\n/m,
+        ''
+      );
+    await page.goto(origin + '/community-tools/juno/delegation/#rebalance');
+    await page.waitForFunction(
+      () => document.getElementById('rebalance-rule-title').textContent === 'Proposal #999'
+    );
+    assert.match(
+      await page.locator('#rebalance-approval-note').textContent(),
+      /These rules are fixed/
+    );
+  }
+
   assert.deepEqual(errors, []);
   console.log(
     'Juno delegation browser: overview/current holdings, base/bonus preview isolation and approved-rule Rebalance, claim placement, stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all four planning views and the programme overview at four viewports passed.'

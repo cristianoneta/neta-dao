@@ -117,6 +117,7 @@ export async function frozenRuleProposal(review) {
   // from the same verified package. Do not repeat all of it in the text envelope
   // when that repetition would prevent publishing the complete evidence.
   const compact =
+    `Chain: juno-1\nProgramme: ${PROGRAMME}\n\n` +
     `${v.parent ? 'Revises Juno proposal #' + v.parent.proposalId + '.' : 'Initial adoption; no prior Cosmoot-format approval found.'}\n\n` +
     `## Exact policy\n\n\`\`\`json\n${JSON.stringify(v.rule)}\n\`\`\`\n\nRule SHA-256: ${v.policyHash}\n\n` +
     `Illustrative budget: ${units(v.budgetRaw)} JUNO. Snapshot: ${v.snapshot.height} · ${v.snapshot.blockTime}.\n` +

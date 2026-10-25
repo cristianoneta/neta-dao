@@ -96,3 +96,29 @@ Primary references:
 - [Juno v31 dependency pins](https://github.com/CosmosContracts/juno/blob/v31.0.0/go.mod)
 - [DAO DAO v2.4.0 interface](https://github.com/DA0-DA0/dao-contracts/blob/v2.4.0/packages/dao-interface/src/msg.rs)
 - [Required execution semantics](GOVERNANCE_EXECUTION_SEMANTICS.md)
+
+## Compact rule approval correction
+
+A subsequent full-lifecycle check found that the compact rule proposal text
+omitted the standalone Chain/Programme identity lines used by approval discovery.
+The generated compact envelope now retains both lines. Existing compact proposals
+remain immutable: discovery accepts their scope only after verifying their full
+frozen policy/comparison, exact Juno/programme identity, hashes, passed status,
+ended voting and empty execution messages. Invalid newer evidence cannot silently
+fall back to an older rulebook. Legacy text-only approvals retain their explicit
+identity requirements.
+
+The real local Juno regression now submits the generated programme-sized compact
+rule proposal through the production finalized-review content builder (including
+its review-bound metadata), passes a native vote, recognizes its exact approved policy hash and
+checks unchanged programme liquid funds and delegations. Browser coverage likewise
+follows the compact proposal through passage and activation in Rebalance, including
+an unchanged older compact envelope. This correction needs its own website release
+following the Rebalance integration. Release 40219239387 completed successfully
+and served execution-module bytes match its source on both public domains; that
+earlier release does not contain this correction.
+
+“Binding rules” means the exact governance-approved revision used and enforced by
+Cosmoot's supported Rebalance path. Rule approval is a text proposal: it does not
+install a rule-enforcement contract or remove native governance's existing ability
+to authorize other programme actions. Fund movements require their separate vote.

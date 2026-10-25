@@ -4,15 +4,26 @@ Updated 25 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
+## Rule approval follow-up
+
+PR #319 is integrated and published in deliberate release 40219239387.
+A subsequent lifecycle check found that compact rule proposal text omitted the
+identity lines needed for approval discovery. The follow-up restores them in new
+drafts and verifies immutable older compact envelopes through their frozen
+comparison. See [correction and validation](docs/REBALANCE_EXECUTION_2026-10-25.md#compact-rule-approval-correction).
+Do not equate a submitted rule proposal with an approved rulebook or a deployed
+rule-enforcement contract. That published Rebalance release predates this correction.
+
 ## Active product work: checked Rebalance
 
 The owner clarified that the Delegation Programme is an independent product,
 integrated with Cosmoot and bringing users into it, not Cosmoot's product core.
 Continue with the [checked execution specification](docs/REBALANCE_EXECUTION_2026-10-25.md).
 Preserve rule approval versus fund execution and the exploratory status of bonus
-points. PR #318's compact criteria, monetary sorting and unified Review are live
-in manual release 40200433577 at source e7fb5c966ba99b7265e3ce25053920da5c7c5b3c.
-The new execution implementation needs its own deliberate manual website release.
+points. PR #319's checked execution is live in manual release 40219239387 at
+source ae29770b07bfa09b092b87bb69c6d336ae816e5e, retaining PR #318's compact
+criteria, monetary sorting and unified Review. The rule-discovery correction above
+needs its own deliberate manual website release.
 No host installation, contract deployment or custody change is involved.
 
 ## Current delegation workspace refinement

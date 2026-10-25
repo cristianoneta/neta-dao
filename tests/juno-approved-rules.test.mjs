@@ -1,3 +1,6 @@
+import { reviewSizeInput } from './fixtures/delegation-review-size.mjs';
+import { buildRuleReview, readProposalReview } from '../juno-delegation-review.mjs';
+import { frozenRuleProposal } from '../planner-proposal-draft.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { approvedRule, currentApprovedRules } from '../juno-approved-rules.mjs';
@@ -134,4 +137,74 @@ test('latest unsupported approved version does not fall back to an older valid v
     currentApprovedRules({ endpoints, now, fetcher: readHistory([[old, latest]]) }),
     /not supported/
   );
+});
+
+test('a programme-sized compact rule proposal is discovered after passage, including its original released envelope', async () => {
+  const review = await buildRuleReview(reviewSizeInput()),
+    draft = await frozenRuleProposal(review);
+  assert.ok(Buffer.byteLength(draft.values.summary + '\n\n' + draft.values.body) <= 10000);
+  assert.ok(
+    !draft.values.body.includes('# Proposed allocation rules'),
+    'Exercise the compact envelope'
+  );
+  assert.match(draft.values.body, /^Chain: juno-1$/m);
+  assert.match(draft.values.body, new RegExp('^Programme: ' + PROGRAMME + '$', 'm'));
+  const previous = await approvedProposal({
+    id: '950',
+    voting_end_time: new Date(now - 7200000).toISOString()
+  });
+  for (const legacy of [false, true]) {
+    const values = {
+      ...draft.values,
+      body: legacy
+        ? draft.values.body.replace(/^Chain: juno-1\nProgramme: [^\n]+\n\n/, '')
+        : draft.values.body
+    };
+    assert.equal((await readProposalReview(values)).hash, review.hash);
+    const proposal = {
+      id: '951',
+      status: 'PROPOSAL_STATUS_PASSED',
+      title: values.title,
+      summary: values.summary + '\n\n' + values.body,
+      messages: [],
+      voting_end_time: new Date(now - 3600000).toISOString()
+    };
+    assert.equal((await approvedRule(proposal)).hash, review.value.policyHash);
+    const result = await currentApprovedRules({
+      endpoints,
+      now,
+      fetcher: readHistory([[previous], [proposal]])
+    });
+    assert.equal(result.current.proposalId, '951');
+    assert.deepEqual(result.current.rule, review.value.rule);
+    await assert.rejects(
+      approvedRule({ ...proposal, messages: [{ execute: {} }] }),
+      /invalid rule approval/
+    );
+    await assert.rejects(
+      approvedRule({
+        ...proposal,
+        summary: proposal.summary.replace(
+          'Rule SHA-256: ' + review.value.policyHash,
+          'Rule SHA-256: ' + '0'.repeat(64)
+        )
+      })
+    );
+    const damaged = {
+      ...proposal,
+      summary: proposal.summary.replace(
+        'Review SHA-256: ' + review.hash,
+        'Review SHA-256: ' + '0'.repeat(64)
+      )
+    };
+    await assert.rejects(
+      currentApprovedRules({ endpoints, now, fetcher: readHistory([[previous, damaged]]) }),
+      /fingerprint mismatch/
+    );
+    if (legacy)
+      await assert.rejects(
+        approvedRule({ ...proposal, summary: 'Chain: uni-7\n' + proposal.summary }),
+        /invalid rule approval/
+      );
+  }
 });
