@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
     <link rel="stylesheet" href="/juno-delegation.css?v=9" />
-    <script type="module" src="/juno-delegation.mjs?v=20261025-clarity-1"></script>
+    <script type="module" src="/juno-delegation.mjs?v=20261025-rebalance-1"></script>
     <link rel="stylesheet" href="/juno-rule-review.css?v=20261017-1" />
     <link rel="stylesheet" href="/juno-delegation-workspace.css?v=3" />
   </head>
@@ -856,6 +856,7 @@
                 </div>
               </div>
               <p id="rebalance-observed" class="field-help"></p>
+              <p id="rebalance-movements" class="field-help" role="status"></p>
               <table class="rebalance-table">
                 <thead>
                   <tr>
@@ -885,16 +886,17 @@
                   disabled
                   aria-describedby="rebalance-execution-note"
                 >
-                  Create execution proposal
+                  Open execution proposal draft
                 </button>
               </div>
             </div>
             <div class="execution-note" id="rebalance-execution-note">
-              <strong>Execution proposal · not yet available</strong>
+              <strong>Checked movements → community review → Juno vote</strong>
               <p>
-                Targets can be simulated and downloaded. Creating the on-chain allocation proposal
-                still requires checked delegation messages, current redelegation limits and a
-                successful execution test. No funds move from this screen.
+                Simulate the approved rules, then check current funds and staking limits before
+                opening an execution proposal draft. Unbonding proceeds remain unavailable until
+                completion. Chain state may change during voting; submission does not guarantee
+                execution. Opening a draft does not sign or move funds.
               </p>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { isStaking, assertStaking } from './juno-programme-staking.mjs';
 import {
   COMMUNITY_POOL_KIND,
   isCommunityPoolSpend,
@@ -38,6 +39,10 @@ export function reviewKind(values) {
   if (isCommunityPoolSpend(messages)) {
     assertCommunityPoolSpend(messages);
     return COMMUNITY_POOL_KIND;
+  }
+  if (isStaking(messages)) {
+    assertStaking(messages);
+    return 'ALLOCATION_EXECUTION';
   }
   if (messages.length) {
     claimValidators(messages);
@@ -341,6 +346,20 @@ export async function fundingProof(endpoints, id, sender = null, options = {}) {
     },
     (v) => ({ identity: proposalIdentity(v.proposal), terms: v.terms, params: v.params })
   );
+  if (proofs[0].terms.open && isStaking(proofs[0].proposal.messages)) {
+    const p = proofs[0].proposal,
+      split = p.summary.indexOf('\n\n');
+    const { verifyRebalanceValues } = await import('./juno-rebalance-chain.mjs');
+    await verifyRebalanceValues(
+      {
+        title: p.title,
+        summary: p.summary.slice(0, split),
+        body: p.summary.slice(split + 2),
+        actions_json: JSON.stringify(p.messages, null, 2)
+      },
+      { ...options, endpoints, ignoreProposalId: String(p.id) }
+    );
+  }
   return {
     ...proofs[0],
     balance: proofs.reduce(

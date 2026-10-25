@@ -1,3 +1,4 @@
+import { isStaking, assertStaking } from '../../juno-programme-staking.mjs';
 import { MsgCommunityPoolSpend } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
 import {
   COMMUNITY_POOL_SPEND,
@@ -27,6 +28,7 @@ export function message(content, sender, deposit) {
   assertProgrammeExecutionAvailable(content.messages);
   const community = isCommunityPoolSpend(content.messages);
   if (community) assertCommunityPoolSpend(content.messages);
+  else if (isStaking(content.messages)) assertStaking(content.messages);
   else if (content.messages.length) claimValidators(content.messages);
   if (!/^[1-9]\d*$/.test(deposit)) throw Error('Invalid proposal deposit.');
   return {

@@ -1,3 +1,4 @@
+import { isStaking, assertStaking } from './juno-programme-staking.mjs';
 import {
   COMMUNITY_POOL_KIND,
   isCommunityPoolSpend,
@@ -110,7 +111,8 @@ export function claimValidators(messages, { allowLegacy = true } = {}) {
 // Gate every publication, submission and contribution. Reading old reviews is separate.
 export function assertProgrammeExecutionAvailable(messages) {
   if (!Array.isArray(messages)) throw Error('Invalid proposal messages.');
-  if (messages.some((m) => m?.contract === PROGRAMME))
+  if (isStaking(messages)) assertStaking(messages);
+  else if (messages.some((m) => m?.contract === PROGRAMME))
     claimValidators(messages, { allowLegacy: false });
 }
 export function proposalContent(kind, values) {
@@ -126,6 +128,7 @@ export function proposalContent(kind, values) {
     throw Error('On-chain proposal text exceeds 10,000 bytes.');
   const messages = JSON.parse(values.actions_json);
   if (kind === COMMUNITY_POOL_KIND) assertCommunityPoolSpend(messages);
+  else if (kind === 'ALLOCATION_EXECUTION') assertStaking(messages);
   else if (kind === 'CLAIM_REWARDS') claimValidators(messages);
   else if (kind !== 'RULE_APPROVAL' || !same(messages, []))
     throw Error('Rule approval must contain no execution messages.');
@@ -161,10 +164,7 @@ export function displayJuno(raw) {
     fraction = (value % 1000000n).toString().padStart(6, '0').replace(/0+$/, '');
   return `${value / 1000000n}${fraction ? '.' + fraction : ''}`;
 }
-export function verifyProgramme(
-  { account, info, code, admin, paused, withdraw, delegations },
-  messages
-) {
+export function verifyProgrammeAuthority({ account, info, code, admin, paused, withdraw }) {
   if (
     account?.account?.base_account?.address !== GOVERNANCE ||
     account.account.name !== 'gov' ||
@@ -179,6 +179,10 @@ export function verifyProgramme(
     throw Error('Programme pause state requires review before preparing a claim.');
   if (withdraw?.withdraw_address !== PROGRAMME)
     throw Error('Programme rewards withdrawal destination is not the programme treasury.');
+}
+export function verifyProgramme(evidence, messages) {
+  verifyProgrammeAuthority(evidence);
+  const { delegations } = evidence;
   const validators = claimValidators(messages, { allowLegacy: false });
   if (
     !Array.isArray(delegations) ||
@@ -220,7 +224,7 @@ async function preflightSource(
         const returned = response.headers.get('x-cosmos-block-height');
         if (
           height &&
-          ((isCommunityPoolSpend(content.messages) && !returned) ||
+          (((isCommunityPoolSpend(content.messages) || isStaking(content.messages)) && !returned) ||
             (returned && returned !== height))
         )
           throw Error('Juno preflight height mismatch.');
@@ -245,6 +249,7 @@ async function preflightSource(
         )
       ]);
       const terms = depositTerms(parameters.params);
+      let staking = null;
       if (balance.balance?.denom !== 'ujuno' || !/^\d+$/.test(balance.balance?.amount))
         throw Error('Spendable JUNO balance unavailable.');
       if (isCommunityPoolSpend(content.messages)) {
@@ -254,6 +259,17 @@ async function preflightSource(
           get(DAI_DENOM_PATH)
         ]);
         verifyCommunityPoolState({ account, pool, denom }, content.messages);
+      } else if (isStaking(content.messages)) {
+        const { readExecutionReview } = await import('./juno-rebalance-execution.mjs');
+        const { checkRebalanceSource } = await import('./juno-rebalance-chain.mjs');
+        const split = content.summary.indexOf('\n\n');
+        const review = await readExecutionReview({
+          title: content.title,
+          summary: content.summary.slice(0, split),
+          body: content.summary.slice(split + 2),
+          actions_json: JSON.stringify(content.messages, null, 2)
+        });
+        staking = await checkRebalanceSource(get, review, height);
       } else if (content.messages.length) {
         const [account, info, code, admin, paused, withdraw] = await Promise.all([
           get('/cosmos/auth/v1beta1/module_accounts/gov'),
@@ -286,6 +302,7 @@ async function preflightSource(
       return {
         height,
         endpoint,
+        staking,
         params: parameters.params,
         terms,
         balance: balance.balance.amount,
@@ -317,6 +334,18 @@ function independentEndpoints(endpoints) {
 }
 export async function preflight(endpoints, content, proposer, options = {}) {
   assertProgrammeExecutionAvailable(content.messages);
+  if (isStaking(content.messages)) {
+    const { readExecutionReview } = await import('./juno-rebalance-execution.mjs');
+    const { checkCurrentApproval } = await import('./juno-rebalance-chain.mjs');
+    const split = content.summary.indexOf('\n\n');
+    const review = await readExecutionReview({
+      title: content.title,
+      summary: content.summary.slice(0, split),
+      body: content.summary.slice(split + 2),
+      actions_json: JSON.stringify(content.messages, null, 2)
+    });
+    await checkCurrentApproval(review, { ...options, endpoints });
+  }
   const results = await Promise.allSettled(
     independentEndpoints(endpoints).map((endpoint) =>
       preflightSource([endpoint], content, proposer, options)
@@ -331,6 +360,11 @@ export async function preflight(endpoints, content, proposer, options = {}) {
           .map((r) => r.reason.message)
           .join(' · ')
     );
+  if (
+    isStaking(content.messages) &&
+    good.some((proof) => stable(proof.staking) !== stable(good[0].staking))
+  )
+    throw Error('Juno sources disagree on staking state. Review again later.');
   if (good.some((proof) => stable(proof.params) !== stable(good[0].params)))
     throw Error('Juno sources disagree on governance parameters. Review again later.');
   return {

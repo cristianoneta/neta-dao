@@ -1,3 +1,6 @@
+import { executionReview } from './juno-rebalance-execution.mjs';
+import { checkRebalance } from './juno-rebalance-chain.mjs';
+import { rebalanceProposal } from './planner-proposal-draft.mjs';
 import { amount, units, capFraction, suggestedBudget } from './juno-delegation-core.mjs';
 import { formatAmount } from './juno-delegation-view.mjs';
 import {
@@ -7,7 +10,7 @@ import {
   requireFreshSnapshot
 } from './juno-rebalance.mjs';
 
-export function mountRebalance({ getContext, readApproval, download }) {
+export function mountRebalance({ getContext, readApproval, download, openProposal }) {
   const $ = (id) => document.getElementById(id);
   const node = (tag, text, className) => {
     const el = document.createElement(tag);
@@ -17,6 +20,7 @@ export function mountRebalance({ getContext, readApproval, download }) {
   };
   let revision = 0,
     frozen = null,
+    execution = null,
     running = false,
     source = null,
     ruleKey = '',
@@ -28,6 +32,9 @@ export function mountRebalance({ getContext, readApproval, download }) {
   function invalidate(message = '') {
     revision++;
     frozen = null;
+    execution = null;
+    $('rebalance-proposal').disabled = true;
+    $('rebalance-movements').textContent = '';
     running = false;
     $('rebalance-export').disabled = true;
     $('rebalance-result').hidden = true;
@@ -59,7 +66,7 @@ export function mountRebalance({ getContext, readApproval, download }) {
           ? 'Approval required'
           : !fresh
             ? 'Fresh data required'
-            : 'Approved rules · read-only';
+            : 'Approved rules';
     $('rebalance-rule-title').textContent = ready
       ? `Proposal #${approval.current.proposalId}`
       : 'No verified rulebook';
@@ -114,9 +121,9 @@ export function mountRebalance({ getContext, readApproval, download }) {
     $('rebalance-allocated').textContent = formatAmount(result.allocatedRaw);
     $('rebalance-unallocated').textContent = formatAmount(result.unallocatedRaw);
     $('rebalance-observed').textContent =
-      `Approved proposal #${value.value.approvedProposalId} · block ${value.value.calculation.snapshot.height.toLocaleString('en-US')} · ${new Date(value.value.calculation.snapshot.blockTime).toLocaleString()}. Target differences are not checked staking transactions.`;
+      `Approved proposal #${value.value.approvedProposalId} · block ${value.value.calculation.snapshot.height.toLocaleString('en-US')} · ${new Date(value.value.calculation.snapshot.blockTime).toLocaleString()}. Targets use these observations. Movement checks are reported separately below.`;
     $('rebalance-identifiers').textContent =
-      `Approved policy SHA-256: ${value.value.approvedPolicyHash}. Allocation draft SHA-256: ${value.hash}. Existing redelegations: ${value.value.calculation.existingRedelegationCount}; movement eligibility has not been checked.`;
+      `Approved policy SHA-256: ${value.value.approvedPolicyHash}. Allocation draft SHA-256: ${value.hash}. Existing redelegations: ${value.value.calculation.existingRedelegationCount}; see the current movement check before preparing a proposal.`;
     $('rebalance-rows').replaceChildren();
     const rows = result.rows
       .filter((v) => BigInt(v.currentRaw) > 0n || BigInt(v.targetRaw) > 0n)
@@ -191,7 +198,21 @@ export function mountRebalance({ getContext, readApproval, download }) {
       if (token !== revision) return;
       frozen = value;
       render(value);
-      feedback('Allocation calculated. The download is a frozen, non-executable draft.');
+      feedback(
+        'Targets calculated. Checking exact staking movements, programme authority and current chain limits…'
+      );
+      const candidate = await executionReview(value.value.calculation);
+      await rebalanceProposal(candidate); // Check complete proposal size before enabling its action.
+      const proofs = await checkRebalance(candidate);
+      if (token !== revision) return;
+      execution = candidate;
+      const totals = candidate.value.plan.totals;
+      $('rebalance-movements').textContent =
+        `${candidate.value.plan.moves.length} movements · Delegate ${formatAmount(totals.delegate, true)} JUNO · Redelegate ${formatAmount(totals.redelegate, true)} JUNO · Begin unbonding ${formatAmount(totals.undelegate, true)} JUNO. Unbonding period: ${Number(proofs[0].state.unbondingTime.replace('s', '')) / 86400} days. Verified by ${proofs.length} independent sources.`;
+      $('rebalance-proposal').disabled = false;
+      feedback(
+        'Movement checks passed. Open the proposal draft to review and publish it through Cosmoot.'
+      );
     } catch (error) {
       if (token === revision) feedback(error.message, 'error');
     } finally {
@@ -224,6 +245,34 @@ export function mountRebalance({ getContext, readApproval, download }) {
       }
     } finally {
       if (token === revision && frozen) $('rebalance-export').disabled = false;
+    }
+  });
+  $('rebalance-proposal').addEventListener('click', async () => {
+    const selected = frozen,
+      candidate = execution,
+      token = revision;
+    if (!selected || !candidate || running) return;
+    running = true;
+    $('rebalance-proposal').disabled = true;
+    refresh();
+    feedback('Rechecking the approved rulebook and movement limits before preparing your draft…');
+    try {
+      await verifyRebalanceBaseline(selected, await readApproval(), getContext().data);
+      await checkRebalance(candidate);
+      const proposal = await rebalanceProposal(candidate);
+      if (token !== revision || selected !== frozen || candidate !== execution) return;
+      openProposal(proposal);
+    } catch (error) {
+      if (token === revision) {
+        execution = null;
+        feedback(error.message, 'error');
+      }
+    } finally {
+      if (token === revision) {
+        running = false;
+        $('rebalance-proposal').disabled = !execution;
+        refresh();
+      }
     }
   });
   // Expiry is checked again at export; this also removes expired visible targets.

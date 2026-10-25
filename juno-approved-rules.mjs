@@ -48,7 +48,12 @@ export async function approvedRule(proposal, now = Date.now()) {
   return { proposalId: proposal.id, votingEndedAt: proposal.voting_end_time, rule, hash };
 }
 
-export async function currentApprovedRules({ endpoints = sources, ...options } = {}) {
+export async function currentApprovedRules({
+  endpoints = sources,
+  rejectPendingProgramme = false,
+  ignoreProposalId = null,
+  ...options
+} = {}) {
   const now = options.now ?? Date.now();
   const good = await quorum(
     endpoints,
@@ -75,6 +80,17 @@ export async function currentApprovedRules({ endpoints = sources, ...options } =
           if (!positive(proposal.id) || ids.has(proposal.id))
             throw Error('Invalid or repeated proposal ID.');
           ids.add(proposal.id);
+          if (
+            rejectPendingProgramme &&
+            proposal.id !== String(ignoreProposalId) &&
+            ['PROPOSAL_STATUS_DEPOSIT_PERIOD', 'PROPOSAL_STATUS_VOTING_PERIOD'].includes(
+              proposal.status
+            ) &&
+            proposal.messages?.some((message) => message?.contract === PROGRAMME)
+          )
+            throw Error(
+              `Programme proposal #${proposal.id} is still pending. Wait for its outcome before preparing another execution.`
+            );
           if (
             proposal.status === 'PROPOSAL_STATUS_PASSED' &&
             proposal.title?.startsWith(title) &&

@@ -22,7 +22,8 @@ import { ruleProposal } from '../../planner-proposal-draft.mjs';
 import { simulate as simulateRule, amount } from '../../juno-delegation-core.mjs';
 import { observed } from '../../tests/fixtures/delegation-planner.mjs';
 import { legacyClaimDraft } from '../../tests/fixtures/legacy-claim.mjs';
-import { claimValidators } from '../../juno-governance-core.mjs';
+import { claimValidators, GOVERNANCE, PROGRAMME_CODE_HASH } from '../../juno-governance-core.mjs';
+import { PROGRAMME } from '../../juno-delegation-core.mjs';
 import { CLAIM_381_EXPLANATION, CLAIM_TITLE } from '../../claim-numbering.mjs';
 const failedClaim = JSON.parse(
   await readFile(new URL('../../tests/fixtures/juno-proposal-381.json', import.meta.url))
@@ -96,7 +97,8 @@ try {
   ];
   const approved = await approvedProposal({}, approvedPolicy);
   let approvalState = 'empty',
-    publishedRule = null;
+    publishedRule = null,
+    movementState = 'valid';
   const approvalRoute = (route) => {
     const url = new URL(route.request().url()),
       path = url.searchParams.get('path') || url.pathname + url.search;
@@ -116,10 +118,67 @@ try {
             : [failedClaim, approved, ...(publishedRule ? [publishedRule] : [])],
         pagination: { next_key: null }
       };
+    else if (path === '/cosmos/staking/v1beta1/params')
+      response = { params: { bond_denom: 'ujuno', max_entries: 7, unbonding_time: '2419200s' } };
+    else if (path.includes('/spendable_balances/' + PROGRAMME))
+      response = { balance: { denom: 'ujuno', amount: sample.liquidRaw } };
+    else if (path.endsWith('/module_accounts/gov'))
+      response = { account: { base_account: { address: GOVERNANCE }, name: 'gov' } };
+    else if (path.endsWith('/code/4047'))
+      response = { code_info: { data_hash: PROGRAMME_CODE_HASH } };
+    else if (path.endsWith('/contract/' + PROGRAMME))
+      response = { contract_info: { code_id: 4047 } };
+    else if (path.includes('/contract/' + PROGRAMME + '/smart/'))
+      response = {
+        data: atob(decodeURIComponent(path.split('/').at(-1))).includes('admin')
+          ? GOVERNANCE
+          : { unpaused: {} }
+      };
+    else if (path.endsWith('/withdraw_address')) response = { withdraw_address: PROGRAMME };
+    else if (path.includes('/staking/v1beta1/delegations/' + PROGRAMME))
+      response = {
+        delegation_responses: sample.validators.map((v) => ({
+          delegation: {
+            delegator_address: PROGRAMME,
+            validator_address: v.address,
+            shares: v.currentRaw + '.000000000000000000'
+          },
+          balance: { denom: 'ujuno', amount: movementState === 'changed' ? '1' : v.currentRaw }
+        })),
+        pagination: { next_key: null }
+      };
+    else if (path.startsWith('/cosmos/base/tendermint/v1beta1/validatorsets/'))
+      response = {
+        block_height: '42500123',
+        validators: sample.validators.map((v, i) => ({
+          address: Buffer.from(v.consensusAddress, 'hex').toString('base64'),
+          pub_key: { key: 'fixture-key-' + i }
+        })),
+        pagination: { next_key: null }
+      };
+    else if (path.startsWith('/cosmos/staking/v1beta1/validators?'))
+      response = {
+        validators: sample.validators.map((v, i) => ({
+          consensus_pubkey: { key: 'fixture-key-' + i },
+          commission: { commission_rates: { rate: '0.050000000000000000' } },
+          operator_address: v.address,
+          jailed: false,
+          tokens: v.tokensRaw,
+          delegator_shares: v.tokensRaw + '.000000000000000000'
+        })),
+        pagination: { next_key: null }
+      };
+    else if (path.includes('/redelegations?'))
+      response = { redelegation_responses: [], pagination: { next_key: null } };
+    else if (path.includes('/unbonding_delegations?'))
+      response = { unbonding_responses: [], pagination: { next_key: null } };
     else return route.fallback();
     return route.fulfill({
       contentType: 'application/json',
-      headers: { 'access-control-allow-origin': '*' },
+      headers: {
+        'access-control-allow-origin': '*',
+        'x-cosmos-block-height': url.searchParams.get('height') || '42500123'
+      },
       body: JSON.stringify(response)
     });
   };
@@ -232,6 +291,8 @@ try {
   await page.waitForFunction(() => !document.getElementById('rebalance-export').disabled);
   assert.ok((await page.locator('#rebalance-rows tr').count()) > 0);
   assert.equal(await page.locator('#rebalance-result script, #rebalance-result img').count(), 0);
+  await page.waitForFunction(() => !document.getElementById('rebalance-proposal').disabled);
+  assert.match(await page.locator('#rebalance-movements').textContent(), /28 days/);
   const frozenAllocation = await page.locator('#rebalance-identifiers').textContent();
   await step('rules');
   await page.locator('#commission').fill('11');
@@ -254,6 +315,45 @@ try {
   assert.deepEqual(allocation.messages, []);
   assert.equal(allocation.calculation.rule.schema, 2);
   assert.equal(allocation.calculation.rule.commissionMaxBps, 700);
+  // A fresh-state mismatch must prevent a draft even after the earlier check passed.
+  movementState = 'changed';
+  await page.locator('#rebalance-proposal').click();
+  await page.waitForFunction(() =>
+    document.getElementById('rebalance-feedback').textContent.includes('holdings changed')
+  );
+  assert.equal(await page.locator('#rebalance-proposal').isDisabled(), true);
+  movementState = 'valid';
+  await page.locator('#rebalance-simulate').click();
+  await page.waitForFunction(() => !document.getElementById('rebalance-proposal').disabled);
+  let rebalanceHandoff = '';
+  const handoffRoute = (route) => {
+    rebalanceHandoff = route.request().url();
+    return route.fulfill({ status: 204 });
+  };
+  await page.route('**/?chain=juno&dao=juno&subdao=juno-delegation&plannerDraft=*', handoffRoute);
+  const handoffRequest = page.waitForRequest((request) => request.url().includes('plannerDraft='));
+  await page.locator('#rebalance-proposal').click();
+  await page.waitForFunction(() =>
+    Object.keys(localStorage).some(
+      (k) =>
+        k.startsWith('cosmoot:juno:planner-proposal:') &&
+        JSON.parse(localStorage.getItem(k)).kind === 'ALLOCATION_EXECUTION'
+    )
+  );
+  const allocationDraft = await page.evaluate(() =>
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith('cosmoot:juno:planner-proposal:'))
+      .map((k) => JSON.parse(localStorage.getItem(k)))
+      .find((v) => v.kind === 'ALLOCATION_EXECUTION')
+  );
+  assert.equal(allocationDraft.kind, 'ALLOCATION_EXECUTION');
+  assert.ok(
+    JSON.parse(allocationDraft.values.actions_json)[0].msg.execute_admin_msgs.msgs.length > 0
+  );
+  assert.match(allocationDraft.values.body, /Frozen rebalance execution/);
+  await handoffRequest;
+  assert.ok(rebalanceHandoff.includes('plannerDraft='));
+  await page.unroute('**/?chain=juno&dao=juno&subdao=juno-delegation&plannerDraft=*', handoffRoute);
   await page.locator('#rebalance-amount').fill('0');
   assert.equal(await page.locator('#rebalance-export').isDisabled(), true);
   await page.locator('#rebalance-simulate').click();

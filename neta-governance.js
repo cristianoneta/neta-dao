@@ -41,6 +41,9 @@
   const { displayJuno, assertProgrammeExecutionAvailable } = await import(
     './juno-governance-core.mjs'
   );
+  const { isStaking } = await import('./juno-programme-staking.mjs');
+  const { readExecutionReview } = await import('./juno-rebalance-execution.mjs');
+  const { verifyRebalanceValues } = await import('./juno-rebalance-chain.mjs');
   const { readProposalReview } = await import('./juno-delegation-review.mjs');
   const { renderRuleReview } = await import('./juno-rule-review-view.mjs');
   let frozenViewEpoch = 0;
@@ -64,6 +67,26 @@
       host = document.querySelector('#proposal-rule-review');
     host.replaceChildren();
     host.hidden = true;
+    let executionMessages = [];
+    try {
+      executionMessages = JSON.parse(v.actions_json || '[]');
+    } catch {
+      /* Invalid editor JSON remains editable. */
+    }
+    if (isStaking(executionMessages)) {
+      host.hidden = false;
+      host.textContent = 'Verifying rebalance movements…';
+      try {
+        const execution = await readExecutionReview(v);
+        if (epoch !== frozenViewEpoch) return;
+        const totals = execution.value.plan.totals;
+        host.textContent = `Approved rule proposal #${execution.value.calculation.parent.proposalId} · ${execution.value.plan.moves.length} movements. Delegate ${displayJuno(totals.delegate)} JUNO · Redelegate ${displayJuno(totals.redelegate)} JUNO · Begin unbonding ${displayJuno(totals.undelegate)} JUNO. Targets use the recorded observations; actual execution depends on chain state after voting.`;
+      } catch (error) {
+        if (epoch === frozenViewEpoch)
+          host.textContent = 'Rebalance verification failed: ' + error.message;
+      }
+      return;
+    }
     if (!v.body?.includes('## Frozen allocation review') && !/"schema"\s*:\s*3/.test(v.body || ''))
       return;
     host.hidden = false;
@@ -88,6 +111,8 @@
     if (isCommunityPoolSpend(messages)) {
       const { readCommunityPool } = await import('./juno-community-governance.mjs');
       await readCommunityPool(MAINNET_RESTS, messages);
+    } else if (isStaking(messages)) {
+      await verifyRebalanceValues(values);
     } else if (messages.length) {
       const { readClaimContext, assertClaimContext } = await import('./claim-numbering.mjs');
       assertClaimContext(
@@ -1678,7 +1703,7 @@
     const community = current && plannerDraft.kind === COMMUNITY_POOL_KIND;
     panel.querySelector('a').href = community
       ? '/?chain=juno&dao=juno#treasury'
-      : `/community-tools/juno/delegation/#${current && plannerDraft.kind === 'CLAIM_REWARDS' ? 'overview' : 'rules'}`;
+      : `/community-tools/juno/delegation/#${current && plannerDraft.kind === 'CLAIM_REWARDS' ? 'overview' : current && plannerDraft.kind === 'ALLOCATION_EXECUTION' ? 'rebalance' : 'rules'}`;
     panel.querySelector('a').textContent = community
       ? 'View Community Pool →'
       : 'Return to delegation planner →';
@@ -1688,7 +1713,7 @@
       (community
         ? 'DAI conversion draft · 460.9 axlDAI → Dimi → USDC via Injective → Juno Community Pool. Not published. Review the text and transfer below, then publish for community review. Dimi performs the swap and return separately.'
         : current
-          ? `${plannerDraft.kind === 'CLAIM_REWARDS' ? 'Rewards claim' : 'Allocation rules'} draft from the planner · not submitted. Existing drafts are preserved. Topic: Delegation Programme · Submission and voting: Juno native governance. Publish this draft for community review. Mainnet funding is available after finalization.`
+          ? `${plannerDraft.kind === 'CLAIM_REWARDS' ? 'Rewards claim' : plannerDraft.kind === 'ALLOCATION_EXECUTION' ? 'Rebalance execution' : 'Allocation rules'} draft from the planner · not submitted. Existing drafts are preserved. Topic: Delegation Programme · Submission and voting: Juno native governance. Publish this draft for community review. Mainnet funding is available after finalization.`
           : '');
   }
 
