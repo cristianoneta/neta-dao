@@ -1,3 +1,4 @@
+import { junoConsensusHex } from '../juno-consensus-address.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fixture, observed } from './fixtures/delegation-planner.mjs';
@@ -247,19 +248,37 @@ function chainFixture(snapshot, approval, mode = '') {
           balance: { denom: 'ujuno', amount: mode === 'positions' ? '1' : v.currentRaw }
         }))
       );
+    else if (p.includes('/validatorsets/'))
+      data = page(
+        'validators',
+        snapshot.validators.map((v, i) => ({
+          address: Buffer.from(v.consensusAddress, 'hex').toString('base64'),
+          pub_key: { key: 'fixture-key-' + i }
+        }))
+      );
     else if (p.endsWith('/validators'))
       data = page(
         'validators',
-        snapshot.validators.map((v) => ({
+        snapshot.validators.map((v, i) => ({
+          consensus_pubkey: { key: 'fixture-key-' + i },
+          commission: {
+            commission_rates: {
+              rate: mode === 'commission' ? '0.100000000000000001' : '0.050000000000000000'
+            }
+          },
           operator_address: v.address,
           jailed: false,
-          tokens: v.tokensRaw,
+          tokens:
+            mode === 'cap' && v.address === snapshot.validators[0].address
+              ? '999999999999999'
+              : v.tokensRaw,
           delegator_shares: v.tokensRaw + '.000000000000000000'
         }))
       );
     else if (p.endsWith('/redelegations')) data = page('redelegation_responses', []);
     else if (p.endsWith('/unbonding_delegations')) data = page('unbonding_responses', []);
     else throw Error('Unexpected fixture path ' + url);
+    if (p.includes('/validatorsets/')) data.block_height = '42500000';
     if (mode === 'pending' && data.proposals)
       data.proposals.push({
         id: '951',
@@ -296,7 +315,9 @@ test('draft checks and native preflight require two fresh complete height-pinned
     'positions',
     'pagination',
     'approval',
-    'pending'
+    'pending',
+    'commission',
+    'cap'
   ]) {
     await assert.rejects(
       checkRebalance(review, { endpoints, fetcher: chainFixture(snapshot, approval, mode) }),
@@ -322,6 +343,18 @@ test('draft checks and native preflight require two fresh complete height-pinned
   );
 });
 test('proxy allows only bounded programme-specific staking evidence', () => {
+  assert.equal(
+    junoConsensusHex('junovalcons1nqryfjwgqvu5twj5auevq57rjhgzd8h2hg24rn'),
+    '980644C9C8033945BA54EF32C053C395D0269EEA'
+  );
+  assert.throws(() => junoConsensusHex('junovalcons1nqryfjwgqvu5twj5auevq57rjhgzd8h2hg24rq'));
+  assert.ok(
+    governanceReadTarget(
+      'juno-stavr',
+      '/cosmos/base/tendermint/v1beta1/validatorsets/42500000?pagination.limit=100',
+      '42500000'
+    )
+  );
   assert.ok(governanceReadTarget('juno-stavr', '/cosmos/staking/v1beta1/params', '123'));
   for (const suffix of ['redelegations', 'unbonding_delegations']) {
     const path = `/cosmos/staking/v1beta1/delegators/${PROGRAMME}/${suffix}?pagination.limit=100`;

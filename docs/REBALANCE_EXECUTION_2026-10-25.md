@@ -28,7 +28,9 @@ unmeasured RPC/testnet scoring model.
    Unbonding proceeds never finance movements in the same proposal. Keep at least
    50 JUNO liquid; unclaimed rewards are not spendable allocation funds.
 4. Read current delegations, validators, spendable balance, staking parameters,
-   redelegation entries and unbonding entries with complete bounded pagination.
+   redelegation entries, unbonding entries and the exact-height consensus set with
+   complete bounded pagination. Recheck current commission, consensus membership
+   where required and the projected voting-power cap against the approved policy.
    Each source must return the requested block height. Check original programme
    code 4047/hash, governance admin, unpaused status and withdrawal destination.
    A second independent source must agree on relevant holdings and parameters.

@@ -57,6 +57,7 @@ export function governanceReadTarget(source, path, height = '') {
       pathname === '/cosmos/gov/v1/proposals' ||
       /^\/cosmos\/staking\/v1beta1\/delegations\/juno1[a-z0-9]{38,58}$/.test(pathname) ||
       pathname === '/cosmos/staking/v1beta1/validators' ||
+      /^\/cosmos\/base\/tendermint\/v1beta1\/validatorsets\/[1-9]\d{0,19}$/.test(pathname) ||
       pathname === `/cosmos/staking/v1beta1/delegators/${programme}/redelegations` ||
       pathname === `/cosmos/staking/v1beta1/delegators/${programme}/unbonding_delegations` ||
       /^\/cosmos\/gov\/v1\/proposals\/[1-9]\d{0,19}\/votes$/.test(pathname)

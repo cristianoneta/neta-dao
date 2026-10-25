@@ -147,9 +147,20 @@ try {
         })),
         pagination: { next_key: null }
       };
+    else if (path.startsWith('/cosmos/base/tendermint/v1beta1/validatorsets/'))
+      response = {
+        block_height: '42500123',
+        validators: sample.validators.map((v, i) => ({
+          address: Buffer.from(v.consensusAddress, 'hex').toString('base64'),
+          pub_key: { key: 'fixture-key-' + i }
+        })),
+        pagination: { next_key: null }
+      };
     else if (path.startsWith('/cosmos/staking/v1beta1/validators?'))
       response = {
-        validators: sample.validators.map((v) => ({
+        validators: sample.validators.map((v, i) => ({
+          consensus_pubkey: { key: 'fixture-key-' + i },
+          commission: { commission_rates: { rate: '0.050000000000000000' } },
           operator_address: v.address,
           jailed: false,
           tokens: v.tokensRaw,
@@ -317,9 +328,10 @@ try {
   let rebalanceHandoff = '';
   const handoffRoute = (route) => {
     rebalanceHandoff = route.request().url();
-    return route.abort();
+    return route.fulfill({ status: 204 });
   };
   await page.route('**/?chain=juno&dao=juno&subdao=juno-delegation&plannerDraft=*', handoffRoute);
+  const handoffRequest = page.waitForRequest((request) => request.url().includes('plannerDraft='));
   await page.locator('#rebalance-proposal').click();
   await page.waitForFunction(() =>
     Object.keys(localStorage).some(
@@ -339,7 +351,7 @@ try {
     JSON.parse(allocationDraft.values.actions_json)[0].msg.execute_admin_msgs.msgs.length > 0
   );
   assert.match(allocationDraft.values.body, /Frozen rebalance execution/);
-  await page.waitForTimeout(100);
+  await handoffRequest;
   assert.ok(rebalanceHandoff.includes('plannerDraft='));
   await page.unroute('**/?chain=juno&dao=juno&subdao=juno-delegation&plannerDraft=*', handoffRoute);
   await page.locator('#rebalance-amount').fill('0');

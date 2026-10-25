@@ -269,7 +269,7 @@ async function preflightSource(
           body: content.summary.slice(split + 2),
           actions_json: JSON.stringify(content.messages, null, 2)
         });
-        staking = await checkRebalanceSource(get, review);
+        staking = await checkRebalanceSource(get, review, height);
       } else if (content.messages.length) {
         const [account, info, code, admin, paused, withdraw] = await Promise.all([
           get('/cosmos/auth/v1beta1/module_accounts/gov'),

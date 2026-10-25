@@ -1,4 +1,4 @@
-import { PROGRAMME, operator, LIQUID_RESERVE } from './juno-delegation-core.mjs';
+import { PROGRAMME, operator, LIQUID_RESERVE, capFraction } from './juno-delegation-core.mjs';
 import { GOVERNANCE, EXECUTE } from './juno-governance-core.mjs';
 
 export const STAKING_TYPES = Object.freeze({
@@ -232,4 +232,64 @@ export function checkMovementState(plan, state) {
       blockers.push(`Unbonding entry limit reached for ${move.source}.`);
   }
   return [...new Set(blockers)];
+}
+
+// Recheck the live, chain-verifiable eligibility/cap conditions. Historical
+// participation remains the dated evidence in the immutable calculation.
+export function checkCurrentAllocation(calculation, plan, state) {
+  const rule = calculation.rule,
+    count = state.activeCount;
+  if (!Number.isSafeInteger(count) || count < 1 || count > 200)
+    throw Error('Current consensus set is unavailable.');
+  const held = new Map(state.positions.map((p) => [p.address, BigInt(p.currentRaw)]));
+  const targets = new Map(plan.positions.map((p) => [p.address, BigInt(p.targetRaw)]));
+  const available = new Set(state.validators.map((v) => v.address));
+  if (
+    [
+      ...held.keys(),
+      ...plan.positions.filter((p) => BigInt(p.targetRaw) > 0n).map((p) => p.address)
+    ].some((a) => !available.has(a))
+  )
+    throw Error('A programme validator is missing from the current chain state.');
+  const nodes = state.validators.map((v) => {
+    const base = BigInt(v.tokensRaw) - (held.get(v.address) || 0n);
+    if (base < 0n) throw Error('Validator holdings exceed current token supply.');
+    return { ...v, projected: base + (targets.get(v.address) || 0n) };
+  });
+  const projected = nodes
+    .filter((v) => !v.jailed && v.projected > 0n)
+    .sort((a, b) =>
+      a.projected > b.projected
+        ? -1
+        : a.projected < b.projected
+          ? 1
+          : Number(b.active) - Number(a.active) || a.address.localeCompare(b.address)
+    )
+    .slice(0, count);
+  const total = projected.reduce((n, v) => n + v.projected, 0n),
+    cap = capFraction(rule, count);
+  for (const v of nodes.filter((v) => (targets.get(v.address) || 0n) > 0n)) {
+    if (v.jailed || v.exchangeRateValid !== true)
+      throw Error('A target validator is now unavailable or jailed. Refresh and simulate again.');
+    if (
+      rule.commissionMaxBps !== null &&
+      BigInt(v.commissionAtoms) > BigInt(rule.commissionMaxBps) * 100000000000000n
+    )
+      throw Error(
+        'A recipient now exceeds the approved commission limit. Refresh and simulate again.'
+      );
+    if (
+      rule.schema >= 3 &&
+      (!v.active ||
+        v.consensusAddress !==
+          calculation.snapshot.validators.find((p) => p.address === v.address)?.consensusAddress)
+    )
+      throw Error(
+        'A recipient left the recorded consensus set. Refresh its participation evidence and simulate again.'
+      );
+    if (v.projected * cap.denominator > total * cap.numerator)
+      throw Error(
+        'A target now exceeds the approved voting-power cap. Refresh and simulate again.'
+      );
+  }
 }
