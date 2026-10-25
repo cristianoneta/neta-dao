@@ -1,0 +1,316 @@
+{
+  "observedAt": "2026-10-25T18:23:17.183504+00:00",
+  "endpoint": "https://juno.api.m.stavr.tech",
+  "pools": [
+    {
+      "name": "JUNO / ATOM",
+      "address": "juno17uv02azt545ag23xq7whw6z3r3chw7jwztnr9lypugy62drq3caqeyd2r3",
+      "info": {
+        "address": "juno17uv02azt545ag23xq7whw6z3r3chw7jwztnr9lypugy62drq3caqeyd2r3",
+        "contract_info": {
+          "code_id": "2289",
+          "creator": "juno16adshp473hd9sruwztdqrtsfckgtd69glqm6sqk0hc4q40c296qsxl3u3s",
+          "admin": "juno16d73yt7y75pelye4q9jjhew0mttztjf3836w5wwyx7nusl6cnrhqxetv3h",
+          "label": "Wyndex pair",
+          "created": {
+            "block_height": "6623836",
+            "tx_index": "0"
+          },
+          "ibc_port_id": "",
+          "extension": null,
+          "ibc2_port_id": ""
+        }
+      },
+      "pair": {
+        "asset_infos": [
+          {
+            "native": "ujuno"
+          },
+          {
+            "native": "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9"
+          }
+        ],
+        "contract_addr": "juno17uv02azt545ag23xq7whw6z3r3chw7jwztnr9lypugy62drq3caqeyd2r3",
+        "liquidity_token": "juno1an2xhen0fzme85dpy7vx60f6ecrufqj6vqkh8gdvlyhfhjmp24qqqleeav",
+        "staking_addr": "juno1nfs4xjxum3fqd564yxj44ragxmh8ey7ugl50avquyt7zrvcwlf8q3juqqg",
+        "pair_type": {
+          "xyk": {}
+        },
+        "fee_config": {
+          "total_fee_bps": 30,
+          "protocol_fee_bps": 3333
+        }
+      },
+      "pool": {
+        "assets": [
+          {
+            "info": {
+              "native": "ujuno"
+            },
+            "amount": "1541707927956"
+          },
+          {
+            "info": {
+              "native": "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9"
+            },
+            "amount": "6297730607"
+          }
+        ],
+        "total_share": "89761104045"
+      },
+      "config": {
+        "block_time_last": 1792945200,
+        "params": null,
+        "owner": null
+      }
+    },
+    {
+      "name": "JUNO / USDC",
+      "address": "juno1gqy6rzary8vwnslmdavqre6jdhakcd4n2z4r803ajjmdq08r66hq7zcwrj",
+      "info": {
+        "address": "juno1gqy6rzary8vwnslmdavqre6jdhakcd4n2z4r803ajjmdq08r66hq7zcwrj",
+        "contract_info": {
+          "code_id": "2289",
+          "creator": "juno16adshp473hd9sruwztdqrtsfckgtd69glqm6sqk0hc4q40c296qsxl3u3s",
+          "admin": "juno16d73yt7y75pelye4q9jjhew0mttztjf3836w5wwyx7nusl6cnrhqxetv3h",
+          "label": "Wyndex pair",
+          "created": {
+            "block_height": "6623836",
+            "tx_index": "0"
+          },
+          "ibc_port_id": "",
+          "extension": null,
+          "ibc2_port_id": ""
+        }
+      },
+      "pair": {
+        "asset_infos": [
+          {
+            "native": "ujuno"
+          },
+          {
+            "native": "ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034"
+          }
+        ],
+        "contract_addr": "juno1gqy6rzary8vwnslmdavqre6jdhakcd4n2z4r803ajjmdq08r66hq7zcwrj",
+        "liquidity_token": "juno1jn6t0dsxryht8ljxulavxrfd22l87dvac8e9a99a7tuj29ysxksqffhf5k",
+        "staking_addr": "juno1pawjm34dunptcs8wt2m5tgcyexyzc02pdl9xl52jvcqlpwcgus5sen5yrk",
+        "pair_type": {
+          "xyk": {}
+        },
+        "fee_config": {
+          "total_fee_bps": 30,
+          "protocol_fee_bps": 3333
+        }
+      },
+      "pool": {
+        "assets": [
+          {
+            "info": {
+              "native": "ujuno"
+            },
+            "amount": "753780047819"
+          },
+          {
+            "info": {
+              "native": "ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034"
+            },
+            "amount": "4982409749"
+          }
+        ],
+        "total_share": "52456324065"
+      },
+      "config": {
+        "block_time_last": 1792945203,
+        "params": null,
+        "owner": null
+      }
+    },
+    {
+      "name": "JUNO / OSMO",
+      "address": "juno1u2pl8ql778655wakqmnhpln65q9pughd6jnrp93xwf4zakqjdh6qx3y9yt",
+      "info": {
+        "address": "juno1u2pl8ql778655wakqmnhpln65q9pughd6jnrp93xwf4zakqjdh6qx3y9yt",
+        "contract_info": {
+          "code_id": "2289",
+          "creator": "juno16adshp473hd9sruwztdqrtsfckgtd69glqm6sqk0hc4q40c296qsxl3u3s",
+          "admin": "juno16d73yt7y75pelye4q9jjhew0mttztjf3836w5wwyx7nusl6cnrhqxetv3h",
+          "label": "Wyndex pair",
+          "created": {
+            "block_height": "6623845",
+            "tx_index": "228239"
+          },
+          "ibc_port_id": "",
+          "extension": null,
+          "ibc2_port_id": ""
+        }
+      },
+      "pair": {
+        "asset_infos": [
+          {
+            "native": "ujuno"
+          },
+          {
+            "native": "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518"
+          }
+        ],
+        "contract_addr": "juno1u2pl8ql778655wakqmnhpln65q9pughd6jnrp93xwf4zakqjdh6qx3y9yt",
+        "liquidity_token": "juno1yhtyn2dv5k7ladzrznxlep2xm6q7dsd332wak3hhdrw0staer0ps83q8jw",
+        "staking_addr": "juno1u4h488kf6xhmelsuwm0gj7dhh8mfjm7n5pyu8c0l0xwy3pvrpc3ql2p6q2",
+        "pair_type": {
+          "xyk": {}
+        },
+        "fee_config": {
+          "total_fee_bps": 30,
+          "protocol_fee_bps": 3333
+        }
+      },
+      "pool": {
+        "assets": [
+          {
+            "info": {
+              "native": "ujuno"
+            },
+            "amount": "314152085379"
+          },
+          {
+            "info": {
+              "native": "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518"
+            },
+            "amount": "41733816296"
+          }
+        ],
+        "total_share": "104783420853"
+      },
+      "config": {
+        "block_time_last": 1792945203,
+        "params": null,
+        "owner": null
+      }
+    },
+    {
+      "name": "WYND / USDC",
+      "address": "juno18zk9xqj9xjm0ry39jjam8qsysj7qh49xwt4qdfp9lgtrk08sd58s2n54ve",
+      "info": {
+        "address": "juno18zk9xqj9xjm0ry39jjam8qsysj7qh49xwt4qdfp9lgtrk08sd58s2n54ve",
+        "contract_info": {
+          "code_id": "2289",
+          "creator": "juno16adshp473hd9sruwztdqrtsfckgtd69glqm6sqk0hc4q40c296qsxl3u3s",
+          "admin": "juno16d73yt7y75pelye4q9jjhew0mttztjf3836w5wwyx7nusl6cnrhqxetv3h",
+          "label": "Wyndex pair",
+          "created": {
+            "block_height": "6759602",
+            "tx_index": "183184"
+          },
+          "ibc_port_id": "",
+          "extension": null,
+          "ibc2_port_id": ""
+        }
+      },
+      "pair": {
+        "asset_infos": [
+          {
+            "token": "juno1mkw83sv6c7sjdvsaplrzc8yaes9l42p4mhy0ssuxjnyzl87c9eps7ce3m9"
+          },
+          {
+            "native": "ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034"
+          }
+        ],
+        "contract_addr": "juno18zk9xqj9xjm0ry39jjam8qsysj7qh49xwt4qdfp9lgtrk08sd58s2n54ve",
+        "liquidity_token": "juno13ld2eq3w8k6rap5n5vsmwr8c4zhqhtfu9vjx0gqmhpefefl97nxq4u4pap",
+        "staking_addr": "juno1vntf38qmdx9aqskjnxdpcmtap0gymtcxnyf3pjcvn8a63j8q53tssrgzz8",
+        "pair_type": {
+          "xyk": {}
+        },
+        "fee_config": {
+          "total_fee_bps": 30,
+          "protocol_fee_bps": 3333
+        }
+      },
+      "pool": {
+        "assets": [
+          {
+            "info": {
+              "token": "juno1mkw83sv6c7sjdvsaplrzc8yaes9l42p4mhy0ssuxjnyzl87c9eps7ce3m9"
+            },
+            "amount": "4482015464239"
+          },
+          {
+            "info": {
+              "native": "ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034"
+            },
+            "amount": "1442442013"
+          }
+        ],
+        "total_share": "74958722515"
+      },
+      "config": {
+        "block_time_last": 1792945203,
+        "params": null,
+        "owner": null
+      }
+    },
+    {
+      "name": "JUNO / NETA",
+      "address": "juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra",
+      "info": {
+        "address": "juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra",
+        "contract_info": {
+          "code_id": "2289",
+          "creator": "juno16adshp473hd9sruwztdqrtsfckgtd69glqm6sqk0hc4q40c296qsxl3u3s",
+          "admin": "juno16d73yt7y75pelye4q9jjhew0mttztjf3836w5wwyx7nusl6cnrhqxetv3h",
+          "label": "Wyndex pair",
+          "created": {
+            "block_height": "6623845",
+            "tx_index": "228239"
+          },
+          "ibc_port_id": "",
+          "extension": null,
+          "ibc2_port_id": ""
+        }
+      },
+      "pair": {
+        "asset_infos": [
+          {
+            "native": "ujuno"
+          },
+          {
+            "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr"
+          }
+        ],
+        "contract_addr": "juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra",
+        "liquidity_token": "juno1uu3cewmpynvgsdu3lfqv2rh2n5nwtrguahkw64wjk99eg8r6fsss0e757x",
+        "staking_addr": "juno1tlhf68k8aksl30mdf5yngudk6z8w4qqzvvauzr92w3gwm7er9p9qxvudu7",
+        "pair_type": {
+          "xyk": {}
+        },
+        "fee_config": {
+          "total_fee_bps": 30,
+          "protocol_fee_bps": 3333
+        }
+      },
+      "pool": {
+        "assets": [
+          {
+            "info": {
+              "native": "ujuno"
+            },
+            "amount": "119838914169"
+          },
+          {
+            "info": {
+              "token": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr"
+            },
+            "amount": "758592532"
+          }
+        ],
+        "total_share": "8957224003"
+      },
+      "config": {
+        "block_time_last": 1792837828,
+        "params": null,
+        "owner": null
+      }
+    }
+  ]
+}

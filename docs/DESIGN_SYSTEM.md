@@ -5,6 +5,17 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
+## WYND swap — owner update, 25 October 2026
+
+Replace the redundant explanation card with five selectable pool rows and aligned
+USD liquidity. Both asset pills open an accessible six-asset dropdown, retaining
+an existing direct pair or visibly updating the counterpart. Clear the prior
+amount/quote when changing the pair. Preserve the selected row and explicit wallet
+review. Use the original WYND mascot as a small header detail, not a fixed overlay;
+no flashes during review or selection, and honor reduced motion. All visible
+limits, Max and signing validation use the owner's 50-USD cap. Keep Axelar USDC's
+identity explicit. See [scope and provenance](WYND_SWAP_2026-10-25.md).
+
 ## Programme product boundary and execution — owner update, 25 October 2026
 
 Treat the Delegation Programme as an independent integrated product, not Cosmoot's

@@ -1,22 +1,27 @@
+import {
+  ASSETS as assets,
+  POOLS,
+  findPool,
+  selectAssets,
+  verifyPool,
+  reserve,
+  poolValuation,
+  parseSwapQuote,
+  buildSwapTransaction,
+  receivedFromEvents
+} from './wynd-swap-core.mjs';
 // Adapted from neta-website 7ad0bbf: direct WYND swap, current Cosmoot shell.
 (() => {
   'use strict';
-  const PAIR = 'juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra';
-  const NETA = 'juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr';
-  const PAIR_CODE_ID = '2289';
   const LCD_ENDPOINTS = [
     'https://juno.api.m.stavr.tech',
     'https://juno-api.polkachu.com',
     'https://juno-rest.publicnode.com'
   ];
-  const LIMIT_USD = 25;
+  const LIMIT_USD = 50;
   const DECIMALS = 6;
   const QUOTE_REFRESH_MS = 12000;
   const SIGNING = window.NETA_SWAP_SIGNING;
-  const assets = {
-    JUNO: { symbol: 'JUNO', logo: '/assets/juno-chain.png', info: { native: 'ujuno' } },
-    NETA: { symbol: 'NETA', logo: '/assets/neta-token.png', info: { token: NETA } }
-  };
   const dom = {
     amount: document.querySelector('#offer-amount'),
     receive: document.querySelector('#receive-amount'),
@@ -39,10 +44,14 @@
     slippageSummaryButton: document.querySelector('#slippage-summary-button'),
     contractState: document.querySelector('#contract-state'),
     source: document.querySelector('#quote-source'),
-    poolJuno: document.querySelector('#pool-juno'),
-    poolNeta: document.querySelector('#pool-neta'),
-    junoPrice: document.querySelector('#juno-usd-price'),
-    netaPrice: document.querySelector('#neta-usd-price'),
+    reserves: document.querySelector('#pool-reserves'),
+    poolList: document.querySelector('#pool-list'),
+    pairLabel: document.querySelector('#swap-pair-label'),
+    poolLink: document.querySelector('#pool-contract-link'),
+    offerSelect: document.querySelector('#offer-asset'),
+    receiveSelect: document.querySelector('#receive-asset'),
+    assetMenu: document.querySelector('#asset-menu'),
+    assetOptions: document.querySelector('#asset-options'),
     poolObserved: document.querySelector('#pool-observed'),
     priceObserved: document.querySelector('#price-observed'),
     settings: document.querySelector('#slippage-settings'),
@@ -64,8 +73,10 @@
   if (!dom.amount || !window.NetaCosmosClient) return;
   const client = new window.NetaCosmosClient(LCD_ENDPOINTS);
   let offer = 'JUNO',
+    receive = 'NETA',
+    selected = findPool('JUNO', 'NETA'),
     slippage = 5,
-    junoUsd = null,
+    prices = {},
     pool = null,
     contractValid = false;
   let quote = null,
@@ -82,26 +93,28 @@
     priceTimestamp = null,
     marketTimer = null;
 
-  const other = (symbol) => (symbol === 'JUNO' ? 'NETA' : 'JUNO');
+  const poolStates = new Map();
+  let menuSide = null,
+    menuTrigger = null;
+  const other = (symbol) => (symbol === offer ? receive : offer);
   const asNumber = (raw) => Number(raw) / 10 ** DECIMALS;
   const money = (value) =>
     Number.isFinite(value)
       ? `≈ $${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       : '≈ —';
-  const amountText = (raw, max = 6) =>
-    asNumber(raw).toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: max });
-  const queryInfo = (asset) => {
-    const info = asset.info || asset;
-    return info.native ? `native:${info.native}` : `token:${info.token}`;
+  const amountText = (raw, max = 6) => {
+    const value = BigInt(raw),
+      fraction = String(value % 1000000n)
+        .padStart(6, '0')
+        .slice(0, max)
+        .replace(/0+$/, '');
+    return String(value / 1000000n) + (fraction ? '.' + fraction : '');
   };
-  const expectedAssets = new Set(['native:ujuno', `token:${NETA}`]);
   const signingConfigValid = Boolean(
     SIGNING &&
       SIGNING.chainId === 'juno-1' &&
-      SIGNING.pair === PAIR &&
-      SIGNING.neta === NETA &&
-      SIGNING.pairCodeId === PAIR_CODE_ID &&
-      SIGNING.publicMaxUsd === LIMIT_USD
+      SIGNING.publicMaxUsd === LIMIT_USD &&
+      JSON.stringify(SIGNING.pairs) === JSON.stringify(POOLS.map((p) => p.address))
   );
 
   function parseAmount(value) {
@@ -115,49 +128,79 @@
   }
 
   function tokenUsd(symbol) {
-    if (!junoUsd || !pool) return null;
-    if (symbol === 'JUNO') return junoUsd;
-    const junoReserve = pool.assets.find((asset) => asset.info.native === 'ujuno');
-    const netaReserve = pool.assets.find((asset) => asset.info.token === NETA);
-    if (!junoReserve || !netaReserve || Number(netaReserve.amount) <= 0) return null;
-    return (Number(junoReserve.amount) / Number(netaReserve.amount)) * junoUsd;
+    return poolValuation(selected, pool, prices)?.prices[symbol] ?? null;
+  }
+
+  function renderPools() {
+    const focusedPool = document.activeElement?.dataset.pool;
+    const rows = POOLS.map((p) => {
+      const state = poolStates.get(p.id);
+      const valuation =
+        state?.pool && Date.now() - state.at < 120000 ? poolValuation(p, state.pool, prices) : null;
+      return { p, state, valuation };
+    }).sort((a, b) => (b.valuation?.liquidity ?? -1) - (a.valuation?.liquidity ?? -1));
+    dom.poolList.replaceChildren(
+      ...rows.map(({ p, state, valuation }) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'pool-row';
+        button.dataset.pool = p.id;
+        button.setAttribute('aria-pressed', String(p.id === selected.id));
+        button.disabled = signing;
+        const name = document.createElement('span');
+        name.className = 'pool-name';
+        name.textContent = p.assets.join(' / ');
+        const value = document.createElement('span');
+        value.className = 'pool-liquidity';
+        value.textContent = valuation
+          ? '≈ ' +
+            valuation.liquidity.toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              maximumFractionDigits: 0
+            })
+          : state?.error
+            ? 'Unavailable'
+            : state?.pool
+              ? 'USD unavailable'
+              : 'Loading…';
+        button.append(name, value);
+        button.addEventListener('click', () => changePair(p.assets[0], p.assets[1]));
+        return button;
+      })
+    );
+    if (focusedPool)
+      [...dom.poolList.querySelectorAll('button')]
+        .find((button) => button.dataset.pool === focusedPool)
+        ?.focus({ preventScroll: true });
   }
 
   function renderPoolOverview(state = '') {
-    const reserveText = (raw) => {
-      const n = BigInt(raw),
-        fraction = String(n % 1000000n)
-          .padStart(6, '0')
-          .replace(/0+$/, '');
-      return (n / 1000000n).toLocaleString('en-US') + (fraction ? '.' + fraction : '');
-    };
-    const priceText = (value) =>
-      !Number.isFinite(value) || value <= 0
-        ? 'Unavailable'
-        : value < 0.00000001
-          ? '< $0.00000001'
-          : '≈ ' +
-            value.toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD',
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 8
-            });
-    const available = contractValid && pool && junoUsd;
-    dom.poolJuno.textContent = available
-      ? reserveText(pool.assets.find((a) => a.info.native === 'ujuno').amount)
-      : '—';
-    dom.poolNeta.textContent = available
-      ? reserveText(pool.assets.find((a) => a.info.token === NETA).amount)
-      : '—';
-    dom.junoPrice.textContent = available ? priceText(junoUsd) : '—';
-    dom.netaPrice.textContent = available ? priceText(tokenUsd('NETA')) : '—';
-    dom.poolObserved.textContent = available
+    const valuation = contractValid && pool ? poolValuation(selected, pool, prices) : null;
+    dom.reserves.replaceChildren(
+      ...selected.assets.map((symbol) => {
+        const row = document.createElement('div'),
+          label = document.createElement('dt'),
+          value = document.createElement('dd');
+        label.textContent = symbol + ' in pool';
+        value.textContent =
+          pool && contractValid
+            ? (Number(reserve(pool, symbol)) / 1e6).toLocaleString('en-US', {
+                maximumFractionDigits: 6
+              })
+            : '—';
+        value.dataset.reserve = symbol;
+        row.append(label, value);
+        return row;
+      })
+    );
+    dom.poolObserved.textContent = valuation
       ? `Pool read ${new Date(poolCheckedAt).toLocaleString()}`
-      : state || 'Pool data unavailable. Refresh to try again.';
-    dom.priceObserved.textContent = available
-      ? `JUNO USD snapshot: ${new Date(priceTimestamp).toLocaleString()}. NETA USD is the WYND reserve ratio × JUNO USD; swap fees and price impact are not included.`
-      : 'USD prices unavailable until the pool and price snapshot are verified.';
+      : state || 'Pool or USD data unavailable. Refresh to try again.';
+    dom.priceObserved.textContent = valuation
+      ? `USD snapshot: ${new Date(priceTimestamp).toLocaleString()}. ${valuation.derived.length ? valuation.derived.join(', ') + ' price estimated from this pool’s reserve ratio. ' : ''}Liquidity includes both reserves; swap fees and price impact are not included.`
+      : 'USD values require a fresh price snapshot and verified pool reserves.';
+    renderPools();
   }
 
   function setMessage(text, state = '') {
@@ -184,8 +227,26 @@
     const receive = other(offer);
     dom.offerSymbol.textContent = offer;
     dom.receiveSymbol.textContent = receive;
-    dom.offerLogo.src = assets[offer].logo;
-    dom.receiveLogo.src = assets[receive].logo;
+    for (const [side, symbol] of [
+      ['offer', offer],
+      ['receive', receive]
+    ]) {
+      const img = dom[side + 'Logo'];
+      img.hidden = !assets[symbol].logo;
+      if (assets[symbol].logo) img.src = assets[symbol].logo;
+      const badge = document.querySelector('#' + side + '-badge');
+      badge.hidden = !!assets[symbol].logo;
+      badge.textContent = symbol.slice(0, 1);
+      badge.dataset.symbol = symbol;
+      dom[side + 'Select'].setAttribute(
+        'aria-label',
+        'Select ' + (side === 'offer' ? 'pay' : 'receive') + ' asset, ' + symbol
+      );
+    }
+    dom.pairLabel.textContent = 'WYND · ' + selected.assets.join(' / ');
+    dom.reverse.setAttribute('aria-label', 'Reverse ' + offer + ' and ' + receive);
+    dom.poolLink.href = 'https://atomscan.com/juno/accounts/' + selected.address;
+    renderPools();
     dom.offerUsd.textContent = '≈ $0.00';
     dom.receiveUsd.textContent = '≈ $0.00';
     updateBalance();
@@ -214,60 +275,57 @@
   async function loadMarket() {
     const response = await fetch('/data/treasury/juno-delegation.json', { cache: 'no-store' });
     if (!response.ok) throw new Error('USD price snapshot unavailable');
-    const market = await response.json();
-    const juno = market.assets?.find(
-      (asset) =>
-        asset.key === 'juno:native:ujuno' && asset.source_chain === 'juno' && asset.decimals === 6
-    );
-    const stamp = Date.parse(market.generated_at || '');
+    const market = await response.json(),
+      stamp = Date.parse(market.generated_at || '');
     if (
       market.chain_id !== 'juno-1' ||
       market.dao_id !== 'juno-delegation' ||
       !['LIVE', 'PARTIAL'].includes(market.status) ||
-      !Number.isFinite(Number(juno?.usd_price)) ||
-      Number(juno.usd_price) <= 0 ||
       !Number.isFinite(stamp) ||
       stamp > Date.now() + 60000
     )
       throw new Error('Invalid USD price snapshot');
     if (Date.now() - stamp > 36 * 60 * 60 * 1000) throw new Error('USD price snapshot is stale');
-    return { price: Number(juno.usd_price), timestamp: stamp };
+    const next = {};
+    for (const symbol of ['JUNO', 'ATOM', 'USDC', 'OSMO']) {
+      const asset = market.assets?.find(
+        (a) =>
+          a.key === 'juno:native:' + assets[symbol].info.native &&
+          a.source_chain === 'juno' &&
+          a.decimals === 6
+      );
+      if (Number.isFinite(Number(asset?.usd_price)) && Number(asset.usd_price) > 0)
+        next[symbol] = Number(asset.usd_price);
+    }
+    if (!Object.keys(next).length) throw new Error('Invalid USD price snapshot');
+    return { prices: next, timestamp: stamp };
   }
 
-  async function validateContract() {
-    const [info, pairInfo, livePool] = await Promise.all([
-      client.contractInfo(PAIR),
-      client.smart(PAIR, { pair: {} }),
-      client.smart(PAIR, { pool: {} })
+  async function validateContract(target) {
+    const [info, pairInfo, livePool, ...tokens] = await Promise.all([
+      client.contractInfo(target.address),
+      client.smart(target.address, { pair: {} }),
+      client.smart(target.address, { pool: {} }),
+      ...target.assets
+        .filter((s) => assets[s].info.token)
+        .map((s) => client.smart(assets[s].info.token, { token_info: {} }))
     ]);
-    if (String(info.code_id) !== PAIR_CODE_ID)
-      throw new Error('PAIR CODE ID DOES NOT MATCH THE ALLOWLIST');
-    if (pairInfo.contract_addr !== PAIR) throw new Error('PAIR IDENTITY DOES NOT MATCH');
-    const listed = new Set((pairInfo.asset_infos || []).map(queryInfo));
-    if (listed.size !== 2 || [...expectedAssets].some((key) => !listed.has(key)))
-      throw new Error('PAIR ASSETS DO NOT MATCH JUNO / NETA');
-    if (String(pairInfo.fee_config?.total_fee_bps) !== '30')
-      throw new Error('PAIR FEE DOES NOT MATCH 0.30%');
-    if (
-      !Array.isArray(livePool?.assets) ||
-      livePool.assets.length !== 2 ||
-      new Set(livePool.assets.map(queryInfo)).size !== 2 ||
-      livePool.assets.some(
-        (asset) =>
-          !expectedAssets.has(queryInfo(asset)) ||
-          !/^\d{1,30}$/.test(asset.amount) ||
-          BigInt(asset.amount) <= 0n
-      )
-    )
-      throw new Error('POOL RESERVES ARE INVALID OR EMPTY');
-    return { pool: livePool, source: client.preferredEndpoint };
+    const symbols = target.assets.filter((s) => assets[s].info.token);
+    tokens.forEach((token, i) => {
+      if (token.decimals !== assets[symbols[i]].decimals || token.symbol !== symbols[i])
+        throw Error('Token identity or precision does not match');
+    });
+    verifyPool(target, info, pairInfo, livePool);
+    return { pool: livePool, source: client.preferredEndpoint, at: Date.now() };
   }
 
-  async function loadVerifiedMarket() {
-    const revision = ++marketRevision;
+  async function loadVerifiedMarket(all = false) {
+    const revision = ++marketRevision,
+      target = selected,
+      targets = all ? POOLS : [target];
     contractValid = false;
-    junoUsd = null;
     pool = null;
+    prices = {};
     requestId++;
     poolCheckedAt = null;
     priceTimestamp = null;
@@ -276,27 +334,39 @@
     dom.contractState.textContent = 'Checking';
     dom.contractState.dataset.ok = 'false';
     try {
-      // Neither independent read can publish a partial success or revive a failed check.
-      const [price, verified] = await Promise.all([loadMarket(), validateContract()]);
-      if (revision !== marketRevision) throw new Error('Pool check superseded. Refresh again.');
-      junoUsd = price.price;
-      priceTimestamp = price.timestamp;
+      const [marketResult, poolResults] = await Promise.all([
+        Promise.allSettled([loadMarket()]),
+        Promise.allSettled(targets.map(validateContract))
+      ]);
+      if (revision !== marketRevision || target !== selected) return false;
+      poolResults.forEach((r, i) =>
+        poolStates.set(
+          targets[i].id,
+          r.status === 'fulfilled' ? r.value : { error: r.reason.message }
+        )
+      );
+      const price = marketResult[0];
+      if (price.status === 'rejected') throw price.reason;
+      prices = price.value.prices;
+      priceTimestamp = price.value.timestamp;
+      const verified = poolStates.get(target.id);
+      if (!verified?.pool) throw Error(verified?.error || 'Pool unavailable');
       pool = verified.pool;
-      poolCheckedAt = Date.now();
+      poolCheckedAt = verified.at;
+      if (!poolValuation(target, pool, prices)) throw Error('USD price unavailable for this pool');
       contractValid = true;
       renderPoolOverview();
       dom.contractState.textContent = 'Verified';
       dom.contractState.dataset.ok = 'true';
-      dom.source.textContent = verified.source?.replace('https://', '').toUpperCase() || 'JUNO LCD';
+      dom.source.textContent = verified.source?.replace('https://', '') || 'Juno REST';
+      return true;
     } catch (error) {
-      if (revision === marketRevision) {
-        contractValid = false;
-        junoUsd = null;
-        pool = null;
-        renderPoolOverview();
-        dom.contractState.textContent = 'Unavailable';
-        dom.contractState.dataset.ok = 'false';
-      }
+      if (revision !== marketRevision) return false;
+      contractValid = false;
+      pool = null;
+      renderPoolOverview();
+      dom.contractState.textContent = 'Unavailable';
+      dom.contractState.dataset.ok = 'false';
       throw error;
     }
   }
@@ -333,25 +403,23 @@
     }
     if (usd > LIMIT_USD + 0.000001) {
       clearQuote(
-        `$25 LIMIT EXCEEDED — CURRENT ESTIMATE ${money(usd).replace('EST. ', '')}`,
+        `$50 LIMIT EXCEEDED — CURRENT ESTIMATE ${money(usd).replace('EST. ', '')}`,
         'error'
       );
       return;
     }
     setMessage('Getting a live quote…', 'loading');
     try {
-      const response = await client.smart(PAIR, {
+      const response = await client.smart(selected.address, {
         simulation: {
           offer_asset: { info: assets[offer].info, amount: String(raw) },
-          ask_asset_info: null,
+          ask_asset_info: assets[receive].info,
           referral: false,
           referral_commission: null
         }
       });
       if (id !== requestId) return;
-      const returned = BigInt(response.return_amount),
-        fee = BigInt(response.commission_amount),
-        spread = BigInt(response.spread_amount);
+      const { returned, fee, spread } = parseSwapQuote(response);
       if (returned <= 0n) throw new Error('CONTRACT RETURNED AN EMPTY QUOTE');
       const noImpact = returned + fee + spread;
       const impact = noImpact ? (Number(spread) * 100) / Number(noImpact) : 0;
@@ -365,6 +433,7 @@
         at: Date.now(),
         offer,
         receive: other(offer),
+        poolId: selected.id,
         usd
       };
       dom.receive.textContent = amountText(returned);
@@ -410,16 +479,7 @@
     }
     dom.offerBalance.textContent = 'Loading balance…';
     try {
-      let next;
-      if (token === 'JUNO') {
-        const { data } = await client.get(
-          `/cosmos/bank/v1beta1/balances/${address}/by_denom?denom=ujuno`
-        );
-        next = BigInt(data.balance?.amount || '0');
-      } else {
-        const result = await client.smart(NETA, { balance: { address } });
-        next = BigInt(result.balance || '0');
-      }
+      const next = await assetBalance(token, address);
       if (id !== balanceRequest || address !== window.NETA_WALLET_STATE?.address || token !== offer)
         return;
       balanceRaw = next;
@@ -432,71 +492,30 @@
     }
   }
 
-  function beliefPrice(raw, returned) {
-    const scale = 10n ** 18n,
-      value = (raw * scale) / returned,
-      whole = value / scale,
-      fraction = String(value % scale)
-        .padStart(18, '0')
-        .replace(/0+$/, '');
-    return fraction ? `${whole}.${fraction}` : String(whole);
-  }
-
   function buildTransaction(liveQuote, address) {
-    const maxSpread = (slippage / 100).toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
-    // WYND checks spread against return_amount + commission_amount (before fees).
-    const belief = beliefPrice(liveQuote.raw, liveQuote.returned + liveQuote.fee);
-    if (liveQuote.offer === 'JUNO')
-      return {
-        contract: PAIR,
-        message: {
-          swap: {
-            offer_asset: { info: { native: 'ujuno' }, amount: String(liveQuote.raw) },
-            ask_asset_info: { token: NETA },
-            belief_price: belief,
-            max_spread: maxSpread,
-            to: address,
-            referral_address: null,
-            referral_commission: null
-          }
-        },
-        funds: [{ denom: 'ujuno', amount: String(liveQuote.raw) }]
-      };
-    const hook = {
-      swap: {
-        ask_asset_info: { native: 'ujuno' },
-        belief_price: belief,
-        max_spread: maxSpread,
-        to: address,
-        referral_address: null,
-        referral_commission: null
-      }
-    };
-    return {
-      contract: NETA,
-      message: {
-        send: { contract: PAIR, amount: String(liveQuote.raw), msg: btoa(JSON.stringify(hook)) }
-      },
-      funds: []
-    };
+    return buildSwapTransaction(liveQuote, address, slippage);
   }
 
   async function assetBalance(symbol, address) {
-    if (symbol === 'JUNO') {
+    const info = assets[symbol].info;
+    if (info.native) {
       const { data } = await client.get(
-        `/cosmos/bank/v1beta1/balances/${address}/by_denom?denom=ujuno`
+        `/cosmos/bank/v1beta1/balances/${address}/by_denom?denom=${encodeURIComponent(info.native)}`
       );
-      return BigInt(data.balance?.amount || '0');
+      if (data.balance?.denom !== info.native || !/^\d+$/.test(data.balance?.amount || ''))
+        throw Error('Invalid asset balance');
+      return BigInt(data.balance.amount);
     }
-    const result = await client.smart(NETA, { balance: { address } });
-    return BigInt(result.balance || '0');
+    const result = await client.smart(info.token, { balance: { address } });
+    if (!/^\d+$/.test(result.balance || '')) throw Error('Invalid token balance');
+    return BigInt(result.balance);
   }
 
   async function freshQuoteForSigning() {
     const address = window.NETA_WALLET_STATE?.address;
     if (!address || !SIGNING?.enabled || !signingConfigValid)
       throw new Error('SWAP SIGNING IS NOT AVAILABLE');
-    await loadVerifiedMarket();
+    if (!(await loadVerifiedMarket())) throw Error('Pool changed. Review again.');
     const raw = parseAmount(dom.amount.value),
       usd = quoteUsd(raw, offer),
       cap = SIGNING.publicMaxUsd;
@@ -504,17 +523,15 @@
       throw new Error(`SWAP EXCEEDS THE $${cap} SIGNING LIMIT`);
     const available = await assetBalance(offer, address);
     if (raw > available) throw new Error(`INSUFFICIENT ${offer} BALANCE`);
-    const response = await client.smart(PAIR, {
+    const response = await client.smart(selected.address, {
       simulation: {
         offer_asset: { info: assets[offer].info, amount: String(raw) },
-        ask_asset_info: null,
+        ask_asset_info: assets[receive].info,
         referral: false,
         referral_commission: null
       }
     });
-    const returned = BigInt(response.return_amount),
-      fee = BigInt(response.commission_amount),
-      spread = BigInt(response.spread_amount);
+    const { returned, fee, spread } = parseSwapQuote(response);
     if (returned <= 0n) throw new Error('FRESH QUOTE IS EMPTY');
     return {
       raw,
@@ -524,6 +541,7 @@
       min: (returned * BigInt(Math.round((100 - slippage) * 100))) / 10000n,
       offer,
       receive: other(offer),
+      poolId: selected.id,
       usd
     };
   }
@@ -584,14 +602,24 @@
 
   function openPreview() {
     if (!signingAuthority().ok) return;
+    closeAssetMenu();
+    document.querySelector('#wynd-offline-ghost').classList.remove('visible');
     const address = window.NETA_WALLET_STATE.address,
       tx = buildTransaction(quote, address);
-    previewIntent = { address, raw: quote.raw, offer: quote.offer, slippage, min: quote.min };
+    previewIntent = {
+      address,
+      raw: quote.raw,
+      offer: quote.offer,
+      receive: quote.receive,
+      poolId: quote.poolId,
+      slippage,
+      min: quote.min
+    };
     renderPreview(quote, tx, address);
     dom.modalState.textContent = 'Review your swap';
     delete dom.modalState.dataset.state;
     dom.modalMessage.textContent =
-      'Your quote, balance and $25 limit are checked again before Keplr opens. A network fee in JUNO applies.';
+      'Your quote, balance and $50 limit are checked again before Keplr opens. A network fee in JUNO applies.';
     dom.result.hidden = true;
     dom.confirm.hidden = false;
     dom.confirm.disabled = false;
@@ -604,40 +632,21 @@
     return raw.replace(/\s+/g, ' ').trim().toUpperCase() || 'UNKNOWN ERROR';
   }
 
-  function receivedFromEvents(events, symbol, address) {
-    for (const event of events || []) {
-      const attrs = Object.fromEntries(
-        (event.attributes || []).map((item) => [item.key, item.value])
-      );
-      if (
-        symbol === 'NETA' &&
-        event.type === 'wasm' &&
-        attrs._contract_address === NETA &&
-        attrs.action === 'transfer' &&
-        attrs.to === address &&
-        /^\d+$/.test(attrs.amount || '')
-      )
-        return BigInt(attrs.amount);
-      if (
-        symbol === 'JUNO' &&
-        event.type === 'transfer' &&
-        (event.attributes || []).some((item) => item.key === 'recipient' && item.value === address)
-      ) {
-        for (const item of event.attributes || []) {
-          if (item.key !== 'amount') continue;
-          const match = String(item.value).match(/(?:^|,)(\d+)ujuno(?:,|$)/);
-          if (match) return BigInt(match[1]);
-        }
-      }
-    }
-    return 0n;
-  }
-
   async function signSwap() {
     if (signing || !previewIntent) return;
     const reviewed = previewIntent;
     signing = true;
-    const controls = [dom.amount, dom.reverse, dom.max, dom.custom, ...dom.slippageButtons];
+    const controls = [
+      dom.amount,
+      dom.reverse,
+      dom.max,
+      dom.custom,
+      dom.offerSelect,
+      dom.receiveSelect,
+      document.querySelector('#refresh-pool'),
+      ...dom.poolList.querySelectorAll('button'),
+      ...dom.slippageButtons
+    ];
     controls.forEach((item) => (item.disabled = true));
     renderAction();
     dom.confirm.disabled = true;
@@ -654,6 +663,8 @@
         address !== reviewed.address ||
         liveQuote.raw !== reviewed.raw ||
         liveQuote.offer !== reviewed.offer ||
+        liveQuote.receive !== reviewed.receive ||
+        liveQuote.poolId !== reviewed.poolId ||
         slippage !== reviewed.slippage
       )
         throw new Error('SWAP PARAMETERS CHANGED — REVIEW AGAIN');
@@ -682,6 +693,16 @@
       );
       if (!Number.isSafeInteger(gas) || gas <= 0 || gas > SIGNING.gasCap)
         throw new Error(`SIMULATED GAS ${gas} EXCEEDS SAFETY CAP ${SIGNING.gasCap}`);
+      const feeRaw = BigInt(
+        window.NetaSwapSigning.fixedFee(
+          gas,
+          SIGNING.gasAdjustment,
+          SIGNING.gasPrice,
+          SIGNING.gasCap
+        ).amount[0].amount
+      );
+      if ((await assetBalance('JUNO', address)) < feeRaw + (offer === 'JUNO' ? liveQuote.raw : 0n))
+        throw Error('Insufficient JUNO for the network fee');
       renderPreview(liveQuote, tx, address, gas);
       if (
         window.NETA_WALLET_STATE?.address !== address ||
@@ -755,6 +776,7 @@
       dom.max.disabled = balanceRaw === null || balanceRaw <= 0n;
       dom.close.disabled = false;
       if (!dom.confirm.hidden) dom.confirm.disabled = false;
+      renderPools();
       renderAction();
     }
   }
@@ -775,6 +797,108 @@
     return true;
   }
 
+  function closeAssetMenu(restoreFocus = false) {
+    dom.assetMenu.hidden = true;
+    dom.offerSelect.setAttribute('aria-expanded', 'false');
+    dom.receiveSelect.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) menuTrigger?.focus();
+    menuSide = null;
+  }
+  function openAssetMenu(side) {
+    if (signing || dom.modal.open) return;
+    document.querySelector('#wynd-offline-ghost').classList.remove('visible');
+    if (menuSide === side && !dom.assetMenu.hidden) return closeAssetMenu(true);
+    closeAssetMenu();
+    menuSide = side;
+    menuTrigger = dom[side + 'Select'];
+    menuTrigger.parentElement.append(dom.assetMenu);
+    const current = side === 'offer' ? offer : receive;
+    dom.assetOptions.setAttribute('aria-label', side === 'offer' ? 'Pay asset' : 'Receive asset');
+    dom.assetOptions.replaceChildren(
+      ...Object.values(assets).map((asset) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.role = 'option';
+        button.dataset.asset = asset.symbol;
+        button.setAttribute('aria-selected', String(asset.symbol === current));
+        const label = document.createElement('strong'),
+          detail = document.createElement('small');
+        label.textContent = asset.symbol;
+        detail.textContent = asset.name;
+        button.append(label, detail);
+        button.addEventListener('click', () => {
+          const next = selectAssets(side, asset.symbol, offer, receive);
+          closeAssetMenu(true);
+          changePair(next.offer, next.receive);
+        });
+        return button;
+      })
+    );
+    dom.assetMenu.hidden = false;
+    menuTrigger.setAttribute('aria-expanded', 'true');
+    dom.assetOptions.querySelector('[aria-selected="true"]')?.focus();
+  }
+  function changePair(nextOffer, nextReceive) {
+    if (signing || dom.modal.open) return;
+    const next = findPool(nextOffer, nextReceive);
+    if (!next || (nextOffer === offer && nextReceive === receive)) return;
+    closeAssetMenu();
+    requestId++;
+    balanceRequest++;
+    marketRevision++;
+    clearTimeout(debounceTimer);
+    clearTimeout(refreshTimer);
+    previewIntent = null;
+    quote = null;
+    contractValid = false;
+    pool = null;
+    offer = nextOffer;
+    receive = nextReceive;
+    selected = next;
+    dom.amount.value = '';
+    renderDirection();
+    clearQuote('Checking the selected pool…', 'loading');
+    loadVerifiedMarket()
+      .then((loaded) => {
+        if (loaded) clearQuote('Pool verified. Enter an amount to get a quote.', 'ok');
+      })
+      .catch((error) => clearQuote(error.message, 'error'));
+  }
+  dom.offerSelect.addEventListener('click', () => openAssetMenu('offer'));
+  dom.receiveSelect.addEventListener('click', () => openAssetMenu('receive'));
+  dom.assetMenu.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeAssetMenu(true);
+      return;
+    }
+    const items = [...dom.assetOptions.querySelectorAll('button')],
+      at = items.indexOf(document.activeElement);
+    const next =
+      event.key === 'ArrowDown'
+        ? (at + 1) % items.length
+        : event.key === 'ArrowUp'
+          ? (at - 1 + items.length) % items.length
+          : event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? items.length - 1
+              : -1;
+    if (next >= 0) {
+      event.preventDefault();
+      items[next].focus();
+    }
+    if (event.key === 'Tab') closeAssetMenu();
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (
+      !dom.assetMenu.contains(event.target) &&
+      !dom.offerSelect.contains(event.target) &&
+      !dom.receiveSelect.contains(event.target)
+    )
+      closeAssetMenu();
+  });
+
   function toggleSlippageSettings(forceOpen) {
     const open = forceOpen === undefined ? dom.settings.hidden : Boolean(forceOpen);
     dom.settings.hidden = !open;
@@ -784,8 +908,11 @@
 
   dom.amount.addEventListener('input', scheduleQuote);
   dom.reverse.addEventListener('click', () => {
+    if (signing) return;
+    closeAssetMenu();
+    previewIntent = null;
     const previous = quote?.returned;
-    offer = other(offer);
+    [offer, receive] = [receive, offer];
     renderDirection();
     dom.amount.value = previous ? amountText(previous) : dom.amount.value;
     clearQuote();
@@ -837,8 +964,9 @@
 
   renderDirection();
   function refreshPool() {
-    return loadVerifiedMarket()
-      .then(() => {
+    return loadVerifiedMarket(true)
+      .then((loaded) => {
+        if (!loaded) return;
         setMessage('Pool verified. Enter an amount to get a quote.', 'ok');
         if (dom.amount.value) scheduleQuote();
       })
@@ -853,5 +981,19 @@
   marketTimer = setInterval(() => {
     if (!document.hidden && !signing && !dom.modal.open) refreshPool();
   }, 60000);
+  const mascot = document.querySelector('#wynd-offline-ghost');
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  const flash = () => {
+    if (document.hidden || signing || dom.modal.open || !dom.assetMenu.hidden || motion.matches)
+      return;
+    mascot.classList.remove('visible');
+    void mascot.offsetWidth;
+    mascot.classList.add('visible');
+  };
+  mascot.addEventListener('animationend', () => mascot.classList.remove('visible'));
+  const mascotTimer = setInterval(flash, 15000);
+  addEventListener('pagehide', () => clearInterval(mascotTimer));
+  motion.addEventListener('change', () => mascot.classList.remove('visible'));
+  flash();
   refreshPool();
 })();
