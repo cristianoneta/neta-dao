@@ -422,7 +422,9 @@ try {
         .locator('#rules-impact tbody tr')
         .evaluateAll(
           (rows, index) =>
-            rows.map((row) => Number(row.cells[index].textContent.replaceAll(',', ''))),
+            rows.map((row) =>
+              Number(row.cells[index].textContent.replaceAll(',', '').replace('−', '-'))
+            ),
           column
         );
       assert.ok(
