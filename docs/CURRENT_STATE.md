@@ -8,7 +8,7 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `e7fb5c966ba99b7265e3ce25053920da5c7c5b3c` | [Manual release 40200433577](https://github.com/cristianoneta/neta-dao/actions/runs/40200433577) published on 25 October. Publish step succeeded; served delegation HTML matches this source. Includes compact criteria, monetary sorting and unified Review. |
+| Last successful website release | Source `ae29770b07bfa09b092b87bb69c6d336ae816e5e` | [Manual release 40219239387](https://github.com/cristianoneta/neta-dao/actions/runs/40219239387) published on 25 October. Required checks and Publish step succeeded. Includes checked Rebalance execution; the compact rule-approval discovery correction below needs a subsequent release. |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
 | Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Published in release 40106761715; updated homepage observed on both website domains. Responsive CI passed at 320/390/768/1440 px; separate mobile live acceptance and controlled live fallback remain open. |
 | Collector archives / efficiency | Source captures UTC Treasury days, archives expired validator evidence before pruning, preserves daily membership/planner observations and signed prices, and shares bounded RPC results | [Scope and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md). Owner confirmed host installation and successful manual collector/archive checks on 24 October; regular cycles, multi-day growth and measured savings remain pending. Local archives do not prove independent retention. |
@@ -51,9 +51,9 @@ Base/bonus controls remain explicitly exploratory: production bonus measurements
 and a scoring policy schema are not connected. The right-hand production targets
 use equal-capped allocation, not fictional lab evidence. Rebalance retains exact
 approved-policy isolation and non-executable exports. [Scope and verification](DELEGATION_WORKSPACE_2026-10-25.md).
-This refinement is published in release 40200433577. Checked execution is the next source change, described below.
+This refinement was published in release 40200433577. Checked execution followed in release 40219239387, described below.
 
-## Rebalance execution — source candidate, 25 October
+## Rebalance execution — published, 25 October
 
 The Delegation Programme is an independent product integrated with Cosmoot and an
 entry point for its users; it is not Cosmoot's product core (owner clarification).
@@ -62,7 +62,19 @@ checks current funds/authority/redelegation limits through independent sources,
 and opens the existing Cosmoot community-review/native-governance flow. Rule
 approval, exploratory point settings and uncertain transaction journals retain
 separate meanings. [Specification, validation and limits](REBALANCE_EXECUTION_2026-10-25.md).
-This implementation is not part of the last published website release above.
+PR #319 is integrated and published in manual release 40219239387 at the source recorded above.
+
+## Compact rule-approval discovery — correction candidate, 25 October
+
+PR #319 integrated checked Rebalance execution at source
+`ae29770b07bfa09b092b87bb69c6d336ae816e5e`; the owner started manual release
+40219239387, which completed successfully. Served execution-module bytes match
+this source on both public website domains. A subsequent full-lifecycle
+check found missing identity lines in compact rule proposals, which prevented
+their recognition after passage. The correction retains these lines in new drafts
+and verifies immutable older compact approvals from their complete frozen
+comparison. [Cause, lifecycle coverage and meaning of rule approval](REBALANCE_EXECUTION_2026-10-25.md#compact-rule-approval-correction).
+The published Rebalance release does not include this correction.
 
 ## Eligibility controls — published 24 October
 

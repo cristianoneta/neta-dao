@@ -1,3 +1,8 @@
+import { reviewSizeInput } from '../tests/fixtures/delegation-review-size.mjs';
+import { buildRuleReview } from '../juno-delegation-review.mjs';
+import { frozenRuleProposal } from '../planner-proposal-draft.mjs';
+import { approvedRule } from '../juno-approved-rules.mjs';
+import { finalizedReview } from '../juno-community-governance.mjs';
 import { stakingMessages } from '../juno-programme-staking.mjs';
 import {
   communityPoolMessages,
@@ -310,13 +315,13 @@ try {
   const positions = async () =>
     (await get(rest + `/cosmos/staking/v1beta1/delegations/${PROGRAMME}?pagination.limit=100`))
       .delegation_responses;
-  const runProposal = async (label, messages) => {
+  const runProposal = async (label, messages, content = {}) => {
     const file = join(home, label + '.json');
     save(file, {
       messages,
-      title: 'LOCAL TEST ' + label,
-      summary: 'Synthetic local execution regression',
-      metadata: '',
+      title: content.title || 'LOCAL TEST ' + label,
+      summary: content.summary || 'Synthetic local execution regression',
+      metadata: content.metadata || '',
       deposit: '10ujuno',
       expedited: false
     });
@@ -346,6 +351,33 @@ try {
   }));
   const before = initialState.balance,
     originalPositions = initialState.positions;
+  const ruleReview = await buildRuleReview(reviewSizeInput());
+  const ruleDraft = await frozenRuleProposal(ruleReview);
+  // Match the real submission path: finalized review adds the native metadata
+  // required for a text-only proposal and binds it to the immutable review hash.
+  const ruleFinal = await finalizedReview(
+    {
+      id: 17,
+      latest_version: 1,
+      finalized_version: 1,
+      finalized_hash: sha(JSON.stringify(ruleDraft.values)).toString('hex')
+    },
+    { ...ruleDraft.values, proposal_id: 17, version: 1 },
+    'juno-1'
+  );
+  const ruleContent = ruleFinal.content;
+  assert.match(ruleContent.metadata, /^cosmoot:review:juno-1:/);
+  const ruleVote = await runProposal('programme-rule-approval', ruleContent.messages, ruleContent);
+  assert.equal(ruleVote.status, 'PROPOSAL_STATUS_PASSED', ruleVote.failed_reason);
+  const recognized = await approvedRule(ruleVote);
+  assert.equal(
+    recognized.hash,
+    ruleReview.value.policyHash,
+    'A passed native compact rule proposal must become the exact approved rulebook'
+  );
+  assert.deepEqual(ruleVote.messages, []);
+  assert.deepEqual(await positions(), originalPositions, 'Rule approval must not move delegations');
+  assert.equal(await balance(), before, 'Rule approval must not spend programme funds');
   const unauthorized = await tx(
     'wasm',
     'execute',
@@ -494,6 +526,12 @@ try {
     juno: 'v31.0.0',
     binarySha256: expectedBinary,
     programmeCodeSha256: PROGRAMME_CODE_HASH,
+    ruleApproval: {
+      status: ruleVote.status,
+      policyHash: recognized.hash,
+      recognizedAfterVote: true,
+      programmeFundsUnchanged: true
+    },
     unauthorized: 'rejected',
     wrongDelegator: { status: wrong.status, failedReason: wrong.failed_reason },
     original: { status: old.status, failedReason: old.failed_reason },

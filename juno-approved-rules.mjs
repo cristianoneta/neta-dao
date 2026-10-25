@@ -1,20 +1,31 @@
 import { reader, quorum } from './juno-community-governance.mjs?v=2';
 import { GOVERNANCE_SOURCES } from './governance-chain-read.mjs';
 import { PROGRAMME, policy, canonical, fingerprint } from './juno-delegation-core.mjs';
-import { readProposalReview } from './juno-delegation-review.mjs';
+import { readProposalReview, REVIEW_MARKER } from './juno-delegation-review.mjs';
 
 const title = 'Juno Delegation Programme — allocation rules';
 const sources = [GOVERNANCE_SOURCES['juno-polkachu'], GOVERNANCE_SOURCES['juno-stavr']];
 const positive = (value) => typeof value === 'string' && /^[1-9]\d{0,19}$/.test(value);
 
+// The released compact envelope omitted display identity lines. Its complete
+// frozen comparison still binds programme and chain; never rewrite that content.
+function ruleScope(body) {
+  if (typeof body !== 'string') return null;
+  const declarations = body.split('\n').filter((line) => line.startsWith('Programme:'));
+  if (declarations.length)
+    return declarations.includes(`Programme: ${PROGRAMME}`) ? 'explicit' : null;
+  return body.includes(REVIEW_MARKER) ? 'frozen' : null;
+}
+
 // This discovers display data only. It is not an execution approval or authority proof.
 export async function approvedRule(proposal, now = Date.now()) {
-  const body = proposal?.summary;
+  const body = proposal?.summary,
+    scope = ruleScope(body);
   if (
     proposal?.status !== 'PROPOSAL_STATUS_PASSED' ||
     !proposal.title?.startsWith(title) ||
     typeof body !== 'string' ||
-    !body.split('\n').includes(`Programme: ${PROGRAMME}`)
+    !scope
   )
     return null;
   const ended = Date.parse(proposal.voting_end_time);
@@ -22,7 +33,11 @@ export async function approvedRule(proposal, now = Date.now()) {
     !positive(proposal.id) ||
     !Number.isFinite(ended) ||
     ended > now ||
-    !body.split('\n').includes('Chain: juno-1') ||
+    (scope === 'explicit' && !body.split('\n').includes('Chain: juno-1')) ||
+    body.split('\n').some((line) => line.startsWith('Chain:') && line !== 'Chain: juno-1') ||
+    body
+      .split('\n')
+      .some((line) => line.startsWith('Programme:') && line !== `Programme: ${PROGRAMME}`) ||
     !Array.isArray(proposal.messages) ||
     proposal.messages.length ||
     proposal.failed_reason
@@ -44,7 +59,9 @@ export async function approvedRule(proposal, now = Date.now()) {
   }
   const hash = await fingerprint(rule);
   if (hash !== hashes[0][1]) throw Error(`Proposal #${proposal.id}: rule fingerprint mismatch.`);
-  await readProposalReview({ title: proposal.title, body, actions_json: '[]' });
+  const frozen = await readProposalReview({ title: proposal.title, body, actions_json: '[]' });
+  if (scope === 'frozen' && !frozen)
+    throw Error('Compact approval requires a verified frozen comparison.');
   return { proposalId: proposal.id, votingEndedAt: proposal.voting_end_time, rule, hash };
 }
 
@@ -95,7 +112,7 @@ export async function currentApprovedRules({
             proposal.status === 'PROPOSAL_STATUS_PASSED' &&
             proposal.title?.startsWith(title) &&
             typeof proposal.summary === 'string' &&
-            proposal.summary.split('\n').includes(`Programme: ${PROGRAMME}`)
+            ruleScope(proposal.summary)
           ) {
             if (!Number.isFinite(Date.parse(proposal.voting_end_time)))
               throw Error('Rule approval date unavailable.');
