@@ -61,9 +61,11 @@ for (const file of files) {
   const source =
     file === '_headers'
       ? 'deploy/cosmoot/pages-headers'
-      : file === '_routes.json'
-        ? 'deploy/cosmoot/pages-routes.json'
-        : file;
+      : file === '_redirects'
+        ? 'deploy/cosmoot/pages-redirects'
+        : file === '_routes.json'
+          ? 'deploy/cosmoot/pages-routes.json'
+          : file;
   if (file === '_worker.js' && !manifest.pagesFunction) throw Error('Unrecorded Pages worker');
   if (file !== '_worker.js' && !bytes.equals(await readFile(resolve(root, source))))
     throw Error(`Export changed reviewed source bytes: ${file}`);
