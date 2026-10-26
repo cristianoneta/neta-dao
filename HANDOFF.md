@@ -1,6 +1,6 @@
 # Cosmoot public development handoff
 
-Updated 25 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
+Updated 26 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
@@ -19,8 +19,11 @@ refinement section of the same checkpoint; PR #322 was published in release
 The subsequent Keplr acceptance attempt stopped before broadcast because the
 wallet returned a different fee. The follow-up passes the reviewed-fee/memo
 preferences to the swap signer while preserving exact signed-byte validation.
-See the fee correction in the same checkpoint; it needs a new deliberate release
-and live wallet acceptance.
+PR #323's correction was published in release 40227248631 at source
+`c573f21d7a304948197fd7eb29012cbac83a9683`; successful live wallet acceptance is
+still unconfirmed. The owner now requested `/wynd` as a short link to the existing
+swap page. The source adds a Pages redirect for `/wynd` and `/wynd/`; publication
+requires the next deliberate release.
 
 ## Rule approval follow-up
 

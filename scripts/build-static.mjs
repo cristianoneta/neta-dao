@@ -73,10 +73,13 @@ for (const path of selected) {
 }
 // Preserve the application's existing CSP. This additional policy prevents foreign
 // framing while allowing the existing same-origin encryption runtime iframe.
-await cp(resolve(root, 'deploy/cosmoot/pages-headers'), resolve(output, '_headers'));
-hashes._headers = createHash('sha256')
-  .update(await readFile(resolve(output, '_headers')))
-  .digest('hex');
+for (const name of ['headers', 'redirects']) {
+  const path = `_${name}`;
+  await cp(resolve(root, `deploy/cosmoot/pages-${name}`), resolve(output, path));
+  hashes[path] = createHash('sha256')
+    .update(await readFile(resolve(output, path)))
+    .digest('hex');
+}
 await writeFile(
   resolve(root, 'dist/static-manifest.json'),
   JSON.stringify(
