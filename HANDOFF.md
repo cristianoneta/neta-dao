@@ -4,18 +4,26 @@ Updated 27 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
-## Active repair: pending native vote
+## Active repair: native proposal submission gas
 
-PR #325 was published in release 40577870252 at source
-`61bec3235e8fd9c3471bb34f334bda8ceba7ea85`. Its saved-vote continuation revealed an
-SDK CheckTx out-of-gas rejection: the signed limit was below the gas consumed at
-the failure point. The account sequence remained unconsumed. The follow-up adds
-a bounded native-vote gas floor and an explicitly reviewed higher-fee signature
-for the same vote and exact original sequence. Preserve both signed attempts;
-never clear a pending journal merely because one RPC rejects it. See
+After successfully voting, the owner hit the old 2M gas-estimate guard while
+submitting the finalized corrected reward claim with a full deposit. The exact
+read-only simulation reproduces the guard; a partial deposit stays below it.
+Use a dedicated bounded submission fee policy and test both deposit choices on
+the real local Juno fixture. Preserve the finalized review and the working vote
+fee/recovery behavior. See [evidence and scope](docs/PROPOSAL_SUBMISSION_GAS_2026-10-27.md).
+The submission correction still requires integration, deliberate publication and
+owner wallet acceptance.
+
+## Resolved native vote transmission
+
+PR #326 was published in release 40586044487 at source
+`11b07d9958ffa486be8b38a456022cf624dbe9ef`. The owner confirmed the reviewed
+higher-gas vote in Keplr; a read-only mainnet lookup verified code 0, the Yes ballot,
+and the consumed account sequence. Preserve the separate vote gas floor, original
+sequence binding, predecessor archives and pending journals. See
 [scope, evidence and validation](docs/NATIVE_VOTE_TRANSMISSION_2026-10-27.md).
-The higher-gas follow-up still requires integration, deliberate publication and
-owner wallet acceptance. The exact original pre-#325 RPC error was not retained.
+The exact original pre-#325 RPC error was not retained.
 
 ## Active product work: five-pool WYND swap
 

@@ -2,9 +2,13 @@
 
 27 October 2026. PR #325 was published in release 40577870252 at source
 `61bec3235e8fd9c3471bb34f334bda8ceba7ea85`. The owner then tested the saved vote and
-reported the admission error described below. The gas correction remains a source
-candidate requiring deliberate publication and owner wallet acceptance. The agent
-did not sign or transmit a live transaction.
+reported the admission error described below. PR #326's gas correction was then
+published in release 40586044487 at source `11b07d9958ffa486be8b38a456022cf624dbe9ef`.
+The owner approved the higher-gas vote in Keplr. Read-only mainnet checks verified
+its successful inclusion (code 0), expected Yes ballot and consumed sequence;
+gas used was 118192 of 250000, with a fee of 18750 ujuno. The agent did not sign
+or transmit a live transaction. The subsequent proposal submission gas correction
+is [separate work](PROPOSAL_SUBMISSION_GAS_2026-10-27.md).
 
 ## Problem and evidence
 
