@@ -1,5 +1,6 @@
 import { reviewSizeInput } from '../tests/fixtures/delegation-review-size.mjs';
 import { checkNativeVoteGas } from '../faucet/test/native-vote-chain.mjs';
+import { checkNativeProposalGas } from '../faucet/test/native-proposal-chain.mjs';
 import { buildRuleReview } from '../juno-delegation-review.mjs';
 import { frozenRuleProposal } from '../planner-proposal-draft.mjs';
 import { approvedRule } from '../juno-approved-rules.mjs';
@@ -212,6 +213,7 @@ try {
   Object.assign(a.gov.params, {
     min_deposit: coin(10),
     expedited_min_deposit: coin(50),
+    min_initial_deposit_ratio: '0.200000000000000000',
     voting_period: '15s',
     expedited_voting_period: '5s'
   });
@@ -328,7 +330,26 @@ try {
       deposit: '10ujuno',
       expedited: false
     });
-    const submission = await tx('gov', 'submit-proposal', file);
+    let submission;
+    if (label === 'corrected-stargate') {
+      const previousBalance = await balance();
+      const previousPositions = await positions();
+      const prepared = load(file);
+      submission = await checkNativeProposalGas({
+        rpc,
+        chainId: chain,
+        mnemonic: voterKey.mnemonic,
+        sender: voter,
+        content: {
+          title: prepared.title,
+          summary: prepared.summary,
+          metadata: prepared.metadata,
+          messages
+        }
+      });
+      assert.equal(await balance(), previousBalance, 'Submission must not execute reward claims');
+      assert.deepEqual(await positions(), previousPositions);
+    } else submission = await tx('gov', 'submit-proposal', file);
     assert.equal(submission.code, 0, submission.raw_log);
     const id = submission.events
       .find((e) => e.type === 'submit_proposal')

@@ -271,7 +271,7 @@ export function nativePlanner({
             window.keplr.signDirect('juno-1', a, d, { preferNoSetFee: true, preferNoSetMemo: true })
         });
         const gas = await NetaJunoGovernance.simulate(client, content, sender, deposit),
-          fee = NetaJunoGovernance.fixedFee(gas, 1.4, '0.075ujuno', 2000000);
+          fee = NetaJunoGovernance.proposalFee(gas);
         current(epoch, fingerprint, sender, id);
         await wallet(sender);
         if (BigInt(proof.balance) < BigInt(deposit) + BigInt(fee.amount[0].amount))

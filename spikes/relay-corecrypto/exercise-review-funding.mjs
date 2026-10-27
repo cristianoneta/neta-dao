@@ -18,7 +18,17 @@ import {
 import { GOVERNANCE, PROGRAMME_CODE_HASH } from '../../juno-governance-core.mjs';
 import { CLAIM_381_EXPLANATION, CLAIM_TITLE } from '../../claim-numbering.mjs';
 import { UNI7_REVIEW_CONTRACT } from '../../juno-review-network.mjs';
+import { proposalFee } from '../../faucet/src/native-proposal-fee.mjs';
 const REVIEW_CONTRACT = PIN.contract;
+const proposalFees = Object.fromEntries(
+  [100000, 1882616, 2208967, 4000000].map((estimate) => {
+    try {
+      return [estimate, { fee: proposalFee(estimate) }];
+    } catch (error) {
+      return [estimate, { error: error.message }];
+    }
+  })
+);
 
 // All external reads and wallet writes are synthetic. This exercises the actual
 // composer, shared-review deep link, sponsor handoff and deposit controls.
@@ -455,8 +465,11 @@ export async function exerciseReviewFunding(page, origin, sample) {
       body: 'window.NetaNamesSigning = window.__reviewSigningFixture;'
     })
   );
-  const wallet = async (address) =>
-    page.evaluate((address) => {
+  const wallet = async (address) => {
+    await page.evaluate((quotes) => {
+      window.__nativeProposalFees = quotes;
+    }, proposalFees);
+    return page.evaluate((address) => {
       window.__walletChains = [];
       window.keplr = {
         experimentalSuggestChain: async () => {},
@@ -527,7 +540,10 @@ export async function exerciseReviewFunding(page, origin, sample) {
           window.__selectedDeposit = deposit;
           if (window.__holdNativeSimulation)
             await new Promise((resolve) => (window.__releaseNativeSimulation = resolve));
-          return 100000;
+          return (
+            window.__nativeEstimate ??
+            (window.__largeNativeProposal ? (deposit === '5000000000' ? 2208967 : 1882616) : 100000)
+          );
         },
         simulateDeposit: async () => 100000,
         simulateVote: async () => 100000,
@@ -608,9 +624,17 @@ export async function exerciseReviewFunding(page, origin, sample) {
           return window.__nativeVote(id, sender, option);
         },
         fixedFee: () => ({ gas: '140000', amount: [{ denom: 'ujuno', amount: '10500' }] }),
-        submit: async (_client, content, sender, deposit, _fee, guards) => {
+        proposalFee: (estimate) => {
+          const quote = window.__nativeProposalFees[estimate];
+          if (!quote) throw Error('Unexpected fixture estimate');
+          if (quote.error) throw Error(quote.error);
+          return structuredClone(quote.fee);
+        },
+        submit: async (_client, content, sender, deposit, fee, guards) => {
           await guards.beforeSign();
           await guards.assertWallet();
+          window.__nativeSignRequests = (window.__nativeSignRequests || 0) + 1;
+          window.__lastNativeFee = fee;
           if (window.__rejectNative) throw Error('Signature rejected');
           await guards.beforeBroadcast('A'.repeat(64));
           return window.__nativeSubmit(content, sender, deposit);
@@ -623,6 +647,7 @@ export async function exerciseReviewFunding(page, origin, sample) {
         }
       };
     }, address);
+  };
   const primary = (text) =>
     page.waitForFunction(
       (text) =>
@@ -786,13 +811,31 @@ export async function exerciseReviewFunding(page, origin, sample) {
         .contains(document.querySelector('#planner-native-panel'))
     )
   );
+  // Final gas limits block signing; larger valid envelopes retain both choices
+  // and use the exact fee for the selected partial/full deposit.
+  await page.evaluate(() => (window.__nativeEstimate = 4000000));
+  await full.click();
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#planner-native-status')
+      .textContent.includes('5000000 submission limit')
+  );
+  assert.equal(await page.evaluate(() => window.__nativeSignRequests || 0), 0);
+  assert.equal(submits, 0);
+  assert.equal(await minimum.isEnabled(), true);
+  assert.equal(await full.isEnabled(), true);
+  await page.evaluate(() => {
+    window.__nativeEstimate = null;
+    window.__largeNativeProposal = true;
+    window.__rejectNative = true;
+  });
   // Rejecting a full-deposit wallet prompt never broadcasts and retains both choices.
-  await page.evaluate(() => (window.__rejectNative = true));
   await full.click();
   await page.waitForFunction(() =>
     document.querySelector('#planner-native-status').textContent.includes('Signature rejected')
   );
   assert.equal(await page.evaluate(() => window.__selectedDeposit), '5000000000');
+  assert.deepEqual(await page.evaluate(() => window.__lastNativeFee), proposalFee(2208967));
   assert.equal(submits, 0);
   await page.evaluate(() => {
     window.__rejectNative = false;
@@ -822,6 +865,8 @@ export async function exerciseReviewFunding(page, origin, sample) {
     document.querySelector('#proposal-funding-total').textContent.includes('1000 / 5000')
   );
   assert.equal(submits, 1);
+  assert.deepEqual(await page.evaluate(() => window.__lastNativeFee), proposalFee(1882616));
+  await page.evaluate(() => (window.__largeNativeProposal = false));
   assert.match(page.url(), /proposal=900/);
   assert.match(await page.locator('#action-hint').innerText(), /FUNDING/);
   assert.doesNotMatch(await page.locator('body').innerText(), /UNDEFINED/);

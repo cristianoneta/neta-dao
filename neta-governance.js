@@ -318,7 +318,9 @@
   const mainnetStage = () =>
     !!sharedFinal || !!state.selected?.proposal?.native || hasLegacyReceipt();
   const isPlannerGovernance = () => !!plannerDraft && state.dao.id === plannerDraft.daoId;
-  const { nativePlanner } = await import('./planner-native-governance.mjs');
+  const { nativePlanner } = await import(
+    './planner-native-governance.mjs?v=20261027-proposal-gas-1'
+  );
   const plannerGov = nativePlanner({
     active: () =>
       nativeSubmissionVisible({

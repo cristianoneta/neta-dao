@@ -30,6 +30,7 @@ import { journalBroadcast } from './broadcast-journal.mjs';
 export { fixedFee } from './wynd-swap-fee.mjs';
 export { inspectSavedVote, resumeVote, replaceVoteGas } from './native-vote-resume.mjs';
 export { voteFee } from './native-vote-fee.mjs';
+export { proposalFee } from './native-proposal-fee.mjs';
 
 export function message(content, sender, deposit) {
   assertProgrammeExecutionAvailable(content.messages);
