@@ -54,6 +54,7 @@ export async function exerciseReviewFunding(page, origin, sample) {
     voteWrites = 0,
     voteSigns = 0,
     pendingVoteHash = null,
+    previousVoteCode = 0,
     lostVote = false,
     participationDown = false;
   const voteTally = () => ({
@@ -316,7 +317,11 @@ export async function exerciseReviewFunding(page, origin, sample) {
         }
         if (!txKnown) return route.fulfill({ status: 404, headers, body: 'not found' });
         body = {
-          tx_response: { txhash: url.pathname.split('/').at(-1), height: '42500125', code: 0 }
+          tx_response: {
+            txhash: url.pathname.split('/').at(-1),
+            height: '42500125',
+            code: url.pathname.endsWith('E'.repeat(64)) ? previousVoteCode : 0
+          }
         };
       } else if (url.pathname === '/cosmos/gov/v1/proposals/900/tally') {
         assert.equal(verifiedRead, true, 'Browser tallies must use the same-origin read bridge');
@@ -424,6 +429,9 @@ export async function exerciseReviewFunding(page, origin, sample) {
     if (contributionMode === 'lost') throw Error('Synthetic lost response');
     return { transactionHash: 'B'.repeat(64), height: 42500125, code: 0 };
   });
+  await page.exposeFunction('__replacementPrepared', (hash) => {
+    pendingVoteHash = hash;
+  });
   await page.exposeFunction('__voteSigned', () => {
     voteSigns++;
   });
@@ -523,6 +531,7 @@ export async function exerciseReviewFunding(page, origin, sample) {
         },
         simulateDeposit: async () => 100000,
         simulateVote: async () => 100000,
+        voteFee: () => ({ gas: '250000', amount: [{ denom: 'ujuno', amount: '18750' }] }),
         connectForVoteResume: async () => ({ disconnect() {} }),
         inspectSavedVote: async (_client, id, sender, hash) => ({
           hash,
@@ -530,7 +539,10 @@ export async function exerciseReviewFunding(page, origin, sample) {
           sender,
           option: 'yes',
           sequence: '2',
-          fee: { gas: '140000', amount: [{ denom: 'ujuno', amount: '10500' }] }
+          fee:
+            hash === 'F'.repeat(64)
+              ? { gas: '250000', amount: [{ denom: 'ujuno', amount: '18750' }] }
+              : { gas: '140000', amount: [{ denom: 'ujuno', amount: '10500' }] }
         }),
         resumeVote: async (_client, reviewed, guards) => {
           await guards.beforeBroadcast();
@@ -541,6 +553,41 @@ export async function exerciseReviewFunding(page, origin, sample) {
             reviewed.option
           );
           return { ...result, transactionHash: reviewed.hash };
+        },
+        replaceVoteGas: async (_client, reviewed, fee, guards) => {
+          await guards.beforeSign();
+          await guards.assertWallet();
+          await window.__voteSigned();
+          if (window.__rejectGasReplacement) throw Error('Higher gas rejected by wallet');
+          const key = 'neta-pending-tx-v1:juno-1:' + reviewed.sender;
+          const old = localStorage.getItem(key);
+          localStorage.setItem(
+            'neta-vote-attempt-v1:juno-1:' + reviewed.sender + ':' + reviewed.hash,
+            old
+          );
+          const hash = 'F'.repeat(64);
+          localStorage.setItem(
+            key,
+            JSON.stringify({
+              ...JSON.parse(old),
+              hash,
+              voteReplacement: {
+                previousHash: reviewed.hash,
+                proposalId: reviewed.proposalId,
+                option: reviewed.option
+              }
+            })
+          );
+          await window.__replacementPrepared(hash);
+          if (window.__interruptGasReceipt)
+            throw Error('Synthetic receipt checkpoint interruption');
+          await guards.beforeBroadcast(hash);
+          const result = await window.__nativeVote(
+            reviewed.proposalId,
+            reviewed.sender,
+            reviewed.option
+          );
+          return { ...result, transactionHash: hash };
         },
         vote: async (_client, id, sender, option, _fee, guards) => {
           await guards.beforeSign();
@@ -967,7 +1014,7 @@ export async function exerciseReviewFunding(page, origin, sample) {
   await page.waitForFunction(() => !document.querySelector('#native-vote-review').hidden);
   assert.match(
     await page.locator('#native-vote-review-text').textContent(),
-    /Vote: No.*Fee: 0.0105 JUNO/
+    /Vote: No.*Fee: 0.01875 JUNO/
   );
   await page.evaluate(() => {
     window.__rejectVote = true;
@@ -1077,6 +1124,188 @@ export async function exerciseReviewFunding(page, origin, sample) {
     await page.evaluate((a) => localStorage.getItem('neta-pending-tx-v1:juno-1:' + a), author),
     null
   );
+  // An older vote's out-of-gas error offers an explicitly reviewed higher fee.
+  // A crash between the signed journal and UI receipt keeps both attempts and
+  // resumes the new signed bytes without a third wallet request.
+  pendingVoteHash = 'E'.repeat(64);
+  await page.evaluate((sender) => {
+    const hash = 'E'.repeat(64);
+    localStorage.setItem(
+      `cosmoot:juno:vote:900:${sender}`,
+      JSON.stringify({
+        state: 'broadcast',
+        hash,
+        proposalId: '900',
+        sender,
+        option: 'yes',
+        sendError: 'Broadcasting transaction failed with code 11 (codespace: sdk). Log: out of gas'
+      })
+    );
+    localStorage.setItem(
+      `neta-pending-tx-v1:juno-1:${sender}`,
+      JSON.stringify({
+        version: 1,
+        status: 'pending',
+        chain: 'juno-1',
+        sender,
+        hash,
+        sequence: '2',
+        bytes: 'synthetic fixture'
+      })
+    );
+  }, author);
+  await page.reload();
+  await wallet(author);
+  await page.waitForFunction(
+    () =>
+      !!document.querySelector('#gov-connect').onclick &&
+      !document.querySelector('#native-voting-workspace').hidden
+  );
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(
+    () => document.querySelector('#native-vote-resume').textContent === 'Review higher gas'
+  );
+  const signsBeforeGas = voteSigns;
+  await page.locator('#native-vote-resume').click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('#native-vote-resume').textContent === 'Confirm higher gas in Keplr'
+  );
+  assert.match(await page.locator('#native-vote-review-text').textContent(), /Fee: 0.01875 JUNO/);
+  assert.match(
+    await page.locator('#native-vote-review-text').textContent(),
+    /Previous fee: 0.0105 JUNO/
+  );
+  assert.equal(voteSigns, signsBeforeGas);
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await shot(`native-vote-higher-gas-${width}`);
+  }
+  await page.locator('#native-vote-cancel').click();
+  assert.equal(voteSigns, signsBeforeGas);
+  await page.locator('#native-vote-resume').click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('#native-vote-resume').textContent === 'Confirm higher gas in Keplr'
+  );
+  await page.evaluate(() => {
+    window.__rejectGasReplacement = true;
+  });
+  await page.locator('#native-vote-resume').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#native-vote-status').textContent.includes('rejected by wallet')
+  );
+  assert.equal(voteWrites, 2);
+  assert.equal(await page.locator('#native-vote-resume').textContent(), 'Review higher gas');
+  await page.evaluate(() => {
+    window.__rejectGasReplacement = false;
+    window.__interruptGasReceipt = true;
+  });
+  await page.locator('#native-vote-resume').click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('#native-vote-resume').textContent === 'Confirm higher gas in Keplr'
+  );
+  await page.locator('#native-vote-resume').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#native-vote-status').textContent.includes('checkpoint interruption')
+  );
+  assert.equal(voteSigns, signsBeforeGas + 2);
+  assert.equal(voteWrites, 2);
+  await page.reload();
+  await wallet(author);
+  await page.waitForFunction(
+    () =>
+      !!document.querySelector('#gov-connect').onclick &&
+      !document.querySelector('#native-voting-workspace').hidden
+  );
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(() => !document.querySelector('#native-vote-resume').hidden);
+  assert.match(
+    await page.locator('#native-vote-receipt').textContent(),
+    new RegExp('F'.repeat(64))
+  );
+  await page.locator('#native-vote-resume').click();
+  await page.waitForFunction(
+    () => document.querySelector('#native-vote-resume').textContent === 'Send saved vote'
+  );
+  await page.locator('#native-vote-resume').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#native-vote-status').textContent.includes('Vote confirmed')
+  );
+  assert.equal(voteWrites, 3);
+  assert.equal(
+    voteSigns,
+    signsBeforeGas + 2,
+    'Interrupted receipt resumes without another wallet signature'
+  );
+  assert.ok(
+    await page.evaluate(
+      (a) => localStorage.getItem('neta-vote-attempt-v1:juno-1:' + a + ':' + 'E'.repeat(64)),
+      author
+    )
+  );
+  // If the predecessor wins the race, status checks resolve the replacement
+  // without a new signature or send. A failed predecessor is insufficient.
+  pendingVoteHash = 'F'.repeat(64);
+  previousVoteCode = 11;
+  await page.evaluate((sender) => {
+    const key = `cosmoot:juno:vote:900:${sender}`;
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        state: 'broadcast',
+        hash: 'F'.repeat(64),
+        previousHashes: ['E'.repeat(64)],
+        proposalId: '900',
+        sender,
+        option: 'yes'
+      })
+    );
+    localStorage.setItem(
+      `neta-pending-tx-v1:juno-1:${sender}`,
+      JSON.stringify({
+        version: 1,
+        status: 'pending',
+        chain: 'juno-1',
+        sender,
+        hash: 'F'.repeat(64),
+        sequence: '2',
+        bytes: 'synthetic fixture'
+      })
+    );
+    window.dispatchEvent(new StorageEvent('storage', { key }));
+  }, author);
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#native-vote-status').textContent.includes('unconfirmed')
+  );
+  assert.ok(
+    await page.evaluate(
+      (sender) => localStorage.getItem(`neta-pending-tx-v1:juno-1:${sender}`),
+      author
+    )
+  );
+  previousVoteCode = 0;
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#native-vote-status').textContent.includes('Vote confirmed')
+  );
+  assert.match(
+    await page.locator('#native-vote-receipt').textContent(),
+    new RegExp('E'.repeat(64))
+  );
+  assert.equal(
+    await page.evaluate(
+      (sender) => localStorage.getItem(`neta-pending-tx-v1:juno-1:${sender}`),
+      author
+    ),
+    null
+  );
+  assert.equal(voteWrites, 3);
+  assert.equal(voteSigns, signsBeforeGas + 2);
+  pendingVoteHash = null;
   participationDown = true;
   await page.locator('#native-participation-refresh').click();
   await page.waitForFunction(() =>

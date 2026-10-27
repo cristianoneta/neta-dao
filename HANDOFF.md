@@ -6,13 +6,16 @@ Private host access, backup locations and installation receipts remain outside G
 
 ## Active repair: pending native vote
 
-The candidate preserves the underlying RPC error and adds an explicit review/send
-path for the exact saved native vote, without a new signature or automatic retry.
-Its signature, proposal, fee, account sequence, current context and account lock are
-checked before transmission. Unknown journals remain intact. See
+PR #325 was published in release 40577870252 at source
+`61bec3235e8fd9c3471bb34f334bda8ceba7ea85`. Its saved-vote continuation revealed an
+SDK CheckTx out-of-gas rejection: the signed limit was below the gas consumed at
+the failure point. The account sequence remained unconsumed. The follow-up adds
+a bounded native-vote gas floor and an explicitly reviewed higher-fee signature
+for the same vote and exact original sequence. Preserve both signed attempts;
+never clear a pending journal merely because one RPC rejects it. See
 [scope, evidence and validation](docs/NATIVE_VOTE_TRANSMISSION_2026-10-27.md).
-Integration, deliberate publication and owner wallet acceptance are separate gates.
-The original incident's RPC error was not retained, so its precise cause is unknown.
+The higher-gas follow-up still requires integration, deliberate publication and
+owner wallet acceptance. The exact original pre-#325 RPC error was not retained.
 
 ## Active product work: five-pool WYND swap
 

@@ -1042,6 +1042,13 @@ separate Send saved vote click transmits the original signed bytes. Cancel retur
 to the pending state. Reuse the existing wrapped controls and review/error styling;
 never silently clear the journal or request a replacement signature.
 
+Gas follow-up: after an out-of-gas admission error, the pending control becomes
+Review higher gas. Show the original choice, old/new gas and exact higher fee in
+the existing review panel. Only Confirm higher gas in Keplr requests the separate
+signature. Keep the same proposal/choice/sequence and preserve both signed attempts;
+wallet rejection and cancellation return to the pending state. A successfully
+checkpointed replacement uses the ordinary saved-vote continuation thereafter.
+
 ## Compact native tally — owner correction, 2026-10-15
 
 Keep only the deadline above Your vote. The four participation bars also contain
