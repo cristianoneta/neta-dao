@@ -1,6 +1,6 @@
 # Current state — Cosmoot
 
-Updated 26 October 2026. This is the authoritative current feature and release
+Updated 27 October 2026. This is the authoritative current feature and release
 inventory. Update rows in place; retain dated evidence separately. Public/private
 boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
@@ -8,7 +8,8 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `c573f21d7a304948197fd7eb29012cbac83a9683` | [Manual release 40227248631](https://github.com/cristianoneta/neta-dao/actions/runs/40227248631) succeeded on 25 October. Includes the five-pool WYND swap, compact rule-approval discovery correction, token/menu/price/mascot refinements and Keplr fee preferences. The `/wynd` short link needs another release. |
+| Last successful website release | Source `8b7da376e5c942e7cdf3e2544e636b9d9fbef339` | [Manual release 40378998268](https://github.com/cristianoneta/neta-dao/actions/runs/40378998268) succeeded on 26 October. Includes the five-pool WYND swap, rule-approval correction, UI refinements, Keplr fee preferences and `/wynd` short link. |
+| Pending native vote repair | Candidate; not yet published | Preserves the RPC reason and permits an explicit review/send of the exact saved native vote, with signature/context/sequence checks and no new signature. [Evidence, safeguards and validation](NATIVE_VOTE_TRANSMISSION_2026-10-27.md). Original failure cause and live continuation remain unconfirmed. |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
 | Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Published in release 40106761715; updated homepage observed on both website domains. Responsive CI passed at 320/390/768/1440 px; separate mobile live acceptance and controlled live fallback remain open. |
 | Collector archives / efficiency | Source captures UTC Treasury days, archives expired validator evidence before pruning, preserves daily membership/planner observations and signed prices, and shares bounded RPC results | [Scope and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md). Owner confirmed host installation and successful manual collector/archive checks on 24 October; regular cycles, multi-day growth and measured savings remain pending. Local archives do not prove independent retention. |
@@ -64,7 +65,7 @@ approval, exploratory point settings and uncertain transaction journals retain
 separate meanings. [Specification, validation and limits](REBALANCE_EXECUTION_2026-10-25.md).
 PR #319 is integrated and published in manual release 40219239387 at the source recorded above.
 
-## Five-pool WYND swap — published; short-link candidate, 26 October
+## Five-pool WYND swap and short link — published, 26 October
 
 The owner requested five selectable WYND pools, current USD liquidity, dropdown
 asset selection, the original flickering WYND mascot and a 50-USD swap cap.
@@ -80,7 +81,7 @@ correction supplies Keplr's per-signer fee/memo preferences and retains exact
 post-signing validation and unknown-outcome locks. PR #323 was published in release
 40227248631; successful live wallet acceptance remains unconfirmed. The requested
 `/wynd` short link redirects to the existing swap page, with or without a trailing
-slash. The redirect remains a source candidate until the next deliberate release.
+slash. PR #324 was published in release 40378998268.
 
 ## Compact rule-approval discovery — published, 25 October
 

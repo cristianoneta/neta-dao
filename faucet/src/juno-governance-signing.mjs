@@ -8,7 +8,12 @@ import {
 import { sha256 } from '@cosmjs/crypto';
 import { toHex } from '@cosmjs/encoding';
 import { Registry } from '@cosmjs/proto-signing';
-import { SigningStargateClient, defaultRegistryTypes, GasPrice } from '@cosmjs/stargate';
+import {
+  SigningStargateClient,
+  StargateClient,
+  defaultRegistryTypes,
+  GasPrice
+} from '@cosmjs/stargate';
 import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
 import { MsgSubmitProposal, MsgDeposit, MsgVote } from 'cosmjs-types/cosmos/gov/v1/tx';
 import { TxBody, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
@@ -23,6 +28,7 @@ import {
 } from '../../juno-governance-core.mjs';
 import { journalBroadcast } from './broadcast-journal.mjs';
 export { fixedFee } from './wynd-swap-fee.mjs';
+export { inspectSavedVote, resumeVote } from './native-vote-resume.mjs';
 
 export function message(content, sender, deposit) {
   assertProgrammeExecutionAvailable(content.messages);
@@ -68,21 +74,28 @@ export function message(content, sender, deposit) {
   };
 }
 export async function connect(endpoints, signer) {
+  return connectUsing(endpoints, (endpoint) =>
+    SigningStargateClient.connectWithSigner(endpoint, signer, {
+      registry: new Registry([
+        ...defaultRegistryTypes,
+        [SUBMIT, MsgSubmitProposal],
+        [DEPOSIT, MsgDeposit],
+        [VOTE, MsgVote],
+        [EXECUTE, MsgExecuteContract]
+      ]),
+      gasPrice: GasPrice.fromString('0.075ujuno')
+    })
+  );
+}
+export const connectForVoteResume = (endpoints) =>
+  connectUsing(endpoints, (endpoint) => StargateClient.connect(endpoint));
+async function connectUsing(endpoints, create) {
   for (const endpoint of endpoints) {
     let client,
       timer,
       expired = false;
     try {
-      const attempt = SigningStargateClient.connectWithSigner(endpoint, signer, {
-        registry: new Registry([
-          ...defaultRegistryTypes,
-          [SUBMIT, MsgSubmitProposal],
-          [DEPOSIT, MsgDeposit],
-          [VOTE, MsgVote],
-          [EXECUTE, MsgExecuteContract]
-        ]),
-        gasPrice: GasPrice.fromString('0.075ujuno')
-      });
+      const attempt = create(endpoint);
       attempt.then(
         (c) => {
           if (expired) c.disconnect();

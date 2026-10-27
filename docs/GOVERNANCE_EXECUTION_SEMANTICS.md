@@ -89,6 +89,13 @@ required `programme_execution` CI job reruns it for source changes and releases.
 
 ## Staking execution
 
+Native MsgVote continuation is separate from proposal execution: an explicitly
+reviewed pending vote may resend only its identical signed bytes under the shared
+account lock. Verify the direct signature, Juno chain/account, original proposal,
+fee and unchanged ordered sequence; keep proposal/deadline/balance/wallet checks.
+Hash lookup absence never authorizes a new signature or clearing a pending journal.
+[Implementation and limits](NATIVE_VOTE_TRANSMISSION_2026-10-27.md).
+
 The checked Rebalance path uses the same governance/admin/Stargate authority
 boundaries for MsgDelegate, MsgBeginRedelegate and MsgUndelegate. It binds approved
 rules, sufficient calculation evidence and exact movement amounts, and independently

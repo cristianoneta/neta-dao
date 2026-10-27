@@ -52,6 +52,8 @@ export async function exerciseReviewFunding(page, origin, sample) {
   const voteOperators = voterAccounts.map((a) => toBech32('junovaloper', fromBech32(a).data));
   let authorChoice = 'VOTE_OPTION_YES',
     voteWrites = 0,
+    voteSigns = 0,
+    pendingVoteHash = null,
     lostVote = false,
     participationDown = false;
   const voteTally = () => ({
@@ -294,6 +296,8 @@ export async function exerciseReviewFunding(page, origin, sample) {
           pagination: {}
         };
       else if (url.pathname.includes('/txs/')) {
+        if (pendingVoteHash && url.pathname.endsWith(pendingVoteHash))
+          return route.fulfill({ status: 404, headers, body: 'not found' });
         if (url.pathname.endsWith(reviewTxHash)) {
           if (url.hostname.includes('nodeshub'))
             return route.fulfill({ status: 503, headers, body: 'Primary unavailable' });
@@ -420,10 +424,14 @@ export async function exerciseReviewFunding(page, origin, sample) {
     if (contributionMode === 'lost') throw Error('Synthetic lost response');
     return { transactionHash: 'B'.repeat(64), height: 42500125, code: 0 };
   });
+  await page.exposeFunction('__voteSigned', () => {
+    voteSigns++;
+  });
   await page.exposeFunction('__nativeVote', async (id, sender, option) => {
     assert.equal(String(id), '900');
     assert.equal(sender, author);
     voteWrites++;
+    pendingVoteHash = null;
     authorChoice = {
       yes: 'VOTE_OPTION_YES',
       no: 'VOTE_OPTION_NO',
@@ -515,11 +523,41 @@ export async function exerciseReviewFunding(page, origin, sample) {
         },
         simulateDeposit: async () => 100000,
         simulateVote: async () => 100000,
+        connectForVoteResume: async () => ({ disconnect() {} }),
+        inspectSavedVote: async (_client, id, sender, hash) => ({
+          hash,
+          proposalId: String(id),
+          sender,
+          option: 'yes',
+          sequence: '2',
+          fee: { gas: '140000', amount: [{ denom: 'ujuno', amount: '10500' }] }
+        }),
+        resumeVote: async (_client, reviewed, guards) => {
+          await guards.beforeBroadcast();
+          await guards.assertWallet();
+          const result = await window.__nativeVote(
+            reviewed.proposalId,
+            reviewed.sender,
+            reviewed.option
+          );
+          return { ...result, transactionHash: reviewed.hash };
+        },
         vote: async (_client, id, sender, option, _fee, guards) => {
           await guards.beforeSign();
           await guards.assertWallet();
+          await window.__voteSigned();
           if (window.__rejectVote) throw Error('Vote rejected by wallet');
-          await guards.beforeBroadcast('C'.repeat(64));
+          const hash = (window.__failVoteBroadcast ? 'D' : 'C').repeat(64);
+          await guards.beforeBroadcast(hash);
+          if (window.__failVoteBroadcast) {
+            localStorage.setItem(
+              'neta-pending-tx-v1:juno-1:' + sender,
+              JSON.stringify({ status: 'pending', hash })
+            );
+            throw Error('TRANSACTION OUTCOME UNKNOWN', {
+              cause: Error('Synthetic RPC rejected request')
+            });
+          }
           return window.__nativeVote(id, sender, option);
         },
         fixedFee: () => ({ gas: '140000', amount: [{ denom: 'ujuno', amount: '10500' }] }),
@@ -972,6 +1010,72 @@ export async function exerciseReviewFunding(page, origin, sample) {
   await page.locator('#native-participation-refresh').click();
   await page.waitForFunction(() =>
     document.querySelector('#native-own-vote').textContent.startsWith('No ·')
+  );
+  // A rejected transmission retains its real reason and offers a separate,
+  // explicit review of the same saved vote. Merely checking never sends it.
+  await page.locator('#native-vote-choice').selectOption('yes');
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(() => !document.querySelector('#native-vote-review').hidden);
+  pendingVoteHash = 'D'.repeat(64);
+  await page.evaluate(() => {
+    window.__failVoteBroadcast = true;
+  });
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#native-vote-status')
+      .textContent.includes('Synthetic RPC rejected request')
+  );
+  assert.equal(voteWrites, 1);
+  const signsBeforeResume = voteSigns;
+  await page.reload();
+  await wallet(author);
+  await page.waitForFunction(
+    () =>
+      !!document.querySelector('#gov-connect').onclick &&
+      !document.querySelector('#native-voting-workspace').hidden
+  );
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(() => !document.querySelector('#native-vote-resume').hidden);
+  assert.match(
+    await page.locator('#native-vote-last-error').textContent(),
+    /Synthetic RPC rejected request/
+  );
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#native-vote-status')
+      .textContent.includes('Vote outcome is still unconfirmed')
+  );
+  assert.equal(voteWrites, 1);
+  await page.locator('#native-vote-resume').click();
+  await page.waitForFunction(
+    () => document.querySelector('#native-vote-resume').textContent === 'Send saved vote'
+  );
+  assert.match(
+    await page.locator('#native-vote-review-text').textContent(),
+    /Saved vote: Yes.*Fee: 0.0105 JUNO/
+  );
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await shot(`native-saved-vote-${width}`);
+  }
+  await page.locator('#native-vote-cancel').click();
+  assert.equal(voteWrites, 1);
+  await page.locator('#native-vote-resume').click();
+  await page.waitForFunction(
+    () => document.querySelector('#native-vote-resume').textContent === 'Send saved vote'
+  );
+  await page.locator('#native-vote-resume').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#native-vote-status').textContent.includes('Vote confirmed')
+  );
+  assert.equal(voteWrites, 2, 'Only the explicit Send saved vote click transmits');
+  assert.equal(voteSigns, signsBeforeResume, 'Saved vote continuation never signs again');
+  assert.equal(
+    await page.evaluate((a) => localStorage.getItem('neta-pending-tx-v1:juno-1:' + a), author),
+    null
   );
   participationDown = true;
   await page.locator('#native-participation-refresh').click();

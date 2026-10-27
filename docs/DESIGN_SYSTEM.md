@@ -1035,6 +1035,13 @@ people. Wrap identities, stack controls/cards on mobile and contain horizontal
 table overflow. Never use missing/stale detail as zero or pretend a present-day
 stake reconstruction is a historical final result.
 
+Pending vote follow-up, 27 October: retain Check vote status as a read-only action
+and the original send error across reloads. Review saved vote opens the existing
+review panel with the verified saved choice, exact fee, wallet and hash. Only the
+separate Send saved vote click transmits the original signed bytes. Cancel returns
+to the pending state. Reuse the existing wrapped controls and review/error styling;
+never silently clear the journal or request a replacement signature.
+
 ## Compact native tally — owner correction, 2026-10-15
 
 Keep only the deadline above Your vote. The four participation bars also contain
