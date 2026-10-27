@@ -1,8 +1,18 @@
 # Cosmoot public development handoff
 
-Updated 26 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
+Updated 27 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
+
+## Active repair: pending native vote
+
+The candidate preserves the underlying RPC error and adds an explicit review/send
+path for the exact saved native vote, without a new signature or automatic retry.
+Its signature, proposal, fee, account sequence, current context and account lock are
+checked before transmission. Unknown journals remain intact. See
+[scope, evidence and validation](docs/NATIVE_VOTE_TRANSMISSION_2026-10-27.md).
+Integration, deliberate publication and owner wallet acceptance are separate gates.
+The original incident's RPC error was not retained, so its precise cause is unknown.
 
 ## Active product work: five-pool WYND swap
 
@@ -22,8 +32,8 @@ preferences to the swap signer while preserving exact signed-byte validation.
 PR #323's correction was published in release 40227248631 at source
 `c573f21d7a304948197fd7eb29012cbac83a9683`; successful live wallet acceptance is
 still unconfirmed. The owner now requested `/wynd` as a short link to the existing
-swap page. The source adds a Pages redirect for `/wynd` and `/wynd/`; publication
-requires the next deliberate release.
+swap page. PR #324's Pages redirects for `/wynd` and `/wynd/` were published in
+release 40378998268 at source `8b7da376e5c942e7cdf3e2544e636b9d9fbef339`.
 
 ## Rule approval follow-up
 

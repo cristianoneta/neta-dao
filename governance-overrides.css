@@ -325,7 +325,7 @@ body.revision-dialog-open { overflow:hidden; }
 #native-vote-review { padding: 16px; background: var(--neta-surface-raised); border: 1px solid var(--neta-border); border-radius: 8px; }
 #native-vote-review-text { white-space: pre-line; overflow-wrap: anywhere; }
 #native-vote-status.is-error { color: var(--neta-danger); }
-#native-vote-receipt, #native-inherited-vote, #native-participation-status { overflow-wrap: anywhere; }
+#native-vote-receipt, #native-vote-last-error, #native-inherited-vote, #native-participation-status { overflow-wrap: anywhere; }
 #native-participation-bars { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
 #native-participation-bars div { display: grid; gap: 8px; }
 #native-participation-bars meter { width: 100%; height: 12px; accent-color: var(--neta-accent); }

@@ -156,7 +156,12 @@
       'https://rest.lavenderfive.com/juno',
       'https://juno.api.m.stavr.tech'
     ],
-    MAINNET_RPCS = ['https://juno-rpc.polkachu.com', 'https://rpc-juno.whispernode.com'],
+    MAINNET_RPCS = [
+      'https://juno.rpc.m.stavr.tech',
+      'https://juno-rpc.kleomedes.network',
+      'https://juno-rpc.polkachu.com',
+      'https://rpc-juno.whispernode.com'
+    ],
     GOVERNANCE_CHAINS = [{ id: 'juno', name: 'Juno' }],
     DAOS = window.NetaDaoDirectory;
   const DAO_STORAGE_KEY = 'neta-governance-selected-dao',
@@ -355,7 +360,7 @@
       renderActions();
     }
   });
-  const { nativeVoting } = await import('./native-voting-ui.mjs?v=20261015-compact-1');
+  const { nativeVoting } = await import('./native-voting-ui.mjs?v=20261027-resume-1');
   const nativeVote = nativeVoting({
     selected: () => state.selected,
     address: () => state.address,

@@ -378,7 +378,11 @@ export async function preflight(endpoints, content, proposer, options = {}) {
 }
 
 // Checking an uncertain attempt never signs, broadcasts or removes its journal.
-export async function submissionReceipt(endpoints, hash, { fetcher = governanceFetch } = {}) {
+export async function submissionReceipt(
+  endpoints,
+  hash,
+  { fetcher = governanceFetch, kind = 'proposal' } = {}
+) {
   if (!/^[A-F0-9]{64}$/.test(hash)) throw Error('Invalid submission transaction hash.');
   const results = await Promise.allSettled(
     independentEndpoints(endpoints).map(async (endpoint) => {
@@ -406,7 +410,9 @@ export async function submissionReceipt(endpoints, hash, { fetcher = governanceF
   const good = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
   if (good.length < 2 || good.some((r) => !same(r, good[0])))
     throw Error(
-      'Submission outcome is still unconfirmed. Check again; do not submit another proposal.'
+      kind === 'vote'
+        ? 'Vote outcome is still unconfirmed. Check again, or review the saved vote to send the same transaction.'
+        : 'Submission outcome is still unconfirmed. Check again; do not submit another proposal.'
     );
   return good[0];
 }

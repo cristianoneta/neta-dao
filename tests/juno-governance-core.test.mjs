@@ -239,3 +239,15 @@ test('unknown submissions need two matching inclusion receipts; status lookup ne
   });
   assert.equal(failed.state, 'failed');
 });
+
+test('unconfirmed vote receipt gives vote-specific guidance without claiming rejection', async () => {
+  await assert.rejects(
+    submissionReceipt(['https://one.invalid', 'https://two.invalid'], 'A'.repeat(64), {
+      kind: 'vote',
+      fetcher: async () => new Response('not found', { status: 404 })
+    }),
+    (error) =>
+      error.message.startsWith('Vote outcome is still unconfirmed.') &&
+      !error.message.includes('another proposal')
+  );
+});

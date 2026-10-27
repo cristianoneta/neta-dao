@@ -94,10 +94,16 @@ export function nativeVoting({
       (!pending && address() && chain() === 'juno-1' && !$('native-vote-choice').value);
     $('native-vote-cancel').hidden = !review;
     $('native-vote-cancel').disabled = working;
+    $('native-vote-resume').hidden = !pending || !open();
+    $('native-vote-resume').disabled = working || blocked() || chain() !== 'juno-1';
+    $('native-vote-resume').textContent = review?.saved ? 'Send saved vote' : 'Review saved vote';
     $('native-participation-refresh').disabled = loading || working;
     $('native-vote-receipt').textContent = r
       ? `${r.state === 'broadcast' ? 'Vote confirmation pending' : r.state === 'included' ? 'Vote transaction confirmed' : r.state === 'failed' ? 'Vote transaction failed' : 'Saved vote record unreadable; voting is locked.'}${r.hash ? ' · TX ' + r.hash : ''}`
       : '';
+    $('native-vote-last-error').hidden = !pending || !r?.sendError;
+    $('native-vote-last-error').textContent =
+      pending && r?.sendError ? 'Last send attempt: ' + r.sendError : '';
     const own = snapshot?.own;
     $('native-own-vote').textContent = !address()
       ? 'Connect your wallet to see your vote and delegated voting weight.'
@@ -311,7 +317,7 @@ export function nativeVoting({
     )
       throw Error('Wallet changed. Reconnect and review your vote.');
   }
-  async function run() {
+  async function run(resume = false) {
     if (!current() || working || blocked()) return;
     if (!address() || chain() !== 'juno-1') {
       try {
@@ -327,6 +333,7 @@ export function nativeVoting({
       storageKey = key(),
       r = receipt();
     if (r?.state === 'unreadable') return;
+    if (resume && r?.state !== 'broadcast') return;
     const active = () => {
       if (
         current() !== item ||
@@ -338,13 +345,60 @@ export function nativeVoting({
         throw Error('Vote context changed. Review again.');
     };
     working = true;
+    let sending = false;
     busy(true);
     render();
     try {
+      if (r?.state === 'broadcast' && resume) {
+        await wallet(sender);
+        const signing = await loadGovernanceSigning();
+        if (!review?.saved) {
+          client?.disconnect();
+          client = await signing.connectForVoteResume(rpcs);
+          const saved = await signing.inspectSavedVote(client, item.id, sender, r.hash);
+          const proof = await voteProof(rests, item.proposal.raw, sender);
+          active();
+          await wallet(sender);
+          if (BigInt(proof.balance) < BigInt(saved.fee.amount[0].amount))
+            throw Error('Insufficient JUNO for the saved network fee.');
+          review = { saved, proof };
+          $('native-vote-review-text').textContent =
+            `Juno mainnet · Proposal #${item.id}: ${proof.proposal.title}\nSaved vote: ${labels[saved.option]} · Fee: ${displayJuno(saved.fee.amount[0].amount)} JUNO\nWallet: ${sender}\nTX ${saved.hash}\nSend the exact transaction already signed in Keplr. No new signature or changed fee.`;
+          message('Review the saved choice and fee, then choose Send saved vote.');
+          return;
+        }
+        const reviewed = review;
+        const guard = async () => {
+          active();
+          await wallet(sender);
+          if (
+            Date.now() - reviewed.proof.checkedAt > 120000 ||
+            receipt()?.state !== 'broadcast' ||
+            receipt()?.hash !== reviewed.saved.hash
+          )
+            throw Error('Saved vote review expired or changed. Review again.');
+          const fresh = await voteProof(rests, reviewed.proof.proposal, sender);
+          active();
+          if (
+            fresh.proposal.voting_end_time !== reviewed.proof.proposal.voting_end_time ||
+            BigInt(fresh.balance) < BigInt(reviewed.saved.fee.amount[0].amount)
+          )
+            throw Error('Voting deadline or fee balance changed. Review again.');
+        };
+        sending = true;
+        await signing.resumeVote(client, reviewed.saved, {
+          assertWallet: () => {
+            active();
+            return wallet(sender);
+          },
+          beforeBroadcast: guard
+        });
+        sending = false;
+      }
       if (r?.state === 'broadcast') {
-        const result = await submissionReceipt(rests, r.hash);
+        const result = await submissionReceipt(rests, r.hash, { kind: 'vote' });
         active();
-        save(storageKey, { ...r, ...result });
+        save(storageKey, { ...r, ...result, sendError: undefined });
         const pending = JSON.parse(localStorage.getItem(journalKey()) || 'null');
         if (pending?.status === 'pending' && pending.hash === r.hash)
           localStorage.removeItem(journalKey());
@@ -400,6 +454,7 @@ export function nativeVoting({
           )
             throw Error('Voting deadline or fee balance changed. Review again.');
         };
+        sending = true;
         await NetaJunoGovernance.vote(client, item.id, sender, reviewed.option, reviewed.fee, {
           assertWallet: () => wallet(sender),
           beforeSign: guard,
@@ -414,9 +469,10 @@ export function nativeVoting({
             });
           }
         });
+        sending = false;
         // A successful broadcast is still reconciled through independent REST sources.
         const saved = JSON.parse(localStorage.getItem(storageKey)),
-          confirmed = await submissionReceipt(rests, saved.hash);
+          confirmed = await submissionReceipt(rests, saved.hash, { kind: 'vote' });
         save(storageKey, { ...saved, ...confirmed });
         active();
         message(
@@ -428,7 +484,24 @@ export function nativeVoting({
       }
     } catch (error) {
       review = null;
-      message(error.message || String(error), true);
+      let detail = error;
+      for (let depth = 0; depth < 4 && detail?.cause instanceof Error; depth++)
+        detail = detail.cause;
+      const reason = String(detail?.message || detail).slice(0, 600);
+      if (sending) {
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+          if (
+            saved?.state === 'broadcast' &&
+            saved.sender === sender &&
+            String(saved.proposalId) === String(item.id)
+          )
+            save(storageKey, { ...saved, sendError: reason });
+        } catch {
+          /* A diagnostic failure must never remove the transaction journal. */
+        }
+      }
+      message(reason, true);
     } finally {
       working = false;
       busy(false);
@@ -436,7 +509,8 @@ export function nativeVoting({
       void refresh(true);
     }
   }
-  $('native-vote-action').onclick = run;
+  $('native-vote-action').onclick = () => run();
+  $('native-vote-resume').onclick = () => run(true);
   $('native-vote-choice').onchange = () => {
     review = null;
     render();
