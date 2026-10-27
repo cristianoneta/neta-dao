@@ -50,8 +50,8 @@ transmissions and failed delivery. The browser regression covers the actual
 status/review controls, persistence after reload, cancellation, no transmission on
 checking, no second signature and responsive saved-vote reviews. Its chain and
 wallet responses are synthetic; it does not establish live wallet acceptance.
-The delegation/native-governance browser runner is now an explicit step in the
-required browser workflow; previously that existing runner had no CI invocation.
+The existing required faucet workflow runs the delegation/native-governance
+browser runner, including this saved-vote regression.
 
 Run repository verification, the faucet SDK tests, reproducible signing build and
 all required CI gates before integration. Preserve the pending browser records

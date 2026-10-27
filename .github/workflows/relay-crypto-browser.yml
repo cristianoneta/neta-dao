@@ -49,8 +49,6 @@ jobs:
       - run: node browser-workspace-security.mjs
       - name: Isolated workspace admission and signing-load regressions
         run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" npx playwright test --config playwright.maintenance.config.mjs
-      - name: Delegation, native governance and saved vote browser flows
-        run: NNS_SCREENSHOT_DIR="$RUNNER_TEMP/nns-validator-screenshots" node browser-juno-delegation.mjs
       - name: Preserve maintenance browser failure traces
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
