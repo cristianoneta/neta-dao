@@ -94,6 +94,12 @@ reviewed pending vote may resend only its identical signed bytes under the share
 account lock. Verify the direct signature, Juno chain/account, original proposal,
 fee and unchanged ordered sequence; keep proposal/deadline/balance/wallet checks.
 Hash lookup absence never authorizes a new signature or clearing a pending journal.
+An explicitly reviewed gas replacement may create a new signature only for the
+identical vote body, original account number and exact original ordered sequence.
+Verify the higher fee and signature, archive the predecessor, and checkpoint the
+new bytes before broadcasting. Never let the SDK select a newer sequence. A
+CheckTx rejection is distinct from a failed included transaction; neither a
+lookup miss nor one RPC rejection alone permits clearing an uncertain journal.
 [Implementation and limits](NATIVE_VOTE_TRANSMISSION_2026-10-27.md).
 
 The checked Rebalance path uses the same governance/admin/Stargate authority

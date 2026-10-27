@@ -360,7 +360,7 @@
       renderActions();
     }
   });
-  const { nativeVoting } = await import('./native-voting-ui.mjs?v=20261027-resume-1');
+  const { nativeVoting } = await import('./native-voting-ui.mjs?v=20261027-gas-1');
   const nativeVote = nativeVoting({
     selected: () => state.selected,
     address: () => state.address,

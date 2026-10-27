@@ -1,7 +1,10 @@
 # Native vote transmission and saved-vote continuation
 
-27 October 2026. Candidate; a deliberate website release and owner wallet
-acceptance are still required. No live transaction was sent during this work.
+27 October 2026. PR #325 was published in release 40577870252 at source
+`61bec3235e8fd9c3471bb34f334bda8ceba7ea85`. The owner then tested the saved vote and
+reported the admission error described below. The gas correction remains a source
+candidate requiring deliberate publication and owner wallet acceptance. The agent
+did not sign or transmit a live transaction.
 
 ## Problem and evidence
 
@@ -37,9 +40,40 @@ vote-specific status guidance with text about submitting another proposal.
   retry or broadcast fan-out.
 
 This applies only to the existing direct native MsgVote format. It does not add
-proposal/deposit resubmission, weighted vote conversion, fee replacement, DAO DAO
-voting, or automatic continuation. The previous proposal and swap journals retain
-their original behavior.
+proposal/deposit resubmission, weighted vote conversion, DAO DAO voting, or automatic
+continuation. The higher-gas follow-up below adds a separate, explicit fee review.
+The previous proposal and swap journals retain their original behavior.
+
+## Confirmed admission error and gas follow-up
+
+The published continuation returned BroadcastTxError, SDK code 11, with an
+out-of-gas failure at WriteFlat: gasWanted 101682, gasUsed 102520. This is a CheckTx
+rejection, not a DeliverTx receipt. Read-only chain checks still found the original
+account sequence and no included hash. The reported gasUsed is the failure point,
+not an estimate of the full gas needed. The original estimate times 1.4 was too
+small for this signed transaction; a successful unsigned simulation had not
+established admission with the signed fee and gas limit.
+
+New native votes use max(250000, ceil(estimate × 1.8)), with an enforced final
+2,000,000 gas ceiling and the existing 0.075 ujuno/gas price. A replacement also
+requires at least ceil(previousGas × 1.5). The floor's reviewed fee is 18750 ujuno.
+These bounds are product limits, not a guarantee that every future state fits.
+
+After an out-of-gas error, Review higher gas displays the unchanged proposal and
+choice, old/new gas limit and exact new fee. Confirm higher gas in Keplr requests
+a new signature, pinned to the original chain, account number and ordered sequence.
+The signed body must be identical; only the reviewed fee may change. Full signature,
+current-sequence, wallet/context, balance and voting checks run again. Another
+transaction consuming that sequence blocks replacement. One RPC rejection never
+serves as permission to sign at a later sequence or change the ballot.
+
+Keep the original journal unchanged during wallet confirmation. Before any new
+broadcast, archive its exact signed bytes under the original hash, verify durable
+storage, then checkpoint the replacement as the active shared journal. Its explicit
+predecessor link repairs a UI receipt interrupted between the two storage writes.
+RPC errors keep both attempts. A resumed replacement sends its saved bytes without
+another signature; cancelling or rejecting Keplr preserves the original attempt.
+Either ordered variant can consume the sequence; both cannot execute their vote.
 
 ## Validation and boundaries
 
@@ -52,6 +86,14 @@ checking, no second signature and responsive saved-vote reviews. Its chain and
 wallet responses are synthetic; it does not establish live wallet acceptance.
 The existing required faucet workflow runs the delegation/native-governance
 browser runner, including this saved-vote regression.
+
+The gas follow-up adds SDK signature/storage/concurrency regressions and a browser
+case covering a legacy gas error, higher-fee review, cancellation, wallet rejection,
+interrupted receipt repair and subsequent continuation without another signature.
+The pinned local Juno execution gate now exercises low-gas CheckTx rejection,
+unchanged sequence/balance after rejection, inclusion with the reviewed vote fee,
+and rejection of another adequately funded signature at the consumed sequence.
+All chain writes in that gate are confined to its ephemeral loopback chain.
 
 Run repository verification, the faucet SDK tests, reproducible signing build and
 all required CI gates before integration. Preserve the pending browser records

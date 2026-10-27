@@ -1,4 +1,5 @@
 import { reviewSizeInput } from '../tests/fixtures/delegation-review-size.mjs';
+import { checkNativeVoteGas } from '../faucet/test/native-vote-chain.mjs';
 import { buildRuleReview } from '../juno-delegation-review.mjs';
 import { frozenRuleProposal } from '../planner-proposal-draft.mjs';
 import { approvedRule } from '../juno-approved-rules.mjs';
@@ -72,9 +73,10 @@ let node;
 try {
   cli('init', 'cosmoot-execution-test', '--chain-id', chain);
   // Never print or retain the generated test mnemonic in evidence or CI output.
-  const voter = JSON.parse(
+  const voterKey = JSON.parse(
     cli('keys', 'add', 'local-voter', '--keyring-backend', 'test', '--output', 'json')
-  ).address;
+  );
+  const voter = voterKey.address;
   const genesisPath = join(home, 'config/genesis.json'),
     g = load(genesisPath),
     a = g.app_state,
@@ -315,6 +317,7 @@ try {
   const positions = async () =>
     (await get(rest + `/cosmos/staking/v1beta1/delegations/${PROGRAMME}?pagination.limit=100`))
       .delegation_responses;
+  let voteGasChecked = false;
   const runProposal = async (label, messages, content = {}) => {
     const file = join(home, label + '.json');
     save(file, {
@@ -330,7 +333,16 @@ try {
     const id = submission.events
       .find((e) => e.type === 'submit_proposal')
       .attributes.find((a) => a.key === 'proposal_id').value;
-    const vote = await tx('gov', 'vote', id, 'yes');
+    const vote = voteGasChecked
+      ? await tx('gov', 'vote', id, 'yes')
+      : await checkNativeVoteGas({
+          rpc,
+          chainId: chain,
+          mnemonic: voterKey.mnemonic,
+          sender: voter,
+          proposalId: id
+        });
+    voteGasChecked = true;
     assert.equal(vote.code, 0, vote.raw_log);
     const proposal = await until(async () => {
       const p = (await get(rest + '/cosmos/gov/v1/proposals/' + id)).proposal;

@@ -5,6 +5,7 @@ import { TxRaw, TxBody, AuthInfo, SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1
 import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
 import { MsgVote } from 'cosmjs-types/cosmos/gov/v1/tx';
 import { choices, VOTE } from '../../native-voting-core.mjs';
+import { fixedFee } from './wynd-swap-fee.mjs';
 
 const keyFor = (sender) => 'neta-pending-tx-v1:juno-1:' + sender;
 const same = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
@@ -118,6 +119,8 @@ async function inspect(client, id, sender, hash, storage) {
     key,
     raw,
     bytes,
+    tx,
+    accountNumber: account.accountNumber,
     review: {
       hash,
       proposalId: String(id),
@@ -127,6 +130,122 @@ async function inspect(client, id, sender, hash, storage) {
       fee: { gas: fee.gasLimit.toString(), amount: fee.amount }
     }
   };
+}
+
+function saveExact(storage, key, value) {
+  storage.setItem(key, value);
+  if (storage.getItem(key) !== value)
+    throw Error('Vote transaction checkpoint could not be verified.');
+}
+
+// A fee replacement is a new, explicitly reviewed signature for the SAME ordered
+// sequence and exact vote body. Either signed variant may win; both cannot execute.
+// Preserve the predecessor before checkpointing the replacement, and never clear
+// either attempt on an RPC error or an interrupted wallet/receipt operation.
+export async function replaceVoteGas(
+  client,
+  reviewed,
+  fee,
+  { assertWallet, beforeSign, beforeBroadcast, journalOptions = {} } = {}
+) {
+  if ([assertWallet, beforeSign, beforeBroadcast].some((f) => typeof f !== 'function'))
+    throw Error('Vote gas replacement review guards are required.');
+  const storage = journalOptions.storage || globalThis.localStorage,
+    locks = journalOptions.locks || globalThis.navigator?.locks;
+  if (!storage || !locks?.request)
+    throw Error('PERSISTENT TRANSACTION STORAGE AND DEVICE LOCK REQUIRED');
+  return locks.request(
+    keyFor(reviewed.sender),
+    { mode: 'exclusive', ifAvailable: true },
+    async (lock) => {
+      if (!lock) throw Error('ANOTHER TAB IS SIGNING FOR THIS ACCOUNT');
+      await beforeSign();
+      await assertWallet();
+      const old = await inspect(
+        client,
+        reviewed.proposalId,
+        reviewed.sender,
+        reviewed.hash,
+        storage
+      );
+      if (JSON.stringify(old.review) !== JSON.stringify(reviewed))
+        throw Error('Saved vote review changed. Review again.');
+      const expectedFee = fixedFee(Number(fee?.gas), 1, '0.075ujuno', 2000000);
+      if (
+        BigInt(expectedFee.gas) <= BigInt(reviewed.fee.gas) ||
+        fee.gas !== expectedFee.gas ||
+        JSON.stringify(expectedFee.amount) !== JSON.stringify(fee.amount) ||
+        Object.keys(fee).some((key) => !['gas', 'amount'].includes(key))
+      )
+        throw Error('Invalid replacement vote fee.');
+      const body = TxBody.decode(old.tx.bodyBytes);
+      const signed = await client.sign(
+        reviewed.sender,
+        [{ typeUrl: VOTE, value: MsgVote.decode(body.messages[0].value) }],
+        fee,
+        '',
+        {
+          chainId: 'juno-1',
+          accountNumber: old.accountNumber,
+          sequence: Number(reviewed.sequence)
+        }
+      );
+      const expectedAuth = AuthInfo.decode(old.tx.authInfoBytes);
+      expectedAuth.fee.gasLimit = BigInt(fee.gas);
+      expectedAuth.fee.amount = fee.amount;
+      if (
+        !same(signed.bodyBytes, old.tx.bodyBytes) ||
+        !same(signed.authInfoBytes, AuthInfo.encode(expectedAuth).finish())
+      )
+        throw Error('Wallet changed the reviewed vote, sequence or fee. Nothing was broadcast.');
+      const bytes = TxRaw.encode(signed).finish(),
+        hash = toHex(sha256(bytes)).toUpperCase();
+      const next = {
+        ...JSON.parse(old.raw),
+        hash,
+        bytes: toBase64(bytes),
+        voteReplacement: {
+          previousHash: reviewed.hash,
+          proposalId: reviewed.proposalId,
+          option: reviewed.option
+        }
+      };
+      const raw = JSON.stringify(next);
+      // Reuse full canonical-byte, sender, signature and current-sequence checks.
+      await inspect(client, reviewed.proposalId, reviewed.sender, hash, {
+        getItem: (key) => (key === old.key ? raw : storage.getItem(key))
+      });
+      await beforeSign();
+      await assertWallet();
+      const account = await client.getAccount(reviewed.sender);
+      if (
+        account?.address !== reviewed.sender ||
+        account.accountNumber !== old.accountNumber ||
+        String(account.sequence) !== reviewed.sequence
+      )
+        throw Error('Account sequence changed. Check vote status.');
+      if (storage.getItem(old.key) !== old.raw)
+        throw Error('Saved transaction changed. Review again.');
+      const archive = 'neta-vote-attempt-v1:juno-1:' + reviewed.sender + ':' + reviewed.hash;
+      if (storage.getItem(archive) !== null && storage.getItem(archive) !== old.raw)
+        throw Error('Previous vote archive differs. Nothing was broadcast.');
+      saveExact(storage, archive, old.raw);
+      saveExact(storage, old.key, raw);
+      await beforeBroadcast(hash);
+      await assertWallet();
+      if (storage.getItem(old.key) !== raw) throw Error('Saved transaction changed. Review again.');
+      const result = await client.broadcastTx(bytes);
+      if (
+        result?.transactionHash?.toUpperCase() !== hash ||
+        !Number.isSafeInteger(result.height) ||
+        result.height < 1 ||
+        !Number.isInteger(result.code) ||
+        result.code < 0
+      )
+        throw Error('Replacement vote outcome is still unconfirmed. Check vote status.');
+      return result;
+    }
+  );
 }
 
 export async function inspectSavedVote(client, id, sender, hash, options = {}) {

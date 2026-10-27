@@ -35,6 +35,8 @@ export function nativeVoting({
   const current = () => (selected()?.proposal?.native ? selected() : null);
   const key = () => `cosmoot:juno:vote:${current()?.id}:${address()}`;
   const journalKey = () => `neta-pending-tx-v1:juno-1:${address()}`;
+  const gasError = (text) => /code 11 \(codespace: sdk\).*out of gas/i.test(String(text));
+  const needsGas = (r) => r?.gasRejected || gasError(r?.sendError);
   function receipt() {
     try {
       const r = JSON.parse(localStorage.getItem(key()) || 'null');
@@ -46,6 +48,26 @@ export function nativeVoting({
           String(r.proposalId) !== String(current()?.id))
       )
         throw Error();
+      // Recover a crash after the replacement journal was checkpointed but
+      // before its UI receipt was saved. This only follows an explicit lineage;
+      // signing/sending still verifies the actual bytes and signature separately.
+      if (r?.state === 'broadcast') {
+        const pending = JSON.parse(localStorage.getItem(journalKey()) || 'null');
+        if (
+          pending?.version === 1 &&
+          pending.status === 'pending' &&
+          pending.chain === 'juno-1' &&
+          pending.sender === r.sender &&
+          /^[A-F0-9]{64}$/.test(pending.hash) &&
+          pending.voteReplacement?.previousHash === r.hash &&
+          pending.voteReplacement.proposalId === String(r.proposalId) &&
+          pending.voteReplacement.option === r.option
+        ) {
+          const repaired = { ...r, hash: pending.hash, gasRejected: false, sendError: undefined };
+          save(key(), repaired);
+          return repaired;
+        }
+      }
       return r;
     } catch {
       return { state: 'unreadable' };
@@ -96,7 +118,13 @@ export function nativeVoting({
     $('native-vote-cancel').disabled = working;
     $('native-vote-resume').hidden = !pending || !open();
     $('native-vote-resume').disabled = working || blocked() || chain() !== 'juno-1';
-    $('native-vote-resume').textContent = review?.saved ? 'Send saved vote' : 'Review saved vote';
+    $('native-vote-resume').textContent = review?.replacement
+      ? 'Confirm higher gas in Keplr'
+      : review?.saved
+        ? 'Send saved vote'
+        : needsGas(r)
+          ? 'Review higher gas'
+          : 'Review saved vote';
     $('native-participation-refresh').disabled = loading || working;
     $('native-vote-receipt').textContent = r
       ? `${r.state === 'broadcast' ? 'Vote confirmation pending' : r.state === 'included' ? 'Vote transaction confirmed' : r.state === 'failed' ? 'Vote transaction failed' : 'Saved vote record unreadable; voting is locked.'}${r.hash ? ' · TX ' + r.hash : ''}`
@@ -317,6 +345,15 @@ export function nativeVoting({
     )
       throw Error('Wallet changed. Reconnect and review your vote.');
   }
+  async function signingClient(signing) {
+    const base = window.keplr.getOfflineSigner('juno-1');
+    if (typeof base.signDirect !== 'function') throw Error('Direct signing support is required.');
+    return signing.connect(rpcs, {
+      getAccounts: () => base.getAccounts(),
+      signDirect: (a, d) =>
+        window.keplr.signDirect('juno-1', a, d, { preferNoSetFee: true, preferNoSetMemo: true })
+    });
+  }
   async function run(resume = false) {
     if (!current() || working || blocked()) return;
     if (!address() || chain() !== 'juno-1') {
@@ -354,17 +391,33 @@ export function nativeVoting({
         const signing = await loadGovernanceSigning();
         if (!review?.saved) {
           client?.disconnect();
-          client = await signing.connectForVoteResume(rpcs);
+          const replacement = needsGas(r);
+          client = replacement
+            ? await signingClient(signing)
+            : await signing.connectForVoteResume(rpcs);
           const saved = await signing.inspectSavedVote(client, item.id, sender, r.hash);
+          const fee = replacement
+            ? signing.voteFee(
+                await signing.simulateVote(client, item.id, sender, saved.option),
+                Number(saved.fee.gas)
+              )
+            : saved.fee;
           const proof = await voteProof(rests, item.proposal.raw, sender);
           active();
           await wallet(sender);
-          if (BigInt(proof.balance) < BigInt(saved.fee.amount[0].amount))
+          if (BigInt(proof.balance) < BigInt(fee.amount[0].amount))
             throw Error('Insufficient JUNO for the saved network fee.');
-          review = { saved, proof };
+          review = { saved, proof, fee, replacement };
           $('native-vote-review-text').textContent =
-            `Juno mainnet · Proposal #${item.id}: ${proof.proposal.title}\nSaved vote: ${labels[saved.option]} · Fee: ${displayJuno(saved.fee.amount[0].amount)} JUNO\nWallet: ${sender}\nTX ${saved.hash}\nSend the exact transaction already signed in Keplr. No new signature or changed fee.`;
-          message('Review the saved choice and fee, then choose Send saved vote.');
+            `Juno mainnet · Proposal #${item.id}: ${proof.proposal.title}\nSaved vote: ${labels[saved.option]} · Fee: ${displayJuno(fee.amount[0].amount)} JUNO\nWallet: ${sender}\nTX ${saved.hash}\n` +
+            (replacement
+              ? `The previous gas limit was too low. Gas: ${saved.fee.gas} → ${fee.gas}. Previous fee: ${displayJuno(saved.fee.amount[0].amount)} JUNO.\nConfirm the higher fee in Keplr for the same proposal and choice. Only one of these vote attempts can execute.`
+              : 'Send the exact transaction already signed in Keplr. No new signature or changed fee.');
+          message(
+            replacement
+              ? 'Review the higher network fee, then confirm in Keplr.'
+              : 'Review the saved choice and fee, then choose Send saved vote.'
+          );
           return;
         }
         const reviewed = review;
@@ -381,26 +434,39 @@ export function nativeVoting({
           active();
           if (
             fresh.proposal.voting_end_time !== reviewed.proof.proposal.voting_end_time ||
-            BigInt(fresh.balance) < BigInt(reviewed.saved.fee.amount[0].amount)
+            BigInt(fresh.balance) < BigInt(reviewed.fee.amount[0].amount)
           )
             throw Error('Voting deadline or fee balance changed. Review again.');
         };
         sending = true;
-        await signing.resumeVote(client, reviewed.saved, {
-          assertWallet: () => {
-            active();
-            return wallet(sender);
-          },
-          beforeBroadcast: guard
-        });
+        const assertCurrentWallet = async () => {
+          active();
+          await wallet(sender);
+          active();
+        };
+        if (reviewed.replacement) {
+          await signing.replaceVoteGas(client, reviewed.saved, reviewed.fee, {
+            assertWallet: assertCurrentWallet,
+            beforeSign: guard,
+            beforeBroadcast: async (hash) => {
+              active();
+              save(storageKey, { ...r, hash, gasRejected: false, sendError: undefined });
+            }
+          });
+        } else
+          await signing.resumeVote(client, reviewed.saved, {
+            assertWallet: assertCurrentWallet,
+            beforeBroadcast: guard
+          });
         sending = false;
       }
       if (r?.state === 'broadcast') {
-        const result = await submissionReceipt(rests, r.hash, { kind: 'vote' });
+        const attempted = JSON.parse(localStorage.getItem(storageKey) || 'null');
+        const result = await submissionReceipt(rests, attempted.hash, { kind: 'vote' });
         active();
-        save(storageKey, { ...r, ...result, sendError: undefined });
+        save(storageKey, { ...attempted, ...result, sendError: undefined });
         const pending = JSON.parse(localStorage.getItem(journalKey()) || 'null');
-        if (pending?.status === 'pending' && pending.hash === r.hash)
+        if (pending?.status === 'pending' && pending.hash === attempted.hash)
           localStorage.removeItem(journalKey());
         message(
           result.code === 0 ? 'Vote confirmed on Juno.' : `Vote failed · code ${result.code}`,
@@ -415,19 +481,10 @@ export function nativeVoting({
         const proof = await voteProof(rests, item.proposal.raw, sender);
         active();
         const option = $('native-vote-choice').value;
-        const base = window.keplr.getOfflineSigner('juno-1');
-        if (typeof base.signDirect !== 'function')
-          throw Error('Direct signing support is required.');
         client?.disconnect();
-        client = await (
-          await loadGovernanceSigning()
-        ).connect(rpcs, {
-          getAccounts: () => base.getAccounts(),
-          signDirect: (a, d) =>
-            window.keplr.signDirect('juno-1', a, d, { preferNoSetFee: true, preferNoSetMemo: true })
-        });
+        client = await signingClient(await loadGovernanceSigning());
         const gas = await NetaJunoGovernance.simulateVote(client, item.id, sender, option),
-          fee = NetaJunoGovernance.fixedFee(gas, 1.4, '0.075ujuno', 2000000);
+          fee = NetaJunoGovernance.voteFee(gas);
         active();
         await wallet(sender);
         if (BigInt(proof.balance) < BigInt(fee.amount[0].amount))
@@ -496,7 +553,11 @@ export function nativeVoting({
             saved.sender === sender &&
             String(saved.proposalId) === String(item.id)
           )
-            save(storageKey, { ...saved, sendError: reason });
+            save(storageKey, {
+              ...saved,
+              sendError: reason,
+              gasRejected: needsGas(saved) || gasError(reason)
+            });
         } catch {
           /* A diagnostic failure must never remove the transaction journal. */
         }
