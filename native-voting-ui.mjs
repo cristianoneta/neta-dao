@@ -9,6 +9,11 @@ import {
 } from './native-voting-core.mjs';
 import { canonical, proposalIdentity } from './juno-community-governance.mjs';
 import { displayJuno, submissionReceipt } from './juno-governance-core.mjs';
+import {
+  previousVoteHashes,
+  replacementReceipt,
+  confirmedVoteReceipt
+} from './native-vote-receipts.mjs';
 import { formatVoteAmount, formatWholeVoteAmount } from './native-governance-display.mjs';
 
 export function nativeVoting({
@@ -48,6 +53,7 @@ export function nativeVoting({
           String(r.proposalId) !== String(current()?.id))
       )
         throw Error();
+      if (r) previousVoteHashes(r);
       // Recover a crash after the replacement journal was checkpointed but
       // before its UI receipt was saved. This only follows an explicit lineage;
       // signing/sending still verifies the actual bytes and signature separately.
@@ -63,7 +69,7 @@ export function nativeVoting({
           pending.voteReplacement.proposalId === String(r.proposalId) &&
           pending.voteReplacement.option === r.option
         ) {
-          const repaired = { ...r, hash: pending.hash, gasRejected: false, sendError: undefined };
+          const repaired = replacementReceipt(r, pending.hash);
           save(key(), repaired);
           return repaired;
         }
@@ -450,7 +456,7 @@ export function nativeVoting({
             beforeSign: guard,
             beforeBroadcast: async (hash) => {
               active();
-              save(storageKey, { ...r, hash, gasRejected: false, sendError: undefined });
+              save(storageKey, replacementReceipt(r, hash));
             }
           });
         } else
@@ -462,9 +468,14 @@ export function nativeVoting({
       }
       if (r?.state === 'broadcast') {
         const attempted = JSON.parse(localStorage.getItem(storageKey) || 'null');
-        const result = await submissionReceipt(rests, attempted.hash, { kind: 'vote' });
+        const result = await confirmedVoteReceipt(rests, attempted);
         active();
-        save(storageKey, { ...attempted, ...result, sendError: undefined });
+        save(storageKey, {
+          ...attempted,
+          ...result,
+          previousHashes: previousVoteHashes(attempted).filter((hash) => hash !== result.hash),
+          sendError: undefined
+        });
         const pending = JSON.parse(localStorage.getItem(journalKey()) || 'null');
         if (pending?.status === 'pending' && pending.hash === attempted.hash)
           localStorage.removeItem(journalKey());

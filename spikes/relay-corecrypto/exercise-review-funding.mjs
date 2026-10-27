@@ -54,6 +54,7 @@ export async function exerciseReviewFunding(page, origin, sample) {
     voteWrites = 0,
     voteSigns = 0,
     pendingVoteHash = null,
+    previousVoteCode = 0,
     lostVote = false,
     participationDown = false;
   const voteTally = () => ({
@@ -316,7 +317,11 @@ export async function exerciseReviewFunding(page, origin, sample) {
         }
         if (!txKnown) return route.fulfill({ status: 404, headers, body: 'not found' });
         body = {
-          tx_response: { txhash: url.pathname.split('/').at(-1), height: '42500125', code: 0 }
+          tx_response: {
+            txhash: url.pathname.split('/').at(-1),
+            height: '42500125',
+            code: url.pathname.endsWith('E'.repeat(64)) ? previousVoteCode : 0
+          }
         };
       } else if (url.pathname === '/cosmos/gov/v1/proposals/900/tally') {
         assert.equal(verifiedRead, true, 'Browser tallies must use the same-origin read bridge');
@@ -1241,6 +1246,66 @@ export async function exerciseReviewFunding(page, origin, sample) {
       author
     )
   );
+  // If the predecessor wins the race, status checks resolve the replacement
+  // without a new signature or send. A failed predecessor is insufficient.
+  pendingVoteHash = 'F'.repeat(64);
+  previousVoteCode = 11;
+  await page.evaluate((sender) => {
+    const key = `cosmoot:juno:vote:900:${sender}`;
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        state: 'broadcast',
+        hash: 'F'.repeat(64),
+        previousHashes: ['E'.repeat(64)],
+        proposalId: '900',
+        sender,
+        option: 'yes'
+      })
+    );
+    localStorage.setItem(
+      `neta-pending-tx-v1:juno-1:${sender}`,
+      JSON.stringify({
+        version: 1,
+        status: 'pending',
+        chain: 'juno-1',
+        sender,
+        hash: 'F'.repeat(64),
+        sequence: '2',
+        bytes: 'synthetic fixture'
+      })
+    );
+    window.dispatchEvent(new StorageEvent('storage', { key }));
+  }, author);
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#native-vote-status').textContent.includes('unconfirmed')
+  );
+  assert.ok(
+    await page.evaluate(
+      (sender) => localStorage.getItem(`neta-pending-tx-v1:juno-1:${sender}`),
+      author
+    )
+  );
+  previousVoteCode = 0;
+  await page.locator('#native-vote-action').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#native-vote-status').textContent.includes('Vote confirmed')
+  );
+  assert.match(
+    await page.locator('#native-vote-receipt').textContent(),
+    new RegExp('E'.repeat(64))
+  );
+  assert.equal(
+    await page.evaluate(
+      (sender) => localStorage.getItem(`neta-pending-tx-v1:juno-1:${sender}`),
+      author
+    ),
+    null
+  );
+  assert.equal(voteWrites, 3);
+  assert.equal(voteSigns, signsBeforeGas + 2);
+  pendingVoteHash = null;
   participationDown = true;
   await page.locator('#native-participation-refresh').click();
   await page.waitForFunction(() =>

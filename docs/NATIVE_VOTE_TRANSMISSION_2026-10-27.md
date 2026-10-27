@@ -74,6 +74,10 @@ predecessor link repairs a UI receipt interrupted between the two storage writes
 RPC errors keep both attempts. A resumed replacement sends its saved bytes without
 another signature; cancelling or rejecting Keplr preserves the original attempt.
 Either ordered variant can consume the sequence; both cannot execute their vote.
+Status checks retain the predecessor hashes and resolve an unknown replacement if
+two independent sources confirm a successful predecessor. A predecessor's included
+failure does not unlock the replacement: an ante-handler failure can leave the
+sequence unused. Resolution removes only the matching active journal.
 
 ## Validation and boundaries
 
@@ -89,7 +93,8 @@ browser runner, including this saved-vote regression.
 
 The gas follow-up adds SDK signature/storage/concurrency regressions and a browser
 case covering a legacy gas error, higher-fee review, cancellation, wallet rejection,
-interrupted receipt repair and subsequent continuation without another signature.
+interrupted receipt repair and subsequent continuation without another signature,
+plus a predecessor winning the race without another signature or broadcast.
 The pinned local Juno execution gate now exercises low-gas CheckTx rejection,
 unchanged sequence/balance after rejection, inclusion with the reviewed vote fee,
 and rejection of another adequately funded signature at the consumed sequence.
