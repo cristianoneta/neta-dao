@@ -1447,3 +1447,68 @@ body {
   grid-template-columns: minmax(0, 1fr) 80px;
   align-items: center;
 }
+
+/* Fixed commitments share the existing planning surface and mobile reading order. */
+.fixed-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.fixed-heading h3 {
+  margin: 0;
+}
+.fixed-editor {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+.fixed-editor[hidden] {
+  display: none;
+}
+.fixed-editor label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: 0.85rem;
+}
+.fixed-editor input,
+.fixed-editor textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+}
+.fixed-editor textarea {
+  resize: vertical;
+}
+.fixed-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.fixed-actions button,
+.fixed-heading button,
+#save-distribution-rules {
+  min-height: 44px;
+}
+.delegation-hub .fixed-filter {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.delegation-hub .fixed-filter input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin: 0;
+  padding: 0;
+  flex: 0 0 18px;
+  accent-color: var(--neta-accent);
+}
+#fixed-allocations [data-tone='error'] {
+  color: var(--neta-danger);
+}

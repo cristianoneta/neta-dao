@@ -44,7 +44,7 @@
   const { isStaking } = await import('./juno-programme-staking.mjs');
   const { readExecutionReview } = await import('./juno-rebalance-execution.mjs');
   const { verifyRebalanceValues } = await import('./juno-rebalance-chain.mjs');
-  const { readProposalReview } = await import('./juno-delegation-review.mjs');
+  const { readProposalReview, verifyRuleReview } = await import('./juno-delegation-review.mjs');
   const { renderRuleReview } = await import('./juno-rule-review-view.mjs');
   let frozenViewEpoch = 0;
   async function renderFrozenValues(v, editing = false) {
@@ -78,9 +78,18 @@
       host.textContent = 'Verifying rebalance movements…';
       try {
         const execution = await readExecutionReview(v);
+        const allocation =
+          execution.value.calculation.rule.schema >= 7
+            ? await verifyRuleReview(execution.value.calculation)
+            : null;
         if (epoch !== frozenViewEpoch) return;
         const totals = execution.value.plan.totals;
         host.textContent = `Approved rule proposal #${execution.value.calculation.parent.proposalId} · ${execution.value.plan.moves.length} movements. Delegate ${displayJuno(totals.delegate)} JUNO · Redelegate ${displayJuno(totals.redelegate)} JUNO · Begin unbonding ${displayJuno(totals.undelegate)} JUNO. Targets use the recorded observations; actual execution depends on chain state after voting.`;
+        if (allocation) {
+          const details = document.createElement('section');
+          renderRuleReview(details, allocation, { scope: 'execution', rules: false });
+          host.append(details);
+        }
       } catch (error) {
         if (epoch === frozenViewEpoch)
           host.textContent = 'Rebalance verification failed: ' + error.message;

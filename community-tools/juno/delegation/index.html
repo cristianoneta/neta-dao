@@ -17,9 +17,9 @@
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
     <link rel="stylesheet" href="/juno-delegation.css?v=9" />
-    <script type="module" src="/juno-delegation.mjs?v=20261025-rebalance-1"></script>
-    <link rel="stylesheet" href="/juno-rule-review.css?v=20261017-1" />
-    <link rel="stylesheet" href="/juno-delegation-workspace.css?v=3" />
+    <script type="module" src="/juno-delegation.mjs?v=20261029-fixed-1"></script>
+    <link rel="stylesheet" href="/juno-rule-review.css?v=20261029-fixed-1" />
+    <link rel="stylesheet" href="/juno-delegation-workspace.css?v=4" />
   </head>
   <body>
     <a class="planner-skip" href="#planner-heading">Skip to planner</a>
@@ -42,7 +42,7 @@
         <div>
           <h1 id="planner-heading" tabindex="-1">Design a delegation policy.</h1>
           <p class="intro-copy">
-            Eligibility first. Then a shared base and rewards for useful contribution.
+            Set regular eligibility, reserve fixed allocations and review the distribution.
           </p>
         </div>
         <a class="programme-overview-link" href="#overview" data-step="overview"
@@ -355,8 +355,11 @@
                 <h2 id="rules-title" tabindex="-1">Who is eligible?</h2>
                 <span class="state-pill neutral">All must pass</span>
               </div>
-              <p class="policy-subtitle">Entry rules are independent of bonus points.</p>
-              <p class="safety-line">✓ Not jailed · always required</p>
+              <p class="policy-subtitle">
+                These criteria apply to regular allocations. Fixed allocations have their own
+                approved mandate.
+              </p>
+              <p class="safety-line">✓ Not jailed · required for regular allocation</p>
               <details id="rules-eligibility-details" class="policy-details" open>
                 <summary>Eligibility criteria</summary>
                 <section class="criterion compact-criterion" aria-labelledby="uptime-criterion">
@@ -620,9 +623,6 @@
         <h2 id="distribution-title" class="sr-only" tabindex="-1">Shape the distribution</h2>
         <div class="policy-workspace">
           <div class="policy-controls">
-            <section id="roadmap" aria-label="Future policy settings">
-              <div id="rules-future-policy"></div>
-            </section>
             <article class="planner-card allocation-settings">
               <h3>Allocation budget</h3>
               <div class="budget-available">
@@ -649,6 +649,15 @@
               </details>
               <p id="reserve-note" class="field-help"></p>
             </article>
+            <section
+              id="fixed-allocations"
+              class="planner-card"
+              aria-label="Fixed allocations"
+            ></section>
+            <button type="button" id="save-distribution-rules">Save rules on this device</button>
+            <section id="roadmap" aria-label="Future policy settings">
+              <div id="rules-future-policy"></div>
+            </section>
           </div>
           <div class="policy-impact">
             <div id="distribution-impact"></div>
@@ -656,7 +665,10 @@
               <p class="eyebrow">YOUR DRAFT</p>
               <h3>Equal allocation</h3>
               <p id="draft-change-count"></p>
-              <p>Eligible validators share the budget, within the voting-power limit.</p>
+              <p>
+                Fixed allocations are reserved first. Eligible validators share the remainder within
+                the voting-power limit.
+              </p>
               <dl class="draft-facts">
                 <div>
                   <dt>Allocation budget</dt>
@@ -728,9 +740,11 @@
         <details class="calculation-help">
           <summary>Why target amounts can differ</summary>
           <p>
-            Targets are the total programme delegation after redistribution. Equal amounts are
-            reduced where a validator would exceed the projected voting power limit; the remainder
-            is redistributed. Other delegators’ stake counts towards the limit.
+            Targets are the total programme delegation after redistribution. Fixed allocations are
+            reserved first and bypass regular eligibility and the voting-power limit. Equal amounts
+            from the remaining budget are reduced where a validator would exceed the projected
+            voting power limit; the remainder is redistributed. Other delegators’ stake counts
+            towards the limit.
           </p>
           <p>
             Existing programme delegations are removed before targets are added. Unallocated funds
@@ -812,6 +826,7 @@
             <p class="eyebrow">APPROVED RULEBOOK</p>
             <h3 id="rebalance-rule-title">Verifying on-chain approval…</h3>
             <p id="rebalance-approval-note" class="field-help"></p>
+            <section id="rebalance-fixed"></section>
             <dl id="rebalance-rule-facts" class="draft-facts"></dl>
             <a href="#rules" data-step="rules" class="text-link">Propose a rule change →</a>
             <div class="budget-available">
@@ -848,13 +863,14 @@
             <div id="rebalance-result" hidden>
               <div class="rebalance-metrics">
                 <div>
-                  <span>Eligible validators</span><strong id="rebalance-eligible">—</strong>
+                  <span>Regular eligibility</span><strong id="rebalance-eligible">—</strong>
                 </div>
                 <div><span>Allocated · JUNO</span><strong id="rebalance-allocated">—</strong></div>
                 <div>
                   <span>Unallocated · JUNO</span><strong id="rebalance-unallocated">—</strong>
                 </div>
               </div>
+              <p id="rebalance-budget-split" class="fixed-budget"></p>
               <p id="rebalance-observed" class="field-help"></p>
               <p id="rebalance-movements" class="field-help" role="status"></p>
               <table class="rebalance-table">

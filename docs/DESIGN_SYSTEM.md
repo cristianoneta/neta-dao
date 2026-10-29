@@ -5,6 +5,18 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
+## Fixed additional allocations — owner update, 29 October 2026
+
+Distribution leads with its real budget and documented fixed allocations, with the
+exploratory base/bonus section still openly available below. Keep the same compact
+left controls and wide immediate impact. Show total, reserved fixed, regular budget
+and unallocated funds, and regular + fixed portions within each target. Fixed-only
+recipients must remain visible with their regular exclusion or cap exception.
+Essential obligations, exact amounts and UTC dates belong in immutable review;
+a mutable external documentation link is supporting context. Preserve approval
+versus execution and approved-rule isolation from local edits. No beneficiary is
+preconfigured. [Specification and publication boundary](FIXED_DELEGATIONS_2026-10-29.md).
+
 ## WYND swap — owner update, 25 October 2026
 
 Replace the redundant explanation card with five selectable pool rows and aligned

@@ -1,3 +1,4 @@
+import { mountFixedAllocations, renderFixedMandates } from './juno-fixed-allocation-view.mjs';
 import { availableBudget } from './juno-rebalance.mjs';
 import { policyImpact, renderPolicyImpact } from './juno-policy-impact.mjs?v=20261025-clarity-1';
 import { mountRebalance } from './juno-rebalance-view.mjs';
@@ -42,7 +43,8 @@ let approval = { status: 'loading', current: null },
   parent = null,
   draftStarted = false;
 let rewardsSource = null,
-  rebalance = null;
+  rebalance = null,
+  fixedEditor = null;
 const fmt = (value) => formatAmount(value, true);
 const tell = (message, tone = 'info') => {
   $('feedback').textContent = message;
@@ -201,12 +203,16 @@ async function loadApprovedRules() {
       ['Upgrade participation', 'Juno v31 · within 5 hours of the halt'],
       ['Liquid reserve', `${formatAmount(rule.liquidReserveRaw)} JUNO`],
       ['Manual exclusions', String(rule.exclusions.length)],
+      ['Fixed allocations', String(rule.fixedAllocations?.length || 0)],
       ['Scoring', 'V1 · no objective or subjective points']
     ]) {
       const entry = node('div');
       entry.append(node('dt', label), node('dd', value));
       settings.append(entry);
     }
+    const mandates = node('section');
+    renderFixedMandates(mandates, rule, data);
+    host.append(mandates);
     const details = node('details', '', 'policy-details');
     details.append(node('summary', 'Approval evidence & exclusions'));
     for (const entry of rule.exclusions)
@@ -444,13 +450,14 @@ function restoreRuleInputs() {
   showUptimeError();
 }
 function renderRules() {
+  fixedEditor?.render();
   $('factor').value = rules.factorTenths;
   $('factor').setAttribute('aria-valuetext', (rules.factorTenths / 10).toFixed(1) + ' times');
   $('factor-number').value = (rules.factorTenths / 10).toFixed(1);
   $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
   const cap = data ? capFraction(rules, data.activeCount) : null;
   $('cap-description').textContent = cap
-    ? `Maximum projected voting power: ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}% with ${data.activeCount} consensus validators.`
+    ? `Regular allocation voting-power limit: ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}% with ${data.activeCount} consensus validators.`
     : 'The voting power limit will appear after data loads.';
   $('cap-formula').textContent = cap
     ? `Cap = min(30%, ${(rules.factorTenths / 10).toFixed(1)} × 100% / ${data.activeCount}) = ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}%. The full active consensus set is used.`
@@ -659,6 +666,8 @@ function focusRuleInput(id) {
 }
 async function runSimulation() {
   try {
+    if (fixedEditor?.isEditing())
+      throw Error('Apply or cancel the fixed allocation edit before reviewing.');
     if (!data || !evidence) throw Error('Load programme data first.');
     if (!$('factor-number').checkValidity() || !$('factor-number').value) {
       focusRuleInput('factor-number');
@@ -828,6 +837,10 @@ $('add-exclusion').addEventListener('click', () => {
 });
 $('save-draft').addEventListener('click', () => {
   try {
+    if (fixedEditor?.isEditing()) {
+      tell('Apply or cancel the fixed allocation edit before saving.', 'error');
+      return;
+    }
     if (!$('factor-number').checkValidity() || !$('factor-number').value) {
       tell('Enter a factor from 1.0 to 2.0 before saving the rules.', 'error');
       focusRuleInput('factor-number');
@@ -861,6 +874,7 @@ $('save-draft').addEventListener('click', () => {
   }
 });
 $('reset-draft').addEventListener('click', () => {
+  fixedEditor?.reset();
   rules = editablePolicy(parent?.rule);
   $('rule-rationale').value = '';
   restoreRuleInputs();
@@ -915,6 +929,7 @@ $('publish-proposal').addEventListener('click', async () => {
 $('rule-rationale').addEventListener('input', () => invalidate());
 $('adopt-current-rules').onclick = () => {
   if (approval.status !== 'verified') return;
+  fixedEditor?.reset();
   parent = structuredClone(approval.current);
   rules = editablePolicy(parent?.rule);
   restoreRuleInputs();
@@ -1014,7 +1029,7 @@ try {
     $('rule-rationale').value = value.rationale || '';
     const migrated = original.schema !== rules.schema;
     $('draft-status').textContent = migrated
-      ? 'Editable uptime rule updated automatically · unapproved'
+      ? 'Editable rule draft updated · no fixed allocations added · unapproved'
       : 'Local draft restored · original baseline preserved';
     if (migrated || legacy) {
       try {
@@ -1033,6 +1048,16 @@ try {
   draftStarted = false;
   tell('Saved draft is invalid or unavailable. Default rules loaded.');
 }
+fixedEditor = mountFixedAllocations($('fixed-allocations'), {
+  getContext: () => ({ rule: rules, snapshot: data }),
+  onChange: (next) => {
+    rules = next;
+    invalidate();
+    renderRules();
+  },
+  onEditing: () => invalidate()
+});
+$('save-distribution-rules').onclick = () => $('save-draft').click();
 rebalance = mountRebalance({
   getContext: () => ({ approval, data, evidence }),
   readApproval: async () => (await currentApprovedRules()).current,

@@ -1,3 +1,4 @@
+import { sameFixedWindow } from './juno-fixed-allocations.mjs';
 import { snapshot, LIQUID_RESERVE, fingerprint } from './juno-delegation-core.mjs';
 import { buildRuleReview, parentMatches } from './juno-delegation-review.mjs';
 
@@ -71,6 +72,14 @@ export async function verifyRebalanceBaseline(review, currentApproval, input, no
   )
     throw Error('The allocation draft has changed. Simulate it again.');
   requireFreshSnapshot(input, now);
+  if (
+    !sameFixedWindow(
+      review.value.calculation.rule,
+      review.value.calculation.snapshot.blockTime,
+      new Date(now).toISOString()
+    )
+  )
+    throw Error('A fixed-allocation period changed. Refresh data and simulate again.');
   if (!parentMatches(review.value.calculation.parent, currentApproval))
     throw Error(
       'The approved rules have changed. Simulate again with the current approved rulebook.'

@@ -8,6 +8,12 @@ native allocation-rule proposal exists and reward claim #384 is still voting.
 The published execution-preparation path therefore does not imply an approved
 rulebook or an available/authorized mainnet redistribution.
 
+Schema-7 source addition, 29 October: [fixed additional allocations](FIXED_DELEGATIONS_2026-10-29.md)
+exempt only their fixed portion from programme eligibility/cap checks, including
+current jail. Technical staking constraints remain. Active-period changes require
+recalculation before submission; the contract does not cancel frozen movements at
+expiry during voting. This addition awaits the manual website release.
+
 ## Product boundary
 
 Owner clarification, 25 October 2026: the Delegation Programme is an independent

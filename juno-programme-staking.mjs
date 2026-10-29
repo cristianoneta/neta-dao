@@ -1,3 +1,4 @@
+import { fixedByValidator, sameFixedWindow } from './juno-fixed-allocations.mjs';
 import { PROGRAMME, operator, LIQUID_RESERVE, capFraction } from './juno-delegation-core.mjs';
 import { GOVERNANCE, EXECUTE } from './juno-governance-core.mjs';
 
@@ -164,7 +165,7 @@ export function assertStaking(messages) {
   return moves;
 }
 
-export function checkMovementState(plan, state) {
+export function checkMovementState(plan, state, fixedTargets = new Map()) {
   if (canonical(plan) !== canonical(movementPlan(plan?.positions)))
     throw Error('Movement plan changed.');
   if (
@@ -199,7 +200,15 @@ export function checkMovementState(plan, state) {
       (move.source &&
         (!source || source.exchangeRateValid !== true || BigInt(source.tokensRaw || '0') <= 0n)) ||
       (move.destination &&
-        (!target || target.jailed !== false || target.exchangeRateValid !== true))
+        (!target ||
+          target.exchangeRateValid !== true ||
+          (target.jailed !== false &&
+            !plan.positions.some(
+              (p) =>
+                p.address === move.destination &&
+                BigInt(p.targetRaw) > 0n &&
+                BigInt(p.targetRaw) <= (fixedTargets.get(p.address) || 0n)
+            ))))
     )
       blockers.push(
         'A source or destination validator is unavailable, jailed or has an invalid exchange rate.'
@@ -243,6 +252,15 @@ export function checkCurrentAllocation(calculation, plan, state) {
     throw Error('Current consensus set is unavailable.');
   const held = new Map(state.positions.map((p) => [p.address, BigInt(p.currentRaw)]));
   const targets = new Map(plan.positions.map((p) => [p.address, BigInt(p.targetRaw)]));
+  const fixed = fixedByValidator(rule, calculation.snapshot.blockTime);
+  if (
+    (rule.fixedAllocations || []).length &&
+    !sameFixedWindow(rule, calculation.snapshot.blockTime, state.blockTime)
+  )
+    throw Error('A fixed-allocation period changed. Refresh and simulate again.');
+  for (const [address, amount] of fixed)
+    if ((targets.get(address) || 0n) < amount)
+      throw Error('The target does not preserve the approved fixed allocation.');
   const available = new Set(state.validators.map((v) => v.address));
   if (
     [
@@ -270,9 +288,11 @@ export function checkCurrentAllocation(calculation, plan, state) {
   const total = projected.reduce((n, v) => n + v.projected, 0n),
     cap = capFraction(rule, count);
   for (const v of nodes.filter((v) => (targets.get(v.address) || 0n) > 0n)) {
-    if (v.jailed || v.exchangeRateValid !== true)
+    const regular = (targets.get(v.address) || 0n) - (fixed.get(v.address) || 0n);
+    if (v.exchangeRateValid !== true || (regular > 0n && v.jailed))
       throw Error('A target validator is now unavailable or jailed. Refresh and simulate again.');
     if (
+      regular > 0n &&
       rule.commissionMaxBps !== null &&
       BigInt(v.commissionAtoms) > BigInt(rule.commissionMaxBps) * 100000000000000n
     )
@@ -280,6 +300,7 @@ export function checkCurrentAllocation(calculation, plan, state) {
         'A recipient now exceeds the approved commission limit. Refresh and simulate again.'
       );
     if (
+      regular > 0n &&
       rule.schema >= 3 &&
       (!v.active ||
         v.consensusAddress !==
@@ -288,7 +309,7 @@ export function checkCurrentAllocation(calculation, plan, state) {
       throw Error(
         'A recipient left the recorded consensus set. Refresh its participation evidence and simulate again.'
       );
-    if (v.projected * cap.denominator > total * cap.numerator)
+    if (regular > 0n && v.projected * cap.denominator > total * cap.numerator)
       throw Error(
         'A target now exceeds the approved voting-power cap. Refresh and simulate again.'
       );

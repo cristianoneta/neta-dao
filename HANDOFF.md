@@ -33,8 +33,13 @@ Read the [29 October evidence checkpoint](docs/DELEGATION_CHECKPOINT_2026-10-29.
 - Bonus scoring and historical no-jail evidence remain unimplemented. Current
   jail exclusion and configurable observed commit-signature minimum are separate.
 
-Only documentation is being refreshed here. No signing, broadcast, deployment,
-custody change or production-data mutation is authorized by this status update.
+The checkpoint above was documentation-only. The owner subsequently approved
+[fixed additional allocations](docs/FIXED_DELEGATIONS_2026-10-29.md): schema 7 reserves
+explicit obligations-based targets before allocating the regular remainder. Fixed
+portions bypass programme eligibility and cap rules, while technical execution
+checks remain. No recipient is preconfigured. Source implementation and validation
+are separate from the still-manual website release; no wallet action, custody
+change or production-data mutation is involved.
 
 ## Resolved native vote transmission
 

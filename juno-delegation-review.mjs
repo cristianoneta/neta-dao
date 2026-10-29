@@ -5,6 +5,7 @@ import {
   canonical,
   fingerprint,
   eligibilityDescription,
+  units,
   LIQUID_RESERVE
 } from './juno-delegation-core.mjs';
 import { activeSetEvidence } from './juno-active-set-history.mjs';
@@ -68,6 +69,25 @@ export function ruleChanges(before, after) {
       numerical: a === undefined || b === undefined
     });
   }
+  const previousFixed = new Map((old?.fixedAllocations || []).map((a) => [a.validator, a]));
+  const nextFixed = new Map((p.fixedAllocations || []).map((a) => [a.validator, a]));
+  const describe = (a) =>
+    a
+      ? `${units(a.amountRaw)} JUNO · ${a.startDate} to ${a.endDate} (UTC, inclusive) · ${a.purpose}${a.documentation ? ' · ' + a.documentation : ''}`
+      : 'No fixed allocation';
+  for (const address of [...new Set([...previousFixed.keys(), ...nextFixed.keys()])].sort()) {
+    const a = previousFixed.get(address),
+      b = nextFixed.get(address);
+    rows.push({
+      key: 'fixed:' + address,
+      label: 'Fixed allocation · exempt from regular criteria and cap',
+      address,
+      before: old ? describe(a) : 'Not established',
+      after: describe(b),
+      changed: canonical(a) !== canonical(b),
+      numerical: true
+    });
+  }
   return rows;
 }
 function readEvidence(value, s) {
@@ -92,7 +112,14 @@ function readEvidence(value, s) {
   }
   return { window: structuredClone(value.window), records };
 }
-function calculate(p, s, budget, evidence, history) {
+function calculate(p, s, budget, evidence, history, previous = false) {
+  if (previous) {
+    try {
+      return calculate(p, s, budget, evidence, history);
+    } catch (error) {
+      return { status: 'unavailable', reason: error.message, result: null };
+    }
+  }
   if (!evidence.window.coverageComplete)
     return {
       status: 'unavailable',
@@ -148,6 +175,7 @@ function calculationSnapshot(s, policies, evidence) {
       BigInt(v.currentRaw) > 0n ||
       policies.some(
         (p) =>
+          (p.fixedAllocations || []).some((a) => a.validator === v.address) ||
           p.exclusions.some((e) => e.validator === v.address) ||
           (p.schema === 2 &&
             !v.jailed &&
@@ -219,10 +247,12 @@ export async function buildRuleReview({
     },
     frozen = readEvidence(frozenEvidence, projected),
     proposed = calculate(p, projected, budget, frozen, activeHistory),
-    previous = parent ? calculate(parent.rule, projected, budget, frozen, activeHistory) : null;
+    previous = parent
+      ? calculate(parent.rule, projected, budget, frozen, activeHistory, true)
+      : null;
   // Guard the reduction with an independent calculation over the full snapshot.
   for (const [pol, reduced] of [[p, proposed], ...(parent ? [[parent.rule, previous]] : [])]) {
-    const full = calculate(pol, s, budget, evidence, activeHistory);
+    const full = calculate(pol, s, budget, evidence, activeHistory, reduced === previous);
     if (full.result) {
       const byAddress = new Map(full.result.rows.map((v) => [v.address, v.targetRaw]));
       if (
@@ -437,7 +467,7 @@ export async function readProposalReview(values) {
       );
   } else {
     const section = values.body?.match(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/m);
-    if (section && [3, 4, 5, 6].includes(JSON.parse(section[1])?.schema))
+    if (section && [3, 4, 5, 6, 7].includes(JSON.parse(section[1])?.schema))
       throw Error(
         'This policy version requires its complete frozen comparison. Return to the planner to prepare it.'
       );

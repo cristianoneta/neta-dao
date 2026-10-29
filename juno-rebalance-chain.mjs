@@ -1,3 +1,4 @@
+import { fixedByValidator } from './juno-fixed-allocations.mjs';
 import { junoConsensusHex } from './juno-consensus-address.mjs';
 import { PROGRAMME, operator } from './juno-delegation-core.mjs';
 import { reader, quorum } from './juno-community-governance.mjs';
@@ -155,7 +156,7 @@ export async function stakingState(get, height) {
     unbondings: unbonds
   };
 }
-export async function checkRebalanceSource(get, review, height) {
+export async function checkRebalanceSource(get, review, height, blockTime) {
   const [account, info, code, admin, paused, withdraw, state] = await Promise.all([
     get('/cosmos/auth/v1beta1/module_accounts/gov'),
     get(`/cosmwasm/wasm/v1/contract/${PROGRAMME}`),
@@ -166,7 +167,13 @@ export async function checkRebalanceSource(get, review, height) {
     stakingState(get, height)
   ]);
   verifyProgrammeAuthority({ account, info, code, admin, paused, withdraw });
-  const blockers = checkMovementState(review.value.plan, state);
+  state.blockTime = blockTime;
+  const calculation = review.value.calculation;
+  const blockers = checkMovementState(
+    review.value.plan,
+    state,
+    fixedByValidator(calculation.rule, calculation.snapshot.blockTime)
+  );
   if (blockers.length) throw Error(blockers.join(' '));
   checkCurrentAllocation(review.value.calculation, review.value.plan, state);
   return {
@@ -200,7 +207,7 @@ export async function checkRebalance(review, { endpoints = REBALANCE_SOURCES, ..
     async (endpoint) => {
       const r = await reader(endpoint, 'juno-1', { ...options, requireHeight: true });
       return {
-        state: await checkRebalanceSource(r.get, review, r.height),
+        state: await checkRebalanceSource(r.get, review, r.height, r.blockTime),
         endpoint,
         height: r.height
       };

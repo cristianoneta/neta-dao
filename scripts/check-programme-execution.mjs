@@ -149,7 +149,7 @@ try {
         '@type': '/cosmos.crypto.ed25519.PubKey',
         key: i === 0 ? publicKey : sha(address).toString('base64')
       },
-      jailed: false,
+      jailed: i === 34,
       status: i === 0 ? 'BOND_STATUS_BONDED' : 'BOND_STATUS_UNBONDED',
       tokens: String(tokens),
       delegator_shares: (i === 36 ? tokens * 0.99 : tokens) + '.000000000000000000',
@@ -554,7 +554,43 @@ try {
     atomicBefore,
     'Failed proposal leaves programme liquid funds intact'
   );
+  // The SDK accepts a delegation to an existing jailed validator. Cosmoot's
+  // schema-7 exception is a programme policy choice, not a removed chain check.
+  const exceptionBefore = await positions();
+  const exceptionBalance = await balance();
+  const exceptionVote = await runProposal(
+    'programme-fixed-targets',
+    stakingMessages([
+      { kind: 'delegate', destination: validators[0], amountRaw: '1000000' },
+      { kind: 'delegate', destination: validators[34], amountRaw: '1234567' }
+    ])
+  );
+  assert.equal(exceptionVote.status, 'PROPOSAL_STATUS_PASSED', exceptionVote.failed_reason);
+  const exceptionAfter = await positions();
+  assert.equal(
+    held(exceptionAfter, validators[0]) - held(exceptionBefore, validators[0]),
+    1000000n
+  );
+  assert.equal(
+    held(exceptionAfter, validators[34]) - held(exceptionBefore, validators[34]),
+    1234567n
+  );
+  // Delegate settles accrued distribution rewards before changing shares. Those
+  // rewards can increase liquid funds during the voting period.
+  assert.ok((await balance()) >= exceptionBalance - 2234567n);
+  assert.ok((await balance()) >= 50000000n);
+  assert.equal(
+    (await get(rest + '/cosmos/staking/v1beta1/validators/' + validators[34])).validator.jailed,
+    true
+  );
+  for (const address of validators.filter((_, i) => i !== 0 && i !== 34))
+    assert.equal(held(exceptionAfter, address), held(exceptionBefore, address));
   const report = {
+    fixedDestinationMessages: {
+      status: exceptionVote.status,
+      jailedDestination: true,
+      unchangedOtherPositions: true
+    },
     chain,
     juno: 'v31.0.0',
     binarySha256: expectedBinary,
