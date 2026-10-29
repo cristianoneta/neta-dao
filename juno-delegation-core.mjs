@@ -414,7 +414,9 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
             regularRaw: regularRaw.toString(),
             fixedAllocation: fixedEntries.find((a) => a.validator === v.address) || null,
             capException:
-              fixedRaw > 0n && v.base + target > (denominator * cap.numerator) / cap.denominator
+              fixedRaw > 0n &&
+              projectedMembers.has(v.address) &&
+              v.base + target > (denominator * cap.numerator) / cap.denominator
           }
         : {}),
       deltaRaw: (target - BigInt(v.currentRaw)).toString(),

@@ -126,6 +126,8 @@ test('failed criteria exempt only the fixed portion, including jail, exclusions,
     const r = run(x);
     assert.equal(r.rows[0].eligible, false, failure);
     assert.equal(r.rows[0].regularRaw, '0', failure);
+    if (failure === 'jail')
+      assert.equal(r.rows[0].capException, false, 'Jailed stake has no voting power');
     assert.equal(r.rows[0].targetRaw, amount('500000').toString(), failure);
     assert.equal(
       r.rows.reduce((n, v) => n + BigInt(v.targetRaw), 0n) + BigInt(r.unallocatedRaw),
