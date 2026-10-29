@@ -1,4 +1,5 @@
 import { fingerprint, units } from './juno-delegation-core.mjs';
+import { activeFixed } from './juno-fixed-allocations.mjs';
 import { verifyRuleReview } from './juno-delegation-review.mjs';
 import { packReview, unpackReview } from './juno-review-transport.mjs';
 import {
@@ -43,6 +44,9 @@ function executionDescription(c, plan, legacy = false) {
   return (
     `Rules #${c.parent.proposalId} · observations: block ${c.snapshot.height} (${c.snapshot.blockTime}).\n` +
     `JUNO: delegate ${units(plan.totals.delegate)}; redelegate ${units(plan.totals.redelegate)}; begin unbonding ${units(plan.totals.undelegate)}.\n\n` +
+    (c.rule.fixedAllocations?.length
+      ? `Fixed targets reserved: ${units(activeFixed(c.rule, c.snapshot.blockTime).reduce((sum, a) => sum + BigInt(a.amountRaw), 0n))} JUNO. Only this portion bypasses regular eligibility and the voting-power cap. Periods use the frozen observation date; the contract does not cancel movements if a period ends during voting.\n\n`
+      : '') +
     'Unbonding is delayed; share rounding may leave dust. State changes during voting can cause execution to fail. Submission is not execution.\n\n'
   );
 }

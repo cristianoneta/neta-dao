@@ -1,3 +1,9 @@
+import {
+  allocationBreakdown,
+  budgetBreakdown,
+  renderFixedMandates
+} from './juno-fixed-allocation-view.mjs';
+import { rowStatus } from './juno-delegation-view.mjs';
 import { executionReview } from './juno-rebalance-execution.mjs';
 import { checkRebalance } from './juno-rebalance-chain.mjs';
 import { rebalanceProposal } from './planner-proposal-draft.mjs';
@@ -85,7 +91,7 @@ export function mountRebalance({ getContext, readApproval, download, openProposa
       const p = approval.current.rule,
         cap = data ? capFraction(p, data.activeCount) : null;
       for (const [label, value] of [
-        ['Allocation', 'Equal within cap'],
+        ['Allocation', 'Fixed targets + equal regular allocation'],
         [
           'Voting-power cap',
           cap
@@ -97,13 +103,15 @@ export function mountRebalance({ getContext, readApproval, download, openProposa
           'Minimum uptime',
           p.schema >= 5 ? `${p.minParticipationBps / 100}%` : 'Not required by this version'
         ],
-        ['Manual exclusions', String(p.exclusions.length)]
+        ['Manual exclusions', String(p.exclusions.length)],
+        ['Fixed allocations', String(p.fixedAllocations?.length || 0)]
       ]) {
         const row = node('div', '');
         row.append(node('dt', label), node('dd', value));
         $('rebalance-rule-facts').append(row);
       }
     }
+    renderFixedMandates($('rebalance-fixed'), ready ? approval.current.rule : {}, data);
     $('rebalance-available').textContent = data
       ? `${formatAmount(availableBudget(data), true)} JUNO`
       : 'Unavailable';
@@ -122,6 +130,7 @@ export function mountRebalance({ getContext, readApproval, download, openProposa
     $('rebalance-unallocated').textContent = formatAmount(result.unallocatedRaw);
     $('rebalance-observed').textContent =
       `Approved proposal #${value.value.approvedProposalId} · block ${value.value.calculation.snapshot.height.toLocaleString('en-US')} · ${new Date(value.value.calculation.snapshot.blockTime).toLocaleString()}. Targets use these observations. Movement checks are reported separately below.`;
+    $('rebalance-budget-split').textContent = budgetBreakdown(result);
     $('rebalance-identifiers').textContent =
       `Approved policy SHA-256: ${value.value.approvedPolicyHash}. Allocation draft SHA-256: ${value.hash}. Existing redelegations: ${value.value.calculation.existingRedelegationCount}; see the current movement check before preparing a proposal.`;
     $('rebalance-rows').replaceChildren();
@@ -137,7 +146,8 @@ export function mountRebalance({ getContext, readApproval, download, openProposa
     for (const v of rows) {
       const tr = node('tr', ''),
         name = node('td', v.name);
-      name.append(node('small', v.eligible ? 'Eligible' : v.reasons.join(' · ')));
+      name.append(node('small', rowStatus(v)));
+      if (v.reasons.length) name.append(node('small', v.reasons.join(' · ')));
       name.title = v.address;
       tr.append(name);
       for (const [label, raw] of [
@@ -153,6 +163,8 @@ export function mountRebalance({ getContext, readApproval, download, openProposa
           delta ? (n > 0n ? 'increase' : n < 0n ? 'decrease' : '') : ''
         );
         td.dataset.label = label + ' · JUNO';
+        if (label === 'Target' && BigInt(v.fixedRaw || '0') > 0n)
+          td.append(node('small', allocationBreakdown(v), 'fixed-breakdown'));
         td.title = units(n) + ' JUNO';
         tr.append(td);
       }

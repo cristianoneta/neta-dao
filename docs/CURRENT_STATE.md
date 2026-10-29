@@ -24,6 +24,20 @@ live-wallet acceptance and current collector health. The backend installation ha
 own dated acceptance record. The agent made no wallet transaction or browser restore;
 the independently observed #384 submission is recorded separately above.
 
+## Fixed additional allocations — source implementation, 29 October
+
+The owner approved schema 7 with explicitly documented fixed targets, reserved
+before regular equal-capped allocation. Only fixed portions bypass programme
+eligibility and cap rules; the actual stake still affects regular capacity.
+Distribution includes authoring and budget breakdown; immutable rule and execution
+reviews preserve obligations, dates, exact amounts and supporting links. Rebalance
+keeps approved rules separate from local edits. No recipient is preconfigured.
+
+[Semantics, UX, date boundaries and validation](FIXED_DELEGATIONS_2026-10-29.md).
+This source is not yet published. The last verified website release remains the
+one above. Rule approval and separately voted fund movements are still required;
+no wallet, contract or infrastructure operation was performed.
+
 ## Delegation Programme continuation — checked 29 October
 
 The [dated checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md) records two-source
@@ -154,6 +168,7 @@ See [header semantics and limits](HOME_FALLBACK_2026-10-24.md#upstream-diagnosti
 | Feature | Current implementation / publication | Limits and owning reference |
 | --- | --- | --- |
 | Delegation Programme | Published Eligibility → Distribution → Review → Rebalance, compact criteria, monetary sorting, approved-policy discovery and checked staking-proposal preparation | No supported native rule approval exists at the 29 October checkpoint. Rebalance requires approval and no pending programme treasury proposal; #384 is voting. [Programme](JUNO_DELEGATION_PROGRAMME.md), [execution](REBALANCE_EXECUTION_2026-10-25.md). |
+| Fixed additional allocations | Schema-7 source implementation; awaiting manual website release | Exact fixed targets reserved before regular allocation; regular eligibility/cap exemptions are explicit. No preset beneficiary, automatic renewal or contract-enforced expiry. [Specification](FIXED_DELEGATIONS_2026-10-29.md). |
 | Validator history | Published available-period/90-day transition; schema 6 permits 95–100% with default 97.5%. Approximately 15.03 days validated on 29 October | Provider-observed continuous membership and reconciled commit counts, not a completed 90-day record or historical no-jail proof. Historical schemas retain their meaning. [History](VALIDATOR_HISTORY.md), [checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md). |
 | Programme reward claim | Corrected 37-withdrawal Stargate envelope published and submitted successfully as native #384 from review 3 | In voting at the 29 October observation; no mainnet execution claim. Local Juno regression separately verifies withdrawals and unchanged delegations. #381 remains failed. [Repair](PROGRAMME_CLAIM_REPAIR_2026-10-23.md), [checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md). |
 | Juno community review | Mainnet review v0.3.1, finalization, author withdrawal, native submission/deposits and voting | Fresh authority/content/balance checks; explicit wallet confirmation; pending outcomes remain locked. Operations legacy review is a separate UNI-7 flow. [Semantics](GOVERNANCE_EXECUTION_SEMANTICS.md), [funding](JUNO_COMMUNITY_FUNDING.md). |

@@ -129,7 +129,7 @@ export async function reader(
   )
     throw Error('Fresh data from the expected chain is required.');
   height = String(header.height);
-  return { get, height, endpoint, checkedAt: now };
+  return { get, height, endpoint, blockTime: header.time, checkedAt: now };
 }
 export async function quorum(endpoints, read, same, label = 'Chain verification') {
   const sources = endpointsOf(endpoints);

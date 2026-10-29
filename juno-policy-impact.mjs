@@ -1,3 +1,9 @@
+import {
+  allocationBreakdown,
+  budgetBreakdown,
+  appendFixedDetails
+} from './juno-fixed-allocation-view.mjs';
+import { rowStatus } from './juno-delegation-view.mjs';
 import { simulate, amount } from './juno-delegation-core.mjs';
 import { formatAmount } from './juno-delegation-view.mjs';
 
@@ -62,7 +68,8 @@ export function renderPolicyImpact(host, model) {
   const state = impactState.get(host) || {
     key: 'targetRaw',
     direction: 'descending',
-    expanded: false
+    expanded: false,
+    fixedOnly: false
   };
   impactState.set(host, state);
   const head = node('div', undefined, 'impact-heading');
@@ -79,9 +86,9 @@ export function renderPolicyImpact(host, model) {
   const result = model.result;
   for (const [label, value, help] of [
     [
-      'Eligible validators',
+      'Regular eligibility',
       result ? `${result.eligibleCount} / ${result.rows.length}` : '—',
-      'All mandatory checks must pass'
+      'Fixed allocations remain separate'
     ],
     ['Largest allocation', model.largest || '—', 'Of the total target budget'],
     ['Top-three share', model.topThree || '—', 'Concentration indicator']
@@ -95,6 +102,8 @@ export function renderPolicyImpact(host, model) {
     host.append(node('p', model.error, 'impact-notice'));
     return;
   }
+  if (result.fixedRaw !== undefined)
+    host.append(node('p', budgetBreakdown(result), 'fixed-budget'));
   const mix = node('div', undefined, 'impact-mix');
   const mixHead = node('div', undefined, 'impact-mix-heading');
   mixHead.append(
@@ -110,7 +119,7 @@ export function renderPolicyImpact(host, model) {
     meter,
     node(
       'p',
-      `Equal allocation within the voting-power limit · ${formatAmount(result.unallocatedRaw)} JUNO unallocated`,
+      `Regular allocation within the voting-power limit · ${formatAmount(result.unallocatedRaw)} JUNO unallocated`,
       'policy-subtitle'
     )
   );
@@ -118,7 +127,7 @@ export function renderPolicyImpact(host, model) {
     mix,
     node(
       'p',
-      'Bonus evidence is not connected. These targets use the current equal-allocation rules; the points explorer does not change proposals.',
+      'Bonus evidence is not connected. The regular budget uses equal-allocation rules; the points explorer does not change proposals.',
       'impact-notice'
     )
   );
@@ -141,6 +150,12 @@ export function renderPolicyImpact(host, model) {
     }
   }
   sortLabel.append(sortSelect);
+  const fixedFilter = node('label', undefined, 'fixed-filter'),
+    fixedCheckbox = node('input');
+  fixedCheckbox.type = 'checkbox';
+  fixedCheckbox.checked = state.fixedOnly;
+  fixedFilter.append(fixedCheckbox, document.createTextNode('Fixed allocations only'));
+  toolbar.append(fixedFilter);
   const table = node('table', undefined, 'impact-table');
   const caption = node('caption', 'Estimated programme allocations in JUNO');
   caption.className = 'sr-only';
@@ -175,7 +190,11 @@ export function renderPolicyImpact(host, model) {
   toggle.type = 'button';
   toggle.hidden = result.rows.length <= 8;
   const renderRows = () => {
-    const rows = sortImpactRows(result.rows, state.key, state.direction);
+    const rows = sortImpactRows(
+      result.rows.filter((r) => !state.fixedOnly || BigInt(r.fixedRaw || '0') > 0n),
+      state.key,
+      state.direction
+    );
     sortSelect.value = `${state.key}:${state.direction}`;
     for (const { th, button, arrow, key, name } of headers) {
       const active = state.key === key;
@@ -206,11 +225,16 @@ export function renderPolicyImpact(host, model) {
         `Exact JUNO: current ${formatAmount(row.currentRaw, true)} · target ${formatAmount(row.targetRaw, true)} · change ${formatAmount(row.deltaRaw, true)}`
       );
       details.append(amounts);
+      if (row.fixedAllocation) appendFixedDetails(details, row.fixedAllocation);
       name.append(
         details,
         node(
           'small',
-          row.eligible ? 'Eligible' : 'Excluded · inspect evidence',
+          BigInt(row.fixedRaw || '0') > 0n
+            ? rowStatus(row)
+            : row.eligible
+              ? 'Eligible'
+              : 'Excluded · inspect evidence',
           row.eligible ? 'impact-eligible' : 'impact-excluded'
         )
       );
@@ -225,14 +249,28 @@ export function renderPolicyImpact(host, model) {
           (label === 'Change' && BigInt(value) > 0n ? '+' : '') + formatAmount(value)
         );
         cell.dataset.label = label;
+        if (label === 'Target' && BigInt(row.fixedRaw || '0') > 0n)
+          cell.append(node('small', allocationBreakdown(row), 'fixed-breakdown'));
         line.append(cell);
       }
       tbody.append(line);
     }
+    if (!rows.length) {
+      const line = node('tr'),
+        cell = node('td', 'No fixed allocations in this calculation.');
+      cell.colSpan = 4;
+      line.append(cell);
+      tbody.append(line);
+    }
+    toggle.hidden = rows.length <= 8;
     toggle.textContent = state.expanded
       ? 'Show first 8 validators'
       : `Show all ${rows.length} validators`;
     toggle.setAttribute('aria-expanded', String(state.expanded));
+  };
+  fixedCheckbox.onchange = () => {
+    state.fixedOnly = fixedCheckbox.checked;
+    renderRows();
   };
   sortSelect.onchange = () => {
     [state.key, state.direction] = sortSelect.value.split(':');

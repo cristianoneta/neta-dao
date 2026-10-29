@@ -1,5 +1,9 @@
 # Juno Delegation Programme
 
+29 October source addition: [fixed additional allocations](FIXED_DELEGATIONS_2026-10-29.md)
+reserve documented targets before regular allocation under schema 7. Publication
+is pending; historical policy schemas and existing approvals remain unchanged.
+
 ## Current status — 29 October 2026
 
 The Delegation Programme is an independent product integrated with Cosmoot.

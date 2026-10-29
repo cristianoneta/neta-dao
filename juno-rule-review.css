@@ -409,3 +409,39 @@
     flex-basis: 100%;
   }
 }
+
+/* Shared fixed-allocation evidence in author and voter views. */
+.fixed-mandate {
+  display: grid;
+  gap: 8px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--neta-border);
+  overflow-wrap: anywhere;
+}
+.fixed-mandate summary {
+  cursor: pointer;
+}
+.fixed-mandate small,
+.fixed-address {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.fixed-mandate p {
+  white-space: pre-wrap;
+}
+.fixed-budget {
+  font-variant-numeric: tabular-nums;
+  line-height: 1.7;
+  padding-block: 8px;
+}
+.fixed-breakdown {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.72rem;
+  font-weight: 400;
+  white-space: normal;
+  line-height: 1.5;
+}
+.rr-rule span {
+  white-space: pre-wrap;
+}

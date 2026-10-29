@@ -27,6 +27,12 @@ export function stakeShare(raw, total) {
   return `${basisPoints / 100n}.${(basisPoints % 100n).toString().padStart(2, '0')}%`;
 }
 export function rowStatus(v) {
+  if (BigInt(v.fixedRaw || '0') > 0n) {
+    if (v.capException) return 'Fixed allocation · above regular cap';
+    return v.regularRaw === '0'
+      ? 'Fixed only · no regular allocation'
+      : 'Regular + fixed allocation';
+  }
   if (v.reasons.some((r) => r.startsWith('Manual exclusion:'))) return 'Manually excluded';
   if (v.jailed) return 'Jailed';
   if (v.reasons.includes('Commission above limit')) return 'Commission above limit';
@@ -42,6 +48,22 @@ export function rowStatus(v) {
   return 'Equal allocation';
 }
 export function allocationReason(v) {
+  if (BigInt(v.fixedRaw || '0') > 0n) {
+    const regular = BigInt(v.regularRaw);
+    return (
+      `${formatAmount(v.fixedRaw, true)} JUNO is the approved fixed target component, not a repeated top-up. ` +
+      `${formatAmount(v.regularRaw, true)} JUNO comes from the remaining regular budget. ` +
+      (v.reasons.length ? 'Regular eligibility: ' + v.reasons.join(' · ') + '. ' : '') +
+      (v.capException ? 'The fixed allocation exceeds the regular voting-power cap. ' : '') +
+      (regular === 0n && v.eligible
+        ? 'No regular allocation fits the remaining cap capacity or budget. '
+        : '') +
+      'The fixed portion is exempt from regular criteria; it still counts toward actual stake.'
+    );
+  }
+  return regularAllocationReason(v);
+}
+function regularAllocationReason(v) {
   if (!v.eligible) return v.reasons.join(' · ') + '. No target allocation under these draft rules.';
   if (v.capacityRaw === '0')
     return 'Otherwise eligible, but stake excluding this programme is already at or above the projected voting power limit. The programme cannot reduce other delegators’ stake.';
@@ -58,6 +80,7 @@ export function selectRows(result, { query = '', filter = 'all', sort = 'change'
   return result.rows
     .filter((v) => {
       if (!`${v.name} ${v.address}`.toLowerCase().includes(q)) return false;
+      if (filter === 'fixed') return BigInt(v.fixedRaw || '0') > 0n;
       if (filter === 'receiving') return BigInt(v.targetRaw) > 0n;
       if (filter === 'cap') return v.eligible && v.capReached;
       if (filter === 'review') return !v.jailed && v.upgrade.status !== 'observed';

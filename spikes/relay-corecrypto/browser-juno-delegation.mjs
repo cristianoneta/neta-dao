@@ -761,7 +761,7 @@ try {
   assert.ok(review.rule.exclusions.some((v) => v.validator === selected.address));
   assert.equal(review.rule.commissionMaxBps, 1900);
   assert.deepEqual(review.messages, []);
-  assert.equal(review.rule.schema, 6);
+  assert.equal(review.rule.schema, 7);
   assert.equal(review.rule.minParticipationBps, 9901);
   assert.equal(review.policyHash.length, 64);
   const shots = process.env.NNS_SCREENSHOT_DIR;
@@ -1136,7 +1136,7 @@ try {
     const stored = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3'))
     );
-    assert.equal(stored.rule.schema, 6);
+    assert.equal(stored.rule.schema, 7);
     assert.equal(stored.rule.minParticipationBps, 9750);
     assert.deepEqual(stored.parent, old.schema === 2 ? null : preservedParent);
     assert.equal(stored.rationale, old.schema === 2 ? '' : 'Preserved migration rationale');
@@ -1249,6 +1249,138 @@ try {
       /These rules are fixed/
     );
   }
+
+  // Fixed allocations: authoring, failures, local persistence, frozen review and approved isolation.
+  state = 'current';
+  historyComplete = true;
+  historyDays = 5;
+  approvalState = 'empty';
+  publishedRule = null;
+  await page.evaluate(() => localStorage.removeItem('cosmoot:juno:delegation:rule-draft:v3'));
+  await page.goto(origin + '/community-tools/juno/delegation/?fixed-test=1#distribution');
+  await ready();
+  await page.waitForFunction(
+    () => document.getElementById('current-rules-state').textContent === 'Awaiting first approval'
+  );
+  assert.match(await page.locator('#fixed-allocations').innerText(), /No fixed allocations/);
+  await page.getByRole('button', { name: 'Add allocation', exact: true }).click();
+  await page.locator('#fixed-validator').fill(sample.validators[0].address);
+  await page.locator('#fixed-amount').fill('500000.000001');
+  await page
+    .locator('#fixed-purpose')
+    .fill(
+      'Operate archive. Monthly evidence reviewed by the programme. <script>text only</script>'
+    );
+  const day = new Date().toISOString().slice(0, 10);
+  const end = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
+  await page.locator('#fixed-startDate').fill(day);
+  await page.locator('#fixed-endDate').fill(end);
+  await page.locator('#fixed-documentation').fill('https://example.org/mandate');
+  await page.locator('#save-distribution-rules').click();
+  assert.match(await page.locator('#feedback').textContent(), /Apply or cancel/);
+  await page.getByRole('button', { name: 'Apply allocation', exact: true }).click();
+  await page.waitForFunction(() =>
+    document.getElementById('distribution-impact').textContent.includes('500,000.00 fixed')
+  );
+  assert.equal(await page.locator('#fixed-allocations script').count(), 0);
+  await page.locator('#programme-amount').fill('1');
+  await page.waitForFunction(() =>
+    document.getElementById('distribution-impact').textContent.includes('exceed the budget')
+  );
+  await page.locator('#budget-max').click();
+  await step('rules');
+  await page.getByText('Edit exclusions', { exact: true }).click();
+  await page.locator('#excluded-validator').fill(sample.validators[0].address);
+  await page.locator('#excluded-reason').fill('Regular exclusion fixture');
+  await page.locator('#add-exclusion').click();
+  await step('distribution');
+  await page.locator('#save-distribution-rules').click();
+  await page.reload();
+  await ready();
+  const savedFixed = await page.evaluate(
+    () =>
+      JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3')).rule
+        .fixedAllocations
+  );
+  assert.equal(savedFixed.length, 1);
+  assert.equal(savedFixed[0].amountRaw, '500000000001');
+  await page.locator('#distribution-impact .fixed-filter input').check();
+  await page.waitForFunction(
+    () => document.querySelectorAll('#distribution-impact tbody tr').length === 1
+  );
+  assert.match(await page.locator('#distribution-impact tbody').innerText(), /Fixed only/);
+  assert.match(await page.locator('#distribution-impact tbody').innerText(), /0.00 regular/);
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+      'Fixed allocation overflow'
+    );
+    if (shots)
+      await page.screenshot({ path: `${shots}/fixed-allocation-${width}.png`, fullPage: true });
+  }
+  await page.getByRole('button', { name: 'Edit', exact: true }).click();
+  await page.locator('#fixed-purpose').fill('Changed obligations');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.getByRole('button', { name: 'Remove', exact: true }).click();
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await simulate();
+  assert.match(
+    await page.locator('#simulation-comparison').innerText(),
+    /Fixed allocation · exempt/
+  );
+  const fixedDownload = page.waitForEvent('download');
+  await page.locator('#export-json').click();
+  const fixedChunks = [];
+  for await (const chunk of await (await fixedDownload).createReadStream()) fixedChunks.push(chunk);
+  const fixedReview = JSON.parse(Buffer.concat(fixedChunks));
+  assert.equal(fixedReview.rule.fixedAllocations[0].amountRaw, '500000000001');
+  assert.match(fixedReview.rule.fixedAllocations[0].purpose, /Operate archive/);
+  assert.equal(
+    fixedReview.proposed.targets[
+      fixedReview.snapshot.validators.findIndex((v) => v.address === sample.validators[0].address)
+    ],
+    '500000000001'
+  );
+  await page.locator('#publish-proposal').click();
+  await page.waitForFunction(() => document.querySelector('#proposal-rule-review .fixed-mandate'));
+  assert.match(await page.locator('#proposal-rule-review').innerText(), /Operate archive/);
+  // Read the planner's frozen draft through its existing local storage envelope.
+  const packet = await page.evaluate(async () => {
+    const { readPlannerProposal } = await import('/planner-proposal-draft.mjs');
+    return readPlannerProposal(
+      localStorage,
+      new URL(location.href).searchParams,
+      'juno-delegation'
+    );
+  });
+  publishedRule = {
+    ...approved,
+    id: '1001',
+    title: packet.values.title,
+    summary: packet.values.summary + '\n\n' + packet.values.body,
+    status: 'PROPOSAL_STATUS_PASSED',
+    voting_end_time: new Date(Date.now() - 1000).toISOString()
+  };
+  approvalState = 'approved';
+  await page.goto(origin + '/community-tools/juno/delegation/?fixed-approved=1#rebalance');
+  await page.waitForFunction(
+    () => document.getElementById('rebalance-rule-title').textContent === 'Proposal #1001'
+  );
+  await page.locator('#rebalance-max').click();
+  await page.locator('#rebalance-simulate').click();
+  await page.waitForFunction(() => !document.getElementById('rebalance-proposal').disabled);
+  assert.match(await page.locator('#rebalance-fixed').innerText(), /500,000.00/);
+  const fixedFrozen = await page.locator('#rebalance-identifiers').innerText();
+  await step('distribution');
+  await page.getByRole('button', { name: 'Remove', exact: true }).click();
+  await step('rebalance');
+  assert.equal(await page.locator('#rebalance-identifiers').innerText(), fixedFrozen);
+  assert.match(await page.locator('#rebalance-fixed').innerText(), /500,000.00/);
+  await page.locator('#rebalance-proposal').click();
+  await page.waitForFunction(() => document.querySelector('#proposal-rule-review .fixed-mandate'));
+  assert.match(await page.locator('#proposal-rule-review').innerText(), /Operate archive/);
+  assert.match(await page.locator('#proposal-rule-review').innerText(), /0.00 regular/);
 
   assert.deepEqual(errors, []);
   console.log(

@@ -1,3 +1,9 @@
+import {
+  allocationBreakdown,
+  budgetBreakdown,
+  appendFixedDetails,
+  renderFixedMandates
+} from './juno-fixed-allocation-view.mjs';
 import { comparison } from './juno-delegation-review.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
 import { participationText } from './juno-participation-history.mjs';
@@ -113,6 +119,11 @@ export function renderRuleReview(
     renderRuleChanges(changes, model.changes);
     host.append(changes);
   }
+  if (value.rule.fixedAllocations?.length) {
+    const mandates = el('section');
+    renderFixedMandates(mandates, value.rule, value.snapshot);
+    host.append(mandates);
+  }
   if (distribution) renderDistribution(host, model);
   const details = el('details', '', 'rr-provenance');
   details.append(el('summary', 'Exact rules, observations & calculation data'));
@@ -201,6 +212,7 @@ function renderDistribution(host, model) {
     filter = field('Show', 'select', [
       ['all', 'All comparison validators'],
       ['receiving', 'Receiving an allocation'],
+      ['fixed', 'Fixed allocations'],
       ['cap', 'Limited by voting power'],
       ['review', 'Evidence review required'],
       ['excluded', 'Not eligible'],
@@ -262,11 +274,14 @@ function renderDistribution(host, model) {
       stats.append(card);
     }
     secondary.textContent = `Budget: ${amount(model.value.budgetRaw)} JUNO · Proposed total: ${amount(model.proposed.result?.allocatedRaw ?? null)} · Unallocated: ${amount(model.proposed.result?.unallocatedRaw ?? null)}. Net allocation change: ${change(c.net)} JUNO. Current holdings outside the active set: ${amount(c.outsideRaw)} JUNO.`;
+    if (model.proposed.result?.fixedRaw !== undefined)
+      secondary.textContent += ' ' + budgetBreakdown(model.proposed.result);
     const q = search.value.trim().toLowerCase();
     const rows = c.rows
       .filter((v) => {
         if (!`${v.name} ${v.address}`.toLowerCase().includes(q)) return false;
         if (checkbox.checked && c.available && v.delta === '0') return false;
+        if (filter.value === 'fixed') return BigInt(v.next?.fixedRaw || '0') > 0n;
         if (filter.value === 'receiving') return v.after !== null && BigInt(v.after) > 0n;
         if (filter.value === 'cap') return v.next?.eligible && v.next.capReached;
         if (filter.value === 'review')
@@ -332,6 +347,8 @@ function renderDistribution(host, model) {
       ]) {
         const cell = el('div', '', 'rr-number ' + css);
         cell.append(el('small', label), el('strong', number));
+        if (label === 'Proposed' && BigInt(v.next?.fixedRaw || '0') > 0n)
+          cell.append(el('small', allocationBreakdown(v.next), 'fixed-breakdown'));
         top.append(cell);
       }
       const details = el('details');
@@ -358,6 +375,7 @@ function renderDistribution(host, model) {
           reason +=
             ' Its own eligibility and capacity are unchanged; the difference comes from redistribution after other rule effects (including rounding).';
         details.append(el('p', reason));
+        if (v.next.fixedAllocation) appendFixedDetails(details, v.next.fixedAllocation);
       } else details.append(el('p', model.proposed.reason));
       if (model.value.rule.schema >= 5 && v.next)
         details.append(el('p', participationText(v.next.participation), 'rr-participation'));

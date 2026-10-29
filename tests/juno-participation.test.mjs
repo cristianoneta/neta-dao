@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
   defaultPolicy,
+  configurableParticipationPolicy,
   observedCommitPolicy,
   collectingPolicy,
   strictHistoryPolicy,
@@ -240,6 +241,7 @@ test('only editable rules migrate; settings and original approvals retain their 
     strictHistoryPolicy(),
     collectingPolicy(),
     observedCommitPolicy(),
+    configurableParticipationPolicy(),
     defaultPolicy()
   ]) {
     original.factorTenths = 18;
@@ -249,7 +251,8 @@ test('only editable rules migrate; settings and original approvals retain their 
     ];
     const hash = await fingerprint(original),
       migrated = editablePolicy(original);
-    assert.equal(migrated.schema, 6);
+    assert.equal(migrated.schema, 7);
+    assert.deepEqual(migrated.fixedAllocations, []);
     assert.equal(migrated.minParticipationBps, 9750);
     assert.equal(migrated.factorTenths, 18);
     assert.equal(migrated.commissionMaxBps, null);
