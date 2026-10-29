@@ -1,5 +1,37 @@
 # Juno Delegation Programme
 
+## Current status — 29 October 2026
+
+The Delegation Programme is an independent product integrated with Cosmoot.
+The published planning views are **Eligibility → Distribution → Review → Rebalance**;
+Overview is a secondary link. Compact controls, exact monetary sorting, unified
+Review, supported-rule discovery and checked Rebalance proposal preparation are
+published. The production allocation remains equal-capped; base/bonus exploration
+does not affect the approved schema or real allocation targets.
+
+Schema 6 defaults to 97.5% observed commit signatures and permits 95–100%; continuous
+active membership uses the full available interval until the rolling 90-day window
+exists. Current jail, commission, manual exclusion and cap checks remain separate.
+The public export has approximately 15.03 validated days at the dated checkpoint;
+it is not historical no-jail evidence or an independently replayed archive.
+
+Corrected reward review 3 was submitted as native #384 and is voting. No supported
+native allocation-rule proposal was found in the fully paginated current proposal
+store. Prepare the first rule review as the next product step; Rebalance requires
+an actual approved revision and resolution of pending programme treasury actions.
+Rule approval does not move funds or deploy a rule-enforcement contract.
+
+Use [CURRENT_STATE](CURRENT_STATE.md) for releases, the
+[29 October checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md) for dated observations,
+the [current workspace](DELEGATION_WORKSPACE_2026-10-25.md) for UI behavior and
+[checked execution](REBALANCE_EXECUTION_2026-10-25.md) for transaction boundaries.
+The dated development notes below preserve earlier decisions and validation;
+their old candidate labels, navigation, standby/scoring plans and release gates
+are historical, not a second current task list. Original policy versions and
+published reviews retain their original meaning.
+
+## Historical development notes
+
 24 October owner update (source candidate): schema 6 makes the minimum observed
 commit-signature ratio configurable from 95–100%, in 0.01-percentage-point steps,
 with 97.5% as the default. It is open criterion 6, after Manual exclusions at 5.

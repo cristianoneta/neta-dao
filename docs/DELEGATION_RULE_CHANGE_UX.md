@@ -1,6 +1,16 @@
 # Rule changes, impact comparison and allocation approval
 
-17 October 2026 · implementation candidate in PR #295 · not released.
+Original design/implementation checkpoint: 17 October 2026, PR #295.
+
+Current acceptance, 29 October: the rule comparison and unified Review are
+published. Checked Rebalance preparation and compact-rule discovery were added
+by #319/#320 and are also published. See [CURRENT_STATE](CURRENT_STATE.md),
+[checked execution](REBALANCE_EXECUTION_2026-10-25.md) and the
+[29 October chain checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md). No supported
+native allocation-rule proposal exists at that observation. Older candidate
+tables and absent-execution statements below describe the original #295 scope,
+not the current capabilities or remaining publication work. Rule approval and
+separately voted redistribution remain different decisions.
 
 This extends the [delegation product design](DELEGATION_PRODUCT_DESIGN.md) after
 the owner's review. It records how the existing planner and proposal workspace

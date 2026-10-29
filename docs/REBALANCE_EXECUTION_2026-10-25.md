@@ -1,5 +1,13 @@
 # Delegation Programme: checked execution
 
+Publication confirmed: PR #319 shipped in manual release 40219239387 on
+25 October; PR #320's compact-rule discovery correction shipped in release
+40223522400. Both are included in the latest verified website release 40589638063.
+At the [29 October checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md), no supported
+native allocation-rule proposal exists and reward claim #384 is still voting.
+The published execution-preparation path therefore does not imply an approved
+rulebook or an available/authorized mainnet redistribution.
+
 ## Product boundary
 
 Owner clarification, 25 October 2026: the Delegation Programme is an independent
@@ -85,7 +93,7 @@ Source checks cover exact integer arithmetic, codecs independently decoded by
 CosmJS, frozen content tampering, wrong authority, stale/mismatched heights,
 incomplete pagination, changed approval/holdings, insufficient funds, staking
 locks and responsive browser handoff. The real Juno test remains a required CI
-gate. This source change requires the deliberate manual Cloudflare website
+gate. This source change was published through the deliberate manual Cloudflare website
 release; the read-only proxy is bundled in that same release. No OVH installation,
 contract deployment or custody change is required.
 
@@ -113,10 +121,9 @@ rule proposal through the production finalized-review content builder (including
 its review-bound metadata), passes a native vote, recognizes its exact approved policy hash and
 checks unchanged programme liquid funds and delegations. Browser coverage likewise
 follows the compact proposal through passage and activation in Rebalance, including
-an unchanged older compact envelope. This correction needs its own website release
-following the Rebalance integration. Release 40219239387 completed successfully
-and served execution-module bytes match its source on both public domains; that
-earlier release does not contain this correction.
+an unchanged older compact envelope. Release 40219239387 published the earlier
+Rebalance integration; release 40223522400 subsequently published this correction.
+The acceptance boundary is recorded at the top of this document.
 
 “Binding rules” means the exact governance-approved revision used and enforced by
 Cosmoot's supported Rebalance path. Rule approval is a text proposal: it does not

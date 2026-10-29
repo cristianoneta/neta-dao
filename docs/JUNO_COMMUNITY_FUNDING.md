@@ -1,5 +1,18 @@
 # Juno programme review and deposits
 
+Current acceptance, 29 October: Juno mainnet review/finalization, native submission,
+deposits and direct voting are published. The reviewed higher-gas native vote was
+accepted on-chain; corrected reward review 3 was successfully submitted as #384
+with full funding and remains in voting at the dated observation. See
+[CURRENT_STATE](CURRENT_STATE.md), [vote evidence](NATIVE_VOTE_TRANSMISSION_2026-10-27.md)
+and the [29 October checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md). Native submission
+uses its own [bounded gas policy](PROPOSAL_SUBMISSION_GAS_2026-10-27.md); vote and
+deposit-contribution policies remain separate. No pending journal is discarded.
+
+The notes below preserve the 9–11 October implementation chronology. Their UNI-7
+review references, read-only-voting statement, candidate labels and outstanding
+release steps are historical; they do not describe today's mainnet release.
+
 9 October 2026, implementation candidate. This change requires CI and a manual
 website release. No real wallet signature, mainnet submission or deposit was
 performed during development.
