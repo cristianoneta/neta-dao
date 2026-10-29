@@ -1379,7 +1379,9 @@ try {
   assert.match(await page.locator('#rebalance-fixed').innerText(), /500,000.00/);
   await page.locator('#rebalance-proposal').click();
   await page.waitForFunction(() => document.querySelector('#proposal-rule-review .fixed-mandate'));
+  await page.locator('#proposal-rule-review .fixed-mandate summary').click();
   assert.match(await page.locator('#proposal-rule-review').innerText(), /Operate archive/);
+  assert.match(await page.locator('#proposal-rule-review').innerText(), /500,000.000001/);
   assert.match(await page.locator('#proposal-rule-review').innerText(), /0.00 regular/);
 
   assert.deepEqual(errors, []);

@@ -124,7 +124,7 @@ export function renderRuleReview(
     renderFixedMandates(mandates, value.rule, value.snapshot);
     host.append(mandates);
   }
-  if (distribution) renderDistribution(host, model);
+  if (distribution) renderDistribution(host, model, scope === 'execution');
   const details = el('details', '', 'rr-provenance');
   details.append(el('summary', 'Exact rules, observations & calculation data'));
   details.append(
@@ -156,7 +156,7 @@ export function renderRuleReview(
       )
     );
 }
-function renderDistribution(host, model) {
+function renderDistribution(host, model, execution = false) {
   let mode = 'actual',
     page = 0;
   const pageSize = 10,
@@ -253,7 +253,9 @@ function renderDistribution(host, model) {
     checkbox.disabled = !c.available;
     note.textContent =
       mode === 'actual'
-        ? 'Actual programme holdings → proposed target. Amounts are JUNO; this is an allocation estimate, not a transaction plan.'
+        ? execution
+          ? 'Recorded programme holdings → frozen execution target. Amounts are JUNO; the exact staking movements are bound to this proposal.'
+          : 'Actual programme holdings → proposed target. Amounts are JUNO; this is an allocation estimate, not a transaction plan.'
         : 'Old target → new target. Both policies use the same snapshot, evidence and budget; existing portfolio drift is excluded.';
     if (!model.value.parent)
       note.textContent += ' Rule-only comparison starts after the first approval.';

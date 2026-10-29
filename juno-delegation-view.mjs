@@ -51,7 +51,7 @@ export function allocationReason(v) {
   if (BigInt(v.fixedRaw || '0') > 0n) {
     const regular = BigInt(v.regularRaw);
     return (
-      `${formatAmount(v.fixedRaw, true)} JUNO is the approved fixed target component, not a repeated top-up. ` +
+      `${formatAmount(v.fixedRaw, true)} JUNO is the fixed target component in this rulebook, not a repeated top-up. ` +
       `${formatAmount(v.regularRaw, true)} JUNO comes from the remaining regular budget. ` +
       (v.reasons.length ? 'Regular eligibility: ' + v.reasons.join(' · ') + '. ' : '') +
       (v.capException ? 'The fixed allocation exceeds the regular voting-power cap. ' : '') +
