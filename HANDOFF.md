@@ -1,19 +1,40 @@
 # Cosmoot public development handoff
 
-Updated 27 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
+Updated 29 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
-## Active repair: native proposal submission gas
+## Current continuation: Delegation Programme
 
-After successfully voting, the owner hit the old 2M gas-estimate guard while
-submitting the finalized corrected reward claim with a full deposit. The exact
-read-only simulation reproduces the guard; a partial deposit stays below it.
-Use a dedicated bounded submission fee policy and test both deposit choices on
-the real local Juno fixture. Preserve the finalized review and the working vote
-fee/recovery behavior. See [evidence and scope](docs/PROPOSAL_SUBMISSION_GAS_2026-10-27.md).
-The submission correction still requires integration, deliberate publication and
-owner wallet acceptance.
+The owner returned to the Delegation Programme on 29 October. The latest verified
+website release is [40589638063](https://github.com/cristianoneta/neta-dao/actions/runs/40589638063),
+source `65f48c5bff863eea44c99cd6516984cd7c37a074`, including PR #327. Its publication
+step succeeded; the served native-submission module matches the source. Do not
+repeat this release or either completed gas repair.
+
+Read the [29 October evidence checkpoint](docs/DELEGATION_CHECKPOINT_2026-10-29.md):
+
+- Corrected review 3 was successfully submitted as native **proposal #384** with
+  a 5,000 JUNO deposit, fee 0.231942 JUNO and 2,255,995 of 3,092,554 gas consumed.
+  Two independent RPC sources confirm the receipt and corrected 37-withdrawal
+  envelope. It is still voting; scheduled end is **1 November, 21:53 UTC / 22:53
+  Europe/Berlin**. Check the eventual outcome; submission is not reward execution.
+- No native proposal matching Cosmoot's supported allocation-rule format exists
+  in the complete current proposal enumeration. Historical programme decisions
+  are not a new structured approval. Review/submit initial rules as the next
+  product step; keep any private draft and frozen community review intact.
+- The public planner now contains approximately **15.03 days** of continuous
+  available history with reconciled participation counts, through 29 October
+  20:06:37 UTC. Production evidence validation succeeds for that interval. It is
+  still collecting toward 90 days and remains provider-observed evidence.
+- Rebalance preparation is published but requires an actual approved rule revision
+  and no pending programme treasury proposal. Resolve #384, then refresh balances,
+  evidence and staking locks before preparing a separately voted redistribution.
+- Bonus scoring and historical no-jail evidence remain unimplemented. Current
+  jail exclusion and configurable observed commit-signature minimum are separate.
+
+Only documentation is being refreshed here. No signing, broadcast, deployment,
+custody change or production-data mutation is authorized by this status update.
 
 ## Resolved native vote transmission
 
@@ -25,7 +46,7 @@ sequence binding, predecessor archives and pending journals. See
 [scope, evidence and validation](docs/NATIVE_VOTE_TRANSMISSION_2026-10-27.md).
 The exact original pre-#325 RPC error was not retained.
 
-## Active product work: five-pool WYND swap
+## Published five-pool WYND swap; live acceptance still open
 
 The owner requested five pools with current USD liquidity, clickable asset menus,
 the original flickering WYND mascot and a 50-USD cap. Continue from the
@@ -42,11 +63,11 @@ wallet returned a different fee. The follow-up passes the reviewed-fee/memo
 preferences to the swap signer while preserving exact signed-byte validation.
 PR #323's correction was published in release 40227248631 at source
 `c573f21d7a304948197fd7eb29012cbac83a9683`; successful live wallet acceptance is
-still unconfirmed. The owner now requested `/wynd` as a short link to the existing
-swap page. PR #324's Pages redirects for `/wynd` and `/wynd/` were published in
+still unconfirmed. The requested `/wynd` short link is implemented. PR #324's
+Pages redirects for `/wynd` and `/wynd/` were published in
 release 40378998268 at source `8b7da376e5c942e7cdf3e2544e636b9d9fbef339`.
 
-## Rule approval follow-up
+## Published rule-approval discovery
 
 PR #319 is integrated and published in deliberate release 40219239387.
 A subsequent lifecycle check found that compact rule proposal text omitted the
@@ -57,7 +78,7 @@ comparison. See [correction and validation](docs/REBALANCE_EXECUTION_2026-10-25.
 Do not equate a submitted rule proposal with an approved rulebook or a deployed
 rule-enforcement contract. The correction is published in the subsequent five-pool release 40223522400.
 
-## Active product work: checked Rebalance
+## Published checked Rebalance preparation
 
 The owner clarified that the Delegation Programme is an independent product,
 integrated with Cosmoot and bringing users into it, not Cosmoot's product core.

@@ -1,5 +1,12 @@
 # Programme reward claim repair — 23 October 2026
 
+Updated acceptance, 29 October: the corrected envelope is published and was
+submitted successfully as native proposal #384, linked to finalized review 3.
+It is in voting at the [29 October checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md);
+mainnet reward execution has not yet occurred at that observation. The dedicated
+[submission-gas correction](PROPOSAL_SUBMISSION_GAS_2026-10-27.md) was also published.
+The execution results below are explicitly local regression evidence.
+
 The corrected claim keeps native Juno governance as the administrator of the
 programme's DAO DAO core. It replaces unsupported CosmWasm `distribution`
 messages with supported `stargate` messages containing the protobuf
@@ -10,7 +17,7 @@ governance. No contract migration or DAO voting-module change is required.
 Read [the required execution semantics](GOVERNANCE_EXECUTION_SEMANTICS.md) before
 changing this route. `AGENTS.md` makes this a continuing project requirement.
 
-## Actual chain execution evidence
+## Actual local-chain execution evidence
 
 `scripts/check-programme-execution.mjs` starts an isolated Juno chain with a
 fresh ephemeral local test account. It imports the original deployed DAO core
@@ -62,6 +69,7 @@ To reproduce, install the locked faucet dependencies and run
   does not consume the explanation. Publication, finalization and signing
   recheck the claim context; published reviews are never silently rewritten.
 
-This repair and the already merged review-size correction are intended for one
-manual website release. The prior containment was not separately published.
-This document records tested source behavior, not a production deployment.
+This repair and the review-size correction are included in the published source
+identified by the dated checkpoint above. Preserve the original local regression
+as evidence for its fixture; successful mainnet submission remains distinct from
+future proposal execution.

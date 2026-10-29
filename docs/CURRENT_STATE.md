@@ -1,6 +1,6 @@
 # Current state — Cosmoot
 
-Updated 27 October 2026. This is the authoritative current feature and release
+Updated 29 October 2026. This is the authoritative current feature and release
 inventory. Update rows in place; retain dated evidence separately. Public/private
 boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
@@ -8,9 +8,9 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `11b07d9958ffa486be8b38a456022cf624dbe9ef` | [Manual release 40586044487](https://github.com/cristianoneta/neta-dao/actions/runs/40586044487) succeeded on 27 October. Includes #326's reviewed higher-gas vote replacement alongside the existing swap and `/wynd` short link. |
+| Last successful website release | Source `65f48c5bff863eea44c99cd6516984cd7c37a074` | [Manual release 40589638063](https://github.com/cristianoneta/neta-dao/actions/runs/40589638063) published PR #327 on 27 October after successful full checks. Includes the working native vote policy, separate proposal gas correction, swap and `/wynd` short link. Served submission-module bytes matched on 29 October. |
 | Native vote gas correction | Published; successful owner wallet acceptance verified on-chain | The higher-gas vote was included with code 0, the expected Yes ballot and 118,192 gas used from 250,000. Preserve original-sequence binding and both attempts during uncertain outcomes. [Evidence, safeguards and validation](NATIVE_VOTE_TRANSMISSION_2026-10-27.md). |
-| Native proposal submission gas | Candidate; publication and live acceptance pending | Full funding of the corrected reward claim exceeds the old 2M simulation guard. A dedicated proposal fee bounds the final gas including reserve and preserves the separate working vote policy. [Reproduction and validation](PROPOSAL_SUBMISSION_GAS_2026-10-27.md). |
+| Native proposal submission gas | Published; successful live submission verified | Corrected reward review 3 became native #384 with code 0, 2,255,995 / 3,092,554 gas and fee 0.231942 JUNO. Its 5,000 JUNO deposit opened voting; execution remains pending. [Reproduction](PROPOSAL_SUBMISSION_GAS_2026-10-27.md), [two-source checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md). |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
 | Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Published in release 40106761715; updated homepage observed on both website domains. Responsive CI passed at 320/390/768/1440 px; separate mobile live acceptance and controlled live fallback remain open. |
 | Collector archives / efficiency | Source captures UTC Treasury days, archives expired validator evidence before pruning, preserves daily membership/planner observations and signed prices, and shares bounded RPC results | [Scope and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md). Owner confirmed host installation and successful manual collector/archive checks on 24 October; regular cycles, multi-day growth and measured savings remain pending. Local archives do not prove independent retention. |
@@ -21,7 +21,25 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 The failed pre-#303 release 40073942022 did not publish #302. The successful
 release above supersedes that checkpoint. Workflow publication is separate from
 live-wallet acceptance and current collector health. The backend installation has its
-own dated acceptance record; no new wallet transaction or browser restore is claimed.
+own dated acceptance record. The agent made no wallet transaction or browser restore;
+the independently observed #384 submission is recorded separately above.
+
+## Delegation Programme continuation — checked 29 October
+
+The [dated checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md) records two-source
+native history/receipt checks and public planner validation. Corrected claim #384
+is voting until 1 November at 21:53 UTC (22:53 Europe/Berlin); it has not yet executed
+at the observation height. No native proposal with the supported allocation-rule
+title exists in the fully paginated current store. Historical programme policies
+remain historical decisions, not a verified new planner revision. Initial rule
+review/approval is the next product step. Separate Rebalance preparation requires
+approved rules and resolution of pending programme treasury actions, including #384.
+
+The public snapshot now provides continuous available-period history and reconciled
+commit counts through 29 October 20:06:37 UTC, approximately 15.03 days. Production
+validators accept that interval; the 90-day target is not yet reached. This updates
+the older unavailable-history checkpoint without claiming independently replayed
+history, scheduled host acceptance or a new allocation authorization.
 
 [Release 40105745463](https://github.com/cristianoneta/neta-dao/actions/runs/40105745463)
 on source `54121449927f30af6e5d590051d0e4323da19b04` was blocked before publication:
@@ -64,7 +82,8 @@ checks current funds/authority/redelegation limits through independent sources,
 and opens the existing Cosmoot community-review/native-governance flow. Rule
 approval, exploratory point settings and uncertain transaction journals retain
 separate meanings. [Specification, validation and limits](REBALANCE_EXECUTION_2026-10-25.md).
-PR #319 is integrated and published in manual release 40219239387 at the source recorded above.
+PR #319 is integrated and published in manual release 40219239387 at source
+`ae29770b07bfa09b092b87bb69c6d336ae816e5e`; it remains included in the current release.
 
 ## Five-pool WYND swap and short link — published, 26 October
 
@@ -103,9 +122,10 @@ The correction was subsequently published together with PR #321 in release
 Manual exclusions at point 5 and configurable Uptime at point 6 (95–100%, default
 97.5%) were published in release 40128216384. Policy schema 6 applies the selected
 minimum; historical schemas and approvals retain their original meaning.
-The repaired history collector had resumed progress at the last operational
-checkpoint. Completion of catch-up requires a fresh history-bearing public
-snapshot; publication alone does not establish complete or current observations.
+The 29 October public snapshot now contains validated continuous history and
+participation counters through its observation height. This resolves the older
+unavailable-history checkpoint; complete 90-day coverage and independent history
+verification remain distinct from available-period validation.
 
 ## Compact header follow-up
 
@@ -133,9 +153,9 @@ See [header semantics and limits](HOME_FALLBACK_2026-10-24.md#upstream-diagnosti
 
 | Feature | Current implementation / publication | Limits and owning reference |
 | --- | --- | --- |
-| Delegation Programme | Published rule workflow with actual holdings/rewards and approved-policy discovery; published #318 includes compact criteria, monetary sorting and unified Review; checked staking execution is a separate source candidate | Frozen old/new rules and allocation impacts; rule approval does not authorize redistribution. [Programme](JUNO_DELEGATION_PROGRAMME.md), [review](DELEGATION_RULE_CHANGE_UX.md). |
-| Validator history | Automatic use of the collected period until 90 days exist, then the rolling window; schema 5 fixes the minimum at 97.5%; published schema 6 permits 95–100% | Continuous observed membership, exact counts and original collection start; unavailable/gapped evidence blocks eligibility. Historical schemas retain their meaning. [History](VALIDATOR_HISTORY.md). |
-| Programme reward claim | Correct DAO DAO Stargate withdrawals with the programme as delegator and destination | Required real local Juno test reproduces old/wrong-authority failures and verifies 37 withdrawals plus unchanged delegations. First replacement includes the #381 explanation; later omission uses agreed chain history. [Repair](PROGRAMME_CLAIM_REPAIR_2026-10-23.md). |
+| Delegation Programme | Published Eligibility → Distribution → Review → Rebalance, compact criteria, monetary sorting, approved-policy discovery and checked staking-proposal preparation | No supported native rule approval exists at the 29 October checkpoint. Rebalance requires approval and no pending programme treasury proposal; #384 is voting. [Programme](JUNO_DELEGATION_PROGRAMME.md), [execution](REBALANCE_EXECUTION_2026-10-25.md). |
+| Validator history | Published available-period/90-day transition; schema 6 permits 95–100% with default 97.5%. Approximately 15.03 days validated on 29 October | Provider-observed continuous membership and reconciled commit counts, not a completed 90-day record or historical no-jail proof. Historical schemas retain their meaning. [History](VALIDATOR_HISTORY.md), [checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md). |
+| Programme reward claim | Corrected 37-withdrawal Stargate envelope published and submitted successfully as native #384 from review 3 | In voting at the 29 October observation; no mainnet execution claim. Local Juno regression separately verifies withdrawals and unchanged delegations. #381 remains failed. [Repair](PROGRAMME_CLAIM_REPAIR_2026-10-23.md), [checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md). |
 | Juno community review | Mainnet review v0.3.1, finalization, author withdrawal, native submission/deposits and voting | Fresh authority/content/balance checks; explicit wallet confirmation; pending outcomes remain locked. Operations legacy review is a separate UNI-7 flow. [Semantics](GOVERNANCE_EXECUTION_SEMANTICS.md), [funding](JUNO_COMMUNITY_FUNDING.md). |
 | Native voting display | Four choices, live tally, direct voting, participation and validator/direct-address views | Incomplete detail is unavailable, not zero; no invented historical final participation. [Voting](JUNO_GOVERNANCE_VOTING.md). |
 | One-off DAI proposal | Direct template link fills 460.9 axlDAI to the recipient of proposal #382; no permanent button | Exact native Community Pool spend is tested locally. Dimi's conversion to USDC and return are separate manual operations, not automated by the proposal. Opening the link does not sign. |

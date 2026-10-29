@@ -104,6 +104,7 @@ unchanged sequence/balance after rejection, inclusion with the reviewed vote fee
 and rejection of another adequately funded signature at the consumed sequence.
 All chain writes in that gate are confined to its ephemeral loopback chain.
 
-Run repository verification, the faucet SDK tests, reproducible signing build and
-all required CI gates before integration. Preserve the pending browser records
-through publication; the owner chooses whether to send their reviewed saved vote.
+The correction is integrated and published, with successful live vote acceptance
+recorded above. Future changes must rerun repository verification, faucet SDK tests,
+the reproducible signing build and all applicable CI gates. Preserve uncertain
+browser journals; do not repeat the resolved vote as part of documentation upkeep.

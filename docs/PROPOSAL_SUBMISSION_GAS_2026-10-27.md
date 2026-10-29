@@ -5,6 +5,14 @@ after PR #326's release, then reported a different error while submitting the
 finalized corrected programme reward claim. This follow-up concerns native
 MsgSubmitProposal only. The finalized review and executable content are preserved.
 
+29 October acceptance: PR #327 was published in manual release
+[40589638063](https://github.com/cristianoneta/neta-dao/actions/runs/40589638063)
+at `65f48c5bff863eea44c99cd6516984cd7c37a074`. Two independent RPC providers
+confirmed successful mainnet submission of the corrected review as proposal #384:
+2,255,995 gas used from 3,092,554, fee 0.231942 JUNO and a 5,000 JUNO deposit.
+It was still voting on 29 October; later execution remains unconfirmed.
+See the [dated chain and release evidence](DELEGATION_CHECKPOINT_2026-10-29.md).
+
 ## Reproduction
 
 The old controller called fixedFee(estimate, 1.4, 0.075ujuno, 2000000).
@@ -60,5 +68,6 @@ Submission simulation is not future execution evidence. The SDK checks message
 signers/routes and stores the proposal; ordinary proposal messages can still fail
 when executed after voting. See [governance semantics](GOVERNANCE_EXECUTION_SEMANTICS.md)
 and the [pinned SDK handler](https://github.com/cosmos/cosmos-sdk/blob/v0.53.7/x/gov/keeper/proposal.go).
-No live submission was signed or sent by the agent. Publication and owner wallet
-acceptance remain separate from the source regression checks.
+No live submission was signed or sent by the agent. Publication and successful
+live submission are now independently recorded above; the source regression checks
+do not establish the eventual mainnet vote or reward-execution outcome.

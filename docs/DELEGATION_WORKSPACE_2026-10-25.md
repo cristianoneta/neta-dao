@@ -1,8 +1,12 @@
 # Delegation policy workspace — 25 October 2026
 
 The owner approved transfer of the separate policy lab’s presentation and process
-into the real Delegation Programme. This source candidate preserves the live data
-readers, rule schemas, frozen review format and native governance handoffs.
+into the real Delegation Programme. PR #318's refinement was published in release
+40200433577 on 25 October, preserving the live data readers, rule schemas, frozen
+review format and native governance handoffs. PR #319 subsequently added checked
+Rebalance proposal preparation; PR #320 corrected compact-rule discovery. See the
+[current execution specification](REBALANCE_EXECUTION_2026-10-25.md) and
+[29 October acceptance](DELEGATION_CHECKPOINT_2026-10-29.md).
 
 ## Corrected user flow
 
@@ -47,11 +51,14 @@ Opening a draft is distinct from publishing community review, wallet submission,
 native voting and later chain execution. The existing corrected claim path and
 real-Juno execution gate remain mandatory and unchanged.
 
-Rebalance does **not** generate executable staking messages. Its export is explicitly
+At the #318 refinement checkpoint, Rebalance did **not** generate executable staking
+messages. Its simulation export remains explicitly
 `ALLOCATION_SIMULATION`, `executionEnabled: false`, `messages: []`; it is not passed
-to `savePlannerProposal` or the wallet. The disabled execution action explains the
-remaining delegation/redelegation constraints, authority and real-chain tests.
-Approval of the policy alone cannot move funds.
+to `savePlannerProposal` or the wallet. The subsequently published #319 path prepares
+a separate checked staking proposal after approval, authority, funds and lock
+verification. The simulation export itself never becomes an execution authorization.
+Approval of the policy alone cannot move funds. On 29 October no supported native
+rule proposal was present and the corrected reward claim #384 remained pending.
 
 ## Planned points model
 

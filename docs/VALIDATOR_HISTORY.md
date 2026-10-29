@@ -1,5 +1,23 @@
 # Juno validator history
 
+## Public acceptance — 29 October 2026
+
+The current same-origin planner export contains continuous available-period
+history from 14 October 19:17:50 UTC through 29 October 20:06:37 UTC, approximately
+15.03 days, with 25 reconciled participation records. Production `snapshot()` and
+`participationEvidence()` validation succeeds for the observed interval and reports
+`collecting: true`. See the [exact heights, source and limits](DELEGATION_CHECKPOINT_2026-10-29.md).
+
+The older unavailable-export/catch-up status is superseded by this public evidence.
+It does not verify every raw historical signature independently or establish host
+timer/backup acceptance. The archive remains provider-observed and has not reached
+90 days. Schema 6's configurable minimum was published on 24 October; no reinstall
+or new website release is needed for that completed change.
+
+The following dated candidate and installation notes are historical implementation
+evidence. Use [CURRENT_STATE](CURRENT_STATE.md) for current publication/acceptance;
+do not repeat older setup instructions merely because those notes predate deployment.
+
 ## Configurable minimum — 24 October 2026 source candidate
 
 Policy schema 6 uses the same observed counters and continuous shared history
@@ -9,7 +27,7 @@ expected * minimum exactly; rounded display percentages never decide eligibility
 Schema 5 remains fixed at 9750 and historical frozen reviews retain their hashes.
 This changes no collection method, archive, chain transaction or scoring model.
 During the 24 October check, the public planner reported an unavailable archive;
-server diagnosis and a successful history-bearing snapshot are still required.
+the successful history-bearing snapshot above supersedes that observation.
 
 ## Planner commit-count export — 19 October 2026 candidate
 
