@@ -15,6 +15,7 @@ export function budgetBreakdown(result) {
 }
 export function appendFixedDetails(host, entry) {
   host.append(
+    el('p', `Exact fixed target: ${formatAmount(entry.amountRaw, true)} JUNO`),
     el('p', `${entry.startDate} – ${entry.endDate} · UTC dates, inclusive`),
     el('p', entry.purpose)
   );
@@ -66,7 +67,7 @@ export function mountFixedAllocations(host, { getContext, onChange, onEditing })
     heading,
     el(
       'p',
-      'Reserve fixed JUNO amounts first. Regular rules apply to the remaining budget.',
+      'Reserve fixed JUNO amounts first. These amounts bypass regular eligibility and the voting-power cap. Regular rules apply to the remaining budget.',
       'field-help'
     ),
     list,
