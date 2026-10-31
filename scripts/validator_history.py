@@ -27,7 +27,7 @@ CHAIN = 'juno-1'
 RPC = 'https://juno.rpc.m.stavr.tech'
 REST = 'https://juno.api.m.stavr.tech'
 EVENTS = {'slash', 'unjail', 'edit_validator', 'create_validator', 'proposal_vote',
-          'submit_proposal', 'active_proposal', 'inactive_proposal', 'upgrade',
+          'submit_proposal', 'proposal_deposit', 'cancel_proposal', 'active_proposal', 'inactive_proposal', 'upgrade',
           'software_upgrade', 'cancel_software_upgrade'}
 MESSAGE_ACTIONS = {'/cosmos.slashing.v1beta1.MsgUnjail', '/cosmos.staking.v1beta1.MsgEditValidator',
                    '/cosmos.gov.v1.MsgVote', '/cosmos.gov.v1.MsgVoteWeighted',
@@ -378,10 +378,12 @@ def connect(path):
         previous BLOB NOT NULL, roster INTEGER NOT NULL, flags BLOB NOT NULL,
         validators_hash BLOB NOT NULL, results_hash BLOB NOT NULL, proposer BLOB NOT NULL, round INTEGER NOT NULL);
       CREATE INDEX IF NOT EXISTS blocks_time ON blocks(epoch);
+      CREATE TABLE IF NOT EXISTS event_checks (height INTEGER PRIMARY KEY, sha256 BLOB NOT NULL);
       CREATE TABLE IF NOT EXISTS events (height INTEGER PRIMARY KEY, payload BLOB NOT NULL);
       CREATE TABLE IF NOT EXISTS daily (day TEXT NOT NULL, address TEXT NOT NULL,
         expected INTEGER NOT NULL, signed INTEGER NOT NULL, absent INTEGER NOT NULL, nil INTEGER NOT NULL,
         proposed INTEGER NOT NULL, PRIMARY KEY(day,address));
+      CREATE TABLE IF NOT EXISTS first_entries (address TEXT PRIMARY KEY, height INTEGER NOT NULL, time TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS streaks (address TEXT PRIMARY KEY, entered_height INTEGER NOT NULL,
         entered_time TEXT NOT NULL, observed_at_start INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS transitions (height INTEGER NOT NULL, address TEXT NOT NULL,
@@ -393,6 +395,14 @@ def connect(path):
     if version is not None and version != 1:
         db.close()
         raise ValueError('Unsupported history schema')
+    # Additive upgrade using only existing local observations. Never infer an
+    # exact first entry when earlier daily evidence precedes the retained row.
+    with db:
+        db.execute("""INSERT OR IGNORE INTO first_entries SELECT t.address,t.height,b.time
+          FROM transitions t JOIN blocks b ON b.height=t.height
+          WHERE t.type IN ('observed','enter')
+          AND t.height=(SELECT MIN(x.height) FROM transitions x WHERE x.address=t.address AND x.type IN ('observed','enter'))
+          AND NOT EXISTS (SELECT 1 FROM daily d WHERE d.address=t.address AND d.day<substr(b.time,1,10))""")
     return db
 
 
@@ -445,6 +455,9 @@ def append(db, item):
                     continue
                 set_meta(db, 'lastConsensusParameters', event['updates'])
             events.append(event)
+        if get_meta(db, 'eventChecksStart') is None:
+            set_meta(db, 'eventChecksStart', height)
+        db.execute('INSERT INTO event_checks VALUES (?,?)', (height, hashlib.sha256(canonical(events).encode()).digest()))
         if events:
             db.execute('INSERT INTO events VALUES (?,?)', (height, zlib.compress(canonical(events).encode())))
         old = {r[0] for r in db.execute('SELECT address FROM streaks')}
@@ -453,6 +466,8 @@ def append(db, item):
             db.execute('DELETE FROM streaks WHERE address=?', (address,))
             db.execute('INSERT INTO transitions VALUES (?,?,?)', (height, address, 'exit'))
         for address in current - old:
+            if not db.execute('SELECT 1 FROM daily WHERE address=? LIMIT 1', (address,)).fetchone():
+                db.execute('INSERT OR IGNORE INTO first_entries VALUES (?,?,?)', (address, height, item['time']))
             db.execute('INSERT INTO streaks VALUES (?,?,?,?)', (address, height, item['time'], int(last is None)))
             db.execute('INSERT INTO transitions VALUES (?,?,?)', (height, address, 'observed' if last is None else 'enter'))
         for address, flag in zip(item['roster'], item['flags']):
@@ -496,6 +511,7 @@ def retain(db, through_time, days=180, archive_dir=None):
         if heights:
             end = heights[-1]
             receipt = archive_prefix(db, archive_dir, end)
+            db.execute('DELETE FROM event_checks WHERE height<=?', (end,))
             db.execute('DELETE FROM events WHERE height<=?', (end,))
             db.execute('DELETE FROM blocks WHERE height<=?', (end,))
             db.execute('DELETE FROM transitions WHERE height<=?', (end,))

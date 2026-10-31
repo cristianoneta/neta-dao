@@ -27,17 +27,24 @@ the independently observed #384 submission is recorded separately above.
 
 ## Delegation controls and governance bonus — source refinement, 31 October
 
-The duplicate Additional rule options controls are removed. A single factor input
-accepts 1.0–3.0 under new schema 8; historical schemas retain their original limits.
-The bonus preview places governance first at 100%, with RPC/API, testnet and archive
-disabled at 0%. [Measurement proposal, evidence findings and activation boundaries](DELEGATION_GOVERNANCE_BONUS_2026-10-31.md).
-The owner confirmed flexible bonus weights and use of our own fully observed
-history only: fewer than 90 days or ten proposals is valid during collection; no
-external historical backfill. The governance score is not live: production export
-and weighted allocation still need implementation. The validator working-history
-retention is raised from 120 to 180 days in source, with archive-before-delete and
-no automatic archive expiry. Host installation is pending. The UI source needs a manual website
-release, independently of the Operations collector installation.
+PR #330 implements schema-9 points-based allocation, using only our own fully
+observed governance history. Configurable base/bonus points start at 900/100;
+governance takes 100% of the bonus weight and the three unavailable criteria stay
+at zero. The single cap factor accepts 1.0–3.0. Fixed allocations are reserved
+first and remain exempt; historical schemas 2–8 retain their exact semantics.
+[Measurement, source behavior and validation](DELEGATION_GOVERNANCE_BONUS_2026-10-31.md).
+
+The Python exporter reads captured voting starts, ends and accepted own-account
+votes, with continuous block coverage and persistent first-entry evidence. No
+external historical backfill is performed. Empty complete samples retain base
+points; missing selected evidence blocks a new bonus review. Reviews freeze the
+sample, votes, points settings and targets; approved Rebalance uses that revision.
+
+Working history increases from 120 to 180 days, with verified archive-before-delete
+and no archive expiry. Local source validation covers 443 JavaScript and 242 Python
+tests (14 environment skips). CI/browser validation of this new head, OVH collector
+installation and manual website publication are pending; the preceding PR head's
+18 green CI jobs do not establish acceptance of this follow-up.
 
 ## Fixed additional allocations — source implementation, 29 October
 

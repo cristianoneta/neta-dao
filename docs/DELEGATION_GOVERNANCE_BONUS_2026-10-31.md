@@ -12,13 +12,15 @@ New editable policies use schema 8 for the extended factor range. Schemas 2–7
 retain their original 2.0 maximum and frozen-review meaning. Schema 7's fixed
 allocation behavior is retained without alteration.
 
-The bonus explorer now lists Governance participation first at 100%, followed by
-RPC/API, testnet and archive services at disabled 0%, labelled `(not live)`.
-The entire points model is still explicitly a preview: the current allocator is
-equal-capped, and no production governance score is connected. The owner confirmed
-flexible bonus weighting and use of our own available observations only. The
-measurement rules below guide the remaining implementation; no further request
-for approval of external historical backfill is needed or appropriate.
+Schema 9 now makes the points controls part of the actual proposed policy. It
+uses exact rational points and deterministic capped redistribution of the regular
+budget. Governance is first at 100%; RPC/API, testnet and archive are disabled at
+zero. Base/maximum bonus defaults to 900/100 and is configurable. Schemas 2–8 keep
+their previous equal-allocation semantics and immutable review hashes.
+
+The implementation is source-only until collector installation, CI acceptance and
+the manual website release. A missing governance feed blocks a new bonus-weighted
+review. Approved legacy rules remain usable under their original semantics.
 
 ## Measurement with the owner's collection-window refinement
 
@@ -85,18 +87,30 @@ will be fetched to manufacture a ten-proposal minimum.
 Juno v31.0.0 uses Cosmos SDK v0.53.7. Its
 [tally implementation](https://github.com/cosmos/cosmos-sdk/blob/v0.53.7/x/gov/keeper/tally.go)
 removes individual votes from the current store after tallying. Consequently an
-empty current `/votes` response cannot establish non-participation. Archive
-successful vote transactions and proposal lifecycle information, with chain,
-height/hash, transaction identity and complete coverage. Handle both gov API
-versions, weighted votes, repeated votes and authorized execution.
+empty current `/votes` response cannot establish non-participation. Capture successful native voting events and complete proposal lifecycles instead
+of querying a post-tally vote store. `validator_governance.py` reads only our own
+working SQLite database. The chain coverage endpoints include block hashes;
+proposal periods include observed heights/times; votes retain the unique block
+height, successful transaction index, event index, actual voter and option.
+These references identify events in the frozen coverage's chain ancestry; no
+transaction hash is invented. Individual block headers/results remain in our own
+stored observations. This is provider-observed evidence, not a cryptographic
+proof of each ballot or a current REST vote-store reconstruction.
 
-The existing validator collector retains selected governance events and its
-observed history starts on 14 October. Build the governance export from our own
-captured evidence, verifying complete proposal lifecycles, vote identities and
-continuous coverage. Selected events alone are not yet a ready production score.
-Where those fields cannot be established, begin complete capture prospectively
-and show the real coverage start. No external historical backfill, artificial
-extension of the collection window, overwritten observations or historical zeroes.
+Capture now additionally includes deposit-triggered voting starts and cancellations.
+An older period without an explicit captured start is excluded, never assigned a
+missed vote. Expedited rejection followed by regular voting is not a completed
+period. Repeated votes count once, using the keeper's actual voter account; votes
+by delegators or authorized grantees on their own behalf do not become validator
+votes. Bech32 checksum, prefix and account bytes are validated.
+
+First observed active entries persist across exit/re-entry and rolling pruning.
+The additive migration uses existing own transitions; it refuses to infer a first
+entry when older daily observations precede the retained transition. New blocks
+also record a digest of the selected event payload, detecting missing/changed rows
+from upgrade onward. Older observations do not retroactively gain those integrity
+records. Continuous block/hash coverage and available event fields are checked
+for the entire exported interval, with bounded execution and read-only access.
 
 Missing evidence is `unverified`, not “did not vote”. A deliberately shorter
 complete window is valid; source gaps, corruption or incomplete vote coverage
@@ -132,24 +146,25 @@ transaction/source and coverage status. Keep detailed rules in contextual help.
 Recalculate targets only on a deliberate refreshed review; new votes must not
 rewrite an already frozen or approved review.
 
-Before activation, test the 90-day boundary, bounded own-history extension, a
-young window with fewer than ten proposals, exclusion of partially observed
-periods, no external backfill, ties, open/deposit
-exclusions, failed execution, repeat/weighted/authorized votes, voter identity,
-new-operator opportunities, incomplete archives, zero denominators, exact capped
-weighted allocation, fixed exemptions and immutable review roundtrips. No live
-bonus activation, collector installation or website publication is claimed here.
+The local regression suite covers sampling boundaries, young/empty samples,
+proposal outcomes, repeated/weighted/authorized vote identity, invalid checksums,
+missing message/ballot pairs, deleted/changed events, missing block coverage,
+first-entry preservation, exact capped redistribution, fixed-only exemptions,
+weight changes, unavailable data, historical review hashes and frozen roundtrips.
+A realistic 37-position portfolio with ten observed proposals fits both rule and
+execution review publication and reproduces its exact evidence. Historical 37/55
+position publication cases remain covered using their original rule schema.
 
-For the implemented control changes, `npm run verify` passed (433 JavaScript
-tests and 227 Python tests, including 14 environment-dependent skips). The
-existing browser acceptance script now covers the 3.0 boundary, saving, removal
-of redundant controls, governance ordering/weights and historical null-commission
-restoration. Local Chromium installation did not produce a valid archive, but
-all 18 required CI jobs, including browser acceptance, subsequently passed on
-head `081dbd0503f32e9207121790f919791f32c52a53` in
-[run 41193617465](https://github.com/cristianoneta/neta-dao/actions/runs/41193617465).
-The subsequent 180-day regression failed against the prior 120-day default and
-passes with the correction; archive rollback and restoration tests also pass.
-The final local checks pass 433 JavaScript tests and 228 Python tests (14
-environment-dependent Python skips); the installer's reviewed-source hash was
-updated and validated for the changed collector.
+The compact schema-9 envelope may refer to the policy already embedded in the
+verified frozen comparison instead of repeating JSON outside it. Approval discovery
+requires that validated schema-9 review plus the matching policy hash; legacy
+formats still require their original exact-policy section. Lossless transport uses
+operator indices and relative vote heights. The 10,000-byte limit still fails
+closed for larger evidence; it never drops ballots or silently truncates a sample.
+
+Current local checks pass 443 JavaScript tests and 242 Python tests (14
+environment-dependent skips). The browser acceptance adds point-setting persistence,
+invalid-input handling, new-schema export and unchanged approved-rule behavior.
+The previous head's 18 CI checks passed; CI and browser results for this follow-up
+must be recorded separately before integration. OVH installation and website
+publication remain pending.

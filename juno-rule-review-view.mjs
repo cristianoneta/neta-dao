@@ -1,4 +1,9 @@
 import {
+  appendPointsDetails,
+  governanceWindowText,
+  pointsText
+} from './juno-governance-points-view.mjs';
+import {
   allocationBreakdown,
   budgetBreakdown,
   appendFixedDetails,
@@ -81,6 +86,8 @@ export function renderRuleReview(
     value = review.value;
   host.replaceChildren();
   host.classList.add('rule-review');
+  if (distribution && model.proposed.result?.policy.schema >= 9)
+    host.append(el('p', governanceWindowText(model.proposed.result), 'rr-note'));
   if (rules) {
     const heading = el('div', '', 'rr-heading'),
       intro = el('div');
@@ -328,6 +335,7 @@ function renderDistribution(host, model, execution = false) {
         el('strong', v.name || v.address),
         el('small', v.jailed ? 'Jailed' : v.active ? 'Active set' : 'Outside active set')
       );
+      if (v.next?.points) name.append(el('small', pointsText(v.next.points)));
       top.append(name);
       const graph = el('div', '', 'rr-graph');
       graph.setAttribute('aria-hidden', 'true');
@@ -377,6 +385,7 @@ function renderDistribution(host, model, execution = false) {
           reason +=
             ' Its own eligibility and capacity are unchanged; the difference comes from redistribution after other rule effects (including rounding).';
         details.append(el('p', reason));
+        appendPointsDetails(details, v.next.points, model.value.snapshot.governanceHistory?.source);
         if (v.next.fixedAllocation) appendFixedDetails(details, v.next.fixedAllocation);
       } else details.append(el('p', model.proposed.reason));
       if (model.value.rule.schema >= 5 && v.next)

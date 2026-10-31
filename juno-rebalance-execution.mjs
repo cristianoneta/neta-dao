@@ -61,6 +61,8 @@ export async function executionValues(review) {
     kind: checked.value.kind,
     calculation: packReview(c)
   };
+  if (canonical(unpackReview(packet.calculation)) !== canonical(c))
+    throw Error('The complete rebalance evidence cannot be transported without changes.');
   const bytes = new TextEncoder().encode(canonical(packet));
   if (bytes.length > 750000) throw Error('Rebalance evidence exceeds the supported size.');
   const zipped = new Uint8Array(

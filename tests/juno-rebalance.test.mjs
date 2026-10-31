@@ -10,10 +10,11 @@ import {
   fixture,
   observed,
   activeHistory,
-  withParticipation
+  withParticipation,
+  withGovernance
 } from './fixtures/delegation-planner.mjs';
 async function context(rule = legacyPolicy()) {
-  const s = fixture();
+  const s = withGovernance(fixture());
   const approval = {
     proposalId: '950',
     votingEndedAt: new Date(Date.now() - 3600000).toISOString(),

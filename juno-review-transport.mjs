@@ -37,6 +37,26 @@ export function packReview(value) {
       value.activeHistory.participation.validators.map((v) =>
         counts.map((key) => (key === 'address' ? ids.get(v[key]) : v[key]))
       );
+  if (packed.snapshot.governanceHistory) {
+    const g = packed.snapshot.governanceHistory;
+    const operators = new Map(value.snapshot.validators.map((v, i) => [v.address, i]));
+    const anchor = (a) => [a.height, a.time];
+    g.validators = g.validators.map((v) => [operators.get(v.address), v.firstHeight, v.firstTime]);
+    g.proposals = g.proposals.map((p) => [
+      p.id,
+      anchor(p.start),
+      anchor(p.end),
+      p.end.result,
+      p.votes.map((v) => [
+        operators.get(v.voter),
+        v.height - p.start.height,
+        v.scope,
+        v.index,
+        v.option
+      ])
+    ]);
+    g.transport = 1;
+  }
   return { addresses, value: packed };
 }
 export function unpackReview(packet) {
@@ -82,6 +102,39 @@ export function unpackReview(packet) {
         value.activeHistory.participation.validators,
         20000
       ).map((row) => tuple(row, counts, 'address'));
+  }
+  const g = value.snapshot.governanceHistory;
+  if (g?.transport !== undefined) {
+    if (g.transport !== 1 || value.rule?.schema !== 9) invalid();
+    const operator = (i) => {
+      if (!Number.isInteger(i) || i < 0 || i >= value.snapshot.validators.length) invalid();
+      return value.snapshot.validators[i].address;
+    };
+    const sized = (row, n) => {
+      if (!Array.isArray(row) || row.length !== n) invalid();
+      return row;
+    };
+    const anchor = (row) => {
+      const [height, time] = sized(row, 2);
+      return { height, time };
+    };
+    g.validators = rows(g.validators, 1000).map((row) => {
+      const [i, firstHeight, firstTime] = sized(row, 3);
+      return { address: operator(i), firstHeight, firstTime };
+    });
+    g.proposals = rows(g.proposals, 1000).map((row) => {
+      const [id, start, end, result, votes] = sized(row, 5);
+      return {
+        id,
+        start: anchor(start),
+        end: { ...anchor(end), result },
+        votes: rows(votes, 1000).map((v) => {
+          const [i, height, scope, index, option] = sized(v, 5);
+          return { voter: operator(i), height: height + start[0], scope, index, option };
+        })
+      };
+    });
+    delete g.transport;
   }
   return value;
 }

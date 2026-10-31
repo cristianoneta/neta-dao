@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
-  defaultPolicy,
+  extendedCapPolicy as defaultPolicy,
   fixedAllocationPolicy,
   configurableParticipationPolicy,
   observedCommitPolicy,
@@ -253,7 +253,7 @@ test('only editable rules migrate; settings and original approvals retain their 
     ];
     const hash = await fingerprint(original),
       migrated = editablePolicy(original);
-    assert.equal(migrated.schema, 8);
+    assert.equal(migrated.schema, 9);
     assert.deepEqual(migrated.fixedAllocations, []);
     assert.equal(migrated.minParticipationBps, 9750);
     assert.equal(migrated.factorTenths, 18);

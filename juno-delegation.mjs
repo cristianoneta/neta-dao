@@ -1,13 +1,13 @@
 import { mountFixedAllocations, renderFixedMandates } from './juno-fixed-allocation-view.mjs';
 import { availableBudget } from './juno-rebalance.mjs';
-import { policyImpact, renderPolicyImpact } from './juno-policy-impact.mjs?v=20261025-clarity-1';
+import { policyImpact, renderPolicyImpact } from './juno-policy-impact.mjs?v=20261031-points-1';
 import { mountRebalance } from './juno-rebalance-view.mjs';
 import { buildRuleReview, ruleChanges, parentMatches } from './juno-delegation-review.mjs';
 import { renderRuleReview } from './juno-rule-review-view.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
 import { participationEvidence } from './juno-participation-history.mjs';
 import { currentApprovedRules } from './juno-approved-rules.mjs';
-import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=5';
+import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=6';
 import {
   frozenRuleProposal,
   claimProposal,
@@ -44,7 +44,9 @@ let approval = { status: 'loading', current: null },
   draftStarted = false;
 let rewardsSource = null,
   rebalance = null,
-  fixedEditor = null;
+  fixedEditor = null,
+  pointsEditor = null,
+  approvedPoints = null;
 const fmt = (value) => formatAmount(value, true);
 const tell = (message, tone = 'info') => {
   $('feedback').textContent = message;
@@ -143,6 +145,7 @@ let approvalRead = 0;
 async function loadApprovedRules() {
   const read = ++approvalRead;
   approval = { ...approval, status: 'loading' };
+  approvedPoints?.render();
   renderDraftBaseline();
   const host = $('current-rules-content'),
     state = $('current-rules-state');
@@ -186,7 +189,12 @@ async function loadApprovedRules() {
     );
     const settings = node('dl', '', 'approved-settings');
     for (const [label, value] of [
-      ['Allocation', 'Equal distribution within the voting power cap'],
+      [
+        'Allocation',
+        rule.schema >= 9
+          ? 'Points-weighted distribution within the voting power cap'
+          : 'Equal distribution within the voting power cap'
+      ],
       [
         'Voting power cap',
         `min(30%, ${rule.factorTenths / 10} × 100% / consensus validator count)`
@@ -243,6 +251,7 @@ async function loadApprovedRules() {
   } catch (error) {
     if (read !== approvalRead) return;
     approval = { status: 'unavailable', current: null };
+    approvedPoints?.render();
     renderDraftBaseline();
     state.textContent = 'Approval unavailable';
     host.replaceChildren(
@@ -374,7 +383,7 @@ function renderRuleSummary() {
     ? ((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2) + '%'
     : 'pending';
   $('rule-summary').textContent =
-    `Equal allocation · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · commit signatures ≥${rules.minParticipationBps / 100}% · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
+    `${rules.schema >= 9 ? 'Points-weighted allocation' : 'Equal allocation'} · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · commit signatures ≥${rules.minParticipationBps / 100}% · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
   $('draft-cap').textContent =
     $('factor-number').checkValidity() && $('factor-number').value ? capText : 'Check value';
   $('draft-commission').textContent = commissionValid()
@@ -410,6 +419,7 @@ function scheduleImpact() {
       evidence,
       budget: $('programme-amount').value.trim(),
       valid:
+        (pointsEditor?.valid() ?? true) &&
         commissionValid() &&
         uptimeValid() &&
         !!$('factor-number').value &&
@@ -446,6 +456,8 @@ function restoreRuleInputs() {
   showUptimeError();
 }
 function renderRules() {
+  pointsEditor?.render();
+  approvedPoints?.render();
   fixedEditor?.render();
   $('factor-number').value = (rules.factorTenths / 10).toFixed(1);
   $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
@@ -675,6 +687,11 @@ async function runSimulation() {
       focusRuleInput('uptime');
       throw Error('Enter an uptime threshold from 95 to 100 with up to two decimal places.');
     }
+    if (!pointsEditor.valid()) {
+      setStep('distribution');
+      $('rules-base-points').focus();
+      throw Error('Check the base points and bonus weights.');
+    }
     invalidate('Calculating the proposed allocation…');
     const token = revision;
     if (approval.status !== 'verified')
@@ -835,6 +852,11 @@ $('save-draft').addEventListener('click', () => {
       focusRuleInput('uptime');
       return;
     }
+    if (!pointsEditor.valid()) {
+      setStep('distribution');
+      tell('Check the base points and bonus weights before saving.', 'error');
+      return;
+    }
     localStorage.setItem(
       key,
       JSON.stringify({
@@ -946,8 +968,17 @@ setInterval(() => {
 document.addEventListener('visibilitychange', () => {
   if (!loading && !document.hidden) renderClaimRewards();
 });
-renderFuturePolicy($('overview-future-policy'), 'overview');
-renderFuturePolicy($('rules-future-policy'), 'rules');
+approvedPoints = renderFuturePolicy($('overview-future-policy'), 'overview', {
+  getRule: () => (approval.status === 'verified' ? approval.current?.rule : null)
+});
+pointsEditor = renderFuturePolicy($('rules-future-policy'), 'rules', {
+  getRule: () => rules,
+  onChange: (points) => {
+    if (points) rules.points = points;
+    invalidate();
+    renderRuleSummary();
+  }
+});
 mountCriterionHelp();
 $('current-positions-toggle').onclick = () => {
   showAllCurrentPositions = !showAllCurrentPositions;
@@ -1008,7 +1039,7 @@ try {
     $('rule-rationale').value = value.rationale || '';
     const migrated = original.schema !== rules.schema;
     $('draft-status').textContent = migrated
-      ? 'Editable rule draft updated · no fixed allocations added · unapproved'
+      ? 'Editable draft updated to points-based rules · review the new settings · unapproved'
       : 'Local draft restored · original baseline preserved';
     if (migrated || legacy) {
       try {

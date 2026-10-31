@@ -286,7 +286,7 @@ class HistoryTests(unittest.TestCase):
         history.append(self.db, observed)
         with self.db:
             self.db.execute('INSERT INTO snapshots VALUES (?,?,?,?)', (10, 1767225600, zlib.compress(b'{"validator":"original"}'), 'original'))
-        names = ('blocks', 'events', 'transitions', 'snapshots', 'rosters')
+        names = ('blocks', 'events', 'event_checks', 'transitions', 'snapshots', 'rosters')
         original = {name: self.db.execute('SELECT * FROM ' + name).fetchall() for name in names}
         root = Path(self.temp.name) / 'archive'
         receipt = history.retain(self.db, '2026-06-30T12:00:00Z', archive_dir=root)

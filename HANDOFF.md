@@ -15,21 +15,27 @@ checks remain intact. See [cause, regression coverage and acceptance](docs/OPERA
 Host installation and live recovery still require verification. The collector repair
 itself needs no website release; private installation details remain outside Git.
 
-The same branch now also contains the owner's 31 October delegation control
-refinement: one factor input up to 3.0, removal of duplicate controls, and a
-governance-first 100/0/0/0 bonus preview. These UI changes need the usual manual
-website release. The owner confirmed [flexible bonus weights and our own available
-governance observations only](docs/DELEGATION_GOVERNANCE_BONUS_2026-10-31.md): no
-historical backfill to reach 90 days or ten proposals. Production scoring still
-needs implementation. New editable
-rules use schema 8, preserving schemas 2–7 for historical reviews.
+The same draft PR #330 now implements governance-weighted allocation under new
+schema 9, the single voting-power factor up to 3.0, and removal of duplicate
+controls. Governance defaults to 100% of a configurable bonus; unavailable
+criteria remain disabled at zero. Scores use only complete voting periods in our
+own captured history. Fixed allocations are reserved first and remain exempt.
+Schemas 2–8 and their frozen reviews retain their original meaning.
 
-The validator collector's directly queryable working history is increased from
-120 to 180 days in this branch; OVH installation remains pending. Older rows still
-require verified archiving before removal from SQLite. Local archives and R2
-backups have no automatic deletion enabled. The previous PR head passed all 18
-CI jobs; the retention follow-up adds boundary and governance-event preservation
-coverage. No website release is needed for this collector change itself.
+The source includes a read-only governance exporter, additive first-entry and
+new-event integrity records, exact rational point weights, capped micro-unit
+allocation, frozen evidence and compatible approval/Rebalance parsing. Larger
+schema-9 envelopes refer to the exact policy already inside their verified frozen
+comparison instead of duplicating its JSON. The complete sample stays embedded;
+oversize evidence remains blocked. See [implementation and acceptance](docs/DELEGATION_GOVERNANCE_BONUS_2026-10-31.md).
+
+The working validator history retains 180 days. Older blocks, events and integrity
+records require verified archiving before deletion; first observed entries survive
+exit/re-entry and pruning. Archive bundles and R2 backups gain no expiry.
+Local checks cover 443 JavaScript tests and 242 Python tests (14 environment skips).
+The previous PR head passed all 18 CI jobs; the points follow-up needs its own CI
+and browser result. OVH installation and the manual website release remain pending.
+Do not label the new scoring live before the own-history feed is installed and verified.
 
 ## Current continuation: Delegation Programme
 
@@ -57,7 +63,7 @@ Read the [29 October evidence checkpoint](docs/DELEGATION_CHECKPOINT_2026-10-29.
 - Rebalance preparation is published but requires an actual approved rule revision
   and no pending programme treasury proposal. Resolve #384, then refresh balances,
   evidence and staking locks before preparing a separately voted redistribution.
-- Bonus scoring and historical no-jail evidence remain unimplemented. Current
+- At this historical checkpoint, bonus scoring and historical no-jail evidence were unimplemented. The current source changes above add governance scoring; historical no-jail evidence remains unimplemented. Current
   jail exclusion and configurable observed commit-signature minimum are separate.
 
 The checkpoint above was documentation-only. The owner subsequently approved

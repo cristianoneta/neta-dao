@@ -1,5 +1,11 @@
+import { withGovernance } from './delegation-planner.mjs';
 import { createHash } from 'node:crypto';
-import { PROGRAMME, defaultPolicy, suggestedBudget } from '../../juno-delegation-core.mjs';
+import {
+  PROGRAMME,
+  extendedCapPolicy,
+  defaultPolicy,
+  suggestedBudget
+} from '../../juno-delegation-core.mjs';
 
 // Synthetic identities and amounts. Unlike the small arithmetic fixtures, these
 // do not compress into runs of repeated address characters or identical balances.
@@ -8,7 +14,7 @@ const hex = (label) =>
     .update('review-size-fixture:' + label)
     .digest('hex');
 const alphabet = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
-export function reviewSizeInput({ count = 80, allHeld = false } = {}) {
+export function reviewSizeInput({ count = 80, allHeld = false, points = false } = {}) {
   const validators = Array.from({ length: count }, (_, i) => {
     const suffix = Array.from(
       { length: i === 0 || i === 25 ? 58 : 38 },
@@ -85,8 +91,8 @@ export function reviewSizeInput({ count = 80, allHeld = false } = {}) {
     }
   };
   return {
-    rule: defaultPolicy(),
-    snapshot: s,
+    rule: points ? defaultPolicy() : extendedCapPolicy(),
+    snapshot: withGovernance(s),
     evidence: {
       window: { start: 1791356191235, end: 1791374191235, seconds: 18000, coverageComplete: true },
       records: new Map(

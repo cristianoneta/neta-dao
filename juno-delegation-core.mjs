@@ -1,3 +1,10 @@
+import {
+  defaultPoints,
+  pointsConfig,
+  governanceEvidence,
+  validatorPoints,
+  weightedCapped
+} from './juno-governance-points.mjs';
 import { fixedAllocations, activeFixed } from './juno-fixed-allocations.mjs';
 import {
   parseUpgradeHistory,
@@ -83,8 +90,11 @@ export function configurableParticipationPolicy() {
 export function fixedAllocationPolicy() {
   return { ...configurableParticipationPolicy(), schema: 7, fixedAllocations: [] };
 }
-export function defaultPolicy() {
+export function extendedCapPolicy() {
   return { ...fixedAllocationPolicy(), schema: 8 };
+}
+export function defaultPolicy() {
+  return { ...extendedCapPolicy(), schema: 9, method: 'points-capped-v1', points: defaultPoints() };
 }
 export function editablePolicy(input = defaultPolicy()) {
   const current = policy(input),
@@ -92,6 +102,8 @@ export function editablePolicy(input = defaultPolicy()) {
   return policy({
     ...current,
     schema: template.schema,
+    method: template.method,
+    points: current.points || template.points,
     eligibility: template.eligibility,
     fixedAllocations: current.fixedAllocations || [],
     minParticipationBps:
@@ -111,7 +123,9 @@ const policyTemplate = (schema) =>
             ? configurableParticipationPolicy()
             : schema === 7
               ? fixedAllocationPolicy()
-              : defaultPolicy();
+              : schema === 8
+                ? extendedCapPolicy()
+                : defaultPolicy();
 export function eligibilityDescription(p) {
   return p.schema >= 6
     ? '90 continuous days in the active set; automatically use the entire available period until 90 days exist; not jailed'
@@ -126,10 +140,10 @@ export function eligibilityDescription(p) {
 export function policy(input) {
   const p = structuredClone(input);
   if (
-    ![2, 3, 4, 5, 6, 7, 8].includes(p?.schema) ||
+    ![2, 3, 4, 5, 6, 7, 8, 9].includes(p?.schema) ||
     p.chainId !== 'juno-1' ||
     p.programme !== PROGRAMME ||
-    p.method !== 'equal-capped-v1' ||
+    p.method !== policyTemplate(p.schema).method ||
     p.eligibility !== policyTemplate(p.schema).eligibility ||
     (p.schema === 5 && p.minParticipationBps !== 9750) ||
     (p.schema >= 6 &&
@@ -179,6 +193,7 @@ export function policy(input) {
   return {
     ...policyTemplate(p.schema),
     ...(p.schema >= 5 ? { minParticipationBps: p.minParticipationBps } : {}),
+    ...(p.schema >= 9 ? { points: pointsConfig(p.points) } : {}),
     factorTenths: p.factorTenths,
     commissionMaxBps: p.commissionMaxBps,
     exclusions: p.exclusions,
@@ -308,6 +323,10 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
     throw Error(
       'A fixed-allocation validator is missing from the snapshot. Its reservation cannot be reassigned.'
     );
+  const governance =
+    p.schema >= 9 && p.points.base < 1000 && p.points.weights.governance > 0 && budget > fixedTotal
+      ? governanceEvidence(s)
+      : null;
   const excluded = new Map(p.exclusions.map((e) => [e.validator, e.reason])),
     cap = capFraction(p, s.activeCount);
   const rows = s.validators.map((v) => {
@@ -346,6 +365,16 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
     return {
       ...v,
       ...(participation ? { participation: counts } : {}),
+      ...(p.schema >= 9
+        ? {
+            points: validatorPoints(
+              p.points,
+              v.address,
+              governance,
+              !reasons.length && budget > fixedTotal
+            )
+          }
+        : {}),
       upgrade,
       reasons,
       eligible: !reasons.length,
@@ -374,13 +403,19 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
   // denominator agrees with the allocation; never count the old programme twice.
   for (let iteration = 0; iteration < 2000; iteration++) {
     const ceiling = (capacityDenominator * cap.numerator) / cap.denominator;
-    const regularTargets = equalCapped(
+    const regularTargets = (p.schema >= 9 ? weightedCapped : equalCapped)(
       allocated,
       rows
         .filter((v) => v.eligible)
         .map((v) => {
           const used = v.base + (fixed.get(v.address) || 0n);
-          return { address: v.address, capacity: ceiling > used ? ceiling - used : 0n };
+          return {
+            address: v.address,
+            capacity: ceiling > used ? ceiling - used : 0n,
+            ...(p.schema >= 9
+              ? { weight: v.points.total || { numerator: '0', denominator: '1' } }
+              : {})
+          };
         })
     );
     targets = new Map(
@@ -432,6 +467,16 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
   return {
     ...(p.schema >= 7
       ? { fixedRaw: fixedTotal.toString(), regularBudgetRaw: (budget - fixedTotal).toString() }
+      : {}),
+    ...(governance
+      ? {
+          governance: {
+            coverage: governance.coverage,
+            count: governance.count,
+            collecting: governance.collecting,
+            excluded: governance.excluded
+          }
+        }
       : {}),
     schema: 1,
     kind: 'RULE_APPROVAL_DRAFT',

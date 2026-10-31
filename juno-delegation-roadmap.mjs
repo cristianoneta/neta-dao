@@ -1,183 +1,188 @@
-// Interactive explanation only. No values from this module enter a policy or proposal.
-const bonuses = [
+import { defaultPoints } from './juno-governance-points.mjs';
+const criteria = [
   [
+    'governance',
     'Governance participation',
-    100,
-    'Own votes on completed proposals; every voting option counts equally. Measurement rules and historical evidence must be validated before activation.',
-    true
+    'Own accepted votes ÷ applicable completed proposals. Yes, No, Abstain, veto and weighted votes count equally; repeat votes count once.'
   ],
-  [
-    'Public RPC / API (not live)',
-    0,
-    'Verified operator linkage, availability, freshness and latency; aliases earn no extra points.'
-  ],
-  [
-    'Testnet participation (not live)',
-    0,
-    'Sustained, verifiable participation and useful results on the approved testnet.'
-  ],
-  ['Archive services (not live)', 0, 'Independent checks of access and historical coverage.']
+  ['rpc', 'Public RPC / API (not live)', 'Operator linkage, availability, freshness and latency.'],
+  ['testnet', 'Testnet participation (not live)', 'Verified testnet participation.'],
+  ['archive', 'Archive services (not live)', 'Verified access and historical coverage.']
 ];
-const node = (tag, text, className) => {
-  const el = document.createElement(tag);
-  if (text !== undefined) el.textContent = text;
-  if (className) el.className = className;
-  return el;
+const node = (tag, text, cls) => {
+  const n = document.createElement(tag);
+  if (text !== undefined) n.textContent = text;
+  if (cls) n.className = cls;
+  return n;
 };
-export function renderFuturePolicy(host, prefix) {
-  const explorer = prefix === 'rules';
-  const card = node('section', undefined, 'planner-card points-preview');
-  const heading = node('div', undefined, 'policy-heading');
-  heading.append(
-    node('h3', 'Base & bonus points'),
-    node('span', 'Planned · preview only', 'state-pill neutral')
-  );
+export function renderFuturePolicy(
+  host,
+  prefix,
+  { getRule = () => null, onChange = () => {} } = {}
+) {
+  const editable = prefix === 'rules',
+    card = node('section', undefined, 'planner-card points-preview');
+  const heading = node('div', undefined, 'policy-heading'),
+    state = node('span', '', 'state-pill neutral');
+  heading.append(node('h3', 'Base & bonus points'), state);
   card.append(
     heading,
     node(
       'p',
-      'All mandatory checks must pass first. Every eligible validator then receives the same base; verified contributions can earn additional points.'
+      'Fixed commitments are reserved first. Eligible validators share the remaining budget in proportion to their points, within the voting-power cap.'
     )
   );
-  const values = node('div', undefined, 'point-values');
-  const base = node('div'),
-    bonus = node('div');
-  const baseValue = explorer ? node('input') : node('strong', '900'),
-    bonusValue = node('strong', '100');
-  if (explorer) {
-    baseValue.type = 'number';
-    baseValue.min = '0';
-    baseValue.max = '1000';
-    baseValue.step = '10';
-    baseValue.value = '900';
-    baseValue.className = 'base-points-entry';
-    baseValue.setAttribute('aria-label', 'Base points per eligible validator · preview');
+  const values = node('div', undefined, 'point-values'),
+    baseGroup = node('div'),
+    bonusGroup = node('div');
+  const base = node(editable ? 'input' : 'strong'),
+    bonus = node('strong');
+  base.id = `${prefix}-base-points`;
+  bonus.id = `${prefix}-bonus-points`;
+  if (editable) {
+    base.type = 'number';
+    base.min = '0';
+    base.max = '1000';
+    base.step = '10';
+    base.className = 'base-points-entry';
+    base.setAttribute('aria-label', 'Base points per eligible validator');
   }
-  baseValue.id = `${prefix}-base-points`;
-  bonusValue.id = `${prefix}-bonus-points`;
-  base.append(baseValue, node('span', 'Base points · each eligible validator'));
-  bonus.append(bonusValue, node('span', 'Maximum bonus · each validator'));
-  values.append(base, bonus);
+  baseGroup.append(base, node('span', 'Base points · each eligible validator'));
+  bonusGroup.append(bonus, node('span', 'Maximum bonus · each validator'));
+  values.append(baseGroup, bonusGroup);
   card.append(values);
-  const label = node('label', 'Explore the base / bonus balance');
-  label.htmlFor = `${prefix}-points-balance`;
-  const slider = node('input');
+  const label = node('label', 'Base / bonus balance'),
+    slider = node('input');
   slider.type = 'range';
   slider.min = '0';
   slider.max = '1000';
   slider.step = '10';
-  slider.value = '900';
-  slider.id = label.htmlFor;
-  const effect = node('p', undefined, 'field-help');
+  slider.disabled = !editable;
+  slider.id = `${prefix}-points-balance`;
+  label.htmlFor = slider.id;
+  const effect = node('p', '', 'field-help');
   effect.id = `${prefix}-points-effect`;
   slider.setAttribute('aria-describedby', effect.id);
-  const update = () => {
-    const b = Number(slider.value),
-      w = 1000 - b;
-    if (explorer) baseValue.value = String(b);
-    else baseValue.textContent = String(b);
-    bonusValue.textContent = String(w);
-    slider.setAttribute('aria-valuetext', `${b} base points and up to ${w} bonus points`);
-    effect.textContent =
-      (b
-        ? `Before caps, a full-bonus validator can receive up to ${(1000 / b).toLocaleString('en-US', { maximumFractionDigits: 2 })}× the points of a base-only validator. `
-        : 'With no base, a validator with no verified bonus earns no points. If nobody earns points, the budget stays unallocated. ') +
-      'Preview only: the current equal-allocation rules and proposal remain unchanged.';
-  };
-  slider.addEventListener('input', update);
-  if (explorer)
-    baseValue.addEventListener('input', () => {
-      if (baseValue.value !== '' && baseValue.checkValidity()) {
-        slider.value = baseValue.value;
-        update();
-      }
-    });
-  update();
   card.append(label, slider, effect);
   const details = node('details', undefined, 'policy-details');
   details.id = `${prefix}-bonus-details`;
-  if (explorer) details.open = true;
+  details.open = editable;
   details.append(node('summary', 'Bonus criteria'));
-  const weights = [];
-  const weightTotal = node('p', '', 'field-help');
-  const updateWeights = () => {
-    if (weights.some(({ input }) => input.value === '' || !input.checkValidity())) {
-      weightTotal.textContent = 'Enter whole-number weights from 0 to 100.';
-      for (const item of weights) item.share.textContent = 'Check weight';
-      return;
-    }
-    const total = weights.reduce((sum, item) => sum + Number(item.input.value || 0), 0);
-    for (const item of weights)
-      item.share.textContent = total
-        ? `${Math.round((Number(item.input.value || 0) / total) * 100)}% of bonus`
-        : 'Disabled';
-    weightTotal.textContent = total
-      ? 'Governance is the first planned bonus criterion. Historical vote evidence is not connected yet.'
-      : 'All bonus criteria are disabled in this exploration. No bonus could be earned.';
-  };
-  for (const [name, value, help, enabled] of bonuses) {
-    const row = node('div', undefined, 'bonus-preview-row');
-    if (explorer) {
-      const label = node('div', undefined, 'criterion-label');
-      const button = node('button', name, 'criterion-help');
-      button.type = 'button';
-      const tip = node('div', help, 'criterion-tooltip');
-      tip.id = `${prefix}-bonus-help-${weights.length}`;
-      tip.hidden = true;
-      tip.setAttribute('role', 'tooltip');
-      button.setAttribute('aria-controls', tip.id);
-      button.setAttribute('aria-expanded', 'false');
-      label.append(button, tip);
-      const weight = node('input');
-      weight.type = 'number';
-      weight.min = '0';
-      weight.max = '100';
-      weight.step = '1';
-      weight.value = String(value);
-      weight.disabled = !enabled;
-      weight.className = 'bonus-weight-input';
-      weight.setAttribute('aria-label', `${name} relative weight · preview`);
-      const share = node('small');
-      const control = node('div', undefined, 'bonus-weight-control');
-      control.append(weight, share);
-      weights.push({ input: weight, share });
-      weight.addEventListener('input', updateWeights);
-      row.append(label, control);
-    } else row.append(node('strong', name), node('span', `${value}%`), node('p', help));
+  const controls = [];
+  for (const [key, name, help] of criteria) {
+    const row = node('div', undefined, 'bonus-preview-row'),
+      label = node('div', undefined, 'criterion-label'),
+      button = node('button', name, 'criterion-help');
+    button.type = 'button';
+    const tip = node('div', help, 'criterion-tooltip');
+    tip.id = `${prefix}-bonus-help-${controls.length}`;
+    tip.hidden = true;
+    tip.setAttribute('role', 'tooltip');
+    button.setAttribute('aria-controls', tip.id);
+    button.setAttribute('aria-expanded', 'false');
+    label.append(button, tip);
+    const input = node('input');
+    input.type = 'number';
+    input.min = '0';
+    input.max = '100';
+    input.step = '1';
+    input.disabled = !editable || key !== 'governance';
+    input.className = 'bonus-weight-input';
+    input.setAttribute('aria-label', `${name} relative weight`);
+    const share = node('small'),
+      control = node('div', undefined, 'bonus-weight-control');
+    control.append(input, share);
+    row.append(label, control);
     details.append(row);
+    controls.push({ key, input, share });
+    input.oninput = () => commit();
   }
-  if (explorer) {
-    updateWeights();
-    details.append(weightTotal);
-  }
-  details.append(
-    node(
-      'p',
-      'Each criterion needs an approved measurement, observation window, reviewer and expiry. Unknown bonus evidence earns no verified points and remains labelled unknown. Bonus points never override a failed mandatory check.',
-      'field-help'
-    )
-  );
+  const validation = node('p', '', 'field-help');
+  validation.setAttribute('role', 'status');
+  details.append(validation);
   const methods = node('details', undefined, 'policy-details');
   methods.id = `${prefix}-points-details`;
-  methods.append(node('summary', 'Points, budget shares & launch requirements'));
   methods.append(
+    node('summary', 'How participation becomes points'),
     node(
       'p',
-      'Points per validator = base + maximum bonus × verified contribution. Allocations follow each validator’s share of all earned points, subject to separately approved caps. 900 / 100 points does not reserve exactly 10% of the tokens for bonus.'
-    )
-  );
-  methods.append(
+      'Points = base + maximum bonus × sum of normalized criterion weight × verified contribution. A 900/100 balance does not reserve 10% of tokens for bonus.'
+    ),
     node(
       'p',
-      'A fixed budget split would instead reserve a defined pool for bonus. It can concentrate that pool in a few recipients. This alternative is not the selected model.'
-    )
-  );
-  methods.append(
+      'Use completed voting periods fully captured in our own continuous history: the last 90 days, extended toward ten proposals within 180 available days. A smaller sample is valid. Proposals starting before a validator’s first observed active-set entry do not count against it.'
+    ),
     node(
       'p',
-      'Before activation: approve evidence and scoring rules, prevent duplicate operator rewards, define appeals and transition periods, and validate the allocation and execution paths. Production bonus data is not connected yet.'
+      'No completed proposals means no verified governance bonus, not a 0% participation rate. Missing or corrupt evidence blocks a new points-based review. Frozen reviews and approved rules never change automatically.'
     )
   );
   card.append(details, methods);
   host.replaceChildren(card);
+  const valid = () =>
+    !editable ||
+    (base.value !== '' &&
+      base.checkValidity() &&
+      controls.every((c) => c.input.value !== '' && c.input.checkValidity()));
+  function explain() {
+    if (!valid()) {
+      validation.textContent =
+        'Enter base points from 0 to 1,000 in steps of 10 and whole-number weights from 0 to 100.';
+      return;
+    }
+    const b = Number(slider.value),
+      total = controls.reduce((n, c) => n + Number(c.input.value), 0);
+    bonus.textContent = String(1000 - b);
+    slider.setAttribute('aria-valuetext', `${b} base points and up to ${1000 - b} bonus points`);
+    for (const c of controls)
+      c.share.textContent = total
+        ? `${Math.round((Number(c.input.value) * 100) / total)}% of bonus`
+        : 'Disabled';
+    validation.textContent = total
+      ? 'Weights divide the available bonus points. Zero disables a criterion.'
+      : 'All bonus criteria disabled; only configured base points can be earned.';
+    effect.textContent = b
+      ? `A full-bonus validator earns up to ${(1000 / b).toLocaleString('en-US', { maximumFractionDigits: 2 })}× the points of a base-only validator before caps.`
+      : 'With no base, validators without verified bonus earn no points. If nobody earns points, the regular budget stays unallocated.';
+  }
+  function commit() {
+    explain();
+    if (valid())
+      onChange({
+        base: Number(base.value),
+        weights: Object.fromEntries(controls.map((c) => [c.key, Number(c.input.value)]))
+      });
+    else onChange(null);
+  }
+  base.oninput = () => {
+    if (base.value !== '' && base.checkValidity()) slider.value = base.value;
+    commit();
+  };
+  slider.oninput = () => {
+    base.value = slider.value;
+    commit();
+  };
+  const render = () => {
+    const rule = getRule(),
+      config = rule?.points || defaultPoints();
+    state.textContent = editable
+      ? 'Proposed rules · unapproved'
+      : rule?.points
+        ? 'Approved points model'
+        : rule
+          ? 'Approved rule uses equal allocation'
+          : 'Awaiting first rule approval';
+    if (editable) base.value = String(config.base);
+    else base.textContent = rule?.points ? String(config.base) : '—';
+    slider.value = String(config.base);
+    for (const c of controls) c.input.value = String(config.weights[c.key]);
+    explain();
+    if (!editable && !rule?.points) {
+      bonus.textContent = '—';
+      effect.textContent =
+        'No approved points model. Proposed settings belong to the Distribution draft.';
+    }
+  };
+  render();
+  return { render, valid };
 }

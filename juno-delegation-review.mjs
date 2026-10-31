@@ -1,3 +1,5 @@
+import { governanceEvidence } from './juno-governance-points.mjs';
+import { activeFixed } from './juno-fixed-allocations.mjs';
 import {
   policy,
   snapshot,
@@ -13,6 +15,8 @@ import { participationEvidence } from './juno-participation-history.mjs';
 import { packReview, unpackReview } from './juno-review-transport.mjs';
 export const REVIEW_ENGINE = 'equal-capped-review-1';
 export const REVIEW_MARKER = '## Frozen allocation review';
+export const FROZEN_POLICY_REFERENCE =
+  '## Exact policy\n\nThe exact policy is contained in the verified frozen review below.';
 const hashPattern = /^[a-f0-9]{64}$/;
 const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const total = (values) => values.reduce((a, b) => a + BigInt(b), 0n);
@@ -36,7 +40,14 @@ export function ruleChanges(before, after) {
       'Maximum commission',
       (v) => (v.commissionMaxBps === null ? 'No limit' : `${v.commissionMaxBps / 100}%`)
     ],
-    ['method', 'Allocation method', () => 'Equal allocation within the cap'],
+    [
+      'method',
+      'Allocation method',
+      (v) =>
+        v.schema >= 9
+          ? 'Points-weighted allocation within the cap'
+          : 'Equal allocation within the cap'
+    ],
     ['liquidReserveRaw', 'Liquid reserve', () => '50 JUNO'],
     ['upgrade', 'Upgrade participation', () => 'Juno v31 · within 5 hours of the halt']
   ];
@@ -45,6 +56,15 @@ export function ruleChanges(before, after) {
       'minParticipationBps',
       'Minimum uptime · observed commit signatures',
       (v) => (v.schema >= 5 ? `${v.minParticipationBps / 100}%` : 'No signature minimum')
+    ]);
+  if (p.schema >= 9 || old?.schema >= 9)
+    fields.push([
+      'points',
+      'Base and bonus points',
+      (v) =>
+        v.schema >= 9
+          ? `${v.points.base} base + up to ${1000 - v.points.base} bonus · Governance weight ${v.points.weights.governance}; RPC ${v.points.weights.rpc}; testnet ${v.points.weights.testnet}; archive ${v.points.weights.archive} · own completed voting periods: 90 days, extend toward 10 within 180 available days`
+          : 'No bonus scoring'
     ]);
   const rows = fields.map(([key, label, format]) => ({
     key,
@@ -120,6 +140,13 @@ function calculate(p, s, budget, evidence, history, previous = false) {
       return { status: 'unavailable', reason: error.message, result: null };
     }
   }
+  if (
+    p.schema >= 9 &&
+    p.points.base < 1000 &&
+    p.points.weights.governance > 0 &&
+    total(activeFixed(p, s.blockTime).map((a) => a.amountRaw)) < budget
+  )
+    governanceEvidence(s);
   if (!evidence.window.coverageComplete)
     return {
       status: 'unavailable',
@@ -156,7 +183,7 @@ const output = (calculation) =>
 // Keep all holdings, active validators, possible recipients and the top N
 // non-programme stakes. Omitted validators cannot enter any projected top-N set:
 // N retained bases already precede them and targets can only increase those bases.
-function calculationSnapshot(s, policies, evidence) {
+function calculationSnapshot(s, policies, evidence, budget) {
   const baseOrder = s.validators
     .filter((v) => !v.jailed)
     .sort(
@@ -185,6 +212,30 @@ function calculationSnapshot(s, policies, evidence) {
     )
       keep.add(v.address);
   }
+  let governanceHistory;
+  const needsGovernance = (p) =>
+    p.schema >= 9 &&
+    p.points.base < 1000 &&
+    p.points.weights.governance > 0 &&
+    total(activeFixed(p, s.blockTime).map((a) => a.amountRaw)) < budget;
+  if (policies.some(needsGovernance) && s.governanceHistory) {
+    let selected;
+    try {
+      selected = governanceEvidence(s);
+    } catch (error) {
+      if (needsGovernance(policies[0])) throw error;
+    }
+    if (selected) {
+      governanceHistory = structuredClone(s.governanceHistory);
+      governanceHistory.validators = governanceHistory.validators.filter((v) =>
+        keep.has(v.address)
+      );
+      governanceHistory.proposals = structuredClone(selected.proposals).map((p) => ({
+        ...p,
+        votes: p.votes.filter((v) => keep.has(v.voter))
+      }));
+    }
+  }
   return {
     schema: 1,
     chainId: s.chainId,
@@ -195,6 +246,7 @@ function calculationSnapshot(s, policies, evidence) {
     source: s.source,
     activeCount: s.activeCount,
     liquidRaw: s.liquidRaw,
+    ...(governanceHistory ? { governanceHistory } : {}),
     redelegations: [],
     validators: s.validators
       .filter((v) => keep.has(v.address))
@@ -237,7 +289,7 @@ export async function buildRuleReview({
       parent.hash !== (await fingerprint(exactPolicy(parent.rule))))
   )
     throw Error('Invalid parent policy reference.');
-  const projected = calculationSnapshot(s, [p, ...(parent ? [parent.rule] : [])], evidence),
+  const projected = calculationSnapshot(s, [p, ...(parent ? [parent.rule] : [])], evidence, budget),
     identities = new Set(projected.validators.map((v) => v.consensusAddress)),
     frozenEvidence = {
       window: structuredClone(evidence.window),
@@ -265,7 +317,7 @@ export async function buildRuleReview({
   }
   const value = {
     schema: 1,
-    engine: REVIEW_ENGINE,
+    engine: p.schema >= 9 ? 'points-capped-review-1' : REVIEW_ENGINE,
     kind: 'RULE_APPROVAL',
     createdAt,
     parent: parent
@@ -299,7 +351,7 @@ export async function buildRuleReview({
 export async function verifyRuleReview(value) {
   if (
     value?.schema !== 1 ||
-    value.engine !== REVIEW_ENGINE ||
+    value.engine !== (value.rule?.schema >= 9 ? 'points-capped-review-1' : REVIEW_ENGINE) ||
     value.kind !== 'RULE_APPROVAL' ||
     !Array.isArray(value.messages) ||
     value.messages.length ||
@@ -444,10 +496,15 @@ export async function decodeRuleReview(body) {
   const policies = [...body.matchAll(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/gm)],
     hashes = [...body.matchAll(/^Rule SHA-256: ([a-f0-9]{64})$/gm)];
   if (
-    policies.length !== 1 ||
+    !(
+      (policies.length === 1 && canonical(JSON.parse(policies[0][1])) === canonical(value.rule)) ||
+      (policies.length === 0 &&
+        value.rule.schema === 9 &&
+        body.split(FROZEN_POLICY_REFERENCE).length === 2)
+    ) ||
+    (body.match(/^## Exact policy$/gm) || []).length !== 1 ||
     hashes.length !== 1 ||
-    hashes[0][1] !== value.policyHash ||
-    canonical(JSON.parse(policies[0][1])) !== canonical(value.rule)
+    hashes[0][1] !== value.policyHash
   )
     throw Error('Proposal policy differs from the frozen comparison.');
   return review;
@@ -467,7 +524,7 @@ export async function readProposalReview(values) {
       );
   } else {
     const section = values.body?.match(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/m);
-    if (section && [3, 4, 5, 6, 7, 8].includes(JSON.parse(section[1])?.schema))
+    if (section && [3, 4, 5, 6, 7, 8, 9].includes(JSON.parse(section[1])?.schema))
       throw Error(
         'This policy version requires its complete frozen comparison. Return to the planner to prepare it.'
       );

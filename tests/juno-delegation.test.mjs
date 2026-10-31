@@ -70,7 +70,7 @@ test('current cap accepts 1.0–3.0 while frozen schemas retain the 2.0 boundary
     assert.throws(() => policy({ ...legacy, factorTenths: 21 }));
   }
   const edited = editablePolicy(old);
-  assert.equal(edited.schema, 8);
+  assert.equal(edited.schema, 9);
   assert.equal(edited.factorTenths, 20);
   assert.equal(policy({ ...edited, factorTenths: 30 }).factorTenths, 30);
   assert.equal(await fingerprint(old), hash);

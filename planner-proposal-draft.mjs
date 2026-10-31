@@ -2,7 +2,12 @@ import { COMMUNITY_POOL_KIND, assertCommunityPoolSpend } from './juno-community-
 import { PROGRAMME, policy, snapshot, units } from './juno-delegation-core.mjs';
 
 import { rewardMessages, legacyRewardMessages } from './juno-governance-core.mjs';
-import { encodeRuleReview, verifyRuleReview, ruleChanges } from './juno-delegation-review.mjs';
+import {
+  encodeRuleReview,
+  verifyRuleReview,
+  ruleChanges,
+  FROZEN_POLICY_REFERENCE
+} from './juno-delegation-review.mjs';
 import { withClaimContext } from './claim-numbering.mjs';
 import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
@@ -117,15 +122,19 @@ export async function frozenRuleProposal(review) {
   // from the same verified package. Do not repeat all of it in the text envelope
   // when that repetition would prevent publishing the complete evidence.
   const compact =
-    `Chain: juno-1\nProgramme: ${PROGRAMME}\n\n` +
-    `${v.parent ? 'Revises Juno proposal #' + v.parent.proposalId + '.' : 'Initial adoption; no prior Cosmoot-format approval found.'}\n\n` +
-    `## Exact policy\n\n\`\`\`json\n${JSON.stringify(v.rule)}\n\`\`\`\n\nRule SHA-256: ${v.policyHash}\n\n` +
-    `Illustrative budget: ${units(v.budgetRaw)} JUNO. Snapshot: ${v.snapshot.height} · ${v.snapshot.blockTime}.\n` +
-    (checked.model.proposed.coverage?.complete
-      ? historyCoverageText(checked.model.proposed.coverage) + '\n'
-      : `Allocation impact unavailable: ${v.proposed.reason}\n`) +
-    '\nFull changes, rationale and validator comparison are frozen below and displayed by Cosmoot. Moving funds requires separate approval.\n\n' +
-    encoded;
+    v.rule.schema === 9
+      ? `Chain: juno-1\nProgramme: ${PROGRAMME}\n\n${FROZEN_POLICY_REFERENCE}\n\nRule SHA-256: ${v.policyHash}\n\nApprove rules only; no funds move. The complete comparison is frozen below.\n\n${encoded}`
+      : `Chain: juno-1\nProgramme: ${PROGRAMME}\n\n` +
+        `${v.parent ? 'Revises Juno proposal #' + v.parent.proposalId + '.' : 'Initial adoption; no prior Cosmoot-format approval found.'}\n\n` +
+        (v.rule.schema === 9
+          ? `${FROZEN_POLICY_REFERENCE}\n\nRule SHA-256: ${v.policyHash}\n\n`
+          : `## Exact policy\n\n\`\`\`json\n${JSON.stringify(v.rule)}\n\`\`\`\n\nRule SHA-256: ${v.policyHash}\n\n`) +
+        `Illustrative budget: ${units(v.budgetRaw)} JUNO. Snapshot: ${v.snapshot.height} · ${v.snapshot.blockTime}.\n` +
+        (checked.model.proposed.coverage?.complete
+          ? historyCoverageText(checked.model.proposed.coverage) + '\n'
+          : `Allocation impact unavailable: ${v.proposed.reason}\n`) +
+        '\nFull changes, rationale and validator comparison are frozen below and displayed by Cosmoot. Moving funds requires separate approval.\n\n' +
+        encoded;
   const body = size(content) <= 10000 ? content : compact;
   if (size(body) > 10000)
     throw Error(

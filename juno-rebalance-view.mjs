@@ -91,7 +91,12 @@ export function mountRebalance({ getContext, readApproval, download, openProposa
       const p = approval.current.rule,
         cap = data ? capFraction(p, data.activeCount) : null;
       for (const [label, value] of [
-        ['Allocation', 'Fixed targets + equal regular allocation'],
+        [
+          'Allocation',
+          p.schema >= 9
+            ? 'Fixed targets + points-weighted regular allocation'
+            : 'Fixed targets + equal regular allocation'
+        ],
         [
           'Voting-power cap',
           cap
