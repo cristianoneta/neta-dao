@@ -695,7 +695,10 @@ try {
     'true'
   );
   assert.match(
-    await comparison.locator('.rr-note').first().textContent(),
+    await comparison
+      .locator('.rr-note')
+      .filter({ hasText: 'same snapshot, evidence and budget' })
+      .textContent(),
     /same snapshot, evidence and budget/
   );
   await comparison.getByLabel('Only changes', { exact: true }).check();
