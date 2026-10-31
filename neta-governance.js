@@ -48,6 +48,9 @@
   const { usesRuleReference, RULE_REFERENCE_MARKER, assertPinnedReview } = await import(
     './juno-rule-reference.mjs'
   );
+  const { reviewHistoryOnly, verifiedReviewTarget } = await import(
+    './src/governance/review-navigation.mjs'
+  );
   const { readReferencedRuleProposal } = await import('./juno-rule-reference-read.mjs');
   const { renderRuleReview } = await import('./juno-rule-review-view.mjs');
   let frozenViewEpoch = 0;
@@ -1360,7 +1363,9 @@
         })
         .map(async ({ proposal, latest_revision: latest }) => ({
           ...proposal,
-          nativeId: await linkedNativeId(proposal, latest, CHAIN_ID, state.chainProposals),
+          nativeId: await linkedNativeId(proposal, latest, CHAIN_ID, state.chainProposals, {
+            readOnly: usesRuleReference(latest)
+          }),
           title: latest.title || `Juno community proposal #${proposal.id}`,
           status: proposal.withdrawn
             ? 'withdrawn'
@@ -1510,7 +1515,7 @@
       reviewUrl.searchParams.set('reviewHash', linkFinal.hash);
     }
     reviewUrl.searchParams.set('review', String(id));
-    if (showHistory) reviewUrl.searchParams.set('reviewHistory', '1');
+    if (showHistory) reviewUrl.searchParams.set('reviewHistory', 'full');
     else reviewUrl.searchParams.delete('reviewHistory');
     reviewUrl.searchParams.set('reviewChain', CHAIN_ID);
     if (isNativeReview()) reviewUrl.searchParams.set('reviewContract', CONTRACT);
@@ -1540,15 +1545,34 @@
     renderRevisions();
     renderComments();
     renderActions();
-    if (sharedFinal) {
-      const submitted = state.chainProposals.find((p) =>
-        matchesReview(p.proposal.raw, sharedFinal.content)
+    if (linkFinal) {
+      const candidates = state.chainProposals.filter((p) =>
+        matchesReview(p.proposal.raw, linkFinal.content)
       );
-      if (submitted && !showHistory) selectChain(submitted);
-      if (submitted && showHistory) {
+      if (candidates.length) {
+        // A possible existing submission must never expose another Submit action,
+        // including when independent verification is temporarily unavailable.
         sharedFinal = null;
-        state.selected.nativeId = submitted.id;
+        state.selected.nativeId = candidates.length === 1 ? candidates[0].id : null;
         renderActions();
+        if (!showHistory) {
+          try {
+            const submitted = usesRuleReference(linkFinal.values)
+              ? await verifiedReviewTarget(linkFinal, state.chainProposals, MAINNET_RESTS)
+              : candidates.length === 1
+                ? candidates[0]
+                : null;
+            if (epoch !== state.requestEpoch || state.selected !== authorReview) return;
+            if (submitted) selectChain(submitted);
+          } catch (error) {
+            if (epoch === state.requestEpoch && state.selected === authorReview)
+              status(
+                'Linked native proposal could not be verified. The review remains available. ' +
+                  error.message,
+                true
+              );
+          }
+        }
       }
     }
     if (!isNativeReview() && revisions.length >= 100)
@@ -2749,7 +2773,7 @@
       if (reviewId && /^[1-9]\d*$/.test(reviewId) && isNativeReview()) {
         if (!state.proposals.some((p) => String(p.id) === reviewId))
           throw Error('Shared review not found in this workspace.');
-        await select(Number(reviewId), plannerParams.get('reviewHistory') === '1');
+        await select(Number(reviewId), reviewHistoryOnly(plannerParams));
       } else if (proposalId && /^[1-9]\d*$/.test(proposalId)) {
         const item = state.chainProposals.find((p) => String(p.id) === proposalId);
         if (!item) throw Error('On-chain proposal not found.');

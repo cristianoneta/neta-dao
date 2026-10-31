@@ -1,6 +1,7 @@
 # Readable allocation-rule proposals
 
-31 October 2026. Source implementation; manual website release remains separate.
+31 October 2026. PR #332 published in manual release 41224653138. The navigation
+follow-up below remains a separate manual website release.
 
 The old native proposal repeated the entire compressed frozen comparison and its
 rules. It approached the application text limit while its summary explained little
@@ -28,6 +29,27 @@ The existing review is the evidence store. Cosmoot is its viewer, and its URL is
 not a mutable pointer to the latest planner. An incorrect revision or content hash
 blocks the pinned view instead of displaying a different draft. Native rule views
 also confirm the actual native record and referenced evidence against two sources.
+
+## Open the proposal and vote — navigation follow-up
+
+The shipped pinned links initially forced the review-history view. They now open
+the review before submission and the unique matching native proposal afterwards,
+including its existing phase-appropriate voting or deposit controls. The full
+rules and frozen comparison remain on that native proposal view. Opening a link
+does not connect a wallet, select a vote or sign anything.
+
+The native proposal must exactly match the finalized review, and complete histories
+from two independent sources must agree on its single ID. Wrong pins, duplicate
+submissions and disagreeing sources prevent automatic navigation. A possible
+existing submission also hides the new-submission controls while verification is
+unavailable. A withdrawn review can still link to its existing native decision.
+
+No serialized URL, proposal bytes or hashes change. The existing pinned
+`reviewHistory=1` links resolve to the proposal; the explicit View community review
+action uses `reviewHistory=full` so history survives reload. Older unpinned history
+links keep their previous behavior. Voting/signing/gas code and the generated
+signing bundle remain unchanged. Unit and browser regressions cover both routes,
+wrong hashes, source disagreement, duplicate submissions and later withdrawal.
 
 ## Compatibility and verification
 

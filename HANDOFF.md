@@ -12,8 +12,17 @@ contract/ID/revision/content/rule/evidence hashes. Full frozen evidence remains 
 the existing on-chain workshop; it is no longer duplicated in the native text.
 Existing local drafts require the explicit **Prepare readable rule proposal**
 action. Historical finalized/native payloads retain their original representation.
-This source change still needs its manual website release; no contract deployment
-or wallet operation is included. See [format, limits and verification](docs/REFERENCED_RULE_PROPOSALS_2026-10-31.md).
+PR #332 was published at `b090eb21931739f275d1b561ffe276b626daa07a` by
+[manual release 41224653138](https://github.com/cristianoneta/neta-dao/actions/runs/41224653138);
+all checks and the exact-artifact publish step succeeded. No contract deployment
+or wallet operation was included. See [format, limits and verification](docs/REFERENCED_RULE_PROPOSALS_2026-10-31.md).
+
+The current navigation follow-up keeps those exact link/payload bytes unchanged,
+but opens the matching native proposal after submission so readers can use its
+existing voting controls. It verifies one exact submission against both sources;
+ambiguous or disagreeing records stay in review. Explicit history remains separate.
+This follow-up still requires its own manual website release. Signing, gas, voting
+logic and the generated signing bundle are unchanged.
 
 ## Release gate correction — resolved 31 October
 
@@ -75,8 +84,8 @@ next scheduled cycle remain separate acceptance checks.
 ## Current continuation: Delegation Programme
 
 The owner returned to the Delegation Programme on 29 October. The latest verified
-website release is [41217797680](https://github.com/cristianoneta/neta-dao/actions/runs/41217797680),
-source `b89cb82ce2bb1162db76a4ee5145fd4cb99b9ef3`, including governance points and fixed allocations. Its publication
+website release is [41224653138](https://github.com/cristianoneta/neta-dao/actions/runs/41224653138),
+source `b090eb21931739f275d1b561ffe276b626daa07a`, including referenced rule proposals, governance points and fixed allocations. Its publication
 step succeeded; the earlier native-submission byte check remains dated evidence. Do not
 repeat this release or either completed gas repair.
 

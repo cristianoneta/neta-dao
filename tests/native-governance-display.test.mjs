@@ -9,6 +9,7 @@ import {
   readNativeVoting,
   linkedNativeId
 } from '../native-governance-display.mjs';
+import { reviewHistoryOnly, verifiedReviewTarget } from '../src/governance/review-navigation.mjs';
 import { finalizedReview } from '../juno-community-governance.mjs';
 import { legacyClaimDraft as claimProposal } from './fixtures/legacy-claim.mjs';
 import { fixture } from './fixtures/delegation-planner.mjs';
@@ -24,6 +25,84 @@ const proposal = {
   status: 'PROPOSAL_STATUS_VOTING_PERIOD',
   final_tally_result: { yes_count: '0', no_count: '0', abstain_count: '0', no_with_veto_count: '0' }
 };
+test('pinned rule links open the proposal while explicit and legacy history links retain history', () => {
+  assert.equal(
+    reviewHistoryOnly(new URLSearchParams('reviewHistory=1&reviewRevision=1&reviewHash=abc')),
+    false
+  );
+  assert.equal(
+    reviewHistoryOnly(new URLSearchParams('reviewHistory=full&reviewRevision=1&reviewHash=abc')),
+    true
+  );
+  assert.equal(reviewHistoryOnly(new URLSearchParams('reviewHistory=1')), true);
+  assert.equal(reviewHistoryOnly(new URLSearchParams()), false);
+});
+
+test('native review navigation requires one exact payload and agreement of both independent histories', async () => {
+  const content = {
+    title: 'Rule decision',
+    summary: 'Exact content',
+    metadata: 'review:hash',
+    messages: []
+  };
+  const raw = { ...proposal, ...content };
+  const records = [normalizeNativeProposal(raw)];
+  let second = [raw],
+    unavailable = false;
+  const endpoints = ['https://one.example', 'https://two.example'];
+  const fetcher = async (url) => {
+    if (url.includes('two.example') && unavailable) throw Error('Source unavailable');
+    return new Response(
+      JSON.stringify(
+        url.endsWith('/blocks/latest')
+          ? {
+              block: {
+                header: { chain_id: 'juno-1', height: '42710000', time: new Date().toISOString() }
+              }
+            }
+          : {
+              proposals: url.includes('two.example') ? second : [raw],
+              pagination: { next_key: null }
+            }
+      )
+    );
+  };
+  assert.equal(await verifiedReviewTarget({ content }, [], endpoints, { fetcher }), null);
+  assert.equal(
+    await verifiedReviewTarget(
+      { content: { ...content, summary: 'Different' } },
+      records,
+      endpoints,
+      { fetcher }
+    ),
+    null
+  );
+  assert.equal((await verifiedReviewTarget({ content }, records, endpoints, { fetcher })).id, 381);
+  await assert.rejects(
+    verifiedReviewTarget(
+      { content },
+      [...records, normalizeNativeProposal({ ...raw, id: '382' })],
+      endpoints,
+      { fetcher }
+    ),
+    /Multiple/
+  );
+  second = [{ ...raw, id: '382' }];
+  await assert.rejects(
+    verifiedReviewTarget({ content }, records, endpoints, { fetcher }),
+    /disagree/
+  );
+  second = [raw, { ...raw, id: '382' }];
+  await assert.rejects(
+    verifiedReviewTarget({ content }, records, endpoints, { fetcher }),
+    /disagree/
+  );
+  unavailable = true;
+  await assert.rejects(
+    verifiedReviewTarget({ content }, records, endpoints, { fetcher }),
+    /unavailable/
+  );
+});
 test('open proposals never use the zero-filled final tally; all four integer amounts remain exact', () => {
   assert.equal(normalizeNativeProposal(proposal).proposal.votes, null);
   assert.deepEqual(nativeTally(tally), {
