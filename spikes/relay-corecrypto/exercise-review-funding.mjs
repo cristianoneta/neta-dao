@@ -55,7 +55,9 @@ export async function exerciseReviewFunding(page, origin, sample) {
     comments = [],
     failReviewReads = false,
     holdAuthorLookup = false,
+    authorLookupBarrier,
     releaseAuthorLookup;
+  const heldAuthorLookupUrls = [];
   const author = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
   const sponsor = toBech32('juno', new Uint8Array(20).fill(3));
   const voterAccounts = [author, sponsor, toBech32('juno', new Uint8Array(20).fill(5))];
@@ -247,12 +249,15 @@ export async function exerciseReviewFunding(page, origin, sample) {
           else if (q.name_of) data = { address: q.name_of.address, name: 'cristiano.neta' };
           else if (q.identity) {
             if (holdAuthorLookup) {
-              await page.evaluate(() => {
-                window.__authorLookupHeld = true;
-              });
-              await new Promise((resolve) => {
-                releaseAuthorLookup = resolve;
-              });
+              // Every in-flight read shares one barrier. A per-request resolver
+              // would overwrite the previous one and leave earlier reads hung.
+              const barrier = authorLookupBarrier;
+              heldAuthorLookupUrls.push(route.request().url());
+              await page.evaluate(
+                (count) => (window.__authorLookupsHeld = count),
+                heldAuthorLookupUrls.length
+              );
+              await barrier;
             }
             data = {
               name: 'cristiano.neta',
@@ -1432,11 +1437,25 @@ export async function exerciseReviewFunding(page, origin, sample) {
   await page
     .locator('.review-transaction-feedback [data-review-check]')
     .waitFor({ state: 'visible' });
+  authorLookupBarrier = new Promise((resolve) => {
+    releaseAuthorLookup = resolve;
+  });
   holdAuthorLookup = true;
   await page.locator('.review-transaction-feedback [data-review-check]').click();
   await primary('FINALIZE REVIEW');
   assert.equal(reviewWrites, previousWrites + 1, 'Read-only status lookup must not republish');
-  await page.waitForFunction(() => window.__authorLookupHeld === true);
+  await page.waitForFunction(() => window.__authorLookupsHeld >= 1);
+  // Force a second concurrent read before disconnecting. Both must complete
+  // after release; the old last-resolver-only fixture strands the first one.
+  const heldBeforeDuplicate = heldAuthorLookupUrls.length;
+  await page.evaluate((url) => {
+    void fetch(url)
+      .then((response) => response.json())
+      .then((body) => {
+        window.__duplicateAuthorLookupName = body.data?.name;
+      });
+  }, heldAuthorLookupUrls[0]);
+  await page.waitForFunction((count) => window.__authorLookupsHeld > count, heldBeforeDuplicate);
   await page.locator('#gov-disconnect').click();
   holdAuthorLookup = false;
   releaseAuthorLookup();
@@ -1445,6 +1464,7 @@ export async function exerciseReviewFunding(page, origin, sample) {
   await page.waitForFunction(() =>
     document.querySelector('#shared-review-author').textContent.includes('cristiano.neta')
   );
+  await page.waitForFunction(() => window.__duplicateAuthorLookupName === 'cristiano.neta');
   await wallet(sponsor);
   await page.locator('#gov-connect').click();
   assert.equal(await page.locator('#discard-action').isDisabled(), true);

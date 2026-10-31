@@ -4,6 +4,24 @@ Updated 31 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
+## Release gate correction — 31 October
+
+PR #330 is integrated at `f7632c80b173d4d721e79a31b6d39802d98fdcaf`.
+[Manual release 41200786112](https://github.com/cristianoneta/neta-dao/actions/runs/41200786112)
+failed before publication: the review-funding browser fixture held overlapping
+author-name requests but released only the most recent request. Its name-display
+assertion timed out; the release job was skipped. The follow-up uses one shared
+barrier and deliberately overlaps two reads before wallet disconnect, retaining
+the name, author-only withdrawal and no-republication assertions. It changes test
+orchestration only. Run the corrected main commit through the manual release after
+the follow-up passes its required checks; do not bypass or retry the old fixture.
+
+The preceding [release 41010288402](https://github.com/cristianoneta/neta-dao/actions/runs/41010288402)
+published `bc53c8c467f1ccd9f1aa4f239b539e2a27f1e863` on 30 October, including fixed
+allocations. The 31 October governance-points website changes remain unpublished.
+Collector installation is separate: fresh public Operations data retains all 57
+earlier events, and the new own-history governance feed is accepted by the planner.
+
 ## Current operations repair — 31 October
 
 The 31 October check found Operations receipt collection stalled at its 29 October success. Both
@@ -44,9 +62,9 @@ Do not label the new scoring live before the own-history feed is installed and v
 ## Current continuation: Delegation Programme
 
 The owner returned to the Delegation Programme on 29 October. The latest verified
-website release is [40589638063](https://github.com/cristianoneta/neta-dao/actions/runs/40589638063),
-source `65f48c5bff863eea44c99cd6516984cd7c37a074`, including PR #327. Its publication
-step succeeded; the served native-submission module matches the source. Do not
+website release is [41010288402](https://github.com/cristianoneta/neta-dao/actions/runs/41010288402),
+source `bc53c8c467f1ccd9f1aa4f239b539e2a27f1e863`, including fixed allocations. Its publication
+step succeeded; the earlier native-submission byte check remains dated evidence. Do not
 repeat this release or either completed gas repair.
 
 Read the [29 October evidence checkpoint](docs/DELEGATION_CHECKPOINT_2026-10-29.md):
