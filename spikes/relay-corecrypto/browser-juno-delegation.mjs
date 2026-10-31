@@ -202,9 +202,9 @@ try {
   await page.route('**/data/daos/juno-delegation-planner.json', (route) => {
     if (state === 'missing') return route.fulfill({ status: 503, body: 'unavailable' });
     const data = structuredClone(sample);
-    withGovernance(data);
     if (state === 'stale') data.blockTime = new Date(Date.now() - 7200000).toISOString();
     if (state === 'wrong-chain') data.chainId = 'uni-7';
+    withGovernance(data);
     if (historyComplete) {
       data.activeSetHistory = withParticipation(activeHistory(data, historyDays));
       data.activeSetHistory.schema = 2;
