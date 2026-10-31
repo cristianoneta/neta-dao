@@ -8,13 +8,13 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `65f48c5bff863eea44c99cd6516984cd7c37a074` | [Manual release 40589638063](https://github.com/cristianoneta/neta-dao/actions/runs/40589638063) published PR #327 on 27 October after successful full checks. Includes the working native vote policy, separate proposal gas correction, swap and `/wynd` short link. Served submission-module bytes matched on 29 October. |
+| Last successful website release | Source `bc53c8c467f1ccd9f1aa4f239b539e2a27f1e863` | [Manual release 41010288402](https://github.com/cristianoneta/neta-dao/actions/runs/41010288402) published the fixed-allocation source on 30 October; the publish step succeeded. [31 October release 41200786112](https://github.com/cristianoneta/neta-dao/actions/runs/41200786112) failed a browser fixture and skipped publication of PR #330. |
 | Native vote gas correction | Published; successful owner wallet acceptance verified on-chain | The higher-gas vote was included with code 0, the expected Yes ballot and 118,192 gas used from 250,000. Preserve original-sequence binding and both attempts during uncertain outcomes. [Evidence, safeguards and validation](NATIVE_VOTE_TRANSMISSION_2026-10-27.md). |
 | Native proposal submission gas | Published; successful live submission verified | Corrected reward review 3 became native #384 with code 0, 2,255,995 / 3,092,554 gas and fee 0.231942 JUNO. Its 5,000 JUNO deposit opened voting; execution remains pending. [Reproduction](PROPOSAL_SUBMISSION_GAS_2026-10-27.md), [two-source checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md). |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
 | Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Published in release 40106761715; updated homepage observed on both website domains. Responsive CI passed at 320/390/768/1440 px; separate mobile live acceptance and controlled live fallback remain open. |
 | Collector archives / efficiency | Source captures UTC Treasury days, archives expired validator evidence before pruning, preserves daily membership/planner observations and signed prices, and shares bounded RPC results | [Scope and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md). Owner confirmed host installation and successful manual collector/archive checks on 24 October; regular cycles, multi-day growth and measured savings remain pending. Local archives do not prove independent retention. |
-| Operations receipt collection | Owner confirmed installation of the archive-provider correction and explicit process/health failures; live recovery is being checked separately | Both previous providers had pruned the accounting-floor block. Seven new regression tests cover archive access and rate limiting, retained evidence, failed child exits and missed freshness checks. [Repair and deployment boundary](OPERATIONS_COLLECTOR_2026-10-31.md). Complete collector runs, fresh successful feeds and the next scheduled cycle remain to be verified; no website release needed for this repair. |
+| Operations receipt collection | Source installed; fresh public events/accounting verified after update, with all 57 earlier events unchanged | Both previous providers had pruned the accounting-floor block. Seven regression tests cover archive access and rate limiting, retained evidence, failed child exits and missed freshness checks. [Repair and deployment boundary](OPERATIONS_COLLECTOR_2026-10-31.md). Complete host health and the next scheduled cycle remain separate checks; no website release needed for this repair. |
 | Infrastructure backup | Online SQLite exports, locked collector/validator evidence, explicit recovery files, encrypted Restic backup plus verified fresh download; units and retention preview provided | [Runbook and boundaries](INFRASTRUCTURE_BACKUPS.md). Owner confirmed installation, first verified R2 backup/download and full repository data check on 24 October. Daily timer enabled with explicit deferral of another-machine application recovery; unattended cycles and destructive retention remain unaccepted. Private receipts remain outside Git. |
 | Backend / public data | OVH backend updated from the reviewed #304 source; Render is retired | Owner-confirmed healthy replacement, successful isolated host checks and independent public API/data probes. Private operational receipts remain outside Git. |
 | Source and CI | GitHub primary; GitLab dormant reserve | One PR per related batch. Protected required aggregate check; security audits retained. Production data writers do not run on GitHub schedules. |
@@ -46,7 +46,18 @@ tests (14 environment skips). Feature head `ed0bac062b76b8a1b057d270a51106499163
 passed all 18 jobs in [CI 41199076122](https://github.com/cristianoneta/neta-dao/actions/runs/41199076122),
 including browser and programme-execution acceptance. The subsequent readiness
 update changes documentation only. Owner-confirmed collector installation is
-complete; fresh feed acceptance and manual website publication remain pending.
+complete. Fresh public governance evidence covers two fully observed completed
+proposals; the production parser and simulation accept it. A frozen first-rule
+proposal using all 37 held positions and both proposals roundtrips in 9,427
+characters. Full host health and the next scheduled cycle remain separate checks.
+
+PR #330 is merged, but manual release 41200786112 stopped before publication when
+the review-funding test held concurrent author-name reads and released only the
+last one. The test-only correction uses one shared barrier and forces overlapping
+reads, retaining the original wallet-disconnect, name-display, withdrawal-access
+and no-republication checks. Governance points remain unpublished until a corrected
+main commit passes the manual release. No production wallet/signing code is changed
+by this fixture repair.
 
 ## Fixed additional allocations — source implementation, 29 October
 
@@ -58,8 +69,8 @@ reviews preserve obligations, dates, exact amounts and supporting links. Rebalan
 keeps approved rules separate from local edits. No recipient is preconfigured.
 
 [Semantics, UX, date boundaries and validation](FIXED_DELEGATIONS_2026-10-29.md).
-This source is not yet published. The last verified website release remains the
-one above. Rule approval and separately voted fund movements are still required;
+This source was published in release 41010288402 on 30 October. Rule approval
+and separately voted fund movements are still required;
 no wallet, contract or infrastructure operation was performed.
 
 ## Delegation Programme continuation — checked 29 October
