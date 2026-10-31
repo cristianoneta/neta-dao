@@ -244,7 +244,7 @@ async function loadApprovedRules() {
       source,
       node(
         'p',
-        `Equal allocation · ${rule.commissionMaxBps === null ? 'no commission limit' : rule.commissionMaxBps / 100 + '% maximum commission'} · ${rule.exclusions.length} manual exclusions.`
+        `${rule.schema >= 9 ? 'Points-weighted allocation' : 'Equal allocation'} · ${rule.commissionMaxBps === null ? 'no commission limit' : rule.commissionMaxBps / 100 + '% maximum commission'} · ${rule.exclusions.length} manual exclusions.`
       ),
       details
     );

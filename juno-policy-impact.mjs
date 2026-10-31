@@ -238,7 +238,7 @@ export function renderPolicyImpact(host, model) {
           row.eligible ? 'impact-eligible' : 'impact-excluded'
         )
       );
-      if (row.points) name.append(node('small', pointsText(row.points)));
+      if (row.points) name.append(node('small', ' · ' + pointsText(row.points)));
       line.append(name);
       for (const [label, value] of [
         ['Current', row.currentRaw],
