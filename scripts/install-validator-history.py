@@ -18,8 +18,8 @@ import tempfile
 from urllib.request import urlopen
 
 FILES = {
-    'scripts/validator_history.py': '7ad9c754e55f0c03e765a7352dca9fddc310a6a62c91b5360f51b1238935f77a',
-    'scripts/validator_archive.py': '727e467d119a746d38f8f7f47e5942daafea89479f1a2dba566b68cb6abbafb7',
+    'scripts/validator_history.py': '1190b8c677bc7ff5de4be8a2cc9e5e68dd5c64f5ac3c3f59999081cb85072342',
+    'scripts/validator_archive.py': '17fc6d78f970089ea609098ef640976cbd693badbaa5cbe5b04c061949e7b0c5',
     'scripts/evidence_archive.py': 'd78df42887eddbea22e7b127032cf64196b50b9fb6a9afaeaa6c20c0c3ea3684',
     'scripts/block_results_cache.py': 'ab8986cd26cf5cfc0277d81741aa2d4f327a2af2bbc70b88675a078333c35b03',
     'deploy/cosmoot/systemd/cosmoot-validator-history.service': '8974a309b850dbf7983dec191da57cac9eabaaa88b95268189316afa382fb8a9',

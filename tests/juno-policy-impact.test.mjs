@@ -6,11 +6,12 @@ import {
   fixture,
   observed,
   activeHistory,
-  withParticipation
+  withParticipation,
+  withGovernance
 } from './fixtures/delegation-planner.mjs';
 
 function context() {
-  const data = fixture();
+  const data = withGovernance(fixture());
   data.activeSetHistory = withParticipation(activeHistory(data));
   return { rules: defaultPolicy(), data, evidence: observed(data), budget: '3000.000001' };
 }

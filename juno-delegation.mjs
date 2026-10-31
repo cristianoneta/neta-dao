@@ -1,13 +1,13 @@
 import { mountFixedAllocations, renderFixedMandates } from './juno-fixed-allocation-view.mjs';
 import { availableBudget } from './juno-rebalance.mjs';
-import { policyImpact, renderPolicyImpact } from './juno-policy-impact.mjs?v=20261025-clarity-1';
+import { policyImpact, renderPolicyImpact } from './juno-policy-impact.mjs?v=20261031-points-1';
 import { mountRebalance } from './juno-rebalance-view.mjs';
 import { buildRuleReview, ruleChanges, parentMatches } from './juno-delegation-review.mjs';
 import { renderRuleReview } from './juno-rule-review-view.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
 import { participationEvidence } from './juno-participation-history.mjs';
 import { currentApprovedRules } from './juno-approved-rules.mjs';
-import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=4';
+import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=6';
 import {
   frozenRuleProposal,
   claimProposal,
@@ -44,7 +44,9 @@ let approval = { status: 'loading', current: null },
   draftStarted = false;
 let rewardsSource = null,
   rebalance = null,
-  fixedEditor = null;
+  fixedEditor = null,
+  pointsEditor = null,
+  approvedPoints = null;
 const fmt = (value) => formatAmount(value, true);
 const tell = (message, tone = 'info') => {
   $('feedback').textContent = message;
@@ -143,6 +145,7 @@ let approvalRead = 0;
 async function loadApprovedRules() {
   const read = ++approvalRead;
   approval = { ...approval, status: 'loading' };
+  approvedPoints?.render();
   renderDraftBaseline();
   const host = $('current-rules-content'),
     state = $('current-rules-state');
@@ -186,7 +189,12 @@ async function loadApprovedRules() {
     );
     const settings = node('dl', '', 'approved-settings');
     for (const [label, value] of [
-      ['Allocation', 'Equal distribution within the voting power cap'],
+      [
+        'Allocation',
+        rule.schema >= 9
+          ? 'Points-weighted distribution within the voting power cap'
+          : 'Equal distribution within the voting power cap'
+      ],
       [
         'Voting power cap',
         `min(30%, ${rule.factorTenths / 10} × 100% / consensus validator count)`
@@ -236,13 +244,14 @@ async function loadApprovedRules() {
       source,
       node(
         'p',
-        `Equal allocation · ${rule.commissionMaxBps === null ? 'no commission limit' : rule.commissionMaxBps / 100 + '% maximum commission'} · ${rule.exclusions.length} manual exclusions.`
+        `${rule.schema >= 9 ? 'Points-weighted allocation' : 'Equal allocation'} · ${rule.commissionMaxBps === null ? 'no commission limit' : rule.commissionMaxBps / 100 + '% maximum commission'} · ${rule.exclusions.length} manual exclusions.`
       ),
       details
     );
   } catch (error) {
     if (read !== approvalRead) return;
     approval = { status: 'unavailable', current: null };
+    approvedPoints?.render();
     renderDraftBaseline();
     state.textContent = 'Approval unavailable';
     host.replaceChildren(
@@ -374,7 +383,7 @@ function renderRuleSummary() {
     ? ((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2) + '%'
     : 'pending';
   $('rule-summary').textContent =
-    `Equal allocation · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · commit signatures ≥${rules.minParticipationBps / 100}% · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
+    `${rules.schema >= 9 ? 'Points-weighted allocation' : 'Equal allocation'} · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · commit signatures ≥${rules.minParticipationBps / 100}% · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
   $('draft-cap').textContent =
     $('factor-number').checkValidity() && $('factor-number').value ? capText : 'Check value';
   $('draft-commission').textContent = commissionValid()
@@ -410,6 +419,7 @@ function scheduleImpact() {
       evidence,
       budget: $('programme-amount').value.trim(),
       valid:
+        (pointsEditor?.valid() ?? true) &&
         commissionValid() &&
         uptimeValid() &&
         !!$('factor-number').value &&
@@ -420,10 +430,7 @@ function scheduleImpact() {
 }
 function commissionValid() {
   const input = $('commission');
-  return (
-    $('no-commission-limit').checked ||
-    (input.value !== '' && input.checkValidity() && Number.isInteger(Number(input.value)))
-  );
+  return input.value !== '' && input.checkValidity() && Number.isInteger(Number(input.value));
 }
 function showCommissionError() {
   const valid = commissionValid();
@@ -441,18 +448,17 @@ function showUptimeError() {
 }
 function restoreRuleInputs() {
   const unlimited = rules.commissionMaxBps === null;
-  $('no-commission-limit').checked = unlimited;
-  $('additional-rule-options').open = unlimited;
-  $('commission').disabled = unlimited;
-  $('commission').value = unlimited ? '10' : String(rules.commissionMaxBps / 100);
+  // A stored null keeps its original policy meaning until this field is edited.
+  // 100% permits every valid commission rate without a second control.
+  $('commission').value = unlimited ? '100' : String(rules.commissionMaxBps / 100);
   showCommissionError();
   $('uptime').value = String(rules.minParticipationBps / 100);
   showUptimeError();
 }
 function renderRules() {
+  pointsEditor?.render();
+  approvedPoints?.render();
   fixedEditor?.render();
-  $('factor').value = rules.factorTenths;
-  $('factor').setAttribute('aria-valuetext', (rules.factorTenths / 10).toFixed(1) + ' times');
   $('factor-number').value = (rules.factorTenths / 10).toFixed(1);
   $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
   const cap = data ? capFraction(rules, data.activeCount) : null;
@@ -671,17 +677,20 @@ async function runSimulation() {
     if (!data || !evidence) throw Error('Load programme data first.');
     if (!$('factor-number').checkValidity() || !$('factor-number').value) {
       focusRuleInput('factor-number');
-      throw Error('Enter a factor from 1.0 to 2.0 in steps of 0.1.');
+      throw Error('Enter a factor from 1.0 to 3.0 in steps of 0.1.');
     }
     if (!commissionValid()) {
       focusRuleInput('commission');
-      throw Error(
-        'Enter a whole-number commission limit from 0 to 100, or select no commission limit.'
-      );
+      throw Error('Enter a whole-number commission limit from 0 to 100.');
     }
     if (!uptimeValid()) {
       focusRuleInput('uptime');
       throw Error('Enter an uptime threshold from 95 to 100 with up to two decimal places.');
+    }
+    if (!pointsEditor.valid()) {
+      setStep('distribution');
+      $('rules-base-points').focus();
+      throw Error('Check the base points and bonus weights.');
     }
     invalidate('Calculating the proposed allocation…');
     const token = revision;
@@ -766,13 +775,6 @@ function mountCriterionHelp() {
     });
   }
 }
-$('factor').addEventListener('input', () => {
-  $('factor-error').hidden = true;
-  $('factor-number').removeAttribute('aria-invalid');
-  rules.factorTenths = Number($('factor').value);
-  invalidate();
-  renderRules();
-});
 $('factor-number').addEventListener('input', () => {
   invalidate();
   const valid = $('factor-number').value !== '' && $('factor-number').checkValidity();
@@ -780,24 +782,18 @@ $('factor-number').addEventListener('input', () => {
   $('factor-number').setAttribute('aria-invalid', String(!valid));
   if (!valid) return;
   rules.factorTenths = Math.round(Number($('factor-number').value) * 10);
-  $('factor').value = rules.factorTenths;
   $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
   const currentInput = $('factor-number').value;
   renderRules();
   $('factor-number').value = currentInput;
 });
 function updateCommission() {
-  $('commission').disabled = $('no-commission-limit').checked;
   showCommissionError();
-  if (commissionValid())
-    rules.commissionMaxBps = $('no-commission-limit').checked
-      ? null
-      : Number($('commission').value) * 100;
+  if (commissionValid()) rules.commissionMaxBps = Number($('commission').value) * 100;
   invalidate();
   renderRules();
 }
 $('commission').addEventListener('input', updateCommission);
-$('no-commission-limit').addEventListener('change', updateCommission);
 $('uptime').addEventListener('input', () => {
   showUptimeError();
   if (uptimeValid()) rules.minParticipationBps = Math.round(Number($('uptime').value) * 100);
@@ -842,7 +838,7 @@ $('save-draft').addEventListener('click', () => {
       return;
     }
     if (!$('factor-number').checkValidity() || !$('factor-number').value) {
-      tell('Enter a factor from 1.0 to 2.0 before saving the rules.', 'error');
+      tell('Enter a factor from 1.0 to 3.0 before saving the rules.', 'error');
       focusRuleInput('factor-number');
       return;
     }
@@ -854,6 +850,11 @@ $('save-draft').addEventListener('click', () => {
     if (!uptimeValid()) {
       tell('Enter an uptime threshold from 95 to 100 before saving the rules.', 'error');
       focusRuleInput('uptime');
+      return;
+    }
+    if (!pointsEditor.valid()) {
+      setStep('distribution');
+      tell('Check the base points and bonus weights before saving.', 'error');
       return;
     }
     localStorage.setItem(
@@ -967,8 +968,17 @@ setInterval(() => {
 document.addEventListener('visibilitychange', () => {
   if (!loading && !document.hidden) renderClaimRewards();
 });
-renderFuturePolicy($('overview-future-policy'), 'overview');
-renderFuturePolicy($('rules-future-policy'), 'rules');
+approvedPoints = renderFuturePolicy($('overview-future-policy'), 'overview', {
+  getRule: () => (approval.status === 'verified' ? approval.current?.rule : null)
+});
+pointsEditor = renderFuturePolicy($('rules-future-policy'), 'rules', {
+  getRule: () => rules,
+  onChange: (points) => {
+    if (points) rules.points = points;
+    invalidate();
+    renderRuleSummary();
+  }
+});
 mountCriterionHelp();
 $('current-positions-toggle').onclick = () => {
   showAllCurrentPositions = !showAllCurrentPositions;
@@ -1029,7 +1039,7 @@ try {
     $('rule-rationale').value = value.rationale || '';
     const migrated = original.schema !== rules.schema;
     $('draft-status').textContent = migrated
-      ? 'Editable rule draft updated · no fixed allocations added · unapproved'
+      ? 'Editable draft updated to points-based rules · review the new settings · unapproved'
       : 'Local draft restored · original baseline preserved';
     if (migrated || legacy) {
       try {

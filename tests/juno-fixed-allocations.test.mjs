@@ -31,7 +31,8 @@ import {
   fixture,
   observed,
   activeHistory,
-  withParticipation
+  withParticipation,
+  withGovernance
 } from './fixtures/delegation-planner.mjs';
 const now = '2026-10-29T12:00:00Z';
 function inputs() {
@@ -43,6 +44,7 @@ function inputs() {
     v.currentRaw = '0';
   });
   const h = withParticipation(activeHistory(s, 5));
+  withGovernance(s);
   return { s, h, e: observed(s), p: defaultPolicy() };
 }
 const entry = (s, index = 0, value = '500000') => ({
@@ -368,7 +370,7 @@ test('an empty fixed list preserves schema-6 target, capacity and denominator ca
   for (const key of ['allocatedRaw', 'unallocatedRaw', 'projectedBondedRaw'])
     assert.equal(current[key], old[key]);
   assert.deepEqual(
-    current.rows.map(({ fixedRaw, regularRaw, fixedAllocation, capException, ...v }) => v),
+    current.rows.map(({ fixedRaw, regularRaw, fixedAllocation, capException, points, ...v }) => v),
     old.rows
   );
 });

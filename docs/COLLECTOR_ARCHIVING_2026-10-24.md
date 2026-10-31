@@ -1,6 +1,6 @@
 # Collector efficiency and evidence archiving
 
-24 October 2026. Source changes; host installation, scheduled acceptance and
+24 October 2026; retention refinement 31 October. Source changes; host installation, scheduled acceptance and
 independent storage remain separate gates. No generated source data is rewritten.
 
 ## Retained observations
@@ -9,7 +9,7 @@ independent storage remain separate gates. No generated source data is rewritten
 | --- | --- | --- |
 | Treasury daily history | Each successful scheduled observation updates its original UTC day; the latest observed value wins | Removes the single local-hour dependency. Missing days stay missing; no synthetic closing balances. |
 | Treasury beyond 730 observations | Archive exact old rows before trimming the working JSON | Without an archive destination all rows remain. Invalid history fails instead of resetting it. |
-| Validator evidence | Before pruning the 120-day working window, export at most 5,000 old blocks with selected events, membership transitions, snapshots and referenced rosters | Exact typed SQLite rows, including BLOBs. Daily aggregates, streaks, cursor and collection identity remain. Previously uncaptured raw signatures/results are not added. |
+| Validator evidence | Before pruning the 180-day working window, export at most 5,000 old blocks with selected events, membership transitions, snapshots and referenced rosters | Raised from 120 days in the 31 October source; owner confirmed installation, post-update collection acceptance pending. Exact typed SQLite rows, including BLOBs. Daily aggregates, streaks, cursor and collection identity remain. Previously uncaptured raw signatures/results are not added. |
 | Juno, NETA and Operations membership | Preserve the first successfully archived observation of each original UTC day | Exact source bytes and completeness flags. Not an intraday change log or end-of-day membership proof. |
 | Delegation planner | Preserve the first successfully archived observation per original UTC day | Original heights, timestamps and evidence limits. |
 | Signed NNS prices | Preserve every distinct price file produced by the main collector | Exact signed bytes, deduplicated. No extension of validity or re-signing. |

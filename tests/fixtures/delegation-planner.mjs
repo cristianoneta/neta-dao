@@ -82,3 +82,28 @@ export function withParticipation(h) {
   };
   return h;
 }
+
+// Empty, complete own-history sample; never injected into production data.
+export function withGovernance(s, days = 20) {
+  const start = {
+    height: s.height - 20000,
+    time: new Date(Date.parse(s.blockTime) - days * 86400000).toISOString(),
+    hash: 'A'.repeat(64)
+  };
+  const end = { height: s.height, time: s.blockTime, hash: 'B'.repeat(64) };
+  s.governanceHistory = {
+    schema: 1,
+    chainId: 'juno-1',
+    source: 'https://history.example.org',
+    collectionStart: { height: start.height, time: start.time },
+    coverage: { start, end },
+    validators: s.validators.map((v) => ({
+      address: v.address,
+      firstHeight: start.height,
+      firstTime: start.time
+    })),
+    proposals: [],
+    excluded: []
+  };
+  return s;
+}

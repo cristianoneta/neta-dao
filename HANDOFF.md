@@ -1,8 +1,45 @@
 # Cosmoot public development handoff
 
-Updated 29 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
+Updated 31 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
+
+## Current operations repair — 31 October
+
+The 31 October check found Operations receipt collection stalled at its 29 October success. Both
+configured Osmosis providers have pruned its original accounting-floor block.
+The source correction adds the official Osmosis archive, propagates child and
+statement failures to the collector exit status, and checks Operations events and
+accounting in the published-data health check. Existing evidence and all history
+checks remain intact. See [cause, regression coverage and acceptance](docs/OPERATIONS_COLLECTOR_2026-10-31.md).
+The owner confirmed the source installation; complete collector runs and live recovery
+are being checked separately. The collector repair
+itself needs no website release; private installation details remain outside Git.
+
+The same PR #330 now implements governance-weighted allocation under new
+schema 9, the single voting-power factor up to 3.0, and removal of duplicate
+controls. Governance defaults to 100% of a configurable bonus; unavailable
+criteria remain disabled at zero. Scores use only complete voting periods in our
+own captured history. Fixed allocations are reserved first and remain exempt.
+Schemas 2–8 and their frozen reviews retain their original meaning.
+
+The source includes a read-only governance exporter, additive first-entry and
+new-event integrity records, exact rational point weights, capped micro-unit
+allocation, frozen evidence and compatible approval/Rebalance parsing. Larger
+schema-9 envelopes refer to the exact policy already inside their verified frozen
+comparison instead of duplicating its JSON. The complete sample stays embedded;
+oversize evidence remains blocked. See [implementation and acceptance](docs/DELEGATION_GOVERNANCE_BONUS_2026-10-31.md).
+
+The working validator history retains 180 days. Older blocks, events and integrity
+records require verified archiving before deletion; first observed entries survive
+exit/re-entry and pruning. Archive bundles and R2 backups gain no expiry.
+Local checks cover 443 JavaScript tests and 242 Python tests (14 environment skips).
+The points implementation and browser acceptance passed all 18 jobs in
+[CI 41199076122](https://github.com/cristianoneta/neta-dao/actions/runs/41199076122),
+feature head `ed0bac062b76b8a1b057d270a511064991630348`. This readiness update is
+documentation-only. Collector installation is confirmed; fresh feed acceptance and
+the manual website release remain pending.
+Do not label the new scoring live before the own-history feed is installed and verified.
 
 ## Current continuation: Delegation Programme
 
@@ -30,7 +67,7 @@ Read the [29 October evidence checkpoint](docs/DELEGATION_CHECKPOINT_2026-10-29.
 - Rebalance preparation is published but requires an actual approved rule revision
   and no pending programme treasury proposal. Resolve #384, then refresh balances,
   evidence and staking locks before preparing a separately voted redistribution.
-- Bonus scoring and historical no-jail evidence remain unimplemented. Current
+- At this historical checkpoint, bonus scoring and historical no-jail evidence were unimplemented. The current source changes above add governance scoring; historical no-jail evidence remains unimplemented. Current
   jail exclusion and configurable observed commit-signature minimum are separate.
 
 The checkpoint above was documentation-only. The owner subsequently approved

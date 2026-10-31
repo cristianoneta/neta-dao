@@ -128,19 +128,23 @@ def collect_sources():
             result = subprocess.run([sys.executable, str(ROOT / 'scripts' / script)],
                                     cwd=ROOT, capture_output=True, text=True, timeout=240, check=True)
             print(result.stdout[-2000:])
+            return True
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
             print(f'::warning::{script}: refresh unavailable ({type(error).__name__})')
             if path.exists():
                 data = json.loads(path.read_text())
                 data.update(status='UNAVAILABLE', checked_at=now(), warnings=['Latest collector failed; prior evidence retained.'])
                 atomic(path, data)
+            return False
     with ThreadPoolExecutor(max_workers=2) as pool:
-        list(pool.map(task, [('update_treasury_events.py', 'events.json'),
-                             ('update_community_accounting.py', 'juno-community-events.json')]))
+        results = list(pool.map(task, [('update_treasury_events.py', 'events.json'),
+                                      ('update_community_accounting.py', 'juno-community-events.json')]))
+    return all(results)
 
 
 def run():
     daos = json.loads((ROOT / 'data/dao-directory.json').read_text())['daos']
+    succeeded = True
     for dao in daos:
         config = dao.get('accountingSource', {})
         if config.get('adapter') not in ('treasury-receipts', 'native-community-pool'): continue
@@ -169,11 +173,19 @@ def run():
                     'checked_at': now(), 'warnings': [f'Refresh failed; retained evidence: {type(error).__name__}: {error}'],
                     'entries': (previous or {}).get('entries', [])}
         atomic(path, data)
+        succeeded = data['refresh_status'] == 'completed' and succeeded
         print(json.dumps({'dao': dao['id'], 'refresh_status': data['refresh_status'],
                           'entries': len(data['entries']), 'unreviewed': data.get('movement_review', {}).get('unreviewed_movements')}))
+    return succeeded
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(); parser.add_argument('--collect', action='store_true'); args = parser.parse_args(argv)
+    collected = collect_sources() if args.collect else True
+    # Always publish independent results and explicit failures before exiting.
+    reviewed = run()
+    return 0 if collected and reviewed else 1
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(); parser.add_argument('--collect', action='store_true'); args = parser.parse_args()
-    if args.collect: collect_sources()
-    run()
+    raise SystemExit(main())

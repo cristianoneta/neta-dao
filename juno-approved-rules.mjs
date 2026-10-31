@@ -1,7 +1,11 @@
 import { reader, quorum } from './juno-community-governance.mjs?v=2';
 import { GOVERNANCE_SOURCES } from './governance-chain-read.mjs';
 import { PROGRAMME, policy, canonical, fingerprint } from './juno-delegation-core.mjs';
-import { readProposalReview, REVIEW_MARKER } from './juno-delegation-review.mjs';
+import {
+  readProposalReview,
+  REVIEW_MARKER,
+  FROZEN_POLICY_REFERENCE
+} from './juno-delegation-review.mjs';
 
 const title = 'Juno Delegation Programme — allocation rules';
 const sources = [GOVERNANCE_SOURCES['juno-polkachu'], GOVERNANCE_SOURCES['juno-stavr']];
@@ -45,11 +49,18 @@ export async function approvedRule(proposal, now = Date.now()) {
     throw Error(`Proposal #${proposal.id}: invalid rule approval content.`);
   const sections = [...body.matchAll(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/gm)];
   const hashes = [...body.matchAll(/^Rule SHA-256: ([a-f0-9]{64})$/gm)];
-  if (sections.length !== 1 || hashes.length !== 1)
+  let frozen = sections.length
+    ? null
+    : await readProposalReview({ title: proposal.title, body, actions_json: '[]' });
+  const frozenOnly =
+    sections.length === 0 &&
+    frozen?.value.rule.schema === 9 &&
+    body.split(FROZEN_POLICY_REFERENCE).length === 2;
+  if ((!frozenOnly && sections.length !== 1) || hashes.length !== 1)
     throw Error(`Proposal #${proposal.id}: exact policy or fingerprint unavailable.`);
   let raw, rule;
   try {
-    raw = JSON.parse(sections[0][1]);
+    raw = frozenOnly ? frozen.value.rule : JSON.parse(sections[0][1]);
     rule = policy(raw);
     if (canonical(raw) !== canonical(rule)) throw Error('Unsupported fields');
   } catch {
@@ -59,7 +70,9 @@ export async function approvedRule(proposal, now = Date.now()) {
   }
   const hash = await fingerprint(rule);
   if (hash !== hashes[0][1]) throw Error(`Proposal #${proposal.id}: rule fingerprint mismatch.`);
-  const frozen = await readProposalReview({ title: proposal.title, body, actions_json: '[]' });
+
+  if (!frozen)
+    frozen = await readProposalReview({ title: proposal.title, body, actions_json: '[]' });
   if (scope === 'frozen' && !frozen)
     throw Error('Compact approval requires a verified frozen comparison.');
   return { proposalId: proposal.id, votingEndedAt: proposal.voting_end_time, rule, hash };

@@ -44,8 +44,9 @@ export function rowStatus(v) {
   if (!v.eligible) return 'Evidence review required';
   if (v.capacityRaw === '0') return 'No capacity under the limit';
   if (v.capReached) return 'Limited by voting power';
+  if (v.points?.total?.numerator === '0') return 'No verified points earned';
   if (v.targetRaw === '0') return 'No allocation after rounding';
-  return 'Equal allocation';
+  return v.points ? 'Points-weighted allocation' : 'Equal allocation';
 }
 export function allocationReason(v) {
   if (BigInt(v.fixedRaw || '0') > 0n) {
@@ -69,6 +70,10 @@ function regularAllocationReason(v) {
     return 'Otherwise eligible, but stake excluding this programme is already at or above the projected voting power limit. The programme cannot reduce other delegators’ stake.';
   if (v.capReached)
     return 'The target is limited to the capacity below the projected voting power cap. Remaining funds are redistributed among other eligible validators.';
+  if (v.points?.total?.numerator === '0')
+    return 'No base or verified bonus points were earned. The regular budget is shared only among eligible validators with points.';
+  if (v.points && v.targetRaw !== '0')
+    return 'The regular allocation follows this validator’s share of earned points, subject to the voting-power cap. Micro-JUNO remainders use largest fractional shares, then validator address.';
   if (v.targetRaw === '0')
     return 'The budget is too small to allocate even one micro-JUNO to every eligible validator. Remainders are assigned deterministically by validator address.';
   return 'This validator meets the draft criteria and has capacity for the equal share. Rounding can differ by one micro-JUNO. The target is the total programme delegation after redistribution.';

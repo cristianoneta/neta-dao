@@ -1,6 +1,8 @@
 import copy
 import json
 import sys
+import subprocess
+import tempfile
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,6 +32,46 @@ def event(dao=OPS):
             'movements': [{'direction': 'out', 'denom': 'ujuno', 'raw_amount': '1000000', 'amount': '1', 'counterparty': 'recipient'}]}
 
 class Generic(unittest.TestCase):
+    def test_operations_child_failure_preserves_evidence_and_returns_failure(self):
+        for failure in (subprocess.CalledProcessError(1, 'collector'),
+                        subprocess.TimeoutExpired('collector', 240)):
+            with self.subTest(failure=type(failure).__name__), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                data = root / 'data/treasury'
+                data.mkdir(parents=True)
+                (root / 'data/dao-directory.json').write_text(json.dumps({'daos': [OPS]}))
+                previous = feed(); previous['events'] = [event()]
+                (data / 'events.json').write_text(json.dumps(previous))
+                old_statement = generic.build(OPS, previous)
+                (data / 'neta-operations-accounting.json').write_text(json.dumps(old_statement))
+                def child(command, **kwargs):
+                    if command[-1].endswith('update_treasury_events.py'):
+                        raise failure
+                    return subprocess.CompletedProcess(command, 0, stdout='independent collector completed')
+                with patch.object(generic, 'ROOT', root), patch.object(generic.subprocess, 'run', side_effect=child) as run:
+                    self.assertEqual(generic.main(['--collect']), 1)
+                self.assertEqual(run.call_count, 2)
+                retained = json.loads((data / 'events.json').read_text())
+                for key in ('events', 'sources', 'generated_at'):
+                    self.assertEqual(retained[key], previous[key])
+                self.assertEqual(retained['status'], 'UNAVAILABLE')
+                statement = json.loads((data / 'neta-operations-accounting.json').read_text())
+                self.assertEqual(statement['refresh_status'], 'unavailable')
+                self.assertEqual(statement['last_success_at'], old_statement['last_success_at'])
+                self.assertEqual(statement['movement_review']['unreviewed_movements'], 1)
+
+    def test_operations_unavailable_feed_fails_even_when_child_exits_zero(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); data = root / 'data/treasury'; data.mkdir(parents=True)
+            (root / 'data/dao-directory.json').write_text(json.dumps({'daos': [OPS]}))
+            value = feed()
+            with patch.object(generic, 'ROOT', root), patch.object(generic.subprocess, 'run',
+                    return_value=subprocess.CompletedProcess([], 0, stdout='')):
+                for unavailable, expected in ((False, 0), (True, 1)):
+                    value['status'] = 'UNAVAILABLE' if unavailable else 'PARTIAL'
+                    (data / 'events.json').write_text(json.dumps(value))
+                    self.assertEqual(generic.main(['--collect']), expected)
+
     def test_empty_ops_requires_both_accounts_and_recent_refresh(self):
         data = generic.build(OPS, feed()); self.assertEqual(data['refresh_status'], 'completed')
         self.assertEqual(data['movement_review']['unreviewed_movements'], 0)

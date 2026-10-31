@@ -1,4 +1,9 @@
 import {
+  appendPointsDetails,
+  pointsText,
+  governanceWindowText
+} from './juno-governance-points-view.mjs';
+import {
   allocationBreakdown,
   budgetBreakdown,
   appendFixedDetails
@@ -48,6 +53,7 @@ export function policyImpact({ rules, data, evidence, budget, valid = true }) {
     const total = BigInt(result.budgetRaw);
     return {
       result,
+      governanceSource: data.governanceHistory?.source,
       largest: percent(targets[0] || 0n, total),
       topThree: percent(
         targets.slice(0, 3).reduce((a, b) => a + b, 0n),
@@ -123,14 +129,7 @@ export function renderPolicyImpact(host, model) {
       'policy-subtitle'
     )
   );
-  host.append(
-    mix,
-    node(
-      'p',
-      'Bonus evidence is not connected. The regular budget uses equal-allocation rules; the points explorer does not change proposals.',
-      'impact-notice'
-    )
-  );
+  host.append(mix, node('p', governanceWindowText(result), 'impact-notice'));
   const toolbar = node('div', undefined, 'impact-toolbar');
   toolbar.append(
     node('h3', 'Validator outcomes'),
@@ -225,6 +224,7 @@ export function renderPolicyImpact(host, model) {
         `Exact JUNO: current ${formatAmount(row.currentRaw, true)} · target ${formatAmount(row.targetRaw, true)} · change ${formatAmount(row.deltaRaw, true)}`
       );
       details.append(amounts);
+      appendPointsDetails(details, row.points, model.governanceSource);
       if (row.fixedAllocation) appendFixedDetails(details, row.fixedAllocation);
       name.append(
         details,
@@ -238,6 +238,7 @@ export function renderPolicyImpact(host, model) {
           row.eligible ? 'impact-eligible' : 'impact-excluded'
         )
       );
+      if (row.points) name.append(node('small', ' · ' + pointsText(row.points)));
       line.append(name);
       for (const [label, value] of [
         ['Current', row.currentRaw],

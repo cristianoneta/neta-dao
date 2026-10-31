@@ -12,6 +12,7 @@ from pathlib import Path
 import time
 import urllib.parse
 import urllib.request
+from validator_governance import governance_history
 from validator_active_set import active_set_history, archive_checkpoint
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -152,12 +153,18 @@ def collect(reader, dao, history_db=None):
             'authority': {'coreCodeId': str(info['code_id']), 'votingModule': voting,
                           'proposalModule': dao['proposalModule'], 'executionVerified': False}}
     if history_db:
+        result['governanceHistory'] = None
         result['activeSetHistory'] = None
         if checkpoint:
             try:
                 result['activeSetHistory'] = active_set_history(history_db, result)
             except (OSError, ValueError, TimeoutError, sqlite3.Error) as error:
                 history_issue = type(error).__name__ + ': history unavailable for this snapshot'
+        if checkpoint:
+            try:
+                result['governanceHistory'] = governance_history(history_db, result)
+            except (OSError, ValueError, KeyError, TypeError, TimeoutError, sqlite3.Error) as error:
+                result['governanceHistoryIssue'] = type(error).__name__ + ': own governance observations unavailable for this snapshot'
         if history_issue:
             result['activeSetHistoryIssue'] = history_issue
     return result

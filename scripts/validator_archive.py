@@ -28,7 +28,7 @@ def archive_prefix(db, root, end):
     # survive a rolled-back transaction and is safe to reuse on the next run.
     identity = json.loads(db.execute("SELECT value FROM meta WHERE key='identity'").fetchone()[0])
     tables = {name: table(db, name, 'WHERE height<=? ORDER BY height', (end,))
-              for name in ('blocks', 'events', 'transitions', 'snapshots')}
+              for name in ('blocks', 'events', 'event_checks', 'transitions', 'snapshots')}
     # Rosters are tiny, deduplicated, and remain in the hot database. Include the
     # ones needed to interpret this archive without consulting today's database.
     tables['rosters'] = table(db, 'rosters',

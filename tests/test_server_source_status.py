@@ -39,6 +39,16 @@ class PublishedFreshness(unittest.TestCase):
             schema_version=3, chain_id='juno-1', dao_id='juno', checked_at=stamp,
             refresh_status='completed', block_last_success_at=stamp,
             block_coverage=dict(status='CURRENT', through_time=stamp, through_height=42, blocks=20)))
+        operations = dict(schema_version=2, scope='neta-operations-cross-chain',
+                          accounting_start='2026-10-01T00:00:00Z', status='PARTIAL',
+                          treasuries=[
+                              {'chain_id': 'juno-1', 'address': 'juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl'},
+                              {'chain_id': 'osmosis-1', 'address': 'osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80'}])
+        self.put('data/treasury/events.json', dict(operations, generated_at=stamp))
+        self.put('data/treasury/neta-operations-accounting.json', dict(
+            operations, dao_id='neta-operations', chain_id='juno-1',
+            adapter='treasury-receipts', checked_at=stamp, last_success_at=stamp,
+            refresh_status='completed'))
 
     def put(self, name, value):
         path = self.root / name
@@ -60,6 +70,38 @@ class PublishedFreshness(unittest.TestCase):
         result = status.check(self.root, now=NOW)
         self.assertTrue(result['ok'])
         self.assertIn('partial-valuation', result['sources'][0]['warnings'])
+
+    def test_operations_failure_is_unhealthy_even_with_fresh_balances_and_check_time(self):
+        stamp = datetime.fromtimestamp(NOW, timezone.utc).isoformat()
+        events = 'data/treasury/events.json'
+        accounting = 'data/treasury/neta-operations-accounting.json'
+        self.edit(events, status='UNAVAILABLE', checked_at=stamp)
+        self.edit(accounting, refresh_status='unavailable', checked_at=stamp)
+        self.assertFalse(status.check(self.root, now=NOW)['ok'])
+        self.assertIn('operations-events-unavailable', self.issues(events))
+        self.assertIn('operations-accounting-unavailable', self.issues(accounting))
+
+    def test_operations_success_requires_fresh_evidence_not_just_a_fresh_attempt(self):
+        old = datetime.fromtimestamp(NOW-2101, timezone.utc).isoformat()
+        events = 'data/treasury/events.json'
+        accounting = 'data/treasury/neta-operations-accounting.json'
+        self.edit(events, generated_at=old)
+        self.edit(accounting, last_success_at=old)
+        self.assertIn('stale-observation', self.issues(events))
+        self.assertIn('last-success:stale-observation', self.issues(accounting))
+        self.assertFalse(status.check(self.root, now=NOW)['ok'])
+
+    def test_operations_missing_or_foreign_sources_fail_closed(self):
+        for name in ('data/treasury/events.json', 'data/treasury/neta-operations-accounting.json'):
+            original = (self.root / name).read_text()
+            for change in ({'scope': 'neta-main-dao'}, {'treasuries': []}, {'schema_version': True}):
+                with self.subTest(name=name, change=change):
+                    (self.root / name).write_text(original)
+                    self.edit(name, **change)
+                    self.assertIn('invalid-source-identity', self.issues(name))
+            (self.root / name).unlink()
+            self.assertIn('snapshot-unavailable', self.issues(name))
+            (self.root / name).write_text(original)
 
     def test_fresh_holdings_cannot_hide_failed_or_stale_staking_accrual(self):
         name = 'data/treasury/juno-delegation-accounting.json'

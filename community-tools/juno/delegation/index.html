@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
     <link rel="stylesheet" href="/juno-delegation.css?v=9" />
-    <script type="module" src="/juno-delegation.mjs?v=20261029-fixed-1"></script>
+    <script type="module" src="/juno-delegation.mjs?v=20261031-points-1"></script>
     <link rel="stylesheet" href="/juno-rule-review.css?v=20261029-fixed-1" />
     <link rel="stylesheet" href="/juno-delegation-workspace.css?v=4" />
   </head>
@@ -249,16 +249,16 @@
         <details class="model-details" id="overview-model">
           <summary>
             <span>About the allocation model</span
-            ><span class="summary-meta">Eligibility · future scoring · research</span>
+            ><span class="summary-meta">Eligibility · points · evidence</span>
           </summary>
           <div class="model-content">
             <div class="section-heading">
-              <h2>Eligibility now. Scoring later.</h2>
+              <h2>Eligibility, points and allocation.</h2>
               <a href="#rules" data-step="rules">Set rules →</a>
             </div>
             <p class="overview-intro">
-              V1 uses equal allocation within eligibility and voting-power limits. Base and bonus
-              points are planned; their preview settings do not affect your draft.
+              New rule drafts combine base points with verified governance participation. The community
+              approves the exact settings; existing approvals retain their original allocation method.
             </p>
             <article class="planner-card eligibility-overview">
               <div class="policy-heading">
@@ -266,9 +266,8 @@
                 <span class="state-pill neutral">V1 · evidence required</span>
               </div>
               <p>
-                Decide which validators qualify before any future points are assigned. Current V1
-                distributes equally among eligible validators, subject to the voting-power cap and
-                available capacity.
+                Mandatory checks determine regular eligibility. Fixed commitments are reserved first;
+                the remaining budget follows the approved allocation method and voting-power cap.
               </p>
               <details id="overview-eligibility-details" class="policy-details">
                 <summary>Eligibility criteria <span>6 checks</span></summary>
@@ -434,7 +433,9 @@
                       /><span>%</span>
                     </div>
                   </div>
-                  <p id="commission-help" class="sr-only">Whole numbers from 0 to 100.</p>
+                  <p id="commission-help" class="sr-only">
+                    Whole numbers from 0 to 100. At 100%, any commission rate is allowed.
+                  </p>
                   <p id="commission-error" class="field-error criterion-detail" hidden>
                     Enter a whole-number commission limit from 0 to 100.
                   </p>
@@ -476,7 +477,7 @@
                     <div class="criterion-tooltip" id="power-tooltip" role="tooltip" hidden>
                       Limits projected total stake, including other delegators. All active
                       validators count, including programme exclusions. The factor ranges from 1.0
-                      to 2.0.
+                      to 3.0.
                       <p id="cap-description">Projected voting-power limit</p>
                       <p id="cap-formula">
                         Cap = min(30%, factor × 100% / active validator count).
@@ -491,18 +492,16 @@
                         id="factor-number"
                         type="number"
                         min="1"
-                        max="2"
+                        max="3"
                         step="0.1"
                         value="1.5"
                         aria-describedby="factor-error"
                       /><span aria-hidden="true">×</span
-                      ><output id="factor-value" class="sr-only" for="factor factor-number"
-                        >1.5×</output
-                      >
+                      ><output id="factor-value" class="sr-only" for="factor-number">1.5×</output>
                     </div>
                   </div>
                   <p id="factor-error" class="field-error criterion-detail" hidden>
-                    Enter a factor from 1.0 to 2.0 in steps of 0.1.
+                    Enter a factor from 1.0 to 3.0 in steps of 0.1.
                   </p>
                 </section>
                 <section class="criterion compact-criterion" aria-labelledby="upgrade-criterion">
@@ -582,22 +581,6 @@
                 <summary id="history-window-summary">Observed history</summary>
                 <p id="draft-history-coverage" class="field-help"></p>
               </details>
-              <details id="additional-rule-options" class="criterion-evidence">
-                <summary>Additional rule options</summary>
-                <label class="check-option" for="no-commission-limit"
-                  ><input id="no-commission-limit" type="checkbox" />No commission limit</label
-                >
-                <label class="field-help" for="factor">Voting power cap factor</label>
-                <input
-                  id="factor"
-                  type="range"
-                  min="10"
-                  max="20"
-                  step="1"
-                  value="15"
-                  aria-describedby="cap-description"
-                />
-              </details>
               <details class="criterion-evidence">
                 <summary>Participation evidence</summary>
                 <p id="upgrade-window" class="field-help">Loading archived observations.</p>
@@ -663,7 +646,7 @@
             <div id="distribution-impact"></div>
             <aside class="planner-card draft-summary" aria-label="Your allocation draft">
               <p class="eyebrow">YOUR DRAFT</p>
-              <h3>Equal allocation</h3>
+              <h3>Points-weighted allocation</h3>
               <p id="draft-change-count"></p>
               <p>
                 Fixed allocations are reserved first. Eligible validators share the remainder within
