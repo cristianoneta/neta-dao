@@ -674,13 +674,13 @@ try {
     .fill(sample.validators[0].address);
   assert.equal(await comparison.locator('.rr-validator').count(), 1);
   assert.match(await comparison.locator('.rr-identity').textContent(), /<img src=x/);
-  await comparison.locator('.rr-validator summary').click();
+  await comparison.locator('.rr-validator > details > summary').click();
   assert.match(
-    await comparison.locator('.rr-validator details').textContent(),
+    await comparison.locator('.rr-validator > details').textContent(),
     /600,000.123456 JUNO/
   );
   assert.match(
-    await comparison.locator('.rr-validator details').textContent(),
+    await comparison.locator('.rr-validator > details').textContent(),
     /All delegators after allocation:/
   );
   assert.match(
