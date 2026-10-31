@@ -1819,6 +1819,7 @@
         button.textContent = original;
         delete button.dataset.saved;
       }, 1800);
+      return true;
     } catch (error) {
       const message = error?.message || String(error);
       status(message, true);
@@ -1828,6 +1829,7 @@
       setTimeout(() => {
         button.textContent = original;
       }, 1800);
+      return false;
     }
   }
   async function signer() {
@@ -2240,10 +2242,10 @@
       if (state.selected || state.busy || JSON.stringify(values()) !== identity)
         throw Error('The draft changed while preparing the new text. Please retry.');
       setValues(next.values);
-      saveLocal();
-      status(
-        'READABLE RULE PROPOSAL SAVED LOCALLY · Rules and frozen comparison preserved. Summary regenerated; review it before publishing.'
-      );
+      if (saveLocal())
+        status(
+          'READABLE RULE PROPOSAL SAVED LOCALLY · Rules and frozen comparison preserved. Summary regenerated; review it before publishing.'
+        );
     } catch (error) {
       status(error.message, true);
     }

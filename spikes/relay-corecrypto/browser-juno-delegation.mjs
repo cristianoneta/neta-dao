@@ -1006,7 +1006,27 @@ try {
   const frozen = await readProposalReview(frozenValues);
   const { frozenRuleProposal } = await import('../../planner-proposal-draft.mjs');
   await openDraft(await frozenRuleProposal(frozen), '33333333-3333-4333-8333-333333333333');
+  await page.evaluate(() => {
+    const originalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key.includes('33333333-3333-4333-8333-333333333333:revision'))
+        throw new DOMException('Synthetic draft storage failure', 'QuotaExceededError');
+      return originalSetItem.call(this, key, value);
+    };
+  });
   await page.locator('#rule-proposal-convert').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#gov-status').textContent.includes('Synthetic draft storage failure')
+  );
+  assert.equal(await page.locator('#gov-status').getAttribute('data-state'), 'error');
+  await page.reload();
+  await page.locator('#rule-proposal-convert').click();
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#gov-status')
+      .textContent.includes('READABLE RULE PROPOSAL SAVED LOCALLY')
+  );
+  await page.reload();
   await page.waitForFunction(() =>
     document
       .querySelector('#proposal-body')
