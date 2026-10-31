@@ -7,6 +7,8 @@ import base64
 import json
 import os
 import re
+import threading
+import time
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -34,7 +36,9 @@ CHAINS = (
         "explorer_account": "https://atomscan.com/juno/accounts/{address}", "require_history": True,
     },
     {
-        "id": "osmosis-1", "name": "Osmosis", "rests": ("https://osmosis-api.polkachu.com", "https://rest.cosmos.directory/osmosis"), "address": OSMOSIS_TREASURY, "creation_height": 15_838_602,
+        # Receipt replay verifies the original accounting floor. A pruned node
+        # cannot serve that block even when current balances are available.
+        "id": "osmosis-1", "name": "Osmosis", "rests": ("https://lcd.archive.osmosis.zone", "https://osmosis-api.polkachu.com", "https://rest.cosmos.directory/osmosis"), "address": OSMOSIS_TREASURY, "creation_height": 15_838_602,
         "rpcs": ("https://osmosis-rpc.publicnode.com", "https://osmosis-rpc.polkachu.com"),
         "explorer_tx": "https://www.mintscan.io/osmosis/tx/{hash}",
         "explorer_account": "https://www.mintscan.io/osmosis/address/{address}", "require_history": False,
@@ -43,6 +47,8 @@ CHAINS = (
 PER_PAGE = 100
 QUERIES = ("wasm._contract_address", "transfer.sender", "transfer.recipient", "coin_spent.spender", "coin_received.receiver", "wasm.sender", "wasm.to")
 COIN = re.compile(r"^(\d+)(.+)$")
+_archive_lock = threading.Lock()
+_archive_next_request = 0.0
 
 
 def now():
@@ -50,6 +56,15 @@ def now():
 
 
 def request_json(url, timeout=30):
+    # The public archive documents 5 requests/second/IP. Share a conservative
+    # four-per-second start rate across this collector's concurrent queries.
+    if urllib.parse.urlsplit(url).hostname == 'lcd.archive.osmosis.zone':
+        global _archive_next_request
+        with _archive_lock:
+            delay = _archive_next_request - time.monotonic()
+            if delay > 0:
+                time.sleep(delay)
+            _archive_next_request = time.monotonic() + 0.25
     request = urllib.request.Request(url, headers={"User-Agent": "NETA-DAO-Treasury-Events/2.0", "Accept": "application/json"})
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return json.load(response)

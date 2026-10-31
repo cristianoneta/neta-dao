@@ -1,8 +1,26 @@
 # Cosmoot public development handoff
 
-Updated 29 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
+Updated 31 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
+
+## Current operations repair — 31 October
+
+The Operations receipt collector is stalled at its 29 October success. Both
+configured Osmosis providers have pruned its original accounting-floor block.
+The source correction adds the official Osmosis archive, propagates child and
+statement failures to the collector exit status, and checks Operations events and
+accounting in the published-data health check. Existing evidence and all history
+checks remain intact. See [cause, regression coverage and acceptance](docs/OPERATIONS_COLLECTOR_2026-10-31.md).
+Host installation and live recovery still require verification. The collector repair
+itself needs no website release; private installation details remain outside Git.
+
+The same branch now also contains the owner's 31 October delegation control
+refinement: one factor input up to 3.0, removal of duplicate controls, and a
+governance-first 100/0/0/0 bonus preview. These UI changes need the usual manual
+website release. [Proposed governance measurement and activation boundaries](docs/DELEGATION_GOVERNANCE_BONUS_2026-10-31.md)
+remain under discussion; production bonus scoring is not enabled. New editable
+rules use schema 8, preserving schemas 2–7 for historical reviews.
 
 ## Current continuation: Delegation Programme
 

@@ -3,6 +3,10 @@ import json
 import sys
 import tempfile
 import unittest
+import io
+from concurrent.futures import ThreadPoolExecutor
+from urllib.error import HTTPError
+from urllib.parse import urlparse
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from unittest.mock import patch
@@ -25,6 +29,69 @@ class ReceiptHistoryTests(unittest.TestCase):
         for data in ({'total':'1','tx_responses':[]}, {'total':'2','tx_responses':[self.tx,self.tx]}):
             with self.assertRaises(ValueError):
                 history.search(lambda *a, **k: data,'base','wasm.to','a',1,50_000_000)
+
+    def test_archive_requests_share_a_rate_limit_across_query_workers(self):
+        clock, waits = [100.0], []
+        def sleep(delay):
+            waits.append(delay)
+            clock[0] += delay
+        with patch.object(events, '_archive_next_request', 0.0), \
+                patch.object(events.time, 'monotonic', side_effect=lambda: clock[0]), \
+                patch.object(events.time, 'sleep', side_effect=sleep), \
+                patch.object(events.urllib.request, 'urlopen', side_effect=lambda *a, **k: io.BytesIO(b'{}')):
+            with ThreadPoolExecutor(max_workers=3) as pool:
+                result = list(pool.map(events.request_json, ['https://lcd.archive.osmosis.zone/test'] * 8))
+            self.assertEqual(result, [{}] * 8)
+            self.assertEqual(waits, [0.25] * 7)
+            events.request_json('https://juno.example.org/test')
+            self.assertEqual(len(waits), 7)
+
+    def test_operations_replay_uses_archive_when_other_sources_prune_the_floor(self):
+        chain = {**events.CHAINS[1], 'creation_height': 1}
+        start = {'start_at': history.ACCOUNTING_START, 'height': 100,
+                 'hash': 'A'*64, 'timestamp': '2026-09-27T06:03:24Z',
+                 'kind': 'scan-floor-before-start'}
+        source = {'chain_id': chain['id'], 'address': chain['address'],
+                  'adapter': 'cosmos-rest-receipts', 'accounting_boundary': start,
+                  'last_scanned_height': 400, 'anchor_hash': 'B'*64,
+                  'last_full_replay_day': '2026-10-01',
+                  'query_pairs': [[key, chain['address']] for key in history.QUERY_KEYS]}
+        old = {'chain_id': chain['id'], 'tx_hash': 'C'*64, 'height': 50,
+               'timestamp': '2026-09-01T00:00:00Z', 'movements': []}
+        original = copy.deepcopy((old, source))
+        requests = []
+        def get(url, **kwargs):
+            requests.append(url)
+            if urlparse(url).netloc != 'lcd.archive.osmosis.zone':
+                raise HTTPError(url, 500, 'height is not available, lowest height is 450', {}, None)
+            path = urlparse(url).path
+            if path.endswith('/txs'):
+                return {'total': '0', 'tx_responses': []}
+            height = path.rsplit('/', 1)[-1]
+            height = 500 if height == 'latest' else int(height)
+            return {'block_id': {'hash': start['hash'] if height == 100 else 'B'*64},
+                    'block': {'header': {'chain_id': chain['id'], 'height': str(height),
+                       'time': start['timestamp'] if height == 100 else datetime.now(timezone.utc).isoformat()}}}
+        with patch.object(events, 'request_json', side_effect=get):
+            rows, coverage = events.collect_receipt_chain(chain, [old], {}, {}, source)
+        self.assertEqual(rows, [old])
+        self.assertEqual((old, source), original)
+        self.assertEqual(coverage['accounting_boundary'], start)
+        self.assertEqual(coverage['scan_start_height'], start['height'])
+        self.assertEqual(coverage['last_scanned_height'], 480)
+        self.assertFalse(coverage['incremental'])
+        self.assertEqual(coverage['last_full_replay_day'], datetime.now(timezone.utc).date().isoformat())
+        self.assertEqual(sum(urlparse(u).path.endswith('/txs') for u in requests), len(history.QUERY_KEYS))
+        # Archive loss must still fail without dropping evidence or advancing its cursor.
+        with patch.object(events, 'request_json', side_effect=HTTPError('fixture', 500, 'pruned', {}, None)):
+            with self.assertRaisesRegex(RuntimeError, 'Receipt refresh unavailable'):
+                events.collect_receipt_chain(chain, [old], {}, {}, source)
+        self.assertEqual((old, source), original)
+        # An archive that returns a conflicting original floor is not a recovery.
+        changed = {**source, 'accounting_boundary': {**start, 'hash': 'D'*64}}
+        with patch.object(events, 'request_json', side_effect=get):
+            with self.assertRaisesRegex(RuntimeError, 'Accounting scan floor changed'):
+                events.collect_receipt_chain(chain, [old], {}, {}, changed)
 
     def test_scan_floor_is_before_exact_october_cutoff(self):
         cutoff = history.instant(history.ACCOUNTING_START)

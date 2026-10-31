@@ -436,9 +436,20 @@ try {
   for (const prefix of ['overview', 'rules']) {
     assert.equal(
       await page.locator(`#${prefix}-future-policy input:enabled`).count(),
-      prefix === 'rules' ? 6 : 1
+      prefix === 'rules' ? 3 : 1
     );
     assert.equal(await page.locator(`#${prefix}-future-policy .bonus-preview-row`).count(), 4);
+  }
+  const bonusRows = page.locator('#rules-future-policy .bonus-preview-row');
+  assert.match(await bonusRows.nth(0).textContent(), /Governance participation/);
+  assert.equal(await bonusRows.nth(0).locator('input').inputValue(), '100');
+  assert.equal(await bonusRows.nth(0).locator('input').isEnabled(), true);
+  assert.equal(await bonusRows.nth(0).locator('small').textContent(), '100% of bonus');
+  for (let index = 1; index < 4; index++) {
+    assert.match(await bonusRows.nth(index).textContent(), /\(not live\)/);
+    assert.equal(await bonusRows.nth(index).locator('input').inputValue(), '0');
+    assert.equal(await bonusRows.nth(index).locator('input').isDisabled(), true);
+    assert.equal(await bonusRows.nth(index).locator('small').textContent(), '0% of bonus');
   }
   await page.reload();
   await ready();
@@ -594,12 +605,23 @@ try {
     true
   );
   await page.locator('#factor-number').fill('2');
-  assert.equal(await page.locator('#factor').inputValue(), '20');
   assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
-  await page.locator('#additional-rule-options > summary').click();
-  await page.locator('#factor').press('Home');
-  assert.equal(await page.locator('#factor-number').inputValue(), '1.0');
-  await page.locator('#factor-number').fill('2.1');
+  assert.equal(
+    await page.locator('#additional-rule-options, #factor, #no-commission-limit').count(),
+    0
+  );
+  await page.locator('#factor-number').fill('3.0');
+  assert.equal(await page.locator('#factor-error').isVisible(), false);
+  assert.match(await page.locator('#cap-description').textContent(), /12.00%/);
+  await page.locator('#save-draft').click();
+  assert.equal(
+    await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3')).rule.factorTenths
+    ),
+    30
+  );
+  await page.locator('#factor-number').fill('3.1');
   assert.equal(await page.locator('#factor-error').isVisible(), true);
   await page.locator('#save-draft').click();
   assert.match(await page.locator('#feedback').textContent(), /before saving/);
@@ -627,13 +649,6 @@ try {
     assert.equal(await page.locator('#export-json').isDisabled(), true);
     assert.match(await page.locator('#feedback').textContent(), /whole-number commission/);
   }
-  await page.locator('#commission').fill('13');
-  await page.locator('#no-commission-limit').check();
-  assert.equal(await page.locator('#commission').isDisabled(), true);
-  assert.match(await page.locator('#rule-summary').textContent(), /no commission filter/);
-  await page.locator('#no-commission-limit').uncheck();
-  assert.equal(await page.locator('#commission').inputValue(), '13');
-  assert.equal(await page.locator('#commission').isEnabled(), true);
   await page.locator('#commission').fill('19');
   await simulate();
   assert.equal(await page.locator('#proposals').isVisible(), true);
@@ -761,7 +776,7 @@ try {
   assert.ok(review.rule.exclusions.some((v) => v.validator === selected.address));
   assert.equal(review.rule.commissionMaxBps, 1900);
   assert.deepEqual(review.messages, []);
-  assert.equal(review.rule.schema, 7);
+  assert.equal(review.rule.schema, 8);
   assert.equal(review.rule.minParticipationBps, 9901);
   assert.equal(review.policyHash.length, 64);
   const shots = process.env.NNS_SCREENSHOT_DIR;
@@ -1022,9 +1037,8 @@ try {
   assert.equal(await page.locator('#export-json').isDisabled(), true);
   await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
   await step('rules');
-  await page.locator('#additional-rule-options').evaluate((el) => (el.open = true));
-  await page.locator('#factor').press('End');
-  assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
+  await page.locator('#factor-number').fill('3');
+  assert.match(await page.locator('#cap-description').textContent(), /12.00%/);
   state = 'stale';
   await page.locator('#refresh').click();
   await ready();
@@ -1131,12 +1145,14 @@ try {
     );
     assert.equal(await page.locator('#use-current-model').count(), 0);
     assert.equal(await page.locator('#factor-number').inputValue(), '1.9');
-    assert.equal(await page.locator('#no-commission-limit').isChecked(), true);
+    assert.equal(await page.locator('#commission').inputValue(), '100');
+    assert.equal(await page.locator('#commission').isEnabled(), true);
     assert.equal(await page.locator('#exclusions li').count(), 1);
     const stored = await page.evaluate(() =>
       JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3'))
     );
-    assert.equal(stored.rule.schema, 7);
+    assert.equal(stored.rule.schema, 8);
+    assert.equal(stored.rule.commissionMaxBps, null);
     assert.equal(stored.rule.minParticipationBps, 9750);
     assert.deepEqual(stored.parent, old.schema === 2 ? null : preservedParent);
     assert.equal(stored.rationale, old.schema === 2 ? '' : 'Preserved migration rationale');

@@ -7,7 +7,7 @@ import { renderRuleReview } from './juno-rule-review-view.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
 import { participationEvidence } from './juno-participation-history.mjs';
 import { currentApprovedRules } from './juno-approved-rules.mjs';
-import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=4';
+import { renderFuturePolicy } from './juno-delegation-roadmap.mjs?v=5';
 import {
   frozenRuleProposal,
   claimProposal,
@@ -420,10 +420,7 @@ function scheduleImpact() {
 }
 function commissionValid() {
   const input = $('commission');
-  return (
-    $('no-commission-limit').checked ||
-    (input.value !== '' && input.checkValidity() && Number.isInteger(Number(input.value)))
-  );
+  return input.value !== '' && input.checkValidity() && Number.isInteger(Number(input.value));
 }
 function showCommissionError() {
   const valid = commissionValid();
@@ -441,18 +438,15 @@ function showUptimeError() {
 }
 function restoreRuleInputs() {
   const unlimited = rules.commissionMaxBps === null;
-  $('no-commission-limit').checked = unlimited;
-  $('additional-rule-options').open = unlimited;
-  $('commission').disabled = unlimited;
-  $('commission').value = unlimited ? '10' : String(rules.commissionMaxBps / 100);
+  // A stored null keeps its original policy meaning until this field is edited.
+  // 100% permits every valid commission rate without a second control.
+  $('commission').value = unlimited ? '100' : String(rules.commissionMaxBps / 100);
   showCommissionError();
   $('uptime').value = String(rules.minParticipationBps / 100);
   showUptimeError();
 }
 function renderRules() {
   fixedEditor?.render();
-  $('factor').value = rules.factorTenths;
-  $('factor').setAttribute('aria-valuetext', (rules.factorTenths / 10).toFixed(1) + ' times');
   $('factor-number').value = (rules.factorTenths / 10).toFixed(1);
   $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
   const cap = data ? capFraction(rules, data.activeCount) : null;
@@ -671,13 +665,11 @@ async function runSimulation() {
     if (!data || !evidence) throw Error('Load programme data first.');
     if (!$('factor-number').checkValidity() || !$('factor-number').value) {
       focusRuleInput('factor-number');
-      throw Error('Enter a factor from 1.0 to 2.0 in steps of 0.1.');
+      throw Error('Enter a factor from 1.0 to 3.0 in steps of 0.1.');
     }
     if (!commissionValid()) {
       focusRuleInput('commission');
-      throw Error(
-        'Enter a whole-number commission limit from 0 to 100, or select no commission limit.'
-      );
+      throw Error('Enter a whole-number commission limit from 0 to 100.');
     }
     if (!uptimeValid()) {
       focusRuleInput('uptime');
@@ -766,13 +758,6 @@ function mountCriterionHelp() {
     });
   }
 }
-$('factor').addEventListener('input', () => {
-  $('factor-error').hidden = true;
-  $('factor-number').removeAttribute('aria-invalid');
-  rules.factorTenths = Number($('factor').value);
-  invalidate();
-  renderRules();
-});
 $('factor-number').addEventListener('input', () => {
   invalidate();
   const valid = $('factor-number').value !== '' && $('factor-number').checkValidity();
@@ -780,24 +765,18 @@ $('factor-number').addEventListener('input', () => {
   $('factor-number').setAttribute('aria-invalid', String(!valid));
   if (!valid) return;
   rules.factorTenths = Math.round(Number($('factor-number').value) * 10);
-  $('factor').value = rules.factorTenths;
   $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
   const currentInput = $('factor-number').value;
   renderRules();
   $('factor-number').value = currentInput;
 });
 function updateCommission() {
-  $('commission').disabled = $('no-commission-limit').checked;
   showCommissionError();
-  if (commissionValid())
-    rules.commissionMaxBps = $('no-commission-limit').checked
-      ? null
-      : Number($('commission').value) * 100;
+  if (commissionValid()) rules.commissionMaxBps = Number($('commission').value) * 100;
   invalidate();
   renderRules();
 }
 $('commission').addEventListener('input', updateCommission);
-$('no-commission-limit').addEventListener('change', updateCommission);
 $('uptime').addEventListener('input', () => {
   showUptimeError();
   if (uptimeValid()) rules.minParticipationBps = Math.round(Number($('uptime').value) * 100);
@@ -842,7 +821,7 @@ $('save-draft').addEventListener('click', () => {
       return;
     }
     if (!$('factor-number').checkValidity() || !$('factor-number').value) {
-      tell('Enter a factor from 1.0 to 2.0 before saving the rules.', 'error');
+      tell('Enter a factor from 1.0 to 3.0 before saving the rules.', 'error');
       focusRuleInput('factor-number');
       return;
     }

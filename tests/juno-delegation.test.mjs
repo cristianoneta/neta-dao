@@ -4,6 +4,13 @@ import { readFileSync } from 'node:fs';
 import {
   PROGRAMME,
   legacyPolicy as defaultPolicy,
+  defaultPolicy as currentPolicy,
+  fixedAllocationPolicy,
+  strictHistoryPolicy,
+  collectingPolicy,
+  observedCommitPolicy,
+  configurableParticipationPolicy,
+  editablePolicy,
   policy,
   snapshot,
   simulate,
@@ -33,6 +40,40 @@ test('cap uses full active set, factor and hard 30% ceiling', () => {
     { chainId: 'juno-1', validator: s.validators[0].address, reason: 'Exchange operator' }
   ];
   assert.equal(simulate(p, s, amount('2500'), observed(s)).cap.denominator, '250');
+});
+test('current cap accepts 1.0–3.0 while frozen schemas retain the 2.0 boundary', async () => {
+  const current = currentPolicy();
+  for (const factorTenths of [10, 20, 21, 29, 30]) {
+    const rule = policy({ ...current, factorTenths });
+    assert.deepEqual(capFraction(rule, 25), {
+      numerator: BigInt(factorTenths),
+      denominator: 250n
+    });
+    assert.deepEqual(capFraction(rule, 3), { numerator: 3n, denominator: 10n });
+    assert.deepEqual(policy(JSON.parse(JSON.stringify(rule))), rule);
+  }
+  for (const factorTenths of [9, 31, 20.5, '30', null])
+    assert.throws(() => policy({ ...current, factorTenths }));
+  const old = { ...fixedAllocationPolicy(), factorTenths: 20 };
+  const hash = await fingerprint(old);
+  assert.equal(policy(old).schema, 7);
+  assert.equal(await fingerprint(policy(old)), hash);
+  for (const legacy of [
+    defaultPolicy(),
+    strictHistoryPolicy(),
+    collectingPolicy(),
+    observedCommitPolicy(),
+    configurableParticipationPolicy(),
+    fixedAllocationPolicy()
+  ]) {
+    assert.equal(policy({ ...legacy, factorTenths: 20 }).factorTenths, 20);
+    assert.throws(() => policy({ ...legacy, factorTenths: 21 }));
+  }
+  const edited = editablePolicy(old);
+  assert.equal(edited.schema, 8);
+  assert.equal(edited.factorTenths, 20);
+  assert.equal(policy({ ...edited, factorTenths: 30 }).factorTenths, 30);
+  assert.equal(await fingerprint(old), hash);
 });
 test('existing programme stake is replaced, not counted twice', () => {
   const s = fixture(),

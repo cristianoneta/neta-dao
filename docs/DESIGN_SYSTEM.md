@@ -52,8 +52,10 @@ that material with exact export and Open proposal draft in one Review. Retain ol
 #simulation links as aliases. Rebalance remains a separate approved-rule task.
 
 Match the lab's concise criterion rhythm: five 42px aligned value fields with short
-labels and contextual help. Put the optional no-limit switch and cap slider in
-Additional rule options. Keep partial-history coverage visible below the rows;
+labels and contextual help. Owner refinement, 31 October: remove Additional rule
+options and its duplicate controls. Use the single numeric voting-power factor
+(1.0–3.0, steps of 0.1); 100% commission permits any rate. Keep stored historical
+no-limit policies unchanged until edited. Keep partial-history coverage visible below the rows;
 upgrade evidence and manual exclusions remain inspectable. Read-only 90-day and
 5-hour policy values must never be presented as editable.
 
@@ -896,9 +898,9 @@ Owner-approved direction: three directly accessible stages for rules, distributi
 and proposal review. Keep the existing graphite/mint foundations, assembly-plaza
 identity and English product language. Use a compact header and source summary.
 Group eligibility controls and programme amount; move optional exclusions, formula
-details and the inactive roadmap into disclosures. Provide both a slider and an
-exact numeric field for the factor. Commission uses a freely editable whole-number
-percentage (0–100, default 10) plus a separate no-limit checkbox; no preset dropdown.
+details and the inactive roadmap into disclosures. The 31 October refinement uses
+one exact numeric field for the factor (1.0–3.0). Commission uses a freely editable
+whole-number percentage (0–100, default 10); no second switch or preset dropdown.
 
 Prioritize allocated funds, recipient count and unallocated funds. Distinguish
 recipients from eligible validators with no capacity. Give unresolved evidence an

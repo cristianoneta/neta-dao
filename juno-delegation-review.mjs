@@ -467,7 +467,7 @@ export async function readProposalReview(values) {
       );
   } else {
     const section = values.body?.match(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/m);
-    if (section && [3, 4, 5, 6, 7].includes(JSON.parse(section[1])?.schema))
+    if (section && [3, 4, 5, 6, 7, 8].includes(JSON.parse(section[1])?.schema))
       throw Error(
         'This policy version requires its complete frozen comparison. Return to the planner to prepare it.'
       );

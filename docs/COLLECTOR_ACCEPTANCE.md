@@ -57,6 +57,16 @@ and missing/corrupt files fail the check. Success proves neither signature valid
 independent chain agreement nor complete historical accounting. The application
 continues to enforce its own signed-price validation.
 
+The [31 October Operations correction](OPERATIONS_COLLECTOR_2026-10-31.md) adds
+`events.json` and `neta-operations-accounting.json`. It checks their exact cross-chain
+scope, both treasury identities, schema and accounting start. Events must have a
+successful PARTIAL observation within 35 minutes; the statement must also have a
+completed refresh and a last successful observation within 35 minutes. A current
+attempt timestamp cannot make old evidence fresh. Generic accounting exits nonzero
+after failed child collection or an unavailable statement, while still publishing
+independent results and retaining earlier evidence. Installation is separate from
+the source/tests; this does not add external alert delivery.
+
 The health timer reports through systemd/journal. No external alert delivery is
 configured. This is detection, not an operator notification guarantee.
 

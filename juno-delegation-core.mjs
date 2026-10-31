@@ -80,8 +80,11 @@ export function observedCommitPolicy() {
 export function configurableParticipationPolicy() {
   return { ...observedCommitPolicy(), schema: 6 };
 }
-export function defaultPolicy() {
+export function fixedAllocationPolicy() {
   return { ...configurableParticipationPolicy(), schema: 7, fixedAllocations: [] };
+}
+export function defaultPolicy() {
+  return { ...fixedAllocationPolicy(), schema: 8 };
 }
 export function editablePolicy(input = defaultPolicy()) {
   const current = policy(input),
@@ -106,7 +109,9 @@ const policyTemplate = (schema) =>
           ? observedCommitPolicy()
           : schema === 6
             ? configurableParticipationPolicy()
-            : defaultPolicy();
+            : schema === 7
+              ? fixedAllocationPolicy()
+              : defaultPolicy();
 export function eligibilityDescription(p) {
   return p.schema >= 6
     ? '90 continuous days in the active set; automatically use the entire available period until 90 days exist; not jailed'
@@ -121,7 +126,7 @@ export function eligibilityDescription(p) {
 export function policy(input) {
   const p = structuredClone(input);
   if (
-    ![2, 3, 4, 5, 6, 7].includes(p?.schema) ||
+    ![2, 3, 4, 5, 6, 7, 8].includes(p?.schema) ||
     p.chainId !== 'juno-1' ||
     p.programme !== PROGRAMME ||
     p.method !== 'equal-capped-v1' ||
@@ -134,7 +139,7 @@ export function policy(input) {
     p.liquidReserveRaw !== LIQUID_RESERVE.toString() ||
     !Number.isInteger(p.factorTenths) ||
     p.factorTenths < 10 ||
-    p.factorTenths > 20 ||
+    p.factorTenths > (p.schema >= 8 ? 30 : 20) ||
     !(
       p.commissionMaxBps === null ||
       (Number.isInteger(p.commissionMaxBps) &&

@@ -13,6 +13,10 @@ import time
 MAX_BYTES = 25 * 1024 * 1024
 CADENCES = {"treasury": 35 * 60, "main": 65 * 60, "members": 65 * 60}
 ACCRUAL_MAX_AGE = 26 * 60 * 60
+OPERATIONS_TREASURIES = [
+    {'chain_id': 'juno-1', 'address': 'juno1excmamnysxujtd2hzm343nzdwch79y5cvk5h7w6uxlrt230xqwtqkmancl'},
+    {'chain_id': 'osmosis-1', 'address': 'osmo1xjfyz4f7da2yu43c0ptlswyln50wqyj53495sesaq40ja5megq4qms9f80'},
+]
 SOURCES = {
     "data/treasury/current.json": "treasury",
     "data/treasury/juno-community-pool.json": "treasury",
@@ -174,6 +178,30 @@ def check(root, *, now=None):
     except (OSError, ValueError, TypeError, OverflowError):
         issues.append("snapshot-unavailable")
     rows.append({"path": name, "ok": not issues, "issues": issues, "warnings": []})
+    for filename, statement in [('events.json', False), ('neta-operations-accounting.json', True)]:
+        name, issues = 'data/treasury/' + filename, []
+        try:
+            value = read_object(root, name)
+            if (type(value.get('schema_version')) is not int or value['schema_version'] != 2
+                    or value.get('scope') != 'neta-operations-cross-chain'
+                    or value.get('accounting_start') != '2026-10-01T00:00:00Z'
+                    or value.get('treasuries') != OPERATIONS_TREASURIES):
+                issues.append('invalid-source-identity')
+            issues += age_issues(timestamp(value.get('checked_at' if statement else 'generated_at')),
+                                 now, CADENCES['treasury'])
+            if statement:
+                if (value.get('chain_id') != 'juno-1' or value.get('dao_id') != 'neta-operations'
+                        or value.get('adapter') != 'treasury-receipts'):
+                    issues.append('invalid-source-identity')
+                if value.get('refresh_status') != 'completed':
+                    issues.append('operations-accounting-unavailable')
+                issues += ['last-success:' + issue for issue in age_issues(
+                    timestamp(value.get('last_success_at')), now, CADENCES['treasury'])]
+            elif value.get('status') != 'PARTIAL':
+                issues.append('operations-events-unavailable')
+        except (OSError, ValueError, TypeError, OverflowError):
+            issues.append('snapshot-unavailable')
+        rows.append({'path': name, 'ok': not issues, 'issues': issues, 'warnings': []})
     return {"ok": all(row["ok"] for row in rows), "sources": rows,
             "scope": "Published observation freshness and refresh results only; no signature, chain or accounting audit."}
 

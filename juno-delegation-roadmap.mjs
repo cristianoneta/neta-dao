@@ -1,21 +1,22 @@
 // Interactive explanation only. No values from this module enter a policy or proposal.
 const bonuses = [
   [
-    'Public RPC / API',
-    40,
+    'Governance participation',
+    100,
+    'Own votes on completed proposals; every voting option counts equally. Measurement rules and historical evidence must be validated before activation.',
+    true
+  ],
+  [
+    'Public RPC / API (not live)',
+    0,
     'Verified operator linkage, availability, freshness and latency; aliases earn no extra points.'
   ],
   [
-    'Testnet participation',
-    30,
+    'Testnet participation (not live)',
+    0,
     'Sustained, verifiable participation and useful results on the approved testnet.'
   ],
-  ['Archive services', 20, 'Independent checks of access and historical coverage.'],
-  [
-    'Governance participation',
-    10,
-    'Own votes on completed proposals; every voting option counts equally.'
-  ]
+  ['Archive services (not live)', 0, 'Independent checks of access and historical coverage.']
 ];
 const node = (tag, text, className) => {
   const el = document.createElement(tag);
@@ -96,7 +97,7 @@ export function renderFuturePolicy(host, prefix) {
   const details = node('details', undefined, 'policy-details');
   details.id = `${prefix}-bonus-details`;
   if (explorer) details.open = true;
-  details.append(node('summary', 'Bonus criteria · illustrative weights'));
+  details.append(node('summary', 'Bonus criteria'));
   const weights = [];
   const weightTotal = node('p', '', 'field-help');
   const updateWeights = () => {
@@ -111,10 +112,10 @@ export function renderFuturePolicy(host, prefix) {
         ? `${Math.round((Number(item.input.value || 0) / total) * 100)}% of bonus`
         : 'Disabled';
     weightTotal.textContent = total
-      ? 'Relative weights, normalized across enabled criteria. No production bonus measurements are connected.'
+      ? 'Governance is the first planned bonus criterion. Historical vote evidence is not connected yet.'
       : 'All bonus criteria are disabled in this exploration. No bonus could be earned.';
   };
-  for (const [name, value, help] of bonuses) {
+  for (const [name, value, help, enabled] of bonuses) {
     const row = node('div', undefined, 'bonus-preview-row');
     if (explorer) {
       const label = node('div', undefined, 'criterion-label');
@@ -133,6 +134,7 @@ export function renderFuturePolicy(host, prefix) {
       weight.max = '100';
       weight.step = '1';
       weight.value = String(value);
+      weight.disabled = !enabled;
       weight.className = 'bonus-weight-input';
       weight.setAttribute('aria-label', `${name} relative weight · preview`);
       const share = node('small');
