@@ -14,7 +14,7 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
 | Homepage / snapshot fallback follow-up | Source corrects obsolete voting/submission copy and adds the missing packaged delegation-planner snapshot | [Scope and evidence](HOME_FALLBACK_2026-10-24.md). Published in release 40106761715; updated homepage observed on both website domains. Responsive CI passed at 320/390/768/1440 px; separate mobile live acceptance and controlled live fallback remain open. |
 | Collector archives / efficiency | Source captures UTC Treasury days, archives expired validator evidence before pruning, preserves daily membership/planner observations and signed prices, and shares bounded RPC results | [Scope and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md). Owner confirmed host installation and successful manual collector/archive checks on 24 October; regular cycles, multi-day growth and measured savings remain pending. Local archives do not prove independent retention. |
-| Operations receipt collection | Live refresh failed at the 31 October check; source correction uses the official Osmosis archive and makes process/health failures explicit | Both previous providers had pruned the accounting-floor block. Seven new regression tests cover archive access and rate limiting, retained evidence, failed child exits and missed freshness checks. [Repair and deployment boundary](OPERATIONS_COLLECTOR_2026-10-31.md). Host installation and live recovery remain unverified; no website release needed. |
+| Operations receipt collection | Owner confirmed installation of the archive-provider correction and explicit process/health failures; live recovery is being checked separately | Both previous providers had pruned the accounting-floor block. Seven new regression tests cover archive access and rate limiting, retained evidence, failed child exits and missed freshness checks. [Repair and deployment boundary](OPERATIONS_COLLECTOR_2026-10-31.md). Complete collector runs, fresh successful feeds and the next scheduled cycle remain to be verified; no website release needed for this repair. |
 | Infrastructure backup | Online SQLite exports, locked collector/validator evidence, explicit recovery files, encrypted Restic backup plus verified fresh download; units and retention preview provided | [Runbook and boundaries](INFRASTRUCTURE_BACKUPS.md). Owner confirmed installation, first verified R2 backup/download and full repository data check on 24 October. Daily timer enabled with explicit deferral of another-machine application recovery; unattended cycles and destructive retention remain unaccepted. Private receipts remain outside Git. |
 | Backend / public data | OVH backend updated from the reviewed #304 source; Render is retired | Owner-confirmed healthy replacement, successful isolated host checks and independent public API/data probes. Private operational receipts remain outside Git. |
 | Source and CI | GitHub primary; GitLab dormant reserve | One PR per related batch. Protected required aggregate check; security audits retained. Production data writers do not run on GitHub schedules. |
@@ -42,9 +42,11 @@ sample, votes, points settings and targets; approved Rebalance uses that revisio
 
 Working history increases from 120 to 180 days, with verified archive-before-delete
 and no archive expiry. Local source validation covers 443 JavaScript and 242 Python
-tests (14 environment skips). CI/browser validation of this new head, OVH collector
-installation and manual website publication are pending; the preceding PR head's
-18 green CI jobs do not establish acceptance of this follow-up.
+tests (14 environment skips). Feature head `ed0bac062b76b8a1b057d270a511064991630348`
+passed all 18 jobs in [CI 41199076122](https://github.com/cristianoneta/neta-dao/actions/runs/41199076122),
+including browser and programme-execution acceptance. The subsequent readiness
+update changes documentation only. Owner-confirmed collector installation is
+complete; fresh feed acceptance and manual website publication remain pending.
 
 ## Fixed additional allocations — source implementation, 29 October
 

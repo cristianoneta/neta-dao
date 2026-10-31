@@ -18,8 +18,8 @@ budget. Governance is first at 100%; RPC/API, testnet and archive are disabled a
 zero. Base/maximum bonus defaults to 900/100 and is configurable. Schemas 2–8 keep
 their previous equal-allocation semantics and immutable review hashes.
 
-The implementation is source-only until collector installation, CI acceptance and
-the manual website release. A missing governance feed blocks a new bonus-weighted
+Collector installation and feature CI acceptance are confirmed; fresh feed
+acceptance and the manual website release remain pending. A missing governance feed blocks a new bonus-weighted
 review. Approved legacy rules remain usable under their original semantics.
 
 ## Measurement with the owner's collection-window refinement
@@ -123,7 +123,7 @@ without reallocating governance's weight. If all resulting points are zero, keep
 the regular budget unallocated. Freeze the actual sample, coverage, counts,
 evidence and policy version with every review and approved redistribution.
 
-## Retention refinement — implemented source, host update pending
+## Retention refinement — installed, operational acceptance pending
 
 The working validator SQLite history now retains 180 days rather than 120, using
 the observed cursor time. The exact 180-day boundary remains queryable. Only older
@@ -133,10 +133,10 @@ or backup-pruning task is introduced. The 90-day programme eligibility rule stay
 unchanged. Tests retain selected governance events with their blocks and preserve
 archive-before-delete, rollback and exact restore guarantees.
 
-This is a source change for the same PR. Install the reviewed validator collector
-alongside the Operations repair while preserving existing identity, databases,
-locks, timers and archives. Installation and current disk growth remain separate
-host acceptance steps; the 180-day setting is not claimed to be running on OVH.
+The owner confirmed installation of the reviewed validator collector alongside
+the Operations repair, preserving existing identity, databases, locks, timers and
+archives. Post-update collection, scheduled acceptance and measured disk growth
+remain separate checks; a successful installer alone does not prove them.
 
 ## UX and validation
 
@@ -165,6 +165,8 @@ closed for larger evidence; it never drops ballots or silently truncates a sampl
 Current local checks pass 443 JavaScript tests and 242 Python tests (14
 environment-dependent skips). The browser acceptance adds point-setting persistence,
 invalid-input handling, new-schema export and unchanged approved-rule behavior.
-The previous head's 18 CI checks passed; CI and browser results for this follow-up
-must be recorded separately before integration. OVH installation and website
-publication remain pending.
+Feature head `ed0bac062b76b8a1b057d270a511064991630348` passed all 18 jobs in
+[CI 41199076122](https://github.com/cristianoneta/neta-dao/actions/runs/41199076122),
+including browser acceptance, programme execution and infrastructure backup. The
+following readiness update is documentation-only. Collector installation is
+confirmed; fresh feed acceptance and manual website publication remain pending.

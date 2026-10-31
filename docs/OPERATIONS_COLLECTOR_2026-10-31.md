@@ -70,3 +70,10 @@ events/accounting, retained prior records and passing process/public health chec
 Then observe the next scheduled cycle. A merged PR or local replay alone does not
 establish production recovery. This change requires no Cloudflare website release,
 contract action or new production writer. External alert delivery remains absent.
+
+The owner confirmed source installation on 31 October; post-update collector runs
+are in progress. Their completion, fresh published source data and the subsequent
+scheduled cycle remain separate acceptance steps. The combined feature head
+`ed0bac062b76b8a1b057d270a511064991630348` passed all 18 jobs in
+[CI 41199076122](https://github.com/cristianoneta/neta-dao/actions/runs/41199076122).
+Actual operator commands and installation receipts remain in the private handoff.

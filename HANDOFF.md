@@ -6,16 +6,17 @@ Private host access, backup locations and installation receipts remain outside G
 
 ## Current operations repair — 31 October
 
-The Operations receipt collector is stalled at its 29 October success. Both
+The 31 October check found Operations receipt collection stalled at its 29 October success. Both
 configured Osmosis providers have pruned its original accounting-floor block.
 The source correction adds the official Osmosis archive, propagates child and
 statement failures to the collector exit status, and checks Operations events and
 accounting in the published-data health check. Existing evidence and all history
 checks remain intact. See [cause, regression coverage and acceptance](docs/OPERATIONS_COLLECTOR_2026-10-31.md).
-Host installation and live recovery still require verification. The collector repair
+The owner confirmed the source installation; complete collector runs and live recovery
+are being checked separately. The collector repair
 itself needs no website release; private installation details remain outside Git.
 
-The same draft PR #330 now implements governance-weighted allocation under new
+The same PR #330 now implements governance-weighted allocation under new
 schema 9, the single voting-power factor up to 3.0, and removal of duplicate
 controls. Governance defaults to 100% of a configurable bonus; unavailable
 criteria remain disabled at zero. Scores use only complete voting periods in our
@@ -33,8 +34,11 @@ The working validator history retains 180 days. Older blocks, events and integri
 records require verified archiving before deletion; first observed entries survive
 exit/re-entry and pruning. Archive bundles and R2 backups gain no expiry.
 Local checks cover 443 JavaScript tests and 242 Python tests (14 environment skips).
-The previous PR head passed all 18 CI jobs; the points follow-up needs its own CI
-and browser result. OVH installation and the manual website release remain pending.
+The points implementation and browser acceptance passed all 18 jobs in
+[CI 41199076122](https://github.com/cristianoneta/neta-dao/actions/runs/41199076122),
+feature head `ed0bac062b76b8a1b057d270a511064991630348`. This readiness update is
+documentation-only. Collector installation is confirmed; fresh feed acceptance and
+the manual website release remain pending.
 Do not label the new scoring live before the own-history feed is installed and verified.
 
 ## Current continuation: Delegation Programme
