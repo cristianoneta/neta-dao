@@ -1466,6 +1466,7 @@
     state.comments = comments;
     const current =
       revisions.find((r) => r.revision === state.selected.current_revision) || revisions.at(-1);
+    let pinnedFinal = null;
     if (
       plannerParams.get('review') === String(id) &&
       (plannerParams.has('reviewRevision') || plannerParams.has('reviewHash'))
@@ -1473,6 +1474,7 @@
       try {
         const pin = await finalizedReview(found, current, CHAIN_ID, { readOnly: true });
         assertPinnedReview(plannerParams, found, current, CHAIN_ID, CONTRACT, pin.hash);
+        pinnedFinal = pin;
       } catch (error) {
         if (epoch === state.requestEpoch && state.selected?.key === `workshop:${id}`) {
           setValues({});
@@ -1501,9 +1503,10 @@
     reviewUrl.searchParams.delete('proposal');
     reviewUrl.searchParams.delete('reviewRevision');
     reviewUrl.searchParams.delete('reviewHash');
-    if (sharedFinal && usesRuleReference(current)) {
+    const linkFinal = sharedFinal || pinnedFinal;
+    if (linkFinal && usesRuleReference(current)) {
       reviewUrl.searchParams.set('reviewRevision', String(current.version));
-      reviewUrl.searchParams.set('reviewHash', sharedFinal.hash);
+      reviewUrl.searchParams.set('reviewHash', linkFinal.hash);
     }
     reviewUrl.searchParams.set('review', String(id));
     if (showHistory) reviewUrl.searchParams.set('reviewHistory', '1');

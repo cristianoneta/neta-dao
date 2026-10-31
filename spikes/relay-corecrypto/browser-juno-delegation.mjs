@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { finalizedReview } from '../../juno-community-governance.mjs';
 import { readProposalReview } from '../../juno-delegation-review.mjs';
 import { reviewNetwork } from '../../juno-review-network.mjs';
+import { parseRuleReference, ruleReviewUrl } from '../../juno-rule-reference.mjs';
 import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
@@ -1035,6 +1036,42 @@ try {
   };
   const final = await finalizedReview(publishedReview, publishedRevision, 'juno-1');
   assert.ok(Buffer.byteLength(final.content.summary) < 2500);
+  const pinnedUrl = new URL(ruleReviewUrl(parseRuleReference(final.content)));
+  const localPinnedUrl = origin + pinnedUrl.pathname + pinnedUrl.search + pinnedUrl.hash;
+  await page.goto(localPinnedUrl);
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#planner-native-payload')
+      .textContent.includes('## Referenced rule review')
+  );
+  assert.equal(
+    await page.locator('#planner-native-payload').textContent(),
+    final.content.title + '\n\n' + final.content.summary
+  );
+  assert.equal(await page.locator('#proposal-summary').inputValue(), convertedValues.summary);
+  assert.equal(new URL(page.url()).searchParams.get('reviewHash'), final.hash);
+  const brokenPin = new URL(localPinnedUrl);
+  brokenPin.searchParams.set('reviewRevision', '2');
+  await page.goto(brokenPin.href);
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#gov-status')
+      .textContent.includes('does not match the finalized review')
+  );
+  assert.equal(await page.locator('#proposal-body').inputValue(), '');
+  assert.equal(await page.locator('#primary-action').isVisible(), false);
+  publishedReview.withdrawn = true;
+  await page.goto(localPinnedUrl);
+  await page.waitForFunction(
+    () => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN'
+  );
+  assert.equal(
+    new URL(page.url()).searchParams.get('reviewHash'),
+    final.hash,
+    'Historical read must retain its exact pinned URL'
+  );
+  assert.equal(await page.locator('#planner-native-panel').isVisible(), false);
+  publishedReview.withdrawn = false;
   publishedRule = {
     ...approved,
     ...final.content,
@@ -1043,7 +1080,8 @@ try {
     voting_end_time: new Date(Date.now() + 86400000).toISOString()
   };
   const publishedUrl = new URL(page.url());
-  publishedUrl.searchParams.delete('plannerDraft');
+  for (const key of ['plannerDraft', 'review', 'reviewRevision', 'reviewHash', 'reviewHistory'])
+    publishedUrl.searchParams.delete(key);
   publishedUrl.searchParams.set('proposal', '999');
   await page.evaluate(() =>
     localStorage.setItem(
