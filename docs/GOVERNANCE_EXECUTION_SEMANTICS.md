@@ -50,6 +50,16 @@ nevertheless require an unpaused programme as its explicit product policy.
 
 ## Required message representation
 
+Allocation-rule approval is a text-only native decision with an empty message
+array. Newly prepared reviews opt into a compact reference: the native proposal
+binds the finalized workshop contract, review ID, revision and content/rule/review
+hashes. Approved-rule discovery resolves and verifies that exact content from two
+independent sources; it never substitutes the current planner state. A later
+workshop withdrawal blocks new submission but cannot revoke an already stored
+native decision. Old inline proposals preserve their original serialization.
+This approval performs no delegation or treasury operation. Separately reviewed
+and voted execution remains required. [Reference format and limits](REFERENCED_RULE_PROPOSALS_2026-10-31.md).
+
 Code 4047 rejects CosmWasm DistributionMsg (`distribution`) during JSON parsing,
 before authorization or dispatch. Its compiled enum supports `stargate`.
 Use CosmosMsg::Stargate with type_url

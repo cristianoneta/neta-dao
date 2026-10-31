@@ -63,6 +63,8 @@
     </div>
   </section>
 </section><div class="voting-metadata"><p id="voting-data-status" role="status"></p><div class="voting-toolbar"><button id="voting-refresh" type="button" hidden>Refresh results</button><button id="proposal-review-history" type="button" hidden></button></div></div><div id="vote-actions" class="vote-actions" hidden><span id="vote-hint">Connect Keplr to vote.</span><div><button type="button" data-vote="yes">YES</button><button type="button" data-vote="no">NO</button><button type="button" data-vote="abstain">ABSTAIN</button></div></div></section>
+      <section id="rule-proposal-format" class="field-help" hidden><p id="rule-proposal-format-text"></p></section>
+      <button id="rule-proposal-convert" type="button" hidden>Prepare readable rule proposal</button>
       <button id="proposal-details-toggle" class="details-toggle" type="button" aria-expanded="true" aria-controls="proposal-details"><span class="proposal-details-copy"><strong>Proposal text &amp; actions</strong><span>Read the full proposal, execution actions and revision history.</span></span><span id="proposal-details-state">Hide details −</span></button>
       <div id="proposal-details">
       <label>PROPOSAL BODY<textarea id="proposal-body" maxlength="20000" rows="12" placeholder="Context, rationale and expected outcome"></textarea></label>
@@ -76,6 +78,7 @@
         <header><div><span>JUNO MAINNET</span><h3 id="planner-native-heading">Submit finalized proposal</h3></div></header>
         <div class="governance-funding-body">
           <p>Anyone can submit this finalized version with their own wallet. Choose your deposit, then confirm the transaction in Keplr.</p>
+          <details class="native-proposal-preview"><summary>Exact governance proposal text</summary><p id="planner-native-payload-size" class="field-help"></p><pre id="planner-native-payload" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></details>
           <p id="planner-native-terms" class="field-help">Loading current deposit requirements…</p>
           <div id="planner-native-inputs" class="governance-funding-amount">
             <button id="planner-native-minimum" type="button" disabled>Loading minimum deposit…</button>

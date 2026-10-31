@@ -9,6 +9,7 @@ import {
 } from './juno-community-pool-proposal.mjs';
 import { governanceFetch } from './governance-chain-read.mjs';
 import { PROGRAMME, operator } from './juno-delegation-core.mjs';
+import { usesRuleReference } from './juno-rule-reference.mjs';
 
 export const GOVERNANCE = 'juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730';
 export const EXECUTE = '/cosmwasm.wasm.v1.MsgExecuteContract';
@@ -116,6 +117,8 @@ export function assertProgrammeExecutionAvailable(messages) {
     claimValidators(messages, { allowLegacy: false });
 }
 export function proposalContent(kind, values) {
+  if (usesRuleReference(values))
+    throw Error('Referenced rule proposals must be built from the finalized on-chain review.');
   if (
     !values?.title?.trim() ||
     values.title.length > 120 ||

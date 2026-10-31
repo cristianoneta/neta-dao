@@ -11,6 +11,8 @@ import {
 import { withClaimContext } from './claim-numbering.mjs';
 import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
+import { RULE_REVIEW_MARKER } from './juno-rule-reference.mjs';
+import { ruleProposalSummary } from './juno-rule-summary.mjs';
 
 export const PLANNER_DRAFT_PREFIX = 'cosmoot:juno:planner-proposal:';
 const identifier = /^[a-f0-9-]{36}$/;
@@ -87,10 +89,29 @@ export function ruleProposal(review) {
       `## Illustrative distribution\n\nBudget: ${units(r.budgetRaw)} JUNO\nAllocated: ${units(r.allocatedRaw)} JUNO\nUnallocated: ${units(r.unallocatedRaw)} JUNO\nSnapshot block: ${s.height}\nSnapshot time: ${s.blockTime}\nRule SHA-256: ${review.policyHash}\nSnapshot SHA-256: ${review.snapshotHash}\nEvidence SHA-256: ${review.evidenceHash}\n\nKeep the full planner review-data export alongside this proposal. Refresh evidence before voting. A later allocation proposal needs verified on-chain rule approval, authority, fresh balances, consensus-set and redelegation checks. This draft contains no execution messages.`
   );
 }
-export async function frozenRuleProposal(review) {
+export async function frozenRuleProposal(review, { referenced = false } = {}) {
   const checked = await verifyRuleReview(review.value),
     v = checked.value,
     encoded = await encodeRuleReview(checked);
+  if (referenced) {
+    const exact =
+      v.rule.schema === 9
+        ? FROZEN_POLICY_REFERENCE
+        : `## Exact policy\n\n\`\`\`json\n${JSON.stringify(v.rule)}\n\`\`\``;
+    const body = `Chain: juno-1\nProgramme: ${PROGRAMME}\n\n${RULE_REVIEW_MARKER}\n\n${exact}\n\nRule SHA-256: ${v.policyHash}\n\n${encoded}`;
+    const result = draft(
+      'RULE_APPROVAL',
+      'Juno Delegation Programme — allocation rules',
+      ruleProposalSummary(checked),
+      body
+    );
+    const characters = [...result.values.body].length;
+    if (characters > 10000)
+      throw Error(
+        `The complete review needs ${characters.toLocaleString('en-US')} characters; the on-chain review body limit is 10,000. Nothing was published. Keep the full review-data export; evidence cannot be omitted.`
+      );
+    return result;
+  }
   const changes = ruleChanges(v.parent?.rule, v.rule).filter((r) => r.changed);
   const content =
     `# Proposed allocation rules\n\nDecision requested: approve this exact rule revision. Execution: none.\nChain: juno-1\nDecision and submission: Juno native governance\nTopic: Delegation Programme\nProgramme: ${v.rule.programme}\n\n` +

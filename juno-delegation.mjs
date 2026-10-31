@@ -918,7 +918,7 @@ $('publish-proposal').addEventListener('click', async () => {
         'The approved policy changed. Keep this export and start a new draft from current rules.'
       );
     if (freshness() > 3600000) throw Error('Refresh the snapshot before opening a rule proposal.');
-    const proposal = await frozenRuleProposal(selected);
+    const proposal = await frozenRuleProposal(selected, { referenced: true });
     if (token !== revision || selected !== review) return;
     openProposal(proposal);
   } catch (error) {

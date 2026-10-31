@@ -6,6 +6,8 @@ import {
   REVIEW_MARKER,
   FROZEN_POLICY_REFERENCE
 } from './juno-delegation-review.mjs';
+import { parseRuleReference, RULE_REFERENCE_MARKER } from './juno-rule-reference.mjs';
+import { resolveRuleReference } from './juno-rule-reference-read.mjs';
 
 const title = 'Juno Delegation Programme — allocation rules';
 const sources = [GOVERNANCE_SOURCES['juno-polkachu'], GOVERNANCE_SOURCES['juno-stavr']];
@@ -15,6 +17,7 @@ const positive = (value) => typeof value === 'string' && /^[1-9]\d{0,19}$/.test(
 // frozen comparison still binds programme and chain; never rewrite that content.
 function ruleScope(body) {
   if (typeof body !== 'string') return null;
+  if (body.includes(RULE_REFERENCE_MARKER)) return 'reference';
   const declarations = body.split('\n').filter((line) => line.startsWith('Programme:'));
   if (declarations.length)
     return declarations.includes(`Programme: ${PROGRAMME}`) ? 'explicit' : null;
@@ -22,7 +25,7 @@ function ruleScope(body) {
 }
 
 // This discovers display data only. It is not an execution approval or authority proof.
-export async function approvedRule(proposal, now = Date.now()) {
+export async function approvedRule(proposal, now = Date.now(), source = null) {
   const body = proposal?.summary,
     scope = ruleScope(body);
   if (
@@ -47,6 +50,16 @@ export async function approvedRule(proposal, now = Date.now()) {
     proposal.failed_reason
   )
     throw Error(`Proposal #${proposal.id}: invalid rule approval content.`);
+  if (parseRuleReference(proposal)) {
+    if (!source) throw Error('Referenced rule approval requires its verified on-chain review.');
+    const { frozen } = await resolveRuleReference(proposal, source);
+    return {
+      proposalId: proposal.id,
+      votingEndedAt: proposal.voting_end_time,
+      rule: frozen.value.rule,
+      hash: frozen.value.policyHash
+    };
+  }
   const sections = [...body.matchAll(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/gm)];
   const hashes = [...body.matchAll(/^Rule SHA-256: ([a-f0-9]{64})$/gm)];
   let frozen = sections.length
@@ -148,13 +161,16 @@ export async function currentApprovedRules({
           Date.parse(b.voting_end_time) - Date.parse(a.voting_end_time) ||
           (BigInt(a.id) > BigInt(b.id) ? -1 : 1)
       );
-      const current = proposals.length ? await approvedRule(proposals[0], now) : null;
+      const current = proposals.length ? await approvedRule(proposals[0], now, source) : null;
       return {
         current,
         history: proposals.map((p) => ({
           id: p.id,
           summary: p.summary,
           messages: p.messages,
+          metadata: p.metadata,
+          title: p.title,
+          expedited: p.expedited,
           voting_end_time: p.voting_end_time
         })),
         source: { endpoint, height: source.height },

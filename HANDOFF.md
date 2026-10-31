@@ -4,7 +4,18 @@ Updated 31 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
-## Release gate correction — 31 October
+## Referenced allocation-rule proposals — 31 October
+
+New rule reviews prepare a readable initial-adoption or amendment summary. Native
+governance receives that summary, a link to the exact finalized review and its
+contract/ID/revision/content/rule/evidence hashes. Full frozen evidence remains in
+the existing on-chain workshop; it is no longer duplicated in the native text.
+Existing local drafts require the explicit **Prepare readable rule proposal**
+action. Historical finalized/native payloads retain their original representation.
+This source change still needs its manual website release; no contract deployment
+or wallet operation is included. See [format, limits and verification](docs/REFERENCED_RULE_PROPOSALS_2026-10-31.md).
+
+## Release gate correction — resolved 31 October
 
 PR #330 is integrated at `f7632c80b173d4d721e79a31b6d39802d98fdcaf`.
 [Manual release 41200786112](https://github.com/cristianoneta/neta-dao/actions/runs/41200786112)
@@ -13,12 +24,14 @@ author-name requests but released only the most recent request. Its name-display
 assertion timed out; the release job was skipped. The follow-up uses one shared
 barrier and deliberately overlaps two reads before wallet disconnect, retaining
 the name, author-only withdrawal and no-republication assertions. It changes test
-orchestration only. Run the corrected main commit through the manual release after
-the follow-up passes its required checks; do not bypass or retry the old fixture.
+orchestration only. PR #331 integrated the correction at
+`b89cb82ce2bb1162db76a4ee5145fd4cb99b9ef3`.
+[Manual release 41217797680](https://github.com/cristianoneta/neta-dao/actions/runs/41217797680)
+passed all required checks and its exact-artifact publication step on 31 October.
 
 The preceding [release 41010288402](https://github.com/cristianoneta/neta-dao/actions/runs/41010288402)
 published `bc53c8c467f1ccd9f1aa4f239b539e2a27f1e863` on 30 October, including fixed
-allocations. The 31 October governance-points website changes remain unpublished.
+allocations. The 31 October governance-points website changes are now published.
 Collector installation is separate: fresh public Operations data retains all 57
 earlier events, and the new own-history governance feed is accepted by the planner.
 
@@ -55,15 +68,15 @@ Local checks cover 443 JavaScript tests and 242 Python tests (14 environment ski
 The points implementation and browser acceptance passed all 18 jobs in
 [CI 41199076122](https://github.com/cristianoneta/neta-dao/actions/runs/41199076122),
 feature head `ed0bac062b76b8a1b057d270a511064991630348`. This readiness update is
-documentation-only. Collector installation is confirmed; fresh feed acceptance and
-the manual website release remain pending.
-Do not label the new scoring live before the own-history feed is installed and verified.
+documentation-only. Collector installation and fresh feed acceptance are confirmed;
+the successful manual website release is recorded above. Full host health and the
+next scheduled cycle remain separate acceptance checks.
 
 ## Current continuation: Delegation Programme
 
 The owner returned to the Delegation Programme on 29 October. The latest verified
-website release is [41010288402](https://github.com/cristianoneta/neta-dao/actions/runs/41010288402),
-source `bc53c8c467f1ccd9f1aa4f239b539e2a27f1e863`, including fixed allocations. Its publication
+website release is [41217797680](https://github.com/cristianoneta/neta-dao/actions/runs/41217797680),
+source `b89cb82ce2bb1162db76a4ee5145fd4cb99b9ef3`, including governance points and fixed allocations. Its publication
 step succeeded; the earlier native-submission byte check remains dated evidence. Do not
 repeat this release or either completed gas repair.
 
