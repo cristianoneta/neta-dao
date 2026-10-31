@@ -106,6 +106,8 @@ try {
     publishedRule = null,
     publishedReview = null,
     publishedRevision = null,
+    duplicateRule = false,
+    referenceSourceDisagree = false,
     movementState = 'valid';
   const approvalRoute = (route) => {
     const url = new URL(route.request().url()),
@@ -123,7 +125,19 @@ try {
           approvalState === 'empty' ||
           (approvalState === 'disagree' && url.searchParams.get('source') === 'juno-stavr')
             ? [failedClaim]
-            : [failedClaim, approved, ...(publishedRule ? [publishedRule] : [])],
+            : [
+                failedClaim,
+                approved,
+                ...(publishedRule ? [publishedRule] : []),
+                ...(duplicateRule ? [{ ...publishedRule, id: '1000' }] : [])
+              ].filter(
+                (p) =>
+                  !(
+                    referenceSourceDisagree &&
+                    url.searchParams.get('source') === 'juno-stavr' &&
+                    p.id === publishedRule?.id
+                  )
+              ),
         pagination: { next_key: null }
       };
     else if (publishedRule && path === '/cosmos/gov/v1/proposals/' + publishedRule.id)
@@ -1099,10 +1113,48 @@ try {
     status: 'PROPOSAL_STATUS_VOTING_PERIOD',
     voting_end_time: new Date(Date.now() + 86400000).toISOString()
   };
-  const publishedUrl = new URL(page.url());
-  for (const key of ['plannerDraft', 'review', 'reviewRevision', 'reviewHash', 'reviewHistory'])
-    publishedUrl.searchParams.delete(key);
-  publishedUrl.searchParams.set('proposal', '999');
+  // Existing hash-bound links open the matching native proposal, including
+  // voting controls, without changing their serialized on-chain URL or payload.
+  referenceSourceDisagree = true;
+  await page.goto(localPinnedUrl);
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#gov-status')
+      .textContent.includes('Linked native proposal could not be verified')
+  );
+  assert.equal(new URL(page.url()).searchParams.get('proposal'), null);
+  assert.equal(await page.locator('#planner-native-panel').isVisible(), false);
+  referenceSourceDisagree = false;
+  duplicateRule = true;
+  await page.goto(localPinnedUrl);
+  await page.waitForFunction(() =>
+    document.querySelector('#gov-status').textContent.includes('Multiple native proposals match')
+  );
+  assert.equal(new URL(page.url()).searchParams.get('proposal'), null);
+  duplicateRule = false;
+  const wrongHash = new URL(localPinnedUrl);
+  wrongHash.searchParams.set('reviewHash', '0'.repeat(64));
+  await page.goto(wrongHash.href);
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#gov-status')
+      .textContent.includes('does not match the finalized review')
+  );
+  assert.equal(await page.locator('#native-vote-choice').isVisible(), false);
+  publishedReview.withdrawn = true;
+  await page.goto(localPinnedUrl);
+  await page.waitForURL((url) => url.searchParams.get('proposal') === '999');
+  await page.locator('#native-vote-choice').waitFor({ state: 'visible' });
+  await page.locator('#proposal-review-history').click();
+  await page.waitForURL((url) => url.searchParams.get('reviewHistory') === 'full');
+  assert.equal(new URL(page.url()).searchParams.get('reviewHistory'), 'full');
+  await page.reload();
+  await page.waitForFunction(
+    () => document.querySelector('#proposal-badge').textContent === 'WITHDRAWN'
+  );
+  assert.equal(new URL(page.url()).searchParams.get('proposal'), null);
+  assert.equal(await page.locator('#native-vote-choice').isVisible(), false);
+  publishedReview.withdrawn = false;
   await page.evaluate(() =>
     localStorage.setItem(
       'cosmoot:juno:delegation:rule-draft:v3',
@@ -1114,7 +1166,8 @@ try {
       })
     )
   );
-  await page.goto(publishedUrl.href);
+  await page.goto(localPinnedUrl);
+  await page.waitForURL((url) => url.searchParams.get('proposal') === '999');
   await page.waitForFunction(() =>
     document.getElementById('proposal-rule-review').textContent.includes('PUBLISHED RULE REVIEW')
   );

@@ -78,9 +78,17 @@ export function normalizeNativeProposal(p) {
 
 // A matching title is never sufficient to merge a review with a chain proposal.
 // Preserve ambiguous submissions as separate records rather than picking one.
-export async function linkedNativeId(proposal, revision, chainId, nativeRecords) {
+export async function linkedNativeId(
+  proposal,
+  revision,
+  chainId,
+  nativeRecords,
+  { readOnly = false } = {}
+) {
   try {
-    const final = await finalizedReview(proposal, revision, chainId);
+    const final = await finalizedReview(proposal, revision, chainId, {
+      readOnly
+    });
     const matches = nativeRecords.filter((p) => matchesReview(p.proposal.raw, final.content));
     return matches.length === 1 ? matches[0].id : null;
   } catch {
