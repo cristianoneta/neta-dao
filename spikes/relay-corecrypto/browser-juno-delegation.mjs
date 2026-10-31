@@ -1,4 +1,8 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { finalizedReview } from '../../juno-community-governance.mjs';
+import { readProposalReview } from '../../juno-delegation-review.mjs';
+import { reviewNetwork } from '../../juno-review-network.mjs';
 import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
@@ -99,6 +103,8 @@ try {
   const approved = await approvedProposal({}, approvedPolicy);
   let approvalState = 'empty',
     publishedRule = null,
+    publishedReview = null,
+    publishedRevision = null,
     movementState = 'valid';
   const approvalRoute = (route) => {
     const url = new URL(route.request().url()),
@@ -119,7 +125,27 @@ try {
             : [failedClaim, approved, ...(publishedRule ? [publishedRule] : [])],
         pagination: { next_key: null }
       };
-    else if (path === '/cosmos/staking/v1beta1/params')
+    else if (publishedRule && path === '/cosmos/gov/v1/proposals/' + publishedRule.id)
+      response = { proposal: publishedRule };
+    else if (
+      publishedReview &&
+      path.includes(`/contract/${reviewNetwork('juno-1').contract}/smart/`)
+    ) {
+      const query = JSON.parse(atob(decodeURIComponent(path.split('/').at(-1))));
+      if (query.proposal?.proposal_id === publishedReview.id) response = { data: publishedReview };
+      else if (query.revisions?.proposal_id === publishedReview.id)
+        response = { data: [publishedRevision] };
+      else if (query.proposals)
+        response = { data: query.proposals.start_after ? [] : [publishedReview] };
+      else if (query.proposal_summaries)
+        response = {
+          data: query.proposal_summaries.start_after
+            ? []
+            : [{ proposal: publishedReview, latest_revision: publishedRevision }]
+        };
+      else if (query.comments) response = { data: [] };
+      else return route.fallback();
+    } else if (path === '/cosmos/staking/v1beta1/params')
       response = { params: { bond_denom: 'ujuno', max_entries: 7, unbonding_time: '2419200s' } };
     else if (path.includes('/spendable_balances/' + PROGRAMME))
       response = { balance: { denom: 'ujuno', amount: sample.liquidRaw } };
@@ -967,13 +993,52 @@ try {
   const frozenValues = await page.evaluate(() => ({
     title: document.getElementById('proposal-title').value,
     summary: document.getElementById('proposal-summary').value,
-    body: document.getElementById('proposal-body').value
+    body: document.getElementById('proposal-body').value,
+    actions_json: document.getElementById('proposal-actions').value
   }));
+  assert.match(frozenValues.body, /Native proposal format: cosmoot-rule-reference-1/);
+  assert.equal(
+    await page.locator('#proposal-details-toggle').getAttribute('aria-expanded'),
+    'false'
+  );
+  // An existing draft only changes format after its author's explicit action.
+  const frozen = await readProposalReview(frozenValues);
+  const { frozenRuleProposal } = await import('../../planner-proposal-draft.mjs');
+  await openDraft(await frozenRuleProposal(frozen), '33333333-3333-4333-8333-333333333333');
+  await page.locator('#rule-proposal-convert').click();
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#proposal-body')
+      .value.includes('Native proposal format: cosmoot-rule-reference-1')
+  );
+  const convertedValues = await page.evaluate(() => ({
+    title: document.getElementById('proposal-title').value,
+    summary: document.getElementById('proposal-summary').value,
+    body: document.getElementById('proposal-body').value,
+    actions_json: document.getElementById('proposal-actions').value
+  }));
+  assert.equal((await readProposalReview(convertedValues)).hash, frozen.hash);
+  assert.match(convertedValues.summary, /rule|Rule/);
+  publishedReview = {
+    id: 17,
+    latest_version: 1,
+    finalized_version: 1,
+    finalized_hash: createHash('sha256').update(JSON.stringify(convertedValues)).digest('hex'),
+    author: 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57',
+    withdrawn: false
+  };
+  publishedRevision = {
+    ...convertedValues,
+    proposal_id: 17,
+    version: 1,
+    author: publishedReview.author
+  };
+  const final = await finalizedReview(publishedReview, publishedRevision, 'juno-1');
+  assert.ok(Buffer.byteLength(final.content.summary) < 2500);
   publishedRule = {
     ...approved,
+    ...final.content,
     id: '999',
-    title: frozenValues.title,
-    summary: frozenValues.summary + '\n\n' + frozenValues.body,
     status: 'PROPOSAL_STATUS_VOTING_PERIOD',
     voting_end_time: new Date(Date.now() + 86400000).toISOString()
   };
@@ -1022,8 +1087,8 @@ try {
   publishedRule.status = 'PROPOSAL_STATUS_VOTING_PERIOD';
   delete publishedRule.failed_reason;
   publishedRule.summary = publishedRule.summary.replace(
-    /Review SHA-256: [a-f0-9]{64}/,
-    'Review SHA-256: ' + '0'.repeat(64)
+    /"contentHash":"[a-f0-9]{64}"/,
+    '"contentHash":"' + '0'.repeat(64) + '"'
   );
   await page.reload();
   await page.waitForFunction(() =>
@@ -1039,6 +1104,8 @@ try {
   await page.locator('#new-draft').click();
   assert.equal(await page.locator('#proposal-rule-review').isVisible(), false);
   publishedRule = null;
+  publishedReview = null;
+  publishedRevision = null;
   await page.evaluate(() => localStorage.removeItem('cosmoot:juno:delegation:rule-draft:v3'));
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(origin + '/community-tools/juno/delegation/');

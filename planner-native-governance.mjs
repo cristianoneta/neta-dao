@@ -8,6 +8,7 @@ import {
   canonical,
   readCommunityPool
 } from './juno-community-governance.mjs';
+import { usesRuleReference } from './juno-rule-reference.mjs';
 import {
   preflight,
   proposalContent,
@@ -104,6 +105,12 @@ export function nativePlanner({
     $('#planner-native-panel').hidden = !active();
     $('#action-hint').hidden = active();
     if (!active()) return;
+    if ($('#planner-native-payload') && draft()?.review?.content) {
+      const content = draft().review.content;
+      $('#planner-native-payload').textContent = `${content.title}\n\n${content.summary}`;
+      $('#planner-native-payload-size').textContent =
+        `${new TextEncoder().encode(content.summary).length.toLocaleString('en-US')} / 10,000 bytes of native proposal text`;
+    }
     const previous = receipt(),
       button = $('#primary-action');
     button.hidden = !previous;
@@ -227,10 +234,14 @@ export function nativePlanner({
         sender = address(),
         fingerprint = JSON.stringify(values()),
         expectedReview = draft().review,
-        content = {
-          ...proposalContent(draft().kind, values()),
-          metadata: expectedReview.content.metadata
-        };
+        content = usesRuleReference(values())
+          ? expectedReview.content
+          : {
+              ...proposalContent(draft().kind, values()),
+              metadata: expectedReview.content.metadata
+            };
+      if (usesRuleReference(values()) && canonical(values()) !== canonical(expectedReview.values))
+        throw Error('The proposal differs from the finalized review.');
       assertProgrammeExecutionAvailable(content.messages);
       if (canonical(content) !== canonical(expectedReview.content))
         throw Error('The proposal differs from the finalized review.');
@@ -289,6 +300,11 @@ export function nativePlanner({
                 : 'Text-only rule approval. No delegation or treasury execution is authorized.') +
           '\nThe deposit is subject to Juno’s refund and burn rules. If the total deposit is not reached in time, the proposal will not enter voting. The fee is paid when submitting.';
         $('#planner-native-review').hidden = false;
+        if ($('#planner-native-payload')) {
+          $('#planner-native-payload').textContent = `${content.title}\n\n${content.summary}`;
+          $('#planner-native-payload-size').textContent =
+            `${new TextEncoder().encode(content.summary).length.toLocaleString('en-US')} / 10,000 bytes of native proposal text`;
+        }
         status('PROPOSAL CHECKED · CONFIRM THE DEPOSIT AND FEE IN KEPLR');
       }
       {

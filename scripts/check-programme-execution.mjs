@@ -5,6 +5,7 @@ import { buildRuleReview } from '../juno-delegation-review.mjs';
 import { frozenRuleProposal } from '../planner-proposal-draft.mjs';
 import { approvedRule } from '../juno-approved-rules.mjs';
 import { finalizedReview } from '../juno-community-governance.mjs';
+import { reviewNetwork } from '../juno-review-network.mjs';
 import { stakingMessages } from '../juno-programme-staking.mjs';
 import {
   communityPoolMessages,
@@ -244,9 +245,68 @@ try {
       ]
     }
   ];
+  // Seed the released workshop bytecode at its pinned address in this isolated
+  // genesis. All state and signing authority are synthetic; no mainnet writes.
+  const reviewContract = reviewNetwork('juno-1').contract;
+  const reviewWasm = readFileSync(
+    new URL('../assets/review-mainnet/neta_proposal_workshop_v031.wasm', import.meta.url)
+  );
+  assert.equal(
+    sha(reviewWasm).toString('hex'),
+    '2974c3de6c5cd2ad71de0ce2af45a50535fc55a79c5e85556923790c6274decf'
+  );
+  a.wasm.codes.push({
+    code_id: '5171',
+    code_info: {
+      code_hash: sha(reviewWasm).toString('base64'),
+      creator: voter,
+      instantiate_config: { permission: 'Everybody', addresses: [] }
+    },
+    code_bytes: reviewWasm.toString('base64'),
+    pinned: true
+  });
+  a.wasm.contracts.push({
+    contract_address: reviewContract,
+    contract_info: {
+      code_id: '5171',
+      creator: voter,
+      admin: voter,
+      label: 'Local review fixture',
+      created: { block_height: '0', tx_index: '0' },
+      ibc_port_id: ''
+    },
+    contract_state: Object.entries({
+      config: {
+        owner: voter,
+        pending_owner: null,
+        dao_voting_contract: voter,
+        stake_contract: voter,
+        minimum_comment_stake: '0',
+        paused: false,
+        community_gate: {
+          native_denom: 'ujuno',
+          minimum_native_stake: '1000000',
+          minimum_neta_stake: '0'
+        },
+        comment_cooldown_seconds: 30
+      },
+      next_proposal_id: 1
+    }).map(([key, value]) => ({
+      key: Buffer.from(key).toString('hex'),
+      value: Buffer.from(JSON.stringify(value)).toString('base64')
+    })),
+    contract_code_history: [
+      {
+        operation: 'CONTRACT_CODE_HISTORY_OPERATION_TYPE_GENESIS',
+        code_id: '5171',
+        updated: { block_height: '0', tx_index: '0' },
+        msg: {}
+      }
+    ]
+  });
   a.wasm.sequences = ['lastCodeId', 'lastContractId'].map((key, i) => ({
     id_key: Buffer.from('\x04' + key).toString('base64'),
-    value: i === 0 ? '4048' : '2'
+    value: i === 0 ? '5172' : '3'
   }));
   save(genesisPath, g);
   const configure = (file, changes) => {
@@ -411,6 +471,60 @@ try {
   assert.deepEqual(ruleVote.messages, []);
   assert.deepEqual(await positions(), originalPositions, 'Rule approval must not move delegations');
   assert.equal(await balance(), before, 'Rule approval must not spend programme funds');
+  // New format: actually store/finalize the complete review in WASM, then pass
+  // its compact reference through native governance and resolve the exact rules.
+  const referencedReview = await buildRuleReview(reviewSizeInput({ points: true }));
+  const referencedDraft = await frozenRuleProposal(referencedReview, { referenced: true });
+  const workshopTx = (message) => tx('wasm', 'execute', reviewContract, JSON.stringify(message));
+  const queryReview = async (query) =>
+    (
+      await get(
+        rest +
+          `/cosmwasm/wasm/v1/contract/${reviewContract}/smart/${encodeURIComponent(Buffer.from(JSON.stringify(query)).toString('base64'))}`
+      )
+    ).data;
+  const published = await workshopTx({ publish_proposal: { content: referencedDraft.values } });
+  assert.equal(published.code, 0, published.raw_log);
+  const finalized = await workshopTx({ finalize: { proposal_id: 1, version: 1 } });
+  assert.equal(finalized.code, 0, finalized.raw_log);
+  const reviewRecord = await queryReview({ proposal: { proposal_id: 1 } });
+  const [storedRevision] = await queryReview({
+    revisions: { proposal_id: 1, start_after: null, limit: 1 }
+  });
+  const referencedFinal = await finalizedReview(reviewRecord, storedRevision, 'juno-1');
+  assert.ok(Buffer.byteLength(referencedFinal.content.summary) < 2500);
+  assert.doesNotMatch(referencedFinal.content.summary, /```cosmoot-review/);
+  const referencedVote = await runProposal(
+    'referenced-programme-rule-approval',
+    [],
+    referencedFinal.content
+  );
+  assert.equal(referencedVote.status, 'PROPOSAL_STATUS_PASSED', referencedVote.failed_reason);
+  const localSource = { get: (path) => get(rest + path) };
+  assert.equal(
+    (await approvedRule(referencedVote, Date.now(), localSource)).hash,
+    referencedReview.value.policyHash
+  );
+  const revisionAttempt = await workshopTx({
+    add_revision: {
+      proposal_id: 1,
+      content: referencedDraft.values,
+      change_log: 'Must fail after finalization'
+    }
+  });
+  assert.notEqual(revisionAttempt.code, 0, 'Finalized evidence must remain immutable');
+  const withdrawn = await workshopTx({ withdraw: { proposal_id: 1 } });
+  assert.equal(withdrawn.code, 0, withdrawn.raw_log);
+  await assert.rejects(
+    finalizedReview(await queryReview({ proposal: { proposal_id: 1 } }), storedRevision, 'juno-1')
+  );
+  assert.equal(
+    (await approvedRule(referencedVote, Date.now(), localSource)).hash,
+    referencedReview.value.policyHash,
+    'Withdrawing the workshop entry cannot revoke a passed native rule decision'
+  );
+  assert.deepEqual(await positions(), originalPositions);
+  assert.equal(await balance(), before, 'Referenced approval must not spend programme funds');
   const unauthorized = await tx(
     'wasm',
     'execute',

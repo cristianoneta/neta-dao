@@ -8,7 +8,8 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `bc53c8c467f1ccd9f1aa4f239b539e2a27f1e863` | [Manual release 41010288402](https://github.com/cristianoneta/neta-dao/actions/runs/41010288402) published the fixed-allocation source on 30 October; the publish step succeeded. [31 October release 41200786112](https://github.com/cristianoneta/neta-dao/actions/runs/41200786112) failed a browser fixture and skipped publication of PR #330. |
+| Last successful website release | Source `b89cb82ce2bb1162db76a4ee5145fd4cb99b9ef3` | [Manual release 41217797680](https://github.com/cristianoneta/neta-dao/actions/runs/41217797680) passed all required checks and published the exact artifact on 31 October, including governance points. PR #331 corrected the test barrier that had blocked release 41200786112. |
+| Readable referenced rule proposals | Source implementation; manual website release pending | Native text contains a meaningful summary and an exact on-chain review reference; full evidence stays in the existing workshop. Explicit local-draft conversion, pinned review links and legacy readers. Review storage retains its existing limit. [Format and validation](REFERENCED_RULE_PROPOSALS_2026-10-31.md). |
 | Native vote gas correction | Published; successful owner wallet acceptance verified on-chain | The higher-gas vote was included with code 0, the expected Yes ballot and 118,192 gas used from 250,000. Preserve original-sequence binding and both attempts during uncertain outcomes. [Evidence, safeguards and validation](NATIVE_VOTE_TRANSMISSION_2026-10-27.md). |
 | Native proposal submission gas | Published; successful live submission verified | Corrected reward review 3 became native #384 with code 0, 2,255,995 / 3,092,554 gas and fee 0.231942 JUNO. Its 5,000 JUNO deposit opened voting; execution remains pending. [Reproduction](PROPOSAL_SUBMISSION_GAS_2026-10-27.md), [two-source checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md). |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |
@@ -25,7 +26,7 @@ live-wallet acceptance and current collector health. The backend installation ha
 own dated acceptance record. The agent made no wallet transaction or browser restore;
 the independently observed #384 submission is recorded separately above.
 
-## Delegation controls and governance bonus — source refinement, 31 October
+## Delegation controls and governance bonus — published 31 October
 
 PR #330 implements schema-9 points-based allocation, using only our own fully
 observed governance history. Configurable base/bonus points start at 900/100;
@@ -51,13 +52,13 @@ proposals; the production parser and simulation accept it. A frozen first-rule
 proposal using all 37 held positions and both proposals roundtrips in 9,427
 characters. Full host health and the next scheduled cycle remain separate checks.
 
-PR #330 is merged, but manual release 41200786112 stopped before publication when
+Manual release 41200786112 initially stopped before publication when
 the review-funding test held concurrent author-name reads and released only the
 last one. The test-only correction uses one shared barrier and forces overlapping
 reads, retaining the original wallet-disconnect, name-display, withdrawal-access
-and no-republication checks. Governance points remain unpublished until a corrected
-main commit passes the manual release. No production wallet/signing code is changed
-by this fixture repair.
+and no-republication checks. PR #331 integrated that fixture repair; manual release
+41217797680 then passed all checks and published the exact checked artifact.
+No production wallet/signing code was changed by the fixture repair.
 
 ## Fixed additional allocations — source implementation, 29 October
 

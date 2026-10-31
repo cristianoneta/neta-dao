@@ -17,6 +17,7 @@ import {
   assertProgrammeExecutionAvailable
 } from './juno-governance-core.mjs';
 import { readProposalReview } from './juno-delegation-review.mjs';
+import { usesRuleReference, referencedRuleContent } from './juno-rule-reference.mjs';
 
 export const REVIEW_CONTRACT = 'juno18d3mzk3ver06zfr5nf752aycss75vtcqd8fsdcuuzmh5mzj4cm6qrgx3fw';
 export const DEPOSIT = '/cosmos.gov.v1.MsgDeposit';
@@ -60,11 +61,16 @@ export function reviewValues(revision) {
     })
   );
 }
-export async function finalizedReview(proposal, revision, chainId = 'uni-7') {
+export async function finalizedReview(
+  proposal,
+  revision,
+  chainId = 'uni-7',
+  { readOnly = false } = {}
+) {
   const network = reviewNetwork(chainId);
   if (
     !positive(proposal?.id) ||
-    proposal.withdrawn ||
+    (proposal.withdrawn && !readOnly) ||
     !positive(proposal.finalized_version) ||
     proposal.latest_version !== proposal.finalized_version ||
     revision?.version !== proposal.finalized_version ||
@@ -73,15 +79,29 @@ export async function finalizedReview(proposal, revision, chainId = 'uni-7') {
   )
     throw Error('Finalize the latest community review before mainnet submission.');
   const values = reviewValues(revision);
-  await readProposalReview(values);
+  const frozen = await readProposalReview(values);
   const bytes = new Uint8Array(
     await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(values)))
   );
   const hash = [...bytes].map((v) => v.toString(16).padStart(2, '0')).join('');
   if (hash !== proposal.finalized_hash)
     throw Error('Finalized review content does not match its on-chain hash.');
-  const kind = reviewKind(values),
-    content = proposalContent(kind, values);
+  const kind = reviewKind(values);
+  let content;
+  if (usesRuleReference(values)) {
+    if (kind !== 'RULE_APPROVAL' || !frozen || chainId !== 'juno-1')
+      throw Error('Referenced rule proposals require a verified Juno mainnet review.');
+    content = referencedRuleContent(values, {
+      schema: 1,
+      chainId,
+      contract: network.contract,
+      reviewId: String(proposal.id),
+      revision: String(revision.version),
+      contentHash: hash,
+      policyHash: frozen.value.policyHash,
+      reviewHash: frozen.hash
+    });
+  } else content = proposalContent(kind, values);
   const metadata = `cosmoot:review:${chainId}:${network.contract}:${proposal.id}:${hash}`;
   return {
     id:

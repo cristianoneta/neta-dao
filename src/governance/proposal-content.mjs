@@ -1,4 +1,5 @@
 import { accountingType, validateCategories } from '../../proposal-accounting.mjs';
+import { usesRuleReference, RULE_TITLE } from '../../juno-rule-reference.mjs';
 import {
   isCommunityPoolSpend,
   assertCommunityPoolSpend
@@ -30,7 +31,13 @@ export function validateProposalContent(v, { native = false } = {}) {
   }
   if (!Array.isArray(actions)) throw new Error('ACTIONS MUST BE A JSON ARRAY');
   if (native) {
-    if (new TextEncoder().encode(`${v.summary.trim()}\n\n${v.body.trim()}`).length > 10000)
+    const referenced = usesRuleReference(v);
+    if (referenced && (!v.title.startsWith(RULE_TITLE) || actions.length))
+      throw Error('Referenced rule reviews must contain no execution actions.');
+    if (
+      !referenced &&
+      new TextEncoder().encode(`${v.summary.trim()}\n\n${v.body.trim()}`).length > 10000
+    )
       throw new Error(
         'On-chain proposal text exceeds 10,000 bytes. Shorten the text or prepare a smaller frozen comparison; do not remove its data.'
       );

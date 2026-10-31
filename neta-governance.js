@@ -45,9 +45,17 @@
   const { readExecutionReview } = await import('./juno-rebalance-execution.mjs');
   const { verifyRebalanceValues } = await import('./juno-rebalance-chain.mjs');
   const { readProposalReview, verifyRuleReview } = await import('./juno-delegation-review.mjs');
+  const { usesRuleReference, RULE_REFERENCE_MARKER, assertPinnedReview } = await import(
+    './juno-rule-reference.mjs'
+  );
+  const { readReferencedRuleProposal } = await import('./juno-rule-reference-read.mjs');
   const { renderRuleReview } = await import('./juno-rule-review-view.mjs');
   let frozenViewEpoch = 0;
   async function renderFrozenValues(v, editing = false) {
+    const format = document.querySelector('#rule-proposal-format');
+    const convert = document.querySelector('#rule-proposal-convert');
+    if (format) format.hidden = true;
+    if (convert) convert.hidden = true;
     const transfer = document.querySelector('#community-pool-transfer');
     transfer.hidden = true;
     try {
@@ -96,18 +104,41 @@
       }
       return;
     }
-    if (!v.body?.includes('## Frozen allocation review') && !/"schema"\s*:\s*3/.test(v.body || ''))
+    const reference = v.body?.includes(RULE_REFERENCE_MARKER);
+    if (
+      !reference &&
+      !v.body?.includes('## Frozen allocation review') &&
+      !/"schema"\s*:\s*3/.test(v.body || '')
+    )
       return;
     host.hidden = false;
     host.textContent = 'Verifying the frozen rule comparison…';
     try {
-      const frozen = await readProposalReview(v);
+      const frozen = reference
+        ? await readReferencedRuleProposal(state.selected?.proposal?.raw)
+        : await readProposalReview(v);
       if (epoch !== frozenViewEpoch) return;
       host.hidden = !frozen;
-      if (frozen)
+      if (frozen) {
         renderRuleReview(host, frozen, {
           scope: !editing && state.selected ? 'published' : 'draft'
         });
+        if (format && usesRuleReference(v)) {
+          format.hidden = false;
+          document.querySelector('#rule-proposal-format-text').textContent =
+            `The native proposal uses your summary and a link to this exact on-chain review. Rules and calculation evidence stay in the review. Review body: ${[...v.body.trim()].length.toLocaleString('en-US')} / 10,000 characters; summary: ${[...(v.summary || '').trim()].length} / 300 characters. The exact native text is shown after finalization, before submission.`;
+          if (!editing) setDetails(false);
+        }
+        if (
+          convert &&
+          !usesRuleReference(v) &&
+          !reference &&
+          !state.selected &&
+          isNativeReview() &&
+          CHAIN_ID === 'juno-1'
+        )
+          convert.hidden = false;
+      }
     } catch (error) {
       if (epoch !== frozenViewEpoch) return;
       host.textContent = 'Rule comparison unavailable: ' + error.message;
@@ -130,6 +161,8 @@
       );
     }
     const frozen = await readProposalReview(values);
+    if (usesRuleReference(values) && (!frozen || messages.length || CHAIN_ID !== 'juno-1'))
+      throw Error('A referenced rule proposal requires its complete verified Juno rule review.');
     if (frozen) {
       const { currentApprovedRules } = await import('./juno-approved-rules.mjs');
       const { parentMatches } = await import('./juno-delegation-review.mjs');
@@ -1433,6 +1466,25 @@
     state.comments = comments;
     const current =
       revisions.find((r) => r.revision === state.selected.current_revision) || revisions.at(-1);
+    if (
+      plannerParams.get('review') === String(id) &&
+      (plannerParams.has('reviewRevision') || plannerParams.has('reviewHash'))
+    ) {
+      try {
+        const pin = await finalizedReview(found, current, CHAIN_ID, { readOnly: true });
+        assertPinnedReview(plannerParams, found, current, CHAIN_ID, CONTRACT, pin.hash);
+      } catch (error) {
+        if (epoch === state.requestEpoch && state.selected?.key === `workshop:${id}`) {
+          setValues({});
+          setEditable(false);
+          $('#primary-action').hidden = true;
+          $('#save-local').hidden = true;
+          status(error.message, true);
+        }
+        return;
+      }
+      if (epoch !== state.requestEpoch || state.selected?.key !== `workshop:${id}`) return;
+    }
     setValues({ ...current, title: state.selected.title });
     if (isNativeReview() && state.selected.status === 'ready') {
       let final;
@@ -1447,6 +1499,12 @@
     const reviewUrl = new URL(location.href);
     reviewUrl.searchParams.delete('plannerDraft');
     reviewUrl.searchParams.delete('proposal');
+    reviewUrl.searchParams.delete('reviewRevision');
+    reviewUrl.searchParams.delete('reviewHash');
+    if (sharedFinal && usesRuleReference(current)) {
+      reviewUrl.searchParams.set('reviewRevision', String(current.version));
+      reviewUrl.searchParams.set('reviewHash', sharedFinal.hash);
+    }
     reviewUrl.searchParams.set('review', String(id));
     if (showHistory) reviewUrl.searchParams.set('reviewHistory', '1');
     else reviewUrl.searchParams.delete('reviewHistory');
@@ -1616,6 +1674,8 @@
     chainUrl.searchParams.delete('plannerDraft');
     chainUrl.searchParams.delete('review');
     chainUrl.searchParams.delete('reviewHistory');
+    chainUrl.searchParams.delete('reviewRevision');
+    chainUrl.searchParams.delete('reviewHash');
     chainUrl.searchParams.set('proposal', String(item.id));
     chainUrl.hash = 'governance';
     history.replaceState(null, '', chainUrl);
@@ -2164,6 +2224,26 @@
     load().catch((e) => status(e.message, true));
   };
   $('#save-local').onclick = saveLocal;
+  $('#rule-proposal-convert').onclick = async () => {
+    if (state.selected || state.busy || CHAIN_ID !== 'juno-1') return;
+    const original = values(),
+      identity = JSON.stringify(original);
+    try {
+      const frozen = await readProposalReview(original);
+      if (!frozen) throw Error('Open a verified local rule draft first.');
+      const { frozenRuleProposal } = await import('./planner-proposal-draft.mjs');
+      const next = await frozenRuleProposal(frozen, { referenced: true });
+      if (state.selected || state.busy || JSON.stringify(values()) !== identity)
+        throw Error('The draft changed while preparing the new text. Please retry.');
+      setValues(next.values);
+      saveLocal();
+      status(
+        'READABLE RULE PROPOSAL SAVED LOCALLY · Rules and frozen comparison preserved. Summary regenerated; review it before publishing.'
+      );
+    } catch (error) {
+      status(error.message, true);
+    }
+  };
   $('#proposal-details-toggle').onclick = () => setDetails($('#proposal-details').hidden);
   $('#cancel-reply').onclick = resetCommentForm;
   $('#add-action').onclick = () => {
