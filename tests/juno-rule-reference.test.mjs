@@ -85,6 +85,7 @@ test('new rule content is small and human-readable, while the complete frozen re
     fetcher: f.fetcher
   });
   assert.equal(canonical(displayed.value), canonical(f.frozen.value));
+  assert.equal(displayed.proposalSummary, f.draft.values.summary);
   await assert.rejects(approvedRule(f.proposal, now), /on-chain review/);
 });
 

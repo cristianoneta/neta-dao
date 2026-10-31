@@ -120,6 +120,7 @@
       if (epoch !== frozenViewEpoch) return;
       host.hidden = !frozen;
       if (frozen) {
+        if (reference) document.querySelector('#proposal-summary').value = frozen.proposalSummary;
         renderRuleReview(host, frozen, {
           scope: !editing && state.selected ? 'published' : 'draft'
         });

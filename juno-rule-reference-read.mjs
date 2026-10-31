@@ -42,7 +42,7 @@ export async function resolveRuleReference(proposal, source) {
     !matchesReview(proposal, referencedRuleContent(final.values, ref))
   )
     throw Error('Native proposal differs from its referenced rule review.');
-  return { reference: ref, frozen };
+  return { reference: ref, frozen, proposalSummary: final.values.summary };
 }
 
 export async function readReferencedRuleProposal(
@@ -68,5 +68,5 @@ export async function readReferencedRuleProposal(
     (value) => ({ reference: value.reference, hash: value.frozen.hash }),
     'Rule review evidence'
   );
-  return good[0].frozen;
+  return { ...good[0].frozen, proposalSummary: good[0].proposalSummary };
 }

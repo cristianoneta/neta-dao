@@ -1099,6 +1099,7 @@ try {
     document.getElementById('proposal-rule-review').textContent.includes('PUBLISHED RULE REVIEW')
   );
   assert.match(await page.locator('#proposal-rule-review').innerText(), /follows proposal #950/);
+  assert.equal(await page.locator('#proposal-summary').inputValue(), convertedValues.summary);
   assert.doesNotMatch(
     await page.locator('#proposal-rule-review').innerText(),
     /Unrelated local edits/
