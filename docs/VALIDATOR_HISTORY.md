@@ -202,7 +202,8 @@ Metadata failure is reported separately and does not erase collected blocks.
 - The service is unprivileged and read-only outside its state and shared cache directories, has
   256 MiB maximum RAM, 40% of one CPU and a 120-second outer timeout. No credentials.
 - SQLite retains exact block evidence, selected events and hourly snapshots for
-  120 days. The 24 October source first archives and verifies exact expired rows
+  180 days in the 31 October source (previously 120; host update still pending).
+  The 24 October source first archives and verifies exact expired rows
   before pruning at most 5,000 blocks per run; archive failure retains the rows.
   Daily aggregates and current streaks remain. Local archives have no expiry and
   do not prove independent retention. [Details and acceptance](COLLECTOR_ARCHIVING_2026-10-24.md).

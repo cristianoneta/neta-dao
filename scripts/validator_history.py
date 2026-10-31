@@ -482,8 +482,9 @@ def first_height(reader, target, low, high):
     return high
 
 
-def retain(db, through_time, days=120, archive_dir=None):
-    # Retain exact blocks for the full 90-day window plus a 30-day cushion.
+def retain(db, through_time, days=180, archive_dir=None):
+    # Keep 180 days of our own observations directly queryable. Older exact
+    # evidence is removed from SQLite only after a verified local archive write.
     cutoff = (instant(through_time) - timedelta(days=days)).timestamp()
     if archive_dir is None:
         # Collection without an archive destination must never discard evidence.

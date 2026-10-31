@@ -31,8 +31,12 @@ The duplicate Additional rule options controls are removed. A single factor inpu
 accepts 1.0–3.0 under new schema 8; historical schemas retain their original limits.
 The bonus preview places governance first at 100%, with RPC/API, testnet and archive
 disabled at 0%. [Measurement proposal, evidence findings and activation boundaries](DELEGATION_GOVERNANCE_BONUS_2026-10-31.md).
-The governance score is not live: production history and weighted allocation still
-need implementation after the rule is settled. This source needs a manual website
+The owner confirmed flexible bonus weights and use of our own fully observed
+history only: fewer than 90 days or ten proposals is valid during collection; no
+external historical backfill. The governance score is not live: production export
+and weighted allocation still need implementation. The validator working-history
+retention is raised from 120 to 180 days in source, with archive-before-delete and
+no automatic archive expiry. Host installation is pending. The UI source needs a manual website
 release, independently of the Operations collector installation.
 
 ## Fixed additional allocations — source implementation, 29 October

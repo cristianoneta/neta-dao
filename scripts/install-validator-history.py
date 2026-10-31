@@ -18,7 +18,7 @@ import tempfile
 from urllib.request import urlopen
 
 FILES = {
-    'scripts/validator_history.py': '7ad9c754e55f0c03e765a7352dca9fddc310a6a62c91b5360f51b1238935f77a',
+    'scripts/validator_history.py': 'a92fdb32a4e213c1babc53bb89fffa205c70f85eae3142fa5f345d4b1cbec9d4',
     'scripts/validator_archive.py': '727e467d119a746d38f8f7f47e5942daafea89479f1a2dba566b68cb6abbafb7',
     'scripts/evidence_archive.py': 'd78df42887eddbea22e7b127032cf64196b50b9fb6a9afaeaa6c20c0c3ea3684',
     'scripts/block_results_cache.py': 'ab8986cd26cf5cfc0277d81741aa2d4f327a2af2bbc70b88675a078333c35b03',

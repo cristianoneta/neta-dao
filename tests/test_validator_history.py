@@ -216,11 +216,36 @@ class HistoryTests(unittest.TestCase):
             history.run(self.db, reader, start)
         self.assertEqual(history.get_meta(self.db, 'cursor')['height'], 2)
 
+    def test_default_retention_keeps_180_days_including_boundary_and_governance_events(self):
+        through = datetime(2026, 7, 1, tzinfo=timezone.utc)
+        dates = [(through - timedelta(days=days)).isoformat().replace('+00:00', 'Z')
+                 for days in (181, 180, 179, 121, 120, 1, 0)]
+        self.initialize(10, dates[0])
+        for height, when in enumerate(dates, 10):
+            observed = item(height, when)
+            observed['events'] = [{'type': 'proposal_vote', 'attributes': [
+                {'key': 'proposal_id', 'value': str(height)}]}]
+            history.append(self.db, observed)
+        root = Path(self.temp.name) / 'archive'
+        receipt = history.retain(self.db, through.isoformat().replace('+00:00', 'Z'), archive_dir=root)
+        expected = [(height,) for height in range(11, 17)]
+        self.assertEqual(self.db.execute('SELECT height FROM blocks ORDER BY height').fetchall(), expected)
+        self.assertEqual(self.db.execute('SELECT height FROM events ORDER BY height').fetchall(), expected)
+        self.assertEqual(receipt['firstHeight'], 10)
+        self.assertEqual(receipt['lastHeight'], 10)
+        from evidence_archive import read_bundle
+        bundle = read_bundle(root / receipt['path'])['payload']
+        self.assertEqual([row[0] for row in bundle['tables']['blocks']['rows']], [10])
+        self.assertEqual([row[0] for row in bundle['tables']['events']['rows']], [10])
+        before = list(root.rglob('*.json.gz'))
+        self.assertEqual(history.retain(self.db, through.isoformat().replace('+00:00', 'Z'), archive_dir=root)['status'], 'not-due')
+        self.assertEqual(list(root.rglob('*.json.gz')), before)
+
     def test_retention_preserves_daily_totals_cursor_and_current_streaks(self):
         self.initialize(10, '2026-01-01T00:00:00Z')
         history.append(self.db, item(10, '2026-01-01T00:00:00Z'))
         history.append(self.db, item(11, '2026-01-02T00:00:00Z'))
-        history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=Path(self.temp.name) / 'archive')
+        history.retain(self.db, '2026-06-30T12:00:00Z', archive_dir=Path(self.temp.name) / 'archive')
         self.assertEqual(self.db.execute('SELECT height FROM blocks').fetchall(), [(11,)])
         self.assertEqual(self.db.execute('SELECT sum(expected) FROM daily').fetchone()[0], 8)
         self.assertEqual(history.get_meta(self.db, 'cursor')['height'], 11)
@@ -229,9 +254,9 @@ class HistoryTests(unittest.TestCase):
     def test_archive_failure_or_missing_destination_cannot_delete_history(self):
         self.initialize(10, '2026-01-01T00:00:00Z')
         history.append(self.db, item(10, '2026-01-01T00:00:00Z'))
-        self.assertEqual(history.retain(self.db, '2026-05-01T12:00:00Z')['status'], 'retained')
+        self.assertEqual(history.retain(self.db, '2026-06-30T12:00:00Z')['status'], 'retained')
         with patch('validator_archive.store', side_effect=OSError('archive unavailable')), self.assertRaises(OSError):
-            history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=Path(self.temp.name) / 'archive')
+            history.retain(self.db, '2026-06-30T12:00:00Z', archive_dir=Path(self.temp.name) / 'archive')
         self.assertEqual(self.db.execute('SELECT height FROM blocks').fetchall(), [(10,)])
 
     def test_transaction_rollback_reuses_export_and_corrupt_export_blocks_pruning(self):
@@ -239,16 +264,16 @@ class HistoryTests(unittest.TestCase):
         history.append(self.db, item(10, '2026-01-01T00:00:00Z'))
         root = Path(self.temp.name) / 'archive'
         with patch.object(history, 'set_meta', side_effect=RuntimeError('interrupted before commit')), self.assertRaises(RuntimeError):
-            history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=root)
+            history.retain(self.db, '2026-06-30T12:00:00Z', archive_dir=root)
         self.assertEqual(self.db.execute('SELECT height FROM blocks').fetchall(), [(10,)])
         bundle = next(root.rglob('*.json.gz'))
         original = bundle.read_bytes()
         bundle.write_bytes(b'broken archive')
         with self.assertRaises((ValueError, OSError)):
-            history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=root)
+            history.retain(self.db, '2026-06-30T12:00:00Z', archive_dir=root)
         self.assertEqual(self.db.execute('SELECT height FROM blocks').fetchall(), [(10,)])
         bundle.write_bytes(original)
-        history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=root)
+        history.retain(self.db, '2026-06-30T12:00:00Z', archive_dir=root)
         self.assertEqual(len(list(root.rglob('*.json.gz'))), 1)
         self.assertEqual(self.db.execute('SELECT height FROM blocks').fetchall(), [])
 
@@ -264,7 +289,7 @@ class HistoryTests(unittest.TestCase):
         names = ('blocks', 'events', 'transitions', 'snapshots', 'rosters')
         original = {name: self.db.execute('SELECT * FROM ' + name).fetchall() for name in names}
         root = Path(self.temp.name) / 'archive'
-        receipt = history.retain(self.db, '2026-05-01T12:00:00Z', archive_dir=root)
+        receipt = history.retain(self.db, '2026-06-30T12:00:00Z', archive_dir=root)
         bundle = read_bundle(root / receipt['path'])['payload']
         restored = history.connect(Path(self.temp.name) / 'restored.sqlite3')
         try:

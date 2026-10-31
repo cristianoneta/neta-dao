@@ -18,9 +18,18 @@ itself needs no website release; private installation details remain outside Git
 The same branch now also contains the owner's 31 October delegation control
 refinement: one factor input up to 3.0, removal of duplicate controls, and a
 governance-first 100/0/0/0 bonus preview. These UI changes need the usual manual
-website release. [Proposed governance measurement and activation boundaries](docs/DELEGATION_GOVERNANCE_BONUS_2026-10-31.md)
-remain under discussion; production bonus scoring is not enabled. New editable
+website release. The owner confirmed [flexible bonus weights and our own available
+governance observations only](docs/DELEGATION_GOVERNANCE_BONUS_2026-10-31.md): no
+historical backfill to reach 90 days or ten proposals. Production scoring still
+needs implementation. New editable
 rules use schema 8, preserving schemas 2–7 for historical reviews.
+
+The validator collector's directly queryable working history is increased from
+120 to 180 days in this branch; OVH installation remains pending. Older rows still
+require verified archiving before removal from SQLite. Local archives and R2
+backups have no automatic deletion enabled. The previous PR head passed all 18
+CI jobs; the retention follow-up adds boundary and governance-event preservation
+coverage. No website release is needed for this collector change itself.
 
 ## Current continuation: Delegation Programme
 
