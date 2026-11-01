@@ -87,14 +87,28 @@ export class DiscussionStore {
     if (this.policy) {
       if (JSON.stringify(policy) !== JSON.stringify(this.policy))
         fail('Discussion scope is already configured; an explicit migration is required.', 503);
-      return this.policy;
     }
     this.transaction(() => {
-      this.db.prepare('INSERT INTO discussion_policy VALUES(1,?)').run(JSON.stringify(policy));
-      for (const row of this.db.prepare('SELECT id,root,created FROM threads').all())
-        this.db
-          .prepare('UPDATE threads SET listed=? WHERE id=?')
-          .run(+inDiscussionScope(policy, row.root, row.created), row.id);
+      if (!this.policy)
+        this.db.prepare('INSERT INTO discussion_policy VALUES(1,?)').run(JSON.stringify(policy));
+      for (const row of this.db.prepare('SELECT id,root,created FROM threads').all()) {
+        // Reapply the same policy after an old-image rollback too. A newly admitted
+        // native source can share an older review's canonical ID.
+        const sources = this.db
+          .prepare('SELECT key,payload FROM sources WHERE thread=?')
+          .all(row.id);
+        const listed = sources.some((source) => {
+          const payload = JSON.parse(source.payload);
+          const created =
+            source.key.startsWith('native:') && payload.submit_time
+              ? Date.parse(payload.submit_time)
+              : source.key.startsWith('review:') && Number.isSafeInteger(payload.created_time)
+                ? payload.created_time * 1000
+                : row.created;
+          return inDiscussionScope(policy, source.key, created);
+        });
+        this.db.prepare('UPDATE threads SET listed=? WHERE id=?').run(+listed, row.id);
+      }
       // Old sources remain recoverable, but must not report current source health.
       this.db.exec('DELETE FROM sync_state');
     });

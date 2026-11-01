@@ -540,7 +540,12 @@ test('Juno launch scope retires old imports, preserves evidence and resumes futu
     assert.equal(store.health().length, 0, 'old DAO health does not masquerade as active indexing');
     store.close();
     store = new DiscussionStore(path);
+    // A rollback to the previous image ignores listing flags and may import again.
+    store.db.prepare('UPDATE threads SET listed=1 WHERE id=?').run(legacyDao.id);
+    store.syncStatus('dao:juno-1:' + other);
     assert.deepEqual(store.configureScope(config), { version: 1, ...config });
+    assert.equal(store.thread(legacyDao.id), null);
+    assert.equal(store.health().length, 0);
     assert.throws(
       () => store.configureScope({ ...config, since: '2026-11-02T00:00:00Z' }),
       /already configured/
