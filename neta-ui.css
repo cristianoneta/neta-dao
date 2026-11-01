@@ -47,6 +47,10 @@ body { margin: 0; background: var(--neta-bg); color: var(--neta-text); font: 16p
 .dao-workspace > .gov-shell { flex:1 0 auto; }
 .dao-workspace > .community-tools-footer { flex:none; }
 [hidden] { display: none !important; }
+.proposal-heading-actions { display:flex; flex-direction:column; align-items:flex-end; gap:12px; min-width:0; }
+.proposal-discussion-link { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 16px; border:1px solid var(--neta-accent); border-radius:8px; color:var(--neta-accent); text-decoration:none; font-size:14px; font-weight:650; text-align:center; }
+.proposal-discussion-link:hover { background:var(--neta-selected); }
+@media(max-width:640px) { .proposal-heading-actions { align-items:flex-start; } }
 a { color: var(--neta-accent); text-underline-offset: 3px; }
 button, input, select, textarea { font-family: inherit; }
 button, a, input, select, textarea, summary { -webkit-tap-highlight-color: transparent; }

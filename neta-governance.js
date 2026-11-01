@@ -17,6 +17,12 @@
     assertCommunityPoolSpend
   } = await import('./juno-community-pool-proposal.mjs');
   const { normalizedComment } = await import('./src/governance/comments.mjs');
+  const { discussionSource } = await import('./discussion-links.mjs');
+  const { discussionEntry } = await import('./src/governance/discussion-entry.mjs');
+  const showDiscussionEntry = discussionEntry({
+    link: document.getElementById('proposal-discussion-link'),
+    panel: document.getElementById('discussion-panel')
+  });
   const { unitsFor, resolveSelection, selectionParams } = await import(
     './dao-hierarchy.mjs?v=20261006-structure-1'
   );
@@ -1159,6 +1165,7 @@
     };
   }
   function renderActions() {
+    void showDiscussionEntry();
     renderPlannerContext();
     plannerGov.render();
     funding.render();
@@ -1216,6 +1223,26 @@
     $('#revision-panel').hidden = !selected;
     $('#discussion-panel').hidden =
       !selected || selected.source === 'chain' || (!discussion && !state.comments.length);
+    let discussionKey = null;
+    if (selected)
+      try {
+        const kind =
+          selected.source === 'workshop' ? 'review' : selected.proposal?.native ? 'native' : 'dao';
+        discussionKey = discussionSource({
+          kind,
+          chainId: kind === 'review' ? CHAIN_ID : 'juno-1',
+          contract:
+            kind === 'review' ? CONTRACT : kind === 'native' ? 'gov' : state.dao.proposalModule,
+          id: selected.id
+        });
+      } catch {
+        /* Unsupported local drafts have no public discussion. */
+      }
+    void showDiscussionEntry({
+      source: discussionKey,
+      legacyVisible: !$('#discussion-panel').hidden,
+      pending: !!pendingReview()
+    });
     $('#comment-form').hidden = !discussion;
     $('#revision-panel').hidden = !selected || selected.source === 'chain';
     $('#save-local').hidden = !!selected;
@@ -1442,6 +1469,7 @@
     status(`${history.length} ON-CHAIN · ${state.proposals.length} PUBLIC REVIEWS`);
   }
   async function select(id, showHistory = false) {
+    void showDiscussionEntry();
     stopNativeVoting();
     const epoch = state.requestEpoch,
       daoId = state.dao.id,
@@ -1725,6 +1753,14 @@
     history.replaceState(null, '', chainUrl);
     clearInterval(state.countdown);
     state.selected = { ...item, key: `chain:${item.id}`, source: 'chain' };
+    void showDiscussionEntry({
+      source: discussionSource({
+        kind: item.proposal.native ? 'native' : 'dao',
+        chainId: 'juno-1',
+        contract: item.proposal.native ? 'gov' : state.dao.proposalModule,
+        id: item.id
+      })
+    });
     plannerGov.invalidate();
     state.revisions = [];
     state.comments = [];
@@ -1785,6 +1821,7 @@
     funding.refresh();
   }
   function newDraft() {
+    void showDiscussionEntry();
     stopNativeVoting();
     sharedFinal = null;
     state.selected = null;

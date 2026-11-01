@@ -1,0 +1,36 @@
+# Optional overlay for the existing reviewed Cosmoot compose project.
+# Install and validate the service and backup before enabling public navigation.
+services:
+  discussions:
+    profiles: [discussions]
+    networks: [api]
+    build:
+      context: ../..
+      dockerfile: discussions/Dockerfile
+    restart: unless-stopped
+    env_file: ./discussions.env
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8790"
+      DISCUSSIONS_DB: /data/discussions.sqlite
+      COSMOOT_TRUSTED_PROXY_IPS: ${COSMOOT_PROXY_IP:-172.30.87.2}
+    volumes:
+      - type: bind
+        source: /srv/cosmoot/discussions
+        target: /data
+        bind: {create_host_path: false}
+    read_only: true
+    tmpfs: ["/tmp:size=16m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 64
+    mem_limit: 512m
+    cpus: 0.5
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8790/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}

@@ -1,0 +1,5 @@
+# Install only after the independent discussion database exists and its backup
+# config entry is enabled. Preserve existing faucet/relay/validator restrictions.
+[Service]
+ReadWritePaths=/srv/cosmoot/discussions
+BindReadOnlyPaths=/srv/cosmoot/discussions/discussions.sqlite

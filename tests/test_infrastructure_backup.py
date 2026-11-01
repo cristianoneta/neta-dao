@@ -170,6 +170,34 @@ else:
 
 
 class ExportTests(Fixture):
+    def test_optional_discussion_wal_and_receipts_are_restored_and_validated(self):
+        path = self.root / 'discussions.sqlite'
+        db = sqlite3.connect(path)
+        self.addCleanup(db.close)
+        db.execute('PRAGMA journal_mode=WAL')
+        db.execute('PRAGMA wal_autocheckpoint=0')
+        for table, columns in backup.TABLES['discussions'].items():
+            db.execute('CREATE TABLE ' + table + '(' + ','.join(sorted(columns)) + ')')
+        db.execute("INSERT INTO posts(id,thread,wallet,body,request_id,stake,name) VALUES(?,?,?,?,?,?,?)",
+                   (1, 'topic', 'synthetic-wallet', 'Retained reply', 'uncertain-request', 'unknown', 'historical'))
+        db.execute("INSERT INTO moderation(id,actor,action,target,reason) VALUES(?,?,?,?,?)",
+                   (1, 'synthetic-moderator', 'hide', '1', 'Recorded reason'))
+        db.commit()
+        self.config['discussions'] = str(path)
+        backup.validate_config(self.config)
+        original = list(db.iterdump())
+        snapshot, manifest = self.stage()
+        self.assertTrue(manifest['discussions_present'])
+        backup.verify_restore(snapshot, manifest)
+        with closing(sqlite3.connect(snapshot / 'databases/discussions.sqlite')) as restored:
+            self.assertEqual(list(restored.iterdump()), original)
+        self.assertEqual(list(db.iterdump()), original)
+        # A silently included but undeclared database must not bypass schema checks.
+        del manifest['discussions_present']
+        (snapshot / 'manifest.json').write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError, 'declare'):
+            backup.verify_restore(snapshot, manifest)
+
     def test_error_details_do_not_include_exception_values_or_paths(self):
         error = PermissionError(13, 'private-secret', '/private/source')
         error._backup_details = {'operation': 'sqlite_copy', 'errno': 13,
