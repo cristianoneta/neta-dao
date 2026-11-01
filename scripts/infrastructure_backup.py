@@ -30,6 +30,12 @@ TABLES = {
     'faucet': {'challenges': {'id', 'address', 'message', 'expires', 'used'},
                'claims': {'id', 'address', 'status', 'slot', 'hash', 'bytes', 'confirmed', 'created'}},
     'relay': {'backups': {'scope', 'revision', 'digest', 'blob', 'updated'}},
+    'discussions': {'threads': {'id', 'root', 'title', 'summary', 'redirect'},
+                    'sources': {'key', 'thread', 'payload'},
+                    'revisions': {'source', 'version', 'hash', 'payload'},
+                    'posts': {'id', 'thread', 'wallet', 'body', 'request_id', 'stake', 'name'},
+                    'moderation': {'id', 'actor', 'action', 'target', 'reason'},
+                    'blocks': {'wallet', 'blocked'}, 'sync_state': {'source', 'success'}},
     'validator': {'meta': {'key', 'value'}, 'blocks': {'height', 'hash', 'flags', 'roster'},
                   'events': {'height', 'payload'}, 'daily': {'day', 'address', 'expected', 'signed'},
                   'streaks': {'address', 'entered_height'}, 'snapshots': {'height', 'payload', 'sha256'},
@@ -316,7 +322,7 @@ def validate_config(config):
     required = {'schema', 'work', 'restic', 'host', 'faucet', 'relay',
                 'collector_data', 'collector_state', 'validator_state',
                 'recovery_files', 'max_bytes', 'reserve_bytes'}
-    if set(config) != required or config['schema'] != 1:
+    if not required <= set(config) or set(config) - required - {'discussions'} or config['schema'] != 1:
         raise ValueError('Unexpected configuration fields or schema')
     if not re.fullmatch(r'[a-zA-Z0-9_-]{1,64}', config['host']):
         raise ValueError('Invalid stable backup host label')
@@ -326,6 +332,8 @@ def validate_config(config):
     sources = []
     for name in ('faucet', 'relay', 'collector_data', 'collector_state', 'validator_state'):
         sources.append(checked_path(config[name], 'file' if name in ('faucet', 'relay') else 'directory'))
+    if 'discussions' in config:
+        sources.append(checked_path(config['discussions'], 'file'))
     if not isinstance(config['recovery_files'], dict) or not config['recovery_files']:
         raise ValueError('A nonempty operator-reviewed recovery file inventory is required')
     for label, value in config['recovery_files'].items():
@@ -346,6 +354,8 @@ def stage(config, snapshot):
     budget = Budget(snapshot, config['max_bytes'], config['reserve_bytes'])
     for kind in ('faucet', 'relay'):
         export_database(Path(config[kind]), snapshot / 'databases' / (kind + '.sqlite'), kind, budget)
+    if 'discussions' in config:
+        export_database(Path(config['discussions']), snapshot / 'databases/discussions.sqlite', 'discussions', budget)
     collector = Path(config['collector_state'])
     with locked(collector / 'collector.lock'):
         copy_tree(Path(config['collector_data']), snapshot / 'collector-data', budget)
@@ -368,6 +378,8 @@ def stage(config, snapshot):
                 'source_metadata': budget.source_metadata,
                 'recovery_file_labels': sorted(config['recovery_files']),
                 'consistency': 'Each SQLite database separately; collector and validator locks separately.'}
+    if 'discussions' in config:
+        manifest['discussions_present'] = True
     budget.check(len(json.dumps(manifest, indent=2, sort_keys=True).encode()) + 1)
     atomic_json(snapshot / 'manifest.json', manifest)
     return manifest
@@ -388,6 +400,10 @@ def verify_restore(snapshot, expected):
     if files != expected['files']:
         raise ValueError('Restored file set or hashes differ')
     for kind in TABLES:
+        if kind == 'discussions' and not expected.get('discussions_present'):
+            if 'databases/discussions.sqlite' in expected['files']:
+                raise ValueError('Discussion backup must declare its validated database')
+            continue
         validate_database(snapshot / 'databases' / (kind + '.sqlite'), kind)
 
 

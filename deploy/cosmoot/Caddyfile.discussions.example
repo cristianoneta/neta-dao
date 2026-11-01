@@ -1,0 +1,8 @@
+# Insert before the existing backend route inside api.cosmoot.com after service validation.
+handle /discussions/* {
+    reverse_proxy discussions:8790 {
+        header_up X-Cosmoot-Client-IP {remote_host}
+    }
+}
+# Wrap the existing backend reverse_proxy in `handle { ... }` so these routes are exclusive.
+# Preserve all existing snapshot, headers and backend configuration.

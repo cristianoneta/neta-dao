@@ -36,6 +36,8 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm audit --audit-level=high
       - run: npm ci --prefix faucet --ignore-scripts
+      - run: npm ci --prefix relay-backup --ignore-scripts
+      - run: node --test discussions/test/*.test.mjs
       - run: npm run verify
       - run: python3 scripts/dependency-inventory.py
       - name: Retain dependency and WASM artifact inventory
@@ -45,6 +47,9 @@ jobs:
           path: dist/dependency-inventory.json
           if-no-files-found: error
       - run: node scripts/check-backend-deployment.mjs
+      - run: docker build --tag cosmoot-discussions-ci --file discussions/Dockerfile .
+      - name: Verify discussion runtime imports in the isolated image
+        run: docker run --rm --network none --read-only --cap-drop ALL cosmoot-discussions-ci node --input-type=module -e "await import('./discussions/server.mjs')"
       - run: docker build --tag cosmoot-backend-ci --file faucet/Dockerfile .
       - name: Verify image maintenance without network, keys or production state
         run: >-

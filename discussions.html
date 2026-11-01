@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://api.cosmoot.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Proposal discussions · Cosmoot</title>
+  <meta name="description" content="Discuss Cosmoot proposals with the community. One conversation from review through voting.">
+  <link rel="icon" href="/assets/cosmoot-mark.svg"><link rel="stylesheet" href="/neta-ui.css"><link rel="stylesheet" href="/discussions.css">
+  <script type="module" src="/discussions.mjs"></script>
+</head>
+<body>
+  <a class="discussion-skip" href="#conversation">Skip to discussion</a>
+  <header class="discussion-header">
+    <a class="discussion-brand" href="/"><img src="/assets/cosmoot-mark.svg" width="25" height="25" alt="">COSMOOT</a>
+    <a class="discussion-context" href="/discussions.html">Proposal discussions</a>
+    <div class="discussion-wallet"><span id="discussion-wallet-name" hidden></span><button id="discussion-connect" type="button">Connect Keplr</button><button id="discussion-disconnect" type="button" hidden>Disconnect</button></div>
+  </header>
+  <div class="discussion-layout">
+    <aside class="discussion-history" aria-label="Proposal history">
+      <details id="discussion-history-panel" open><summary>Proposal history</summary><p class="discussion-muted">One proposal, one conversation.</p><p class="discussion-muted">Juno mainnet</p><nav id="discussion-topics" aria-label="Past proposals"></nav><button id="discussion-history-more" type="button" hidden>Earlier proposals</button></details>
+      <a class="discussion-workspace-link" href="/index.html#governance">← Proposal workspace</a>
+    </aside>
+    <main id="conversation" tabindex="-1">
+      <p id="discussion-status" role="status">Loading discussions…</p><button id="discussion-retry" type="button" hidden>Try again</button>
+      <section id="discussion-content" hidden>
+        <header class="discussion-title"><p id="discussion-phase" class="eyebrow"></p><h1 id="discussion-title"></h1><div class="discussion-title-actions"><a id="discussion-proposal" class="discussion-link-button" href="/index.html#governance">View proposal &amp; voting ↗</a><button id="discussion-resume" type="button" hidden>Resume reading</button><button id="discussion-refresh" type="button">Refresh</button><button id="discussion-lock" type="button" hidden>Lock discussion</button></div></header>
+        <article id="post-proposal" class="discussion-post discussion-proposal" data-position="1" tabindex="-1"><header><strong>Proposal summary</strong><div id="discussion-author"></div></header><p id="discussion-date-notice" class="discussion-muted" hidden>The history date shows first indexing; this DAO records its original creation by block height.</p><div id="discussion-summary" class="discussion-post-body"></div><details id="discussion-summary-full" hidden><summary>Read full proposal text</summary><div class="discussion-post-body" id="discussion-summary-rest"></div></details><p class="discussion-muted">Discussion does not cast a vote. Use the proposal link to review actions and vote.</p><details id="discussion-revisions"><summary>Proposal revisions &amp; sources</summary><div id="discussion-revision-list"></div></details></article>
+        <button id="discussion-previous" type="button" hidden>Earlier replies</button><div id="discussion-posts" aria-label="Replies"></div><button id="discussion-next" type="button" hidden>Later replies</button>
+        <form id="discussion-composer" class="discussion-composer">
+          <div class="discussion-compose-heading"><label for="discussion-reply">Add your perspective</label><button id="discussion-cancel-reply" type="button" hidden>Cancel reply</button></div><p id="discussion-reply-context" class="discussion-muted" hidden></p>
+          <textarea id="discussion-reply" rows="5" maxlength="6000" placeholder="What should the community consider?"></textarea>
+          <div class="discussion-compose-footer"><p id="discussion-compose-hint" class="discussion-muted">Connect Keplr to post. No transaction fee.</p><button id="discussion-post" class="discussion-primary" type="submit">Post reply</button></div>
+          <p id="discussion-post-status" role="status"></p><div id="discussion-pending" hidden><button id="discussion-check" type="button">Check reply status</button><button id="discussion-send-saved" type="button" hidden>Send saved reply</button></div>
+        </form>
+        <details id="discussion-moderation"><summary>Moderation history</summary><div id="discussion-moderation-list"></div></details>
+      </section>
+    </main>
+    <aside id="discussion-timeline" class="discussion-timeline" aria-label="Discussion timeline" hidden>
+      <button id="discussion-first" type="button" aria-label="Go to first post"><span id="discussion-first-date"></span><span>First post</span></button>
+      <div class="discussion-timeline-track"><input id="discussion-position" type="range" min="1" max="1" value="1" step="1" aria-label="Post position"><div class="discussion-timeline-label"><strong id="discussion-position-label">1 / 1</strong><time id="discussion-position-date"></time><button id="discussion-back" type="button" hidden>Back</button></div></div>
+      <button id="discussion-last" type="button" aria-label="Go to latest post"><span id="discussion-last-date"></span><span>Latest post</span></button>
+    </aside>
+  </div>
+  <dialog id="discussion-moderation-dialog"><form method="dialog"><h2 id="discussion-moderation-title">Moderate discussion</h2><label for="discussion-moderation-reason">Public reason</label><textarea id="discussion-moderation-reason" maxlength="500" rows="3" required></textarea><p id="discussion-moderation-status" role="status"></p><div><button id="discussion-moderation-cancel" type="button">Cancel</button><button id="discussion-moderation-confirm" type="button">Confirm</button></div></form></dialog>
+</body>
+</html>

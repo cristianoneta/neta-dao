@@ -422,7 +422,7 @@ reserve dimensions to avoid layout shifts. No runtime 3D engine is needed.
 | Surface | Apply the shared style while preserving these requirements |
 | --- | --- |
 | Home | Assembly hero, Vision/Mission, four illustrated module cards, current status and updates; preserve all reviewed content sections |
-| Proposals | Compact working header, clear draft/review/on-chain stages, selection and filters, readable proposal text; discussions stay visible below the proposal rather than hidden in details |
+| Proposals | Compact working header, clear draft/review/on-chain stages, selection and filters, readable proposal text; prominent discussion entry beside the heading; separate discussion page after indexed migration, with the original comment pane retained during rollout |
 | Delivery | Shared hero with UX DRAFT / NOT LIVE DATA and a scoped no-live-data placeholder for every DAO; no fictional mandates, amounts, milestones, owners, evidence or action buttons (owner update 2026-10-06) |
 | Contributors | Same cards/table styles and readable identities; distinguish illustrative contributions from authoritative records; no fictional live scores |
 | Treasury | Clear totals, tabular figures, consistent asset/event tables, neutral chart grid, labeled series; distinguish committed snapshots and PARTIAL coverage from planning/forecast examples at the relevant section |
@@ -1072,3 +1072,23 @@ participation cannot be reconstructed, including final results. Keep source,
 refresh and review history as secondary controls below participation.
 Consolidated P&L displays available receipt subtotals as Partial during coverage
 gaps, names the affected unit/cutoff, and withholds an unsupported overall result.
+
+
+## Proposal discussions — owner direction, 1 November 2026
+
+Use the shared graphite/mint tokens. Keep a compact header with Cosmoot, proposal
+context and **Connect Keplr**. Three columns: proposal history, chronological
+conversation and a mint reading timeline. No marketing hero, general topic
+creation or unrelated forum sections. Summary first, then replies with current
+verified name/profile link or wallet fallback and JUNO stake measured at posting.
+Expose full address and exact observation details without overwhelming each post.
+
+**Join the discussion →** and the reply count belong beside the proposal heading.
+It replaces the old bottom comments only once that exact proposal and its existing
+comments have been indexed. Pending on-chain comment transactions retain their
+original recovery controls. The timeline shows position/total and date, supports
+first/latest, click/drag, keyboard, Back and resume. Collapse history and use a
+horizontal bottom timeline on mobile, with sufficient content clearance. Preserve
+stable post links across review/native merging, moderation and pagination. Public
+reading is open; wallet sign-in is needed only to post or moderate. See
+[Proposal discussions](PROPOSAL_DISCUSSIONS.md) for the full accepted scope.

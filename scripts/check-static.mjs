@@ -50,7 +50,15 @@ for (const file of files) {
       .some(
         (part) =>
           part.startsWith('.') ||
-          ['node_modules', 'faucet', 'relay-backup', 'contracts', 'tests', 'scripts'].includes(part)
+          [
+            'node_modules',
+            'faucet',
+            'relay-backup',
+            'discussions',
+            'contracts',
+            'tests',
+            'scripts'
+          ].includes(part)
       ) ||
     /\.(?:sqlite|env|pem)(?:$|[.-])/.test(file)
   )
