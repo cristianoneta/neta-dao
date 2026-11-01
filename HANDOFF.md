@@ -4,12 +4,12 @@ Updated 1 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
-## Proposal discussions — active implementation, 1 November
+## Proposal discussions — V1 source ready for review, 1 November
 
 The owner reconfirmed the separate forum idea and asked that it remain in the
 handoff: automatic topics for public proposals, linked `.neta` identities, JUNO
 stake at posting, Keplr sign-in, proposal history and the mint reading timeline
-with position/dates/Back. The dedicated V1 branch now implements this scope with
+with position/dates/Back. [PR #335](https://github.com/cristianoneta/neta-dao/pull/335) implements this scope with
 an independent SQLite service, safe migration from the original comments and
 backup/restore support. No free topic creation. See the [full product contract,
 architecture, validation and rollout gates](docs/PROPOSAL_DISCUSSIONS.md).

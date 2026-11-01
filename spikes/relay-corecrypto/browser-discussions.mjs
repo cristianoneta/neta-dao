@@ -172,6 +172,11 @@ try {
   await page.locator('#discussion-content:not([hidden])').waitFor();
   assert.equal(await page.locator('#discussion-title').textContent(), thread.title);
   assert.equal(await page.locator('#discussion-posts article').count(), 30);
+  assert.equal(
+    await page.locator('#discussion-reply').isDisabled(),
+    true,
+    'Do not accept anonymous text that sign-in would discard'
+  );
   assert.match(await page.locator('#post-1').innerText(), /<script>/);
   assert.equal(await page.evaluate(() => window.injected), undefined);
   assert.match(

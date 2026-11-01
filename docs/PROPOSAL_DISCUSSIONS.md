@@ -5,8 +5,9 @@ colours. The Phoenix/Discourse reference informs the three-column arrangement an
 reading timeline, not a general-purpose forum or additional social features.
 
 Status: V1 is implemented in [PR #335](https://github.com/cristianoneta/neta-dao/pull/335).
-Initial CI passed all 18 required jobs; the final navigation/visual refinements
-are undergoing the same acceptance checks. Neither the new service nor public routing is installed by
+The complete application passed all 18 required jobs in
+[CI 41295812574](https://github.com/cristianoneta/neta-dao/actions/runs/41295812574).
+Final checks additionally validate the optional Compose overlay and Caddy route. Neither the new service nor public routing is installed by
 this change. Website publication remains manual. Testnet reviews keep their
 existing comments; V1 indexes the configured public Juno mainnet sources only.
 
@@ -131,5 +132,6 @@ lost successful POST response, reload/receipt recovery, moderation, wallet chang
 timeline navigation and 320/390/768/1440-pixel layouts. It also joins a review
 and native thread while a successful reply is unresolved, preserving an unrelated
 local draft and recovering the original receipt under the old URL. CI also imports the service
-inside its independent Docker image. These checks do not establish live provider,
+inside its independent Docker image and validates the combined optional Compose
+overlay and Caddy route while preserving existing backend and edge configuration. These checks do not establish live provider,
 server, backup or wallet acceptance; the rollout gates above remain separate.

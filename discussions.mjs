@@ -181,7 +181,7 @@ function renderComposer() {
     saved = pending();
   if (saved) $('discussion-reply').value = saved.body;
   $('discussion-post').disabled = !state.session || locked || !!saved;
-  $('discussion-reply').disabled = locked || !!saved;
+  $('discussion-reply').disabled = !state.session || locked || !!saved;
   $('discussion-compose-hint').textContent = locked
     ? 'This discussion is locked.'
     : !state.session
@@ -336,7 +336,10 @@ function renderPosts(result) {
     if (!post.hidden && !result.thread.locked)
       for (const quoted of [false, true])
         actions.append(
-          button(quoted ? 'Quote' : 'Reply', () => {
+          button(quoted ? 'Quote' : 'Reply', async () => {
+            const thread = state.thread?.id;
+            if (!state.session) await connect();
+            if (!state.session || state.thread?.id !== thread) return;
             state.reply = post.id;
             state.quote = quoted ? post.id : null;
             saveDraft();
