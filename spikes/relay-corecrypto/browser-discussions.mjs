@@ -111,6 +111,8 @@ try {
   });
   await context.addInitScript(
     ({ wallet }) => {
+      const originalNow = Date.now;
+      Date.now = () => originalNow() + Number(sessionStorage.getItem('discussion-test-clock') || 0);
       window.testWallet = wallet;
       window.keplr = {
         enable: async () => {},
@@ -217,8 +219,7 @@ try {
   // clears the visible draft. Cancelling renewal and retrying must not post it.
   clockOffset = 31 * 60000;
   await page.evaluate((offset) => {
-    const original = Date.now;
-    Date.now = () => original() + offset;
+    sessionStorage.setItem('discussion-test-clock', String(offset));
     window.rejectDiscussionSignIn = true;
   }, clockOffset);
   const typed = await page.locator('#discussion-reply').inputValue();
