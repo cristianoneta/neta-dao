@@ -1,3 +1,4 @@
+import { usesExecutionReference } from '../../juno-execution-reference.mjs';
 import {
   accountingOptions,
   accountingType,
@@ -140,7 +141,7 @@ export function proposalEditor({
             : [])
         ],
         null,
-        2
+        usesExecutionReference({ body: $('#proposal-body').value }) ? undefined : 2
       )
     };
   }

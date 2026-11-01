@@ -8,7 +8,7 @@ import {
   canonical,
   readCommunityPool
 } from './juno-community-governance.mjs';
-import { usesRuleReference } from './juno-rule-reference.mjs';
+import { usesReviewReference } from './juno-execution-reference.mjs';
 import {
   preflight,
   proposalContent,
@@ -234,13 +234,13 @@ export function nativePlanner({
         sender = address(),
         fingerprint = JSON.stringify(values()),
         expectedReview = draft().review,
-        content = usesRuleReference(values())
+        content = usesReviewReference(values())
           ? expectedReview.content
           : {
               ...proposalContent(draft().kind, values()),
               metadata: expectedReview.content.metadata
             };
-      if (usesRuleReference(values()) && canonical(values()) !== canonical(expectedReview.values))
+      if (usesReviewReference(values()) && canonical(values()) !== canonical(expectedReview.values))
         throw Error('The proposal differs from the finalized review.');
       assertProgrammeExecutionAvailable(content.messages);
       if (canonical(content) !== canonical(expectedReview.content))

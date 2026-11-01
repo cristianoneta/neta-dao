@@ -1,8 +1,14 @@
 import { junoConsensusHex } from '../juno-consensus-address.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fixture, observed } from './fixtures/delegation-planner.mjs';
-import { PROGRAMME, legacyPolicy, fingerprint } from '../juno-delegation-core.mjs';
+import {
+  fixture,
+  observed,
+  activeHistory,
+  withParticipation,
+  withGovernance
+} from './fixtures/delegation-planner.mjs';
+import { PROGRAMME, legacyPolicy, defaultPolicy, fingerprint } from '../juno-delegation-core.mjs';
 import { buildRebalanceReview } from '../juno-rebalance.mjs';
 import {
   executionReview,
@@ -28,10 +34,17 @@ import { reviewSizeInput } from './fixtures/delegation-review-size.mjs';
 import { buildRuleReview, readProposalReview } from '../juno-delegation-review.mjs';
 import {
   rebalanceProposal,
+  frozenRuleProposal,
   savePlannerProposal,
   readPlannerProposal
 } from '../planner-proposal-draft.mjs';
 import { governanceReadTarget } from '../governance-chain-read.mjs';
+import { readExecutionContent, readExecutionSources } from '../juno-execution-reference-read.mjs';
+import { parseExecutionReference } from '../juno-execution-reference.mjs';
+import { validateProposalContent } from '../src/governance/proposal-content.mjs';
+import { fundingProof } from '../juno-community-governance.mjs';
+import { reviewNetwork } from '../juno-review-network.mjs';
+import { encodeZ85, decodeZ85 } from '../juno-review-z85.mjs';
 
 const addresses = fixture().validators.map((v) => v.address);
 const row = (i, current, target) => ({
@@ -53,10 +66,26 @@ const state = () => ({
   redelegations: [],
   unbondings: []
 });
-async function prepared() {
+async function prepared(fixed = false) {
   const snapshot = fixture(),
-    rule = legacyPolicy(),
-    hash = await fingerprint(rule);
+    rule = fixed ? defaultPolicy() : legacyPolicy();
+  if (fixed) {
+    snapshot.activeSetHistory = withParticipation(activeHistory(snapshot, 5));
+    withGovernance(snapshot);
+    const date = snapshot.blockTime.slice(0, 10);
+    rule.fixedAllocations = [
+      {
+        chainId: 'juno-1',
+        validator: snapshot.validators[0].address,
+        amountRaw: '100000000',
+        purpose: 'Operate public infrastructure',
+        documentation: '',
+        startDate: date,
+        endDate: date
+      }
+    ];
+  }
+  const hash = await fingerprint(rule);
   const approval = {
     proposalId: '950',
     rule,
@@ -198,7 +227,11 @@ test('frozen execution round-trips the exact approved calculation and proposal h
 function chainFixture(snapshot, approval, mode = '') {
   const params = {
     min_deposit: [{ denom: 'ujuno', amount: '100000000' }],
-    min_initial_deposit_ratio: '0.1'
+    min_initial_deposit_ratio: '0.1',
+    min_deposit_ratio: '0.01',
+    burn_vote_veto: true,
+    burn_vote_quorum: false,
+    burn_proposal_deposit_prevote: false
   };
   const page = (key, rows) => ({ [key]: rows, pagination: { next_key: null } });
   return async (url, options = {}) => {
@@ -269,6 +302,7 @@ function chainFixture(snapshot, approval, mode = '') {
             }
           },
           operator_address: v.address,
+          status: 'BOND_STATUS_BONDED',
           jailed: false,
           tokens:
             mode === 'cap' && v.address === snapshot.validators[0].address
@@ -404,4 +438,280 @@ test('original format-1 execution transport remains readable with its exact immu
   const restored = await readExecutionReview(legacy.values);
   assert.equal(restored.hash, legacy.hash);
   await assert.rejects(readExecutionReview({ ...legacy.values, summary: 'Changed approval' }));
+});
+
+async function finalize(values, id, version = 1) {
+  const digest = Buffer.from(
+    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(values)))
+  ).toString('hex');
+  const record = {
+    id,
+    withdrawn: false,
+    latest_version: version,
+    finalized_version: version,
+    finalized_hash: digest
+  };
+  const revision = { ...values, proposal_id: id, version };
+  return { record, revision, final: await finalizedReview(record, revision, 'juno-1') };
+}
+
+test('referenced points rules with a fixed target reach native preflight and funding; date boundaries still block', async () => {
+  const { review, snapshot, approval } = await prepared(true);
+  const ruleReview = await buildRuleReview({
+    rule: approval.rule,
+    snapshot,
+    evidence: observed(snapshot),
+    activeHistory: snapshot.activeSetHistory,
+    budgetRaw: '3000000000'
+  });
+  const rules = await finalize(
+    (await frozenRuleProposal(ruleReview, { referenced: true })).values,
+    17
+  );
+  const values = (await rebalanceProposal(review)).values;
+  validateProposalContent(values, { native: true });
+  const execution = await finalize(values, 18, 101);
+  assert.equal(execution.final.kind, 'ALLOCATION_EXECUTION');
+  assert.match(
+    values.summary,
+    /Authorize.*redelegate.*liquid funds.*fixed targets.*Rules stay unchanged/
+  );
+  assert.ok(Buffer.byteLength(execution.final.content.summary) < 2000);
+  assert.doesNotMatch(execution.final.content.summary, /```cosmoot-rebalance/);
+  assert.deepEqual(execution.final.content.messages, review.messages);
+  assert.throws(() => proposalContent('ALLOCATION_EXECUTION', values), /finalized/);
+  const records = new Map([
+    [17, rules],
+    [18, execution]
+  ]);
+  let mode = '',
+    pending = false;
+  const native = {
+    ...execution.final.content,
+    id: '951',
+    status: 'PROPOSAL_STATUS_DEPOSIT_PERIOD',
+    total_deposit: [{ denom: 'ujuno', amount: '10000000' }],
+    deposit_end_time: new Date(Date.now() + 86400000).toISOString()
+  };
+  const endpoints = ['https://one.example', 'https://two.example'];
+  const source = chainFixture(snapshot, approval);
+  const fetcher = async (url, options) => {
+    const path = new URL(url).pathname;
+    let data;
+    if (path.includes(`/contract/${reviewNetwork('juno-1').contract}/smart/`)) {
+      const q = JSON.parse(atob(decodeURIComponent(path.split('/smart/')[1])));
+      const item = records.get((q.proposal || q.revisions).proposal_id);
+      if (q.revisions)
+        assert.equal(q.revisions.start_after, item.revision.version === 101 ? 100 : null);
+      data = { data: structuredClone(q.proposal ? item.record : [item.revision]) };
+      if (mode === 'missing') data = { data: null };
+      if (mode === 'disagree' && url.startsWith(endpoints[1]) && q.revisions)
+        data.data[0].summary += ' changed';
+    } else if (path === '/cosmos/gov/v1/proposals/951') data = { proposal: native };
+    else {
+      const response = await source(url, options);
+      data = await response.json();
+      if (data.proposals) {
+        data.proposals[0] = { ...data.proposals[0], ...rules.final.content };
+        if (pending) data.proposals.push(native);
+      }
+      if (data.block && mode === 'expired')
+        data.block.header.time = new Date(Date.parse(snapshot.blockTime) + 86400000).toISOString();
+    }
+    return new Response(JSON.stringify(data), { headers: { 'x-cosmos-block-height': '42500000' } });
+  };
+  const options = () => ({
+    endpoints,
+    fetcher,
+    ...(mode === 'expired' ? { now: Date.parse(snapshot.blockTime) + 86400000 } : {})
+  });
+  const content = execution.final.content;
+  assert.equal((await checkRebalance(review, options())).length, 2);
+  assert.equal((await preflight(endpoints, content, GOVERNANCE, options())).sources.length, 2);
+  pending = true;
+  await assert.rejects(preflight(endpoints, content, GOVERNANCE, options()), /pending/);
+  assert.equal((await fundingProof(endpoints, '951', GOVERNANCE, options())).terms.open, true);
+  assert.equal(
+    (await readExecutionSources(native, { ...options(), requireNative: true })).hash,
+    review.hash
+  );
+  pending = false;
+  for (const failure of ['missing', 'disagree', 'expired']) {
+    mode = failure;
+    await assert.rejects(
+      preflight(endpoints, content, GOVERNANCE, options()),
+      failure === 'expired' ? /period changed/ : /review|evidence/i
+    );
+  }
+  mode = '';
+  // Historical withdrawal keeps already stored native evidence readable, but
+  // never authorizes a new submission of the withdrawn review.
+  execution.record.withdrawn = true;
+  await assert.rejects(finalizedReview(execution.record, execution.revision, 'juno-1'), /Finalize/);
+  assert.equal(
+    (await readExecutionSources(native, { ...options(), requireNative: true })).hash,
+    review.hash
+  );
+  const get = async (path) => (await fetcher(endpoints[0] + path, { headers: {} })).json();
+  const ref = parseExecutionReference(content);
+  for (const key of Object.keys(ref)) {
+    const changed = structuredClone(ref);
+    changed[key] = key === 'schema' ? 2 : key.endsWith('Hash') ? 'f'.repeat(64) : 'invalid';
+    await assert.rejects(
+      readExecutionContent(
+        {
+          ...content,
+          summary: content.summary.replace(JSON.stringify(ref), JSON.stringify(changed))
+        },
+        { get }
+      )
+    );
+  }
+  for (const changed of [
+    { ...content, summary: content.summary.replace('Authorize', 'Do not authorize') },
+    {
+      ...content,
+      summary: content.summary.replace('https://cosmoot.com/', 'https://example.org/')
+    },
+    { ...content, messages: [] },
+    { ...content, metadata: '' },
+    { ...content, messages: [...content.messages, content.messages[0]] }
+  ])
+    await assert.rejects(readExecutionContent(changed, { get }), /differs/);
+});
+
+test('Z85 transport matches the published vector and rejects invalid length, overflow and nonzero padding', () => {
+  const bytes = Uint8Array.from([0x86, 0x4f, 0xd2, 0x6f, 0xb5, 0x59, 0xf7, 0x5b]);
+  assert.equal(encodeZ85(bytes), '8:HelloWorld');
+  for (let n = 1; n < 256; n++) {
+    const sample = Uint8Array.from({ length: n }, (_, i) => (i * 73 + n) % 256);
+    assert.deepEqual(decodeZ85(encodeZ85(sample)), sample);
+  }
+  for (const text of [
+    '0:',
+    '01:00000',
+    '4:#####',
+    '4:0000~',
+    '1:00001',
+    '5:00000',
+    '750001:' + '0'.repeat(937505)
+  ])
+    assert.throws(() => decodeZ85(text));
+});
+
+test('new 37/55/58-position points executions fit both workshop fields; complete evidence and legacy text survive', async () => {
+  for (const count of [37, 55, 58, 100]) {
+    const input = reviewSizeInput({ count: 100, points: true });
+    if (count !== 37)
+      input.snapshot.validators.forEach(
+        (v, i) => (v.currentRaw = i < count ? (BigInt(v.tokensRaw) / 3n).toString() : '0')
+      );
+    input.parent = {
+      proposalId: '950',
+      votingEndedAt: '2026-10-19T17:00:00Z',
+      rule: input.rule,
+      hash: await fingerprint(input.rule)
+    };
+    const review = await executionReview((await buildRuleReview(input)).value);
+    if (count === 100) {
+      await assert.rejects(rebalanceProposal(review), /exceeds governance limits/);
+      continue;
+    }
+    const { values } = await rebalanceProposal(review);
+    validateProposalContent(values, { native: true });
+    assert.deepEqual((await readExecutionReview(values)).value, review.value);
+    assert.ok(values.actions_json.length < 20000);
+    const { final } = await finalize(values, 18);
+    assert.deepEqual(final.content.messages, review.messages);
+    assert.ok(Buffer.byteLength(final.content.summary) < 2000);
+    await assert.rejects(
+      readExecutionReview({ ...values, summary: values.summary.replace('Authorize', 'Reject') })
+    );
+    const pretty = { ...values, actions_json: JSON.stringify(review.messages, null, 2) };
+    if (pretty.actions_json.length > 20000)
+      assert.throws(() => validateProposalContent(pretty, { native: true }), /20000/);
+    if (count === 37) {
+      const legacy = await executionValues(review);
+      const oldFinal = (await finalize(legacy, 18)).final;
+      assert.equal(oldFinal.content.summary, legacy.summary + '\n\n' + legacy.body);
+      assert.equal((await readExecutionReview(legacy)).hash, review.hash);
+    }
+  }
+});
+
+test('SDK redelegation responses preserve wrapped completion entries and staking locks', async () => {
+  const { snapshot, approval } = await prepared();
+  const normal = chainFixture(snapshot, approval);
+  let rows = [
+    {
+      redelegation: {
+        delegator_address: PROGRAMME,
+        validator_src_address: addresses[4],
+        validator_dst_address: addresses[0],
+        entries: []
+      },
+      entries: [
+        {
+          redelegation_entry: {
+            creation_height: '42500000',
+            completion_time: '2026-11-22T00:00:00Z',
+            initial_balance: '800',
+            shares_dst: '800.000000000000000000'
+          },
+          balance: '800'
+        }
+      ]
+    }
+  ];
+  const get = async (path) =>
+    path.includes('/redelegations?')
+      ? { redelegation_responses: rows, pagination: { next_key: null } }
+      : (await normal('https://a.example' + path)).json();
+  const actual = await stakingState(get, '42500000');
+  assert.deepEqual(actual.redelegations, [
+    {
+      source: addresses[4],
+      destination: addresses[0],
+      entries: [{ completionTime: '2026-11-22T00:00:00Z' }]
+    }
+  ]);
+  assert.match(
+    checkMovementState(plan, { ...state(), redelegations: actual.redelegations }).join(' '),
+    /incoming redelegation/
+  );
+  rows[0].redelegation.validator_src_address = addresses[0];
+  rows[0].redelegation.validator_dst_address = addresses[1];
+  rows[0].entries = Array.from({ length: 7 }, () => structuredClone(rows[0].entries[0]));
+  const full = await stakingState(get, '42500000');
+  assert.match(
+    checkMovementState(plan, { ...state(), redelegations: full.redelegations }).join(' '),
+    /entry limit/
+  );
+  for (const invalid of [
+    undefined,
+    null,
+    [{}],
+    [{ redelegation_entry: { completion_time: 'invalid' } }]
+  ]) {
+    rows[0].entries = invalid;
+    await assert.rejects(stakingState(get, '42500000'), /completion evidence/);
+  }
+});
+
+test('full redemption of an unbonded validator is blocked without changing approved targets', () => {
+  const full = movementPlan([row(0, 900, 0), row(1, 0, 400), row(2, 0, 500)]);
+  const current = { ...state(), positions: full.positions };
+  Object.assign(current.validators[0], { tokensRaw: '900', bondStatus: 'BOND_STATUS_UNBONDED' });
+  assert.match(
+    checkMovementState(full, current).join(' '),
+    /remove all stake from unbonded validator/
+  );
+  current.validators[0].tokensRaw = '901';
+  assert.deepEqual(checkMovementState(full, current), []);
+  current.validators[0].tokensRaw = '900';
+  current.validators[0].bondStatus = 'BOND_STATUS_BONDED';
+  assert.deepEqual(checkMovementState(full, current), []);
+  current.validators[0].bondStatus = 'BOND_STATUS_UNBONDED';
+  const unbond = movementPlan([row(0, 900, 0)]);
+  assert.deepEqual(checkMovementState(unbond, { ...current, positions: unbond.positions }), []);
 });

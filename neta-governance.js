@@ -52,6 +52,10 @@
     './src/governance/review-navigation.mjs'
   );
   const { readReferencedRuleProposal } = await import('./juno-rule-reference-read.mjs');
+  const { usesExecutionReference, usesReviewReference, EXECUTION_REFERENCE_MARKER } = await import(
+    './juno-execution-reference.mjs'
+  );
+  const { readExecutionSources } = await import('./juno-execution-reference-read.mjs');
   const { renderRuleReview } = await import('./juno-rule-review-view.mjs');
   let frozenViewEpoch = 0;
   async function renderFrozenValues(v, editing = false) {
@@ -88,12 +92,23 @@
       host.hidden = false;
       host.textContent = 'Verifying rebalance movements…';
       try {
-        const execution = await readExecutionReview(v);
+        const nativeReference = v.body?.includes(EXECUTION_REFERENCE_MARKER);
+        const execution = nativeReference
+          ? await readExecutionSources(state.selected?.proposal?.raw, { requireNative: true })
+          : await readExecutionReview(v);
         const allocation =
           execution.value.calculation.rule.schema >= 7
             ? await verifyRuleReview(execution.value.calculation)
             : null;
         if (epoch !== frozenViewEpoch) return;
+        if (nativeReference)
+          document.querySelector('#proposal-summary').value = execution.proposalSummary;
+        if (format && usesExecutionReference(v)) {
+          format.hidden = false;
+          document.querySelector('#rule-proposal-format-text').textContent =
+            `The native proposal includes every executable staking message and a link to this exact review. Full calculation evidence stays on Juno. Review body: ${[...v.body.trim()].length.toLocaleString('en-US')} / 10,000 characters; actions: ${[...v.actions_json.trim()].length.toLocaleString('en-US')} / 20,000; summary: ${[...v.summary.trim()].length} / 300. Exact native text is shown after finalization.`;
+          if (!editing) setDetails(false);
+        }
         const totals = execution.value.plan.totals;
         host.textContent = `Approved rule proposal #${execution.value.calculation.parent.proposalId} · ${execution.value.plan.moves.length} movements. Delegate ${displayJuno(totals.delegate)} JUNO · Redelegate ${displayJuno(totals.redelegate)} JUNO · Begin unbonding ${displayJuno(totals.undelegate)} JUNO. Targets use the recorded observations; actual execution depends on chain state after voting.`;
         if (allocation) {
@@ -854,6 +869,7 @@
       void renderFrozenValues(
         {
           title: $('#proposal-title').value,
+          summary: $('#proposal-summary').value,
           body: $('#proposal-body').value,
           actions_json: $('#proposal-actions').value
         },
@@ -1364,7 +1380,7 @@
         .map(async ({ proposal, latest_revision: latest }) => ({
           ...proposal,
           nativeId: await linkedNativeId(proposal, latest, CHAIN_ID, state.chainProposals, {
-            readOnly: usesRuleReference(latest)
+            readOnly: usesReviewReference(latest)
           }),
           title: latest.title || `Juno community proposal #${proposal.id}`,
           status: proposal.withdrawn
@@ -1510,7 +1526,7 @@
     reviewUrl.searchParams.delete('reviewRevision');
     reviewUrl.searchParams.delete('reviewHash');
     const linkFinal = sharedFinal || pinnedFinal;
-    if (linkFinal && usesRuleReference(current)) {
+    if (linkFinal && usesReviewReference(current)) {
       reviewUrl.searchParams.set('reviewRevision', String(current.version));
       reviewUrl.searchParams.set('reviewHash', linkFinal.hash);
     }
@@ -1557,7 +1573,7 @@
         renderActions();
         if (!showHistory) {
           try {
-            const submitted = usesRuleReference(linkFinal.values)
+            const submitted = usesReviewReference(linkFinal.values)
               ? await verifiedReviewTarget(linkFinal, state.chainProposals, MAINNET_RESTS)
               : candidates.length === 1
                 ? candidates[0]

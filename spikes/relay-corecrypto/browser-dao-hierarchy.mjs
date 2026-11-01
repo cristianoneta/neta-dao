@@ -3,13 +3,15 @@ import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 const root = new URL('../../', import.meta.url);
+// The receipt fixture is dated October. Keep its month stable across CI runs.
+const fixtureTime = '2026-10-31T12:00:00Z';
 const inventory = JSON.parse(await readFile(new URL('data/dao-directory.json', root)));
 const read = async (name) => JSON.parse(await readFile(new URL('data/treasury/' + name, root)));
 const main = inventory.daos.find((d) => d.id === 'neta'),
   ops = inventory.daos.find((d) => d.id === 'neta-operations');
 const mainLedger = await read(main.accountingSource.file),
   opsLedger = await read(ops.accountingSource.file);
-mainLedger.last_success_at = opsLedger.last_success_at = new Date().toISOString();
+mainLedger.last_success_at = opsLedger.last_success_at = fixtureTime;
 mainLedger.refresh_status = opsLedger.refresh_status = 'completed';
 mainLedger.entries = mainLedger.entries.filter(
   (r) => r.tx_hash === '85689A2C75DE86829D4116FA0AABBA5062D269679CA139984E169E8E2ACF8DC1'
@@ -99,6 +101,7 @@ try {
   const page = await context.newPage(),
     errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  await page.clock.setFixedTime(new Date(fixtureTime));
   const origin = `http://127.0.0.1:${server.address().port}`;
   // Structure shares the canonical scope selector; graph clicks never create wallet actions.
   for (const [organization, mainId, childId] of [

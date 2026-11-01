@@ -11,6 +11,8 @@ import {
 import { withClaimContext } from './claim-numbering.mjs';
 import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 import { historyCoverageText } from './juno-active-set-history.mjs';
+import { usesExecutionReference } from './juno-execution-reference.mjs';
+import { assertReviewLimits } from './juno-proposal-limits.mjs';
 import { RULE_REVIEW_MARKER } from './juno-rule-reference.mjs';
 import { ruleProposalSummary } from './juno-rule-summary.mjs';
 
@@ -47,6 +49,7 @@ export function validatePlannerDraft(value) {
   if (!Array.isArray(JSON.parse(value.values.actions_json)))
     throw Error('Invalid proposal actions.');
   if (community) assertCommunityPoolSpend(JSON.parse(value.values.actions_json));
+  if (usesExecutionReference(value.values)) assertReviewLimits(value.values);
   const checked = structuredClone(value);
   if (checked.schema === 1 && checked.kind === 'CLAIM_REWARDS') {
     checked.values = upgradeLegacyPlannerValues(checked.values, checked.kind);
@@ -248,6 +251,6 @@ export async function rebalanceProposal(review) {
     programme: PROGRAMME,
     kind: 'ALLOCATION_EXECUTION',
     createdAt: new Date().toISOString(),
-    values: await executionValues(review)
+    values: await executionValues(review, { referenced: true })
   });
 }

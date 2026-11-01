@@ -214,6 +214,15 @@ export function checkMovementState(plan, state, fixedTargets = new Map()) {
         'A source or destination validator is unavailable, jailed or has an invalid exchange rate.'
       );
     if (move.kind === 'redelegate') {
+      // SDK Unbond removes a fully emptied unbonded validator before
+      // BeginRedelegation reads it again for completion. Do not submit that case.
+      const outgoing = plan.moves
+        .filter((m) => m.kind === 'redelegate' && m.source === move.source)
+        .reduce((n, m) => n + BigInt(m.amountRaw), 0n);
+      if (source?.bondStatus === 'BOND_STATUS_UNBONDED' && outgoing >= BigInt(source.tokensRaw))
+        blockers.push(
+          `Redelegation would remove all stake from unbonded validator ${move.source}. This Juno runtime cannot execute that full exit; review a separate unbonding plan.`
+        );
       const incoming = state.redelegations.filter(
         (r) => r.destination === move.source && r.entries.length
       );
