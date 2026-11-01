@@ -144,6 +144,10 @@ try {
   await page.goto(
     `http://127.0.0.1:${server.address().port}/index.html?dao=juno&subdao=juno-delegation#treasury`
   );
+  // Each navigation resets the period to the current month; the archived
+  // accrual evidence under test belongs to October, regardless of today's date.
+  await page.locator('#pnl-year').selectOption('2026');
+  await page.locator('#pnl-month').selectOption('10');
   await page.waitForFunction(() =>
     document.querySelector('#pnl-account-staking_rewards')?.textContent.includes('$')
   );
@@ -163,6 +167,8 @@ try {
       .locator('#treasury-pnl')
       .screenshot({ path: `${screenshots}/delegation-accrual-320.png` });
   await page.goto(`http://127.0.0.1:${server.address().port}/index.html?dao=juno#treasury`);
+  await page.locator('#pnl-year').selectOption('2026');
+  await page.locator('#pnl-month').selectOption('10');
   await page.waitForFunction(() =>
     document.querySelector('#pnl-coverage')?.textContent.includes('Consolidated')
   );

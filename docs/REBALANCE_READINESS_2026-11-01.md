@@ -98,6 +98,8 @@ navigation and 320/1440 px layout. Current CI results determine release readines
 The unrelated hierarchy and Treasury browser fixtures fix their clocks to the
 month of their existing October receipts, preserving monthly and future-period
 assertions across the November rollover.
+The archived community-accounting fixture explicitly selects October after each
+navigation instead of relying on the default current month.
 
 Passing a local execution does not guarantee a future mainnet proposal: balances,
 validator state, authority, staking locks and fixed periods must be checked again.
