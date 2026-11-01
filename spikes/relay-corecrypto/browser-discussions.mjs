@@ -22,7 +22,8 @@ const pub = encodeSecp256k1Pubkey(
 );
 const wallet = pubkeyToAddress(pub, 'juno');
 const other = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
-const store = new DiscussionStore(':memory:');
+let clockOffset = 0;
+const store = new DiscussionStore(':memory:', { now: () => Date.now() + clockOffset });
 const source = discussionSource({ kind: 'native', chainId: 'juno-1', contract: 'gov', id: 999 });
 const thread = store.syncThread({
   source,
@@ -74,7 +75,8 @@ const server = discussionServer({
   store,
   chain,
   origins: ['https://cosmoot.com'],
-  moderators: [wallet]
+  moderators: [wallet],
+  now: () => Date.now() + clockOffset
 });
 server.listen(0, '127.0.0.1');
 await once(server, 'listening');
@@ -114,6 +116,7 @@ try {
         enable: async () => {},
         getKey: async () => ({ bech32Address: window.testWallet }),
         signArbitrary: async (chain, address, message) => {
+          if (window.rejectDiscussionSignIn) throw Error('Signature rejected');
           if (chain !== 'juno-1' || address !== window.testWallet)
             throw Error('Wrong sign-in identity');
           return window.discussionTestSignature(message);
@@ -210,6 +213,33 @@ try {
   await page
     .locator('#discussion-reply')
     .fill('Can we show exactly which proposals count towards participation?');
+  // Session expiry is checked on submission, never interrupts typing, and never
+  // clears the visible draft. Cancelling renewal and retrying must not post it.
+  clockOffset = 31 * 60000;
+  await page.evaluate((offset) => {
+    const original = Date.now;
+    Date.now = () => original() + offset;
+    window.rejectDiscussionSignIn = true;
+  }, clockOffset);
+  const typed = await page.locator('#discussion-reply').inputValue();
+  await page.locator('#discussion-post').click();
+  await page.waitForFunction(() =>
+    document.getElementById('discussion-status').textContent.includes('Signature rejected')
+  );
+  assert.equal(await page.locator('#discussion-reply').inputValue(), typed);
+  assert.equal(await page.locator('#discussion-reply').isDisabled(), false);
+  assert.equal(store.posts(thread.id).total, 65);
+  assert.equal(await page.locator('#discussion-reply-context').isVisible(), true);
+  await page.locator('#discussion-reply').fill(typed + '');
+  await page.evaluate(() => {
+    window.rejectDiscussionSignIn = false;
+  });
+  await page.locator('#discussion-post').click();
+  await page.waitForFunction(() =>
+    document.getElementById('discussion-post-status').textContent.includes('Sign-in renewed')
+  );
+  assert.equal(await page.locator('#discussion-reply').inputValue(), typed);
+  assert.equal(store.posts(thread.id).total, 65, 'renewing sign-in is not consent to post');
   dropReply = true;
   await page.locator('#discussion-post').click();
   await page.waitForFunction(() =>

@@ -1084,9 +1084,10 @@ verified name/profile link or wallet fallback and JUNO stake measured at posting
 Expose full address and exact observation details without overwhelming each post.
 
 **Join the discussion →** and the reply count belong beside the proposal heading.
-It replaces the old bottom comments only once that exact proposal and its existing
-comments have been indexed. Pending on-chain comment transactions retain their
-original recovery controls. The timeline shows position/total and date, supports
+The old bottom topic form is removed. Show the link only for an indexed Juno
+mainnet governance topic; preserve pending on-chain transaction recovery in the
+proposal action area. Session expiry leaves the visible draft and quote intact;
+renewing sign-in never posts automatically. The timeline shows position/total and date, supports
 first/latest, click/drag, keyboard, Back and resume. Collapse history and use a
 horizontal bottom timeline on mobile, with sufficient content clearance. Preserve
 stable post links across review/native merging, moderation and pagination. Public

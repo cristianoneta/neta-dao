@@ -1,6 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
 import { parseDiscussionSource } from '../discussion-links.mjs';
+import { discussionPolicy, inDiscussionScope } from './scope.mjs';
 
 const hash = (v) => createHash('sha256').update(v).digest('hex');
 const fail = (message, status = 400) => {
@@ -50,13 +51,26 @@ export class DiscussionStore {
       );
       CREATE TABLE IF NOT EXISTS blocks (wallet TEXT PRIMARY KEY, blocked INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS sync_state (source TEXT PRIMARY KEY, success INTEGER, attempted INTEGER NOT NULL, error TEXT);
+      CREATE TABLE IF NOT EXISTS discussion_policy (id INTEGER PRIMARY KEY CHECK(id=1), config TEXT NOT NULL);
     `);
+    if (
+      !this.db
+        .prepare('PRAGMA table_info(threads)')
+        .all()
+        .some((c) => c.name === 'listed')
+    )
+      this.db.exec('ALTER TABLE threads ADD COLUMN listed INTEGER NOT NULL DEFAULT 1');
+    this.policy = JSON.parse(
+      this.db.prepare('SELECT config FROM discussion_policy WHERE id=1').get()?.config || 'null'
+    );
   }
   close() {
     this.db.close();
   }
   transaction(fn) {
+    if (this.inTransaction) return fn();
     this.db.exec('BEGIN IMMEDIATE');
+    this.inTransaction = true;
     try {
       const value = fn();
       this.db.exec('COMMIT');
@@ -64,9 +78,33 @@ export class DiscussionStore {
     } catch (error) {
       this.db.exec('ROLLBACK');
       throw error;
+    } finally {
+      this.inTransaction = false;
     }
   }
-  thread(id) {
+  configureScope(config) {
+    const policy = discussionPolicy(config);
+    if (this.policy) {
+      if (JSON.stringify(policy) !== JSON.stringify(this.policy))
+        fail('Discussion scope is already configured; an explicit migration is required.', 503);
+      return this.policy;
+    }
+    this.transaction(() => {
+      this.db.prepare('INSERT INTO discussion_policy VALUES(1,?)').run(JSON.stringify(policy));
+      for (const row of this.db.prepare('SELECT id,root,created FROM threads').all())
+        this.db
+          .prepare('UPDATE threads SET listed=? WHERE id=?')
+          .run(+inDiscussionScope(policy, row.root, row.created), row.id);
+      // Old sources remain recoverable, but must not report current source health.
+      this.db.exec('DELETE FROM sync_state');
+    });
+    this.policy = policy;
+    return policy;
+  }
+  accepts(source, created) {
+    return !this.policy || inDiscussionScope(this.policy, source, created);
+  }
+  thread(id, { includeUnlisted = false } = {}) {
     let row = this.db.prepare('SELECT * FROM threads WHERE id=?').get(id);
     const seen = new Set();
     while (row?.redirect) {
@@ -74,7 +112,7 @@ export class DiscussionStore {
       seen.add(row.id);
       row = this.db.prepare('SELECT * FROM threads WHERE id=?').get(row.redirect);
     }
-    if (!row) return null;
+    if (!row || (!row.listed && !includeUnlisted)) return null;
     const sources = this.db
       .prepare('SELECT key,url,observed,payload FROM sources WHERE thread=?')
       .all(row.id);
@@ -91,10 +129,10 @@ export class DiscussionStore {
       sources: sources.map(({ payload, ...s }) => s)
     };
   }
-  resolve(source) {
+  resolve(source, options) {
     parseDiscussionSource(source);
     const row = this.db.prepare('SELECT thread FROM sources WHERE key=?').get(source);
-    return row ? this.thread(row.thread) : null;
+    return row ? this.thread(row.thread, options) : null;
   }
   // Only the verified chain synchronizer calls this method. No public create API.
   syncThread({
@@ -126,8 +164,9 @@ export class DiscussionStore {
       !url.startsWith('https://cosmoot.com/')
     )
       fail('Invalid proposal evidence.');
+    if (!this.accepts(source, created)) return null;
     return this.transaction(() => {
-      const old = this.resolve(source),
+      const old = this.resolve(source, { includeUnlisted: true }),
         id = old?.id || hash(source).slice(0, 32);
       if (!old)
         this.db
@@ -151,6 +190,7 @@ export class DiscussionStore {
         this.db
           .prepare('UPDATE threads SET title=?,summary=?,phase=?,revision=?,updated=? WHERE id=?')
           .run(title, summary, phase, revision, this.now(), id);
+      if (old && !old.listed) this.db.prepare('UPDATE threads SET listed=1 WHERE id=?').run(id);
       this.db
         .prepare(
           'INSERT INTO sources VALUES(?,?,?,?,?) ON CONFLICT(key) DO UPDATE SET payload=excluded.payload,url=excluded.url,observed=excluded.observed'
@@ -202,7 +242,7 @@ export class DiscussionStore {
     const rows = this.db
       .prepare(
         `SELECT t.*, (SELECT count(*) FROM posts p WHERE p.thread=t.id) AS replies
-      FROM threads t WHERE redirect IS NULL AND chain=? AND (? IS NULL OR created<? OR (created=? AND id<?))
+      FROM threads t WHERE redirect IS NULL AND listed=1 AND chain=? AND (? IS NULL OR created<? OR (created=? AND id<?))
       ORDER BY created DESC,id DESC LIMIT ?`
       )
       .all(

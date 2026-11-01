@@ -26,10 +26,7 @@ const unavailable = { status: 'unavailable' };
 const keyOf = (source, id) => discussionSource({ ...source, id });
 export const SOURCES = Object.freeze([
   { kind: 'native', chainId: 'juno-1', contract: 'gov', dao: 'juno' },
-  { kind: 'review', chainId: 'juno-1', contract: REVIEW_MAINNET_RELEASE.contract, dao: 'juno' },
-  ...directory
-    .filter((d) => d.proposalModule)
-    .map((d) => ({ kind: 'dao', chainId: 'juno-1', contract: d.proposalModule, dao: d.id }))
+  { kind: 'review', chainId: 'juno-1', contract: REVIEW_MAINNET_RELEASE.contract, dao: 'juno' }
 ]);
 export function discussionScope(root) {
   const [kind, , contract] = root.split(':');
@@ -266,11 +263,24 @@ export class DiscussionChain {
     }
   }
   async sync(store, sources = SOURCES) {
+    if (
+      sources.some(
+        (s) =>
+          !SOURCES.some(
+            (allowed) =>
+              allowed.kind === s.kind &&
+              allowed.chainId === s.chainId &&
+              allowed.contract === s.contract
+          )
+      )
+    )
+      throw Error('Only Juno native governance and its public reviews are supported.');
     const snapshot = await this.snapshot({ timeout: 180000 });
     const { get } = snapshot;
     const native = [];
     const finals = [];
-    let nativeComplete = false;
+    const operations = [];
+    let complete = true;
     for (const source of sources) {
       const group = [source.kind, source.chainId, source.contract].join(':');
       try {
@@ -282,7 +292,9 @@ export class DiscussionChain {
                   ?.content || p.content,
               title = p.title || legacy?.title || `Juno proposal #${p.id}`;
             const created = Date.parse(p.submit_time);
-            store.syncThread({
+            native.push({ key, proposal: p });
+            if (!store.accepts(key, created)) continue;
+            const topic = {
               source: key,
               title,
               summary: p.summary || legacy?.description || 'No summary was published.',
@@ -291,9 +303,11 @@ export class DiscussionChain {
               phase: p.status,
               payload: p,
               url: `https://cosmoot.com/?dao=juno&proposal=${p.id}#governance`
+            };
+            operations.push(() => {
+              store.syncThread(topic);
+              store.syncStatus(key);
             });
-            store.syncStatus(key);
-            native.push({ key, proposal: p });
           }
         } else if (source.kind === 'review') {
           const rows = await this.contractPages(
@@ -304,6 +318,8 @@ export class DiscussionChain {
             'id'
           );
           for (const p of rows) {
+            const key = keyOf(source, p.id);
+            if (!store.accepts(key, p.created_time * 1000)) continue;
             const revisions = await this.contractPages(
               get,
               source.contract,
@@ -315,7 +331,6 @@ export class DiscussionChain {
               (r) => r.version === (p.finalized_version || p.latest_version)
             );
             if (!current || !validWallet(p.author)) throw Error('Incomplete review identity.');
-            const key = keyOf(source, p.id);
             const url = new URL('https://cosmoot.com/');
             for (const [k, v] of Object.entries({
               dao: 'juno',
@@ -326,7 +341,7 @@ export class DiscussionChain {
             }))
               url.searchParams.set(k, String(v));
             url.hash = 'governance';
-            store.syncThread({
+            const topic = {
               source: key,
               title: current.title,
               summary: current.summary,
@@ -337,7 +352,8 @@ export class DiscussionChain {
               payload: p,
               url: url.href,
               revisions
-            });
+            };
+            operations.push(() => store.syncThread(topic));
             const comments = await this.contractPages(
               get,
               source.contract,
@@ -354,9 +370,11 @@ export class DiscussionChain {
                 throw Error('Invalid comment evidence.');
               // Preserve original hidden body internally; it is never returned publicly.
               const normalized = normalizedComment({ ...c, moderation: null }, i);
-              store.importComment(key, { ...normalized, moderation: c.moderation });
+              operations.push(() =>
+                store.importComment(key, { ...normalized, moderation: c.moderation })
+              );
             }
-            store.syncStatus(key);
+            operations.push(() => store.syncStatus(key));
             if (p.finalized_version)
               try {
                 finals.push({
@@ -368,40 +386,29 @@ export class DiscussionChain {
                 /* Unsupported review types remain independent discussions. */
               }
           }
-        } else {
-          const rows = await this.contractPages(
-            get,
-            source.contract,
-            (start_after) => ({ list_proposals: { start_after, limit: 100 } }),
-            'proposals',
-            'id'
-          );
-          for (const p of rows) {
-            const value = p.proposal || p;
-            // DAO proposal contracts use heights; an original wall-clock time is not invented.
-            const existing = store.resolve(keyOf(source, p.id));
-            store.syncThread({
-              source: keyOf(source, p.id),
-              title: value.title,
-              summary: value.description || 'No summary was published.',
-              author: value.proposer || null,
-              created: existing?.created || this.now(),
-              phase: value.status,
-              payload: p,
-              url: `https://cosmoot.com/?dao=${source.dao}&proposal=${p.id}#governance`
-            });
-            store.syncStatus(keyOf(source, p.id));
-          }
         }
-        if (source.kind === 'native') nativeComplete = true;
-        store.syncStatus(group);
+        operations.push(() => store.syncStatus(group));
       } catch (error) {
+        complete = false;
         store.syncStatus(group, error.message);
       }
     }
-    for (const final of nativeComplete ? finals : []) {
-      const matches = native.filter((n) => matchesReview(n.proposal, final.content));
-      if (matches.length === 1) store.link(final.key, matches[0].key);
-    }
+    if (!complete) return;
+    // Commit the verified snapshot and exact review/native links together. A reader
+    // never observes a temporary duplicate while the second provider is being read.
+    store.transaction(() => {
+      for (const operation of operations) operation();
+      const links = finals.map((final) => ({
+        final,
+        matches: native.filter((n) => matchesReview(n.proposal, final.content))
+      }));
+      for (const { final, matches } of links)
+        if (
+          matches.length === 1 &&
+          store.resolve(matches[0].key) &&
+          links.filter((l) => l.matches.some((m) => m.key === matches[0].key)).length === 1
+        )
+          store.link(final.key, matches[0].key);
+    });
   }
 }

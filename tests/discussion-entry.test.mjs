@@ -12,8 +12,7 @@ const controls = () => ({
     setAttribute(k, v) {
       this[k] = v;
     }
-  },
-  panel: { hidden: false }
+  }
 });
 test('discussion navigation uses canonical public source identities', () => {
   assert.equal(parseDiscussionSource(first).id, '1');
@@ -21,7 +20,7 @@ test('discussion navigation uses canonical public source identities', () => {
   for (const value of ['https://evil.example', first + ':extra', 'native:juno-1:gov:01'])
     assert.throws(() => parseDiscussionSource(value));
 });
-test('comments switch only after exact migration and preserve pending transaction recovery', async () => {
+test('forum links require exact indexing and leave pending operation recovery in the proposal workspace', async () => {
   const ui = controls();
   let response = new Response('{}', { status: 503 }),
     calls = 0,
@@ -34,23 +33,19 @@ test('comments switch only after exact migration and preserve pending transactio
       return response;
     }
   });
-  await show({ source: first, legacyVisible: true });
-  assert.equal(ui.panel.hidden, false);
+  await show({ source: first });
   assert.equal(ui.link.hidden, true);
   now += 31000;
   response = ready(first);
-  await show({ source: first, legacyVisible: true });
-  assert.equal(ui.panel.hidden, true);
+  await show({ source: first });
   assert.equal(ui.link.hidden, false);
   assert.match(ui.link.textContent, /4/);
-  await show({ source: first, legacyVisible: true, pending: true });
-  assert.equal(ui.panel.hidden, false);
+  await show({ source: first, pending: true });
   assert.equal(ui.link.hidden, true);
   assert.equal(calls, 2);
   now += 31000;
   response = ready(second);
-  await show({ source: first, legacyVisible: true });
-  assert.equal(ui.panel.hidden, false);
+  await show({ source: first });
   assert.equal(ui.link.hidden, true);
 });
 test('late discovery of a previously selected proposal cannot replace the current navigation', async () => {
@@ -65,7 +60,7 @@ test('late discovery of a previously selected proposal cannot replace the curren
           })
         : Promise.resolve(ready(second))
   });
-  const old = show({ source: first, legacyVisible: true });
+  const old = show({ source: first });
   await show({ source: second });
   release(ready(first));
   await old;

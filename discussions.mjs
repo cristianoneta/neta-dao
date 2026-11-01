@@ -14,6 +14,7 @@ const state = {
   thread: null,
   page: null,
   session: null,
+  draftWallet: null,
   epoch: 0,
   navigation: 0,
   historyEpoch: 0,
@@ -41,25 +42,36 @@ const storage = {
     localStorage.removeItem(key);
   }
 };
+// Keep the current tab usable even when the browser cannot persist a draft.
+// Pending submission receipts still require durable storage before sending.
+const draftMemory = new Map();
+const readDraft = (key) => draftMemory.get(key) || storage.get(key);
 function walletStorageKeys(kind) {
-  if (!state.thread || !state.session) return [];
+  const wallet = state.session?.wallet || state.draftWallet;
+  if (!state.thread || !wallet) return [];
   return [state.thread.id, ...(state.thread.aliases || [])].map(
-    (id) => `cosmoot-discussion-${kind}:${id}:${state.session.wallet}`
+    (id) => `cosmoot-discussion-${kind}:${id}:${wallet}`
   );
 }
 function walletStorageKey(kind) {
   const keys = walletStorageKeys(kind);
-  return keys.find((key) => storage.get(key) !== null) || keys[0] || null;
+  return (
+    keys.find((key) => (kind === 'draft' ? readDraft(key) : storage.get(key)) != null) ||
+    keys[0] ||
+    null
+  );
 }
 function clearMatchingDrafts(request, keys) {
   for (const key of keys) {
-    const draft = storage.get(key);
+    const draft = readDraft(key);
     if (
       draft?.body?.trim() === request.body &&
       (draft.reply ?? null) === (request.reply ?? null) &&
       (draft.quote ?? null) === (request.quote ?? null)
-    )
+    ) {
+      draftMemory.delete(key);
       storage.remove(key);
+    }
   }
 }
 const draftKey = () => walletStorageKey('draft');
@@ -158,19 +170,22 @@ function author(wallet, identity, stake = null, historical = null) {
 function saveDraft() {
   if (pending()) return;
   const key = draftKey();
-  if (key)
+  if (key) {
+    const draft = { body: $('discussion-reply').value, reply: state.reply, quote: state.quote };
+    draftMemory.set(key, draft);
     try {
-      storage.set(key, {
-        body: $('discussion-reply').value,
-        reply: state.reply,
-        quote: state.quote
-      });
+      storage.set(key, draft);
     } catch {
-      /* Editing remains possible if local storage is unavailable. */
+      notice(
+        'discussion-post-status',
+        'Browser storage is unavailable. Your draft is kept in this tab; keep it open.',
+        true
+      );
     }
+  }
 }
 function restoreDraft() {
-  const d = draftKey() ? storage.get(draftKey()) : null;
+  const d = draftKey() ? readDraft(draftKey()) : null;
   $('discussion-reply').value = d?.body || '';
   state.reply = d?.reply || null;
   state.quote = d?.quote || null;
@@ -180,12 +195,16 @@ function renderComposer() {
   const locked = !!state.thread?.locked,
     saved = pending();
   if (saved) $('discussion-reply').value = saved.body;
-  $('discussion-post').disabled = !state.session || locked || !!saved;
-  $('discussion-reply').disabled = !state.session || locked || !!saved;
+  $('discussion-post').disabled = (!state.session && !state.draftWallet) || locked || !!saved;
+  $('discussion-post').textContent =
+    !state.session && state.draftWallet ? 'Reconnect Keplr to post' : 'Post reply';
+  $('discussion-reply').disabled = (!state.session && !state.draftWallet) || locked || !!saved;
   $('discussion-compose-hint').textContent = locked
     ? 'This discussion is locked.'
     : !state.session
-      ? 'Connect Keplr to post. No transaction fee.'
+      ? state.draftWallet
+        ? 'Keep writing. Reconnect Keplr before posting; your draft stays here.'
+        : 'Connect Keplr to post. No transaction fee.'
       : 'Your draft is saved in this browser. Posting uses no transaction fee.';
   $('discussion-reply-context').hidden = !(state.reply || state.quote);
   $('discussion-reply-context').textContent = state.quote
@@ -486,7 +505,7 @@ async function openLocation() {
     if (source) {
       const spec = parseDiscussionSource(source);
       if (spec.chainId !== 'juno-1')
-        throw Error('Testnet reviews remain in the proposal workspace.');
+        throw Error('Discussions currently support Juno mainnet governance only.');
       id = (await api('/v1/resolve?source=' + encodeURIComponent(source))).thread.id;
       if (navigation !== state.navigation) return;
     }
@@ -511,6 +530,7 @@ async function openLocation() {
   }
 }
 async function connect() {
+  saveDraft();
   const epoch = ++state.walletEpoch;
   $('discussion-connect').disabled = true;
   notice('discussion-status', 'Confirm the discussion sign-in in Keplr. No funds move.');
@@ -544,6 +564,7 @@ async function connect() {
     if (epoch !== state.walletEpoch || session.wallet !== wallet)
       throw Error('Wallet changed during sign-in.');
     state.session = session;
+    state.draftWallet = session.wallet;
     restoreDraft();
     notice(
       'discussion-status',
@@ -561,11 +582,9 @@ async function connect() {
 }
 function expireSession() {
   saveDraft();
+  state.draftWallet = state.session?.wallet || state.draftWallet;
   state.session = null;
   state.walletEpoch++;
-  state.reply = null;
-  state.quote = null;
-  $('discussion-reply').value = '';
   renderComposer();
   if (state.page) renderPosts(state.page);
   notice(
@@ -579,6 +598,7 @@ function disconnect() {
   if (state.session) void api('/v1/logout', { body: {}, authenticated: true }).catch(() => {});
   state.walletEpoch++;
   state.session = null;
+  state.draftWallet = null;
   state.reply = null;
   state.quote = null;
   $('discussion-reply').value = '';
@@ -587,7 +607,15 @@ function disconnect() {
   notice('discussion-post-status', 'Disconnected. Your saved draft stays in this browser.');
 }
 async function send(saved = false) {
-  if (!state.session || !state.thread) return;
+  if (!state.thread) return;
+  if (!state.session || state.session.expires <= Date.now()) {
+    if (state.session) expireSession();
+    await connect();
+    // A renewed sign-in never silently posts the draft.
+    if (state.session)
+      notice('discussion-post-status', 'Sign-in renewed. Review your reply, then post.');
+    return;
+  }
   const thread = state.thread.id,
     wallet = state.session.wallet,
     epoch = state.walletEpoch,
@@ -627,6 +655,11 @@ async function send(saved = false) {
     notice('discussion-post-status', 'Reply posted.');
     await loadThread(result.thread, { anchor: result.id, focus: true });
   } catch (e) {
+    if (e.status === 401 && !accepted) {
+      // An explicit authentication rejection means this request was not written.
+      storage.remove(key);
+      renderComposer();
+    }
     if (epoch === state.walletEpoch) {
       if (!saved && !accepted && e.status && e.status !== 408 && e.status < 500)
         storage.remove(key);

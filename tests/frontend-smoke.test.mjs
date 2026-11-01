@@ -212,7 +212,7 @@ test('governance controls referenced by JavaScript exist', () => {
     'add-deliverable',
     'deliverable-list',
     'revision-dialog',
-    'comment-form'
+    'proposal-discussion-link'
   ]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
@@ -251,11 +251,10 @@ test('Juno review explains each missing stake requirement', () => {
   assert.match(governance, /CURRENT:/);
 });
 
-test('comment staking actions are configured per DAO and contextual', () => {
-  assert.match(governance, /commentStakeUrl/);
-  assert.match(governance, /commentBlocked\s*=\s*discussion/);
-  assert.match(governance, /!state\.access\?\.can_comment/);
-  assert.doesNotMatch(governance, /delegateTestJunox|TEST_DELEGATION_AMOUNT/);
+test('proposal discussions use the forum without the retired topic form', () => {
+  assert.doesNotMatch(html, /id="(?:discussion-panel|comment-form|publish-comment)"/);
+  assert.doesNotMatch(governance, /add_comment\s*:/);
+  assert.match(html, /data-review-check/);
 });
 
 test('Names is a RELAY panel with legacy deep links and an honest deployment gate', () => {
