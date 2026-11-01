@@ -271,7 +271,10 @@ test('source snapshots reject disagreement, missing height and stale blocks', as
         header: {
           chain_id: 'juno-1',
           height: '10',
-          time: mode === 'stale' ? '2026-01-01T00:00:00Z' : time
+          time:
+            mode === 'stale' || (mode === 'common-stale' && !url.endsWith('/latest'))
+              ? '2026-01-01T00:00:00Z'
+              : time
         }
       }
     };
@@ -294,6 +297,8 @@ test('source snapshots reject disagreement, missing height and stale blocks', as
   await assert.rejects(chain.snapshot(), /Height-pinned/);
   mode = 'stale';
   await assert.rejects(chain.snapshot(), /Fresh Juno/);
+  mode = 'common-stale';
+  await assert.rejects(chain.snapshot(), /Observation block/);
 });
 test('clamped contract pages are followed until empty and repetition fails closed', async () => {
   const chain = new DiscussionChain();

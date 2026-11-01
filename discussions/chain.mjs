@@ -108,8 +108,16 @@ export class DiscussionChain {
         throw Error('Independent Juno sources disagree.');
       return values[0];
     };
-    const block = (await get('/cosmos/base/tendermint/v1beta1/blocks/' + height)).block?.header;
-    if (block?.chain_id !== 'juno-1' || Number(block.height) !== height)
+    const observed = await get('/cosmos/base/tendermint/v1beta1/blocks/' + height);
+    const block = observed.block?.header || observed.sdk_block?.header;
+    const age = this.now() - Date.parse(block?.time);
+    if (
+      block?.chain_id !== 'juno-1' ||
+      Number(block.height) !== height ||
+      !Number.isFinite(age) ||
+      age > 120000 ||
+      age < -30000
+    )
       throw Error('Observation block mismatch.');
     return { get, height, time: block.time };
   }
