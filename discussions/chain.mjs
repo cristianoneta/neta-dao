@@ -31,6 +31,12 @@ export const SOURCES = Object.freeze([
     .filter((d) => d.proposalModule)
     .map((d) => ({ kind: 'dao', chainId: 'juno-1', contract: d.proposalModule, dao: d.id }))
 ]);
+export function discussionScope(root) {
+  const [kind, , contract] = root.split(':');
+  return kind === 'dao'
+    ? directory.find((d) => d.proposalModule === contract)?.name || 'DAO governance'
+    : 'Juno governance';
+}
 const defaults = ['https://juno-api.polkachu.com', 'https://juno.api.m.stavr.tech'];
 export class DiscussionChain {
   constructor({ endpoints = defaults, fetcher = fetch, now = Date.now } = {}) {

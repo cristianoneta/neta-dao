@@ -4,8 +4,9 @@ Owner direction: a separate, focused discussion page in Cosmoot's graphite/mint
 colours. The Phoenix/Discourse reference informs the three-column arrangement and
 reading timeline, not a general-purpose forum or additional social features.
 
-Status: implementation and acceptance checks are being prepared on the proposal
-discussions branch. Neither the new service nor public routing is installed by
+Status: V1 is implemented in [PR #335](https://github.com/cristianoneta/neta-dao/pull/335).
+Initial CI passed all 18 required jobs; the final navigation/visual refinements
+are undergoing the same acceptance checks. Neither the new service nor public routing is installed by
 this change. Website publication remains manual. Testnet reviews keep their
 existing comments; V1 indexes the configured public Juno mainnet sources only.
 
@@ -127,6 +128,8 @@ transactions. Infrastructure tests cover optional WAL exports and validated rest
 Browser acceptance uses the real local service and a synthetic Keplr signer. It
 covers public reading, literal hostile text, profile links, quotes, a deliberately
 lost successful POST response, reload/receipt recovery, moderation, wallet changes,
-timeline navigation and 320/390/768/1440-pixel layouts. CI also imports the service
+timeline navigation and 320/390/768/1440-pixel layouts. It also joins a review
+and native thread while a successful reply is unresolved, preserving an unrelated
+local draft and recovering the original receipt under the old URL. CI also imports the service
 inside its independent Docker image. These checks do not establish live provider,
 server, backup or wallet acceptance; the rollout gates above remain separate.

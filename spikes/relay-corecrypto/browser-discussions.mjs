@@ -211,15 +211,54 @@ try {
     document.getElementById('discussion-post-status').textContent.includes('retained')
   );
   assert.equal(store.posts(thread.id).total, 66);
+  // Joining review/native threads must retain the old URL, local pending reply and draft.
+  const reviewSource = discussionSource({
+    kind: 'review',
+    chainId: 'juno-1',
+    contract: 'juno15wwr9dezyfp86p4px5p664gguargukml3wa9pctw9nutfn2rzk9qwf45gq',
+    id: 77
+  });
+  const joined = store.syncThread({
+    source: reviewSource,
+    title: thread.title,
+    summary: thread.summary,
+    author: wallet,
+    created: thread.created,
+    phase: 'finalized',
+    payload: {},
+    url: 'https://cosmoot.com/?dao=juno&review=77#governance'
+  });
+  store.link(reviewSource, source);
+  store.syncStatus(reviewSource);
+  await page.evaluate(
+    ({ id, wallet }) =>
+      localStorage.setItem(
+        `cosmoot-discussion-draft:${id}:${wallet}`,
+        JSON.stringify({
+          body: 'Keep this separate draft after the threads join.',
+          reply: null,
+          quote: null
+        })
+      ),
+    { id: joined.id, wallet }
+  );
   await page.reload();
   await page.locator('#discussion-content:not([hidden])').waitFor();
   await page.locator('#discussion-connect').click();
   await page.locator('#discussion-pending:not([hidden])').waitFor();
+  assert.equal(
+    await page.locator('#discussion-reply').inputValue(),
+    'Can we show exactly which proposals count towards participation?'
+  );
   await page.locator('#discussion-check').click();
   await page.locator('#post-66').waitFor();
   assert.equal(store.posts(thread.id).total, 66, 'uncertain outcome recovery never reposts');
   assert.match(await page.locator('#post-66').innerText(), /123.45 JUNO staked at posting/);
   assert.match(await page.locator('#post-66').innerText(), /View quoted post/);
+  assert.equal(
+    await page.locator('#discussion-reply').inputValue(),
+    'Keep this separate draft after the threads join.'
+  );
   await page.locator('#post-66').getByRole('button', { name: 'Hide', exact: true }).click();
   await page.locator('#discussion-moderation-reason').fill('Synthetic moderation acceptance check');
   await page.locator('#discussion-moderation-confirm').click();
@@ -253,6 +292,11 @@ try {
     await page.setViewportSize({ width, height: 900 });
     await page.reload();
     await page.locator('#discussion-content:not([hidden])').waitFor();
+    assert.match(
+      await page.locator('#discussion-position-label').textContent(),
+      / \/ 67$/,
+      `Correct total before scrolling at ${width}`
+    );
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
       true,

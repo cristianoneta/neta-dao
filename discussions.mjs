@@ -16,6 +16,7 @@ const state = {
   session: null,
   epoch: 0,
   navigation: 0,
+  historyEpoch: 0,
   walletEpoch: 0,
   reply: null,
   quote: null,
@@ -40,16 +41,35 @@ const storage = {
     localStorage.removeItem(key);
   }
 };
-function walletStorageKey(kind) {
-  if (!state.thread || !state.session) return null;
-  const keys = [state.thread.id, ...(state.thread.aliases || [])].map(
+function walletStorageKeys(kind) {
+  if (!state.thread || !state.session) return [];
+  return [state.thread.id, ...(state.thread.aliases || [])].map(
     (id) => `cosmoot-discussion-${kind}:${id}:${state.session.wallet}`
   );
-  return keys.find((key) => storage.get(key) !== null) || keys[0];
+}
+function walletStorageKey(kind) {
+  const keys = walletStorageKeys(kind);
+  return keys.find((key) => storage.get(key) !== null) || keys[0] || null;
+}
+function clearMatchingDrafts(request, keys) {
+  for (const key of keys) {
+    const draft = storage.get(key);
+    if (
+      draft?.body?.trim() === request.body &&
+      (draft.reply ?? null) === (request.reply ?? null) &&
+      (draft.quote ?? null) === (request.quote ?? null)
+    )
+      storage.remove(key);
+  }
 }
 const draftKey = () => walletStorageKey('draft');
 const pendingKey = () => walletStorageKey('pending');
-const readingKey = () => `cosmoot-discussion-reading:${state.thread.id}`;
+const readingKey = () => {
+  const keys = [state.thread.id, ...(state.thread.aliases || [])].map(
+    (id) => `cosmoot-discussion-reading:${id}`
+  );
+  return keys.find((key) => storage.get(key) !== null) || keys[0];
+};
 const pending = () => (pendingKey() ? storage.get(pendingKey()) : null);
 function notice(id, text, error = false) {
   $(id).textContent = text;
@@ -136,6 +156,7 @@ function author(wallet, identity, stake = null, historical = null) {
   return box;
 }
 function saveDraft() {
+  if (pending()) return;
   const key = draftKey();
   if (key)
     try {
@@ -158,6 +179,7 @@ function restoreDraft() {
 function renderComposer() {
   const locked = !!state.thread?.locked,
     saved = pending();
+  if (saved) $('discussion-reply').value = saved.body;
   $('discussion-post').disabled = !state.session || locked || !!saved;
   $('discussion-reply').disabled = locked || !!saved;
   $('discussion-compose-hint').textContent = locked
@@ -185,6 +207,7 @@ function renderComposer() {
   $('discussion-lock').textContent = locked ? 'Unlock discussion' : 'Lock discussion';
 }
 async function historyList(more = false) {
+  const epoch = ++state.historyEpoch;
   const chain = 'juno-1';
   const r = await api(
     '/v1/threads?' +
@@ -194,6 +217,7 @@ async function historyList(more = false) {
       })
   );
 
+  if (epoch !== state.historyEpoch) return;
   if (!more) $('discussion-topics').replaceChildren();
   for (const t of r.threads) {
     const a = el('a');
@@ -201,7 +225,7 @@ async function historyList(more = false) {
     a.append(
       el(
         'small',
-        `${t.chain === 'uni-7' ? 'TEST REVIEW · ' : ''}${t.root.startsWith('review:') ? 'Review' : 'Proposal'} #${t.root.split(':').at(-1)} · ${t.replies} ${t.replies === 1 ? 'reply' : 'replies'}`
+        `${t.scope || 'Juno governance'} · ${t.root.startsWith('review:') ? 'Review' : 'Proposal'} #${t.root.split(':').at(-1)} · ${t.replies} ${t.replies === 1 ? 'reply' : 'replies'}`
       ),
       el('span', t.title)
     );
@@ -344,12 +368,11 @@ async function loadThread(id, { start = 0, anchor = null, focus = false, positio
   state.page = result;
   document.title = result.thread.title + ' · Cosmoot discussions';
   $('discussion-title').textContent = result.thread.title;
-  $('discussion-phase').textContent =
-    `${result.thread.chain === 'uni-7' ? 'UNI-7 TEST REVIEW' : 'JUNO MAINNET'} · ${String(
-      result.thread.phase
-    )
-      .replace(/^PROPOSAL_STATUS_/, '')
-      .replaceAll('_', ' ')}`;
+  $('discussion-phase').textContent = `${result.thread.scope || 'Juno governance'} · ${String(
+    result.thread.phase
+  )
+    .replace(/^PROPOSAL_STATUS_/, '')
+    .replaceAll('_', ' ')}`;
   $('discussion-author').replaceChildren(
     author(result.thread.author, result.authors[result.thread.author])
   );
@@ -359,8 +382,7 @@ async function loadThread(id, { start = 0, anchor = null, focus = false, positio
       result.thread.sources.find((s) => s.key === result.thread.root) ||
       result.thread.sources[0];
   $('discussion-proposal').href = proposal.url;
-  $('discussion-proposal').textContent =
-    native || proposal.key.startsWith('dao:') ? 'View proposal & voting ↗' : 'View proposal ↗';
+  $('discussion-proposal').textContent = native ? 'View proposal & voting ↗' : 'View proposal ↗';
   const summary = result.thread.summary,
     split = summary.length > 1200 ? summary.indexOf('\n\n') : -1;
   const excerpt =
@@ -376,6 +398,9 @@ async function loadThread(id, { start = 0, anchor = null, focus = false, positio
   original.dataset.time = result.thread.created;
   original.hidden = result.start > 0;
   $('discussion-first-date').textContent = date(result.thread.created);
+  const indexed = result.thread.root.startsWith('dao:');
+  $('discussion-date-notice').hidden = !indexed;
+  $('discussion-first').lastElementChild.textContent = indexed ? 'First indexed' : 'First post';
   $('discussion-last-date').textContent = date(result.latest || result.thread.created);
   $('discussion-position').max = String(result.total + 1);
   $('discussion-position').disabled = result.total === 0;
@@ -386,6 +411,10 @@ async function loadThread(id, { start = 0, anchor = null, focus = false, positio
   $('discussion-retry').hidden = true;
   notice('discussion-status', '');
   if (changed) {
+    $('discussion-revisions').open = false;
+    $('discussion-revision-list').replaceChildren();
+    $('discussion-moderation').open = false;
+    $('discussion-moderation-dialog').close();
     restoreDraft();
     state.back = null;
     $('discussion-back').hidden = true;
@@ -395,6 +424,16 @@ async function loadThread(id, { start = 0, anchor = null, focus = false, positio
   }
   renderPosts(result);
   renderComposer();
+  const focused = anchor
+    ? result.posts.find((p) => p.id === anchor)
+    : result.start > 0
+      ? result.posts[0]
+      : null;
+  trackPosition(
+    focused?.position || 1,
+    focused?.created || result.thread.created,
+    focused?.id || null
+  );
   observePosts();
   if (focus) {
     const target = anchor
@@ -405,7 +444,7 @@ async function loadThread(id, { start = 0, anchor = null, focus = false, positio
     target?.scrollIntoView({ block: 'start' });
     target?.focus({ preventScroll: true });
   }
-  void historyList().catch(() => {});
+  if (changed || !$('discussion-topics').children.length) void historyList().catch(() => {});
 }
 async function jump(position, anchor = null, remember = true) {
   if (!state.thread) return;
@@ -433,6 +472,8 @@ async function jump(position, anchor = null, remember = true) {
 async function openLocation() {
   const navigation = ++state.navigation;
   ++state.epoch;
+  $('discussion-content').hidden = true;
+  $('discussion-timeline').hidden = true;
   const params = new URLSearchParams(location.search),
     source = params.get('source');
   let id = params.get('thread');
@@ -548,7 +589,7 @@ async function send(saved = false) {
     wallet = state.session.wallet,
     epoch = state.walletEpoch,
     key = pendingKey(),
-    draft = draftKey();
+    drafts = walletStorageKeys('draft');
   let request,
     accepted = false;
   try {
@@ -572,16 +613,14 @@ async function send(saved = false) {
     const result = await api(`/v1/threads/${thread}/posts`, { body: request, authenticated: true });
     accepted = true;
     storage.remove(key);
-    storage.remove(draft);
+    clearMatchingDrafts(request, drafts);
     if (
       epoch !== state.walletEpoch ||
       state.session?.wallet !== wallet ||
       state.thread?.id !== thread
     )
       return;
-    $('discussion-reply').value = '';
-    state.reply = null;
-    state.quote = null;
+    restoreDraft();
     notice('discussion-post-status', 'Reply posted.');
     await loadThread(result.thread, { anchor: result.id, focus: true });
   } catch (e) {
@@ -612,14 +651,14 @@ async function checkReply() {
   const saved = pending();
   if (!saved) return;
   const key = pendingKey(),
-    draft = draftKey(),
+    drafts = walletStorageKeys('draft'),
     epoch = state.walletEpoch;
   try {
     const r = await api('/v1/requests/' + saved.requestId, { authenticated: true });
     if (epoch !== state.walletEpoch) return;
     if (r.post) {
       storage.remove(key);
-      storage.remove(draft);
+      clearMatchingDrafts(saved, drafts);
       restoreDraft();
       notice('discussion-post-status', 'Reply was received.');
       await loadThread(r.post.thread, { anchor: r.post.id, focus: true });
@@ -689,8 +728,10 @@ $('discussion-back').onclick = () => {
 };
 $('discussion-revisions').ontoggle = async () => {
   if (!$('discussion-revisions').open || !state.thread) return;
+  const thread = state.thread;
   try {
-    const result = await api(`/v1/threads/${state.thread.id}/revisions`);
+    const result = await api(`/v1/threads/${thread.id}/revisions`);
+    if (state.thread?.id !== thread.id || !$('discussion-revisions').open) return;
     $('discussion-revision-list').replaceChildren(
       ...result.revisions.map((r) =>
         el(
@@ -699,7 +740,7 @@ $('discussion-revisions').ontoggle = async () => {
         )
       )
     );
-    for (const s of state.thread.sources) {
+    for (const s of thread.sources) {
       const a = el(
         'a',
         s.key.startsWith('review:') ? 'Original review ↗' : 'On-chain proposal ↗'
@@ -710,7 +751,7 @@ $('discussion-revisions').ontoggle = async () => {
       $('discussion-revision-list').append(row);
     }
   } catch (e) {
-    $('discussion-revision-list').textContent = e.message;
+    if (state.thread?.id === thread.id) $('discussion-revision-list').textContent = e.message;
   }
 };
 $('discussion-moderation').ontoggle = async () => {

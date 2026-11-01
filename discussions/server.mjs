@@ -6,7 +6,7 @@ import { webOrigins } from '../service/web-origins.mjs';
 import { trustedProxyAddresses } from '../service/client-address.mjs';
 import { validWallet, verifyOwnership } from '../relay-backup/auth.mjs';
 import { DiscussionStore } from './store.mjs';
-import { DiscussionChain } from './chain.mjs';
+import { DiscussionChain, discussionScope } from './chain.mjs';
 
 const token = () => randomBytes(32).toString('hex');
 const fail = (message, status) => {
@@ -143,10 +143,12 @@ export function discussionServer({
         if (path === '/v1/threads') {
           const before = url.searchParams.get('before');
           return json(res, 200, {
-            threads: store.list({
-              chain: url.searchParams.get('chain') || 'juno-1',
-              before: before ? JSON.parse(before) : null
-            }),
+            threads: store
+              .list({
+                chain: url.searchParams.get('chain') || 'juno-1',
+                before: before ? JSON.parse(before) : null
+              })
+              .map((t) => ({ ...t, scope: discussionScope(t.root) })),
             sources: store.health()
           });
         }
@@ -190,7 +192,11 @@ export function discussionServer({
           )
         ];
         const authors = await authorNames(wallets);
-        return json(res, 200, { ...result, authors });
+        return json(res, 200, {
+          ...result,
+          thread: { ...result.thread, scope: discussionScope(result.thread.root) },
+          authors
+        });
       }
       if (!allowed.has(origin)) fail('Origin denied.', 403);
       if (req.headers['content-type'] !== 'application/json') fail('JSON required.', 415);
