@@ -7,7 +7,8 @@ import { frozenRuleProposal } from '../planner-proposal-draft.mjs';
 import { approvedRule } from '../juno-approved-rules.mjs';
 import { finalizedReview } from '../juno-community-governance.mjs';
 import { reviewNetwork } from '../juno-review-network.mjs';
-import { stakingMessages } from '../juno-programme-staking.mjs';
+import { stakingMessages, movementPlan, checkMovementState } from '../juno-programme-staking.mjs';
+import { stakingState } from '../juno-rebalance-chain.mjs';
 import {
   communityPoolMessages,
   DAI_DENOM,
@@ -112,9 +113,9 @@ try {
   const amounts = {
     [PROGRAMME]: 123450,
     [voter]: 1e12,
-    [moduleAddress('distribution')]: 47000000,
+    [moduleAddress('distribution')]: 50500000,
     [moduleAddress('bonded_tokens_pool')]: 110000000,
-    [moduleAddress('not_bonded_tokens_pool')]: 370000000
+    [moduleAddress('not_bonded_tokens_pool')]: 405000000
   };
   a.bank.balances = Object.entries(amounts).map(([address, n]) => ({ address, coins: coin(n) }));
   a.bank.supply = coin(Object.values(amounts).reduce((x, y) => x + y, 0));
@@ -148,7 +149,7 @@ try {
     }
   ];
   for (const [i, address] of validators.entries()) {
-    const tokens = i === 0 ? 110000000 : 10000000;
+    const tokens = i === 0 ? 110000000 : i === 36 ? 10000000 : 11000000;
     s.validators.push({
       operator_address: address,
       consensus_pubkey: {
@@ -180,7 +181,10 @@ try {
       unbonding_on_hold_ref_count: '0',
       unbonding_ids: []
     });
-    const delegators = [[PROGRAMME, 10000000], ...(i === 0 ? [[voter, 100000000]] : [])];
+    const delegators = [
+      [PROGRAMME, 10000000],
+      ...(i === 36 ? [] : [[voter, i === 0 ? 100000000 : 1000000]])
+    ];
     for (const [who, stake] of delegators) {
       s.delegations.push({
         delegator_address: who,
@@ -193,7 +197,7 @@ try {
         starting_info: { previous_period: '0', stake: stake + '.000000000000000000', height: '0' }
       });
     }
-    const rewards = i === 0 ? 11000000 : 1000000;
+    const rewards = i === 0 ? 11000000 : i === 36 ? 1000000 : 1100000;
     d.outstanding_rewards.push({
       validator_address: address,
       outstanding_rewards: decimal(rewards)
@@ -744,6 +748,40 @@ try {
   );
   for (const address of validators.filter((_, i) => i !== 0 && i !== 34))
     assert.equal(held(exceptionAfter, address), held(exceptionBefore, address));
+  // Reproduce the SDK's deleted-source redelegation failure. The application
+  // guard must block it without silently retaining stake against a zero target.
+  const exitAmount = held(exceptionAfter, validators[36]);
+  const exitPlan = movementPlan([
+    ...exceptionAfter.map((p) => ({
+      address: p.delegation.validator_address,
+      currentRaw: p.balance.amount,
+      targetRaw: p.delegation.validator_address === validators[36] ? '0' : p.balance.amount
+    })),
+    { address: extraValidators[0], currentRaw: '0', targetRaw: exitAmount.toString() }
+  ]);
+  const exitHeight = (await get(rest + '/cosmos/base/tendermint/v1beta1/blocks/latest')).block
+    .header.height;
+  const exitState = await stakingState((path) => get(rest + path), exitHeight);
+  assert.match(
+    checkMovementState(exitPlan, exitState).join(' '),
+    /remove all stake from unbonded validator/
+  );
+  const exitBalance = await balance();
+  const fullExit = await runProposal(
+    'programme-empty-source-atomic',
+    stakingMessages([
+      { kind: 'delegate', destination: extraValidators[1], amountRaw: '1000000' },
+      ...exitPlan.moves
+    ])
+  );
+  assert.equal(fullExit.status, 'PROPOSAL_STATUS_FAILED');
+  assert.match(fullExit.failed_reason, /validator does not exist/);
+  assert.deepEqual(await positions(), exceptionAfter);
+  assert.equal(await balance(), exitBalance);
+  // Give the synthetic donor another delegator before the independent complete
+  // lifecycle. The programme's own balances and approved targets are unchanged.
+  const externalStake = await tx('staking', 'delegate', validators[36], '1000000ujuno');
+  assert.equal(externalStake.code, 0, externalStake.raw_log);
   const rebalance = await checkRebalanceLifecycle({
     get: (path) => get(rest + path),
     workshopTx,
@@ -754,6 +792,11 @@ try {
   });
   const report = {
     rebalance,
+    emptySourceRedelegation: {
+      status: fullExit.status,
+      blockedBeforeSigning: true,
+      atomicRollback: true
+    },
     fixedDestinationMessages: {
       status: exceptionVote.status,
       jailedDestination: true,

@@ -209,6 +209,7 @@ try {
           consensus_pubkey: { key: 'fixture-key-' + i },
           commission: { commission_rates: { rate: '0.050000000000000000' } },
           operator_address: v.address,
+          status: 'BOND_STATUS_BONDED',
           jailed: false,
           tokens: v.tokensRaw,
           delegator_shares: v.tokensRaw + '.000000000000000000'
@@ -1718,6 +1719,7 @@ try {
     executionPacket.values.summary
   );
   assert.equal(await page.locator('#planner-native-panel').isVisible(), false);
+  await page.locator('#proposal-rule-review .fixed-mandate summary').click();
   assert.match(await page.locator('#proposal-rule-review').innerText(), /Operate archive/);
 
   assert.deepEqual(errors, []);

@@ -302,6 +302,7 @@ function chainFixture(snapshot, approval, mode = '') {
             }
           },
           operator_address: v.address,
+          status: 'BOND_STATUS_BONDED',
           jailed: false,
           tokens:
             mode === 'cap' && v.address === snapshot.validators[0].address
@@ -695,4 +696,22 @@ test('SDK redelegation responses preserve wrapped completion entries and staking
     rows[0].entries = invalid;
     await assert.rejects(stakingState(get, '42500000'), /completion evidence/);
   }
+});
+
+test('full redemption of an unbonded validator is blocked without changing approved targets', () => {
+  const full = movementPlan([row(0, 900, 0), row(1, 0, 400), row(2, 0, 500)]);
+  const current = { ...state(), positions: full.positions };
+  Object.assign(current.validators[0], { tokensRaw: '900', bondStatus: 'BOND_STATUS_UNBONDED' });
+  assert.match(
+    checkMovementState(full, current).join(' '),
+    /remove all stake from unbonded validator/
+  );
+  current.validators[0].tokensRaw = '901';
+  assert.deepEqual(checkMovementState(full, current), []);
+  current.validators[0].tokensRaw = '900';
+  current.validators[0].bondStatus = 'BOND_STATUS_BONDED';
+  assert.deepEqual(checkMovementState(full, current), []);
+  current.validators[0].bondStatus = 'BOND_STATUS_UNBONDED';
+  const unbond = movementPlan([row(0, 900, 0)]);
+  assert.deepEqual(checkMovementState(unbond, { ...current, positions: unbond.positions }), []);
 });

@@ -95,6 +95,7 @@ export async function stakingState(get, height) {
     if (
       !operator.test(v.operator_address) ||
       typeof v.jailed !== 'boolean' ||
+      !['BOND_STATUS_BONDED', 'BOND_STATUS_UNBONDING', 'BOND_STATUS_UNBONDED'].includes(v.status) ||
       !uint(v.tokens) ||
       !/^\d+\.\d{18}$/.test(v.delegator_shares) ||
       typeof v.consensus_pubkey?.key !== 'string' ||
@@ -104,6 +105,7 @@ export async function stakingState(get, height) {
     return {
       address: v.operator_address,
       jailed: v.jailed,
+      bondStatus: v.status,
       tokensRaw: v.tokens,
       active: members.has(v.consensus_pubkey.key),
       consensusAddress: members.get(v.consensus_pubkey.key) || null,

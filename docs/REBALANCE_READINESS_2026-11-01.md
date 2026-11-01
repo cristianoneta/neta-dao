@@ -16,6 +16,14 @@ completion date under `redelegation_entry`. The parser now reads that structure.
 Malformed entries fail closed; incoming locks and maximum entry counts are retained.
 The collector already preserves the original query response and needs no update.
 
+A real execution also reproduced the SDK deleted-source edge case: redelegating
+all remaining tokens from an unbonded validator removes its record before the
+SDK reads it again, failing the entire proposal. Fresh chain status and the total
+outgoing redelegation now block that case before signing. Approved targets are
+never silently altered to leave dust. A separate unbonding plan needs review.
+The regression preserves this failure and checks atomic rollback; the successful
+large-plan fixture gives donor validators an independent delegator.
+
 The previous proposal duplicated its complete frozen calculation in native text.
 An observed 41-movement candidate used 9,819 native text bytes and 9,753 workshop
 body characters. Its full-deposit local simulation, including the existing 1.4 gas
@@ -74,7 +82,9 @@ serialization/fee calculation for partial and full deposits, and compares result
 delegations and liquid reserve. Existing corrected claims, non-unit shares,
 transitive-redelegation failure, atomic rollback and Community Pool checks remain.
 Browser acceptance exercises fixed-target review, native submission guards, pinned
-navigation and 320/1440 px layout. Current CI results determine release readiness.
+navigation and 320/1440 px layout. Current CI results determine release readiness. The unrelated hierarchy browser
+fixture now fixes its clock to the month of its existing October receipt; the
+November month rollover had otherwise changed its expected monthly total.
 
 Passing a local execution does not guarantee a future mainnet proposal: balances,
 validator state, authority, staking locks and fixed periods must be checked again.
@@ -85,5 +95,6 @@ does not cancel transactions when a date expires during voting.
 
 - [Cosmos SDK query response definition](https://github.com/cosmos/cosmos-sdk/blob/v0.53.7/proto/cosmos/staking/v1beta1/staking.proto)
 - [SDK redelegation response construction](https://github.com/cosmos/cosmos-sdk/blob/v0.53.7/x/staking/types/delegation.go)
+- [SDK Unbond/BeginRedelegation source](https://github.com/cosmos/cosmos-sdk/blob/v0.53.7/x/staking/keeper/delegation.go)
 - [Z85 specification and published vector](https://rfc.zeromq.org/spec/32/)
 - [Governance execution boundaries](GOVERNANCE_EXECUTION_SEMANTICS.md)
