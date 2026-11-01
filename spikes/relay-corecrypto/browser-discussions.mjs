@@ -39,10 +39,14 @@ const thread = store.syncThread({
 });
 store.syncStatus(source);
 store.syncStatus('native:juno-1:gov');
+const importedComment = (comment) => ({
+  ...normalizedComment({ ...comment, moderation: null }),
+  moderation: comment.moderation
+});
 for (let id = 1; id <= 65; id++)
   store.importComment(
     source,
-    normalizedComment({
+    importedComment({
       id,
       author: wallet,
       created_time: Math.floor((now - 86400000) / 1000) + id * 500,
