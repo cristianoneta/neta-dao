@@ -56,9 +56,13 @@ Formats 1 and 2, historical rule schemas and their native payloads retain their
 original meaning. Existing finalized reviews are never silently rewritten; create
 a fresh Rebalance after the approved rule and current observations are available.
 
-The audited 41-movement candidate now has 1,372 native text bytes, 8,723 workshop
+The audited 41-movement candidate now has 1,374 native text bytes, 8,723 workshop
 body characters and 13,650 actions characters. These are measurements of that dated
-candidate, not a universal capacity guarantee or approval of its pending rules.
+candidate, not a universal capacity guarantee or approval of its pending rules. With the actual
+new referenced content, its local submission simulation is 2,674,751 gas for a
+partial deposit and 3,144,872 for a full deposit; including the 1.4 buffer,
+3,744,652 and 4,402,821 respectively. Both fit the unchanged ceiling. The local
+account is funded; this is not a mainnet execution claim.
 
 ## Limits and validation
 
@@ -81,10 +85,19 @@ It checks approval separately from staking execution, runs production submission
 serialization/fee calculation for partial and full deposits, and compares resulting
 delegations and liquid reserve. Existing corrected claims, non-unit shares,
 transitive-redelegation failure, atomic rollback and Community Pool checks remain.
+The full local suite passed with a 45-movement, 12-fixed-target execution. Target
+balances and 301,000,000 ujuno of additional unbonding were checked, including
+bounded share rounding and the 50 JUNO reserve. Full-deposit submission used
+3,000,818 simulated gas before the 1.4 buffer. The deleted-source failure was
+reproduced separately and rolled back atomically.
+
+Local checks passed: 458 JavaScript tests, 242 Python tests (14 environment skips),
+formatting, lint, type checks, repository/artifact checks and the Pages build.
 Browser acceptance exercises fixed-target review, native submission guards, pinned
-navigation and 320/1440 px layout. Current CI results determine release readiness. The unrelated hierarchy browser
-fixture now fixes its clock to the month of its existing October receipt; the
-November month rollover had otherwise changed its expected monthly total.
+navigation and 320/1440 px layout. Current CI results determine release readiness.
+The unrelated hierarchy and Treasury browser fixtures fix their clocks to the
+month of their existing October receipts, preserving monthly and future-period
+assertions across the November rollover.
 
 Passing a local execution does not guarantee a future mainnet proposal: balances,
 validator state, authority, staking locks and fixed periods must be checked again.

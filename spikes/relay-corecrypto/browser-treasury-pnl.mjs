@@ -4,6 +4,8 @@ import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const root = new URL('../../', import.meta.url);
+// Archived October receipts and future-November assertions share one clock.
+const fixtureTime = '2026-10-31T12:00:00Z';
 const ledger = JSON.parse(await readFile(new URL('data/treasury/neta-main-accounting.json', root)));
 // Pin the archived first purchase; later live sales must not change fixture totals.
 ledger.entries = ledger.entries.filter(
@@ -11,7 +13,7 @@ ledger.entries = ledger.entries.filter(
 );
 assert.equal(ledger.entries.length, 1);
 ledger.refresh_status = 'completed';
-ledger.last_success_at = new Date().toISOString();
+ledger.last_success_at = fixtureTime;
 const receipt = ledger.entries[0];
 ledger.movement_review = {
   status: 'PARTIAL',
@@ -102,7 +104,7 @@ try {
     ...dao.accountingSource,
     accounting_start: '2026-10-01T00:00:00Z',
     refresh_status: 'completed',
-    last_success_at: new Date().toISOString(),
+    last_success_at: fixtureTime,
     entries: [],
     coverage_gaps:
       dao.id === 'juno' ? ['Block allocations and module payouts remain incomplete.'] : [],
@@ -147,6 +149,7 @@ try {
   const page = await context.newPage(),
     errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  await page.clock.setFixedTime(new Date(fixtureTime));
   await page.goto(
     `http://127.0.0.1:${server.address().port}/index.html?dao=neta&subdao=main#treasury`
   );
