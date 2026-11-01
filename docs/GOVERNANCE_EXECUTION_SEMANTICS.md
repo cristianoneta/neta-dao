@@ -119,6 +119,15 @@ checks current holdings, funds and staking locks. The required local Juno regres
 now covers successful staking, unbonding records, non-unit share rates and atomic
 rollback after a transitive-redelegation failure. [Specification and limits](REBALANCE_EXECUTION_2026-10-25.md).
 
+New Rebalance proposals follow the same pinned workshop-reference model as new
+rule approvals, but retain every MsgDelegate/MsgBeginRedelegate/MsgUndelegate in
+the native executable envelope. Referencing evidence never references executable
+actions. Exact content and calculation hashes are independently resolved before
+submission and additional funding. Fixed-period validation uses each queried block
+time. The real SDK redelegation response wrappers, incoming locks and entry limits
+are validated. Historical formats remain unchanged. [Readiness correction and
+limits](REBALANCE_READINESS_2026-11-01.md).
+
 ## One-time replacement explanation
 
 The first corrected claim after proposal 381 must explain the incompatible old

@@ -1,6 +1,6 @@
 # Current state — Cosmoot
 
-Updated 31 October 2026. This is the authoritative current feature and release
+Updated 1 November 2026. This is the authoritative current feature and release
 inventory. Update rows in place; retain dated evidence separately. Public/private
 boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
@@ -8,8 +8,9 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `b090eb21931739f275d1b561ffe276b626daa07a` | [Manual release 41224653138](https://github.com/cristianoneta/neta-dao/actions/runs/41224653138) passed all required checks and published the exact artifact on 31 October, including PR #332's referenced rule proposals. |
-| Readable referenced rule proposals | Published; navigation follow-up awaits manual release | Native text contains a meaningful summary and exact on-chain review reference; full evidence stays in the existing workshop. The follow-up resolves the unchanged pinned link to its unique native proposal after submission, with separate explicit history and unchanged voting/signing behavior. Review storage retains its existing limit. [Format and validation](REFERENCED_RULE_PROPOSALS_2026-10-31.md). |
+| Last successful website release | Source `e7c767acb406dace44e955666fc87a04afdd4ad5` | [Manual release 41228430465](https://github.com/cristianoneta/neta-dao/actions/runs/41228430465) passed and published on 31 October at 18:19 UTC, including PR #333's pinned native voting links. |
+| Readable referenced rule proposals | Published, including native voting navigation | Native text contains a meaningful summary and exact on-chain review reference; full evidence stays in the existing workshop. The follow-up resolves the unchanged pinned link to its unique native proposal after submission, with separate explicit history and unchanged voting/signing behavior. Review storage retains its existing limit. [Format and validation](REFERENCED_RULE_PROPOSALS_2026-10-31.md). |
+| Rebalance readiness correction | Source implemented; manual website release required | Fixed-date preflight and SDK redelegation response parsing corrected; short referenced native text, complete inline staking messages, compact complete evidence and shared field limits. [Scope and validation](REBALANCE_READINESS_2026-11-01.md). No contract or collector update. |
 | Native vote gas correction | Published; successful owner wallet acceptance verified on-chain | The higher-gas vote was included with code 0, the expected Yes ballot and 118,192 gas used from 250,000. Preserve original-sequence binding and both attempts during uncertain outcomes. [Evidence, safeguards and validation](NATIVE_VOTE_TRANSMISSION_2026-10-27.md). |
 | Native proposal submission gas | Published; successful live submission verified | Corrected reward review 3 became native #384 with code 0, 2,255,995 / 3,092,554 gas and fee 0.231942 JUNO. Its 5,000 JUNO deposit opened voting; execution remains pending. [Reproduction](PROPOSAL_SUBMISSION_GAS_2026-10-27.md), [two-source checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md). |
 | Maintenance release | [PR #304](https://github.com/cristianoneta/neta-dao/pull/304) integrated; website published and backend separately installed | [Changes and validation](MAINTENANCE_2026-10-24.md), [deployment acceptance and limits](DEPLOYMENT_ACCEPTANCE_2026-10-24.md). |

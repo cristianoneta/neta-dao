@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { finalizedReview } from '../../juno-community-governance.mjs';
 import { readProposalReview } from '../../juno-delegation-review.mjs';
 import { reviewNetwork } from '../../juno-review-network.mjs';
+import { parseExecutionReference } from '../../juno-execution-reference.mjs';
 import { parseRuleReference, ruleReviewUrl } from '../../juno-rule-reference.mjs';
 import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
@@ -104,6 +105,7 @@ try {
   const approved = await approvedProposal({}, approvedPolicy);
   let approvalState = 'empty',
     publishedRule = null,
+    publishedExecution = null,
     publishedReview = null,
     publishedRevision = null,
     duplicateRule = false,
@@ -129,6 +131,7 @@ try {
                 failedClaim,
                 approved,
                 ...(publishedRule ? [publishedRule] : []),
+                ...(publishedExecution ? [publishedExecution] : []),
                 ...(duplicateRule ? [{ ...publishedRule, id: '1000' }] : [])
               ].filter(
                 (p) =>
@@ -140,6 +143,8 @@ try {
               ),
         pagination: { next_key: null }
       };
+    else if (publishedExecution && path === '/cosmos/gov/v1/proposals/' + publishedExecution.id)
+      response = { proposal: publishedExecution };
     else if (publishedRule && path === '/cosmos/gov/v1/proposals/' + publishedRule.id)
       response = { proposal: publishedRule };
     else if (
@@ -1599,6 +1604,121 @@ try {
   assert.match(await page.locator('#proposal-rule-review').innerText(), /Operate archive/);
   assert.match(await page.locator('#proposal-rule-review').innerText(), /500,000.000001/);
   assert.match(await page.locator('#proposal-rule-review').innerText(), /0.00 regular/);
+
+  // A fixed-allocation execution reaches the actual browser submission guards.
+  // All chain responses and the signer below are synthetic, as in the funding tests.
+  const executionPacket = await page.evaluate(async () => {
+    const { readPlannerProposal } = await import('/planner-proposal-draft.mjs');
+    return readPlannerProposal(
+      localStorage,
+      new URL(location.href).searchParams,
+      'juno-delegation'
+    );
+  });
+  assert.match(executionPacket.values.summary, /redelegate .*JUNO; stake .*JUNO from liquid funds/);
+  assert.ok(executionPacket.values.actions_json.length < 20000);
+  assert.match(executionPacket.values.body, /cosmoot-rebalance-3\+gzip\+z85/);
+  publishedReview = {
+    id: 18,
+    latest_version: 1,
+    finalized_version: 1,
+    finalized_hash: createHash('sha256')
+      .update(JSON.stringify(executionPacket.values))
+      .digest('hex'),
+    author: 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57',
+    withdrawn: false
+  };
+  publishedRevision = {
+    ...executionPacket.values,
+    proposal_id: 18,
+    version: 1,
+    author: publishedReview.author
+  };
+  const executionFinal = await finalizedReview(publishedReview, publishedRevision, 'juno-1');
+  const executionPin = new URL(ruleReviewUrl(parseExecutionReference(executionFinal.content)));
+  const localExecutionUrl =
+    origin + executionPin.pathname + executionPin.search + executionPin.hash;
+  await page.goto(localExecutionUrl);
+  await page.locator('#planner-native-panel').waitFor({ state: 'visible' });
+  assert.equal(
+    await page.locator('#proposal-summary').inputValue(),
+    executionPacket.values.summary
+  );
+  assert.equal(
+    await page.locator('#planner-native-payload').textContent(),
+    executionFinal.content.title + '\n\n' + executionFinal.content.summary
+  );
+  assert.match(
+    await page.locator('#rule-proposal-format-text').innerText(),
+    /every executable staking message/
+  );
+  await page.evaluate((address) => {
+    window.keplr = {
+      enable: async () => {},
+      getOfflineSigner: () => ({
+        getAccounts: async () => [{ address }],
+        signDirect: async () => {
+          throw Error('Real signing forbidden');
+        }
+      }),
+      signDirect: async () => {
+        throw Error('Real signing forbidden');
+      }
+    };
+    window.NetaJunoGovernance = {
+      connect: async () => ({ disconnect() {} }),
+      simulate: async () => 2000000,
+      proposalFee: () => ({ gas: '2800000', amount: [{ denom: 'ujuno', amount: '210000' }] }),
+      submit: async (_client, content, _sender, _deposit, _fee, guards) => {
+        await guards.beforeSign();
+        await guards.assertWallet();
+        window.__checkedRebalanceContent = content;
+        throw Error('Synthetic rebalance reached signing');
+      }
+    };
+  }, publishedReview.author);
+  await page.locator('#gov-connect').click();
+  await page.waitForFunction(() => !document.querySelector('#planner-native-minimum').disabled);
+  await page.locator('#planner-native-minimum').click();
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#planner-native-status')
+      .textContent.includes('Synthetic rebalance reached signing')
+  );
+  assert.deepEqual(
+    await page.evaluate(() => window.__checkedRebalanceContent),
+    executionFinal.content
+  );
+  for (const width of [1440, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    if (process.env.NNS_SCREENSHOT_DIR) {
+      await mkdir(process.env.NNS_SCREENSHOT_DIR, { recursive: true });
+      await page.screenshot({
+        path: `${process.env.NNS_SCREENSHOT_DIR}/rebalance-reference-${width}.png`,
+        fullPage: true
+      });
+    }
+  }
+  publishedExecution = {
+    ...executionFinal.content,
+    id: '1002',
+    status: 'PROPOSAL_STATUS_VOTING_PERIOD',
+    voting_end_time: new Date(Date.now() + 86400000).toISOString(),
+    proposer: publishedReview.author,
+    total_deposit: [{ denom: 'ujuno', amount: '5000000000' }]
+  };
+  await page.goto(localExecutionUrl);
+  await page.waitForURL((url) => url.searchParams.get('proposal') === '1002');
+  await page.waitForFunction(() =>
+    document.querySelector('#proposal-rule-review').textContent.includes('500,000.000001')
+  );
+  assert.equal(
+    await page.locator('#proposal-summary').inputValue(),
+    executionPacket.values.summary
+  );
+  assert.equal(await page.locator('#planner-native-panel').isVisible(), false);
+  assert.match(await page.locator('#proposal-rule-review').innerText(), /Operate archive/);
 
   assert.deepEqual(errors, []);
   console.log(

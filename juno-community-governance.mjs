@@ -1,3 +1,5 @@
+import { usesExecutionReference, referencedExecutionContent } from './juno-execution-reference.mjs';
+import { readExecutionReview } from './juno-rebalance-execution.mjs';
 import { isStaking, assertStaking } from './juno-programme-staking.mjs';
 import {
   COMMUNITY_POOL_KIND,
@@ -100,6 +102,20 @@ export async function finalizedReview(
       contentHash: hash,
       policyHash: frozen.value.policyHash,
       reviewHash: frozen.hash
+    });
+  } else if (usesExecutionReference(values)) {
+    const execution = await readExecutionReview(values);
+    if (kind !== 'ALLOCATION_EXECUTION' || !execution || chainId !== 'juno-1')
+      throw Error('Referenced rebalance proposals require a verified Juno mainnet review.');
+    content = referencedExecutionContent(values, {
+      schema: 1,
+      chainId,
+      contract: network.contract,
+      reviewId: String(proposal.id),
+      revision: String(revision.version),
+      contentHash: hash,
+      policyHash: execution.value.calculation.policyHash,
+      reviewHash: execution.hash
     });
   } else content = proposalContent(kind, values);
   const metadata = `cosmoot:review:${chainId}:${network.contract}:${proposal.id}:${hash}`;
@@ -367,18 +383,14 @@ export async function fundingProof(endpoints, id, sender = null, options = {}) {
     (v) => ({ identity: proposalIdentity(v.proposal), terms: v.terms, params: v.params })
   );
   if (proofs[0].terms.open && isStaking(proofs[0].proposal.messages)) {
-    const p = proofs[0].proposal,
-      split = p.summary.indexOf('\n\n');
-    const { verifyRebalanceValues } = await import('./juno-rebalance-chain.mjs');
-    await verifyRebalanceValues(
-      {
-        title: p.title,
-        summary: p.summary.slice(0, split),
-        body: p.summary.slice(split + 2),
-        actions_json: JSON.stringify(p.messages, null, 2)
-      },
-      { ...options, endpoints, ignoreProposalId: String(p.id) }
-    );
+    const { readExecutionSources } = await import('./juno-execution-reference-read.mjs');
+    const { checkRebalance } = await import('./juno-rebalance-chain.mjs');
+    const review = await readExecutionSources(proofs[0].proposal, { ...options, endpoints });
+    await checkRebalance(review, {
+      ...options,
+      endpoints,
+      ignoreProposalId: String(proofs[0].proposal.id)
+    });
   }
   return {
     ...proofs[0],

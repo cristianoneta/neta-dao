@@ -1,3 +1,6 @@
+import { encodeZ85, decodeZ85 } from './juno-review-z85.mjs';
+import { assertReviewLimits, assertNativeText } from './juno-proposal-limits.mjs';
+import { EXECUTION_REVIEW_MARKER } from './juno-execution-reference.mjs';
 import { fingerprint, units } from './juno-delegation-core.mjs';
 import { activeFixed } from './juno-fixed-allocations.mjs';
 import { verifyRuleReview } from './juno-delegation-review.mjs';
@@ -50,7 +53,19 @@ function executionDescription(c, plan, legacy = false) {
     'Unbonding is delayed; share rounding may leave dust. State changes during voting can cause execution to fail. Submission is not execution.\n\n'
   );
 }
-export async function executionValues(review) {
+export function executionSummary(calculation, plan) {
+  const amount = (raw) => units(raw).replace(/\.?0+$/, '');
+  const fixed = activeFixed(calculation.rule, calculation.snapshot.blockTime).reduce(
+    (n, a) => n + BigInt(a.amountRaw),
+    0n
+  );
+  const text = `Authorize ${plan.moves.length} movements under rules #${calculation.parent.proposalId}: redelegate ${amount(plan.totals.redelegate)} JUNO; stake ${amount(plan.totals.delegate)} JUNO from liquid funds; begin unbonding ${amount(plan.totals.undelegate)} JUNO.`;
+  const mandate = fixed ? ` Includes ${amount(fixed)} JUNO in fixed targets.` : '';
+  return (
+    text + (text.length + mandate.length + 23 <= 300 ? mandate : '') + ' Rules stay unchanged.'
+  );
+}
+export async function executionValues(review, { referenced = false, reading = false } = {}) {
   const checked = await verifyExecutionReview(review.value),
     { calculation: c, plan } = checked.value;
   // Format 2 reconstructs the deterministic plan from the complete frozen
@@ -70,22 +85,30 @@ export async function executionValues(review) {
       new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'))
     ).arrayBuffer()
   );
-  const encoded = btoa(Array.from(zipped, (b) => String.fromCharCode(b)).join(''));
+  const encoded = referenced
+    ? encodeZ85(zipped)
+    : btoa(Array.from(zipped, (b) => String.fromCharCode(b)).join(''));
   const values = {
     title: REBALANCE_TITLE,
-    summary: `Execute ${plan.moves.length} staking movements under approved rule proposal #${c.parent.proposalId}.`,
+    summary: referenced
+      ? executionSummary(c, plan)
+      : `Execute ${plan.moves.length} staking movements under approved rule proposal #${c.parent.proposalId}.`,
     body:
-      executionDescription(c, plan) +
-      `${marker}\n\nFormat: cosmoot-rebalance-2+gzip\nReview SHA-256: ${checked.hash}\n\n\`\`\`cosmoot-rebalance\n${encoded}\n\`\`\`\n\nThis proposal was created on cosmoot.com.`,
-    actions_json: JSON.stringify(checked.messages, null, 2)
+      (referenced ? EXECUTION_REVIEW_MARKER + '\n\n' : executionDescription(c, plan)) +
+      `${marker}\n\nFormat: cosmoot-rebalance-${referenced ? '3+gzip+z85' : '2+gzip'}\nReview SHA-256: ${checked.hash}\n\n\`\`\`cosmoot-rebalance\n${encoded}\n\`\`\`\n\nThis proposal was created on cosmoot.com.`,
+    actions_json: JSON.stringify(checked.messages, null, referenced ? undefined : 2)
   };
-  if (
-    new TextEncoder().encode(values.summary + '\n\n' + values.body).length > 10000 ||
-    values.actions_json.length > 100000
-  )
-    throw Error(
-      'The complete rebalance evidence exceeds governance limits. No evidence was omitted.'
-    );
+  if (!reading) {
+    try {
+      assertReviewLimits(values);
+      if (!referenced) assertNativeText(values.summary + '\n\n' + values.body);
+    } catch (error) {
+      throw Error(
+        'The complete rebalance evidence exceeds governance limits. No evidence was omitted. ' +
+          error.message
+      );
+    }
+  }
   return values;
 }
 export async function readExecutionReview(values) {
@@ -101,12 +124,18 @@ export async function readExecutionReview(values) {
     throw Error('Invalid rebalance proposal identity.');
   const blocks = [
     ...body.matchAll(
-      /^## Frozen rebalance execution\n\nFormat: cosmoot-rebalance-([12])\+gzip\nReview SHA-256: ([a-f0-9]{64})\n\n```cosmoot-rebalance\n([A-Za-z0-9+/=]+)\n```/gm
+      /^## Frozen rebalance execution\n\nFormat: cosmoot-rebalance-([123])\+gzip(\+z85)?\nReview SHA-256: ([a-f0-9]{64})\n\n```cosmoot-rebalance\n([^\n]+)\n```/gm
     )
   ];
   if (blocks.length !== 1 || body.split(marker).length !== 2)
     throw Error('Complete frozen rebalance evidence is required.');
-  const zipped = Uint8Array.from(atob(blocks[0][3]), (c) => c.charCodeAt(0));
+  const version = blocks[0][1];
+  if ((version === '3') !== (blocks[0][2] === '+z85'))
+    throw Error('Invalid rebalance transport version.');
+  const zipped =
+    version === '3'
+      ? decodeZ85(blocks[0][4])
+      : Uint8Array.from(atob(blocks[0][4]), (c) => c.charCodeAt(0));
   const reader = new Blob([zipped])
     .stream()
     .pipeThrough(new DecompressionStream('gzip'))
@@ -131,7 +160,7 @@ export async function readExecutionReview(values) {
       ? await verifyExecutionReview({ ...packet, calculation })
       : await executionReview(calculation);
   if (
-    blocks[0][1] === '2' &&
+    version !== '1' &&
     canonical(packet) !==
       canonical({
         schema: checked.value.schema,
@@ -140,14 +169,17 @@ export async function readExecutionReview(values) {
       })
   )
     throw Error('Invalid compact rebalance transport.');
-  if (checked.hash !== blocks[0][2] || canonical(messages) !== canonical(checked.messages))
+  if (checked.hash !== blocks[0][3] || canonical(messages) !== canonical(checked.messages))
     throw Error('Rebalance messages do not match the frozen allocation.');
   // Bind human-readable amounts/identity without requiring identical gzip bytes
   // across browser zlib versions or identical REST object-key order.
-  const expectedValues = await executionValues(checked);
+  const expectedValues = await executionValues(checked, {
+    referenced: version === '3',
+    reading: true
+  });
   const textWithoutPacket = (text) =>
     text.replace(
-      /^## Frozen rebalance execution\n\nFormat: cosmoot-rebalance-[12]\+gzip\nReview SHA-256: [a-f0-9]{64}\n\n```cosmoot-rebalance\n[A-Za-z0-9+/=]+\n```/gm,
+      /^## Frozen rebalance execution\n\nFormat: cosmoot-rebalance-[123]\+gzip(?:\+z85)?\nReview SHA-256: [a-f0-9]{64}\n\n```cosmoot-rebalance\n[^\n]+\n```/gm,
       '<verified rebalance evidence>'
     );
   if (

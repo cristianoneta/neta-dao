@@ -1,3 +1,4 @@
+import { checkRebalanceLifecycle } from './check-rebalance-lifecycle.mjs';
 import { reviewSizeInput } from '../tests/fixtures/delegation-review-size.mjs';
 import { checkNativeVoteGas } from '../faucet/test/native-vote-chain.mjs';
 import { checkNativeProposalGas } from '../faucet/test/native-proposal-chain.mjs';
@@ -96,6 +97,10 @@ try {
   assert.equal(validators.length, 37);
   assert.equal(sha(wasm).toString('hex'), PROGRAMME_CODE_HASH);
   assert.equal(moduleAddress('gov'), GOVERNANCE);
+  g.initial_height = '42500000';
+  const extraValidators = Array.from({ length: 10 }, (_, i) =>
+    toBech32('junovaloper', sha('local-rebalance-target:' + i).subarray(0, 20))
+  );
   g.consensus.params.block.max_gas = '100000000';
   a.auth.accounts = [PROGRAMME, voter].map((address, i) => ({
     '@type': '/cosmos.auth.v1beta1.BaseAccount',
@@ -109,7 +114,7 @@ try {
     [voter]: 1e12,
     [moduleAddress('distribution')]: 47000000,
     [moduleAddress('bonded_tokens_pool')]: 110000000,
-    [moduleAddress('not_bonded_tokens_pool')]: 360000000
+    [moduleAddress('not_bonded_tokens_pool')]: 370000000
   };
   a.bank.balances = Object.entries(amounts).map(([address, n]) => ({ address, coins: coin(n) }));
   a.bank.supply = coin(Object.values(amounts).reduce((x, y) => x + y, 0));
@@ -205,6 +210,42 @@ try {
     d.validator_current_rewards.push({
       validator_address: address,
       rewards: { rewards: decimal(rewards), period: '1' }
+    });
+  }
+  // Fund ten additional recipient validators without changing the 37-position
+  // reward fixture. This lets the real planner create a programme-sized rebalance.
+  for (const address of extraValidators) {
+    const validator = structuredClone(s.validators[1]);
+    Object.assign(validator, {
+      operator_address: address,
+      tokens: '1000000',
+      delegator_shares: '1000000.000000000000000000'
+    });
+    validator.consensus_pubkey.key = sha(address).toString('base64');
+    s.validators.push(validator);
+    s.delegations.push({
+      delegator_address: voter,
+      validator_address: address,
+      shares: '1000000.000000000000000000'
+    });
+    d.delegator_starting_infos.push({
+      delegator_address: voter,
+      validator_address: address,
+      starting_info: { previous_period: '0', stake: '1000000.000000000000000000', height: '0' }
+    });
+    d.outstanding_rewards.push({ validator_address: address, outstanding_rewards: [] });
+    d.validator_accumulated_commissions.push({
+      validator_address: address,
+      accumulated: { commission: [] }
+    });
+    d.validator_historical_rewards.push({
+      validator_address: address,
+      period: '0',
+      rewards: { cumulative_reward_ratio: [], reference_count: 2 }
+    });
+    d.validator_current_rewards.push({
+      validator_address: address,
+      rewards: { rewards: [], period: '1' }
     });
   }
   a.mint.params.mint_denom = 'ujuno';
@@ -391,7 +432,7 @@ try {
       expedited: false
     });
     let submission;
-    if (label === 'corrected-stargate') {
+    if (['corrected-stargate', 'referenced-programme-rebalance'].includes(label)) {
       const previousBalance = await balance();
       const previousPositions = await positions();
       const prepared = load(file);
@@ -407,7 +448,11 @@ try {
           messages
         }
       });
-      assert.equal(await balance(), previousBalance, 'Submission must not execute reward claims');
+      assert.equal(
+        await balance(),
+        previousBalance,
+        'Submission must not execute programme actions'
+      );
       assert.deepEqual(await positions(), previousPositions);
     } else submission = await tx('gov', 'submit-proposal', file);
     assert.equal(submission.code, 0, submission.raw_log);
@@ -699,7 +744,16 @@ try {
   );
   for (const address of validators.filter((_, i) => i !== 0 && i !== 34))
     assert.equal(held(exceptionAfter, address), held(exceptionBefore, address));
+  const rebalance = await checkRebalanceLifecycle({
+    get: (path) => get(rest + path),
+    workshopTx,
+    queryReview,
+    runProposal,
+    extraValidators,
+    lockedValidators: [validators[1], validators[35]]
+  });
   const report = {
+    rebalance,
     fixedDestinationMessages: {
       status: exceptionVote.status,
       jailedDestination: true,

@@ -1,8 +1,18 @@
 # Cosmoot public development handoff
 
-Updated 31 October 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
+Updated 1 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
+
+## Rebalance readiness correction — 1 November
+
+New Rebalance proposals retain full staking messages in native governance and link
+to an immutable on-chain review. Compact evidence preserves every observation and
+hash; shared workshop limits are checked before publication. Native fixed-period
+checks now receive the queried block time. The SDK redelegation response parser
+also preserves real completion entries and locks. See [implementation, limits and
+validation](docs/REBALANCE_READINESS_2026-11-01.md). A separate manual website
+release is required; no contract or collector installation is involved.
 
 ## Referenced allocation-rule proposals — 31 October
 
@@ -21,8 +31,10 @@ The current navigation follow-up keeps those exact link/payload bytes unchanged,
 but opens the matching native proposal after submission so readers can use its
 existing voting controls. It verifies one exact submission against both sources;
 ambiguous or disagreeing records stay in review. Explicit history remains separate.
-This follow-up still requires its own manual website release. Signing, gas, voting
-logic and the generated signing bundle are unchanged.
+PR #333 was published at `e7c767acb406dace44e955666fc87a04afdd4ad5` by
+[manual release 41228430465](https://github.com/cristianoneta/neta-dao/actions/runs/41228430465)
+on 31 October at 18:19 UTC. That navigation change left signing, gas, voting logic
+and the generated signing bundle unchanged.
 
 ## Release gate correction — resolved 31 October
 
@@ -84,8 +96,8 @@ next scheduled cycle remain separate acceptance checks.
 ## Current continuation: Delegation Programme
 
 The owner returned to the Delegation Programme on 29 October. The latest verified
-website release is [41224653138](https://github.com/cristianoneta/neta-dao/actions/runs/41224653138),
-source `b090eb21931739f275d1b561ffe276b626daa07a`, including referenced rule proposals, governance points and fixed allocations. Its publication
+website release is [41228430465](https://github.com/cristianoneta/neta-dao/actions/runs/41228430465),
+source `e7c767acb406dace44e955666fc87a04afdd4ad5`, including pinned native voting links, referenced rule proposals, governance points and fixed allocations. Its publication
 step succeeded; the earlier native-submission byte check remains dated evidence. Do not
 repeat this release or either completed gas repair.
 

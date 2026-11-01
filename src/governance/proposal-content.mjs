@@ -1,3 +1,6 @@
+import { usesExecutionReference, usesReviewReference } from '../../juno-execution-reference.mjs';
+import { assertStaking } from '../../juno-programme-staking.mjs';
+import { assertNativeText, assertReviewLimits } from '../../juno-proposal-limits.mjs';
 import { accountingType, validateCategories } from '../../proposal-accounting.mjs';
 import { usesRuleReference, RULE_TITLE } from '../../juno-rule-reference.mjs';
 import {
@@ -31,26 +34,11 @@ export function validateProposalContent(v, { native = false } = {}) {
   }
   if (!Array.isArray(actions)) throw new Error('ACTIONS MUST BE A JSON ARRAY');
   if (native) {
-    const referenced = usesRuleReference(v);
-    if (referenced && (!v.title.startsWith(RULE_TITLE) || actions.length))
+    if (usesRuleReference(v) && (!v.title.startsWith(RULE_TITLE) || actions.length))
       throw Error('Referenced rule reviews must contain no execution actions.');
-    if (
-      !referenced &&
-      new TextEncoder().encode(`${v.summary.trim()}\n\n${v.body.trim()}`).length > 10000
-    )
-      throw new Error(
-        'On-chain proposal text exceeds 10,000 bytes. Shorten the text or prepare a smaller frozen comparison; do not remove its data.'
-      );
-    for (const [field, max] of [
-      ['title', 100],
-      ['summary', 300],
-      ['body', 10000],
-      ['actions_json', 20000]
-    ])
-      if ([...v[field].trim()].length > max)
-        throw new Error(
-          `${field.toUpperCase()} EXCEEDS THE SHARED REVIEW LIMIT OF ${max} CHARACTERS`
-        );
+    if (usesExecutionReference(v)) assertStaking(actions);
+    if (!usesReviewReference(v)) assertNativeText(`${v.summary.trim()}\n\n${v.body.trim()}`);
+    assertReviewLimits(v);
   }
   const parts = payloadParts(v.actions_json);
   if (native && isCommunityPoolSpend(parts.actions)) assertCommunityPoolSpend(actions);

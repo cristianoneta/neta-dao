@@ -9,7 +9,8 @@ import {
 } from './juno-community-pool-proposal.mjs';
 import { governanceFetch } from './governance-chain-read.mjs';
 import { PROGRAMME, operator } from './juno-delegation-core.mjs';
-import { usesRuleReference } from './juno-rule-reference.mjs';
+import { usesReviewReference } from './juno-execution-reference.mjs';
+import { assertNativeText } from './juno-proposal-limits.mjs';
 
 export const GOVERNANCE = 'juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730';
 export const EXECUTE = '/cosmwasm.wasm.v1.MsgExecuteContract';
@@ -117,8 +118,8 @@ export function assertProgrammeExecutionAvailable(messages) {
     claimValidators(messages, { allowLegacy: false });
 }
 export function proposalContent(kind, values) {
-  if (usesRuleReference(values))
-    throw Error('Referenced rule proposals must be built from the finalized on-chain review.');
+  if (usesReviewReference(values))
+    throw Error('Referenced proposals must be built from the finalized on-chain review.');
   if (
     !values?.title?.trim() ||
     values.title.length > 120 ||
@@ -127,8 +128,7 @@ export function proposalContent(kind, values) {
   )
     throw Error('Review the proposal title, summary and body.');
   const summary = `${values.summary.trim()}\n\n${values.body.trim()}`;
-  if (new TextEncoder().encode(summary).length > 10000)
-    throw Error('On-chain proposal text exceeds 10,000 bytes.');
+  assertNativeText(summary);
   const messages = JSON.parse(values.actions_json);
   if (kind === COMMUNITY_POOL_KIND) assertCommunityPoolSpend(messages);
   else if (kind === 'ALLOCATION_EXECUTION') assertStaking(messages);
@@ -252,7 +252,8 @@ async function preflightSource(
         )
       ]);
       const terms = depositTerms(parameters.params);
-      let staking = null;
+      let staking = null,
+        execution = null;
       if (balance.balance?.denom !== 'ujuno' || !/^\d+$/.test(balance.balance?.amount))
         throw Error('Spendable JUNO balance unavailable.');
       if (isCommunityPoolSpend(content.messages)) {
@@ -263,16 +264,10 @@ async function preflightSource(
         ]);
         verifyCommunityPoolState({ account, pool, denom }, content.messages);
       } else if (isStaking(content.messages)) {
-        const { readExecutionReview } = await import('./juno-rebalance-execution.mjs');
+        const { readExecutionContent } = await import('./juno-execution-reference-read.mjs');
         const { checkRebalanceSource } = await import('./juno-rebalance-chain.mjs');
-        const split = content.summary.indexOf('\n\n');
-        const review = await readExecutionReview({
-          title: content.title,
-          summary: content.summary.slice(0, split),
-          body: content.summary.slice(split + 2),
-          actions_json: JSON.stringify(content.messages, null, 2)
-        });
-        staking = await checkRebalanceSource(get, review, height);
+        execution = await readExecutionContent(content, { get });
+        staking = await checkRebalanceSource(get, execution, height, header.time);
       } else if (content.messages.length) {
         const [account, info, code, admin, paused, withdraw] = await Promise.all([
           get('/cosmos/auth/v1beta1/module_accounts/gov'),
@@ -306,6 +301,7 @@ async function preflightSource(
         height,
         endpoint,
         staking,
+        execution,
         params: parameters.params,
         terms,
         balance: balance.balance.amount,
@@ -337,18 +333,6 @@ function independentEndpoints(endpoints) {
 }
 export async function preflight(endpoints, content, proposer, options = {}) {
   assertProgrammeExecutionAvailable(content.messages);
-  if (isStaking(content.messages)) {
-    const { readExecutionReview } = await import('./juno-rebalance-execution.mjs');
-    const { checkCurrentApproval } = await import('./juno-rebalance-chain.mjs');
-    const split = content.summary.indexOf('\n\n');
-    const review = await readExecutionReview({
-      title: content.title,
-      summary: content.summary.slice(0, split),
-      body: content.summary.slice(split + 2),
-      actions_json: JSON.stringify(content.messages, null, 2)
-    });
-    await checkCurrentApproval(review, { ...options, endpoints });
-  }
   const results = await Promise.allSettled(
     independentEndpoints(endpoints).map((endpoint) =>
       preflightSource([endpoint], content, proposer, options)
@@ -368,6 +352,12 @@ export async function preflight(endpoints, content, proposer, options = {}) {
     good.some((proof) => stable(proof.staking) !== stable(good[0].staking))
   )
     throw Error('Juno sources disagree on staking state. Review again later.');
+  if (isStaking(content.messages)) {
+    if (good.some((proof) => proof.execution?.hash !== good[0].execution?.hash))
+      throw Error('Juno sources disagree on rebalance evidence.');
+    const { checkCurrentApproval } = await import('./juno-rebalance-chain.mjs');
+    await checkCurrentApproval(good[0].execution, { ...options, endpoints });
+  }
   if (good.some((proof) => stable(proof.params) !== stable(good[0].params)))
     throw Error('Juno sources disagree on governance parameters. Review again later.');
   return {

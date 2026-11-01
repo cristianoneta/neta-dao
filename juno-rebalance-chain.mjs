@@ -137,7 +137,10 @@ export async function stakingState(get, height) {
     return {
       source: v.validator_src_address,
       destination: v.validator_dst_address,
-      entries: entries(v.entries)
+      // SDK query responses keep entries outside the identity-only redelegation.
+      entries: entries(
+        Array.isArray(r.entries) ? r.entries.map((e) => e?.redelegation_entry) : null
+      )
     };
   });
   const unbonds = unbondings.map((v) => {
