@@ -761,20 +761,15 @@ export async function exerciseReviewFunding(page, origin, sample) {
   assert.equal(await page.locator('#proposal-details').isVisible(), true);
   await page.keyboard.press('Space');
   assert.equal(await page.locator('#proposal-details').isVisible(), false);
-  await page.locator('#comment-title').fill('A useful discussion');
-  await page.locator('#comment-body').fill('Review comment survives publication without a reload.');
-  await page.locator('#publish-comment').click();
-  await page.waitForFunction(() =>
-    document.querySelector('#gov-status').textContent.includes('Discussion thread published')
-  );
-  assert.equal(comments.length, 1);
-  assert.match(
-    await page.locator('#discussion-panel').innerText(),
-    /Review comment survives publication/
+  assert.equal(await page.locator('#discussion-panel, #comment-form, #publish-comment').count(), 0);
+  assert.equal(
+    comments.length,
+    0,
+    'The proposal workspace cannot create legacy comment transactions'
   );
 
   assert.equal(await page.locator('#planner-native-panel').isVisible(), false);
-  assert.equal(await page.locator('#discussion-panel').isVisible(), true);
+  assert.equal(await page.locator('#discussion-panel').count(), 0);
   assert.match(page.url(), /review=77/);
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -796,8 +791,8 @@ export async function exerciseReviewFunding(page, origin, sample) {
   await page.reload();
   await page.locator('#planner-native-panel').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#planner-proposal-context').isVisible(), false);
-  assert.equal(await page.locator('#discussion-panel').isVisible(), true);
-  assert.equal(await page.locator('#comment-form').isVisible(), false);
+  assert.equal(await page.locator('#discussion-panel').count(), 0);
+  assert.equal(await page.locator('#comment-form').count(), 0);
   await wallet(sponsor);
   await page.locator('#gov-connect').click();
   const minimum = page.locator('#planner-native-minimum'),
@@ -1483,7 +1478,7 @@ export async function exerciseReviewFunding(page, origin, sample) {
   );
   assert.equal(proposal.withdrawn, true);
   assert.equal(await page.locator('.workflow .active').count(), 0);
-  assert.equal(await page.locator('#comment-form').isVisible(), false);
+  assert.equal(await page.locator('#comment-form').count(), 0);
   assert.equal(await page.locator('#primary-action').isVisible(), false);
   assert.equal(await page.locator('#proposal-title').isDisabled(), true);
   const mainnetUrl = page.url(),

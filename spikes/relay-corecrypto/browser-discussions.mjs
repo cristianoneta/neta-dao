@@ -7,6 +7,7 @@ import { chromium } from 'playwright';
 import { DiscussionStore } from '../../discussions/store.mjs';
 import { discussionServer } from '../../discussions/server.mjs';
 import { discussionSource } from '../../discussion-links.mjs';
+import { normalizedComment } from '../../src/governance/comments.mjs';
 import { Secp256k1, sha256 } from '../../relay-backup/node_modules/@cosmjs/crypto/build/index.js';
 import {
   encodeSecp256k1Pubkey,
@@ -22,7 +23,8 @@ const pub = encodeSecp256k1Pubkey(
 );
 const wallet = pubkeyToAddress(pub, 'juno');
 const other = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
-const store = new DiscussionStore(':memory:');
+let clockOffset = 0;
+const store = new DiscussionStore(':memory:', { now: () => Date.now() + clockOffset });
 const source = discussionSource({ kind: 'native', chainId: 'juno-1', contract: 'gov', id: 999 });
 const thread = store.syncThread({
   source,
@@ -37,17 +39,30 @@ const thread = store.syncThread({
 });
 store.syncStatus(source);
 store.syncStatus('native:juno-1:gov');
+const importedComment = (comment) => ({
+  ...normalizedComment({ ...comment, moderation: null }),
+  moderation: comment.moderation
+});
 for (let id = 1; id <= 65; id++)
-  store.importComment(source, {
-    id,
-    author: wallet,
-    created_time: Math.floor((now - 86400000) / 1000) + id * 500,
-    body:
-      id === 1
-        ? 'A useful starting point. <script>window.injected=true</script>'
-        : `Community perspective ${id}: make the participation window clear, and explain which actions require a separate vote.`,
-    moderation: null
-  });
+  store.importComment(
+    source,
+    importedComment({
+      id,
+      author: wallet,
+      created_time: Math.floor((now - 86400000) / 1000) + id * 500,
+      body:
+        id === 1
+          ? '[[NETA_THREAD:%]]\nA useful starting point. <script>window.injected=true</script>'
+          : id === 2
+            ? 'NEVER RENDER HIDDEN BODY'
+            : id === 3
+              ? '[[NETA_REPLY:4]]\nforward reference'
+              : id === 4
+                ? '[[NETA_REPLY:3]]\ncycle candidate'
+                : `Community perspective ${id}: make the participation window clear, and explain which actions require a separate vote.`,
+      moderation: id === 2 ? { hidden: true, reason: 'spam' } : null
+    })
+  );
 let currentName = true;
 const chain = {
   identity: async () => ({
@@ -74,7 +89,8 @@ const server = discussionServer({
   store,
   chain,
   origins: ['https://cosmoot.com'],
-  moderators: [wallet]
+  moderators: [wallet],
+  now: () => Date.now() + clockOffset
 });
 server.listen(0, '127.0.0.1');
 await once(server, 'listening');
@@ -109,11 +125,14 @@ try {
   });
   await context.addInitScript(
     ({ wallet }) => {
+      const originalNow = Date.now;
+      Date.now = () => originalNow() + Number(sessionStorage.getItem('discussion-test-clock') || 0);
       window.testWallet = wallet;
       window.keplr = {
         enable: async () => {},
         getKey: async () => ({ bech32Address: window.testWallet }),
         signArbitrary: async (chain, address, message) => {
+          if (window.rejectDiscussionSignIn) throw Error('Signature rejected');
           if (chain !== 'juno-1' || address !== window.testWallet)
             throw Error('Wrong sign-in identity');
           return window.discussionTestSignature(message);
@@ -178,6 +197,27 @@ try {
     'Do not accept anonymous text that sign-in would discard'
   );
   assert.match(await page.locator('#post-1').innerText(), /<script>/);
+  assert.match(await page.locator('#post-1').innerText(), /\[\[NETA_THREAD:%\]\]/);
+  assert.doesNotMatch(
+    await page.locator('#discussion-posts').innerText(),
+    /NEVER RENDER HIDDEN BODY/
+  );
+  assert.match(await page.locator('#post-2').innerText(), /spam/);
+  assert.match(await page.locator('#post-4').innerText(), /cycle candidate/);
+  assert.equal(
+    await page
+      .locator('#post-3')
+      .getByText('View the post being replied to', { exact: true })
+      .count(),
+    0
+  );
+  assert.equal(
+    await page
+      .locator('#post-4')
+      .getByText('View the post being replied to', { exact: true })
+      .count(),
+    1
+  );
   assert.equal(await page.evaluate(() => window.injected), undefined);
   assert.match(
     await page.locator('#post-1 a').first().getAttribute('href'),
@@ -210,6 +250,32 @@ try {
   await page
     .locator('#discussion-reply')
     .fill('Can we show exactly which proposals count towards participation?');
+  // Session expiry is checked on submission, never interrupts typing, and never
+  // clears the visible draft. Cancelling renewal and retrying must not post it.
+  clockOffset = 31 * 60000;
+  await page.evaluate((offset) => {
+    sessionStorage.setItem('discussion-test-clock', String(offset));
+    window.rejectDiscussionSignIn = true;
+  }, clockOffset);
+  const typed = await page.locator('#discussion-reply').inputValue();
+  await page.locator('#discussion-post').click();
+  await page.waitForFunction(() =>
+    document.getElementById('discussion-status').textContent.includes('Signature rejected')
+  );
+  assert.equal(await page.locator('#discussion-reply').inputValue(), typed);
+  assert.equal(await page.locator('#discussion-reply').isDisabled(), false);
+  assert.equal(store.posts(thread.id).total, 65);
+  assert.equal(await page.locator('#discussion-reply-context').isVisible(), true);
+  await page.locator('#discussion-reply').fill(typed + '');
+  await page.evaluate(() => {
+    window.rejectDiscussionSignIn = false;
+  });
+  await page.locator('#discussion-post').click();
+  await page.waitForFunction(() =>
+    document.getElementById('discussion-post-status').textContent.includes('Sign-in renewed')
+  );
+  assert.equal(await page.locator('#discussion-reply').inputValue(), typed);
+  assert.equal(store.posts(thread.id).total, 65, 'renewing sign-in is not consent to post');
   dropReply = true;
   await page.locator('#discussion-post').click();
   await page.waitForFunction(() =>

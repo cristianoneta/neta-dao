@@ -5,13 +5,16 @@ colours. The Phoenix/Discourse reference informs the three-column arrangement an
 reading timeline, not a general-purpose forum or additional social features.
 
 Status, 1 November: [PR #335](https://github.com/cristianoneta/neta-dao/pull/335)
-is merged; the service and public API are active. Manual website publication and
-real Keplr/mobile acceptance remain pending.
+is merged; the service, public API and website are published.
+[Manual release 41329125613](https://github.com/cristianoneta/neta-dao/actions/runs/41329125613)
+published source `e9393eba035f9ca2af4787fce298e6f26b763c10`.
+The follow-up below requires its own service update and manual website release;
+real Keplr/mobile acceptance remains separate.
 The complete application passed all 18 required jobs in
 [CI 41296509948](https://github.com/cristianoneta/neta-dao/actions/runs/41296509948),
 including the optional Compose overlay and Caddy route.
-The separate operational acceptance is recorded below. Testnet reviews keep their
-existing comments; V1 indexes the configured public Juno mainnet sources only.
+The separate operational acceptance is recorded below. The owner subsequently narrowed automatic topics to Juno native governance
+and its public mainnet reviews, starting with the current allocation-rule review.
 
 ## Operational acceptance — 1 November
 
@@ -30,25 +33,26 @@ and production data were preserved. The final moderator/routing configuration wa
 verified in another fresh backup. Independent external GET requests subsequently
 confirmed source freshness, both allowed origins and foreign-origin denial.
 
-These checks establish API readiness. Website publication, actual wallet/browser
-acceptance, mobile use and recovery on a different machine remain distinct steps.
+These checks establish API readiness. Website publication subsequently completed;
+actual wallet/browser acceptance, mobile use and recovery on a different machine
+remain distinct steps.
 Exact installation inventory and backup receipts remain in the private handoff;
 do not repeat the completed installation to finish website publication.
 
 ## Product contract
 
 - **Join the discussion →** belongs beside the proposal heading, with a reply
-  count when nonzero. It replaces the bottom comment pane only after the exact
-  source and its historical comments have been indexed. An unavailable service or
-  unresolved legacy comment transaction retains the existing view and recovery.
+  count when nonzero, shown only for an indexed topic. The bottom topic/comment
+  form is removed. An unavailable forum never removes the proposal text, voting
+  controls or pending on-chain transaction recovery in the action area.
 - `/discussions.html?source=…` resolves one canonical topic. Public readers need
   no wallet. Left: proposal history. Centre: proposal summary, revisions, replies
   and composer. Right: mint timeline with current position/total, dates, first,
   latest, keyboard/click/drag navigation, Back and saved reading position. At small
   widths the history collapses and the timeline becomes a fixed horizontal rail.
 - A public review creates its topic on the next successful index cycle. Local
-  drafts create nothing. New native/DAO proposals without a review create a topic
-  too. There is no user-facing create-topic API. A finalized review joins a native
+  drafts create nothing. New Juno native proposals without a review create a topic
+  too; DAO proposal modules and testnet reviews are outside the current scope. There is no user-facing create-topic API. A finalized review joins a native
   proposal only when the existing governance parser verifies its frozen content
   and exactly one native proposal matches metadata, title, summary and messages.
   Duplicate or altered matches remain separate. Old thread URLs and post IDs
@@ -56,7 +60,11 @@ do not repeat the completed installation to finish website publication.
 - **Connect Keplr** signs a purpose-, domain-, origin-, wallet- and nonce-bound
   ADR-36 challenge. It is an off-chain sign-in, not a chain transaction. Challenges
   expire after two minutes and are consumed once; sessions expire after thirty
-  minutes, remain in memory and are revoked on logout. A wallet change clears the
+  minutes, remain in memory and are revoked on logout. Expiry does not interrupt
+  typing or clear the visible draft/quote. Posting prompts a renewed sign-in; the
+  user then posts explicitly. Cancelling renewal retains the editable draft.
+  An explicit server authentication rejection clears only the unsent request,
+  while an uncertain response retains its idempotent receipt for checking. A wallet change clears the
   visible composer and session, while retaining that wallet's local draft.
 - The wallet is the permanent author. A currently verified `.neta` name links to
   its public profile; unavailable, expired or transferred ownership falls back to
@@ -85,13 +93,36 @@ message-backup service. The browser communicates with
 `https://api.cosmoot.com/discussions`; origins are explicitly restricted.
 
 The synchronizer reads native Juno governance, the pinned mainnet community review
-contract and proposal modules from the public DAO directory. A non-overlapping
+contract. Historical DAO rows are retained privately for recovery but no longer
+appear in the forum or receive new indexing. A non-overlapping
 cycle starts sixty seconds after the preceding cycle finishes. Bounded pagination
 follows provider/contract cursors through an empty/end page, including contracts
 that clamp page sizes. Chain disagreement, incomplete imports or changed recorded
 revisions fail closed. Already stored discussions remain readable during outages.
-DAO proposal contracts expose creation height rather than wall-clock time; their
-history date records first indexing, not an invented original date.
+The entire verified native/review snapshot and its unique links commit in one
+SQLite transaction. Readers never see a transient duplicate between source reads.
+Either provider or import failure leaves the preceding complete snapshot intact.
+Both source groups must be fresh for health readiness.
+
+## Juno-only launch scope — follow-up implementation
+
+An explicit UTC start date (`DISCUSSIONS_START_AT`) and optional exact source keys
+(`DISCUSSIONS_INITIAL_SOURCES`) initialize a persistent database policy. The
+operator selects the current allocation-rule review as the sole earlier exception.
+The start date is the agreed cutover, not the later installation time, so proposals
+published during rollout are included. It must never advance at restart.
+
+Initialization unlists older imports without deleting posts, revisions, request
+receipts, moderation or original on-chain records. Subsequent syncs admit only the
+selected Juno review/native sources and proposals created at or after the cutoff.
+Old public thread URLs no longer expose retired topics; aliases for retained
+review-to-vote topics still work. Later completed proposals stay in the history.
+The service refuses an unconfigured launch or silently changed policy. The policy
+and visibility flags are part of the existing full SQLite backup and restore.
+Deployment must back up the current database/configuration, verify the selected
+review, preserve running services, then check exact retained history, new-topic
+admission, source freshness and a backup containing the new policy. No additional
+database service or recurring deletion job is required.
 
 Posting has a 6,000-character limit, one reply per wallet per thirty seconds and
 up to twenty per hour. The edge/client-IP boundary, per-IP request limits, bounded
@@ -117,7 +148,8 @@ operator inventory belong in the private handoff.
 
 1. Build the reviewed commit's independent image and create an owned private data
    directory for the image's non-root UID. Install the explicit origin and reviewed
-   moderator configuration. Validate the combined existing compose file plus the
+   moderator configuration and one-time start-date/source policy. Validate the
+   combined existing compose file plus the
    optional `discussions` profile; preserve existing backend/network configuration.
 2. Start only the new service. Verify persistent storage after restart, all source
    groups, complete comment imports, a real published proposal and exact review-to-
@@ -146,7 +178,10 @@ Backend regressions exercise actual ADR-36 signatures, nonce/origin isolation,
 revoked/expired sessions, durable idempotency after reopening SQLite, merge aliases,
 immutable revisions, historical moderation, bounded pagination, two-source block
 checks, transferred/expired names, bonded versus inactive stake, unknown versus
-zero and automatic topic creation with exact-match joining. Navigation regressions
+zero and automatic topic creation with exact-match joining. Launch-scope tests
+cover retirement without evidence deletion, unchanged policy across reopen,
+late arrivals, excluded DAO sources and snapshot failures without partial visibility.
+Navigation regressions
 cover late responses, missing service, incomplete migration and pending legacy
 transactions. Infrastructure tests cover optional WAL exports and validated restore.
 

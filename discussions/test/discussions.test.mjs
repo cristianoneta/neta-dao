@@ -449,11 +449,16 @@ test('published reviews become topics, revisions and legacy comments survive, ex
     throw Error('Unexpected query');
   };
   const key = discussionSource({ ...reviewSource, id: 17 });
+  store.configureScope({ since: '2026-11-01T00:00:00Z', include: [key] });
   try {
     failComments = true;
     await chain.sync(store, [nativeSource, reviewSource]);
-    assert.ok(store.resolve(key));
-    assert.equal(store.ready(key), false, 'do not hide original comments until import completes');
+    assert.equal(
+      store.resolve(key),
+      null,
+      'an incomplete snapshot must not publish partial topics'
+    );
+    assert.equal(store.ready(key), false);
     failComments = false;
     await chain.sync(store, [nativeSource, reviewSource]);
     const t = store.resolve(key);
@@ -485,5 +490,126 @@ test('published reviews become topics, revisions and legacy comments survive, ex
     assert.equal(store.revisions(t.id).length, 1);
   } finally {
     store.close();
+  }
+});
+
+test('Juno launch scope retires old imports, preserves evidence and resumes future topics after restart', async () => {
+  const { REVIEW_MAINNET_RELEASE } = await import('../../juno-review-mainnet-config.mjs');
+  const { SOURCES } = await import('../chain.mjs');
+  assert.deepEqual(
+    SOURCES.map((s) => s.kind),
+    ['native', 'review']
+  );
+  const directory = await mkdtemp(tmpdir() + '/cosmoot-scope-');
+  const path = directory + '/discussions.sqlite';
+  const since = '2026-11-01T17:23:06.000Z',
+    start = Date.parse(since);
+  const reviewKey = (id) => discussionSource({ ...SOURCES[1], id });
+  let store = new DiscussionStore(path);
+  try {
+    const old = thread(store),
+      receipt = post(store, old);
+    const seed = thread(store, reviewKey(4), { phase: 'discussion', created: start - 86400000 });
+    const legacyDao = thread(
+      store,
+      discussionSource({ kind: 'dao', chainId: 'juno-1', contract: other, id: 9 }),
+      { created: start + 10 }
+    );
+    thread(store, reviewKey(3));
+    store.syncStatus('dao:juno-1:' + other);
+    const config = { since, include: [reviewKey(4)] };
+    store.configureScope(config);
+    assert.deepEqual(
+      store.list().map((t) => t.id),
+      [seed.id]
+    );
+    assert.equal(store.thread(old.id), null);
+    assert.equal(store.thread(legacyDao.id), null);
+    assert.throws(() => store.posts(old.id), /not found/);
+    assert.throws(() => store.revisions(old.id), /not found/);
+    assert.throws(() => post(store, old), /not found/);
+    assert.equal(
+      store.db.prepare('SELECT count(*) n FROM posts').get().n,
+      1,
+      'retired evidence is not deleted'
+    );
+    assert.equal(
+      store.db.prepare('SELECT thread FROM posts WHERE id=?').get(receipt.id).thread,
+      old.id
+    );
+    assert.equal(store.health().length, 0, 'old DAO health does not masquerade as active indexing');
+    store.close();
+    store = new DiscussionStore(path);
+    // A rollback to the previous image ignores listing flags and may import again.
+    store.db.prepare('UPDATE threads SET listed=1 WHERE id=?').run(legacyDao.id);
+    store.syncStatus('dao:juno-1:' + other);
+    assert.deepEqual(store.configureScope(config), { version: 1, ...config });
+    assert.equal(store.thread(legacyDao.id), null);
+    assert.equal(store.health().length, 0);
+    assert.throws(
+      () => store.configureScope({ ...config, since: '2026-11-02T00:00:00Z' }),
+      /already configured/
+    );
+    assert.deepEqual(
+      store.list().map((t) => t.id),
+      [seed.id]
+    );
+    const chain = new DiscussionChain();
+    chain.snapshot = async () => ({ get: async () => ({}) });
+    const native = (id, time) => ({
+      id: String(id),
+      title: 'Juno proposal ' + id,
+      summary: 'A chain decision',
+      submit_time: new Date(time).toISOString(),
+      status: 'PROPOSAL_STATUS_VOTING_PERIOD'
+    });
+    chain.pages = async () => [native(384, start - 1000), native(385, start)];
+    let unavailable = true;
+    chain.smart = async (_get, contract, q) => {
+      assert.equal(contract, REVIEW_MAINNET_RELEASE.contract);
+      assert.equal(
+        store.resolve('native:juno-1:gov:385'),
+        null,
+        'new native topic stays unpublished while reviews are still being checked'
+      );
+      if (q.proposals)
+        return q.proposals.start_after
+          ? []
+          : [
+              { id: 3, created_time: 1 },
+              { id: 4, author: wallet, created_time: (start - 86400000) / 1000, latest_version: 1 },
+              { id: 5, author: wallet, created_time: start / 1000, latest_version: 1 }
+            ];
+      const id = q.revisions?.proposal_id || q.comments?.proposal_id;
+      assert.notEqual(id, 3, 'retired review bodies are never fetched again');
+      if (q.revisions)
+        return q.revisions.start_after
+          ? []
+          : [{ version: 1, title: 'Review ' + id, summary: 'Discuss a Juno decision' }];
+      if (q.comments) {
+        if (unavailable) throw Error('Provider unavailable');
+        return [];
+      }
+      throw Error('Unexpected query');
+    };
+    await chain.sync(store);
+    assert.equal(store.list().length, 1, 'failed snapshot publishes nothing');
+    unavailable = false;
+    await chain.sync(store);
+    assert.equal(store.list().length, 3, 'seed plus a new review and a direct native proposal');
+    assert.equal(store.resolve(reviewKey(4)).id, seed.id);
+    assert.ok(store.resolve(reviewKey(5)));
+    assert.ok(store.resolve('native:juno-1:gov:385'));
+    assert.equal(store.resolve(source), null, 'old proposals never reappear');
+    await assert.rejects(
+      chain.sync(store, [{ kind: 'dao', chainId: 'juno-1', contract: other }]),
+      /Only Juno/
+    );
+    store.close();
+    store = new DiscussionStore(path);
+    assert.equal(store.list().length, 3, 'visibility survives a second restart');
+  } finally {
+    store.close();
+    await rm(directory, { recursive: true, force: true });
   }
 });

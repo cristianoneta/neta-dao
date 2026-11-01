@@ -1,14 +1,13 @@
 import { DISCUSSION_API, discussionUrl } from '../../discussion-links.mjs';
 
-// Switch only after this exact proposal and its existing comments are indexed.
-// An absent service must not remove the currently usable comment/receipt view.
-export function discussionEntry({ link, panel, fetcher = fetch, now = Date.now }) {
+// Only link an indexed proposal. Pending on-chain operations keep their existing
+// recovery controls in the proposal action area; the old comment form is retired.
+export function discussionEntry({ link, fetcher = fetch, now = Date.now }) {
   let epoch = 0;
   const cache = new Map();
-  return async ({ source = null, legacyVisible = false, pending = false } = {}) => {
+  return async ({ source = null, pending = false } = {}) => {
     const request = ++epoch;
     link.hidden = true;
-    panel.hidden = !legacyVisible;
     if (!source || pending) return;
     let entry = cache.get(source);
     if (!entry || entry.expires <= now()) {
@@ -45,9 +44,8 @@ export function discussionEntry({ link, panel, fetcher = fetch, now = Date.now }
       );
       link.title = `${result.replies} ${result.replies === 1 ? 'reply' : 'replies'}`;
       link.hidden = false;
-      panel.hidden = true;
     } catch {
-      /* Preserve original comments and wallet transaction recovery. */
+      /* Leave proposal and wallet transaction recovery usable during an outage. */
     }
   };
 }

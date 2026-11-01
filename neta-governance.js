@@ -16,12 +16,10 @@
     isCommunityPoolSpend,
     assertCommunityPoolSpend
   } = await import('./juno-community-pool-proposal.mjs');
-  const { normalizedComment } = await import('./src/governance/comments.mjs');
   const { discussionSource } = await import('./discussion-links.mjs');
   const { discussionEntry } = await import('./src/governance/discussion-entry.mjs');
   const showDiscussionEntry = discussionEntry({
-    link: document.getElementById('proposal-discussion-link'),
-    panel: document.getElementById('discussion-panel')
+    link: document.getElementById('proposal-discussion-link')
   });
   const { unitsFor, resolveSelection, selectionParams } = await import(
     './dao-hierarchy.mjs?v=20261006-structure-1'
@@ -345,9 +343,6 @@
     chainProposals: [],
     selected: null,
     revisions: [],
-    comments: [],
-    replyTo: null,
-    nativeThreads: false,
     busy: false,
     filter: 'all',
     countdown: null,
@@ -522,7 +517,6 @@
     if (pending) {
       $('#primary-action').disabled = true;
       $('#publish-revision').disabled = true;
-      $('#publish-comment').disabled = true;
     }
     $('.proposal-workspace').setAttribute('aria-busy', String(state.busy));
     if (state.busy && state.actionButton) {
@@ -662,9 +656,7 @@
   function disconnectWallet() {
     if (state.busy) return;
     clearWallet();
-    resetCommentForm();
     renderActions();
-    renderComments();
     status('WALLET DISCONNECTED');
     $('#gov-connect').focus();
   }
@@ -1010,25 +1002,6 @@
     button.setAttribute('aria-expanded', String(open));
     $('#proposal-details-state').textContent = open ? 'Hide details −' : 'View details +';
   }
-  function resetCommentForm() {
-    state.replyTo = null;
-    $('#comment-title').hidden = false;
-    $('#comment-title').value = '';
-    $('#comment-body').value = '';
-    $('#comment-body').placeholder = 'Introduce the topic';
-    $('#comment-form-title').textContent = 'START A NEW TOPIC';
-    $('#publish-comment').textContent = 'START THREAD';
-    $('#cancel-reply').hidden = true;
-  }
-  function beginReply(comment) {
-    state.replyTo = comment.id;
-    $('#comment-title').hidden = true;
-    $('#comment-form-title').textContent = `REPLY TO: ${comment.title || short(comment.author)}`;
-    $('#comment-body').placeholder = 'Reply to this comment';
-    $('#publish-comment').textContent = 'PUBLISH REPLY';
-    $('#cancel-reply').hidden = false;
-    $('#comment-body').focus();
-  }
   function renderRevisions() {
     const list = $('#revision-list');
     list.replaceChildren();
@@ -1047,102 +1020,6 @@
         };
         list.append(x);
       });
-  }
-  function renderComments() {
-    const list = $('#comment-list');
-    list.replaceChildren();
-    const comments = state.comments.map(normalizedComment),
-      byId = new Map(comments.map((c) => [c.id, c])),
-      roots = comments.filter((c) => c.parent_id === null),
-      allowed = !!state.access?.can_comment && state.selected?.status === 'discussion';
-    comments
-      .filter((c) => c.parent_id !== null && !byId.has(c.parent_id))
-      .forEach((c) => {
-        c.parent_id = null;
-        c.title = c.title || 'Earlier discussion';
-        roots.push(c);
-      });
-    const children = new Map();
-    comments.forEach((c) => {
-      if (c.parent_id === null) return;
-      const group = children.get(c.parent_id) || [];
-      group.push(c);
-      children.set(c.parent_id, group);
-    });
-    const descendantCount = (id) => {
-      const queue = [...(children.get(id) || [])];
-      let total = 0;
-      while (queue.length) {
-        const c = queue.pop();
-        total++;
-        queue.push(...(children.get(c.id) || []));
-      }
-      return total;
-    };
-    const renderReply = (comment, depth = 1) => {
-      const item = node('div', 'reply-item');
-      item.style.setProperty('--reply-depth', String(Math.min(depth, 4)));
-      const controls = node('div', 'reply-controls'),
-        reply = node('button', null, 'REPLY');
-      reply.type = 'button';
-      reply.disabled = !allowed || !!comment.moderation?.hidden;
-      reply.onclick = () => beginReply(comment);
-      controls.append(
-        node(
-          'div',
-          'thread-meta',
-          `${isNativeReview() && CHAIN_ID === 'juno-1' ? 'JUNO ELIGIBILITY VERIFIED AT POSTING' : Number(comment.verified_stake) / 1e6 + ' NETA VERIFIED'} · ${when(comment.created_time)}`
-        ),
-        reply
-      );
-      item.append(
-        node('strong', null, short(comment.author)),
-        node('p', null, comment.body),
-        controls
-      );
-      if (depth < 32)
-        (children.get(comment.id) || []).forEach((child) =>
-          item.append(renderReply(child, depth + 1))
-        );
-      else if (children.has(comment.id))
-        item.append(node('p', null, 'DEEPER REPLIES OMITTED · DISPLAY DEPTH LIMIT 32'));
-      return item;
-    };
-    roots.forEach((root) => {
-      root.title = root.title || 'Earlier discussion';
-      const thread = node('article', 'thread'),
-        head = node('div', 'thread-head'),
-        title = node('h4', null, root.title),
-        meta = node(
-          'div',
-          'thread-meta',
-          `${short(root.author)} · ${isNativeReview() && CHAIN_ID === 'juno-1' ? 'JUNO ELIGIBILITY VERIFIED AT POSTING' : Number(root.verified_stake) / 1e6 + ' NETA VERIFIED'} · ${when(root.created_time)}`
-        ),
-        controls = node('div', 'thread-controls'),
-        reply = node('button', null, 'REPLY');
-      reply.type = 'button';
-      reply.disabled = !allowed || !!root.moderation?.hidden;
-      reply.onclick = () => beginReply(root);
-      const replyCount = descendantCount(root.id);
-      controls.append(
-        reply,
-        node('span', 'thread-meta', `${replyCount} ${replyCount === 1 ? 'REPLY' : 'REPLIES'}`)
-      );
-      head.append(title, node('p', null, root.body), meta, controls);
-      thread.append(head);
-      const replies = children.get(root.id) || [];
-      if (replies.length) {
-        const replyList = node('div', 'reply-list');
-        replies.forEach((c) => replyList.append(renderReply(c)));
-        thread.append(replyList);
-      }
-      list.append(thread);
-    });
-    if (!roots.length)
-      list.append(node('div', 'comment-item', 'NO TOPICS YET · START THE FIRST THREAD BELOW'));
-    $('#comment-title').disabled = !allowed;
-    $('#comment-body').disabled = !allowed;
-    $('#publish-comment').disabled = !allowed || state.busy || pendingReview();
   }
   function nativeAccess() {
     const junox = Number(state.access?.active_native_stake || 0) / 1e6,
@@ -1194,7 +1071,6 @@
     if (hasLegacyReceipt()) {
       setEditable(false);
       $('#native-funding-panel').hidden = true;
-      $('#discussion-panel').hidden = true;
       return;
     }
     const selected = state.selected,
@@ -1215,14 +1091,10 @@
         hasSubmissionReceipt: !!sharedFinal && plannerGov.hasReceipt()
       }),
       { member, discussion, needsSetup, canSetup, withdrawable, canWithdraw } = permissions,
-      access = native && state.address ? nativeAccess() : null,
-      commentBlocked =
-        discussion && !!state.address && !state.access?.can_comment && !!state.dao.commentStakeUrl;
+      access = native && state.address ? nativeAccess() : null;
     $('#native-review-setup').hidden = !native || !!CONTRACT;
     $('#change-note-wrap').hidden = true;
     $('#revision-panel').hidden = !selected;
-    $('#discussion-panel').hidden =
-      !selected || selected.source === 'chain' || (!discussion && !state.comments.length);
     let discussionKey = null;
     if (selected)
       try {
@@ -1240,14 +1112,12 @@
       }
     void showDiscussionEntry({
       source: discussionKey,
-      legacyVisible: !$('#discussion-panel').hidden,
       pending: !!pendingReview()
     });
-    $('#comment-form').hidden = !discussion;
     $('#revision-panel').hidden = !selected || selected.source === 'chain';
     $('#save-local').hidden = !!selected;
     $('#publish-revision').hidden = !discussion;
-    $('#eligibility-action').hidden = !commentBlocked;
+    $('#eligibility-action').hidden = true;
     $('#eligibility-action').textContent = state.dao.commentStakeLabel || 'OPEN STAKING';
     if (native && CHAIN_ID === 'juno-1') $('#eligibility-action').textContent = 'DELEGATE JUNO';
     $('#primary-action').hidden = !!selected && !discussion;
@@ -1391,7 +1261,6 @@
       )
     ]);
     if (epoch !== state.requestEpoch) return;
-    state.nativeThreads = true;
     state.configOwner = config.owner;
     state.reviewPaused = config.paused;
     const reviews = await Promise.all(
@@ -1445,7 +1314,6 @@
     }
     if (!CONTRACT) {
       if (epoch !== state.requestEpoch) return;
-      state.nativeThreads = false;
       state.configOwner = null;
       state.proposals = [];
       state.chainProposals = history;
@@ -1461,7 +1329,6 @@
       )
     ]);
     if (epoch !== state.requestEpoch) return;
-    state.nativeThreads = Object.prototype.hasOwnProperty.call(config, 'minimum_comment_stake');
     state.configOwner = config.owner;
     state.proposals = proposals;
     state.chainProposals = history;
@@ -1483,22 +1350,14 @@
     $('#onchain-panel').hidden = true;
     setDetails(false);
     renderList();
-    let [revisions, comments] = await Promise.all([
-      isNativeReview()
-        ? queryAll(
-            (startAfter) => ({
-              revisions: { proposal_id: Number(id), start_after: startAfter, limit: 100 }
-            }),
-            (item) => item.version
-          )
-        : query({ revisions: { proposal_id: Number(id) } }),
-      queryAll(
-        (startAfter) => ({
-          comments: { proposal_id: Number(id), start_after: startAfter, limit: 100 }
-        }),
-        (item) => item.id
-      )
-    ]);
+    let revisions = isNativeReview()
+      ? await queryAll(
+          (startAfter) => ({
+            revisions: { proposal_id: Number(id), start_after: startAfter, limit: 100 }
+          }),
+          (item) => item.version
+        )
+      : await query({ revisions: { proposal_id: Number(id) } });
     if (
       epoch !== state.requestEpoch ||
       daoId !== state.dao.id ||
@@ -1511,9 +1370,7 @@
         revision: item.version,
         change_note: item.change_log
       }));
-    resetCommentForm();
     state.revisions = revisions;
-    state.comments = comments;
     const current =
       revisions.find((r) => r.revision === state.selected.current_revision) || revisions.at(-1);
     let pinnedFinal = null;
@@ -1587,7 +1444,6 @@
             : 5
     );
     renderRevisions();
-    renderComments();
     renderActions();
     if (linkFinal) {
       const candidates = state.chainProposals.filter((p) =>
@@ -1763,7 +1619,6 @@
     });
     plannerGov.invalidate();
     state.revisions = [];
-    state.comments = [];
     setDetails(false);
     const p = item.proposal,
       v = p.votes || {},
@@ -1798,7 +1653,6 @@
         ? 'Connect Keplr on Juno Mainnet to vote.'
         : 'Voting is read-only until this DAO transaction adapter is verified.';
     $('#revision-panel').hidden = true;
-    $('#discussion-panel').hidden = true;
     setEditable(false);
     $('#change-note-wrap').hidden = true;
     $('#save-local').hidden = true;
@@ -1831,9 +1685,7 @@
     clearInterval(state.countdown);
     state.selected = null;
     state.revisions = [];
-    state.comments = [];
     setDetails(true);
-    resetCommentForm();
     $('#onchain-panel').hidden = true;
     $('#native-funding-panel').hidden = !isNativeReview();
     $('#discard-action').hidden = false;
@@ -1848,7 +1700,6 @@
     $('#proposal-badge').textContent = 'DRAFT';
     $('#change-note-wrap').hidden = true;
     $('#revision-panel').hidden = true;
-    $('#discussion-panel').hidden = true;
     updateWorkflow(draft ? 2 : 1);
     renderList();
     renderActions();
@@ -2082,7 +1933,6 @@
       state.actionButton = null;
       renderWallet();
       renderActions();
-      renderComments();
     }
   }
   function openRevisionDialog() {
@@ -2229,7 +2079,6 @@
       state.access = null;
       renderWallet();
       renderActions();
-      renderComments();
       const access =
         contract && requestedChain === CHAIN_ID
           ? await query({ access: { address: account.address } })
@@ -2257,7 +2106,6 @@
         state.connecting = false;
         renderWallet();
         renderActions();
-        renderComments();
       }
     }
   }
@@ -2328,7 +2176,6 @@
     }
   };
   $('#proposal-details-toggle').onclick = () => setDetails($('#proposal-details').hidden);
-  $('#cancel-reply').onclick = resetCommentForm;
   $('#add-action').onclick = () => {
     const a = $('#proposal-actions');
     if (a.value.trim() === '[]') a.value = '[{"type":"wasm_execute","contract":"","msg":{}}]';
@@ -2564,48 +2411,6 @@
         : state.dao.commentStakeUrl;
     if (url) window.open(url, '_blank', 'noopener,noreferrer');
   };
-  $('#comment-form').onsubmit = (e) => {
-    e.preventDefault();
-    const button = $('#publish-comment');
-    run(button, async () => {
-      const body = $('#comment-body').value.trim(),
-        title = $('#comment-title').value.trim(),
-        parentId = state.replyTo,
-        id = state.selected.id;
-      if (!body) throw new Error('COMMENT IS EMPTY');
-      if (parentId === null && !title) throw new Error('NAME THE TOPIC FIRST');
-      const encodedBody =
-          parentId === null
-            ? `[[NETA_THREAD:${encodeURIComponent(title)}]]\n${body}`
-            : `[[NETA_REPLY:${parentId}]]\n${body}`,
-        message = state.nativeThreads
-          ? {
-              add_comment: {
-                proposal_id: id,
-                version: state.selected.current_revision,
-                parent_id: parentId,
-                title: parentId === null ? title : null,
-                body
-              }
-            }
-          : { add_comment: { proposal_id: id, body: encodedBody } },
-        expectedBody = state.nativeThreads ? body : encodedBody;
-      await execute(
-        message,
-        parentId === null
-          ? 'NETA Governance start discussion thread'
-          : 'NETA Governance reply to discussion',
-        async () => {
-          const rows = await query({
-            comments: { proposal_id: id, start_after: null, limit: 100 }
-          });
-          return rows.some((c) => c.author === state.address && c.body === expectedBody);
-        }
-      );
-      await select(id);
-      return parentId === null ? 'Discussion thread published.' : 'Reply published.';
-    });
-  };
   document.querySelectorAll('[data-filter]').forEach(
     (button) =>
       (button.onclick = () => {
@@ -2815,7 +2620,6 @@
     clearWallet();
     status('WALLET CHANGED · RECONNECT TO VERIFY ACCESS');
     renderActions();
-    renderComments();
   });
   newDraft();
   renderWallet();

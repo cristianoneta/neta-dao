@@ -6,7 +6,7 @@ import { webOrigins } from '../service/web-origins.mjs';
 import { trustedProxyAddresses } from '../service/client-address.mjs';
 import { validWallet, verifyOwnership } from '../relay-backup/auth.mjs';
 import { DiscussionStore } from './store.mjs';
-import { DiscussionChain, discussionScope } from './chain.mjs';
+import { DiscussionChain, discussionScope, SOURCES } from './chain.mjs';
 
 const token = () => randomBytes(32).toString('hex');
 const fail = (message, status) => {
@@ -107,7 +107,15 @@ export function discussionServer({
       return json(res, 200, {
         service: 'cosmoot-discussions',
         version: 1,
-        ready: sources.some((s) => !s.error && s.success && now() - s.success < 300000),
+        ready: SOURCES.every((required) =>
+          sources.some(
+            (s) =>
+              s.source === [required.kind, required.chainId, required.contract].join(':') &&
+              !s.error &&
+              s.success &&
+              now() - s.success < 300000
+          )
+        ),
         sources
       });
     }
@@ -293,6 +301,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     throw Error('Explicit discussion database and web origins required.');
   const store = new DiscussionStore(process.env.DISCUSSIONS_DB),
     chain = new DiscussionChain();
+  if (process.env.DISCUSSIONS_START_AT)
+    store.configureScope({
+      since: process.env.DISCUSSIONS_START_AT,
+      include: (process.env.DISCUSSIONS_INITIAL_SOURCES || '').split(',').filter(Boolean)
+    });
+  if (!store.policy)
+    throw Error('Configure the discussion start date before starting the service.');
   const server = discussionServer({
     store,
     chain,
