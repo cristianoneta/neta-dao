@@ -4,12 +4,36 @@ Owner direction: a separate, focused discussion page in Cosmoot's graphite/mint
 colours. The Phoenix/Discourse reference informs the three-column arrangement and
 reading timeline, not a general-purpose forum or additional social features.
 
-Status: V1 is implemented in [PR #335](https://github.com/cristianoneta/neta-dao/pull/335).
+Status, 1 November: [PR #335](https://github.com/cristianoneta/neta-dao/pull/335)
+is merged; the service and public API are active. Manual website publication and
+real Keplr/mobile acceptance remain pending.
 The complete application passed all 18 required jobs in
-[CI 41295812574](https://github.com/cristianoneta/neta-dao/actions/runs/41295812574).
-Final checks additionally validate the optional Compose overlay and Caddy route. Neither the new service nor public routing is installed by
-this change. Website publication remains manual. Testnet reviews keep their
+[CI 41296509948](https://github.com/cristianoneta/neta-dao/actions/runs/41296509948),
+including the optional Compose overlay and Caddy route.
+The separate operational acceptance is recorded below. Testnet reviews keep their
 existing comments; V1 indexes the configured public Juno mainnet sources only.
+
+## Operational acceptance — 1 November
+
+The owner confirmed installation, persistence across service restart, current
+data from every configured source group and an explicitly selected moderator.
+The existing infrastructure backup now includes discussion data and recovery
+configuration. A newly downloaded encrypted backup passed an isolated application
+restore on the same host: public reading, synthetic ADR-36 sign-in, replies,
+idempotency, moderation, durable reply receipts after reopening and SQLite integrity.
+The isolated exercise used no network or production writes.
+
+Public API activation passed direct and public TLS checks, both allowed website
+origins, rejected foreign origins, body limits, unauthenticated-write denial and
+authentication rate limits resistant to forged client-IP headers. Existing services
+and production data were preserved. The final moderator/routing configuration was
+verified in another fresh backup. Independent external GET requests subsequently
+confirmed source freshness, both allowed origins and foreign-origin denial.
+
+These checks establish API readiness. Website publication, actual wallet/browser
+acceptance, mobile use and recovery on a different machine remain distinct steps.
+Exact installation inventory and backup receipts remain in the private handoff;
+do not repeat the completed installation to finish website publication.
 
 ## Product contract
 

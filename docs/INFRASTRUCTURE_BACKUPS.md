@@ -6,7 +6,23 @@ repository. Synthetic local tests exercise actual Restic encryption and download
 The dated checkpoint below records owner-confirmed host operations separately
 from synthetic test evidence and the remaining recovery/retention gates.
 
-## Operational checkpoint — 24 October 2026
+## Current operational checkpoint — 1 November 2026
+
+The owner confirmed the additive discussion-database and recovery-configuration
+extension, a successful encrypted backup with a fresh verified download, and an
+isolated forum application restore from that downloaded copy. The same-host,
+network-isolated restore checked reading, synthetic sign-in, replies, idempotency,
+moderation, persisted receipts after reopening and database integrity. Existing
+services and production data remained intact. After public API activation, another
+successful backup verified the exact final moderator and routing configuration.
+
+The daily backup configuration includes discussions. No retention or expiry rule
+changed. Another-machine recovery, measured RPO/RTO, unattended-cycle evidence and
+the separate fresh-browser encrypted-message restore remain open. The older
+installation failures and pending steps below are historical, not instructions to
+repeat the accepted installation. Private operational receipts remain outside Git.
+
+## Historical operational checkpoint — 24 October 2026
 
 The owner provided successful installation output, successful repository
 initialization and backup service results, a matching successful attempt/receipt
@@ -74,6 +90,7 @@ verification and the deferred recovery drill remain separate acceptance steps.
 | --- | --- |
 | Faucet SQLite | Read-only online export; all tables, unknown and pending payout journals retained. |
 | Encrypted message-backup SQLite | Read-only online export of every scope, revision and encrypted envelope. |
+| Optional discussion SQLite | Read-only online export of topics, source aliases, revisions, replies, moderation and durable request receipts. Older backups without this optional database remain supported. |
 | Collector data and evidence archives | Under the existing collector lock; original JSON and archive bytes preserved. |
 | Validator SQLite and optional archive | Under the existing validator lock; original identity, cursor, evidence and archive preserved. No archive is expected before its first retention boundary. |
 | Explicit recovery files | Operator-reviewed configurations, application secrets, units and drop-ins, copied as regular files. A nonempty inventory is required, but is not automatically a complete inventory. |

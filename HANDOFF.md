@@ -4,7 +4,7 @@ Updated 1 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
-## Proposal discussions — V1 source ready for review, 1 November
+## Proposal discussions — API live; website release pending, 1 November
 
 The owner reconfirmed the separate forum idea and asked that it remain in the
 handoff: automatic topics for public proposals, linked `.neta` identities, JUNO
@@ -13,8 +13,18 @@ with position/dates/Back. [PR #335](https://github.com/cristianoneta/neta-dao/pu
 an independent SQLite service, safe migration from the original comments and
 backup/restore support. No free topic creation. See the [full product contract,
 architecture, validation and rollout gates](docs/PROPOSAL_DISCUSSIONS.md).
-This is source work; service installation and manual website publication remain
-separate. Do not replace that status with “live” based on passing local tests.
+PR #335 is merged. The owner completed the separate service installation,
+encrypted backup with a fresh download and isolated application restore, and
+public API activation with an explicitly selected moderator. Existing services
+and production data were preserved. Independent public requests confirm fresh
+data from all five source groups, allowed website origins and foreign-origin
+denial. The final runtime configuration is also backed up. Exact operational
+receipts remain private.
+
+The website is still awaiting its manual release, which also includes the
+Rebalance correction below. Real Keplr and mobile acceptance follow publication;
+the isolated restore exercised a synthetic sign-in on the same host, not a real
+wallet or another-machine recovery. Do not repeat the completed server rollout.
 
 ## Rebalance readiness correction — 1 November
 
