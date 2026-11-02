@@ -2213,16 +2213,22 @@
     if (!input.value || !input.reportValidity()) return;
     const original = values(),
       identity = JSON.stringify(original),
-      context = reviewContext();
+      requestEpoch = state.requestEpoch,
+      contract = CONTRACT,
+      percent = input.value;
     recalculatingCap = true;
     $('#rule-cap-recalculate').disabled = true;
     status('Recalculating validator allocations from current collected data…');
     try {
       const { recalculateRuleCap } = await import('./juno-rule-revision.mjs');
-      const next = await recalculateRuleCap(original, Math.round(Number(input.value) * 100));
+      const next = await recalculateRuleCap(original, Math.round(Number(percent) * 100));
       const latest = await query({ proposal: { proposal_id: selected.id } });
-      context.assert();
+      // This is a local read/calculation. Signing context is enforced only when publishing.
       if (
+        CHAIN_ID !== 'juno-1' ||
+        CONTRACT !== contract ||
+        state.requestEpoch !== requestEpoch ||
+        input.value !== percent ||
         state.selected !== selected ||
         state.busy ||
         JSON.stringify(values()) !== identity ||
