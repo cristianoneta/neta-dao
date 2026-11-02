@@ -65,6 +65,11 @@
 </section><div class="voting-metadata"><p id="voting-data-status" role="status"></p><div class="voting-toolbar"><button id="voting-refresh" type="button" hidden>Refresh results</button><button id="proposal-review-history" type="button" hidden></button></div></div><div id="vote-actions" class="vote-actions" hidden><span id="vote-hint">Connect Keplr to vote.</span><div><button type="button" data-vote="yes">YES</button><button type="button" data-vote="no">NO</button><button type="button" data-vote="abstain">ABSTAIN</button></div></div></section>
       <section id="rule-proposal-format" class="field-help" hidden><p id="rule-proposal-format-text"></p></section>
       <button id="rule-proposal-convert" type="button" hidden>Prepare readable rule proposal</button>
+      <section id="rule-cap-revision" class="field-help" hidden>
+        <label>VOTING POWER CAP FOR THIS REVISION (%)<input id="rule-cap-percent" type="number" min="0.01" max="100" step="0.01" aria-describedby="rule-cap-help" /></label>
+        <p id="rule-cap-help">Recalculate the validator comparison with current collected data. Other criteria and the comparison budget stay unchanged. Publish a revision to update this discussion and keep its thread.</p>
+        <button id="rule-cap-recalculate" type="button">Recalculate allocation</button>
+      </section>
       <button id="proposal-details-toggle" class="details-toggle" type="button" aria-expanded="true" aria-controls="proposal-details"><span class="proposal-details-copy"><strong>Proposal text &amp; actions</strong><span>Read the full proposal, execution actions and revision history.</span></span><span id="proposal-details-state">Hide details −</span></button>
       <div id="proposal-details">
       <label>PROPOSAL BODY<textarea id="proposal-body" maxlength="20000" rows="12" placeholder="Context, rationale and expected outcome"></textarea></label>
@@ -215,7 +220,7 @@
     </form>
   </section>
 </div>
-<script src="dao-directory.js?v=20261006-7"></script><script src="neta-governance.js?v=20261027-proposal-gas-1"></script><script src="ux-draft.js?v=20261006-structure-1"></script><script src="treasury.js?v=20261006-11"></script><script type="module" src="treasury-pnl-ui.mjs?v=20261015-partial-subtotals-1"></script><script src="names.js?v=20261024-lazy-1"></script><script src="dao-members.js?v=20261003-people-1"></script><script src="names-workspace.js?v=20261006-ux-1"></script><script type="module" src="names-profile.mjs?v=20261005-network-1"></script><script src="relay.js?v=20261006-personal-2"></script><script type="module" src="relay-personal-entry.mjs?v=20261006-1"></script>
+<script src="dao-directory.js?v=20261006-7"></script><script src="neta-governance.js?v=20261102-percent-cap-1"></script><script src="ux-draft.js?v=20261006-structure-1"></script><script src="treasury.js?v=20261006-11"></script><script type="module" src="treasury-pnl-ui.mjs?v=20261015-partial-subtotals-1"></script><script src="names.js?v=20261024-lazy-1"></script><script src="dao-members.js?v=20261003-people-1"></script><script src="names-workspace.js?v=20261006-ux-1"></script><script type="module" src="names-profile.mjs?v=20261005-network-1"></script><script src="relay.js?v=20261006-personal-2"></script><script type="module" src="relay-personal-entry.mjs?v=20261006-1"></script>
 <script type="module" src="names-v2-workspace.mjs?v=8"></script><script type="module" src="names-v2-account.mjs?v=2"></script><script type="module" src="names-v2-notifications.mjs?v=1"></script>
 <script type="module" src="dao-structure.mjs?v=20261006-1"></script>
 </body></html>

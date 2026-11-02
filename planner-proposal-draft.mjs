@@ -98,7 +98,7 @@ export async function frozenRuleProposal(review, { referenced = false } = {}) {
     encoded = await encodeRuleReview(checked);
   if (referenced) {
     const exact =
-      v.rule.schema === 9
+      v.rule.schema >= 9
         ? FROZEN_POLICY_REFERENCE
         : `## Exact policy\n\n\`\`\`json\n${JSON.stringify(v.rule)}\n\`\`\``;
     const body = `Chain: juno-1\nProgramme: ${PROGRAMME}\n\n${RULE_REVIEW_MARKER}\n\n${exact}\n\nRule SHA-256: ${v.policyHash}\n\n${encoded}`;
@@ -146,11 +146,11 @@ export async function frozenRuleProposal(review, { referenced = false } = {}) {
   // from the same verified package. Do not repeat all of it in the text envelope
   // when that repetition would prevent publishing the complete evidence.
   const compact =
-    v.rule.schema === 9
+    v.rule.schema >= 9
       ? `Chain: juno-1\nProgramme: ${PROGRAMME}\n\n${FROZEN_POLICY_REFERENCE}\n\nRule SHA-256: ${v.policyHash}\n\nApprove rules only; no funds move. The complete comparison is frozen below.\n\n${encoded}`
       : `Chain: juno-1\nProgramme: ${PROGRAMME}\n\n` +
         `${v.parent ? 'Revises Juno proposal #' + v.parent.proposalId + '.' : 'Initial adoption; no prior Cosmoot-format approval found.'}\n\n` +
-        (v.rule.schema === 9
+        (v.rule.schema >= 9
           ? `${FROZEN_POLICY_REFERENCE}\n\nRule SHA-256: ${v.policyHash}\n\n`
           : `## Exact policy\n\n\`\`\`json\n${JSON.stringify(v.rule)}\n\`\`\`\n\nRule SHA-256: ${v.policyHash}\n\n`) +
         `Illustrative budget: ${units(v.budgetRaw)} JUNO. Snapshot: ${v.snapshot.height} · ${v.snapshot.blockTime}.\n` +

@@ -327,7 +327,7 @@ try {
     await page.locator('#current-rules-content a').getAttribute('href'),
     'https://atomscan.com/juno/proposals/950'
   );
-  assert.equal(await page.locator('#factor-number').inputValue(), '1.5');
+  assert.equal(await page.locator('#cap-percent').inputValue(), '6');
   assert.equal(await page.locator('#commission').inputValue(), '10');
   // Rebalance uses the exact verified historical approval, independently of editable rules.
   await step('rebalance');
@@ -527,11 +527,11 @@ try {
   await page.waitForFunction(() =>
     document.getElementById('draft-parent-note').textContent.includes('#950')
   );
-  assert.equal(await page.locator('#factor-number').inputValue(), '1.8');
+  assert.equal(await page.locator('#cap-percent').inputValue(), '7.2');
   assert.equal(await page.locator('#commission').inputValue(), '7');
   assert.equal(await page.locator('#use-current-model').count(), 0);
   assert.equal(await page.locator('#uptime').inputValue(), '97.5');
-  await page.locator('#factor-number').fill('1.5');
+  await page.locator('#cap-percent').fill('6');
   await page.locator('#commission').fill('10');
   assert.deepEqual(
     (await page.locator('#rules-eligibility-details > .criterion h4').allTextContents()).map(
@@ -541,7 +541,7 @@ try {
       'Minimum uptime',
       'Maximum commission',
       'Active-set history',
-      'Voting power',
+      'Voting power cap',
       'Upgrade participation',
       'Manual exclusions'
     ]
@@ -652,28 +652,29 @@ try {
       ),
     true
   );
-  await page.locator('#factor-number').fill('2');
+  await page.locator('#cap-percent').fill('8');
   assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
   assert.equal(
     await page.locator('#additional-rule-options, #factor, #no-commission-limit').count(),
     0
   );
-  await page.locator('#factor-number').fill('3.0');
-  assert.equal(await page.locator('#factor-error').isVisible(), false);
-  assert.match(await page.locator('#cap-description').textContent(), /12.00%/);
+  await page.locator('#cap-percent').fill('100');
+  assert.equal(await page.locator('#cap-error').isVisible(), false);
+  assert.match(await page.locator('#cap-description').textContent(), /100.00%/);
   await page.locator('#save-draft').click();
   assert.equal(
     await page.evaluate(
       () =>
-        JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3')).rule.factorTenths
+        JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3')).rule
+          .votingPowerCapBps
     ),
-    30
+    10000
   );
-  await page.locator('#factor-number').fill('3.1');
-  assert.equal(await page.locator('#factor-error').isVisible(), true);
+  await page.locator('#cap-percent').fill('100.01');
+  assert.equal(await page.locator('#cap-error').isVisible(), true);
   await page.locator('#save-draft').click();
   assert.match(await page.locator('#feedback').textContent(), /before saving/);
-  await page.locator('#factor-number').fill('1.5');
+  await page.locator('#cap-percent').fill('6');
   assert.equal(await page.locator('#commission').inputValue(), '10');
   for (const value of ['0', '13', '100']) {
     await page.locator('#commission').fill(value);
@@ -827,7 +828,7 @@ try {
   assert.ok(review.rule.exclusions.some((v) => v.validator === selected.address));
   assert.equal(review.rule.commissionMaxBps, 1900);
   assert.deepEqual(review.messages, []);
-  assert.equal(review.rule.schema, 9);
+  assert.equal(review.rule.schema, 10);
   assert.equal(review.rule.minParticipationBps, 9901);
   assert.equal(review.policyHash.length, 64);
   const shots = process.env.NNS_SCREENSHOT_DIR;
@@ -1074,6 +1075,67 @@ try {
     version: 1,
     author: publishedReview.author
   };
+  // A new percentage and comparison update this discussion, not a new proposal.
+  publishedReview.finalized_version = null;
+  publishedReview.finalized_hash = null;
+  const discussionUrl =
+    origin +
+    '/?chain=juno&dao=juno&subdao=juno-delegation&reviewChain=juno-1&reviewContract=' +
+    reviewNetwork('juno-1').contract +
+    '&review=17#governance';
+  const capLocalKey =
+    'neta-governance-local-draft:juno-delegation:juno-1:' + reviewNetwork('juno-1').contract;
+  const previousCapLocal = await page.evaluate((key) => localStorage.getItem(key), capLocalKey);
+  await page.goto(discussionUrl);
+  await page.locator('#rule-cap-revision').waitFor({ state: 'visible' });
+  await page.locator('#rule-cap-percent').fill('100');
+  state = 'stale';
+  await page.locator('#rule-cap-recalculate').click();
+  await page.waitForFunction(() =>
+    document.getElementById('gov-status').textContent.includes('Fresh programme data is required')
+  );
+  assert.equal(await page.locator('#proposal-body').inputValue(), convertedValues.body);
+  state = 'current';
+  await page.locator('#rule-cap-recalculate').click();
+  await page.waitForFunction(() =>
+    document
+      .getElementById('gov-status')
+      .textContent.includes('Comparison recalculated locally; not published')
+  );
+  const capRevisionValues = await page.evaluate(() => ({
+    title: document.getElementById('proposal-title').value,
+    summary: document.getElementById('proposal-summary').value,
+    body: document.getElementById('proposal-body').value,
+    actions_json: document.getElementById('proposal-actions').value
+  }));
+  const capRevision = await readProposalReview(capRevisionValues);
+  assert.equal(capRevision.value.rule.votingPowerCapBps, 10000);
+  assert.notEqual(capRevision.hash, frozen.hash);
+  assert.equal(capRevision.value.budgetRaw, frozen.value.budgetRaw);
+  assert.equal(new URL(page.url()).searchParams.get('review'), '17');
+  assert.match(await page.locator('#proposal-rule-review').textContent(), /DECISION TO REVIEW/);
+  assert.match(
+    await page.locator('#proposal-rule-review').textContent(),
+    /100% of projected network voting power/
+  );
+  assert.match(await page.locator('#change-note').inputValue(), /100%.*recalculate/);
+  assert.equal(await page.locator('#publish-revision').isVisible(), true);
+  assert.equal(
+    await page.locator('#publish-revision').isDisabled(),
+    true,
+    'Publication still requires wallet access'
+  );
+  assert.deepEqual(capRevisionValues.actions_json, '[]');
+  assert.equal(publishedReview.latest_version, 1, 'Preparation must not publish a revision');
+  assert.equal(
+    await page.evaluate((key) => localStorage.getItem(key), capLocalKey),
+    previousCapLocal,
+    'Preparing a revision must not overwrite another saved proposal draft'
+  );
+  publishedReview.finalized_version = 1;
+  publishedReview.finalized_hash = createHash('sha256')
+    .update(JSON.stringify(convertedValues))
+    .digest('hex');
   const final = await finalizedReview(publishedReview, publishedRevision, 'juno-1');
   assert.ok(Buffer.byteLength(final.content.summary) < 2500);
   const pinnedUrl = new URL(ruleReviewUrl(parseRuleReference(final.content)));
@@ -1243,7 +1305,7 @@ try {
   assert.equal(await page.locator('#export-json').isDisabled(), true);
   await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
   await step('rules');
-  await page.locator('#factor-number').fill('3');
+  await page.locator('#cap-percent').fill('12');
   assert.match(await page.locator('#cap-description').textContent(), /12.00%/);
   state = 'stale';
   await page.locator('#refresh').click();
@@ -1350,7 +1412,7 @@ try {
       () => !document.getElementById('current-rules-state').textContent.includes('Checking')
     );
     assert.equal(await page.locator('#use-current-model').count(), 0);
-    assert.equal(await page.locator('#factor-number').inputValue(), '1.9');
+    assert.equal(await page.locator('#cap-percent').inputValue(), '7.6');
     assert.equal(await page.locator('#commission').inputValue(), '100');
     assert.equal(await page.locator('#commission').isEnabled(), true);
     assert.equal(await page.locator('#exclusions li').count(), 1);
@@ -1370,7 +1432,7 @@ try {
     assert.equal(await page.locator('#simulation-state').textContent(), 'Draft comparison');
     await page.reload();
     await ready();
-    assert.equal(await page.locator('#factor-number').inputValue(), '1.9');
+    assert.equal(await page.locator('#cap-percent').inputValue(), '7.6');
   }
   for (state of ['wrong-chain', 'missing']) {
     await page.locator('#refresh').click();

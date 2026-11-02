@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  defaultPolicy,
+  pointsPolicy as defaultPolicy,
   configurableParticipationPolicy,
   policy,
   simulate,

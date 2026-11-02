@@ -2,6 +2,7 @@ import { governanceEvidence } from './juno-governance-points.mjs';
 import { activeFixed } from './juno-fixed-allocations.mjs';
 import {
   policy,
+  capDescription,
   snapshot,
   simulate,
   canonical,
@@ -31,9 +32,9 @@ export function ruleChanges(before, after) {
   const fields = [
     ['eligibility', 'Validator eligibility', eligibilityDescription],
     [
-      'factorTenths',
+      p.schema >= 10 || old?.schema >= 10 ? 'votingPowerCapBps' : 'factorTenths',
       'Voting power cap',
-      (v) => `min(30%, ${v.factorTenths / 10} × 100% / consensus set size)`
+      capDescription
     ],
     [
       'commissionMaxBps',
@@ -499,7 +500,7 @@ export async function decodeRuleReview(body) {
     !(
       (policies.length === 1 && canonical(JSON.parse(policies[0][1])) === canonical(value.rule)) ||
       (policies.length === 0 &&
-        value.rule.schema === 9 &&
+        value.rule.schema >= 9 &&
         body.split(FROZEN_POLICY_REFERENCE).length === 2)
     ) ||
     (body.match(/^## Exact policy$/gm) || []).length !== 1 ||
@@ -524,7 +525,7 @@ export async function readProposalReview(values) {
       );
   } else {
     const section = values.body?.match(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/m);
-    if (section && [3, 4, 5, 6, 7, 8, 9].includes(JSON.parse(section[1])?.schema))
+    if (section && [3, 4, 5, 6, 7, 8, 9, 10].includes(JSON.parse(section[1])?.schema))
       throw Error(
         'This policy version requires its complete frozen comparison. Return to the planner to prepare it.'
       );

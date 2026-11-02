@@ -93,12 +93,39 @@ export function fixedAllocationPolicy() {
 export function extendedCapPolicy() {
   return { ...fixedAllocationPolicy(), schema: 8 };
 }
-export function defaultPolicy() {
+export function pointsPolicy() {
   return { ...extendedCapPolicy(), schema: 9, method: 'points-capped-v1', points: defaultPoints() };
+}
+export function defaultPolicy() {
+  const current = pointsPolicy();
+  delete current.factorTenths;
+  return { ...current, schema: 10, votingPowerCapBps: 600 };
+}
+// A historical relative cap keeps its meaning until explicitly edited.
+export function withVotingPowerCap(input, votingPowerCapBps) {
+  const current = editablePolicy(input);
+  delete current.factorTenths;
+  return policy({ ...current, schema: 10, votingPowerCapBps });
+}
+export function restoreVotingPowerCap(input, baseline) {
+  const current = editablePolicy(input),
+    previous = policy(baseline);
+  delete current.factorTenths;
+  delete current.votingPowerCapBps;
+  return policy(
+    previous.schema >= 10
+      ? { ...current, schema: 10, votingPowerCapBps: previous.votingPowerCapBps }
+      : { ...current, schema: 9, factorTenths: previous.factorTenths }
+  );
+}
+export function capDescription(p) {
+  return p.schema >= 10
+    ? `${p.votingPowerCapBps / 100}% of projected network voting power`
+    : `min(30%, ${p.factorTenths / 10} × 100% / consensus set size)`;
 }
 export function editablePolicy(input = defaultPolicy()) {
   const current = policy(input),
-    template = defaultPolicy();
+    template = current.schema >= 10 ? defaultPolicy() : pointsPolicy();
   return policy({
     ...current,
     schema: template.schema,
@@ -125,7 +152,9 @@ const policyTemplate = (schema) =>
               ? fixedAllocationPolicy()
               : schema === 8
                 ? extendedCapPolicy()
-                : defaultPolicy();
+                : schema === 9
+                  ? pointsPolicy()
+                  : defaultPolicy();
 export function eligibilityDescription(p) {
   return p.schema >= 6
     ? '90 continuous days in the active set; automatically use the entire available period until 90 days exist; not jailed'
@@ -140,7 +169,7 @@ export function eligibilityDescription(p) {
 export function policy(input) {
   const p = structuredClone(input);
   if (
-    ![2, 3, 4, 5, 6, 7, 8, 9].includes(p?.schema) ||
+    ![2, 3, 4, 5, 6, 7, 8, 9, 10].includes(p?.schema) ||
     p.chainId !== 'juno-1' ||
     p.programme !== PROGRAMME ||
     p.method !== policyTemplate(p.schema).method ||
@@ -151,9 +180,15 @@ export function policy(input) {
         p.minParticipationBps < 9500 ||
         p.minParticipationBps > 10000)) ||
     p.liquidReserveRaw !== LIQUID_RESERVE.toString() ||
-    !Number.isInteger(p.factorTenths) ||
-    p.factorTenths < 10 ||
-    p.factorTenths > (p.schema >= 8 ? 30 : 20) ||
+    (p.schema >= 10
+      ? !Number.isInteger(p.votingPowerCapBps) ||
+        p.votingPowerCapBps < 1 ||
+        p.votingPowerCapBps > 10000 ||
+        Object.hasOwn(p, 'factorTenths')
+      : !Number.isInteger(p.factorTenths) ||
+        p.factorTenths < 10 ||
+        p.factorTenths > (p.schema >= 8 ? 30 : 20) ||
+        Object.hasOwn(p, 'votingPowerCapBps')) ||
     !(
       p.commissionMaxBps === null ||
       (Number.isInteger(p.commissionMaxBps) &&
@@ -194,7 +229,9 @@ export function policy(input) {
     ...policyTemplate(p.schema),
     ...(p.schema >= 5 ? { minParticipationBps: p.minParticipationBps } : {}),
     ...(p.schema >= 9 ? { points: pointsConfig(p.points) } : {}),
-    factorTenths: p.factorTenths,
+    ...(p.schema >= 10
+      ? { votingPowerCapBps: p.votingPowerCapBps }
+      : { factorTenths: p.factorTenths }),
     commissionMaxBps: p.commissionMaxBps,
     exclusions: p.exclusions,
     ...(p.schema >= 7 ? { fixedAllocations: fixedAllocations(p.fixedAllocations, operator) } : {})
@@ -271,6 +308,7 @@ export function upgradeEvidence(historyData, readinessData) {
   return { records, window };
 }
 export function capFraction(p, n) {
+  if (p.schema >= 10) return { numerator: BigInt(p.votingPowerCapBps), denominator: 10000n };
   return p.factorTenths * 10 <= 30 * n
     ? { numerator: BigInt(p.factorTenths), denominator: BigInt(10 * n) }
     : { numerator: 3n, denominator: 10n };

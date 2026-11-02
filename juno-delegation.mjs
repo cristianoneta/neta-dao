@@ -18,6 +18,9 @@ import { readClaimContext } from './claim-numbering.mjs';
 import {
   defaultPolicy,
   editablePolicy,
+  withVotingPowerCap,
+  restoreVotingPowerCap,
+  capDescription,
   eligibilityDescription,
   policy,
   snapshot,
@@ -195,10 +198,7 @@ async function loadApprovedRules() {
           ? 'Points-weighted distribution within the voting power cap'
           : 'Equal distribution within the voting power cap'
       ],
-      [
-        'Voting power cap',
-        `min(30%, ${rule.factorTenths / 10} × 100% / consensus validator count)`
-      ],
+      ['Voting power cap', capDescription(rule)],
       [
         'Maximum commission',
         rule.commissionMaxBps === null ? 'No limit' : `${rule.commissionMaxBps / 100}%`
@@ -378,14 +378,14 @@ function invalidate(message = 'Rules or amount changed. Review again to refresh 
 }
 function renderRuleSummary() {
   scheduleImpact();
-  const cap = data ? capFraction(rules, data.activeCount) : null;
+  const cap = rules.schema >= 10 || data ? capFraction(rules, data?.activeCount) : null;
   const capText = cap
     ? ((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2) + '%'
     : 'pending';
   $('rule-summary').textContent =
     `${rules.schema >= 9 ? 'Points-weighted allocation' : 'Equal allocation'} · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · commit signatures ≥${rules.minParticipationBps / 100}% · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
   $('draft-cap').textContent =
-    $('factor-number').checkValidity() && $('factor-number').value ? capText : 'Check value';
+    $('cap-percent').checkValidity() && $('cap-percent').value ? capText : 'Check value';
   $('draft-commission').textContent = commissionValid()
     ? rules.commissionMaxBps === null
       ? 'No limit'
@@ -422,8 +422,8 @@ function scheduleImpact() {
         (pointsEditor?.valid() ?? true) &&
         commissionValid() &&
         uptimeValid() &&
-        !!$('factor-number').value &&
-        $('factor-number').checkValidity()
+        !!$('cap-percent').value &&
+        $('cap-percent').checkValidity()
     });
     for (const id of ['rules-impact', 'distribution-impact']) renderPolicyImpact($(id), model);
   }, 100);
@@ -459,15 +459,18 @@ function renderRules() {
   pointsEditor?.render();
   approvedPoints?.render();
   fixedEditor?.render();
-  $('factor-number').value = (rules.factorTenths / 10).toFixed(1);
-  $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
-  const cap = data ? capFraction(rules, data.activeCount) : null;
-  $('cap-description').textContent = cap
-    ? `Regular allocation voting-power limit: ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}% with ${data.activeCount} consensus validators.`
-    : 'The voting power limit will appear after data loads.';
-  $('cap-formula').textContent = cap
-    ? `Cap = min(30%, ${(rules.factorTenths / 10).toFixed(1)} × 100% / ${data.activeCount}) = ${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}%. The full active consensus set is used.`
-    : 'Cap = min(30%, factor × 100% / active validator count).';
+  const cap = rules.schema >= 10 || data ? capFraction(rules, data?.activeCount) : null;
+  const percent = cap ? (Number(cap.numerator) * 100) / Number(cap.denominator) : null;
+  $('cap-percent').value = percent === null ? '' : String(Number(percent.toFixed(2)));
+  $('cap-value').value = percent === null ? 'Pending' : `${percent.toFixed(2)}%`;
+  $('cap-description').textContent =
+    percent === null
+      ? 'The voting power limit will appear after data loads.'
+      : `Regular allocation voting-power limit: ${percent.toFixed(2)}%.`;
+  $('cap-formula').textContent =
+    rules.schema >= 10
+      ? 'This percentage stays fixed when the validator count changes. 100% applies no additional voting-power restriction. Fixed allocations remain exempt.'
+      : `Historical rule: ${capDescription(rules)}. Editing this field replaces the relative limit with a fixed percentage.`;
   renderRuleSummary();
   renderDraftBaseline();
   $('draft-eligibility-description').textContent = eligibilityDescription(rules) + '.';
@@ -481,7 +484,10 @@ function renderRules() {
   }
   $('history-window-summary').textContent = coverage.textContent.split('. ')[0];
   for (const [input, field] of [
-    ['factor-number', 'factorTenths'],
+    [
+      'cap-percent',
+      rules.schema >= 10 || parent?.rule.schema >= 10 ? 'votingPowerCapBps' : 'factorTenths'
+    ],
     ['commission', 'commissionMaxBps'],
     ['uptime', 'minParticipationBps']
   ]) {
@@ -499,7 +505,8 @@ function renderRules() {
       const reset = node('button', 'Reset');
       reset.type = 'button';
       reset.onclick = () => {
-        rules[field] = parent.rule[field];
+        if (input === 'cap-percent') rules = restoreVotingPowerCap(rules, parent.rule);
+        else rules[field] = parent.rule[field];
         restoreRuleInputs();
         invalidate();
         renderRules();
@@ -675,9 +682,9 @@ async function runSimulation() {
     if (fixedEditor?.isEditing())
       throw Error('Apply or cancel the fixed allocation edit before reviewing.');
     if (!data || !evidence) throw Error('Load programme data first.');
-    if (!$('factor-number').checkValidity() || !$('factor-number').value) {
-      focusRuleInput('factor-number');
-      throw Error('Enter a factor from 1.0 to 3.0 in steps of 0.1.');
+    if (!$('cap-percent').checkValidity() || !$('cap-percent').value) {
+      focusRuleInput('cap-percent');
+      throw Error('Enter a voting-power cap from 0.01% to 100% with up to two decimal places.');
     }
     if (!commissionValid()) {
       focusRuleInput('commission');
@@ -775,17 +782,16 @@ function mountCriterionHelp() {
     });
   }
 }
-$('factor-number').addEventListener('input', () => {
+$('cap-percent').addEventListener('input', () => {
   invalidate();
-  const valid = $('factor-number').value !== '' && $('factor-number').checkValidity();
-  $('factor-error').hidden = valid;
-  $('factor-number').setAttribute('aria-invalid', String(!valid));
+  const valid = $('cap-percent').value !== '' && $('cap-percent').checkValidity();
+  $('cap-error').hidden = valid;
+  $('cap-percent').setAttribute('aria-invalid', String(!valid));
   if (!valid) return;
-  rules.factorTenths = Math.round(Number($('factor-number').value) * 10);
-  $('factor-value').value = (rules.factorTenths / 10).toFixed(1) + '×';
-  const currentInput = $('factor-number').value;
+  rules = withVotingPowerCap(rules, Math.round(Number($('cap-percent').value) * 100));
+  const currentInput = $('cap-percent').value;
   renderRules();
-  $('factor-number').value = currentInput;
+  $('cap-percent').value = currentInput;
 });
 function updateCommission() {
   showCommissionError();
@@ -837,9 +843,9 @@ $('save-draft').addEventListener('click', () => {
       tell('Apply or cancel the fixed allocation edit before saving.', 'error');
       return;
     }
-    if (!$('factor-number').checkValidity() || !$('factor-number').value) {
+    if (!$('cap-percent').checkValidity() || !$('cap-percent').value) {
       tell('Enter a factor from 1.0 to 3.0 before saving the rules.', 'error');
-      focusRuleInput('factor-number');
+      focusRuleInput('cap-percent');
       return;
     }
     if (!commissionValid()) {
@@ -879,8 +885,8 @@ $('reset-draft').addEventListener('click', () => {
   rules = editablePolicy(parent?.rule);
   $('rule-rationale').value = '';
   restoreRuleInputs();
-  $('factor-error').hidden = true;
-  $('factor-number').removeAttribute('aria-invalid');
+  $('cap-error').hidden = true;
+  $('cap-percent').removeAttribute('aria-invalid');
   try {
     localStorage.removeItem(key);
   } catch {}

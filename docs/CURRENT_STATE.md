@@ -1,6 +1,6 @@
 # Current state — Cosmoot
 
-Updated 1 November 2026. This is the authoritative current feature and release
+Updated 2 November 2026. This is the authoritative current feature and release
 inventory. Update rows in place; retain dated evidence separately. Public/private
 boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
@@ -8,9 +8,10 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `e9393eba035f9ca2af4787fce298e6f26b763c10` | [Manual release 41329125613](https://github.com/cristianoneta/neta-dao/actions/runs/41329125613) passed on 1 November, publishing discussions and the Rebalance correction. |
+| Last successful website release | Source `54020bdb2eb3a4c38d4a358a921a47783de9a612` | [Manual release 41347463794](https://github.com/cristianoneta/neta-dao/actions/runs/41347463794) passed on 1 November, publishing the Juno-only forum scope and draft preservation. |
+| Direct voting-power cap | Source implementation; manual website release pending | Schema 10 accepts 0.01–100% without a hidden 30% ceiling. Existing Discussion reviews can recalculate a percentage and publish a revision under the same ID/thread. The requested initial-rule update to 100% still needs the owner's signature. [Semantics and validation](DIRECT_VOTING_CAP_2026-11-02.md). |
 | Readable referenced rule proposals | Published, including native voting navigation | Native text contains a meaningful summary and exact on-chain review reference; full evidence stays in the existing workshop. The follow-up resolves the unchanged pinned link to its unique native proposal after submission, with separate explicit history and unchanged voting/signing behavior. Review storage retains its existing limit. [Format and validation](REFERENCED_RULE_PROPOSALS_2026-10-31.md). |
-| Proposal discussions | Service/API and website published; Juno-only follow-up awaits targeted service update and manual website release | Follow-up retains the selected rule review, hides old imports through a persistent cutoff, automatically creates only new Juno native/review topics, and joins exact review/vote matches atomically. Removes the old topic form; session renewal preserves the visible draft. Existing encrypted backup and same-host isolated restore accepted; real Keplr/mobile acceptance remains open. [Product contract and rollout](PROPOSAL_DISCUSSIONS.md). |
+| Proposal discussions | Service/API and Juno-only website follow-up published | Follow-up retains the selected rule review, hides old imports through a persistent cutoff, automatically creates only new Juno native/review topics, and joins exact review/vote matches atomically. Removes the old topic form; session renewal preserves the visible draft. Targeted scope installation and encrypted backups accepted; one selected discussion remains visible and both scoped sources are current. Real Keplr/Ledger/mobile acceptance remains open. [Product contract and rollout](PROPOSAL_DISCUSSIONS.md). |
 | Rebalance readiness correction | Published in manual release 41329125613 | Fixed-date preflight and SDK redelegation response parsing corrected; short referenced native text, complete inline staking messages, compact complete evidence and shared field limits. [Scope and validation](REBALANCE_READINESS_2026-11-01.md). No contract or collector update. |
 | Native vote gas correction | Published; successful owner wallet acceptance verified on-chain | The higher-gas vote was included with code 0, the expected Yes ballot and 118,192 gas used from 250,000. Preserve original-sequence binding and both attempts during uncertain outcomes. [Evidence, safeguards and validation](NATIVE_VOTE_TRANSMISSION_2026-10-27.md). |
 | Native proposal submission gas | Published; successful live submission verified | Corrected reward review 3 became native #384 with code 0, 2,255,995 / 3,092,554 gas and fee 0.231942 JUNO. Its 5,000 JUNO deposit opened voting; execution remains pending. [Reproduction](PROPOSAL_SUBMISSION_GAS_2026-10-27.md), [two-source checkpoint](DELEGATION_CHECKPOINT_2026-10-29.md). |
@@ -33,7 +34,7 @@ the independently observed #384 submission is recorded separately above.
 PR #330 implements schema-9 points-based allocation, using only our own fully
 observed governance history. Configurable base/bonus points start at 900/100;
 governance takes 100% of the bonus weight and the three unavailable criteria stay
-at zero. The single cap factor accepts 1.0–3.0. Fixed allocations are reserved
+at zero. The released schema-9 cap factor accepts 1.0–3.0; the schema-10 percentage replacement is tracked above. Fixed allocations are reserved
 first and remain exempt; historical schemas 2–8 retain their exact semantics.
 [Measurement, source behavior and validation](DELEGATION_GOVERNANCE_BONUS_2026-10-31.md).
 
