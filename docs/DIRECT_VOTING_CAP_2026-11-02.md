@@ -30,7 +30,8 @@ snapshot and upgrade evidence, and checks the approved baseline. It retains the
 existing budget, criteria, fixed mandates, rationale, title and authored summary.
 It rebuilds all allocation targets, observations and hashes. Missing calculation
 evidence, stale/future/regressed snapshots, a changed approval, or changed review
-state block replacement. Field/transport limits are checked before local saving.
+state block replacement. Field/transport limits are checked before replacing the local preview. Other
+saved proposal drafts are not overwritten by this preparation.
 
 The resulting comparison is visibly a local revision. The author can inspect it
 and use the existing **Publish revision** wallet action with the generated change
@@ -48,8 +49,9 @@ validator-count independence, input boundaries, fixed exceptions, old/new compac
 review and native approval round trips, exact percentage summaries, and fresh-data
 revision preparation with failure paths that preserve the original.
 
-Browser coverage checks direct input, draft persistence, a stale-data refusal,
-and recalculation inside the same discussion without publication. The required
+Browser coverage checks direct input, planner draft persistence, a stale-data refusal,
+and recalculation inside the same discussion without publication or overwriting
+another locally saved proposal. The required
 isolated Juno check publishes a historical schema-9 discussion, adds the schema-10
 100% calculation as revision 2 of the same proposal, preserves revision 1 and
 programme holdings, then finalizes and verifies native approval recognition. Those CI acceptance gates must pass before

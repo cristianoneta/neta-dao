@@ -1100,7 +1100,7 @@ try {
   await page.waitForFunction(() =>
     document
       .getElementById('gov-status')
-      .textContent.includes('Comparison recalculated and saved locally')
+      .textContent.includes('Comparison recalculated locally; not published')
   );
   const capRevisionValues = await page.evaluate(() => ({
     title: document.getElementById('proposal-title').value,
@@ -1127,22 +1127,10 @@ try {
   );
   assert.deepEqual(capRevisionValues.actions_json, '[]');
   assert.equal(publishedReview.latest_version, 1, 'Preparation must not publish a revision');
-  const savedCapValues = await page.evaluate(
-    (key) => JSON.parse(localStorage.getItem(key)),
-    capLocalKey
-  );
   assert.equal(
-    savedCapValues.body,
-    capRevisionValues.body,
-    'The prepared revision must survive local saving'
-  );
-  // Restore this scenario's local fixture so the following fresh-draft test stays independent.
-  await page.evaluate(
-    ({ key, previous }) => {
-      if (previous === null) localStorage.removeItem(key);
-      else localStorage.setItem(key, previous);
-    },
-    { key: capLocalKey, previous: previousCapLocal }
+    await page.evaluate((key) => localStorage.getItem(key), capLocalKey),
+    previousCapLocal,
+    'Preparing a revision must not overwrite another saved proposal draft'
   );
   publishedReview.finalized_version = 1;
   publishedReview.finalized_hash = createHash('sha256')

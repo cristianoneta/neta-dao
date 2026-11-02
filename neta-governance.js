@@ -2242,12 +2242,10 @@
       setValues(next.values);
       void renderFrozenValues(next.values, true);
       $('#change-note').value = next.changeNote;
-      if (saveLocal()) {
-        updateWorkflow(4);
-        status(
-          'Comparison recalculated and saved locally. Review the validator allocations, then publish a revision to update this same discussion. No funds move.'
-        );
-      }
+      updateWorkflow(4);
+      status(
+        'Comparison recalculated locally; not published. Review the validator allocations, then publish a revision to update this same discussion. No funds move.'
+      );
     } catch (error) {
       status(error.message, true);
     } finally {
