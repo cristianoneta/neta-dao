@@ -1083,6 +1083,9 @@ try {
     '/?chain=juno&dao=juno&subdao=juno-delegation&reviewChain=juno-1&reviewContract=' +
     reviewNetwork('juno-1').contract +
     '&review=17#governance';
+  const capLocalKey =
+    'neta-governance-local-draft:juno-delegation:juno-1:' + reviewNetwork('juno-1').contract;
+  const previousCapLocal = await page.evaluate((key) => localStorage.getItem(key), capLocalKey);
   await page.goto(discussionUrl);
   await page.locator('#rule-cap-revision').waitFor({ state: 'visible' });
   await page.locator('#rule-cap-percent').fill('100');
@@ -1124,6 +1127,23 @@ try {
   );
   assert.deepEqual(capRevisionValues.actions_json, '[]');
   assert.equal(publishedReview.latest_version, 1, 'Preparation must not publish a revision');
+  const savedCapValues = await page.evaluate(
+    (key) => JSON.parse(localStorage.getItem(key)),
+    capLocalKey
+  );
+  assert.equal(
+    savedCapValues.body,
+    capRevisionValues.body,
+    'The prepared revision must survive local saving'
+  );
+  // Restore this scenario's local fixture so the following fresh-draft test stays independent.
+  await page.evaluate(
+    ({ key, previous }) => {
+      if (previous === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, previous);
+    },
+    { key: capLocalKey, previous: previousCapLocal }
+  );
   publishedReview.finalized_version = 1;
   publishedReview.finalized_hash = createHash('sha256')
     .update(JSON.stringify(convertedValues))
