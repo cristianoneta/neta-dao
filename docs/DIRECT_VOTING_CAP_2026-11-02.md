@@ -50,10 +50,13 @@ revision preparation with failure paths that preserve the original.
 
 Browser coverage checks direct input, draft persistence, a stale-data refusal,
 and recalculation inside the same discussion without publication. The required
-isolated Juno check uses a schema-10 100% rule through workshop storage, native
-submission and approval recognition. Those CI acceptance gates must pass before
-integration. This environment has no installed Playwright browser, so no local
-browser acceptance is claimed.
+isolated Juno check publishes a historical schema-9 discussion, adds the schema-10
+100% calculation as revision 2 of the same proposal, preserves revision 1 and
+programme holdings, then finalizes and verifies native approval recognition. Those CI acceptance gates must pass before
+integration. This environment has no installed Playwright browser and its download
+failed, so no local browser acceptance is claimed. The governance signing bundle
+is rebuilt reproducibly to include the new review-policy validation; transaction
+encoding, gas and signing behavior are unchanged.
 
 A manual website release is required. No collector, forum service, database or
 contract installation is needed. The existing discussion has not been updated by

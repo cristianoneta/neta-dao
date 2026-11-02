@@ -26,7 +26,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { toBech32 } from '../faucet/node_modules/@cosmjs/encoding/build/index.js';
 import { MsgWithdrawDelegatorReward } from '../faucet/node_modules/cosmjs-types/cosmos/distribution/v1beta1/tx.js';
-import { PROGRAMME } from '../juno-delegation-core.mjs';
+import { PROGRAMME, pointsPolicy } from '../juno-delegation-core.mjs';
 import { GOVERNANCE, PROGRAMME_CODE_HASH, rewardMessages } from '../juno-governance-core.mjs';
 
 const binary = resolve(process.argv[2] || ''),
@@ -523,6 +523,10 @@ try {
   // New format: actually store/finalize the complete review in WASM, then pass
   // its compact reference through native governance and resolve the exact rules.
   const referencedInput = reviewSizeInput({ points: true });
+  const initialInput = { ...referencedInput, rule: { ...pointsPolicy(), factorTenths: 30 } };
+  const initialDraft = await frozenRuleProposal(await buildRuleReview(initialInput), {
+    referenced: true
+  });
   referencedInput.rule.votingPowerCapBps = 10000;
   const referencedReview = await buildRuleReview(referencedInput);
   assert.equal(referencedReview.value.rule.schema, 10);
@@ -535,13 +539,32 @@ try {
           `/cosmwasm/wasm/v1/contract/${reviewContract}/smart/${encodeURIComponent(Buffer.from(JSON.stringify(query)).toString('base64'))}`
       )
     ).data;
-  const published = await workshopTx({ publish_proposal: { content: referencedDraft.values } });
+  const published = await workshopTx({ publish_proposal: { content: initialDraft.values } });
   assert.equal(published.code, 0, published.raw_log);
-  const finalized = await workshopTx({ finalize: { proposal_id: 1, version: 1 } });
+  const revised = await workshopTx({
+    add_revision: {
+      proposal_id: 1,
+      content: referencedDraft.values,
+      change_log: 'Set voting-power cap to 100% and recalculate validator allocations.'
+    }
+  });
+  assert.equal(revised.code, 0, revised.raw_log);
+  const initialRevisions = await queryReview({
+    revisions: { proposal_id: 1, start_after: null, limit: 2 }
+  });
+  assert.equal(initialRevisions.length, 2);
+  assert.equal(initialRevisions[0].body, initialDraft.values.body);
+  assert.equal(initialRevisions[1].body, referencedDraft.values.body);
+  assert.deepEqual(
+    await positions(),
+    originalPositions,
+    'Revising rules must not move delegations'
+  );
+  const finalized = await workshopTx({ finalize: { proposal_id: 1, version: 2 } });
   assert.equal(finalized.code, 0, finalized.raw_log);
   const reviewRecord = await queryReview({ proposal: { proposal_id: 1 } });
   const [storedRevision] = await queryReview({
-    revisions: { proposal_id: 1, start_after: null, limit: 1 }
+    revisions: { proposal_id: 1, start_after: 1, limit: 1 }
   });
   const referencedFinal = await finalizedReview(reviewRecord, storedRevision, 'juno-1');
   assert.ok(Buffer.byteLength(referencedFinal.content.summary) < 2500);
