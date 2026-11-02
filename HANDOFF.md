@@ -1,8 +1,19 @@
 # Cosmoot public development handoff
 
-Updated 1 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
+Updated 2 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
+
+## Direct voting-power cap — 2 November
+
+The cap editor accepts a direct 0.01–100% under schema 10, with no hidden 30%
+ceiling and no dependence on validator count. Historical rule versions retain
+their original meaning. A Discussion review can recalculate its allocations from
+fresh own data, keep its criteria/budget and publish a revision under the same
+proposal ID and forum thread. The owner requested 100% for the initial-rule
+review; no new rulebook is approved. That public update still requires the
+owner's revision signature after the manual website release. No service or
+contract installation is needed. See [semantics, revision flow and validation](docs/DIRECT_VOTING_CAP_2026-11-02.md).
 
 ## Proposal discussions — published; Juno-only follow-up, 1 November
 
@@ -21,17 +32,17 @@ data from all five source groups, allowed website origins and foreign-origin
 denial. The final runtime configuration is also backed up. Exact operational
 receipts remain private.
 
-[Manual release 41329125613](https://github.com/cristianoneta/neta-dao/actions/runs/41329125613)
-published `e9393eba035f9ca2af4787fce298e6f26b763c10`, including the Rebalance
-correction below. The current follow-up removes historical imported topics from
-the forum, retains the selected allocation-rule discussion, and admits future
-Juno chain governance reviews/proposals only. A persistent cutoff prevents
-reimport; a complete snapshot joins review/vote before becoming visible. It also
-removes the old proposal comment form and keeps drafts visible during sign-in
-renewal. This follow-up needs a targeted service update and manual website release.
-Real Keplr and mobile acceptance remain separate;
-the isolated restore exercised a synthetic sign-in on the same host, not a real
-wallet or another-machine recovery. Do not repeat the completed server rollout.
+[Manual release 41347463794](https://github.com/cristianoneta/neta-dao/actions/runs/41347463794)
+published `54020bdb2eb3a4c38d4a358a921a47783de9a612` on 1 November, including
+the Juno-only follow-up in PR #337 and the Rebalance correction below. The targeted
+service update also completed: the selected allocation-rule discussion remains
+visible, prior evidence is retained, backups are verified and the two scoped
+source groups are current. A persistent cutoff prevents old imports returning;
+a complete snapshot joins review/vote before becoming visible. The old proposal
+comment form is removed, and sign-in renewal preserves visible drafts.
+Real Keplr/Ledger and mobile acceptance remain separate. The isolated restore
+exercised synthetic sign-in on the same host, not a real wallet or another-machine
+recovery. Do not repeat the completed server rollout.
 
 ## Rebalance readiness correction — 1 November
 

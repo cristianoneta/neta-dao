@@ -29,6 +29,7 @@ export function ruleProposalSummary(review) {
       return parts.join(', ');
     }
     if (r.key === 'minParticipationBps') return `Minimum uptime: ${r.before} → ${r.after}`;
+    if (r.key === 'votingPowerCapBps') return `Voting-power cap: ${r.before} → ${r.after}`;
     if (r.key === 'factorTenths')
       return `Voting-power cap factor: ${review.value.parent.rule.factorTenths / 10} → ${review.value.rule.factorTenths / 10}`;
     const exact = `${r.label}: ${r.before} → ${r.after}`;

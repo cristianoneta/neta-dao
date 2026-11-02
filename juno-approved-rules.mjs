@@ -67,7 +67,7 @@ export async function approvedRule(proposal, now = Date.now(), source = null) {
     : await readProposalReview({ title: proposal.title, body, actions_json: '[]' });
   const frozenOnly =
     sections.length === 0 &&
-    frozen?.value.rule.schema === 9 &&
+    frozen?.value.rule.schema >= 9 &&
     body.split(FROZEN_POLICY_REFERENCE).length === 2;
   if ((!frozenOnly && sections.length !== 1) || hashes.length !== 1)
     throw Error(`Proposal #${proposal.id}: exact policy or fingerprint unavailable.`);

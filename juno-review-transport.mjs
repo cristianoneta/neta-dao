@@ -105,7 +105,7 @@ export function unpackReview(packet) {
   }
   const g = value.snapshot.governanceHistory;
   if (g?.transport !== undefined) {
-    if (g.transport !== 1 || value.rule?.schema !== 9) invalid();
+    if (g.transport !== 1 || ![9, 10].includes(value.rule?.schema)) invalid();
     const operator = (i) => {
       if (!Number.isInteger(i) || i < 0 || i >= value.snapshot.validators.length) invalid();
       return value.snapshot.validators[i].address;

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   PROGRAMME,
   legacyPolicy as defaultPolicy,
-  defaultPolicy as currentPolicy,
+  pointsPolicy as currentPolicy,
   fixedAllocationPolicy,
   strictHistoryPolicy,
   collectingPolicy,
@@ -41,7 +41,7 @@ test('cap uses full active set, factor and hard 30% ceiling', () => {
   ];
   assert.equal(simulate(p, s, amount('2500'), observed(s)).cap.denominator, '250');
 });
-test('current cap accepts 1.0–3.0 while frozen schemas retain the 2.0 boundary', async () => {
+test('historical points cap accepts 1.0–3.0 while frozen schemas retain the 2.0 boundary', async () => {
   const current = currentPolicy();
   for (const factorTenths of [10, 20, 21, 29, 30]) {
     const rule = policy({ ...current, factorTenths });

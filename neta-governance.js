@@ -65,6 +65,7 @@
   async function renderFrozenValues(v, editing = false) {
     const format = document.querySelector('#rule-proposal-format');
     const convert = document.querySelector('#rule-proposal-convert');
+    document.querySelector('#rule-cap-revision').hidden = true;
     if (format) format.hidden = true;
     if (convert) convert.hidden = true;
     const transfer = document.querySelector('#community-pool-transfer');
@@ -143,6 +144,24 @@
       host.hidden = !frozen;
       if (frozen) {
         if (reference) document.querySelector('#proposal-summary').value = frozen.proposalSummary;
+        if (
+          !reference &&
+          frozen.value.rule.schema >= 9 &&
+          isNativeReview() &&
+          CHAIN_ID === 'juno-1' &&
+          state.selected?.source === 'workshop' &&
+          state.selected.status === 'discussion' &&
+          !state.selected.nativeId
+        ) {
+          const { capFraction } = await import('./juno-delegation-core.mjs');
+          if (epoch !== frozenViewEpoch) return;
+          const cap = capFraction(frozen.value.rule, frozen.value.snapshot.activeCount);
+          document.querySelector('#rule-cap-percent').value = String(
+            Number(((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2))
+          );
+          document.querySelector('#rule-cap-revision').hidden = false;
+        }
+
         renderRuleReview(host, frozen, {
           scope: !editing && state.selected ? 'published' : 'draft'
         });
@@ -1063,6 +1082,8 @@
     $('#new-draft').disabled = state.busy;
     $('#discard-action').disabled = state.busy;
     $('#save-local').disabled = state.busy;
+    $('#rule-cap-recalculate').disabled = state.busy;
+    $('#rule-cap-percent').disabled = state.busy;
     if (plannerDraftError) {
       $('#primary-action').disabled = true;
       $('#action-hint').textContent = plannerDraftError;
@@ -2173,6 +2194,59 @@
         );
     } catch (error) {
       status(error.message, true);
+    }
+  };
+  let recalculatingCap = false;
+  $('#rule-cap-recalculate').onclick = async () => {
+    const selected = state.selected,
+      input = $('#rule-cap-percent');
+    if (
+      recalculatingCap ||
+      state.busy ||
+      !isNativeReview() ||
+      CHAIN_ID !== 'juno-1' ||
+      selected?.source !== 'workshop' ||
+      selected.status !== 'discussion' ||
+      selected.nativeId
+    )
+      return;
+    if (!input.value || !input.reportValidity()) return;
+    const original = values(),
+      identity = JSON.stringify(original),
+      context = reviewContext();
+    recalculatingCap = true;
+    $('#rule-cap-recalculate').disabled = true;
+    status('Recalculating validator allocations from current collected data…');
+    try {
+      const { recalculateRuleCap } = await import('./juno-rule-revision.mjs');
+      const next = await recalculateRuleCap(original, Math.round(Number(input.value) * 100));
+      const latest = await query({ proposal: { proposal_id: selected.id } });
+      context.assert();
+      if (
+        state.selected !== selected ||
+        state.busy ||
+        JSON.stringify(values()) !== identity ||
+        latest.latest_version !== selected.current_revision ||
+        latest.finalized_version ||
+        latest.withdrawn
+      )
+        throw Error(
+          'The discussion changed during calculation. Reload before preparing a revision.'
+        );
+      setValues(next.values);
+      void renderFrozenValues(next.values, true);
+      $('#change-note').value = next.changeNote;
+      if (saveLocal()) {
+        updateWorkflow(4);
+        status(
+          'Comparison recalculated and saved locally. Review the validator allocations, then publish a revision to update this same discussion. No funds move.'
+        );
+      }
+    } catch (error) {
+      status(error.message, true);
+    } finally {
+      recalculatingCap = false;
+      $('#rule-cap-recalculate').disabled = state.busy;
     }
   };
   $('#proposal-details-toggle').onclick = () => setDetails($('#proposal-details').hidden);

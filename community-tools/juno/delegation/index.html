@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="/community-tools.css?v=2" />
     <link rel="stylesheet" href="/community-tools-header.css?v=1" />
     <link rel="stylesheet" href="/juno-delegation.css?v=9" />
-    <script type="module" src="/juno-delegation.mjs?v=20261031-points-1"></script>
+    <script type="module" src="/juno-delegation.mjs?v=20261102-percent-cap-1"></script>
     <link rel="stylesheet" href="/juno-rule-review.css?v=20261029-fixed-1" />
     <link rel="stylesheet" href="/juno-delegation-workspace.css?v=4" />
   </head>
@@ -471,37 +471,37 @@
                         aria-expanded="false"
                         aria-controls="power-tooltip"
                       >
-                        Voting power
+                        Voting power cap
                       </button>
                     </h4>
                     <div class="criterion-tooltip" id="power-tooltip" role="tooltip" hidden>
-                      Limits projected total stake, including other delegators. All active
-                      validators count, including programme exclusions. The factor ranges from 1.0
-                      to 3.0.
+                      Maximum share of projected network voting power per validator, including
+                      stake from other delegators. This is not a percentage of the programme budget.
+                      Enter a percentage up to 100%. Fixed allocations remain exempt.
                       <p id="cap-description">Projected voting-power limit</p>
                       <p id="cap-formula">
-                        Cap = min(30%, factor × 100% / active validator count).
+                        The percentage stays fixed when the validator count changes.
                       </p>
                     </div>
                   </div>
                   <div class="criterion-control">
                     <div class="number-unit">
-                      <label class="sr-only" for="factor-number"
-                        >Exact voting power cap factor</label
+                      <label class="sr-only" for="cap-percent"
+                        >Maximum voting power (%)</label
                       ><input
-                        id="factor-number"
+                        id="cap-percent"
                         type="number"
-                        min="1"
-                        max="3"
-                        step="0.1"
-                        value="1.5"
-                        aria-describedby="factor-error"
-                      /><span aria-hidden="true">×</span
-                      ><output id="factor-value" class="sr-only" for="factor-number">1.5×</output>
+                        min="0.01"
+                        max="100"
+                        step="0.01"
+                        value="6"
+                        aria-describedby="cap-error"
+                      /><span aria-hidden="true">%</span
+                      ><output id="cap-value" class="sr-only" for="cap-percent">6%</output>
                     </div>
                   </div>
-                  <p id="factor-error" class="field-error criterion-detail" hidden>
-                    Enter a factor from 1.0 to 3.0 in steps of 0.1.
+                  <p id="cap-error" class="field-error criterion-detail" hidden>
+                    Enter a cap from 0.01% to 100% with up to two decimal places.
                   </p>
                 </section>
                 <section class="criterion compact-criterion" aria-labelledby="upgrade-criterion">

@@ -522,7 +522,10 @@ try {
   assert.equal(await balance(), before, 'Rule approval must not spend programme funds');
   // New format: actually store/finalize the complete review in WASM, then pass
   // its compact reference through native governance and resolve the exact rules.
-  const referencedReview = await buildRuleReview(reviewSizeInput({ points: true }));
+  const referencedInput = reviewSizeInput({ points: true });
+  referencedInput.rule.votingPowerCapBps = 10000;
+  const referencedReview = await buildRuleReview(referencedInput);
+  assert.equal(referencedReview.value.rule.schema, 10);
   const referencedDraft = await frozenRuleProposal(referencedReview, { referenced: true });
   const workshopTx = (message) => tx('wasm', 'execute', reviewContract, JSON.stringify(message));
   const queryReview = async (query) =>
