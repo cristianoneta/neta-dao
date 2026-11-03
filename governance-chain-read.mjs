@@ -89,6 +89,17 @@ export function governanceReadTarget(source, path, height = '') {
     if (mainnet && !isMainnetReview)
       allowed = ['admin', 'pause_info'].includes(type) && Object.keys(value).length === 0;
     else if (isMainnetReview && type === 'config') allowed = Object.keys(value).length === 0;
+    else if (type === 'review_chunk')
+      allowed =
+        Object.keys(value).sort().join(',') === 'index,proposal_id,version' &&
+        Number.isSafeInteger(value.proposal_id) &&
+        positive(value.proposal_id) &&
+        Number.isSafeInteger(value.version) &&
+        value.version > 0 &&
+        value.version <= 0xffffffff &&
+        Number.isSafeInteger(value.index) &&
+        value.index >= 0 &&
+        value.index < 92;
     else if (type === 'proposal')
       allowed =
         Object.keys(value).length === 1 &&

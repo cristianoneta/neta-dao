@@ -1,3 +1,4 @@
+import { readReviewActions } from './juno-review-actions.mjs';
 import { assertRuleReference, ruleReviewUrl, usesRuleReference } from './juno-rule-reference.mjs';
 import { assertStaking } from './juno-programme-staking.mjs';
 import { assertNativeText, assertReviewLimits } from './juno-proposal-limits.mjs';
@@ -22,7 +23,7 @@ export function referencedExecutionContent(values, reference) {
     !values.summary.trim()
   )
     throw Error('Invalid referenced rebalance review.');
-  const messages = JSON.parse(values.actions_json);
+  const messages = readReviewActions(values.actions_json);
   assertStaking(messages);
   const summary =
     `${values.summary.trim()}\n\n` +

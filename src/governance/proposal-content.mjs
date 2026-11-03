@@ -1,3 +1,4 @@
+import { readReviewActions } from '../../juno-review-actions.mjs';
 import { usesExecutionReference, usesReviewReference } from '../../juno-execution-reference.mjs';
 import { assertStaking } from '../../juno-programme-staking.mjs';
 import { assertNativeText, assertReviewLimits } from '../../juno-proposal-limits.mjs';
@@ -33,6 +34,7 @@ export function validateProposalContent(v, { native = false } = {}) {
     throw new Error('ACTIONS MUST BE VALID JSON');
   }
   if (!Array.isArray(actions)) throw new Error('ACTIONS MUST BE A JSON ARRAY');
+  actions = readReviewActions(v.actions_json);
   if (native) {
     if (usesRuleReference(v) && (!v.title.startsWith(RULE_TITLE) || actions.length))
       throw Error('Referenced rule reviews must contain no execution actions.');
@@ -40,7 +42,7 @@ export function validateProposalContent(v, { native = false } = {}) {
     if (!usesReviewReference(v)) assertNativeText(`${v.summary.trim()}\n\n${v.body.trim()}`);
     assertReviewLimits(v);
   }
-  const parts = payloadParts(v.actions_json);
+  const parts = payloadParts(JSON.stringify(actions));
   if (native && isCommunityPoolSpend(parts.actions)) assertCommunityPoolSpend(actions);
   else validateCategories(parts.actions, parts.accounting);
   actions

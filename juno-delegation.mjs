@@ -1,3 +1,4 @@
+import { reviewSizeText } from './juno-proposal-limits.mjs';
 import { mountFixedAllocations, renderFixedMandates } from './juno-fixed-allocation-view.mjs';
 import { availableBudget } from './juno-rebalance.mjs';
 import { policyImpact, renderPolicyImpact } from './juno-policy-impact.mjs?v=20261031-points-1';
@@ -348,7 +349,8 @@ function renderDraftBaseline() {
         ? `Based on approved proposal #${parent.proposalId}. Your edits need a new rule approval before they can be used for an allocation.`
         : 'Initial adoption · no approved Cosmoot-format policy found. Actual holdings already exist and remain the comparison baseline.';
   $('adopt-current-rules').hidden = !valid || matches;
-  if (review) $('publish-proposal').disabled = !matches || freshness() > 3600000;
+  if (review)
+    $('publish-proposal').disabled = !!reviewPreparationError || !matches || freshness() > 3600000;
   $('approved-allocation-next').hidden = !valid || !approval.current;
   $('approved-allocation-reference').textContent = approval.current
     ? `Uses the exact rules from proposal #${approval.current.proposalId}. Changing rules starts a new rule proposal first.`
@@ -664,6 +666,7 @@ async function load() {
     rebalance?.refresh();
   }
 }
+let reviewPreparationError = null;
 function renderResult() {
   renderRuleReview($('simulation-comparison'), review);
   $('proposal-empty').hidden = true;
@@ -720,10 +723,21 @@ async function runSimulation() {
     });
     if (token !== revision) return;
     review = result;
+    reviewPreparationError = null;
+    let sizeText;
+    try {
+      const prepared = await frozenRuleProposal(result, { referenced: true });
+      sizeText = reviewSizeText(prepared.values);
+    } catch (error) {
+      reviewPreparationError = error.message;
+      sizeText = error.message;
+    }
+    if (token !== revision) return;
     renderResult();
     $('rule-fingerprint').textContent =
       `Rule SHA-256: ${review.value.policyHash} · Review SHA-256: ${review.hash}`;
     $('export-json').disabled = false;
+    $('proposal-size-status').textContent = sizeText;
     renderDraftBaseline();
     setStep('proposals');
     tell(

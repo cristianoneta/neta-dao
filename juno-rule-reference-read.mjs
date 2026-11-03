@@ -1,3 +1,4 @@
+import { reviewChunkReader } from './juno-review-attachments.mjs';
 import { parseRuleReference, referencedRuleContent } from './juno-rule-reference.mjs';
 import { finalizedReview, matchesReview, reader, quorum } from './juno-community-governance.mjs';
 import { readProposalReview } from './juno-delegation-review.mjs';
@@ -32,14 +33,17 @@ export async function resolveRuleReference(proposal, source) {
     revisions.length !== 1
   )
     throw Error('Referenced finalized review is unavailable or differs from the proposal.');
-  const final = await finalizedReview(record, revisions[0], ref.chainId, { readOnly: true });
-  const frozen = await readProposalReview(final.values);
+  const final = await finalizedReview(record, revisions[0], ref.chainId, {
+    readOnly: true,
+    readChunk: reviewChunkReader(query, Number(ref.reviewId), Number(ref.revision))
+  });
+  const frozen = await readProposalReview(final.resolvedValues || final.values);
   if (
     !frozen ||
     frozen.hash !== ref.reviewHash ||
     frozen.value.policyHash !== ref.policyHash ||
     !matchesReview(proposal, final.content) ||
-    !matchesReview(proposal, referencedRuleContent(final.values, ref))
+    !matchesReview(proposal, referencedRuleContent(final.resolvedValues || final.values, ref))
   )
     throw Error('Native proposal differs from its referenced rule review.');
   return { reference: ref, frozen, proposalSummary: final.values.summary };

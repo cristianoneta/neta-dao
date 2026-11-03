@@ -1,3 +1,4 @@
+import { readReviewActions } from '../../juno-review-actions.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { finalizedReview } from '../../juno-community-governance.mjs';
@@ -397,7 +398,7 @@ try {
   );
   assert.equal(allocationDraft.kind, 'ALLOCATION_EXECUTION');
   assert.ok(
-    JSON.parse(allocationDraft.values.actions_json)[0].msg.execute_admin_msgs.msgs.length > 0
+    readReviewActions(allocationDraft.values.actions_json)[0].msg.execute_admin_msgs.msgs.length > 0
   );
   assert.match(allocationDraft.values.body, /Frozen rebalance execution/);
   await handoffRequest;

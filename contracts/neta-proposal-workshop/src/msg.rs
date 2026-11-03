@@ -1,6 +1,6 @@
 use crate::state::{Proposal, Revision};
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Uint128;
+use cosmwasm_std::{Binary, Uint128};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -41,6 +41,12 @@ pub struct ProposalSummary {
 
 #[cw_serde]
 pub enum ExecuteMsg {
+    UploadReviewChunk {
+        proposal_id: u64,
+        version: u32,
+        index: u32,
+        data: Binary,
+    },
     PublishProposal {
         content: ProposalContent,
     },
@@ -100,6 +106,16 @@ pub enum ExecuteMsg {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
+    #[returns(crate::attachments::AttachmentCapabilities)]
+    AttachmentCapabilities {},
+    #[returns(Option<crate::attachments::AttachmentStatus>)]
+    ReviewAttachment { proposal_id: u64, version: u32 },
+    #[returns(Binary)]
+    ReviewChunk {
+        proposal_id: u64,
+        version: u32,
+        index: u32,
+    },
     #[returns(crate::state::Config)]
     Config {},
     #[returns(Proposal)]

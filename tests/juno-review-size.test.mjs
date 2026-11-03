@@ -101,7 +101,7 @@ test('bad identity references, tuples, substituted counts and extra transport fi
   }
   await assert.rejects(
     readProposalReview(replaceBlock(proposal, block(3, packed, review.hash))),
-    /malformed/
+    /malformed/i
   );
 });
 

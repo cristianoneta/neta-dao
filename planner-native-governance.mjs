@@ -1,3 +1,4 @@
+import { readReviewActions } from './juno-review-actions.mjs';
 import { isStaking } from './juno-programme-staking.mjs';
 import { loadGovernanceSigning } from './browser-signing.mjs';
 import { isCommunityPoolSpend } from './juno-community-pool-proposal.mjs';
@@ -82,7 +83,7 @@ export function nativePlanner({
   async function loadTerms(force = false) {
     if (!active() || receipt()) return;
     try {
-      assertProgrammeExecutionAvailable(JSON.parse(draft().values.actions_json));
+      assertProgrammeExecutionAvailable(readReviewActions(draft().values.actions_json));
     } catch {
       return;
     }
@@ -137,7 +138,7 @@ export function nativePlanner({
       return;
     }
     try {
-      assertProgrammeExecutionAvailable(JSON.parse(draft().values.actions_json));
+      assertProgrammeExecutionAvailable(readReviewActions(draft().values.actions_json));
     } catch (error) {
       $('#planner-native-inputs').hidden = true;
       $('#planner-native-refresh').hidden = true;
@@ -281,6 +282,7 @@ export function nativePlanner({
           signDirect: (a, d) =>
             window.keplr.signDirect('juno-1', a, d, { preferNoSetFee: true, preferNoSetMemo: true })
         });
+        const size = NetaJunoGovernance.proposalSize(content, sender, deposit);
         const gas = await NetaJunoGovernance.simulate(client, content, sender, deposit),
           fee = NetaJunoGovernance.proposalFee(gas);
         current(epoch, fingerprint, sender, id);
@@ -290,6 +292,7 @@ export function nativePlanner({
         reviewed = { epoch, fingerprint, sender, id, content, deposit, fee, proof, expectedReview };
         $('#planner-native-review-text').textContent =
           `Juno mainnet · ${sender}\nInitial deposit: ${displayJuno(deposit)} JUNO · Estimated fee: ${displayJuno(fee.amount[0].amount)} JUNO\n` +
+          `Transaction body: ${size.bodyBytes.toLocaleString('en-US')} bytes; with signing reserve: ${size.transactionBudgetBytes.toLocaleString('en-US')} / ${size.limit.toLocaleString('en-US')} bytes (application budget). Gas including reserve: ${fee.gas} / 5,000,000.\n` +
           `Total deposit needed for voting: ${displayJuno(proof.terms.total)} JUNO · Verified at block ${proof.height}.\n` +
           (isCommunityPoolSpend(content.messages)
             ? 'After approval, Juno governance transfers 460.9 axlDAI from the Community Pool to the recipient in proposal #382. Dimi performs the USDC conversion and return separately.'

@@ -16,7 +16,7 @@ import {
 } from '@cosmjs/stargate';
 import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
 import { MsgSubmitProposal, MsgDeposit, MsgVote } from 'cosmjs-types/cosmos/gov/v1/tx';
-import { TxBody, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { TxBody, AuthInfo, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { VOTE, choices } from '../../native-voting-core.mjs';
 import { validateJunoAddress } from '../../names-profile-core.mjs';
 import { DEPOSIT } from '../../juno-community-governance.mjs';
@@ -32,6 +32,25 @@ export { inspectSavedVote, resumeVote, replaceVoteGas } from './native-vote-resu
 export { voteFee } from './native-vote-fee.mjs';
 export { proposalFee } from './native-proposal-fee.mjs';
 
+// Conservative application budget, not a claimed chain parameter. The actual
+// transaction is simulated separately and checked again after wallet encoding.
+export const PROPOSAL_TX_BUDGET = 262144;
+const SIGNATURE_RESERVE = 2048;
+function encodedProposalSize(msg) {
+  const value = MsgSubmitProposal.encode(msg.value).finish();
+  const bodyBytes = TxBody.encode(
+    TxBody.fromPartial({ messages: [{ typeUrl: SUBMIT, value }] })
+  ).finish().length;
+  return {
+    messageBytes: value.length,
+    bodyBytes,
+    transactionBudgetBytes: bodyBytes + SIGNATURE_RESERVE,
+    limit: PROPOSAL_TX_BUDGET
+  };
+}
+export function proposalSize(content, sender, deposit) {
+  return encodedProposalSize(message(content, sender, deposit));
+}
 export function message(content, sender, deposit) {
   assertProgrammeExecutionAvailable(content.messages);
   const community = isCommunityPoolSpend(content.messages);
@@ -39,7 +58,7 @@ export function message(content, sender, deposit) {
   else if (isStaking(content.messages)) assertStaking(content.messages);
   else if (content.messages.length) claimValidators(content.messages);
   if (!/^[1-9]\d*$/.test(deposit)) throw Error('Invalid proposal deposit.');
-  return {
+  const msg = {
     typeUrl: SUBMIT,
     value: MsgSubmitProposal.fromPartial({
       title: content.title,
@@ -74,6 +93,12 @@ export function message(content, sender, deposit) {
       )
     })
   };
+  const size = encodedProposalSize(msg);
+  if (size.transactionBudgetBytes > size.limit)
+    throw Error(
+      `Proposal needs ${size.transactionBudgetBytes} bytes including signing reserve, above the ${size.limit}-byte application budget. Review separate execution proposals; no actions were omitted or automatically split.`
+    );
+  return msg;
 }
 export async function connect(endpoints, signer) {
   return connectUsing(endpoints, (endpoint) =>
@@ -178,6 +203,10 @@ async function signReviewed(
         )
       )
         throw Error('Wallet changed the reviewed fee. Nothing was broadcast.');
+      if (TxRaw.encode(signed).finish().length > PROPOSAL_TX_BUDGET)
+        throw Error(
+          'Signed transaction exceeds the application byte budget. Nothing was broadcast.'
+        );
       await assertWallet();
       await beforeSign();
       return signed;

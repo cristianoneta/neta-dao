@@ -57,13 +57,12 @@ jobs:
           mkdir -p artifacts
           cp contracts/${{ matrix.contract }}/target/wasm32-unknown-unknown/release/*.wasm artifacts/
           sha256sum artifacts/*.wasm > artifacts/SHA256SUMS.txt
-      - name: Verify shipped workshop artifact
+      - name: Verify review upgrade candidate and retained mainnet artifact
         if: matrix.contract == 'neta-proposal-workshop'
         run: |
-          expected="$(cut -d ' ' -f 1 assets/review-mainnet/neta_proposal_workshop_v031.sha256)"
-          actual="$(sha256sum artifacts/neta_proposal_workshop.wasm | cut -d ' ' -f 1)"
-          test "$expected" = "$actual"
-          cmp artifacts/neta_proposal_workshop.wasm assets/review-mainnet/neta_proposal_workshop_v031.wasm
+          cmp artifacts/neta_proposal_workshop.wasm assets/review-candidate/neta_proposal_workshop_v040.wasm
+          sha256sum --check assets/review-candidate/neta_proposal_workshop_v040.sha256
+          sha256sum --check assets/review-mainnet/neta_proposal_workshop_v031.sha256
           sha256sum --check assets/neta_proposal_workshop.sha256
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:

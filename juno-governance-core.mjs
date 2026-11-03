@@ -1,3 +1,4 @@
+import { readReviewActions } from './juno-review-actions.mjs';
 import { isStaking, assertStaking } from './juno-programme-staking.mjs';
 import {
   COMMUNITY_POOL_KIND,
@@ -129,7 +130,7 @@ export function proposalContent(kind, values) {
     throw Error('Review the proposal title, summary and body.');
   const summary = `${values.summary.trim()}\n\n${values.body.trim()}`;
   assertNativeText(summary);
-  const messages = JSON.parse(values.actions_json);
+  const messages = readReviewActions(values.actions_json);
   if (kind === COMMUNITY_POOL_KIND) assertCommunityPoolSpend(messages);
   else if (kind === 'ALLOCATION_EXECUTION') assertStaking(messages);
   else if (kind === 'CLAIM_REWARDS') claimValidators(messages);
