@@ -115,11 +115,15 @@ try {
     if (url.pathname.endsWith('/voting')) return json(route, { params: {} });
     return json(route, {});
   });
-  let delayOperations = true;
+  let delayOperations = true,
+    treasuryReads = 0;
+  const { promise: operationsReady, resolve: releaseOperations } = Promise.withResolvers();
+  const { promise: operationsFinished, resolve: finishOperations } = Promise.withResolvers();
   await context.route('**/data/treasury/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
-    if (path.endsWith('current.json') && delayOperations)
-      await new Promise((resolve) => setTimeout(resolve, 500));
+    treasuryReads++;
+    const heldOperations = path.endsWith('current.json') && delayOperations;
+    if (heldOperations) await operationsReady;
     if (path.endsWith('history.json')) return json(route, { snapshots: [] });
     if (path.endsWith('neta-main-events.json'))
       return json(route, {
@@ -138,7 +142,7 @@ try {
     if (!dao) return json(route, {});
     const juno = dao.id === 'juno',
       address = dao.core;
-    return json(route, {
+    const response = json(route, {
       chain_id: dao.network,
       treasury_type: juno ? 'community-pool' : 'dao-core',
       treasury_address: address,
@@ -160,6 +164,7 @@ try {
         }
       ]
     });
+    return heldOperations ? response.finally(finishOperations) : response;
   });
   let netaMembersReady = Promise.resolve();
   await context.route('**/data/daos/neta.json', async (route) => {
@@ -197,6 +202,13 @@ try {
     true,
     'DAO search must wait for its handlers'
   );
+  assert.equal(treasuryReads, 0, 'Home must not fetch the hidden Treasury');
+  const operationsRequest = page.waitForRequest('**/data/treasury/current.json*');
+  await page.getByRole('button', { name: 'Treasury', exact: true }).click();
+  const oldRequest = await operationsRequest;
+  const operationsCancelled = page.waitForEvent('requestfailed', {
+    predicate: (request) => request === oldRequest
+  });
   releaseGovernance();
   await page.locator('#dao-search').fill('Juno');
   await page.locator('#dao-options button').filter({ hasText: 'Juno Network Governance' }).click();
@@ -204,14 +216,17 @@ try {
   await page.waitForFunction(
     () => document.querySelector('#treasury-total').textContent === '$200.00'
   );
-  await page.waitForTimeout(700);
+  // Deliver the old response only after the new scope has rendered. The old
+  // request must already be cancelled and cannot replace the Community Pool.
+  delayOperations = false;
+  releaseOperations();
+  await Promise.all([operationsCancelled, operationsFinished]);
   assert.equal(
     await page.locator('#treasury-total').textContent(),
     '$200.00',
     'old Operations response overwrote Community Pool'
   );
   assert.match(await page.locator('#treasury-live-status').textContent(), /JUNO COMMUNITY POOL/);
-  delayOperations = false;
   await page.locator('#dao-search').fill('NETA');
   await page.locator('#dao-options button').filter({ hasText: 'NETA' }).click();
   await page.locator('#subdao-select').selectOption('neta-operations');

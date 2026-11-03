@@ -1114,6 +1114,11 @@ try {
   assert.notEqual(capRevision.hash, frozen.hash);
   assert.equal(capRevision.value.budgetRaw, frozen.value.budgetRaw);
   assert.equal(new URL(page.url()).searchParams.get('review'), '17');
+  // Recalculation publishes its status before asynchronous review verification
+  // finishes. Assert the comparison only after the verified view is rendered.
+  await page.waitForFunction(() =>
+    document.getElementById('proposal-rule-review').textContent.includes('DECISION TO REVIEW')
+  );
   assert.match(await page.locator('#proposal-rule-review').textContent(), /DECISION TO REVIEW/);
   assert.match(
     await page.locator('#proposal-rule-review').textContent(),

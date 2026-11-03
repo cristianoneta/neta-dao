@@ -18,6 +18,7 @@ service installation remain separate from source readiness.
 | Names signing loader | A duplicated loader could remain pending indefinitely or treat a load without its expected global as success. | Reuse the shared loader, with a 30-second timeout, retry and concurrent-load coalescing. |
 | Runtime linting | Undeclared runtime references were not checked. | Enable `no-undef` with separate browser, Node and worker environments and narrow intentional bundle-global exceptions. |
 | Backup regression test | A fixed 30 ms sleep could test request capacity before requests actually arrived; cleanup then produced unhandled socket errors. | Wait for observed partial bodies and settle outstanding responses, retaining all rate-limit, authentication, deadline, recovery and size assertions. |
+| Browser acceptance | One assertion raced asynchronous rule verification; another depended on Treasury reads while Home was visible. | Wait for the verified comparison and explicitly enter Treasury before inspecting its data; preserve the rule, budget and stale-response checks. |
 
 Native governance voting, contributions and submissions already require direct
 signing. These changes retain that boundary; they do not add Ledger support or
