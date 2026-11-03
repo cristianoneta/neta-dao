@@ -18,7 +18,7 @@ service installation remain separate from source readiness.
 | Names signing loader | A duplicated loader could remain pending indefinitely or treat a load without its expected global as success. | Reuse the shared loader, with a 30-second timeout, retry and concurrent-load coalescing. |
 | Runtime linting | Undeclared runtime references were not checked. | Enable `no-undef` with separate browser, Node and worker environments and narrow intentional bundle-global exceptions. |
 | Backup regression test | A fixed 30 ms sleep could test request capacity before requests actually arrived; cleanup then produced unhandled socket errors. | Wait for observed partial bodies and settle outstanding responses, retaining all rate-limit, authentication, deadline, recovery and size assertions. |
-| Browser acceptance | One assertion raced asynchronous rule verification; another depended on Treasury reads while Home was visible. | Wait for the verified comparison and explicitly enter Treasury before inspecting its data; preserve the rule, budget and stale-response checks. |
+| Browser acceptance | Assertions raced rule verification, relied on hidden Treasury reads or matched a DAO name in its refreshing status. | Wait for the verified comparison and use a shared, scope-bound completed-load check in the Treasury browser suites. Preserve the rule, budget, identity and stale-response assertions. |
 
 Native governance voting, contributions and submissions already require direct
 signing. These changes retain that boundary; they do not add Ledger support or
@@ -34,7 +34,7 @@ compression and selected DAO affect actual traffic.
 
 Combined source validation after integration with PR #339:
 
-- `npm run verify`: formatting, runtime linting, checked JavaScript, **490** root
+- `npm run verify`: formatting, runtime linting, checked JavaScript, **493** root
   JavaScript tests, executable syntax/artifact checks and **250** Python tests
   (**14** environment skips) passed.
 - Faucet/signing suite: **134** tests passed, including actual pinned CosmJS

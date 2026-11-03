@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { waitForTreasury } from './treasury-readiness.mjs';
 const root = new URL('../../', import.meta.url);
 const inventory = JSON.parse(await readFile(new URL('data/dao-directory.json', root)));
 const server = http.createServer(async (req, res) => {
@@ -213,6 +214,7 @@ try {
   await page.locator('#dao-search').fill('Juno');
   await page.locator('#dao-options button').filter({ hasText: 'Juno Network Governance' }).click();
   await page.locator('#subdao-select').selectOption('juno');
+  await waitForTreasury(page, 'juno');
   await page.waitForFunction(
     () => document.querySelector('#treasury-total').textContent === '$200.00'
   );
@@ -501,9 +503,8 @@ try {
     document.querySelector('#dao-members-panel').textContent.includes('1 active staking addresses')
   );
   await page.getByRole('button', { name: 'Treasury', exact: true }).click();
-  await page.waitForFunction(() =>
-    document.querySelector('#treasury-live-status').textContent.includes('NETA DAO')
-  );
+  await waitForTreasury(page, 'neta');
+  assert.match(await page.locator('#treasury-live-status').textContent(), /^LIVE · NETA DAO ·/);
   assert.equal(await page.locator('#treasury-pnl').isVisible(), true);
   assert.match(await page.locator('#treasury-events').textContent(), /history unavailable/i);
   assert.equal(await page.locator('.allocation-card').isVisible(), false);
@@ -644,6 +645,7 @@ try {
     json(route, { scope: 'neta-operations-cross-chain', events: [{ title: 'FOREIGN PAYMENT' }] })
   );
   await page.getByRole('button', { name: 'View treasury', exact: true }).click();
+  await waitForTreasury(page, 'neta');
   await page.waitForFunction(() =>
     document.querySelector('#treasury-events').textContent.includes('source identity')
   );
@@ -665,7 +667,8 @@ try {
       ]) {
         await page.goto(origin + '/index.html#' + view);
         await page.reload();
-        await page.waitForTimeout(500);
+        if (view === 'treasury') await waitForTreasury(page, 'neta');
+        else await page.waitForTimeout(500);
         await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
         assert.equal(
           await page

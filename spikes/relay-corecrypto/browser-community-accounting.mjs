@@ -4,6 +4,7 @@ import { readFile, mkdir } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { waitForTreasury } from './treasury-readiness.mjs';
 const root = new URL('../../', import.meta.url);
 // Preview the collector's real archived evidence without overwriting bot-owned
 // production exports in a PR. Historical quotes are frozen; no network is used.
@@ -88,6 +89,7 @@ try {
   await page.goto(
     `http://127.0.0.1:${server.address().port}/index.html?dao=juno&subdao=main#treasury`
   );
+  await waitForTreasury(page, 'juno');
   await page.locator('#pnl-year').selectOption('2026');
   await page.locator('#pnl-month').selectOption('10');
   await page.waitForFunction(() =>
@@ -144,6 +146,7 @@ try {
   await page.goto(
     `http://127.0.0.1:${server.address().port}/index.html?dao=juno&subdao=juno-delegation#treasury`
   );
+  await waitForTreasury(page, 'juno-delegation');
   // Each navigation resets the period to the current month; the archived
   // accrual evidence under test belongs to October, regardless of today's date.
   await page.locator('#pnl-year').selectOption('2026');
@@ -167,6 +170,7 @@ try {
       .locator('#treasury-pnl')
       .screenshot({ path: `${screenshots}/delegation-accrual-320.png` });
   await page.goto(`http://127.0.0.1:${server.address().port}/index.html?dao=juno#treasury`);
+  await waitForTreasury(page, 'juno', true);
   await page.locator('#pnl-year').selectOption('2026');
   await page.locator('#pnl-month').selectOption('10');
   await page.waitForFunction(() =>

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { waitForTreasury } from './treasury-readiness.mjs';
 
 const root = new URL('../../', import.meta.url);
 // Archived October receipts and future-November assertions share one clock.
@@ -153,6 +154,7 @@ try {
   await page.goto(
     `http://127.0.0.1:${server.address().port}/index.html?dao=neta&subdao=main#treasury`
   );
+  await waitForTreasury(page, 'neta');
   await page.locator('#pnl-year').selectOption('2026');
   await page.locator('#pnl-month').selectOption('10');
   await page.waitForFunction(() =>
@@ -297,6 +299,7 @@ try {
   await page.evaluate(() =>
     window.dispatchEvent(new CustomEvent('neta:dao-change', { detail: { id: 'juno' } }))
   );
+  await waitForTreasury(page, 'juno');
   await page.waitForFunction(() =>
     document
       .querySelector('#pnl-coverage')
@@ -307,6 +310,7 @@ try {
   await page.evaluate(() =>
     window.dispatchEvent(new CustomEvent('neta:dao-change', { detail: { id: 'neta-operations' } }))
   );
+  await waitForTreasury(page, 'neta-operations');
   await page.waitForFunction(() =>
     document.querySelector('#pnl-coverage').textContent.includes('Provisional')
   );
@@ -317,7 +321,7 @@ try {
       (id) => window.dispatchEvent(new CustomEvent('neta:dao-change', { detail: { id } })),
       daoId
     );
-    await page.waitForFunction(() => !document.querySelector('#treasury-refresh').disabled);
+    await waitForTreasury(page, daoId);
     for (const width of [1440, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 1200 });
       assert.equal(
@@ -342,6 +346,7 @@ try {
   await page.evaluate(() =>
     window.dispatchEvent(new CustomEvent('neta:dao-change', { detail: { id: 'neta-operations' } }))
   );
+  await waitForTreasury(page, 'neta-operations');
   await page.waitForFunction(() =>
     document.querySelector('#pnl-coverage').textContent.includes('identity unavailable')
   );
@@ -356,6 +361,7 @@ try {
   await page.evaluate(() =>
     window.dispatchEvent(new CustomEvent('neta:dao-change', { detail: { id: 'neta' } }))
   );
+  await waitForTreasury(page, 'neta');
   await page.waitForFunction(() =>
     document.querySelector('#pnl-coverage').textContent.includes('identity unavailable')
   );
@@ -363,7 +369,7 @@ try {
   await context.unroute('**/neta-main-accounting.json*');
   await context.route('**/neta-main-accounting.json*', (route) => route.abort());
   await page.locator('#treasury-refresh').click();
-  await page.waitForFunction(() => !document.querySelector('#treasury-refresh').disabled);
+  await waitForTreasury(page, 'neta');
   assert.doesNotMatch(await page.locator('#pnl-rows').textContent(), /\$5.00/);
   // Dedicated register keeps period/type deep links, validates identity and lists every matching receipt.
   await context.unroute('**/neta-main-accounting.json*');
