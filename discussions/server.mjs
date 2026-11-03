@@ -100,8 +100,16 @@ export function discussionServer({
       .end(JSON.stringify(value));
   };
   return http.createServer(async (req, res) => {
-    const url = new URL(req.url, 'http://localhost'),
-      path = url.pathname.replace(/^\/discussions(?=\/)/, '');
+    let url;
+    try {
+      url = new URL(req.url, 'http://localhost');
+    } catch {
+      // A malformed raw HTTP target must not reject this async listener and
+      // terminate the process. Close any unread body after the bounded reply.
+      rejectBody(req, res);
+      return json(res, 400, { error: 'Invalid request target.' });
+    }
+    const path = url.pathname.replace(/^\/discussions(?=\/)/, '');
     if (path === '/health' && req.method === 'GET') {
       const sources = store.health();
       return json(res, 200, {
@@ -260,9 +268,15 @@ export function discussionServer({
       }
       const match = path.match(/^\/v1\/threads\/([a-f0-9]{32})\/posts$/);
       if (!match) fail('Not found.', 404); // In particular, there is no create-topic endpoint.
-      const thread = store.thread(match[1]);
-      if (!thread) fail('Discussion not found.', 404);
-      const saved = store.request(session.wallet, body.requestId);
+      const input = {
+        thread: match[1],
+        wallet: session.wallet,
+        body: body.body,
+        reply: body.reply ?? null,
+        quote: body.quote ?? null,
+        requestId: body.requestId
+      };
+      const { thread, saved } = store.validatePost(input);
       if (!saved) {
         if (!store.ready(thread.root))
           fail('This proposal is still being indexed. Your reply has not been sent.', 503);
@@ -270,19 +284,7 @@ export function discussionServer({
       const evidence = saved
         ? { stake: { status: 'unavailable' }, name: { status: 'unavailable' } }
         : await chain.identity(session.wallet, { stake: true });
-      return json(
-        res,
-        200,
-        store.addPost({
-          thread: thread.id,
-          wallet: session.wallet,
-          body: body.body,
-          reply: body.reply ?? null,
-          quote: body.quote ?? null,
-          requestId: body.requestId,
-          ...evidence
-        })
-      );
+      return json(res, 200, store.addPost({ ...input, ...evidence }));
     } catch (error) {
       if ([408, 413].includes(error.status)) rejectBody(req, res);
       json(res, error.status || 400, {

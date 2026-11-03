@@ -204,7 +204,7 @@ test('review recheck binds a final revision from two UNI-7 sources and paginated
     return new Response(
       JSON.stringify(
         url.includes('pagination.key=')
-          ? { proposals: [{ ...expected.content, id: '901' }], pagination: {} }
+          ? { proposals: [{ ...expected.content, id: '901' }], pagination: { next_key: null } }
           : {
               proposals: [{ ...expected.content, title: 'Spoofed', id: '900' }],
               pagination: { next_key: 'next' }
@@ -216,6 +216,65 @@ test('review recheck binds a final revision from two UNI-7 sources and paginated
     '901'
   ]);
   assert.equal(pages, 4);
+});
+
+test('duplicate detection requires complete pagination and valid distinct proposal identities', async (t) => {
+  const content = {
+    title: 'Reviewed rules',
+    summary: 'Frozen evidence',
+    metadata: 'review',
+    messages: []
+  };
+  const record = { ...content, id: '900' };
+  const read = (page) => async (url) =>
+    new Response(
+      JSON.stringify(
+        url.endsWith('/latest')
+          ? {
+              block: {
+                header: { chain_id: 'juno-1', height: '99', time: new Date().toISOString() }
+              }
+            }
+          : page(new URL(url))
+      )
+    );
+  for (const [name, page] of [
+    ['missing pagination', () => ({ proposals: [] })],
+    ['missing terminal cursor', () => ({ proposals: [], pagination: {} })],
+    ['false terminal cursor', () => ({ proposals: [], pagination: { next_key: false } })],
+    ['numeric terminal cursor', () => ({ proposals: [], pagination: { next_key: 0 } })],
+    ['oversized cursor', () => ({ proposals: [], pagination: { next_key: 'a'.repeat(1025) } })],
+    ['repeated cursor', () => ({ proposals: [], pagination: { next_key: 'loop' } })],
+    [
+      'duplicate ID on separate pages',
+      (url) => ({
+        proposals: [record],
+        pagination: { next_key: url.searchParams.has('pagination.key') ? null : 'next' }
+      })
+    ],
+    ['missing proposal ID', () => ({ proposals: [content], pagination: { next_key: null } })],
+    [
+      'out-of-range proposal ID',
+      () => ({
+        proposals: [{ ...record, id: '18446744073709551616' }],
+        pagination: { next_key: null }
+      })
+    ],
+    [
+      'numeric proposal ID',
+      () => ({ proposals: [{ ...record, id: 900 }], pagination: { next_key: null } })
+    ]
+  ])
+    await t.test(name, async () => {
+      await assert.rejects(findReviewSubmission(sources, content, { fetcher: read(page) }));
+    });
+  for (const next_key of [null, ''])
+    assert.deepEqual(
+      await findReviewSubmission(sources, content, {
+        fetcher: read(() => ({ proposals: [], pagination: { next_key } }))
+      }),
+      []
+    );
 });
 
 test('same numbered reviews on different chains retain separate submission identities and metadata', async () => {

@@ -1,3 +1,5 @@
+import globals from 'globals';
+
 export default [
   {
     ignores: [
@@ -9,6 +11,55 @@ export default [
       'docs/**',
       'relay-personal-pilot.js'
     ]
+  },
+  {
+    // Runtime modules must not rely on undeclared names. Browser test callbacks
+    // serialized into another realm have their own fixture globals; the existing
+    // correctness rules below still apply to those files.
+    files: ['**/*.{js,mjs}'],
+    ignores: ['tests/**', '**/test/**', '**/tests/**', 'spikes/**'],
+    rules: { 'no-undef': 'error' }
+  },
+  {
+    files: [
+      '*.{js,mjs}',
+      'src/**/*.{js,mjs}',
+      'community-tools/**/*.{js,mjs}',
+      'faucet/src/*.{js,mjs}',
+      'names/mainnet-deploy.mjs',
+      'names/mainnet-setup.mjs'
+    ],
+    languageOptions: { globals: globals.browser }
+  },
+  {
+    files: [
+      'scripts/**/*.{js,mjs}',
+      'service/*.mjs',
+      'faucet/service/*.mjs',
+      'relay-backup/**/*.mjs',
+      'discussions/*.mjs',
+      'names/**/*.mjs'
+    ],
+    ignores: ['names/mainnet-deploy.mjs', 'names/mainnet-setup.mjs'],
+    languageOptions: { globals: globals.nodeBuiltin }
+  },
+  {
+    files: ['functions/**/*.js', 'deploy/cosmoot/governance-read-proxy.mjs'],
+    languageOptions: { globals: globals.serviceworker }
+  },
+  {
+    // These entry points deliberately access globals installed by reviewed,
+    // on-demand signing bundles. Keep this exception local to their consumers.
+    files: ['juno-proposal-funding.mjs', 'native-voting-ui.mjs', 'planner-native-governance.mjs'],
+    languageOptions: { globals: { NetaJunoGovernance: 'readonly' } }
+  },
+  {
+    files: ['names.js', 'neta-governance.js', 'relay-testnet-setup.js'],
+    languageOptions: { globals: { NetaSocialsTestnet: 'readonly' } }
+  },
+  {
+    files: ['neta-governance.js'],
+    languageOptions: { globals: { NetaNamesSigning: 'readonly' } }
   },
   {
     files: ['**/*.{js,mjs}'],

@@ -4,6 +4,7 @@
   const { selectionParams } = await import('./dao-hierarchy.mjs?v=20261006-1');
   const { eventTags } = await import('./treasury-event-tags.mjs?v=20261006-9');
   const { validateEventFeed } = await import('./treasury-generic-accounting.mjs?v=20261006-9');
+  const { createWorkspacePoller } = await import('./workspace-polling.mjs?v=20261103-1');
   const $ = (selector) => document.querySelector(selector),
     assets = $('#treasury-assets'),
     total = $('#treasury-total'),
@@ -614,13 +615,13 @@
     renderEvents();
   }
   async function load() {
+    const dao = window.NetaDaoDirectory.find((d) => d.id === selectedDao);
+    if (!dao) return;
     const epoch = ++loadEpoch;
     loadController?.abort();
     const controller = new AbortController();
     loadController = controller;
-    const timer = setTimeout(() => controller.abort(), 15000),
-      dao = window.NetaDaoDirectory.find((d) => d.id === selectedDao);
-    if (!dao) return;
+    const timer = setTimeout(() => controller.abort(), 15000);
     const scope = selectedScope;
     $('#treasury-units').hidden = true;
     explorer.hidden = false;
@@ -805,12 +806,22 @@
       .forEach((item) => item.classList.toggle('active', item === button));
     renderHistory();
   });
+  const poller = createWorkspacePoller({
+    view: 'treasury',
+    load,
+    invalidate() {
+      ++loadEpoch;
+      loadController?.abort();
+      loadController = null;
+      refresh.disabled = false;
+    },
+    window,
+    document
+  });
   window.addEventListener('neta:dao-change', (event) => {
     selectedDao = event.detail.id;
     selectedScope = event.detail.scope || null;
-    load();
+    poller.changed();
   });
-  refresh.addEventListener('click', load);
-  load();
-  setInterval(load, 60000);
+  refresh.addEventListener('click', poller.refresh);
 })();

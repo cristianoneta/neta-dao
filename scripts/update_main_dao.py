@@ -6,6 +6,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
+from evidence_archive import atomic_json
 ROOT = Path(__file__).resolve().parents[1]
 TASKS = {
     'accounting': ('update_treasury_accounting.py', [], 150),
@@ -42,15 +43,19 @@ def main():
         try:
             accounting_data = json.loads(accounting_path.read_text())
             accounting_data['movement_review'] = reconcile_movements(json.loads(event_path.read_text()), accounting_data)
-            temporary = accounting_path.with_suffix('.json.tmp')
-            temporary.write_text(json.dumps(accounting_data, indent=2) + '\n')
-            temporary.replace(accounting_path)
+            atomic_json(accounting_path, accounting_data, mode=0o644)
         except (ValueError, KeyError, TypeError) as error:
             status['reconciliation'] = {'status': 'unavailable', 'note': str(error)}
     path = ROOT / 'data/daos/neta-status.json'
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(status, indent=2) + '\n')
+    atomic_json(path, status, mode=0o644)
     print(json.dumps(status))
+    required = [status[name] for name in TASKS]
+    if 'reconciliation' in status:
+        required.append(status['reconciliation'])
+    # Publish independent successful results and explicit failures before the
+    # parent records completion. A caught child error is still a failed job.
+    return 0 if all(result['status'] == 'completed' for result in required) else 1
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

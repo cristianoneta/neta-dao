@@ -4,6 +4,16 @@ Updated 3 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
+## Code review — fixes prepared, 3 November
+
+The review adds independent native-signature verification, strict proposal-history
+pagination, discussion admission checks, truthful collector exit statuses and
+visibility-aware Treasury polling. Names uses the shared bounded signing loader;
+runtime linting now rejects undeclared references. Changes build on the pending
+proposal-size work below. See [findings, validation and remaining work](docs/CODE_REVIEW_2026-11-03.md).
+Website publication, discussion service installation and collector installation
+are distinct steps; none has been performed by this review.
+
 ## Proposal size resilience — implementation prepared, 3 November
 
 New referenced reviews use compact, lossless rule/action transport, early field

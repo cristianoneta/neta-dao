@@ -2,6 +2,7 @@ import { readNamesIntent, intentLabel, NAME_GRACE } from './names-v2-view-state.
 import { snapshotReview } from './names/snapshot-client.mjs?v=2';
 import { NamesV2Reader } from './names-v2-reader.mjs?v=5';
 import { connectNamesWallet } from './names-v2-wallet.mjs?v=7';
+import { loadNamesSigning } from './browser-signing.mjs?v=20261103-names-loader-1';
 import {
   normalizeName,
   normalizeContacts,
@@ -30,8 +31,7 @@ let reader = null,
   busy = false,
   review = null,
   epoch = 0,
-  formVersion = 0,
-  signingReady = null;
+  formVersion = 0;
 const now = () => Math.floor(Date.now() / 1000);
 const wallet = () => window.NetaWorkspaceWallet?.getAddress() || null;
 const pendingPhases = ['commit_pending', 'payment_pending', 'write_pending'];
@@ -390,22 +390,6 @@ function approvedTariff(checked) {
       'The approved USD 99 / 19 / 5 tariff is not active in this test registry yet. The admin must confirm it in the Names lab, then read the registry again.'
     );
 }
-async function loadSigning() {
-  if (window.NetaNamesSigning) return;
-  if (!signingReady)
-    signingReady = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'assets/names-signing.js?v=5';
-      script.onload = resolve;
-      script.onerror = () => {
-        script.remove();
-        signingReady = null;
-        reject(Error('Names signing could not load. Try again.'));
-      };
-      document.head.append(script);
-    });
-  await signingReady;
-}
 async function connected(check) {
   const address = wallet();
   if (!address) throw Error('Connect Keplr using the shared header first.');
@@ -414,7 +398,7 @@ async function connected(check) {
     check();
   }
   if (session?.owner === address) return session;
-  await loadSigning();
+  await loadNamesSigning();
   check();
   const next = await connectNamesWallet({ deployment: reader.deployment });
   try {

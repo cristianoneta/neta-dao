@@ -260,6 +260,112 @@ test('real ADR-36 login, origin isolation, revoked sessions, no topic creation a
     store.close();
   }
 });
+test('rejected replies do not fetch chain identity and admission is rechecked before insertion', async () => {
+  let now = 1793534400000,
+    identityCalls = 0,
+    pendingIdentity;
+  const store = new DiscussionStore(':memory:', { now: () => now }),
+    t = thread(store);
+  store.syncStatus(source);
+  const server = discussionServer({
+    store,
+    origins: ['https://cosmoot.com'],
+    now: () => now,
+    chain: {
+      identity: async () => {
+        identityCalls++;
+        return pendingIdentity ? pendingIdentity() : evidence;
+      }
+    }
+  });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const call = async (path, body, accessToken) => {
+    const response = await fetch(base + path, {
+      method: 'POST',
+      headers: {
+        origin: 'https://cosmoot.com',
+        'content-type': 'application/json',
+        ...(accessToken ? { authorization: 'Bearer ' + accessToken } : {})
+      },
+      body: JSON.stringify(body)
+    });
+    return { status: response.status, value: await response.json() };
+  };
+  const body = (extra = {}) => ({
+    body: 'A valid contribution.',
+    requestId: randomUUID(),
+    ...extra
+  });
+  try {
+    const challenge = (await call('/v1/challenge', { wallet })).value;
+    const accessToken = (
+      await call('/v1/auth', {
+        nonce: challenge.nonce,
+        signature: await signature(challenge.message)
+      })
+    ).value.accessToken;
+    const reply = (value) => call(`/v1/threads/${t.id}/posts`, value, accessToken);
+    for (const input of [
+      body({ body: '' }),
+      body({ body: 'x'.repeat(6001) }),
+      body({ requestId: 'not-an-id' }),
+      body({ reply: 123 }),
+      body({ quote: 123 })
+    ]) {
+      assert.equal((await reply(input)).status, 400);
+      assert.equal(identityCalls, 0, 'invalid input must fail before chain reads');
+    }
+    store.moderate(other, { action: 'lock', target: t.id, reason: 'Review pause' });
+    assert.equal((await reply(body())).status, 403);
+    store.moderate(other, { action: 'unlock', target: t.id, reason: 'Review complete' });
+    store.moderate(other, { action: 'block', target: wallet, reason: 'Posting restriction' });
+    assert.equal((await reply(body())).status, 403);
+    assert.equal(identityCalls, 0, 'moderation must be enforced before chain reads');
+    store.moderate(other, { action: 'unblock', target: wallet, reason: 'Restriction reviewed' });
+    const original = body(),
+      accepted = await reply(original);
+    assert.equal(accepted.status, 200);
+    assert.equal(identityCalls, 1);
+    assert.equal((await reply(body())).status, 429);
+    assert.equal(identityCalls, 1, 'the wallet cooldown must precede chain reads');
+    store.moderate(other, { action: 'lock', target: t.id, reason: 'Review pause' });
+    const replay = await reply(original);
+    assert.equal(replay.status, 200);
+    assert.equal(replay.value.id, accepted.value.id);
+    assert.equal(replay.value.replayed, true);
+    assert.equal(identityCalls, 1, 'an existing receipt needs no fresh evidence');
+    store.moderate(other, { action: 'unlock', target: t.id, reason: 'Review complete' });
+    now += 30001;
+    store.maximumPosts = 1;
+    assert.equal((await reply(body())).status, 503);
+    assert.equal(identityCalls, 1, 'storage admission must precede chain reads');
+    store.maximumPosts = 1000000;
+    let announceStarted, release;
+    const started = new Promise((resolve) => {
+      announceStarted = resolve;
+    });
+    pendingIdentity = () =>
+      new Promise((resolve) => {
+        release = resolve;
+        announceStarted();
+      });
+    const candidate = body(),
+      inFlight = reply(candidate);
+    await started;
+    store.moderate(other, { action: 'lock', target: t.id, reason: 'Locked during lookup' });
+    release(evidence);
+    assert.equal((await inFlight).status, 403);
+    assert.equal(store.request(wallet, candidate.requestId), null);
+    assert.equal(store.posts(t.id).total, 1, 'a stale preflight must not authorize insertion');
+  } finally {
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+    store.close();
+  }
+});
+
 test('source snapshots reject disagreement, missing height and stale blocks', async () => {
   const now = 1793534400000,
     time = new Date(now).toISOString();
