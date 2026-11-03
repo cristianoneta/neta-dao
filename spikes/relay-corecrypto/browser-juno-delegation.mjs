@@ -1716,6 +1716,7 @@ try {
     await page.locator('#rule-proposal-format-text').innerText(),
     /every executable staking message/
   );
+  await page.addScriptTag({ url: `${origin}/assets/juno-governance-signing.js` });
   await page.evaluate((address) => {
     window.keplr = {
       enable: async () => {},
@@ -1730,6 +1731,7 @@ try {
       }
     };
     window.NetaJunoGovernance = {
+      proposalSize: window.NetaJunoGovernance.proposalSize,
       connect: async () => ({ disconnect() {} }),
       simulate: async () => 2000000,
       proposalFee: () => ({ gas: '2800000', amount: [{ denom: 'ujuno', amount: '210000' }] }),
@@ -1752,6 +1754,22 @@ try {
   assert.deepEqual(
     await page.evaluate(() => window.__checkedRebalanceContent),
     executionFinal.content
+  );
+  const nativeSize = await page.evaluate(
+    (sender) =>
+      window.NetaJunoGovernance.proposalSize(
+        window.__checkedRebalanceContent,
+        sender,
+        '1000000000'
+      ),
+    publishedReview.author
+  );
+  assert.ok(nativeSize.bodyBytes > 0);
+  assert.ok(nativeSize.transactionBudgetBytes > nativeSize.bodyBytes);
+  assert.ok(
+    (await page.locator('#planner-native-review-text').textContent()).includes(
+      `Transaction body: ${nativeSize.bodyBytes.toLocaleString('en-US')} bytes; with signing reserve: ${nativeSize.transactionBudgetBytes.toLocaleString('en-US')} / ${nativeSize.limit.toLocaleString('en-US')} bytes`
+    )
   );
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 1000 });
