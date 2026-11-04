@@ -269,6 +269,25 @@ try {
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify(data) });
   });
   const ready = () => page.waitForFunction(() => !document.getElementById('simulate').disabled);
+  const impactReady = () =>
+    page.waitForFunction(() => {
+      const impact = document.getElementById('rules-impact');
+      return (
+        impact.querySelector('.impact-table tbody tr') &&
+        /^\d+ \/ \d+$/.test(impact.querySelector('.impact-metrics strong')?.textContent || '')
+      );
+    });
+  const refreshImpact = async () => {
+    await impactReady();
+    const previousTable = await page.locator('#rules-impact .impact-table').elementHandle();
+    await page.locator('#refresh').click();
+    await ready();
+    // The snapshot becomes ready before the debounced allocation render. Do not
+    // read an old metric or sort a table which the pending render will replace.
+    await page.waitForFunction((table) => !table.isConnected, previousTable);
+    await previousTable.dispose();
+    await impactReady();
+  };
   const step = async (name) => {
     await page
       .locator(
@@ -565,7 +584,7 @@ try {
       .locator('.planner-steps a')
       .allTextContents()
       .then((items) => items.map((t) => t.replace(/\d+/g, '').trim())),
-    ['Eligibility', 'Distribution', 'Review', 'Rebalance']
+    ['Design rules', 'Distribution', 'Review', 'Rebalance']
   );
   assert.equal(await page.locator('#rules-impact img, #rules-impact script').count(), 0);
   // Every monetary header toggles numerical order; the full dataset is sorted before slicing.
@@ -638,6 +657,7 @@ try {
   await page.locator('#save-draft').click();
   assert.match(await page.locator('#feedback').textContent(), /criterion/i);
   await page.locator('#criterion-uptime-fullBps').fill('99.5');
+  await impactReady();
   const eligibleBeforeBonus = await page
     .locator('#rules-impact .impact-metrics strong')
     .first()
@@ -655,9 +675,7 @@ try {
   assert.equal(await page.locator('#criterion-governance-weight').inputValue(), '0');
   // Complete observations below the bonus threshold still leave the same validators eligible.
   observedUptimeBps = 9400;
-  await page.locator('#refresh').click();
-  await ready();
-  await page.waitForFunction(() => document.querySelector('#rules-impact .impact-table tbody tr'));
+  await refreshImpact();
   assert.equal(
     await page.locator('#rules-impact .impact-metrics strong').first().textContent(),
     eligibleBeforeBonus
@@ -672,8 +690,7 @@ try {
   assert.match(await bonusRecipient.textContent(), /900 base \+ 0 earned bonus = 900 points/);
   await step('rules');
   observedUptimeBps = 10000;
-  await page.locator('#refresh').click();
-  await ready();
+  await refreshImpact();
   const currentSort = page.locator('#rules-impact th').nth(1);
   if ((await currentSort.getAttribute('aria-sort')) !== 'descending')
     await currentSort.getByRole('button').click();
@@ -940,8 +957,11 @@ try {
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await step('rules');
-    assert.equal(await page.locator('#rules-points-balance').isVisible(), true);
-    await page.locator('#rules-points-balance').fill('100');
+    const balance = page.getByRole('slider', { name: 'Base points out of 1000 total points' });
+    assert.equal(await balance.isVisible(), true);
+    await balance.press('Home');
+    for (let increment = 0; increment < 10; increment++) await balance.press('ArrowRight');
+    assert.equal(await balance.inputValue(), '100');
     assert.equal(await page.locator('#rules-base-points').inputValue(), '100');
     assert.equal(await page.locator('#rules-bonus-points').inputValue(), '900');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));

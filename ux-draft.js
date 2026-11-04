@@ -1,5 +1,5 @@
 (() => {
-  const buttons = [...document.querySelectorAll('[data-workspace-view]')];
+  const buttons = [...document.querySelectorAll('.workspace-tabs [data-workspace-view]')];
   const views = {
     home: document.querySelector('#home-view'),
     governance: document.querySelector('#governance-view'),
