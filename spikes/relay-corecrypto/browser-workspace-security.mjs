@@ -260,19 +260,30 @@ try {
   console.log(
     'Workspace security: stale DAO snapshot, rapid proposal switch and retired comment-pane removal passed'
   );
-  // The shared header must disconnect on every workspace route, preserving journals/drafts.
+  // Public home has no wallet header. Its workspace entry preserves the session,
+  // and the shared header must disconnect on every actual workspace route.
   const wallet = 'juno1qurswpc8qurswpc8qurswpc8qurswpc89pyp8a';
   await page.evaluate((address) => {
+    window.__walletConnections = 0;
     window.keplr = {
       experimentalSuggestChain: async () => {},
-      enable: async () => {},
+      enable: async () => {
+        window.__walletConnections++;
+      },
       getOfflineSigner: () => ({ getAccounts: async () => [{ address }] })
     };
     localStorage.setItem('neta-pending-tx-v1:uni-7:disconnect-fixture', 'preserve');
     localStorage.setItem('wallet-controls-draft-fixture', 'preserve');
   }, wallet);
+  await page.locator('[data-workspace-view=home]').click();
+  assert.equal(await page.locator('#home-view').isVisible(), true);
+  assert.equal(await page.locator('#gov-connect').isVisible(), false);
+  assert.equal(await page.evaluate(() => window.__walletConnections), 0);
+  await page.locator('#home-view .ch-header-action').click();
+  await page.waitForFunction(() => document.body.dataset.workspaceView === 'governance');
+  assert.equal(await page.locator('#gov-connect').isVisible(), true);
+  assert.equal(await page.evaluate(() => window.__walletConnections), 0);
   for (const hash of [
-    'home',
     'governance',
     'treasury',
     'delivery',
@@ -295,6 +306,20 @@ try {
       wallet.slice(0, 9) + '…' + wallet.slice(-6)
     );
     assert.equal(await page.locator('#gov-connect').getAttribute('title'), wallet);
+    if (hash === 'governance') {
+      const connections = await page.evaluate(() => window.__walletConnections);
+      await page.locator('[data-workspace-view=home]').click();
+      assert.equal(await page.locator('#home-view').isVisible(), true);
+      assert.equal(await page.locator('#gov-connect').isVisible(), false);
+      assert.equal(
+        await page.evaluate(() => window.NetaWorkspaceWallet.getSession().address),
+        wallet
+      );
+      await page.locator('#home-view .ch-header-action').click();
+      await page.waitForFunction(() => document.body.dataset.workspaceView === 'governance');
+      assert.equal(await page.evaluate(() => window.__walletConnections), connections);
+      assert.equal(await page.locator('#gov-connect').getAttribute('title'), wallet);
+    }
     assert.equal(await page.locator('#gov-disconnect').isVisible(), true, hash);
     await page.locator('#gov-disconnect').click();
     assert.equal(await page.locator('#gov-connect').innerText(), 'Connect Keplr');
@@ -344,7 +369,7 @@ try {
   assert.equal(await page.locator('#gov-disconnect').isVisible(), false);
   await page.setViewportSize({ width: 1280, height: 720 });
   console.log(
-    'Wallet controls: every route, shortened address, disconnect, stale access, reconnect and preserved storage passed'
+    'Wallet controls: public-home session preservation, every workspace route, shortened address, disconnect, stale access, reconnect and preserved storage passed'
   );
 
   // Names is part of the actual RELAY route, with read-only controls.

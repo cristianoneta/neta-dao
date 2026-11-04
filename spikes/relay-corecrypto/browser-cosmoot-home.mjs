@@ -5,7 +5,10 @@ import { join } from 'node:path';
 import { chromium } from 'playwright';
 
 const root = new URL('../../', import.meta.url);
-const artifactDir = process.env.HOME_BROWSER_ARTIFACTS || '/tmp/cosmoot-home-browser';
+const artifactDir =
+  process.env.HOME_BROWSER_ARTIFACTS ||
+  process.env.NNS_SCREENSHOT_DIR ||
+  '/tmp/cosmoot-home-browser';
 const server = http.createServer(async (request, response) => {
   try {
     let path = new URL(request.url, 'http://localhost').pathname;
@@ -43,13 +46,17 @@ try {
   page.on('pageerror', (error) => errors.push(error.message));
   // The homepage has no live metrics. Tests do not contact providers or a wallet.
   await context.route('https://**/*', (route) => route.abort());
-  await page.addInitScript(() => {
+  // Seed once: an init script on every navigation could hide accidental journal deletion.
+  await page.goto(origin, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
     localStorage.setItem('neta-workspace-active-view', 'governance');
     localStorage.setItem('homepage-acceptance-pending-journal', 'preserved');
   });
   await mkdir(artifactDir, { recursive: true });
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 960 });
+    // The saved workspace must not replace the public introduction on a bare URL.
+    await page.evaluate(() => localStorage.setItem('neta-workspace-active-view', 'governance'));
     await page.goto(origin, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.body.dataset.workspaceView === 'home');
     assert.equal(await page.locator('#home-view').isVisible(), true);
