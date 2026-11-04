@@ -208,8 +208,8 @@ body[data-workspace-view="home"] > .gov-shell { width: 100%; padding: 0; }
   .cosmoot-home .ch-section-heading { grid-template-columns: 1fr; gap: 8px; margin-bottom: 36px; }
   .cosmoot-home .ch-section-heading .ch-eyebrow { margin-bottom: 14px; }
   .cosmoot-home .ch-principles { gap: 24px; }
-  .cosmoot-home .ch-community-section { grid-template-columns: 1fr; gap: 28px; }
-  .cosmoot-home .ch-community-visual { order: 2; width: 400px; justify-self: center; }
+  .cosmoot-home .ch-community-section { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .cosmoot-home .ch-community-visual { order: 2; width: min(400px, 100%); justify-self: center; }
   .cosmoot-home .ch-closing-section h2 { font-size: 42px; }
 }
 @media (max-width: 540px) {
@@ -287,7 +287,7 @@ body[data-workspace-view="home"] > .gov-shell { width: 100%; padding: 0; }
   .cosmoot-home .ch-principles p { grid-column: 2; }
   .cosmoot-home .ch-community-section { padding: 56px 0; }
   .cosmoot-home .ch-community-section h2 { font-size: 34px; }
-  .cosmoot-home .ch-community-visual { width: 320px; height: 260px; }
+  .cosmoot-home .ch-community-visual { width: min(320px, 100%); height: 260px; }
   .cosmoot-home .ch-closing-section { display: block; padding: 56px 0; }
   .cosmoot-home .ch-closing-section h2 { font-size: 42px; }
   .cosmoot-home .ch-closing-actions { align-items: flex-start; margin-top: 28px; }

@@ -249,9 +249,10 @@ try {
   await page.waitForURL('**/community-tools/');
   await page.waitForFunction(
     () =>
-      document.querySelector('[data-project-link="interchain"]').getAttribute('aria-current') ===
+      document.querySelector('[data-project-link="all"]').getAttribute('aria-current') ===
       'true'
   );
+  assert.equal(await page.locator('.tool-card:visible').count(), 5);
   await page.locator('[data-project-link="juno"]').click();
   await page.waitForFunction(
     () =>
