@@ -40,7 +40,10 @@ for (const width of [1440, 768, 390, 320]) {
         fullPage: true
       });
     }
-    await page.getByRole('button', { name: 'Open proposals →', exact: true }).click();
+    await page
+      .locator('#home-preview-governance')
+      .getByRole('link', { name: /Explore proposals/ })
+      .click();
     await expect(page.locator('#home-view')).toBeHidden();
     await expect(page.locator('#gov-status')).toBeVisible();
     expect(await page.evaluate(() => window.__walletCalls)).toBe(0);

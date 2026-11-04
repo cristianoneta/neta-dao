@@ -205,7 +205,16 @@ try {
   );
   assert.equal(treasuryReads, 0, 'Home must not fetch the hidden Treasury');
   const operationsRequest = page.waitForRequest('**/data/treasury/current.json*');
-  await page.getByRole('button', { name: 'Treasury', exact: true }).click();
+  await page.locator('#home-tab-treasury').click();
+  assert.equal(
+    treasuryReads,
+    0,
+    'Illustrative homepage preview must not fetch the hidden Treasury'
+  );
+  await page
+    .locator('#home-preview-treasury')
+    .getByRole('link', { name: /Explore treasury/ })
+    .click();
   const oldRequest = await operationsRequest;
   const operationsCancelled = page.waitForEvent('requestfailed', {
     predicate: (request) => request === oldRequest

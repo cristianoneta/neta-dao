@@ -64,7 +64,9 @@ attachment contract remains undeployed and is not enabled by the composer.
 
 ## Validation and remaining limits
 
-The complete local JavaScript suite passes, including golden policy and allocation
+The complete local verification passes: 534 JavaScript tests and 250 Python tests
+(14 environment-dependent skips), plus lint, formatting, typechecking and the
+Pages/Worker build. This includes golden policy and allocation
 hashes for schemas 2–10, schema-11 evidence/curve tests, frozen review transport,
 approval discovery and exact execution messages. Independent review found and
 fixed an invalid-input role selector mismatch and an unconditional upgrade-evidence
@@ -72,6 +74,13 @@ gate in Rebalance. Browser inspection confirms the real homepage entry, drag/dro
 keyboard moves, editable weights, live impact and saved draft reload. The full
 automated browser matrix remains a CI gate; the local Chromium download was
 unavailable.
+
+The isolated Juno v31 lifecycle also passes with the original programme DAO:
+native governance approves schema 11, the approved-rule reader verifies it, live
+preflight accepts a permitted inactive recipient and the exact unbond movement
+executes. Other holdings stay unchanged. The existing 45-movement schema-10 test,
+authority denials, atomic rollback and corrected reward-claim tests still pass.
+These tests use synthetic local accounts and funds, not mainnet transactions.
 
 Using the published collector snapshot at block 43,412,375, the new default rule
 at a 100% cap and a 21,938,700 JUNO comparison budget produces a 9,461-character
