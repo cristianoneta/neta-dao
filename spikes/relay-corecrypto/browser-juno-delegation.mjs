@@ -76,16 +76,16 @@ const server = http.createServer(async (req, res) => {
 });
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 let browser, diagnosticPage;
+const errors = [];
 try {
   browser = await chromium.launch({
     headless: true,
     ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {})
   });
   const page = await browser.newPage({ serviceWorkers: 'block' }),
-    errors = [],
     origin = `http://127.0.0.1:${server.address().port}`;
   diagnosticPage = page;
-  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('pageerror', (error) => errors.push(error.stack || error.message));
   // Every external response is synthetic, including early history requests.
   await page.route(/^https?:\/\/(?!127\.0\.0\.1[:/])/, (route) =>
     route.fulfill({
@@ -1949,7 +1949,9 @@ try {
     'Juno delegation browser: overview/current holdings, approved points settings and draft isolation and approved-rule Rebalance, claim placement, stage navigation, exclusive criterion roles, drag/drop and keyboard movement, exact thresholds, base/bonus balance, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all four planning views and the programme overview at four viewports passed.'
   );
 } catch (error) {
+  console.error('Browser page errors:', errors);
   if (diagnosticPage && !diagnosticPage.isClosed()) {
+    console.error('Browser failure URL:', diagnosticPage.url());
     console.error('Browser failure state:', await diagnosticPage.locator('body').innerText());
     if (process.env.NNS_SCREENSHOT_DIR)
       await diagnosticPage.screenshot({

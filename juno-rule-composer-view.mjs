@@ -40,6 +40,34 @@ export function criterionSummary(id, config) {
     : `Bonus · weight ${config.weight} · 0 points at ${config.zeroBps / 100}%, full points at ${config.fullBps / 100}%`;
 }
 
+/** Keep controls that require schema 11 behind the actual-count conversion boundary. */
+export function deferComposerControls({ getRule, mount, onPending }) {
+  let controls = null;
+  let resetRequested = false;
+  function render() {
+    const pending = getRule()?.schema !== 11;
+    onPending(pending);
+    if (pending) return;
+    if (!controls) {
+      controls = mount();
+      resetRequested = false;
+    } else if (resetRequested) {
+      // A reset can be requested while legacy rules await a snapshot. Closing
+      // the existing form must wait until its context supports that operation.
+      resetRequested = false;
+      controls.reset();
+    } else controls.render();
+  }
+  return {
+    render,
+    isEditing: () => getRule()?.schema === 11 && !!controls?.isEditing(),
+    reset: () => {
+      resetRequested = true;
+      render();
+    }
+  };
+}
+
 /** A local editor. Only a fully validated rule is passed to the calculation engine. */
 export function mountRuleComposer(host, { getRule, onChange }) {
   let draft,
@@ -443,8 +471,12 @@ export function mountRuleComposer(host, { getRule, onChange }) {
     const rule = getRule();
     if (rule?.schema !== 11) {
       valid = false;
+      source = undefined;
+      draft = null;
       board.hidden = true;
       points.hidden = true;
+      errors.hidden = true;
+      errors.textContent = '';
       notice.textContent =
         'Loading the validator count to preserve the saved relative cap before opening this draft.';
       return;

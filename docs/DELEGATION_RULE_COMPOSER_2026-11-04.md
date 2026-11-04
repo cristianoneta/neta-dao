@@ -48,6 +48,10 @@ Schemas 2–10 keep their original normalization, calculation and hashes. Editin
 legacy rule makes an explicit new draft; it never rewrites an approved revision.
 Historical relative caps need the actual validator count for conversion and are
 not silently rounded. The existing direct percentage cap still supports 100%.
+Historical drafts wait for that snapshot before opening controls that require
+the new schema. Their original storage remains intact, including when approval
+arrives before the snapshot. A reset requested while loading takes effect after
+conversion and closes any unfinished fixed-allocation form.
 
 Rebalance uses the independently verified approved rule, fresh evidence and live
 chain-state checks. Commission is a live admission limit only when its role is
@@ -64,7 +68,7 @@ attachment contract remains undeployed and is not enabled by the composer.
 
 ## Validation and remaining limits
 
-The complete local verification passes: 534 JavaScript tests and 250 Python tests
+The complete local verification passes: 537 JavaScript tests and 250 Python tests
 (14 environment-dependent skips), plus lint, formatting, typechecking and the
 Pages/Worker build. This includes golden policy and allocation
 hashes for schemas 2–10, schema-11 evidence/curve tests, frozen review transport,
@@ -74,6 +78,10 @@ gate in Rebalance. Browser inspection confirms the real homepage entry, drag/dro
 keyboard moves, editable weights, live impact and saved draft reload. The full
 automated browser matrix remains a CI gate; the local Chromium download was
 unavailable.
+Direct browser checks cover all three homepage previews and the actual editor
+at 320, 390, 768 and 1440 pixels. The narrow-screen community illustration now
+fits its grid track without clipping content. Independent page checks continue
+after a sibling failure while retaining a failed CI result.
 
 The isolated Juno v31 lifecycle also passes with the original programme DAO:
 native governance approves schema 11, the approved-rule reader verifies it, live

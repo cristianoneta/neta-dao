@@ -1,4 +1,8 @@
-import { mountRuleComposer, criterionSummary } from './juno-rule-composer-view.mjs';
+import {
+  mountRuleComposer,
+  criterionSummary,
+  deferComposerControls
+} from './juno-rule-composer-view.mjs';
 import { CRITERIA } from './juno-criteria-policy.mjs';
 import { reviewSizeText } from './juno-proposal-limits.mjs';
 import { mountFixedAllocations, renderFixedMandates } from './juno-fixed-allocation-view.mjs';
@@ -1073,14 +1077,29 @@ try {
     'Saved draft is invalid or unavailable. Its original entry is preserved; default rules are shown.'
   );
 }
-fixedEditor = mountFixedAllocations($('fixed-allocations'), {
-  getContext: () => ({ rule: rules, snapshot: data }),
-  onChange: (next) => {
-    rules = next;
-    invalidate();
-    renderRules();
+const fixedContent = node('div');
+const fixedPending = node(
+  'p',
+  'Loading the validator count before opening fixed allocations for this historical draft.',
+  'field-help'
+);
+$('fixed-allocations').replaceChildren(fixedPending, fixedContent);
+fixedEditor = deferComposerControls({
+  getRule: () => rules,
+  onPending: (pending) => {
+    fixedPending.hidden = !pending;
+    fixedContent.hidden = pending;
   },
-  onEditing: () => invalidate()
+  mount: () =>
+    mountFixedAllocations(fixedContent, {
+      getContext: () => ({ rule: rules, snapshot: data }),
+      onChange: (next) => {
+        rules = next;
+        invalidate();
+        renderRules();
+      },
+      onEditing: () => invalidate()
+    })
 });
 $('save-distribution-rules').onclick = () => $('save-draft').click();
 rebalance = mountRebalance({
