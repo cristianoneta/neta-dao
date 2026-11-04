@@ -294,7 +294,12 @@ function renderDistribution(host, model, execution = false) {
         if (filter.value === 'receiving') return v.after !== null && BigInt(v.after) > 0n;
         if (filter.value === 'cap') return v.next?.eligible && v.next.capReached;
         if (filter.value === 'review')
-          return !v.next || (!v.next.eligible && v.next.upgrade.status !== 'observed');
+          return (
+            !v.next ||
+            (v.next.points?.criteria
+              ? Object.values(v.next.points.criteria).some((c) => c.status === 'unverified')
+              : !v.next.eligible && v.next.upgrade.status !== 'observed')
+          );
         if (filter.value === 'excluded') return v.next && !v.next.eligible;
         if (filter.value === 'inactive') return v.jailed;
         if (filter.value === 'standby') return !v.active;
@@ -385,10 +390,15 @@ function renderDistribution(host, model, execution = false) {
           reason +=
             ' Its own eligibility and capacity are unchanged; the difference comes from redistribution after other rule effects (including rounding).';
         details.append(el('p', reason));
-        appendPointsDetails(details, v.next.points, model.value.snapshot.governanceHistory?.source);
+        appendPointsDetails(
+          details,
+          v.next.points,
+          model.value.snapshot.governanceHistory?.source,
+          model.value.rule
+        );
         if (v.next.fixedAllocation) appendFixedDetails(details, v.next.fixedAllocation);
       } else details.append(el('p', model.proposed.reason));
-      if (model.value.rule.schema >= 5 && v.next)
+      if (model.value.rule.schema >= 5 && v.next?.participation)
         details.append(el('p', participationText(v.next.participation), 'rr-participation'));
       const exact = el('dl', '', 'rr-exact');
       for (const [label, value] of [

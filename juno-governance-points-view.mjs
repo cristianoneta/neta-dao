@@ -9,7 +9,11 @@ const decimal = (q) =>
   });
 export function pointsText(points) {
   if (!points) return '';
-  if (!points.total) return 'Governance evidence unavailable · no regular eligibility';
+  if (!points.total) return 'Selected evidence unavailable · no regular eligibility';
+  if (points.criteria) {
+    const count = Object.values(points.criteria).filter((c) => c.role === 'bonus').length;
+    return `${decimal(points.total)} points · ${points.base} base + ${decimal(points.bonus)} earned bonus${count ? ` · ${count} bonus ${count === 1 ? 'criterion' : 'criteria'}` : ''}`;
+  }
   const g = points.governance;
   return (
     `${decimal(points.total)} points · ` +
@@ -20,7 +24,7 @@ export function pointsText(points) {
         : 'Governance bonus disabled')
   );
 }
-export function appendPointsDetails(host, points, source) {
+export function appendPointsDetails(host, points, source, policy) {
   if (!points) return;
   const details = node('details', '');
   details.append(node('summary', pointsText(points)));
@@ -31,7 +35,28 @@ export function appendPointsDetails(host, points, source) {
         `${points.base} base + ${decimal(points.bonus)} earned bonus = ${decimal(points.total)} points. Exact points: ${points.total.numerator}/${points.total.denominator}.`
       )
     );
-  const g = points.governance;
+  for (const [id, criterion] of Object.entries(points.criteria || {})) {
+    const meta = CRITERIA.find((c) => c.id === id),
+      config = policy?.criteria?.[id];
+    const metric =
+      criterion.numerator != null &&
+      criterion.denominator != null &&
+      BigInt(criterion.denominator) > 0n
+        ? `${decimal({ numerator: String(BigInt(criterion.numerator) * 100n), denominator: criterion.denominator })}% observed`
+        : criterion.status === 'collecting'
+          ? 'No observed opportunities'
+          : 'Evidence unavailable';
+    let text = `${meta?.label || id} · ${criterion.role === 'bonus' ? 'Bonus' : 'Eligibility'} · ${metric}`;
+    if (criterion.role === 'bonus') {
+      text += ` · weight ${criterion.weight} · ${decimal(criterion.earned)} points`;
+      if (config?.zeroBps !== undefined)
+        text += ` · 0 points at ${config.zeroBps / 100}%; full score at ${config.fullBps / 100}%`;
+    } else {
+      text += criterion.passed ? ' · Passed' : ' · Not met';
+    }
+    details.append(node('p', text));
+  }
+  const g = points.governance || {};
   if (g.programme !== undefined)
     details.append(
       node(
@@ -75,8 +100,11 @@ export function appendPointsDetails(host, points, source) {
 export function governanceWindowText(result) {
   const g = result.governance;
   if (!g)
-    return result.policy.schema >= 9
-      ? 'Points are fixed by this proposed rule; no governance evidence is needed for disabled bonus or a fully reserved budget.'
-      : 'The approved equal-allocation method remains in use.';
+    return result.policy.schema === 11
+      ? 'The selected criteria determine eligibility and earned points. No governance evidence is used in this calculation.'
+      : result.policy.schema >= 9
+        ? 'Points are fixed by this proposed rule; no governance evidence is needed for disabled bonus or a fully reserved budget.'
+        : 'The approved equal-allocation method remains in use.';
   return `${g.count} fully observed completed proposals · own coverage ${new Date(g.coverage.start.time).toLocaleDateString()}–${new Date(g.coverage.end.time).toLocaleDateString()}${g.collecting ? ' · still collecting' : ''}${g.excluded ? ` · ${g.excluded} incomplete or cancelled periods excluded` : ''}.`;
 }
+import { CRITERIA } from './juno-criteria-policy.mjs';

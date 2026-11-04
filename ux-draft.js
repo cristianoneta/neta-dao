@@ -181,6 +181,16 @@
   window.addEventListener('neta:dao-change', (event) => applyDaoScope(event.detail.id));
   applyDaoScope(window.NETA_SELECTED_DAO || 'neta-operations');
   let initialView = window.location.hash.slice(1);
+  // The bare root is the public introduction, independent of the last visited
+  // workspace. Explicit deep links continue to select their original view.
+  if (!initialView) {
+    const query = new URLSearchParams(window.location.search || '');
+    initialView = ['plannerDraft', 'proposalTemplate', 'review', 'proposal'].some((key) =>
+      query.has(key)
+    )
+      ? 'governance'
+      : 'home';
+  }
   if (
     !initialView ||
     (!/^relay\/dao\/[a-z0-9-]+$/.test(initialView) &&

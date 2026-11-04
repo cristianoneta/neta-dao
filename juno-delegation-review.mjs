@@ -1,6 +1,7 @@
 import { attachmentManifest } from './juno-review-attachments.mjs';
 import { encodeZ85, decodeZ85 } from './juno-review-z85.mjs';
 import { governanceEvidence } from './juno-governance-points.mjs';
+import { criteriaEvidenceNeeds } from './juno-criteria-policy.mjs';
 import { activeFixed } from './juno-fixed-allocations.mjs';
 import {
   policy,
@@ -28,9 +29,54 @@ const exactPolicy = (input) => {
   if (canonical(p) !== canonical(input)) throw Error('Unsupported policy fields in review.');
   return p;
 };
+const criterionLabels = {
+  uptime: 'Uptime · observed commit signatures',
+  commission: 'Commission',
+  activeHistory: 'Active-set history',
+  upgrade: 'Upgrade participation',
+  governance: 'Governance participation',
+  rpc: 'Public RPC / API',
+  testnet: 'Testnet participation',
+  archive: 'Archive services'
+};
+// Presentation of historical rules only. Never use this projection as an
+// approved policy, a calculation input or a replacement for its original hash.
+function criterionValue(p, id) {
+  if (p.schema === 11)
+    return id === 'activeHistory' && p.criteria[id].role === 'eligibility'
+      ? { ...p.criteria[id], allowCollecting: true }
+      : p.criteria[id];
+  if (id === 'uptime' && p.schema >= 5)
+    return { role: 'eligibility', minimumBps: p.minParticipationBps };
+  if (id === 'commission' && p.commissionMaxBps !== null)
+    return { role: 'eligibility', maximumBps: p.commissionMaxBps };
+  if (id === 'activeHistory' && p.schema >= 3)
+    return { role: 'eligibility', windowDays: 90, allowCollecting: p.schema >= 4 };
+  if (id === 'upgrade') return { role: 'eligibility' };
+  if (p.schema >= 9 && p.points.weights[id] > 0)
+    return { role: 'bonus', weight: p.points.weights[id], zeroBps: 0, fullBps: 10000 };
+  return { role: 'unused' };
+}
+function criterionText(value, id) {
+  if (value.role === 'unused') return 'Not used';
+  const governanceWindow =
+    id === 'governance'
+      ? ' · own completed proposals: 90 days, extend toward 10 within 180 available days'
+      : '';
+  if (value.role === 'eligibility') {
+    if (id === 'activeHistory')
+      return `Eligibility · continuous membership throughout ${value.windowDays} days${value.allowCollecting ? ', or the complete available period while collecting' : '; full coverage required'}`;
+    if (id === 'upgrade') return 'Eligibility · Juno v31 participation within 5 hours';
+    return `Eligibility · ${id === 'commission' ? 'maximum ' + value.maximumBps / 100 : 'minimum ' + value.minimumBps / 100}%${governanceWindow}${id === 'governance' ? ' · no applicable proposals does not pass' : ''}`;
+  }
+  if (id === 'upgrade')
+    return `Bonus · weight ${value.weight} · full score for observed Juno v31 participation within 5 hours`;
+  return `Bonus · weight ${value.weight} · 0% score at ${value.zeroBps / 100}% → 100% score at ${value.fullBps / 100}%${governanceWindow}${id === 'governance' ? ' · no applicable proposals earns 0 bonus' : ''}`;
+}
 export function ruleChanges(before, after) {
   const p = exactPolicy(after),
-    old = before ? exactPolicy(before) : null;
+    old = before ? exactPolicy(before) : null,
+    composer = p.schema === 11 || old?.schema === 11;
   const fields = [
     ['eligibility', 'Validator eligibility', eligibilityDescription],
     [
@@ -38,11 +84,15 @@ export function ruleChanges(before, after) {
       'Voting power cap',
       capDescription
     ],
-    [
-      'commissionMaxBps',
-      'Maximum commission',
-      (v) => (v.commissionMaxBps === null ? 'No limit' : `${v.commissionMaxBps / 100}%`)
-    ],
+    ...(!composer
+      ? [
+          [
+            'commissionMaxBps',
+            'Maximum commission',
+            (v) => (v.commissionMaxBps === null ? 'No limit' : `${v.commissionMaxBps / 100}%`)
+          ]
+        ]
+      : []),
     [
       'method',
       'Allocation method',
@@ -52,9 +102,11 @@ export function ruleChanges(before, after) {
           : 'Equal allocation within the cap'
     ],
     ['liquidReserveRaw', 'Liquid reserve', () => '50 JUNO'],
-    ['upgrade', 'Upgrade participation', () => 'Juno v31 · within 5 hours of the halt']
+    ...(!composer
+      ? [['upgrade', 'Upgrade participation', () => 'Juno v31 · within 5 hours of the halt']]
+      : [])
   ];
-  if (p.schema >= 6 || old?.schema >= 6)
+  if (!composer && (p.schema >= 6 || old?.schema >= 6))
     fields.push([
       'minParticipationBps',
       'Minimum uptime · observed commit signatures',
@@ -65,9 +117,11 @@ export function ruleChanges(before, after) {
       'points',
       'Base and bonus points',
       (v) =>
-        v.schema >= 9
-          ? `${v.points.base} base + up to ${1000 - v.points.base} bonus · Governance weight ${v.points.weights.governance}; RPC ${v.points.weights.rpc}; testnet ${v.points.weights.testnet}; archive ${v.points.weights.archive} · own completed voting periods: 90 days, extend toward 10 within 180 available days`
-          : 'No bonus scoring'
+        v.schema === 11
+          ? `${v.points.base} base + up to ${1000 - v.points.base} bonus · weights and curves are set per bonus criterion`
+          : v.schema >= 9
+            ? `${v.points.base} base + up to ${1000 - v.points.base} bonus · Governance weight ${v.points.weights.governance}; RPC ${v.points.weights.rpc}; testnet ${v.points.weights.testnet}; archive ${v.points.weights.archive} · own completed voting periods: 90 days, extend toward 10 within 180 available days`
+            : 'No bonus scoring'
     ]);
   const rows = fields.map(([key, label, format]) => ({
     key,
@@ -77,6 +131,19 @@ export function ruleChanges(before, after) {
     changed: !old || canonical(old[key]) !== canonical(p[key]),
     numerical: true
   }));
+  if (composer)
+    for (const [id, label] of Object.entries(criterionLabels)) {
+      const a = old ? criterionValue(old, id) : null,
+        b = criterionValue(p, id);
+      rows.push({
+        key: 'criterion:' + id,
+        label,
+        before: a ? criterionText(a, id) : 'Not established',
+        after: criterionText(b, id),
+        changed: !a || canonical(a) !== canonical(b),
+        numerical: true
+      });
+    }
   const previous = new Map((old?.exclusions || []).map((e) => [e.validator, e.reason])),
     next = new Map(p.exclusions.map((e) => [e.validator, e.reason]));
   for (const address of [...new Set([...previous.keys(), ...next.keys()])].sort()) {
@@ -143,6 +210,32 @@ function calculate(p, s, budget, evidence, history, previous = false) {
       return { status: 'unavailable', reason: error.message, result: null };
     }
   }
+  if (p.schema === 11) {
+    const needs = criteriaEvidenceNeeds(p),
+      regular = total(activeFixed(p, s.blockTime).map((a) => a.amountRaw)) < budget;
+    if (regular && needs.governance) governanceEvidence(s);
+    if (regular && needs.upgrade && !evidence.window.coverageComplete)
+      return {
+        status: 'unavailable',
+        reason: 'The upgrade observation window is incomplete.',
+        result: null
+      };
+    const coverage = !regular
+      ? null
+      : needs.uptime
+        ? participationEvidence(history, s)
+        : needs.activeHistory
+          ? activeSetEvidence(history, s, { allowCollecting: true })
+          : null;
+    if (coverage && !coverage.complete)
+      return { status: 'unavailable', reason: coverage.reason, result: null };
+    return {
+      status: 'calculated',
+      reason: null,
+      coverage,
+      result: simulate(p, s, budget, evidence, history)
+    };
+  }
   if (
     p.schema >= 9 &&
     p.points.base < 1000 &&
@@ -186,7 +279,7 @@ const output = (calculation) =>
 // Keep all holdings, active validators, possible recipients and the top N
 // non-programme stakes. Omitted validators cannot enter any projected top-N set:
 // N retained bases already precede them and targets can only increase those bases.
-function calculationSnapshot(s, policies, evidence, budget) {
+function calculationSnapshot(s, policies, evidence, budget, history) {
   const baseOrder = s.validators
     .filter((v) => !v.jailed)
     .sort(
@@ -199,6 +292,15 @@ function calculationSnapshot(s, policies, evidence, budget) {
         cmp(a.address, b.address)
     );
   const keep = new Set(baseOrder.slice(0, s.activeCount).map((v) => v.address));
+  // Schema 11 can admit standby validators. Determine every eligible recipient
+  // against the complete source before reducing it; a smaller snapshot must
+  // never silently change who can receive the regular allocation. If a
+  // comparison cannot be calculated, retain all possible non-jailed recipients.
+  for (const p of policies.filter((value) => value.schema === 11)) {
+    const full = calculate(p, s, budget, evidence, history, p !== policies[0]);
+    for (const v of full.result?.rows || s.validators)
+      if (full.result ? v.eligible || BigInt(v.targetRaw) > 0n : !v.jailed) keep.add(v.address);
+  }
   for (const v of s.validators) {
     if (
       v.active ||
@@ -217,9 +319,9 @@ function calculationSnapshot(s, policies, evidence, budget) {
   }
   let governanceHistory;
   const needsGovernance = (p) =>
-    p.schema >= 9 &&
-    p.points.base < 1000 &&
-    p.points.weights.governance > 0 &&
+    (p.schema === 11
+      ? criteriaEvidenceNeeds(p).governance
+      : p.schema >= 9 && p.points.base < 1000 && p.points.weights.governance > 0) &&
     total(activeFixed(p, s.blockTime).map((a) => a.amountRaw)) < budget;
   if (policies.some(needsGovernance) && s.governanceHistory) {
     let selected;
@@ -279,6 +381,9 @@ export async function buildRuleReview({
   const p = exactPolicy(rule),
     s = snapshot(input),
     budget = BigInt(budgetRaw);
+  // Missing unused observations are explicit, never invented as complete data.
+  if (p.schema === 11 && evidence == null)
+    evidence = { window: { coverageComplete: false }, records: new Map() };
   const available = total(s.validators.map((v) => v.currentRaw)) + BigInt(s.liquidRaw);
   if (budget <= 0n || budget > available - LIQUID_RESERVE)
     throw Error('The positive allocation budget must keep at least 50 JUNO in reserve.');
@@ -292,7 +397,13 @@ export async function buildRuleReview({
       parent.hash !== (await fingerprint(exactPolicy(parent.rule))))
   )
     throw Error('Invalid parent policy reference.');
-  const projected = calculationSnapshot(s, [p, ...(parent ? [parent.rule] : [])], evidence, budget),
+  const projected = calculationSnapshot(
+      s,
+      [p, ...(parent ? [parent.rule] : [])],
+      evidence,
+      budget,
+      activeHistory
+    ),
     identities = new Set(projected.validators.map((v) => v.consensusAddress)),
     frozenEvidence = {
       window: structuredClone(evidence.window),
@@ -310,7 +421,10 @@ export async function buildRuleReview({
     const full = calculate(pol, s, budget, evidence, activeHistory, reduced === previous);
     if (full.result) {
       const byAddress = new Map(full.result.rows.map((v) => [v.address, v.targetRaw]));
+      const retained = new Set(reduced.result?.rows.map((v) => v.address));
       if (
+        !reduced.result ||
+        full.result.rows.some((v) => BigInt(v.targetRaw) > 0n && !retained.has(v.address)) ||
         full.result.allocatedRaw !== reduced.result.allocatedRaw ||
         full.result.projectedBondedRaw !== reduced.result.projectedBondedRaw ||
         reduced.result.rows.some((v) => byAddress.get(v.address) !== v.targetRaw)
@@ -536,7 +650,7 @@ export async function readProposalReview(values) {
       );
   } else {
     const section = values.body?.match(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/m);
-    if (section && [3, 4, 5, 6, 7, 8, 9, 10].includes(JSON.parse(section[1])?.schema))
+    if (section && [3, 4, 5, 6, 7, 8, 9, 10, 11].includes(JSON.parse(section[1])?.schema))
       throw Error(
         'This policy version requires its complete frozen comparison. Return to the planner to prepare it.'
       );

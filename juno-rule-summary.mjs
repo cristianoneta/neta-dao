@@ -14,6 +14,27 @@ export function ruleProposalSummary(review) {
   const clauses = [...grouped.values()].map(({ change: r, count }) => {
     if (r.address)
       return `${r.key.startsWith('fixed:') ? 'Fixed allocations' : 'Manual exclusions'}: ${count} ${count === 1 ? 'entry' : 'entries'} changed`;
+    if (r.key.startsWith('criterion:')) {
+      const id = r.key.slice('criterion:'.length),
+        next = review.value.rule.criteria?.[id];
+      if (next) {
+        const previousRole = r.before.split(' · ')[0].toLowerCase(),
+          label = r.label.split(' · ')[0],
+          setting =
+            next.minimumBps !== undefined
+              ? `≥${next.minimumBps / 100}%`
+              : next.maximumBps !== undefined
+                ? `≤${next.maximumBps / 100}%`
+                : next.zeroBps !== undefined
+                  ? `${next.zeroBps / 100}–${next.fullBps / 100}%, weight ${next.weight}`
+                  : next.weight !== undefined
+                    ? `weight ${next.weight}`
+                    : next.windowDays !== undefined
+                      ? `up to ${next.windowDays} observed days`
+                      : '';
+        return `${label}: ${previousRole} → ${next.role}${setting ? ` (${setting})` : ''}`;
+      }
+    }
     if (r.key === 'points') {
       const old = review.value.parent.rule.points,
         next = review.value.rule.points;
@@ -23,9 +44,12 @@ export function ruleProposalSummary(review) {
         parts.push(
           `base/bonus points ${old.base}/${1000 - old.base} → ${next.base}/${1000 - next.base}`
         );
-      for (const key of Object.keys(next.weights))
-        if (old.weights[key] !== next.weights[key])
-          parts.push(`${key} weight ${old.weights[key]} → ${next.weights[key]}`);
+      // Schema 11 records weights with their exclusive criterion roles. Those
+      // changes have their own rows; keep historical weight summaries unchanged.
+      for (const key of Object.keys(next.weights || {}))
+        if (old.weights?.[key] !== next.weights[key])
+          parts.push(`${key} weight ${old.weights?.[key] ?? 0} → ${next.weights[key]}`);
+      if (!parts.length) return 'Update the points model (see comparison)';
       return parts.join(', ');
     }
     if (r.key === 'minParticipationBps') return `Minimum uptime: ${r.before} → ${r.after}`;

@@ -1,0 +1,406 @@
+/* Criteria composition uses the existing application tokens in both themes. */
+.composer-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 10px 0 24px;
+}
+.composer-heading h2 {
+  font-size: 26px;
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+.composer-heading p {
+  color: var(--neta-text-secondary);
+  margin: 0;
+  font-size: 14px;
+}
+.composer-points {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 15px 32px;
+  align-items: center;
+  padding: 24px;
+  border: 1px solid var(--neta-border);
+  border-radius: 12px;
+  background: var(--neta-surface);
+}
+.composer-points h3 {
+  font-size: 18px;
+  margin: 0 0 8px;
+}
+.composer-points p {
+  font-size: 12px;
+  color: var(--neta-text-secondary);
+  margin: 0;
+}
+.composer-points-note {
+  grid-column: 1/-1;
+}
+.composer-balance {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.composer-balance label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--neta-text-secondary);
+}
+.composer-balance input[type='number'] {
+  width: 90px;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  min-height: 44px;
+}
+.composer-slider {
+  flex: 1;
+  min-width: 80px;
+}
+.composer-slider input {
+  width: 100%;
+  accent-color: var(--neta-accent);
+}
+.composer-board {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.7fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  margin: 28px 0 16px;
+  align-items: start;
+}
+.composer-column {
+  border: 1px solid var(--neta-border);
+  background: var(--neta-surface);
+  border-radius: 12px;
+  padding: 18px;
+  min-width: 0;
+}
+.composer-unused {
+  border-color: transparent;
+  background: transparent;
+  padding: 18px 0;
+}
+.composer-column header {
+  margin: 0 0 20px;
+}
+.composer-column h3 {
+  font-size: 18px;
+  margin: 0 0 8px;
+}
+.composer-column header p {
+  font-size: 12px;
+  margin: 0;
+  color: var(--neta-text-secondary);
+}
+.composer-count {
+  font-size: 12px;
+  color: var(--neta-text-secondary);
+  font-weight: 400;
+  padding-left: 5px;
+}
+.composer-dropzone {
+  display: grid;
+  gap: 12px;
+  min-height: 150px;
+  border-radius: 9px;
+}
+.composer-dropzone.drag-over {
+  outline: 2px dashed var(--neta-accent);
+  outline-offset: 5px;
+  background: var(--neta-selected);
+}
+.composer-criterion {
+  min-width: 0;
+  background: var(--neta-bg);
+  border: 1px solid var(--neta-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.composer-card-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 14px 8px;
+}
+.composer-card-heading h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.composer-card-heading small {
+  display: block;
+  font-size: 10px;
+  color: var(--neta-text-secondary);
+  margin-top: 4px;
+}
+.composer-handle {
+  padding: 0 !important;
+  min-width: 28px;
+  min-height: 36px;
+  border: 0 !important;
+  background: transparent !important;
+  font-size: 24px !important;
+  color: var(--neta-text-secondary);
+  cursor: grab;
+  touch-action: none;
+}
+.composer-handle:active {
+  cursor: grabbing;
+}
+.composer-criterion.is-dragging {
+  opacity: 0.45;
+}
+.composer-description {
+  color: var(--neta-text-secondary);
+  font-size: 11px;
+  line-height: 1.65;
+  margin: 0;
+  padding: 0 14px 14px;
+}
+.composer-fields {
+  display: grid;
+  gap: 12px;
+  padding: 0 14px 14px;
+}
+.composer-fields:empty {
+  display: none;
+}
+.composer-fields label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 76px 12px;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--neta-text-secondary);
+}
+.composer-fields input[type='number'] {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px;
+  text-align: right;
+  font-size: 13px;
+}
+.composer-scale {
+  font-size: 11px;
+  color: var(--neta-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+.composer-move {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 14px;
+  border-top: 1px solid var(--neta-border);
+  font-size: 11px;
+  color: var(--neta-text-secondary);
+}
+.composer-move select {
+  min-width: 0;
+  max-width: 150px;
+  min-height: 38px;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: var(--neta-text);
+  background: var(--neta-surface);
+  border: 1px solid var(--neta-border);
+  border-radius: 6px;
+}
+.composer-locked,
+.composer-footnote {
+  margin: 18px 0 0;
+  border-top: 1px solid var(--neta-border);
+  padding-top: 14px;
+  font-size: 11px;
+  color: var(--neta-text-secondary);
+  line-height: 1.7;
+}
+.composer-notice {
+  padding: 10px 14px;
+  border-left: 2px solid var(--neta-accent);
+  color: var(--neta-text-secondary);
+  font-size: 12px;
+}
+.composer-error {
+  color: var(--neta-danger);
+  background: var(--neta-surface);
+  padding: 14px;
+  border: 1px solid var(--neta-danger);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.composer-empty {
+  display: grid;
+  place-items: center;
+  min-height: 130px;
+  border: 1px dashed var(--neta-border);
+  border-radius: 8px;
+  color: var(--neta-text-secondary);
+  font-size: 12px;
+  margin: 0;
+}
+.composer-settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 30px 0;
+  align-items: start;
+}
+.composer-settings .compact-criterion {
+  grid-template-columns: minmax(0, 1fr) 120px;
+}
+.composer-settings .planner-card {
+  min-width: 0;
+}
+.composer-evidence {
+  border-top: 1px solid var(--neta-border);
+  padding-top: 14px;
+  margin-top: 16px;
+}
+.composer-review-link {
+  white-space: nowrap;
+}
+.composer-impact {
+  padding-top: 28px;
+  margin-top: 24px;
+  border-top: 1px solid var(--neta-border);
+}
+.composer-approval-summary {
+  display: grid;
+  gap: 12px;
+}
+.composer-approval-summary p {
+  margin: 0;
+  font-size: 13px;
+}
+@media (max-width: 1050px) {
+  .composer-points {
+    grid-template-columns: 1fr;
+  }
+  .composer-board {
+    gap: 14px;
+    grid-template-columns: minmax(160px, 0.65fr) 1fr 1fr;
+  }
+  .composer-column {
+    padding: 13px;
+  }
+  .composer-unused {
+    padding: 13px 0;
+  }
+  .composer-move {
+    flex-wrap: wrap;
+  }
+  .composer-move select {
+    max-width: 100%;
+  }
+}
+@media (max-width: 780px) {
+  .composer-heading {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .composer-board {
+    grid-template-columns: 1fr 1fr;
+  }
+  .composer-unused {
+    grid-column: 1/-1;
+  }
+  .composer-unused .composer-dropzone {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-height: 0;
+  }
+  .composer-unused .composer-description {
+    display: none;
+  }
+  .composer-unused .composer-card-heading {
+    padding: 10px;
+    gap: 2px;
+  }
+  .composer-unused h4 {
+    font-size: 12px;
+  }
+  .composer-settings {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 520px) {
+  .composer-board {
+    grid-template-columns: 1fr;
+  }
+  .composer-unused .composer-dropzone {
+    grid-template-columns: 1fr 1fr;
+  }
+  .composer-points {
+    padding: 18px;
+  }
+  .composer-balance {
+    gap: 8px;
+  }
+  .composer-slider {
+    min-width: 60px;
+  }
+  .composer-balance input[type='number'] {
+    width: 70px;
+  }
+  .composer-column {
+    padding: 16px;
+  }
+  .composer-unused {
+    padding: 0;
+  }
+  .composer-heading h2 {
+    font-size: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .composer-criterion {
+    transition: none;
+  }
+}
+
+.composer-quick-impact {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 24px;
+  padding: 22px 0 18px;
+  border-bottom: 1px solid var(--neta-border);
+}
+.composer-quick-impact span {
+  display: block;
+  color: var(--neta-text-secondary);
+  font-size: 11px;
+}
+.composer-quick-impact strong {
+  display: block;
+  font-size: 24px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.composer-quick-impact p {
+  grid-column: 1/-1;
+  font-size: 11px;
+  color: var(--neta-text-secondary);
+  margin: 0;
+}
+.composer-weight-share {
+  font-size: 11px;
+  color: var(--neta-accent);
+  margin: 0;
+}
+@media (max-width: 600px) {
+  .composer-quick-impact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .composer-quick-impact strong {
+    font-size: 22px;
+  }
+}

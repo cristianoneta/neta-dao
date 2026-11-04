@@ -235,6 +235,7 @@ try {
   let state = 'current';
   let historyComplete = true;
   let historyDays = 90;
+  let observedUptimeBps = 10000;
   let rewardsState = 'current';
   await page.route('**/data/treasury/juno-delegation.json', (route) => {
     if (rewardsState === 'missing') return route.fulfill({ status: 503, body: 'unavailable' });
@@ -255,6 +256,10 @@ try {
     withGovernance(data);
     if (historyComplete) {
       data.activeSetHistory = withParticipation(activeHistory(data, historyDays));
+      for (const counts of data.activeSetHistory.participation.validators) {
+        counts.signed = Math.floor((counts.expected * observedUptimeBps) / 10000);
+        counts.absent = counts.expected - counts.signed;
+      }
       data.activeSetHistory.schema = 2;
       data.activeSetHistory.collectionStart = {
         height: data.activeSetHistory.spans[0].firstHeight,
@@ -285,7 +290,8 @@ try {
     await page.locator('#simulate').click();
     await page.waitForFunction(() => !document.getElementById('export-json').disabled);
   };
-  await page.goto(origin + '/community-tools/juno/delegation/#overview');
+  await page.goto(origin + '/community-tools/delegation/?entry=canonical#overview');
+  await page.waitForURL(origin + '/community-tools/juno/delegation/?entry=canonical#overview');
   await ready();
   assert.equal(await page.locator('#overview').isVisible(), true);
   assert.equal(
@@ -329,7 +335,7 @@ try {
     'https://atomscan.com/juno/proposals/950'
   );
   assert.equal(await page.locator('#cap-percent').inputValue(), '6');
-  assert.equal(await page.locator('#commission').inputValue(), '10');
+  assert.equal(await page.locator('#criterion-commission-maximumBps').inputValue(), '10');
   // Rebalance uses the exact verified historical approval, independently of editable rules.
   await step('rebalance');
   assert.equal(await page.locator('#rebalance-rule-title').textContent(), 'Proposal #950');
@@ -345,7 +351,7 @@ try {
   assert.match(await page.locator('#rebalance-movements').textContent(), /28 days/);
   const frozenAllocation = await page.locator('#rebalance-identifiers').textContent();
   await step('rules');
-  await page.locator('#commission').fill('11');
+  await page.locator('#criterion-commission-maximumBps').fill('11');
   await step('rebalance');
   assert.equal(await page.locator('#rebalance-identifiers').textContent(), frozenAllocation);
   assert.equal(await page.locator('#rebalance-result').isVisible(), true);
@@ -412,7 +418,7 @@ try {
   );
   assert.equal(await page.locator('#rebalance-result').isVisible(), false);
   await step('rules');
-  await page.locator('#commission').fill('10');
+  await page.locator('#criterion-commission-maximumBps').fill('10');
   await page.setViewportSize({ width: 1440, height: 1000 });
   await step('overview');
   approvalState = 'disagree';
@@ -438,13 +444,9 @@ try {
       ),
     true
   );
-  for (const prefix of ['overview', 'rules']) {
-    for (const group of ['eligibility', 'bonus', 'points'])
-      assert.equal(
-        await page.locator(`#${prefix}-${group}-details`).evaluate((el) => el.open),
-        prefix === 'rules' && (group === 'eligibility' || group === 'bonus')
-      );
-  }
+  for (const group of ['eligibility', 'bonus', 'points'])
+    assert.equal(await page.locator(`#overview-${group}-details`).evaluate((el) => el.open), false);
+  assert.equal(await page.locator('#rule-composer .composer-column').count(), 3);
   assert.equal(await page.locator('#overview-points-balance').isVisible(), false);
   await page.locator('#overview-model > summary').click();
   for (const group of ['bonus', 'points']) {
@@ -482,23 +484,18 @@ try {
   await page.locator('#current-positions-toggle').click();
   assert.equal(await page.locator('#current-position-rows tr').count(), 25);
   await page.locator('#current-positions-toggle').click();
-  for (const prefix of ['overview', 'rules']) {
-    assert.equal(
-      await page.locator(`#${prefix}-future-policy input:enabled`).count(),
-      prefix === 'rules' ? 3 : 0
-    );
-    assert.equal(await page.locator(`#${prefix}-future-policy .bonus-preview-row`).count(), 4);
-  }
-  const bonusRows = page.locator('#rules-future-policy .bonus-preview-row');
-  assert.match(await bonusRows.nth(0).textContent(), /Governance participation/);
-  assert.equal(await bonusRows.nth(0).locator('input').inputValue(), '100');
-  assert.equal(await bonusRows.nth(0).locator('input').isEnabled(), true);
-  assert.equal(await bonusRows.nth(0).locator('small').textContent(), '100% of bonus');
-  for (let index = 1; index < 4; index++) {
-    assert.match(await bonusRows.nth(index).textContent(), /\(not live\)/);
-    assert.equal(await bonusRows.nth(index).locator('input').inputValue(), '0');
-    assert.equal(await bonusRows.nth(index).locator('input').isDisabled(), true);
-    assert.equal(await bonusRows.nth(index).locator('small').textContent(), '0% of bonus');
+  assert.equal(await page.locator('#overview-future-policy input:enabled').count(), 0);
+  assert.equal(await page.locator('#overview-future-policy .bonus-preview-row').count(), 4);
+  const role = (id) => page.locator(`[data-move="${id}"]`);
+  const card = (id) => page.locator(`.composer-criterion[data-criterion="${id}"]`);
+  const zone = (value) => page.locator(`.composer-dropzone[data-role="${value}"]`);
+  assert.equal(await role('governance').inputValue(), 'bonus');
+  assert.equal(await page.locator('#criterion-governance-weight').inputValue(), '100');
+  for (const id of ['rpc', 'testnet', 'archive']) {
+    assert.match(await card(id).textContent(), /Not live/);
+    assert.equal(await role(id).inputValue(), 'unused');
+    assert.equal(await role(id).isDisabled(), true);
+    assert.equal(await card(id).locator('.composer-handle').isDisabled(), true);
   }
   await page.reload();
   await ready();
@@ -529,29 +526,33 @@ try {
     document.getElementById('draft-parent-note').textContent.includes('#950')
   );
   assert.equal(await page.locator('#cap-percent').inputValue(), '7.2');
-  assert.equal(await page.locator('#commission').inputValue(), '7');
+  assert.equal(await page.locator('#criterion-commission-maximumBps').inputValue(), '7');
   assert.equal(await page.locator('#use-current-model').count(), 0);
-  assert.equal(await page.locator('#uptime').inputValue(), '97.5');
+  assert.equal(await role('uptime').inputValue(), 'unused');
+  assert.equal(await role('activeHistory').inputValue(), 'unused');
+  assert.equal(await role('governance').inputValue(), 'unused');
+  assert.equal(await page.locator('#rules-base-points').inputValue(), '1000');
+  // Converting the historical approval must not add new gates or bonus settings silently.
+  await role('uptime').selectOption('eligibility');
+  await role('activeHistory').selectOption('eligibility');
+  await role('governance').selectOption('bonus');
+  await page.locator('#rules-base-points').fill('900');
+  assert.equal(await page.locator('#criterion-uptime-minimumBps').inputValue(), '97.5');
   await page.locator('#cap-percent').fill('6');
-  await page.locator('#commission').fill('10');
+  await page.locator('#criterion-commission-maximumBps').fill('10');
   assert.deepEqual(
-    (await page.locator('#rules-eligibility-details > .criterion h4').allTextContents()).map(
-      (text) => text.trim()
-    ),
-    [
-      'Minimum uptime',
-      'Maximum commission',
-      'Active-set history',
-      'Voting power cap',
-      'Upgrade participation',
-      'Manual exclusions'
-    ]
+    await zone('eligibility')
+      .locator('[data-criterion]')
+      .evaluateAll((cards) => cards.map((c) => c.dataset.criterion)),
+    ['uptime', 'commission', 'upgrade', 'activeHistory']
   );
+  assert.equal(await zone('bonus').locator('[data-criterion="governance"]').count(), 1);
+  assert.equal(await role('activeHistory').locator('option[value="bonus"]').count(), 0);
   await page.getByText('Edit exclusions', { exact: true }).click();
   assert.equal(await page.getByLabel('Juno validator', { exact: true }).isVisible(), true);
   assert.equal(await page.getByLabel('Public reason', { exact: true }).isVisible(), true);
   assert.match(await page.locator('#cap-description').textContent(), /6.00%/);
-  assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), true);
+  assert.equal(await page.locator('#rule-composer').isVisible(), true);
   assert.equal(await page.locator('#draft-budget').textContent(), '15,000,900.00 JUNO');
   await step('distribution');
   await page.locator('#budget-max').click();
@@ -606,21 +607,87 @@ try {
     'descending'
   );
   await page.setViewportSize({ width: 1440, height: 1000 });
-  const criterionAlignment = await page
-    .locator('#rules-eligibility-details > .criterion .number-unit')
-    .evaluateAll((nodes) =>
-      nodes.map((el) => ({ x: el.getBoundingClientRect().x, h: el.getBoundingClientRect().height }))
-    );
-  assert.equal(criterionAlignment.length, 5);
-  assert.ok(
-    criterionAlignment.every(
-      ({ x, h }) =>
-        Math.abs(x - criterionAlignment[0].x) < 1 && Math.abs(h - criterionAlignment[0].h) < 1
-    ),
-    'criterion values share an edge and height'
+  const criterionCount = await page.locator('.composer-criterion').count();
+  assert.equal(criterionCount, 8);
+  // A rejected role change must leave both the selected role and the user's invalid edit intact.
+  await page.locator('#criterion-commission-maximumBps').fill('');
+  await role('uptime').selectOption('bonus');
+  assert.equal(await role('uptime').inputValue(), 'eligibility');
+  assert.equal(await zone('eligibility').locator('[data-criterion="uptime"]').count(), 1);
+  assert.equal(await page.locator('#criterion-commission-maximumBps').inputValue(), '');
+  await page.waitForFunction(() =>
+    document.getElementById('rules-impact').textContent.includes('Check the highlighted criteria')
   );
+  await page.locator('#save-draft').click();
+  assert.match(await page.locator('#feedback').textContent(), /criterion/i);
+  await page.locator('#criterion-commission-maximumBps').fill('10');
+  await page.waitForFunction(() => document.querySelector('#rules-impact .impact-table tbody tr'));
+  // Real pointer drag changes the role, not just visual order. A criterion appears exactly once.
+  await card('uptime').locator('.composer-handle').dragTo(zone('bonus'));
+  assert.equal(await role('uptime').inputValue(), 'bonus');
+  assert.equal(await page.locator('[data-criterion="uptime"]').count(), 1);
+  assert.equal(await page.locator('#criterion-uptime-zeroBps').inputValue(), '95');
+  assert.equal(await page.locator('#criterion-uptime-fullBps').inputValue(), '99.5');
+  assert.equal(await page.locator('#criterion-uptime-weight').inputValue(), '0');
+  await page.locator('#criterion-uptime-fullBps').fill('94');
+  assert.equal(
+    await page.locator('#criterion-uptime-fullBps').getAttribute('aria-invalid'),
+    'true'
+  );
+  assert.equal(await page.locator('#composer-errors').isVisible(), true);
+  await page.locator('#save-draft').click();
+  assert.match(await page.locator('#feedback').textContent(), /criterion/i);
+  await page.locator('#criterion-uptime-fullBps').fill('99.5');
+  const eligibleBeforeBonus = await page
+    .locator('#rules-impact .impact-metrics strong')
+    .first()
+    .textContent();
+  await page.locator('#criterion-governance-weight').fill('0');
+  await page.locator('#criterion-uptime-weight').fill('100');
+  await page.locator('#save-draft').click();
+  await page.reload();
+  await ready();
+  assert.equal(await role('uptime').inputValue(), 'bonus');
+  assert.equal(await page.locator('[data-criterion="uptime"]').count(), 1);
+  assert.equal(await page.locator('#criterion-uptime-zeroBps').inputValue(), '95');
+  assert.equal(await page.locator('#criterion-uptime-fullBps').inputValue(), '99.5');
+  assert.equal(await page.locator('#criterion-uptime-weight').inputValue(), '100');
+  assert.equal(await page.locator('#criterion-governance-weight').inputValue(), '0');
+  // Complete observations below the bonus threshold still leave the same validators eligible.
+  observedUptimeBps = 9400;
+  await page.locator('#refresh').click();
+  await ready();
+  await page.waitForFunction(() => document.querySelector('#rules-impact .impact-table tbody tr'));
+  assert.equal(
+    await page.locator('#rules-impact .impact-metrics strong').first().textContent(),
+    eligibleBeforeBonus
+  );
+  await simulate();
+  await page
+    .locator('#simulation-comparison')
+    .getByLabel('Show', { exact: true })
+    .selectOption('receiving');
+  const bonusRecipient = page.locator('#simulation-comparison .rr-validator').first();
+  await bonusRecipient.locator(':scope > details > summary').click();
+  assert.match(await bonusRecipient.textContent(), /900 base \+ 0 earned bonus = 900 points/);
+  await step('rules');
+  observedUptimeBps = 10000;
+  await page.locator('#refresh').click();
+  await ready();
+  const currentSort = page.locator('#rules-impact th').nth(1);
+  if ((await currentSort.getAttribute('aria-sort')) !== 'descending')
+    await currentSort.getByRole('button').click();
+  // Keyboard movement offers the same exclusive assignment as drag and drop.
+  await card('uptime').locator('.composer-handle').press('ArrowLeft');
+  assert.equal(await role('uptime').inputValue(), 'eligibility');
+  assert.equal(await page.locator('#criterion-uptime-minimumBps').inputValue(), '97.5');
+  await page.locator('#criterion-governance-weight').fill('100');
+  await role('commission').selectOption('unused');
+  assert.equal(await zone('unused').locator('[data-criterion="commission"]').count(), 1);
+  await role('commission').selectOption('eligibility');
+  assert.equal(await page.locator('[data-criterion="commission"]').count(), 1);
 
-  await page.locator('#commission').fill('0');
+  await page.locator('#criterion-commission-maximumBps').fill('0');
   await page.waitForFunction(() =>
     document.querySelector('#rules-impact .impact-metrics strong').textContent.startsWith('0 /')
   );
@@ -629,30 +696,13 @@ try {
     'descending',
     'sorting survives recalculation'
   );
-  await page.locator('#commission').fill('10');
+  await page.locator('#criterion-commission-maximumBps').fill('10');
   await page.waitForFunction(
     () =>
       !document.querySelector('#rules-impact .impact-metrics strong').textContent.startsWith('0 /')
   );
-  const criterionHelp = page.getByRole('button', { name: 'Minimum uptime', exact: true });
-  await criterionHelp.focus();
-  assert.equal(await page.locator('#uptime-tooltip').isVisible(), true);
-  await criterionHelp.press('Escape');
-  assert.equal(await page.locator('#uptime-tooltip').isVisible(), false);
-
-  assert.equal(await page.locator('#rules-points-balance').isVisible(), false);
-  assert.equal(
-    await page
-      .locator('.allocation-settings')
-      .evaluate(
-        (el) =>
-          !!(
-            document.querySelector('.eligibility-rules').compareDocumentPosition(el) &
-            Node.DOCUMENT_POSITION_FOLLOWING
-          )
-      ),
-    true
-  );
+  assert.match(await card('uptime').textContent(), /Signed blocks.*expected active-set slots/);
+  assert.equal(await page.locator('#rules-points-balance').isVisible(), true);
   await page.locator('#cap-percent').fill('8');
   assert.match(await page.locator('#cap-description').textContent(), /8.00%/);
   assert.equal(
@@ -666,7 +716,7 @@ try {
   assert.equal(
     await page.evaluate(
       () =>
-        JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3')).rule
+        JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v4')).rule
           .votingPowerCapBps
     ),
     10000
@@ -676,30 +726,42 @@ try {
   await page.locator('#save-draft').click();
   assert.match(await page.locator('#feedback').textContent(), /before saving/);
   await page.locator('#cap-percent').fill('6');
-  assert.equal(await page.locator('#commission').inputValue(), '10');
-  for (const value of ['0', '13', '100']) {
-    await page.locator('#commission').fill(value);
-    assert.equal(await page.locator('#commission-error').isVisible(), false);
-    assert.ok(
-      (await page.locator('#rule-summary').textContent()).includes(`commission ≤${value}%`)
-    );
-  }
-  for (const value of ['13.5', '-1', '101', '']) {
-    await page.locator('#commission').fill(value);
-    assert.equal(await page.locator('#commission-error').isVisible(), true);
-    await page.locator('#save-draft').click();
-    assert.equal(await page.locator('#rules-eligibility-details').evaluate((el) => el.open), true);
+  assert.equal(await page.locator('#criterion-commission-maximumBps').inputValue(), '10');
+  for (const value of ['0', '13', '13.5', '100']) {
+    await page.locator('#criterion-commission-maximumBps').fill(value);
     assert.equal(
-      await page.locator('#commission').evaluate((el) => el === document.activeElement),
+      await page.locator('#criterion-commission-maximumBps').getAttribute('aria-invalid'),
+      'false'
+    );
+    assert.ok((await page.locator('#rule-summary').textContent()).includes(`at most ${value}%`));
+  }
+  for (const value of ['13.555', '-1', '101', '']) {
+    await page.locator('#criterion-commission-maximumBps').fill(value);
+    assert.equal(
+      await page.locator('#criterion-commission-maximumBps').getAttribute('aria-invalid'),
+      'true'
+    );
+    await page.locator('#save-draft').click();
+    assert.equal(await page.locator('#rule-composer').isVisible(), true);
+    assert.equal(
+      await page
+        .locator('#criterion-commission-maximumBps')
+        .evaluate((el) => el === document.activeElement),
       true
     );
-    assert.match(await page.locator('#feedback').textContent(), /whole-number commission/);
+    assert.match(
+      await page.locator('#feedback').textContent(),
+      /criterion|criteria|percentage|highlighted/i
+    );
     await step('distribution');
     await page.locator('#simulate').click();
     assert.equal(await page.locator('#export-json').isDisabled(), true);
-    assert.match(await page.locator('#feedback').textContent(), /whole-number commission/);
+    assert.match(
+      await page.locator('#feedback').textContent(),
+      /criterion|criteria|percentage|highlighted/i
+    );
   }
-  await page.locator('#commission').fill('19');
+  await page.locator('#criterion-commission-maximumBps').fill('19');
   await simulate();
   assert.equal(await page.locator('#proposals').isVisible(), true);
   assert.equal(await page.locator('#simulation-comparison').count(), 1);
@@ -775,25 +837,38 @@ try {
     (await comparison.locator('.rr-stats > div').nth(2).textContent()).match(/→ (\d+)/)[1]
   );
   await step('rules');
-  for (const value of ['', '94.99', '100.01', '97.555']) {
-    await page.locator('#uptime').fill(value);
-    assert.equal(await page.locator('#uptime-error').isVisible(), true);
-    assert.equal(await page.locator('#draft-uptime').textContent(), 'Check value');
+  for (const value of ['', '-0.01', '100.01', '97.555']) {
+    await page.locator('#criterion-uptime-minimumBps').fill(value);
+    assert.equal(
+      await page.locator('#criterion-uptime-minimumBps').getAttribute('aria-invalid'),
+      'true'
+    );
+    assert.equal(await page.locator('#composer-errors').isVisible(), true);
     await page.locator('#save-draft').click();
-    assert.match(await page.locator('#feedback').textContent(), /uptime threshold/);
+    assert.match(
+      await page.locator('#feedback').textContent(),
+      /criterion|criteria|percentage|highlighted/i
+    );
     await step('distribution');
     await page.locator('#simulate').click();
     assert.equal(await page.locator('#export-json').isDisabled(), true);
     assert.equal(
-      await page.locator('#uptime').evaluate((el) => el === document.activeElement),
+      await page
+        .locator('#criterion-uptime-minimumBps')
+        .evaluate((el) => el === document.activeElement),
       true
     );
   }
-  for (const value of ['95', '100', '99.01']) {
-    await page.locator('#uptime').fill(value);
-    assert.equal(await page.locator('#uptime-error').isVisible(), false);
-    assert.equal(await page.locator('#draft-uptime').textContent(), value + '%');
+  for (const value of ['0', '94.99', '95', '100', '99.01']) {
+    await page.locator('#criterion-uptime-minimumBps').fill(value);
+    assert.equal(
+      await page.locator('#criterion-uptime-minimumBps').getAttribute('aria-invalid'),
+      'false'
+    );
+    assert.ok((await page.locator('#rule-summary').textContent()).includes(`at least ${value}%`));
   }
+  if (!(await page.locator('#excluded-validator').isVisible()))
+    await page.getByText('Edit exclusions', { exact: true }).click();
   await page.locator('#excluded-validator').fill(selected.name);
   await page.locator('#excluded-reason').fill('Exchange-operated fixture');
   await page.locator('#add-exclusion').click();
@@ -809,8 +884,8 @@ try {
   await page.reload();
   await ready();
   assert.equal(await page.locator('#exclusions li').count(), 2);
-  assert.equal(await page.locator('#commission').inputValue(), '19');
-  assert.equal(await page.locator('#uptime').inputValue(), '99.01');
+  assert.equal(await page.locator('#criterion-commission-maximumBps').inputValue(), '19');
+  assert.equal(await page.locator('#criterion-uptime-minimumBps').inputValue(), '99.01');
   await simulate();
   assert.equal(await page.locator('#simulation-comparison').isVisible(), true);
   assert.match(
@@ -827,14 +902,13 @@ try {
   assert.equal(review.kind, 'RULE_APPROVAL');
   assert.equal(review.parent.proposalId, '950');
   assert.ok(review.rule.exclusions.some((v) => v.validator === selected.address));
-  assert.equal(review.rule.commissionMaxBps, 1900);
+  assert.equal(review.rule.criteria.commission.maximumBps, 1900);
   assert.deepEqual(review.messages, []);
-  assert.equal(review.rule.schema, 10);
-  assert.equal(review.rule.minParticipationBps, 9901);
+  assert.equal(review.rule.schema, 11);
+  assert.equal(review.rule.criteria.uptime.minimumBps, 9901);
   assert.equal(review.policyHash.length, 64);
   const shots = process.env.NNS_SCREENSHOT_DIR;
   if (shots) await mkdir(shots, { recursive: true });
-  await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     for (const stage of ['overview', 'rules', 'distribution', 'proposals', 'rebalance']) {
@@ -865,11 +939,11 @@ try {
   }
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 1000 });
-    await step('distribution');
+    await step('rules');
     assert.equal(await page.locator('#rules-points-balance').isVisible(), true);
     await page.locator('#rules-points-balance').fill('100');
     assert.equal(await page.locator('#rules-base-points').inputValue(), '100');
-    assert.equal(await page.locator('#rules-bonus-points').textContent(), '900');
+    assert.equal(await page.locator('#rules-bonus-points').inputValue(), '900');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     await page.locator('#theme-toggle').click();
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
@@ -877,23 +951,25 @@ try {
       await page.screenshot({ path: `${shots}/distribution-light-${width}.png`, fullPage: true });
     await page.locator('#theme-toggle').click();
   }
-  await page.locator('#save-distribution-rules').click();
+  await page.locator('#save-draft').click();
   await page.reload();
   await ready();
-  await step('distribution');
+  await step('rules');
   assert.equal(await page.locator('#rules-base-points').inputValue(), '100');
   const savedPoints = await page.evaluate(
-    () => JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3')).rule.points
+    () => JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v4')).rule.points
   );
-  assert.deepEqual(savedPoints, {
-    base: 100,
-    weights: { governance: 100, rpc: 0, testnet: 0, archive: 0 }
-  });
+  assert.deepEqual(savedPoints, { base: 100 });
+  await page.locator('#rules-bonus-points').fill('600');
+  assert.equal(await page.locator('#rules-base-points').inputValue(), '400');
   await page.locator('#rules-base-points').fill('');
-  await page.locator('#save-distribution-rules').click();
-  assert.match(await page.locator('#feedback').textContent(), /Check the base points/);
+  await page.locator('#save-draft').click();
+  assert.match(
+    await page.locator('#feedback').textContent(),
+    /criterion|criteria|point|highlighted/i
+  );
   await page.locator('#rules-base-points').fill('900');
-  await page.locator('#save-distribution-rules').click();
+  await page.locator('#save-draft').click();
   await page.setViewportSize({ width: 1440, height: 1000 });
   await step('overview');
   // Exercise both actual links into the existing proposal workspace.
@@ -1231,7 +1307,7 @@ try {
   publishedReview.withdrawn = false;
   await page.evaluate(() =>
     localStorage.setItem(
-      'cosmoot:juno:delegation:rule-draft:v3',
+      'cosmoot:juno:delegation:rule-draft:v4',
       JSON.stringify({
         schema: 1,
         rule: { schema: 3, factorTenths: 99 },
@@ -1292,7 +1368,10 @@ try {
   publishedRule = null;
   publishedReview = null;
   publishedRevision = null;
-  await page.evaluate(() => localStorage.removeItem('cosmoot:juno:delegation:rule-draft:v3'));
+  await page.evaluate(() => {
+    for (const version of [2, 3, 4])
+      localStorage.removeItem(`cosmoot:juno:delegation:rule-draft:v${version}`);
+  });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(origin + '/community-tools/juno/delegation/');
   await ready();
@@ -1301,7 +1380,10 @@ try {
     document.getElementById('current-rules-state').textContent.includes('Rules approved')
   );
   assert.equal(await page.locator('#use-current-model').count(), 0);
-  assert.equal(await page.locator('#uptime').inputValue(), '97.5');
+  assert.equal(await role('uptime').inputValue(), 'unused');
+  await role('uptime').selectOption('eligibility');
+  await role('activeHistory').selectOption('eligibility');
+  assert.equal(await page.locator('#criterion-uptime-minimumBps').inputValue(), '97.5');
   await step('distribution');
   await page.locator('#programme-amount').fill('99999999');
   await page.locator('#simulate').click();
@@ -1309,7 +1391,6 @@ try {
     document.getElementById('feedback').textContent.includes('50 JUNO')
   );
   assert.equal(await page.locator('#export-json').isDisabled(), true);
-  await page.locator('#rules-eligibility-details').evaluate((el) => (el.open = true));
   await step('rules');
   await page.locator('#cap-percent').fill('12');
   assert.match(await page.locator('#cap-description').textContent(), /12.00%/);
@@ -1371,8 +1452,8 @@ try {
     true
   );
   assert.equal(await page.locator('#publish-proposal').isEnabled(), true);
-  // Old editable drafts migrate immediately and persist without the transition
-  // button or a Save click. Their approved baseline remains schema 2.
+  // Historical editable drafts convert only locally; the original storage and approved
+  // baseline remain exact. The new key is written only after explicitly saving.
   historyComplete = true;
   historyDays = 5;
   const preservedParent = {
@@ -1392,7 +1473,8 @@ try {
     old.exclusions = structuredClone(approvedPolicy.exclusions);
     await page.evaluate(
       ({ old, parent }) => {
-        localStorage.removeItem('cosmoot:juno:delegation:rule-draft:v3');
+        for (const version of [2, 3, 4])
+          localStorage.removeItem(`cosmoot:juno:delegation:rule-draft:v${version}`);
         if (old.schema === 2)
           localStorage.setItem('cosmoot:juno:delegation:rule-draft:v2', JSON.stringify(old));
         else
@@ -1419,27 +1501,58 @@ try {
     );
     assert.equal(await page.locator('#use-current-model').count(), 0);
     assert.equal(await page.locator('#cap-percent').inputValue(), '7.6');
-    assert.equal(await page.locator('#commission').inputValue(), '100');
-    assert.equal(await page.locator('#commission').isEnabled(), true);
+    assert.equal(await role('commission').inputValue(), 'unused');
+    assert.equal(await page.locator('#criterion-commission-maximumBps').count(), 0);
     assert.equal(await page.locator('#exclusions li').count(), 1);
-    const stored = await page.evaluate(() =>
-      JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3'))
+    assert.equal(
+      await page.evaluate(() => localStorage.getItem('cosmoot:juno:delegation:rule-draft:v4')),
+      null
     );
-    assert.equal(stored.rule.schema, 9);
-    assert.equal(stored.rule.commissionMaxBps, null);
-    assert.equal(stored.rule.minParticipationBps, 9750);
+    const retained = await page.evaluate(
+      (version) =>
+        JSON.parse(localStorage.getItem(`cosmoot:juno:delegation:rule-draft:v${version}`)),
+      old.schema === 2 ? 2 : 3
+    );
+    assert.deepEqual(old.schema === 2 ? retained : retained.rule, old);
+    await page.locator('#save-draft').click();
+    const stored = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v4'))
+    );
+    assert.equal(stored.rule.schema, 11);
+    assert.deepEqual(stored.rule.criteria.commission, { role: 'unused' });
+    assert.deepEqual(
+      stored.rule.criteria.uptime,
+      old.schema >= 5 ? { role: 'eligibility', minimumBps: 9750 } : { role: 'unused' }
+    );
+    assert.equal(stored.rule.points.base, 1000);
     assert.deepEqual(stored.parent, old.schema === 2 ? null : preservedParent);
     assert.equal(stored.rationale, old.schema === 2 ? '' : 'Preserved migration rationale');
     await simulate();
-    assert.match(
-      await page.locator('#simulation-comparison .rr-history').textContent(),
-      /5 \/ 90 days/
-    );
+    if (old.schema >= 3)
+      assert.match(
+        await page.locator('#simulation-comparison .rr-history').textContent(),
+        /5 \/ 90 days/
+      );
+    else assert.equal(await page.locator('#simulation-comparison .rr-history').count(), 0);
     assert.equal(await page.locator('#simulation-state').textContent(), 'Draft comparison');
     await page.reload();
     await ready();
     assert.equal(await page.locator('#cap-percent').inputValue(), '7.6');
   }
+  await step('rules');
+  await page.locator('#criterion-uptime-minimumBps').fill('');
+  assert.equal(await page.locator('#composer-errors').isVisible(), true);
+  await page.locator('#reset-draft').click();
+  assert.equal(await page.locator('#composer-errors').isVisible(), false);
+  assert.equal(await role('uptime').inputValue(), 'unused');
+  assert.equal(await page.locator('#criterion-commission-maximumBps').inputValue(), '7');
+  assert.equal(await page.locator('#rules-base-points').inputValue(), '1000');
+  assert.deepEqual(
+    await page.evaluate(
+      () => JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v4')).parent
+    ),
+    preservedParent
+  );
   for (state of ['wrong-chain', 'missing']) {
     await page.locator('#refresh').click();
     await page.waitForFunction(
@@ -1546,7 +1659,10 @@ try {
   historyDays = 5;
   approvalState = 'empty';
   publishedRule = null;
-  await page.evaluate(() => localStorage.removeItem('cosmoot:juno:delegation:rule-draft:v3'));
+  await page.evaluate(() => {
+    for (const version of [2, 3, 4])
+      localStorage.removeItem(`cosmoot:juno:delegation:rule-draft:v${version}`);
+  });
   await page.goto(origin + '/community-tools/juno/delegation/?fixed-test=1#distribution');
   await ready();
   await page.waitForFunction(
@@ -1589,7 +1705,7 @@ try {
   await ready();
   const savedFixed = await page.evaluate(
     () =>
-      JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3')).rule
+      JSON.parse(localStorage.getItem('cosmoot:juno:delegation:rule-draft:v4')).rule
         .fixedAllocations
   );
   assert.equal(savedFixed.length, 1);
@@ -1810,7 +1926,7 @@ try {
 
   assert.deepEqual(errors, []);
   console.log(
-    'Juno delegation browser: overview/current holdings, approved points settings and draft isolation and approved-rule Rebalance, claim placement, stage navigation, exact controls, integer commission limits, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all four planning views and the programme overview at four viewports passed.'
+    'Juno delegation browser: overview/current holdings, approved points settings and draft isolation and approved-rule Rebalance, claim placement, stage navigation, exclusive criterion roles, drag/drop and keyboard movement, exact thresholds, base/bonus balance, search, filters, pagination, details, exclusions, persistence, export, stale/error states and all four planning views and the programme overview at four viewports passed.'
   );
 } catch (error) {
   if (diagnosticPage && !diagnosticPage.isClosed()) {

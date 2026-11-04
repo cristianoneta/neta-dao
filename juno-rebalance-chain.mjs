@@ -15,6 +15,22 @@ const staking = '/cosmos/staking/v1beta1';
 const uint = (v) => typeof v === 'string' && /^(0|[1-9]\d{0,29})$/.test(v);
 const dec = (v) =>
   typeof v === 'string' && /^\d+\.\d{18}$/.test(v) && BigInt(v.replace('.', '')) > 0n;
+async function inactiveConsensusAddress(key) {
+  if (key?.['@type'] !== '/cosmos.crypto.ed25519.PubKey')
+    throw Error('Unsupported inactive validator consensus key.');
+  let bytes;
+  try {
+    bytes = Uint8Array.from(atob(key.key), (c) => c.charCodeAt(0));
+  } catch {
+    throw Error('Invalid inactive validator consensus key.');
+  }
+  if (bytes.length !== 32 || btoa(String.fromCharCode(...bytes)) !== key.key)
+    throw Error('Invalid inactive validator consensus key.');
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+  return Array.from(digest.slice(0, 20), (b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase();
+}
 export async function stakingState(get, height) {
   async function pages(path, field) {
     const rows = [],
@@ -91,29 +107,40 @@ export async function stakingState(get, height) {
   );
   if (members.size !== consensus.length || !members.size || members.size > 200)
     throw Error('Invalid consensus set.');
-  const nodes = validators.map((v) => {
-    if (
-      !operator.test(v.operator_address) ||
-      typeof v.jailed !== 'boolean' ||
-      !['BOND_STATUS_BONDED', 'BOND_STATUS_UNBONDING', 'BOND_STATUS_UNBONDED'].includes(v.status) ||
-      !uint(v.tokens) ||
-      !/^\d+\.\d{18}$/.test(v.delegator_shares) ||
-      typeof v.consensus_pubkey?.key !== 'string' ||
-      !/^(0\.\d{18}|1\.0{18})$/.test(v.commission?.commission_rates?.rate)
-    )
-      throw Error('Invalid validator exchange rate.');
-    return {
-      address: v.operator_address,
-      jailed: v.jailed,
-      bondStatus: v.status,
-      tokensRaw: v.tokens,
-      active: members.has(v.consensus_pubkey.key),
-      consensusAddress: members.get(v.consensus_pubkey.key) || null,
-      commissionAtoms: v.commission.commission_rates.rate.replace('.', '').replace(/^0+(?=\d)/, ''),
-      exchangeRateValid:
-        (BigInt(v.tokens) === 0n) === (BigInt(v.delegator_shares.replace('.', '')) === 0n)
-    };
-  });
+  const nodes = await Promise.all(
+    validators.map(async (v) => {
+      if (
+        !operator.test(v.operator_address) ||
+        typeof v.jailed !== 'boolean' ||
+        !['BOND_STATUS_BONDED', 'BOND_STATUS_UNBONDING', 'BOND_STATUS_UNBONDED'].includes(
+          v.status
+        ) ||
+        !uint(v.tokens) ||
+        !/^\d+\.\d{18}$/.test(v.delegator_shares) ||
+        typeof v.consensus_pubkey?.key !== 'string' ||
+        !/^(0\.\d{18}|1\.0{18})$/.test(v.commission?.commission_rates?.rate)
+      )
+        throw Error('Invalid validator exchange rate.');
+      return {
+        address: v.operator_address,
+        jailed: v.jailed,
+        bondStatus: v.status,
+        tokensRaw: v.tokens,
+        active: members.has(v.consensus_pubkey.key),
+        // An inactive validator is absent from the current roster, but still has
+        // an on-chain consensus identity. Compare that identity with frozen
+        // evidence when the approved criteria permit an inactive recipient.
+        consensusAddress:
+          members.get(v.consensus_pubkey.key) ||
+          (await inactiveConsensusAddress(v.consensus_pubkey)),
+        commissionAtoms: v.commission.commission_rates.rate
+          .replace('.', '')
+          .replace(/^0+(?=\d)/, ''),
+        exchangeRateValid:
+          (BigInt(v.tokens) === 0n) === (BigInt(v.delegator_shares.replace('.', '')) === 0n)
+      };
+    })
+  );
   if (
     new Set(nodes.map((v) => v.address)).size !== nodes.length ||
     new Set(validators.map((v) => v.consensus_pubkey.key)).size !== nodes.length ||
