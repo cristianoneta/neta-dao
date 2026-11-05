@@ -13,6 +13,111 @@ const fixed = (v) => {
   const [w, f = ''] = v.split('.');
   return BigInt(w) * 10n ** 18n + BigInt(f.padEnd(18, '0'));
 };
+function rewardUsdAt18Places(raw, decimals, quote) {
+  if (typeof quote !== 'string' || !/^\d{1,80}(?:\.\d{1,80})?$/.test(quote))
+    throw Error('Invalid historical reward price');
+  const [whole, fraction = ''] = quote.split('.');
+  const coefficient = BigInt(whole + fraction);
+  if (coefficient <= 0n) throw Error('Non-positive historical reward price');
+  // The collector rounds down the final USD value, after applying the full quote.
+  return (integer(raw) * coefficient * 10n ** 18n) / 10n ** BigInt(decimals + fraction.length);
+}
+
+function validEndBlockWithdrawal(claim, hash) {
+  if (
+    !claim ||
+    claim.block_mode !== 'EndBlock' ||
+    !/^[A-F0-9]{64}$/.test(hash) ||
+    claim.block_hash !== hash ||
+    claim.recipient !== address ||
+    !/^junovaloper1[023456789acdefghjklmnpqrstuvwxyz]+$/.test(claim.validator) ||
+    ![50, 70].includes(claim.validator.length) ||
+    !Number.isSafeInteger(claim.event_index) ||
+    claim.event_index < 0 ||
+    !claim.amounts ||
+    typeof claim.amounts !== 'object' ||
+    Array.isArray(claim.amounts)
+  )
+    return false;
+  const amounts = Object.values(claim.amounts);
+  return amounts.length
+    ? claim.event_index > 0 &&
+        claim.transfer_index === claim.event_index - 1 &&
+        amounts.every((v) => typeof v === 'string' && /^[1-9]\d*$/.test(v))
+    : claim.transfer_index === null;
+}
+
+function validClaimIdentity(c) {
+  if (c.tx_hash !== null) return c.block_mode === undefined && /^[A-F0-9]{64}$/.test(c.tx_hash);
+  return (
+    Number.isSafeInteger(c.height) &&
+    c.height > 0 &&
+    c.id === `juno-1:block-rewards:${c.height}:reward:${c.event_index}` &&
+    validEndBlockWithdrawal(c, c.block_hash)
+  );
+}
+
+function matchesRecordedPayment(withdrawal, proof, address) {
+  const raw = proof.claims.find((v) => v.event_index === withdrawal.event_index);
+  if (
+    !raw ||
+    raw.validator !== withdrawal.validator ||
+    raw.recipient !== address ||
+    raw.transfer_index !== withdrawal.transfer_index ||
+    Object.keys(raw.amounts).length !== Object.keys(withdrawal.amounts).length ||
+    !Object.entries(raw.amounts).every(([k, v]) => withdrawal.amounts[k] === v)
+  )
+    return false;
+  if (raw.transfer_index === null) return true;
+  const payment = proof.transfers.find((v) => v.index === raw.transfer_index);
+  if (
+    payment?.type !== 'transfer' ||
+    payment.mode !== 'EndBlock' ||
+    payment.sender !== distribution ||
+    payment.recipient !== address
+  )
+    return false;
+  const parts = payment.amount
+    .split(',')
+    .map((v) => /^([0-9]+)([a-zA-Z][a-zA-Z0-9/:._-]*)$/.exec(v));
+  return (
+    parts.every(Boolean) &&
+    new Set(parts.map((v) => v[2])).size === parts.length &&
+    parts.filter((v) => BigInt(v[1]) > 0n).length === Object.keys(raw.amounts).length &&
+    parts.every((v) => BigInt(v[1]) === integer(raw.amounts[v[2]] || '0'))
+  );
+}
+
+function validSettlementSource(s) {
+  if (s.tx_hash !== null)
+    return s.evidence?.kind === 'provider-receipt' && /^[A-F0-9]{64}$/.test(s.tx_hash);
+  const proof = s.evidence?.proof;
+  const anchor = proof?.anchor;
+  const prefix = `juno-1:block-rewards:${s.height}:`;
+  if (
+    s.evidence?.kind !== 'staking-finalize-block' ||
+    !Number.isSafeInteger(s.height) ||
+    s.height <= 0 ||
+    s.height !== anchor?.height ||
+    s.timestamp !== anchor.timestamp ||
+    !s.id.startsWith(prefix) ||
+    !/^\d+$/.test(s.id.slice(prefix.length)) ||
+    !Array.isArray(s.withdrawals) ||
+    !Array.isArray(proof.transfers) ||
+    !Array.isArray(proof.claims) ||
+    proof.claims.length !== s.withdrawals.length ||
+    !s.withdrawals.every(
+      (w) => validEndBlockWithdrawal(w, anchor.hash) && matchesRecordedPayment(w, proof, address)
+    ) ||
+    new Set(s.withdrawals.map((w) => w.event_index)).size !== s.withdrawals.length
+  )
+    return false;
+  return (
+    s.withdrawals.reduce((n, w) => n + integer(w.amounts[s.denom] || '0'), 0n) ===
+    integer(s.raw_amount)
+  );
+}
+
 export function validateStakingLedger(data, dao) {
   if (
     data?.schema_version !== 4 ||
@@ -66,12 +171,7 @@ export function validateStakingLedger(data, dao) {
     let claimed = 0n;
     const claims = new Set();
     for (const c of e.claims) {
-      if (
-        claims.has(c.id) ||
-        !/^[A-F0-9]{64}$/.test(c.tx_hash) ||
-        c.height <= a.height ||
-        c.height > b.height
-      )
+      if (claims.has(c.id) || !validClaimIdentity(c) || c.height <= a.height || c.height > b.height)
         throw Error('Invalid/duplicate reward claim');
       claims.add(c.id);
       claimed += integer(c.amounts[r.denom] || '0');
@@ -108,9 +208,7 @@ export function validateStakingLedger(data, dao) {
       !Number.isSafeInteger(q.timestamp_ms) ||
       target - q.timestamp_ms < 0 ||
       target - q.timestamp_ms > 3600000 ||
-      fixed(q.usd_price) <= 0n ||
-      fixed(r.usd_value) !==
-        (integer(r.raw_amount) * fixed(q.usd_price)) / 10n ** BigInt(q.decimals)
+      fixed(r.usd_value) !== rewardUsdAt18Places(r.raw_amount, q.decimals, q.usd_price)
     )
       throw Error('Invalid historical reward valuation');
   }
@@ -127,11 +225,10 @@ export function validateStakingLedger(data, dao) {
       s.direction !== 'in' ||
       s.classification !== 'reward_settlement' ||
       s.usd_value !== null ||
-      !/^[A-F0-9]{64}$/.test(s.tx_hash) ||
       !Array.isArray(s.withdrawals) ||
       !s.withdrawals.length ||
       integer(s.raw_amount) <= 0n ||
-      s.evidence?.kind !== 'provider-receipt'
+      !validSettlementSource(s)
     )
       throw Error('Invalid reward settlement');
     ids.add(s.id);

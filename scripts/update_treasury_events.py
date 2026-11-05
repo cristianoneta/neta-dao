@@ -321,7 +321,8 @@ def collect_chain(chain, existing, registry, titles, source=None):
 
 
 def collect_receipt_chain(chain, existing, registry, titles, source=None):
-    prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"] and row.get('evidence', {}).get('kind') != 'staking-accrual'}
+    prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"]
+             and row.get('evidence', {}).get('kind') not in ('staking-accrual', 'staking-finalize-block')}
     errors = []
     for base in chain["rests"]:
         try:
@@ -388,9 +389,14 @@ def collect(chains=CHAINS, output=OUT, proposal_module=PROPOSAL_MODULE, scope="n
     rows, sources = [], []
     for chain in chains:
         chain_rows, source = collect_receipt_chain(chain, existing, registry, titles, source_by_chain.get(chain["id"]))
+        if chain.get('staking_rewards'):
+            from staking_block_receipts import collect as collect_block_receipts
+            block_rows, first, through = collect_block_receipts(chain, registry, existing, source['last_scanned_height'])
+            chain_rows.extend(block_rows)
+            source.update(block_reward_from=first, block_reward_through=through)
         rows.extend(chain_rows)
         sources.append(source)
-    rows.sort(key=lambda row: (row.get("timestamp") or "", row["chain_id"] == "juno-1", row["height"], row["tx_hash"]), reverse=True)
+    rows.sort(key=lambda row: (row.get("timestamp") or "", row["chain_id"] == "juno-1", row["height"], row["tx_hash"] or row["id"]), reverse=True)
     missing = sum(not row.get("timestamp") for row in rows)
     warnings = [f"Exact block timestamp unavailable from public RPC archives for {missing} historical events."] if missing else []
     warnings += [f"{source['chain_id']}: {source['historical_missing_transactions']} cached historical transactions are currently absent from the public index; records retained." for source in sources if source["historical_missing_transactions"]]

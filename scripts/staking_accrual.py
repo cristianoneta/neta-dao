@@ -167,6 +167,12 @@ def collect(dao, snapshot, events, path=OUT, *, max_intervals=3, max_seconds=90)
         sources = events.get('sources', [])
         if events.get('status') != 'PARTIAL' or len(sources) != 1 or sources[0].get('last_scanned_height', 0) < closing['height']:
             raise ValueError('Receipt scan does not cover the reward sample')
+        coverage = sources[0]
+        if coverage.get('adapter') == 'cosmos-rest-receipts' and not (
+                type(coverage.get('block_reward_from')) is int and type(coverage.get('block_reward_through')) is int
+                and coverage['block_reward_from'] <= opening['height'] + 1
+                and coverage['block_reward_through'] >= closing['height']):
+            raise ValueError('Distribution block scan does not cover the reward interval')
         data['intervals'].append(interval(opening, closing, claim_rows(events, opening, closing)))
         opening = closing
         data.update(last_sample_day=today, last_success_at=stamp(),

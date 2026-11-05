@@ -33,6 +33,10 @@ live-wallet acceptance and current collector health. The backend installation ha
 own dated acceptance record. The agent made no wallet transaction or browser restore;
 the independently observed #384 submission is recorded separately above.
 
+## Delegation treasury reward receipts
+
+The collector reconciles SDK EndBlock withdrawals with the distribution module's bank transfers at their recorded event positions. Native proposal #384 executed at Juno block 43,312,101. Its 37 withdrawals included 35 transfers and two zero claims. The 3,595,908.770592 JUNO payout settled accumulated rewards. The claim-adjusted accrual for 1 November was 7,086.368884 JUNO. Payout evidence links to the block and has no transaction hash. The browser applies the full historical daily quote and truncates the final USD value to 18 decimals, matching the collector. Replayed the four missing UTC days and retained all 27 earlier intervals. Publish the compatible browser reader before installing the collector changes. Production acceptance is separate.
+
 ## Delegation controls and governance bonus — published 31 October
 
 PR #330 implements schema-9 points-based allocation, using only our own fully
