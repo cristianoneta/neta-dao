@@ -1,3 +1,4 @@
+import { compactReviewActions, readReviewActions } from './juno-review-actions.mjs';
 import { encodeZ85, decodeZ85 } from './juno-review-z85.mjs';
 import { assertReviewLimits, assertNativeText } from './juno-proposal-limits.mjs';
 import { EXECUTION_REVIEW_MARKER } from './juno-execution-reference.mjs';
@@ -96,7 +97,11 @@ export async function executionValues(review, { referenced = false, reading = fa
     body:
       (referenced ? EXECUTION_REVIEW_MARKER + '\n\n' : executionDescription(c, plan)) +
       `${marker}\n\nFormat: cosmoot-rebalance-${referenced ? '3+gzip+z85' : '2+gzip'}\nReview SHA-256: ${checked.hash}\n\n\`\`\`cosmoot-rebalance\n${encoded}\n\`\`\`\n\nThis proposal was created on cosmoot.com.`,
-    actions_json: JSON.stringify(checked.messages, null, referenced ? undefined : 2)
+    actions_json: JSON.stringify(
+      referenced ? compactReviewActions(checked.messages) : checked.messages,
+      null,
+      referenced ? undefined : 2
+    )
   };
   if (!reading) {
     try {
@@ -112,7 +117,7 @@ export async function executionValues(review, { referenced = false, reading = fa
   return values;
 }
 export async function readExecutionReview(values) {
-  const messages = JSON.parse(values.actions_json || '[]');
+  const messages = readReviewActions(values.actions_json || '[]');
   const expected =
     isStaking(messages) ||
     values.title?.startsWith(REBALANCE_TITLE) ||
@@ -120,7 +125,7 @@ export async function readExecutionReview(values) {
   if (!expected) return null;
   assertStaking(messages);
   const body = values.body;
-  if (typeof body !== 'string' || body.length > 30000 || values.title !== REBALANCE_TITLE)
+  if (typeof body !== 'string' || body.length > 750000 || values.title !== REBALANCE_TITLE)
     throw Error('Invalid rebalance proposal identity.');
   const blocks = [
     ...body.matchAll(

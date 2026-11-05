@@ -1,6 +1,6 @@
 # Current state — Cosmoot
 
-Updated 2 November 2026. This is the authoritative current feature and release
+Updated 3 November 2026. This is the authoritative current feature and release
 inventory. Update rows in place; retain dated evidence separately. Public/private
 boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
@@ -8,8 +8,9 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
-| Last successful website release | Source `54020bdb2eb3a4c38d4a358a921a47783de9a612` | [Manual release 41347463794](https://github.com/cristianoneta/neta-dao/actions/runs/41347463794) passed on 1 November, publishing the Juno-only forum scope and draft preservation. |
-| Direct voting-power cap | Source implementation; manual website release pending | Schema 10 accepts 0.01–100% without a hidden 30% ceiling. Existing Discussion reviews can recalculate a percentage and publish a revision under the same ID/thread. The requested initial-rule update to 100% still needs the owner's signature. [Semantics and validation](DIRECT_VOTING_CAP_2026-11-02.md). |
+| Last successful website release | Source `0949887ffdb07df86190694295cb40f85b66bc24` | [Manual release 41503784626](https://github.com/cristianoneta/neta-dao/actions/runs/41503784626) passed on 2 November, publishing direct percentage caps and discussion recalculation. |
+| Direct voting-power cap | Published; review 4 revision 2 finalized at 100% | Native #387 observed in voting on 3 November (block 43,376,015), ending 8 November 06:05:43 UTC. Rules only, no execution messages. Historical semantics preserved. [Details](DIRECT_VOTING_CAP_2026-11-02.md). |
+| Proposal size resilience | Source prepared; not published | Compact rule/action storage, early sizes and separate native byte/gas budgets. Isolated Juno executes 45 moves and verifies the undeployed 0.4.0 attachment candidate. Wallet upload/resume UX and explicit migration approval still gate attachment activation. [Scope and validation](PROPOSAL_SIZE_RESILIENCE_2026-11-03.md). |
 | Readable referenced rule proposals | Published, including native voting navigation | Native text contains a meaningful summary and exact on-chain review reference; full evidence stays in the existing workshop. The follow-up resolves the unchanged pinned link to its unique native proposal after submission, with separate explicit history and unchanged voting/signing behavior. Review storage retains its existing limit. [Format and validation](REFERENCED_RULE_PROPOSALS_2026-10-31.md). |
 | Proposal discussions | Service/API and Juno-only website follow-up published | Follow-up retains the selected rule review, hides old imports through a persistent cutoff, automatically creates only new Juno native/review topics, and joins exact review/vote matches atomically. Removes the old topic form; session renewal preserves the visible draft. Targeted scope installation and encrypted backups accepted; one selected discussion remains visible and both scoped sources are current. Real Keplr/Ledger/mobile acceptance remains open. [Product contract and rollout](PROPOSAL_DISCUSSIONS.md). |
 | Rebalance readiness correction | Published in manual release 41329125613 | Fixed-date preflight and SDK redelegation response parsing corrected; short referenced native text, complete inline staking messages, compact complete evidence and shared field limits. [Scope and validation](REBALANCE_READINESS_2026-11-01.md). No contract or collector update. |

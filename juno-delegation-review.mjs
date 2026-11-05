@@ -1,3 +1,5 @@
+import { attachmentManifest } from './juno-review-attachments.mjs';
+import { encodeZ85, decodeZ85 } from './juno-review-z85.mjs';
 import { governanceEvidence } from './juno-governance-points.mjs';
 import { activeFixed } from './juno-fixed-allocations.mjs';
 import {
@@ -432,7 +434,7 @@ export function parentMatches(parent, current) {
 
 // The existing review contract binds its complete text. Embed the sufficient
 // input data AND outputs there; no mutable URL or local-storage attachment.
-export async function encodeRuleReview(review) {
+export async function encodeRuleReview(review, { compact = false } = {}) {
   const bytes = new TextEncoder().encode(canonical(review.value));
   if (bytes.length > 750000) throw Error('Review data exceeds the supported size.');
   const compress = async (data) =>
@@ -455,20 +457,28 @@ export async function encodeRuleReview(review) {
       }
     }
   }
-  const encoded = btoa(Array.from(compressed, (b) => String.fromCharCode(b)).join(''));
-  return `${REVIEW_MARKER}\n\nFormat: cosmoot-allocation-review-${format}+gzip\nReview SHA-256: ${review.hash}\n\n\`\`\`cosmoot-review\n${encoded}\n\`\`\``;
+  if (compact && format === 2) format = 3;
+  const encoded =
+    format === 3
+      ? encodeZ85(compressed)
+      : btoa(Array.from(compressed, (b) => String.fromCharCode(b)).join(''));
+  return `${REVIEW_MARKER}\n\nFormat: cosmoot-allocation-review-${format}+gzip${format === 3 ? '+z85' : ''}\nReview SHA-256: ${review.hash}\n\n\`\`\`cosmoot-review\n${encoded}\n\`\`\``;
 }
 export async function decodeRuleReview(body) {
   if (typeof body !== 'string' || !body.includes(REVIEW_MARKER)) return null;
-  if (body.length > 30000) throw Error('Proposal review exceeds the supported size.');
+  if (body.length > 750000) throw Error('Proposal review exceeds the supported size.');
   const parts = [
     ...body.matchAll(
-      /^## Frozen allocation review\n\nFormat: cosmoot-allocation-review-([12])\+gzip\nReview SHA-256: ([a-f0-9]{64})\n\n```cosmoot-review\n([A-Za-z0-9+/=]+)\n```/gm
+      /^## Frozen allocation review\n\nFormat: cosmoot-allocation-review-([123])\+gzip(\+z85)?\nReview SHA-256: ([a-f0-9]{64})\n\n```cosmoot-review\n([^\n]+)\n```/gm
     )
   ];
   if (parts.length !== 1 || body.split(REVIEW_MARKER).length !== 2)
     throw Error('Frozen comparison is missing, duplicated or malformed.');
-  const bytes = Uint8Array.from(atob(parts[0][3]), (c) => c.charCodeAt(0));
+  const [, version, encoding, hash, encoded] = parts[0];
+  if ((version === '3') !== (encoding === '+z85'))
+    throw Error('Malformed review transport version.');
+  const bytes =
+    version === '3' ? decodeZ85(encoded) : Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0));
   const reader = new Blob([bytes])
     .stream()
     .pipeThrough(new DecompressionStream('gzip'))
@@ -488,11 +498,10 @@ export async function decodeRuleReview(body) {
   }
   const text = await new Blob(chunks).text(),
     packet = JSON.parse(text),
-    value = parts[0][1] === '2' ? unpackReview(packet) : packet;
+    value = version === '1' ? packet : unpackReview(packet);
   if (new TextEncoder().encode(canonical(value)).length > 750000)
     throw Error('Expanded review exceeds the supported size.');
-  if ((await fingerprint(value)) !== parts[0][2])
-    throw Error('Frozen comparison fingerprint mismatch.');
+  if ((await fingerprint(value)) !== hash) throw Error('Frozen comparison fingerprint mismatch.');
   const review = await verifyRuleReview(value);
   const policies = [...body.matchAll(/^## Exact policy\n\n```json\n([\s\S]*?)\n```/gm)],
     hashes = [...body.matchAll(/^Rule SHA-256: ([a-f0-9]{64})$/gm)];
@@ -511,6 +520,8 @@ export async function decodeRuleReview(body) {
   return review;
 }
 export async function readProposalReview(values) {
+  if (attachmentManifest(values.body))
+    throw Error('Load and verify the complete on-chain attachment before using this review.');
   const { readExecutionReview } = await import('./juno-rebalance-execution.mjs');
   if (await readExecutionReview(values)) return null;
   const review = await decodeRuleReview(values.body);

@@ -1,3 +1,4 @@
+import { checkReviewAttachmentMigration } from './check-review-attachment-migration.mjs';
 import { checkRebalanceLifecycle } from './check-rebalance-lifecycle.mjs';
 import { reviewSizeInput } from '../tests/fixtures/delegation-review-size.mjs';
 import { checkNativeVoteGas } from '../faucet/test/native-vote-chain.mjs';
@@ -321,6 +322,7 @@ try {
       ibc_port_id: ''
     },
     contract_state: Object.entries({
+      contract_info: { contract: 'crates.io:neta-proposal-workshop', version: '0.3.1' },
       config: {
         owner: voter,
         pending_owner: null,
@@ -816,7 +818,17 @@ try {
     extraValidators,
     lockedValidators: [validators[1], validators[35]]
   });
+  const attachmentMigration = await checkReviewAttachmentMigration({
+    tx,
+    workshopTx,
+    queryReview,
+    reviewContract,
+    get: (path) => get(rest + path),
+    runProposal,
+    wasm: resolve('assets/review-candidate/neta_proposal_workshop_v040.wasm')
+  });
   const report = {
+    attachmentMigration,
     rebalance,
     emptySourceRedelegation: {
       status: fullExit.status,

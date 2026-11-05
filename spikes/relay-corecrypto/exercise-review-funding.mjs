@@ -471,6 +471,8 @@ export async function exerciseReviewFunding(page, origin, sample) {
     })
   );
   const wallet = async (address) => {
+    // Keep the production protobuf size check while replacing wallet/network I/O.
+    await page.addScriptTag({ url: `${origin}/assets/juno-governance-signing.js` });
     await page.evaluate((quotes) => {
       window.__nativeProposalFees = quotes;
     }, proposalFees);
@@ -540,6 +542,7 @@ export async function exerciseReviewFunding(page, origin, sample) {
       if (previouslyLoaded) window.NetaNamesSigning = window.__reviewSigningFixture;
       else delete window.NetaNamesSigning;
       window.NetaJunoGovernance = {
+        proposalSize: window.NetaJunoGovernance.proposalSize,
         connect: async () => ({ disconnect() {} }),
         simulate: async (_client, _content, _sender, deposit) => {
           window.__selectedDeposit = deposit;

@@ -675,3 +675,304 @@ fn native_only_review_never_queries_neta_and_enforces_juno_lifecycle() {
     );
     assert!(!access(&deps, "below").can_publish);
 }
+
+fn attachment_content() -> (ProposalContent, Vec<cosmwasm_std::Binary>) {
+    use crate::attachments::{Manifest, CHUNK_BYTES, PREFIX};
+    use sha2::{Digest, Sha256};
+    let bytes = "Complete evidence — governance and allocations.\n"
+        .repeat(500)
+        .into_bytes();
+    let chunks: Vec<cosmwasm_std::Binary> = bytes.chunks(CHUNK_BYTES).map(Into::into).collect();
+    let manifest = Manifest {
+        schema: 1,
+        sha256: format!("{:x}", Sha256::digest(&bytes)),
+        bytes: bytes.len() as u32,
+        chunks: chunks
+            .iter()
+            .map(|c| format!("{:x}", Sha256::digest(c.as_slice())))
+            .collect(),
+    };
+    let mut value = content("An attached review");
+    value.body = PREFIX.to_string() + &serde_json::to_string(&manifest).unwrap();
+    (value, chunks)
+}
+#[test]
+fn attachments_are_complete_immutable_revision_scoped_and_resumable() {
+    use crate::attachments::{self, AttachmentStatus};
+    let mut deps = deps();
+    let (value, chunks) = attachment_content();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        ExecuteMsg::PublishProposal {
+            content: value.clone(),
+        },
+    )
+    .unwrap();
+    let upload = |index: usize| ExecuteMsg::UploadReviewChunk {
+        proposal_id: 1,
+        version: 1,
+        index: index as u32,
+        data: chunks[index].clone(),
+    };
+    let finalize = || ExecuteMsg::Finalize {
+        proposal_id: 1,
+        version: 1,
+    };
+    assert!(execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        finalize()
+    )
+    .is_err());
+    assert_eq!(
+        execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info("owner", &[]),
+            upload(0)
+        )
+        .unwrap_err(),
+        ContractError::Unauthorized
+    );
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        upload(0),
+    )
+    .unwrap();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        upload(0),
+    )
+    .unwrap();
+    let status: Option<AttachmentStatus> = from_json(
+        query(
+            deps.as_ref(),
+            mock_env(),
+            QueryMsg::ReviewAttachment {
+                proposal_id: 1,
+                version: 1,
+            },
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(status.unwrap().uploaded, vec![0]);
+    assert!(execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        ExecuteMsg::UploadReviewChunk {
+            proposal_id: 1,
+            version: 1,
+            index: 0,
+            data: vec![0; chunks[0].len()].into()
+        }
+    )
+    .is_err());
+    assert!(execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        finalize()
+    )
+    .is_err());
+    for i in (1..chunks.len()).rev() {
+        execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info("member", &[]),
+            upload(i),
+        )
+        .unwrap();
+    }
+    attachments::assert_complete(&deps.storage, 1, 1).unwrap();
+    // New revisions cannot borrow completeness from earlier versions.
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        ExecuteMsg::AddRevision {
+            proposal_id: 1,
+            content: value,
+            change_log: "New revision".into(),
+        },
+    )
+    .unwrap();
+    assert!(execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        upload(0)
+    )
+    .is_err());
+    assert!(execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        ExecuteMsg::Finalize {
+            proposal_id: 1,
+            version: 2
+        }
+    )
+    .is_err());
+    for (i, data) in chunks.iter().enumerate() {
+        execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info("member", &[]),
+            ExecuteMsg::UploadReviewChunk {
+                proposal_id: 1,
+                version: 2,
+                index: i as u32,
+                data: data.clone(),
+            },
+        )
+        .unwrap();
+    }
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        ExecuteMsg::Finalize {
+            proposal_id: 1,
+            version: 2,
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info("member", &[]),
+            ExecuteMsg::UploadReviewChunk {
+                proposal_id: 1,
+                version: 2,
+                index: 0,
+                data: chunks[0].clone()
+            }
+        )
+        .unwrap_err(),
+        ContractError::Finalized
+    );
+    assert_eq!(
+        attachments::CHUNKS.load(&deps.storage, (1, 1, 0)).unwrap(),
+        chunks[0]
+    );
+}
+#[test]
+fn attachment_manifest_and_aggregate_hash_fail_closed() {
+    use crate::attachments::{self, Manifest, PREFIX};
+    let mut deps = deps();
+    let (mut value, chunks) = attachment_content();
+    let mut manifest: Manifest =
+        serde_json::from_str(value.body.strip_prefix(PREFIX).unwrap()).unwrap();
+    manifest.sha256 = "0".repeat(64);
+    value.body = PREFIX.to_string() + &serde_json::to_string(&manifest).unwrap();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        ExecuteMsg::PublishProposal { content: value },
+    )
+    .unwrap();
+    for (i, data) in chunks.iter().enumerate() {
+        execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info("member", &[]),
+            ExecuteMsg::UploadReviewChunk {
+                proposal_id: 1,
+                version: 1,
+                index: i as u32,
+                data: data.clone(),
+            },
+        )
+        .unwrap();
+    }
+    assert!(attachments::assert_complete(&deps.storage, 1, 1).is_err());
+    manifest.bytes = 750001;
+    assert!(
+        attachments::parse(&(PREFIX.to_string() + &serde_json::to_string(&manifest).unwrap()))
+            .is_err()
+    );
+    manifest.bytes = 1;
+    assert!(
+        attachments::parse(&(PREFIX.to_string() + &serde_json::to_string(&manifest).unwrap()))
+            .is_err()
+    );
+    assert!(attachments::parse(&(PREFIX.to_string() + "{}")).is_err());
+}
+#[test]
+fn attachment_migration_preserves_all_legacy_state_and_pending_owner() {
+    use crate::contract::migrate;
+    use crate::msg::MigrateMsg;
+    use cosmwasm_std::{Order, Storage};
+    let mut deps = deps();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        ExecuteMsg::PublishProposal {
+            content: content("Legacy rule review"),
+        },
+    )
+    .unwrap();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("member", &[]),
+        ExecuteMsg::Finalize {
+            proposal_id: 1,
+            version: 1,
+        },
+    )
+    .unwrap();
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("owner", &[]),
+        ExecuteMsg::ProposeOwner {
+            address: "successor".into(),
+        },
+    )
+    .unwrap();
+    cw2::set_contract_version(
+        &mut deps.storage,
+        "crates.io:neta-proposal-workshop",
+        "0.3.1",
+    )
+    .unwrap();
+    let before: Vec<_> = deps
+        .storage
+        .range(None, None, Order::Ascending)
+        .filter(|(key, _)| key != b"contract_info")
+        .collect();
+    migrate(deps.as_mut(), mock_env(), MigrateMsg {}).unwrap();
+    let after: Vec<_> = deps
+        .storage
+        .range(None, None, Order::Ascending)
+        .filter(|(key, _)| key != b"contract_info")
+        .collect();
+    assert_eq!(before, after);
+    execute(
+        deps.as_mut(),
+        mock_env(),
+        mock_info("successor", &[]),
+        ExecuteMsg::AcceptOwner {},
+    )
+    .unwrap();
+    assert_eq!(
+        crate::state::CONFIG.load(&deps.storage).unwrap().owner,
+        Addr::unchecked("successor")
+    );
+    assert!(migrate(deps.as_mut(), mock_env(), MigrateMsg {}).is_err());
+    cw2::set_contract_version(&mut deps.storage, "unrelated", "0.3.1").unwrap();
+    assert!(migrate(deps.as_mut(), mock_env(), MigrateMsg {}).is_err());
+}

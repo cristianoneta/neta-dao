@@ -1,3 +1,4 @@
+use crate::attachments;
 use crate::error::ContractError;
 use crate::msg::{
     AccessResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, ProposalContent, ProposalSummary,
@@ -225,6 +226,9 @@ fn save_revision(
         created_height: env.block.height,
         created_time: env.block.time.seconds(),
     };
+    if let Some(manifest) = attachments::parse(&revision.body)? {
+        attachments::MANIFESTS.save(deps.storage, (proposal_id, version), &manifest)?;
+    }
     REVISIONS.save(deps.storage, (proposal_id, version), &revision)?;
     Ok(())
 }
@@ -279,13 +283,12 @@ pub fn instantiate(
 #[entry_point]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
     let previous = get_contract_version(deps.storage)?;
-    if previous.contract != NAME {
+    if previous.contract != NAME || previous.version != "0.3.1" {
         return Err(StdError::generic_err("invalid contract migration source").into());
     }
-    CONFIG.update(deps.storage, |mut cfg| -> StdResult<_> {
-        cfg.pending_owner = None;
-        Ok(cfg)
-    })?;
+    // Storage is additive. Preserve owners, pending transfers, proposals,
+    // revisions, moderation, finalized hashes and the external Wasm admin.
+    CONFIG.load(deps.storage)?;
     set_contract_version(deps.storage, NAME, VERSION)?;
     Ok(Response::new()
         .add_attribute("action", "migrate")
@@ -302,6 +305,34 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     no_funds(&info)?;
     match msg {
+        ExecuteMsg::UploadReviewChunk {
+            proposal_id,
+            version,
+            index,
+            data,
+        } => {
+            let cfg = CONFIG.load(deps.storage)?;
+            require_member(deps.as_ref(), &env, &cfg, &info.sender)?;
+            let p = PROPOSALS.load(deps.storage, proposal_id)?;
+            if p.author != info.sender {
+                return Err(ContractError::Unauthorized);
+            }
+            if p.withdrawn {
+                return Err(ContractError::Withdrawn);
+            }
+            if p.finalized_version.is_some() {
+                return Err(ContractError::Finalized);
+            }
+            if p.latest_version != version {
+                return Err(ContractError::NotLatestVersion);
+            }
+            attachments::put(deps.storage, proposal_id, version, index, data)?;
+            Ok(Response::new()
+                .add_attribute("action", "upload_review_chunk")
+                .add_attribute("proposal_id", proposal_id.to_string())
+                .add_attribute("version", version.to_string())
+                .add_attribute("index", index.to_string()))
+        }
         ExecuteMsg::PublishProposal { content } => publish(deps, env, info, content),
         ExecuteMsg::AddRevision {
             proposal_id,
@@ -568,6 +599,7 @@ fn finalize(
     let cfg = CONFIG.load(deps.storage)?;
     require_member(deps.as_ref(), &env, &cfg, &info.sender)?;
     let revision = REVISIONS.load(deps.storage, (id, version))?;
+    attachments::assert_complete(deps.storage, id, version)?;
     let hash = revision_hash(&revision)?;
     PROPOSALS.update(deps.storage, id, |item| -> Result<_, ContractError> {
         let mut p = item.ok_or_else(|| StdError::not_found("proposal"))?;
@@ -750,6 +782,24 @@ fn admin_accept_owner(deps: DepsMut, info: MessageInfo) -> Result<Response, Cont
 #[entry_point]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
+        QueryMsg::AttachmentCapabilities {} => {
+            to_json_binary(&attachments::AttachmentCapabilities {
+                schema: 1,
+                chunk_bytes: attachments::CHUNK_BYTES as u32,
+                max_bytes: attachments::MAX_BYTES as u32,
+            })
+        }
+        QueryMsg::ReviewAttachment {
+            proposal_id,
+            version,
+        } => to_json_binary(&attachments::status(deps.storage, proposal_id, version)?),
+        QueryMsg::ReviewChunk {
+            proposal_id,
+            version,
+            index,
+        } => {
+            to_json_binary(&attachments::CHUNKS.load(deps.storage, (proposal_id, version, index))?)
+        }
         QueryMsg::Config {} => to_json_binary(&CONFIG.load(deps.storage)?),
         QueryMsg::Proposal { proposal_id } => {
             to_json_binary(&PROPOSALS.load(deps.storage, proposal_id)?)

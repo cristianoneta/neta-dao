@@ -95,7 +95,7 @@ export function ruleProposal(review) {
 export async function frozenRuleProposal(review, { referenced = false } = {}) {
   const checked = await verifyRuleReview(review.value),
     v = checked.value,
-    encoded = await encodeRuleReview(checked);
+    encoded = await encodeRuleReview(checked, { compact: referenced });
   if (referenced) {
     const exact =
       v.rule.schema >= 9

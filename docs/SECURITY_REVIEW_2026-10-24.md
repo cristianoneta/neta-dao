@@ -85,3 +85,15 @@ Primary implementation references:
 - [WASM host imports](https://github.com/CosmWasm/cosmwasm/blob/v1.5.11/packages/std/src/imports.rs)
 - [Crypto API](https://github.com/CosmWasm/cosmwasm/blob/v1.5.11/packages/crypto/src/lib.rs)
 - [Upstream 0.7.6 changes](https://github.com/RustCrypto/crypto-bigint/pull/1365)
+
+## Additive workshop review — 3 November 2026
+
+Reassessed the workshop 0.4.0 attachment candidate. It adds bounded byte storage,
+SHA-256 manifest/chunk checks using the existing `sha2` dependency, queries and
+migration-state preservation. No cryptographic dependency, signing operation,
+compiler, WASM target flag or host-service path was added. The only lockfile
+change is this contract's package version. All seven locked WASM normal/build
+graphs were checked again and exclude the four affected host crypto packages.
+The input fingerprint is updated for these reviewed Rust changes; expiry and
+all advisory gates remain unchanged. The mainnet 0.3.1 artifact remains pinned;
+0.4.0 is a separate, undeployed upgrade candidate.

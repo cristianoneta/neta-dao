@@ -1,19 +1,29 @@
 # Cosmoot public development handoff
 
-Updated 2 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
+Updated 3 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
-## Direct voting-power cap — 2 November
+## Proposal size resilience — implementation prepared, 3 November
 
-The cap editor accepts a direct 0.01–100% under schema 10, with no hidden 30%
-ceiling and no dependence on validator count. Historical rule versions retain
-their original meaning. A Discussion review can recalculate its allocations from
-fresh own data, keep its criteria/budget and publish a revision under the same
-proposal ID and forum thread. The owner requested 100% for the initial-rule
-review; no new rulebook is approved. That public update still requires the
-owner's revision signature after the manual website release. No service or
-contract installation is needed. See [semantics, revision flow and validation](docs/DIRECT_VOTING_CAP_2026-11-02.md).
+New referenced reviews use compact, lossless rule/action transport, early field
+usage and separate native protobuf/gas budgets. Old review hashes and proposal
+#387 are unchanged. The full isolated Juno test executes 45 movements and tests
+an additive workshop 0.4.0 migration with immutable review-body chunks.
+The attachment contract is a separate, undeployed candidate: upload/resume UI,
+browser acceptance and explicit migration approval remain activation gates.
+See [scope, limits and validation](docs/PROPOSAL_SIZE_RESILIENCE_2026-11-03.md).
+Website publication remains manual; no mainnet contract or proposal changed.
+
+## Direct voting-power cap — published, 2 November
+
+[Manual release 41503784626](https://github.com/cristianoneta/neta-dao/actions/runs/41503784626)
+published main `0949887ffdb07df86190694295cb40f85b66bc24`. Schema 10 accepts
+0.01–100% without a hidden 30% ceiling. Review 4 revision 2 now has the 100%
+cap and is finalized; native proposal #387 was observed in voting on 3 November
+(block 43,376,015), ending 8 November at 06:05:43 UTC. Its messages are empty:
+this is rule adoption only. An execution proposal still needs fresh allocation
+and chain-state checks. [Semantics](docs/DIRECT_VOTING_CAP_2026-11-02.md).
 
 ## Proposal discussions — published; Juno-only follow-up, 1 November
 

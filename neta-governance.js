@@ -1,4 +1,6 @@
 (async () => {
+  const { readReviewActions } = await import('./juno-review-actions.mjs');
+  const { reviewSizeText } = await import('./juno-proposal-limits.mjs');
   // Capture the incoming handoff before any asynchronous initialization.
   const plannerParams = new URLSearchParams(location.search);
   if (plannerParams.has('plannerDraft') || plannerParams.has('proposalTemplate')) {
@@ -71,7 +73,7 @@
     const transfer = document.querySelector('#community-pool-transfer');
     transfer.hidden = true;
     try {
-      const messages = JSON.parse(v.actions_json || '[]');
+      const messages = readReviewActions(v.actions_json || '[]');
       if (isCommunityPoolSpend(messages)) {
         transfer.hidden = false;
         assertCommunityPoolSpend(messages);
@@ -89,7 +91,7 @@
     host.hidden = true;
     let executionMessages = [];
     try {
-      executionMessages = JSON.parse(v.actions_json || '[]');
+      executionMessages = readReviewActions(v.actions_json || '[]');
     } catch {
       /* Invalid editor JSON remains editable. */
     }
@@ -111,7 +113,8 @@
         if (format && usesExecutionReference(v)) {
           format.hidden = false;
           document.querySelector('#rule-proposal-format-text').textContent =
-            `The native proposal includes every executable staking message and a link to this exact review. Full calculation evidence stays on Juno. Review body: ${[...v.body.trim()].length.toLocaleString('en-US')} / 10,000 characters; actions: ${[...v.actions_json.trim()].length.toLocaleString('en-US')} / 20,000; summary: ${[...v.summary.trim()].length} / 300. Exact native text is shown after finalization.`;
+            'The native proposal includes every executable staking message. Full calculation evidence stays on Juno. ' +
+            reviewSizeText(v);
           if (!editing) setDetails(false);
         }
         const totals = execution.value.plan.totals;
@@ -121,6 +124,15 @@
           renderRuleReview(details, allocation, { scope: 'execution', rules: false });
           host.append(details);
         }
+        const executable = document.createElement('details');
+        const label = document.createElement('summary');
+        label.textContent = 'Executable staking messages';
+        const payload = document.createElement('pre');
+        payload.style.whiteSpace = 'pre-wrap';
+        payload.style.overflowWrap = 'anywhere';
+        payload.textContent = JSON.stringify(execution.messages, null, 2);
+        executable.append(label, payload);
+        host.append(executable);
       } catch (error) {
         if (epoch === frozenViewEpoch)
           host.textContent = 'Rebalance verification failed: ' + error.message;
@@ -168,7 +180,8 @@
         if (format && usesRuleReference(v)) {
           format.hidden = false;
           document.querySelector('#rule-proposal-format-text').textContent =
-            `The native proposal uses your summary and a link to this exact on-chain review. Rules and calculation evidence stay in the review. Review body: ${[...v.body.trim()].length.toLocaleString('en-US')} / 10,000 characters; summary: ${[...(v.summary || '').trim()].length} / 300 characters. The exact native text is shown after finalization, before submission.`;
+            'The native proposal uses your summary and a link to this exact on-chain review. Rules and calculation evidence stay in the review. ' +
+            reviewSizeText(v);
           if (!editing) setDetails(false);
         }
         if (
@@ -187,7 +200,7 @@
     }
   }
   async function verifyFrozenAction(values) {
-    const messages = JSON.parse(values.actions_json);
+    const messages = readReviewActions(values.actions_json);
     assertProgrammeExecutionAvailable(messages);
     const context = reviewContext();
     if (isCommunityPoolSpend(messages)) {
@@ -1069,7 +1082,7 @@
     let community = false;
     try {
       community =
-        isNativeReview() && isCommunityPoolSpend(JSON.parse($('#proposal-actions').value));
+        isNativeReview() && isCommunityPoolSpend(readReviewActions($('#proposal-actions').value));
     } catch {}
     const planner =
       community ||
@@ -1221,7 +1234,7 @@
     }
     if (native && !sharedFinal && selected?.source !== 'chain') {
       try {
-        assertProgrammeExecutionAvailable(JSON.parse($('#proposal-actions').value || '[]'));
+        assertProgrammeExecutionAvailable(readReviewActions($('#proposal-actions').value || '[]'));
       } catch (error) {
         $('#primary-action').disabled = true;
         $('#publish-revision').disabled = true;

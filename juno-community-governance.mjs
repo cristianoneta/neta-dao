@@ -1,3 +1,6 @@
+import { resolveReviewBody, reviewChunkReader } from './juno-review-attachments.mjs';
+import { assertReviewLimits } from './juno-proposal-limits.mjs';
+import { readReviewActions } from './juno-review-actions.mjs';
 import { usesExecutionReference, referencedExecutionContent } from './juno-execution-reference.mjs';
 import { readExecutionReview } from './juno-rebalance-execution.mjs';
 import { isStaking, assertStaking } from './juno-programme-staking.mjs';
@@ -38,7 +41,7 @@ const endpointsOf = (endpoints) => [
   ...new Map(endpoints.map((e) => [new URL(e).origin, e.replace(/\/$/, '')])).values()
 ];
 export function reviewKind(values) {
-  const messages = JSON.parse(values.actions_json);
+  const messages = readReviewActions(values.actions_json);
   if (isCommunityPoolSpend(messages)) {
     assertCommunityPoolSpend(messages);
     return COMMUNITY_POOL_KIND;
@@ -67,7 +70,7 @@ export async function finalizedReview(
   proposal,
   revision,
   chainId = 'uni-7',
-  { readOnly = false } = {}
+  { readOnly = false, readChunk } = {}
 ) {
   const network = reviewNetwork(chainId);
   if (
@@ -80,10 +83,13 @@ export async function finalizedReview(
     !/^[a-f0-9]{64}$/.test(proposal.finalized_hash || '')
   )
     throw Error('Finalize the latest community review before mainnet submission.');
-  const values = reviewValues(revision);
+  const storedValues = reviewValues(revision);
+  const values = await resolveReviewBody(storedValues, readChunk);
+  const attached = values.body !== storedValues.body;
+  if (attached) assertReviewLimits(storedValues);
   const frozen = await readProposalReview(values);
   const bytes = new Uint8Array(
-    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(values)))
+    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(storedValues)))
   );
   const hash = [...bytes].map((v) => v.toString(16).padStart(2, '0')).join('');
   if (hash !== proposal.finalized_hash)
@@ -107,17 +113,25 @@ export async function finalizedReview(
     const execution = await readExecutionReview(values);
     if (kind !== 'ALLOCATION_EXECUTION' || !execution || chainId !== 'juno-1')
       throw Error('Referenced rebalance proposals require a verified Juno mainnet review.');
-    content = referencedExecutionContent(values, {
-      schema: 1,
-      chainId,
-      contract: network.contract,
-      reviewId: String(proposal.id),
-      revision: String(revision.version),
-      contentHash: hash,
-      policyHash: execution.value.calculation.policyHash,
-      reviewHash: execution.hash
-    });
-  } else content = proposalContent(kind, values);
+    content = referencedExecutionContent(
+      attached
+        ? { ...values, body: 'Native proposal format: cosmoot-execution-reference-1' }
+        : values,
+      {
+        schema: 1,
+        chainId,
+        contract: network.contract,
+        reviewId: String(proposal.id),
+        revision: String(revision.version),
+        contentHash: hash,
+        policyHash: execution.value.calculation.policyHash,
+        reviewHash: execution.hash
+      }
+    );
+  } else {
+    if (attached) throw Error('Attached reviews require the native reference format.');
+    content = proposalContent(kind, values);
+  }
   const metadata = `cosmoot:review:${chainId}:${network.contract}:${proposal.id}:${hash}`;
   return {
     id:
@@ -129,7 +143,8 @@ export async function finalizedReview(
     reviewId: String(proposal.id),
     hash,
     kind,
-    values,
+    values: storedValues,
+    ...(attached ? { resolvedValues: values } : {}),
     author: proposal.author,
     content: { ...content, metadata }
   };
@@ -209,7 +224,9 @@ export async function verifyReview(endpoints, expected, options = {}) {
           limit: 1
         }
       });
-      return finalizedReview(proposal, revisions?.[0], network.chainId);
+      return finalizedReview(proposal, revisions?.[0], network.chainId, {
+        readChunk: reviewChunkReader(query, proposal.id, proposal.finalized_version)
+      });
     },
     (v) => v,
     `${network.label} finalized review verification`

@@ -1,3 +1,4 @@
+import { reviewChunkReader } from './juno-review-attachments.mjs';
 import { parseExecutionReference } from './juno-execution-reference.mjs';
 import { finalizedReview, matchesReview, reader, quorum } from './juno-community-governance.mjs';
 import { readExecutionReview } from './juno-rebalance-execution.mjs';
@@ -41,8 +42,11 @@ export async function readExecutionContent(content, source) {
     revisions.length !== 1
   )
     throw Error('Referenced finalized rebalance review is unavailable or changed.');
-  const final = await finalizedReview(record, revisions[0], ref.chainId, { readOnly: true });
-  const review = await readExecutionReview(final.values);
+  const final = await finalizedReview(record, revisions[0], ref.chainId, {
+    readOnly: true,
+    readChunk: reviewChunkReader(query, Number(ref.reviewId), Number(ref.revision))
+  });
+  const review = await readExecutionReview(final.resolvedValues || final.values);
   if (
     !review ||
     review.hash !== ref.reviewHash ||
