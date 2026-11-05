@@ -220,25 +220,38 @@ try {
   );
   assert.equal(await page.locator('#names-view').isVisible(), true);
   await page.goBack();
-  await page.getByRole('link', { name: /Delegation Programme/ }).click();
-  assert.equal(new URL(page.url()).pathname, '/community-tools/delegation/');
-  assert.deepEqual(await page.locator('.tool-card h2').allTextContents(), ['Juno']);
+  await page.getByRole('link', { name: /Delegation Programme/ }).focus();
+  await page.keyboard.press('Enter');
+  await page.waitForURL('**/community-tools/juno/delegation/#rules');
+  await page.locator('#rule-composer .composer-column').first().waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#rules').isVisible(), true);
+  assert.equal(await page.locator('#rule-composer').isVisible(), true);
+  const junoContext = page.getByRole('link', { name: 'JUNO MAINNET', exact: true });
+  assert.equal(await junoContext.isVisible(), true);
+  assert.equal(await junoContext.getAttribute('href'), '/community-tools/delegation/');
+  const communityTools = page.getByRole('link', { name: 'Community Tools', exact: true });
+  assert.equal(await communityTools.isVisible(), true);
+  assert.equal(await communityTools.getAttribute('href'), '/community-tools/');
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1100 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await screenshot(`delegation-chains-${width}`);
+    await screenshot(`delegation-editor-entry-${width}`);
   }
-  await page.getByRole('link', { name: /Open Juno programme/ }).focus();
-  await page.keyboard.press('Enter');
-  await page.waitForURL('**/community-tools/juno/delegation/');
-  await page.getByRole('link', { name: 'JUNO MAINNET', exact: true }).click();
-  assert.equal(new URL(page.url()).pathname, '/community-tools/delegation/');
-  await page.locator('.tool-breadcrumb a[href="/community-tools/#interchain"]').click();
+  // The compact header hides secondary links. Follow the visible mobile route
+  // through Cosmoot home instead of trying to click a hidden desktop link.
+  await page.locator('.policy-brand').click();
+  await page.waitForURL('**/index.html#home');
+  await page.locator('#home-view').waitFor({ state: 'visible' });
+  await page
+    .locator('#home-view .ch-site-footer')
+    .getByRole('link', { name: /Community Tools/ })
+    .click();
+  await page.waitForURL('**/community-tools/');
   await page.waitForFunction(
     () =>
-      document.querySelector('[data-project-link="interchain"]').getAttribute('aria-current') ===
-      'true'
+      document.querySelector('[data-project-link="all"]').getAttribute('aria-current') === 'true'
   );
+  assert.equal(await page.locator('.tool-card:visible').count(), 5);
   await page.locator('[data-project-link="juno"]').click();
   await page.waitForFunction(
     () =>

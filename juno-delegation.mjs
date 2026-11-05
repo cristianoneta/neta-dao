@@ -1,3 +1,9 @@
+import {
+  mountRuleComposer,
+  criterionSummary,
+  deferComposerControls
+} from './juno-rule-composer-view.mjs';
+import { CRITERIA } from './juno-criteria-policy.mjs';
 import { reviewSizeText } from './juno-proposal-limits.mjs';
 import { mountFixedAllocations, renderFixedMandates } from './juno-fixed-allocation-view.mjs';
 import { availableBudget } from './juno-rebalance.mjs';
@@ -17,8 +23,8 @@ import {
 import { claimRewardsOverview } from './juno-claim-rewards.mjs';
 import { readClaimContext } from './claim-numbering.mjs';
 import {
-  defaultPolicy,
-  editablePolicy,
+  composerPolicy,
+  editableComposerPolicy,
   withVotingPowerCap,
   restoreVotingPowerCap,
   capDescription,
@@ -36,8 +42,8 @@ import {
 import { formatAmount } from './juno-delegation-view.mjs';
 
 const $ = (id) => document.getElementById(id),
-  key = 'cosmoot:juno:delegation:rule-draft:v3';
-let rules = defaultPolicy(),
+  key = 'cosmoot:juno:delegation:rule-draft:v4';
+let rules = composerPolicy(),
   data = null,
   evidence = null,
   review = null,
@@ -51,6 +57,11 @@ let rewardsSource = null,
   fixedEditor = null,
   pointsEditor = null,
   approvedPoints = null;
+function editableDraft(input) {
+  // A relative historical cap cannot be converted until its actual validator count is known.
+  if (input && input.schema < 10 && !data) return policy(input);
+  return editableComposerPolicy(input, data?.activeCount);
+}
 const fmt = (value) => formatAmount(value, true);
 const tell = (message, tone = 'info') => {
   $('feedback').textContent = message;
@@ -162,7 +173,7 @@ async function loadApprovedRules() {
     approval = { status: 'verified', current: result.current };
     if (!draftStarted) {
       parent = structuredClone(result.current);
-      rules = editablePolicy(parent?.rule);
+      rules = editableDraft(parent?.rule);
       draftStarted = true;
       restoreRuleInputs();
     }
@@ -202,18 +213,36 @@ async function loadApprovedRules() {
       ['Voting power cap', capDescription(rule)],
       [
         'Maximum commission',
-        rule.commissionMaxBps === null ? 'No limit' : `${rule.commissionMaxBps / 100}%`
+        rule.schema === 11
+          ? criterionSummary('commission', rule.criteria.commission)
+          : rule.commissionMaxBps === null
+            ? 'No limit'
+            : `${rule.commissionMaxBps / 100}%`
       ],
       ['Validator status', eligibilityDescription(rule)],
       [
         'Minimum uptime · observed commit signatures',
-        rule.schema >= 5 ? `${rule.minParticipationBps / 100}%` : 'No signature minimum'
+        rule.schema === 11
+          ? criterionSummary('uptime', rule.criteria.uptime)
+          : rule.schema >= 5
+            ? `${rule.minParticipationBps / 100}%`
+            : 'No signature minimum'
       ],
-      ['Upgrade participation', 'Juno v31 · within 5 hours of the halt'],
+      [
+        'Upgrade participation',
+        rule.schema === 11
+          ? criterionSummary('upgrade', rule.criteria.upgrade)
+          : 'Juno v31 · within 5 hours of the halt'
+      ],
       ['Liquid reserve', `${formatAmount(rule.liquidReserveRaw)} JUNO`],
       ['Manual exclusions', String(rule.exclusions.length)],
       ['Fixed allocations', String(rule.fixedAllocations?.length || 0)],
-      ['Scoring', 'V1 · no objective or subjective points']
+      [
+        'Scoring',
+        rule.schema >= 9
+          ? `${rule.points.base} base + up to ${1000 - rule.points.base} bonus points`
+          : 'Equal allocation'
+      ]
     ]) {
       const entry = node('div');
       entry.append(node('dt', label), node('dd', value));
@@ -245,7 +274,7 @@ async function loadApprovedRules() {
       source,
       node(
         'p',
-        `${rule.schema >= 9 ? 'Points-weighted allocation' : 'Equal allocation'} · ${rule.commissionMaxBps === null ? 'no commission limit' : rule.commissionMaxBps / 100 + '% maximum commission'} · ${rule.exclusions.length} manual exclusions.`
+        `${rule.schema >= 9 ? 'Points-weighted allocation' : 'Equal allocation'} · ${rule.schema === 11 ? 'exclusive criterion roles' : rule.commissionMaxBps === null ? 'no commission limit' : rule.commissionMaxBps / 100 + '% maximum commission'} · ${rule.exclusions.length} manual exclusions.`
       ),
       details
     );
@@ -384,18 +413,24 @@ function renderRuleSummary() {
   const capText = cap
     ? ((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2) + '%'
     : 'pending';
+  const criterionText =
+    rules.schema === 11
+      ? CRITERIA.filter((c) => rules.criteria[c.id].role !== 'unused')
+          .map((c) => `${c.label}: ${criterionSummary(c.id, rules.criteria[c.id])}`)
+          .join(' · ')
+      : 'Historical draft · waiting for safe conversion';
   $('rule-summary').textContent =
-    `${rules.schema >= 9 ? 'Points-weighted allocation' : 'Equal allocation'} · voting power cap ${capText} · ${rules.commissionMaxBps === null ? 'no commission filter' : 'commission ≤' + rules.commissionMaxBps / 100 + '%'} · commit signatures ≥${rules.minParticipationBps / 100}% · v31 participation ≤5h · ${rules.exclusions.length} manual exclusions`;
+    `Points-weighted allocation · voting power cap ${capText} · ${criterionText} · ${rules.exclusions.length} manual exclusions`;
   $('draft-cap').textContent =
     $('cap-percent').checkValidity() && $('cap-percent').value ? capText : 'Check value';
-  $('draft-commission').textContent = commissionValid()
-    ? rules.commissionMaxBps === null
-      ? 'No limit'
-      : `${rules.commissionMaxBps / 100}%`
-    : 'Check value';
-  $('draft-uptime').textContent = uptimeValid()
-    ? `${rules.minParticipationBps / 100}%`
-    : 'Check value';
+  $('draft-commission').textContent =
+    rules.schema === 11 ? criterionSummary('commission', rules.criteria.commission) : 'Loading';
+  $('draft-uptime').textContent =
+    rules.schema === 11 ? criterionSummary('uptime', rules.criteria.uptime) : 'Loading';
+  $('distribution-points-summary').textContent =
+    rules.schema === 11
+      ? `${rules.points.base} base points + up to ${1000 - rules.points.base} bonus points. ${Object.values(rules.criteria).filter((c) => c.role === 'bonus').length} criteria assigned to bonus. Each criterion keeps exactly one role.`
+      : 'Loading the original rule settings.';
   const changes = ruleChanges(parent?.rule, rules).filter((r) => r.changed);
   $('draft-change-count').textContent = parent
     ? `${changes.length} changes from proposal #${parent.proposalId}`
@@ -422,40 +457,16 @@ function scheduleImpact() {
       budget: $('programme-amount').value.trim(),
       valid:
         (pointsEditor?.valid() ?? true) &&
-        commissionValid() &&
-        uptimeValid() &&
         !!$('cap-percent').value &&
         $('cap-percent').checkValidity()
     });
+    pointsEditor?.setImpact(model);
     for (const id of ['rules-impact', 'distribution-impact']) renderPolicyImpact($(id), model);
   }, 100);
 }
-function commissionValid() {
-  const input = $('commission');
-  return input.value !== '' && input.checkValidity() && Number.isInteger(Number(input.value));
-}
-function showCommissionError() {
-  const valid = commissionValid();
-  $('commission-error').hidden = valid;
-  $('commission').setAttribute('aria-invalid', String(!valid));
-}
-function uptimeValid() {
-  const input = $('uptime');
-  return input.value !== '' && input.checkValidity();
-}
-function showUptimeError() {
-  const valid = uptimeValid();
-  $('uptime-error').hidden = valid;
-  $('uptime').setAttribute('aria-invalid', String(!valid));
-}
 function restoreRuleInputs() {
-  const unlimited = rules.commissionMaxBps === null;
-  // A stored null keeps its original policy meaning until this field is edited.
-  // 100% permits every valid commission rate without a second control.
-  $('commission').value = unlimited ? '100' : String(rules.commissionMaxBps / 100);
-  showCommissionError();
-  $('uptime').value = String(rules.minParticipationBps / 100);
-  showUptimeError();
+  if (rules.schema < 11 && (rules.schema >= 10 || data)) rules = editableDraft(rules);
+  pointsEditor?.reset();
 }
 function renderRules() {
   pointsEditor?.render();
@@ -485,36 +496,30 @@ function renderRules() {
     coverage.textContent = error.message;
   }
   $('history-window-summary').textContent = coverage.textContent.split('. ')[0];
-  for (const [input, field] of [
-    [
-      'cap-percent',
-      rules.schema >= 10 || parent?.rule.schema >= 10 ? 'votingPowerCapBps' : 'factorTenths'
-    ],
-    ['commission', 'commissionMaxBps'],
-    ['uptime', 'minParticipationBps']
-  ]) {
-    const id = input + '-previous';
-    let target = $(id);
-    if (!target) {
-      target = node('p', '', 'rule-previous');
-      target.id = id;
-      ($(input).closest('.criterion-control') || $(input)).after(target);
-    }
-    target.hidden = !parent;
-    const diff = ruleChanges(parent?.rule, rules).find((r) => r.key === field);
-    target.replaceChildren(document.createTextNode(`Previously approved: ${diff.before}`));
-    if (parent && diff.changed && (field !== 'minParticipationBps' || parent.rule.schema >= 5)) {
-      const reset = node('button', 'Reset');
-      reset.type = 'button';
-      reset.onclick = () => {
-        if (input === 'cap-percent') rules = restoreVotingPowerCap(rules, parent.rule);
-        else rules[field] = parent.rule[field];
-        restoreRuleInputs();
-        invalidate();
-        renderRules();
-      };
-      target.append(' ', reset);
-    }
+  const input = 'cap-percent';
+  let previous = $('cap-percent-previous');
+  if (!previous) {
+    previous = node('p', '', 'rule-previous');
+    previous.id = 'cap-percent-previous';
+    ($(input).closest('.criterion-control') || $(input)).after(previous);
+  }
+  previous.hidden = !parent;
+  previous.replaceChildren();
+  if (parent) {
+    previous.append(document.createTextNode(`Previously approved: ${capDescription(parent.rule)}`));
+    const reset = node('button', 'Reset');
+    reset.type = 'button';
+    reset.onclick = () => {
+      const baseline = editableDraft(parent.rule);
+      if (baseline.schema !== 11) {
+        tell('Load a snapshot before restoring a relative voting-power cap.', 'error');
+        return;
+      }
+      rules = restoreVotingPowerCap(rules, baseline);
+      invalidate();
+      renderRules();
+    };
+    previous.append(' ', reset);
   }
   $('exclusion-count').textContent = rules.exclusions.length
     ? `· ${rules.exclusions.length}`
@@ -570,18 +575,28 @@ async function load() {
   try {
     const [source, history, readiness, rewards] = await Promise.all([
       fetchJSON('/data/daos/juno-delegation-planner.json'),
-      fetchJSON('/data/validator-upgrades/juno-v31.json'),
-      fetchJSON('/data/validator-upgrades/juno-v31-readiness.json'),
+      fetchJSON('/data/validator-upgrades/juno-v31.json').catch(() => null),
+      fetchJSON('/data/validator-upgrades/juno-v31-readiness.json').catch(() => null),
       fetchJSON('/data/treasury/juno-delegation.json').catch(() => null)
     ]);
-    const next = snapshot(source),
-      nextEvidence = upgradeEvidence(history, readiness);
+    const next = snapshot(source);
+    let nextEvidence = null;
+    let upgradeError =
+      'Upgrade observations could not be loaded. Selected upgrade criteria require complete evidence.';
+    if (history && readiness) {
+      try {
+        nextEvidence = upgradeEvidence(history, readiness);
+      } catch (error) {
+        upgradeError = error.message;
+      }
+    }
     if (
       Date.parse(next.blockTime) > Date.now() + 300000 ||
       Date.parse(next.collectedAt) > Date.now() + 300000
     )
       throw Error('Snapshot timestamp is in the future.');
     data = next;
+    if (rules.schema < 11) restoreRuleInputs();
     renderCurrentPositions();
     rewardsSource = rewards;
     renderClaimRewards();
@@ -612,8 +627,9 @@ async function load() {
     $('outside-position-count').textContent = `${inactive.length} outside · ${outsidePercent}%`;
     $('current-breakdown').textContent =
       `Current positions: ${fmt(current - outside)} JUNO across ${held.length - inactive.length} consensus validators; ${fmt(outside)} JUNO across ${inactive.length} validators outside the active set (${outsidePercent}%). These positions are not automatically unbonding funds.`;
-    $('upgrade-window').textContent =
-      `Halt: ${new Date(evidence.window.start).toISOString()} · inclusive deadline: ${new Date(evidence.window.end).toISOString()} · ${evidence.records.size} historical validators · window scan ${evidence.window.coverageComplete ? 'complete' : 'incomplete'}. Consensus captures provide additional partial evidence.`;
+    $('upgrade-window').textContent = evidence
+      ? `Halt: ${new Date(evidence.window.start).toISOString()} · inclusive deadline: ${new Date(evidence.window.end).toISOString()} · ${evidence.records.size} historical validators · window scan ${evidence.window.coverageComplete ? 'complete' : 'incomplete'}. Consensus captures provide additional partial evidence.`
+      : upgradeError;
 
     $('available-funds').textContent =
       `Delegated ${formatAmount(sumCurrent())} + spendable ${formatAmount(data.liquidRaw)} JUNO. Suggested total includes both, keeps 50 JUNO in reserve and rounds down to 100 JUNO. Unclaimed rewards and unbonding funds are excluded. You can edit the amount.`;
@@ -677,30 +693,21 @@ function renderResult() {
 }
 function focusRuleInput(id) {
   setStep('rules', false);
-  $('rules-eligibility-details').open = true;
   $(id).focus();
 }
 async function runSimulation() {
   try {
     if (fixedEditor?.isEditing())
       throw Error('Apply or cancel the fixed allocation edit before reviewing.');
-    if (!data || !evidence) throw Error('Load programme data first.');
+    if (!data || (!evidence && rules.schema !== 11)) throw Error('Load programme data first.');
     if (!$('cap-percent').checkValidity() || !$('cap-percent').value) {
       focusRuleInput('cap-percent');
       throw Error('Enter a voting-power cap from 0.01% to 100% with up to two decimal places.');
     }
-    if (!commissionValid()) {
-      focusRuleInput('commission');
-      throw Error('Enter a whole-number commission limit from 0 to 100.');
-    }
-    if (!uptimeValid()) {
-      focusRuleInput('uptime');
-      throw Error('Enter an uptime threshold from 95 to 100 with up to two decimal places.');
-    }
     if (!pointsEditor.valid()) {
-      setStep('distribution');
-      $('rules-base-points').focus();
-      throw Error('Check the base points and bonus weights.');
+      setStep('rules');
+      pointsEditor.focusInvalid();
+      throw Error('Check the criterion roles, thresholds and points before reviewing.');
     }
     invalidate('Calculating the proposed allocation…');
     const token = revision;
@@ -807,19 +814,6 @@ $('cap-percent').addEventListener('input', () => {
   renderRules();
   $('cap-percent').value = currentInput;
 });
-function updateCommission() {
-  showCommissionError();
-  if (commissionValid()) rules.commissionMaxBps = Number($('commission').value) * 100;
-  invalidate();
-  renderRules();
-}
-$('commission').addEventListener('input', updateCommission);
-$('uptime').addEventListener('input', () => {
-  showUptimeError();
-  if (uptimeValid()) rules.minParticipationBps = Math.round(Number($('uptime').value) * 100);
-  invalidate();
-  renderRules();
-});
 $('programme-amount').addEventListener('input', () => invalidate());
 $('add-exclusion').addEventListener('click', () => {
   try {
@@ -858,23 +852,14 @@ $('save-draft').addEventListener('click', () => {
       return;
     }
     if (!$('cap-percent').checkValidity() || !$('cap-percent').value) {
-      tell('Enter a factor from 1.0 to 3.0 before saving the rules.', 'error');
+      tell('Enter a voting-power cap from 0.01% to 100% before saving the rules.', 'error');
       focusRuleInput('cap-percent');
       return;
     }
-    if (!commissionValid()) {
-      tell('Enter a whole-number commission limit from 0 to 100 before saving the rules.', 'error');
-      focusRuleInput('commission');
-      return;
-    }
-    if (!uptimeValid()) {
-      tell('Enter an uptime threshold from 95 to 100 before saving the rules.', 'error');
-      focusRuleInput('uptime');
-      return;
-    }
     if (!pointsEditor.valid()) {
-      setStep('distribution');
-      tell('Check the base points and bonus weights before saving.', 'error');
+      setStep('rules');
+      pointsEditor.focusInvalid();
+      tell('Check criterion values and points before saving.', 'error');
       return;
     }
     localStorage.setItem(
@@ -896,13 +881,13 @@ $('save-draft').addEventListener('click', () => {
 });
 $('reset-draft').addEventListener('click', () => {
   fixedEditor?.reset();
-  rules = editablePolicy(parent?.rule);
+  rules = editableDraft(parent?.rule);
   $('rule-rationale').value = '';
   restoreRuleInputs();
   $('cap-error').hidden = true;
   $('cap-percent').removeAttribute('aria-invalid');
   try {
-    localStorage.removeItem(key);
+    localStorage.setItem(key, JSON.stringify({ schema: 1, rule: rules, parent, rationale: '' }));
   } catch {}
   invalidate();
   renderRules();
@@ -952,7 +937,7 @@ $('adopt-current-rules').onclick = () => {
   if (approval.status !== 'verified') return;
   fixedEditor?.reset();
   parent = structuredClone(approval.current);
-  rules = editablePolicy(parent?.rule);
+  rules = editableDraft(parent?.rule);
   restoreRuleInputs();
   invalidate();
   renderRules();
@@ -988,13 +973,32 @@ setInterval(() => {
 document.addEventListener('visibilitychange', () => {
   if (!loading && !document.hidden) renderClaimRewards();
 });
-approvedPoints = renderFuturePolicy($('overview-future-policy'), 'overview', {
-  getRule: () => (approval.status === 'verified' ? approval.current?.rule : null)
-});
-pointsEditor = renderFuturePolicy($('rules-future-policy'), 'rules', {
+approvedPoints = {
+  render() {
+    const rule = approval.status === 'verified' ? approval.current?.rule : null;
+    const host = $('overview-future-policy');
+    if (rule?.schema === 11) {
+      const section = node('section', undefined, 'planner-card composer-approval-summary');
+      section.append(node('h3', 'Approved points & criterion roles'));
+      section.append(
+        node(
+          'p',
+          `${rule.points.base} base points + up to ${1000 - rule.points.base} bonus points.`
+        )
+      );
+      for (const c of CRITERIA)
+        section.append(node('p', `${c.label}: ${criterionSummary(c.id, rule.criteria[c.id])}`));
+      host.replaceChildren(section);
+    } else {
+      host.replaceChildren();
+      renderFuturePolicy(host, 'overview', { getRule: () => rule });
+    }
+  }
+};
+pointsEditor = mountRuleComposer($('rule-composer'), {
   getRule: () => rules,
-  onChange: (points) => {
-    if (points) rules.points = points;
+  onChange: (next) => {
+    if (next) rules = next;
     invalidate();
     renderRuleSummary();
   }
@@ -1046,46 +1050,56 @@ if (initialStep === 'roadmap') {
   requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'instant' }));
 }
 try {
-  const saved = localStorage.getItem(key),
-    legacy = saved ? null : localStorage.getItem('cosmoot:juno:delegation:rule-draft:v2');
-  if (saved || legacy) {
-    const value = saved
-      ? JSON.parse(saved)
-      : { rule: JSON.parse(legacy), parent: null, rationale: '' };
+  const saved = localStorage.getItem(key);
+  const v3 = saved ? null : localStorage.getItem('cosmoot:juno:delegation:rule-draft:v3');
+  const legacy = saved || v3 ? null : localStorage.getItem('cosmoot:juno:delegation:rule-draft:v2');
+  if (saved || v3 || legacy) {
+    const value =
+      saved || v3
+        ? JSON.parse(saved || v3)
+        : { rule: JSON.parse(legacy), parent: null, rationale: '' };
     const original = policy(value.rule);
-    rules = editablePolicy(original);
+    rules = editableDraft(original);
     parent = value.parent ?? null;
     draftStarted = true;
     $('rule-rationale').value = value.rationale || '';
-    const migrated = original.schema !== rules.schema;
-    $('draft-status').textContent = migrated
-      ? 'Editable draft updated to points-based rules · review the new settings · unapproved'
-      : 'Local draft restored · original baseline preserved';
-    if (migrated || legacy) {
-      try {
-        localStorage.setItem(
-          key,
-          JSON.stringify({ schema: 1, rule: rules, parent, rationale: $('rule-rationale').value })
-        );
-      } catch {
-        $('draft-status').textContent = 'Current history rule active · local saving unavailable';
-      }
-    }
+    $('draft-status').textContent =
+      original.schema === 11
+        ? 'Local draft restored · original baseline preserved'
+        : 'Historical draft restored · review the converted criterion roles before saving';
+    // Keep the original storage entry intact. Only Save rules writes the new draft key.
   }
 } catch {
-  rules = defaultPolicy();
+  rules = composerPolicy();
   parent = null;
   draftStarted = false;
-  tell('Saved draft is invalid or unavailable. Default rules loaded.');
+  tell(
+    'Saved draft is invalid or unavailable. Its original entry is preserved; default rules are shown.'
+  );
 }
-fixedEditor = mountFixedAllocations($('fixed-allocations'), {
-  getContext: () => ({ rule: rules, snapshot: data }),
-  onChange: (next) => {
-    rules = next;
-    invalidate();
-    renderRules();
+const fixedContent = node('div');
+const fixedPending = node(
+  'p',
+  'Loading the validator count before opening fixed allocations for this historical draft.',
+  'field-help'
+);
+$('fixed-allocations').replaceChildren(fixedPending, fixedContent);
+fixedEditor = deferComposerControls({
+  getRule: () => rules,
+  onPending: (pending) => {
+    fixedPending.hidden = !pending;
+    fixedContent.hidden = pending;
   },
-  onEditing: () => invalidate()
+  mount: () =>
+    mountFixedAllocations(fixedContent, {
+      getContext: () => ({ rule: rules, snapshot: data }),
+      onChange: (next) => {
+        rules = next;
+        invalidate();
+        renderRules();
+      },
+      onEditing: () => invalidate()
+    })
 });
 $('save-distribution-rules').onclick = () => $('save-draft').click();
 rebalance = mountRebalance({

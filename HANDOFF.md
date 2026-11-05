@@ -1,8 +1,20 @@
 # Cosmoot public development handoff
 
-Updated 3 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
+Updated 4 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
+
+## Homepage and flexible rule editor — source prepared, 4 November
+
+The approved homepage now leads directly into the real Delegation Programme.
+Schema 11 gives each criterion one editable role: Eligibility, Bonus or Unused,
+with drag/drop and keyboard controls, thresholds, bonus curves and real allocation
+impact. Frozen reviews and approved-rule Rebalance use those same semantics;
+historical policy and calculation hashes remain unchanged. Inactive recipients
+retain verified on-chain consensus identities when the selected rules permit them.
+See [rule contract, validation and limits](docs/DELEGATION_RULE_COMPOSER_2026-11-04.md).
+This builds on the pending proposal-size and code-review work. Website release
+remains manual; no published rule, contract or live delegation has been changed.
 
 ## Code review — fixes prepared, 3 November
 

@@ -344,7 +344,8 @@ test('router clicks publish the selected workspace after updating the visible vi
     button.dataset.workspaceView = view;
     return button;
   });
-  f.document.querySelectorAll = (selector) => (selector === '[data-workspace-view]' ? buttons : []);
+  f.document.querySelectorAll = (selector) =>
+    selector === '.workspace-tabs [data-workspace-view]' ? buttons : [];
   for (const view of ['home', 'governance', 'delivery', 'people', 'treasury', 'relay'])
     select(`#${view}-view`).querySelector = (selector) => select(`#${view}-view ${selector}`);
   Object.assign(f.scope, {

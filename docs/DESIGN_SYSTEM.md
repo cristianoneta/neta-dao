@@ -5,6 +5,23 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
+## Homepage and delegation rule composer — owner update, 4 November 2026
+
+The approved graphite/mint landing introduces the whole Cosmoot workspace, with
+the main “Open Delegation Programme” action leading to the actual programme.
+Bare-root visits show this introduction; proposal and workspace deep links keep
+their destinations. Illustrative previews must be labelled and cannot claim live
+balances, validator counts or governance outcomes.
+
+The rule editor uses three visible criterion groups: Eligibility, Bonus and
+Unused. Drag and drop and an equivalent keyboard/touch move control assign one
+role at a time. Keep thresholds and bonus curves beside their criterion, explain
+weight normalization, and show the real allocation impact immediately. A bonus
+threshold must never silently exclude a validator. Fixed allocations remain a
+separate documented reserve; do not infer overlapping duties or deductions.
+Review and Rebalance remain distinct actions. Historical rule views retain the
+semantics of their approved version. See the [rule contract](DELEGATION_RULE_COMPOSER_2026-11-04.md).
+
 ## Fixed additional allocations — owner update, 29 October 2026
 
 Distribution leads with its real budget and documented fixed allocations, with the

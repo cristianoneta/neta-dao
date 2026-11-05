@@ -17,6 +17,47 @@ import { executionReview } from '../juno-rebalance-execution.mjs';
 import { readExecutionContent } from '../juno-execution-reference-read.mjs';
 import { stakingState, checkRebalanceSource } from '../juno-rebalance-chain.mjs';
 
+export async function lifecycleSnapshot(get) {
+  const header = (await get('/cosmos/base/tendermint/v1beta1/blocks/latest')).block.header;
+  const state = await stakingState(get, header.height);
+  const raw = (await get('/cosmos/staking/v1beta1/validators?pagination.limit=100')).validators;
+  const sample = {
+    schema: 1,
+    chainId: 'juno-1',
+    programme: PROGRAMME,
+    height: Number(header.height),
+    blockTime: header.time,
+    collectedAt: new Date().toISOString(),
+    source: 'https://local-fixture.example.org',
+    activeCount: state.activeCount,
+    liquidRaw: state.liquidRaw,
+    redelegations: state.redelegations,
+    validators: state.validators.map((v) => ({
+      address: v.address,
+      consensusAddress: createHash('sha256')
+        .update(
+          Buffer.from(
+            raw.find((r) => r.operator_address === v.address).consensus_pubkey.key,
+            'base64'
+          )
+        )
+        .digest('hex')
+        .slice(0, 40)
+        .toUpperCase(),
+      name: 'Local ' + v.address.slice(-8),
+      tokensRaw: v.tokensRaw,
+      currentRaw: state.positions.find((p) => p.address === v.address)?.currentRaw || '0',
+      active: v.active,
+      jailed: v.jailed,
+      commissionBps: Number(BigInt(v.commissionAtoms) / 100000000000000n)
+    }))
+  };
+  // Deliberately synthetic: the local chain cannot supply five days of history.
+  sample.activeSetHistory = withParticipation(activeHistory(sample, 5));
+  withGovernance(sample);
+  return sample;
+}
+
 export async function checkRebalanceLifecycle({
   get,
   workshopTx,
@@ -25,46 +66,7 @@ export async function checkRebalanceLifecycle({
   extraValidators,
   lockedValidators
 }) {
-  async function snapshot() {
-    const header = (await get('/cosmos/base/tendermint/v1beta1/blocks/latest')).block.header;
-    const state = await stakingState(get, header.height);
-    const raw = (await get('/cosmos/staking/v1beta1/validators?pagination.limit=100')).validators;
-    const sample = {
-      schema: 1,
-      chainId: 'juno-1',
-      programme: PROGRAMME,
-      height: Number(header.height),
-      blockTime: header.time,
-      collectedAt: new Date().toISOString(),
-      source: 'https://local-fixture.example.org',
-      activeCount: state.activeCount,
-      liquidRaw: state.liquidRaw,
-      redelegations: state.redelegations,
-      validators: state.validators.map((v) => ({
-        address: v.address,
-        consensusAddress: createHash('sha256')
-          .update(
-            Buffer.from(
-              raw.find((r) => r.operator_address === v.address).consensus_pubkey.key,
-              'base64'
-            )
-          )
-          .digest('hex')
-          .slice(0, 40)
-          .toUpperCase(),
-        name: 'Local ' + v.address.slice(-8),
-        tokensRaw: v.tokensRaw,
-        currentRaw: state.positions.find((p) => p.address === v.address)?.currentRaw || '0',
-        active: v.active,
-        jailed: v.jailed,
-        commissionBps: Number(BigInt(v.commissionAtoms) / 100000000000000n)
-      }))
-    };
-    // Deliberately synthetic: the local chain cannot supply five days of history.
-    sample.activeSetHistory = withParticipation(activeHistory(sample, 5));
-    withGovernance(sample);
-    return sample;
-  }
+  const snapshot = () => lifecycleSnapshot(get);
   async function publish(values, id) {
     const tx = await workshopTx({ publish_proposal: { content: values } });
     assert.equal(tx.code, 0, tx.raw_log);

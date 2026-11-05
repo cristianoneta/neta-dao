@@ -8,6 +8,8 @@ import { executionReview } from './juno-rebalance-execution.mjs';
 import { checkRebalance } from './juno-rebalance-chain.mjs';
 import { rebalanceProposal } from './planner-proposal-draft.mjs';
 import { amount, units, capFraction, suggestedBudget } from './juno-delegation-core.mjs';
+import { CRITERIA, criteriaEvidenceNeeds } from './juno-criteria-policy.mjs';
+import { activeFixed } from './juno-fixed-allocations.mjs';
 import { formatAmount } from './juno-delegation-view.mjs';
 import {
   availableBudget,
@@ -15,6 +17,77 @@ import {
   verifyRebalanceBaseline,
   requireFreshSnapshot
 } from './juno-rebalance.mjs';
+
+export function rebalanceEvidenceReady(rule, evidence, { budgetRaw, blockTime } = {}) {
+  if (evidence) return true;
+  if (rule?.schema !== 11) return false;
+  if (!criteriaEvidenceNeeds(rule).upgrade) return true;
+  if (!budgetRaw || !Number.isFinite(Date.parse(blockTime))) return false;
+  const budget = BigInt(budgetRaw);
+  return (
+    budget > 0n &&
+    activeFixed(rule, blockTime).reduce((sum, a) => sum + BigInt(a.amountRaw), 0n) === budget
+  );
+}
+
+export function rebalanceRuleFacts(policy, data) {
+  const cap = data ? capFraction(policy, data.activeCount) : null;
+  const facts = [
+    [
+      'Allocation',
+      policy.schema >= 9
+        ? 'Fixed targets + points-weighted regular allocation'
+        : 'Fixed targets + equal regular allocation'
+    ],
+    [
+      'Voting-power cap',
+      cap
+        ? `${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}%`
+        : 'Awaiting data'
+    ]
+  ];
+  if (policy.schema === 11) {
+    facts.push(['Points', `${policy.points.base} base + up to ${1000 - policy.points.base} bonus`]);
+    for (const { id, label, kind } of CRITERIA.filter((criterion) => criterion.available)) {
+      const criterion = policy.criteria[id];
+      let description = 'Not used';
+      if (criterion.role === 'eligibility') {
+        const requirement =
+          kind === 'binary'
+            ? 'Observed within the upgrade window'
+            : kind === 'history'
+              ? `${criterion.windowDays}-day observed history`
+              : id === 'commission'
+                ? `≤ ${criterion.maximumBps / 100}%`
+                : `≥ ${criterion.minimumBps / 100}%`;
+        description = `Eligibility · ${requirement}`;
+      } else if (criterion.role === 'bonus') {
+        const curve =
+          kind === 'binary'
+            ? 'Full points if observed within the upgrade window'
+            : `0 points at ${criterion.zeroBps / 100}%; full points at ${criterion.fullBps / 100}%`;
+        description = `Bonus · weight ${criterion.weight} · ${curve}`;
+      }
+      facts.push([label, description]);
+    }
+  } else {
+    facts.push(
+      [
+        'Commission',
+        policy.commissionMaxBps === null ? 'No limit' : `≤ ${policy.commissionMaxBps / 100}%`
+      ],
+      [
+        'Minimum uptime',
+        policy.schema >= 5 ? `${policy.minParticipationBps / 100}%` : 'Not required by this version'
+      ]
+    );
+  }
+  return [
+    ...facts,
+    ['Manual exclusions', String(policy.exclusions.length)],
+    ['Fixed allocations', String(policy.fixedAllocations?.length || 0)]
+  ];
+}
 
 export function mountRebalance({ getContext, readApproval, download, openProposal }) {
   const $ = (id) => document.getElementById(id);
@@ -88,29 +161,7 @@ export function mountRebalance({ getContext, readApproval, download, openProposa
         : 'Choose a budget and simulate current holdings against the approved policy.';
     $('rebalance-rule-facts').replaceChildren();
     if (ready) {
-      const p = approval.current.rule,
-        cap = data ? capFraction(p, data.activeCount) : null;
-      for (const [label, value] of [
-        [
-          'Allocation',
-          p.schema >= 9
-            ? 'Fixed targets + points-weighted regular allocation'
-            : 'Fixed targets + equal regular allocation'
-        ],
-        [
-          'Voting-power cap',
-          cap
-            ? `${((Number(cap.numerator) * 100) / Number(cap.denominator)).toFixed(2)}%`
-            : 'Awaiting data'
-        ],
-        ['Commission', p.commissionMaxBps === null ? 'No limit' : `≤ ${p.commissionMaxBps / 100}%`],
-        [
-          'Minimum uptime',
-          p.schema >= 5 ? `${p.minParticipationBps / 100}%` : 'Not required by this version'
-        ],
-        ['Manual exclusions', String(p.exclusions.length)],
-        ['Fixed allocations', String(p.fixedAllocations?.length || 0)]
-      ]) {
+      for (const [label, value] of rebalanceRuleFacts(approval.current.rule, data)) {
         const row = node('div', '');
         row.append(node('dt', label), node('dd', value));
         $('rebalance-rule-facts').append(row);
@@ -124,7 +175,20 @@ export function mountRebalance({ getContext, readApproval, download, openProposa
     $('rebalance-amount').disabled = !ready;
     if (data && !$('rebalance-amount').value)
       $('rebalance-amount').value = units(suggestedBudget(data));
-    $('rebalance-simulate').disabled = !ready || !fresh || !context.evidence || running;
+    let budgetRaw;
+    try {
+      budgetRaw = amount($('rebalance-amount').value.trim()).toString();
+    } catch {
+      // The simulation action explains invalid input when evidence is available.
+    }
+    $('rebalance-simulate').disabled =
+      !ready ||
+      !fresh ||
+      running ||
+      !rebalanceEvidenceReady(approval.current?.rule, context.evidence, {
+        budgetRaw,
+        blockTime: data?.blockTime
+      });
   }
   function render(value) {
     const { result } = value;

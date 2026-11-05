@@ -1,5 +1,6 @@
 import { checkReviewAttachmentMigration } from './check-review-attachment-migration.mjs';
 import { checkRebalanceLifecycle } from './check-rebalance-lifecycle.mjs';
+import { checkComposerLifecycle } from './check-composer-lifecycle.mjs';
 import { reviewSizeInput } from '../tests/fixtures/delegation-review-size.mjs';
 import { checkNativeVoteGas } from '../faucet/test/native-vote-chain.mjs';
 import { checkNativeProposalGas } from '../faucet/test/native-proposal-chain.mjs';
@@ -818,6 +819,13 @@ try {
     extraValidators,
     lockedValidators: [validators[1], validators[35]]
   });
+  const composerRebalance = await checkComposerLifecycle({
+    get: (path) => get(rest + path),
+    workshopTx,
+    queryReview,
+    runProposal,
+    recipient: extraValidators[0]
+  });
   const attachmentMigration = await checkReviewAttachmentMigration({
     tx,
     workshopTx,
@@ -830,6 +838,7 @@ try {
   const report = {
     attachmentMigration,
     rebalance,
+    composerRebalance,
     emptySourceRedelegation: {
       status: fullExit.status,
       blockedBeforeSigning: true,

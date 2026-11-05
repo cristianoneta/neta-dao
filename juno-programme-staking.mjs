@@ -1,4 +1,5 @@
 import { fixedByValidator, sameFixedWindow } from './juno-fixed-allocations.mjs';
+import { criteriaRequiresActive } from './juno-criteria-policy.mjs';
 import { PROGRAMME, operator, LIQUID_RESERVE, capFraction } from './juno-delegation-core.mjs';
 import { GOVERNANCE, EXECUTE } from './juno-governance-core.mjs';
 
@@ -295,28 +296,34 @@ export function checkCurrentAllocation(calculation, plan, state) {
     )
     .slice(0, count);
   const total = projected.reduce((n, v) => n + v.projected, 0n),
-    cap = capFraction(rule, count);
+    cap = capFraction(rule, count),
+    commissionLimit =
+      rule.schema === 11
+        ? rule.criteria.commission.role === 'eligibility'
+          ? rule.criteria.commission.maximumBps
+          : null
+        : rule.commissionMaxBps,
+    requiresActive = rule.schema === 11 ? criteriaRequiresActive(rule) : rule.schema >= 3;
   for (const v of nodes.filter((v) => (targets.get(v.address) || 0n) > 0n)) {
     const regular = (targets.get(v.address) || 0n) - (fixed.get(v.address) || 0n);
     if (v.exchangeRateValid !== true || (regular > 0n && v.jailed))
       throw Error('A target validator is now unavailable or jailed. Refresh and simulate again.');
     if (
       regular > 0n &&
-      rule.commissionMaxBps !== null &&
-      BigInt(v.commissionAtoms) > BigInt(rule.commissionMaxBps) * 100000000000000n
+      commissionLimit !== null &&
+      BigInt(v.commissionAtoms) > BigInt(commissionLimit) * 100000000000000n
     )
       throw Error(
         'A recipient now exceeds the approved commission limit. Refresh and simulate again.'
       );
-    if (
-      regular > 0n &&
-      rule.schema >= 3 &&
-      (!v.active ||
-        v.consensusAddress !==
-          calculation.snapshot.validators.find((p) => p.address === v.address)?.consensusAddress)
-    )
+    const identityChanged =
+      v.consensusAddress !==
+      calculation.snapshot.validators.find((p) => p.address === v.address)?.consensusAddress;
+    if (regular > 0n && rule.schema >= 3 && ((requiresActive && !v.active) || identityChanged))
       throw Error(
-        'A recipient left the recorded consensus set. Refresh its participation evidence and simulate again.'
+        rule.schema === 11 && identityChanged
+          ? 'A recipient consensus identity changed. Refresh its evidence and simulate again.'
+          : 'A recipient left the recorded consensus set. Refresh its participation evidence and simulate again.'
       );
     if (regular > 0n && v.projected * cap.denominator > total * cap.numerator)
       throw Error(

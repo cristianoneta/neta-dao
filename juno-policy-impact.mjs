@@ -44,7 +44,8 @@ export function sortImpactRows(rows, key = 'targetRaw', direction = 'descending'
 // This is an unfrozen view of the existing production engine, never a proposal.
 export function policyImpact({ rules, data, evidence, budget, valid = true }) {
   if (!valid) return { error: 'Check the highlighted criteria before calculating the impact.' };
-  if (!data || !evidence) return { error: 'Waiting for a complete programme snapshot.' };
+  if (!data || (!evidence && rules.schema !== 11))
+    return { error: 'Waiting for a complete programme snapshot.' };
   try {
     const result = simulate(rules, data, amount(budget), evidence, data.activeSetHistory);
     const targets = result.rows
@@ -224,7 +225,7 @@ export function renderPolicyImpact(host, model) {
         `Exact JUNO: current ${formatAmount(row.currentRaw, true)} · target ${formatAmount(row.targetRaw, true)} · change ${formatAmount(row.deltaRaw, true)}`
       );
       details.append(amounts);
-      appendPointsDetails(details, row.points, model.governanceSource);
+      appendPointsDetails(details, row.points, model.governanceSource, result.policy);
       if (row.fixedAllocation) appendFixedDetails(details, row.fixedAllocation);
       name.append(
         details,

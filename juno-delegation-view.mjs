@@ -41,7 +41,7 @@ export function rowStatus(v) {
     return '90-day membership not met';
   if (v.reasons.includes('Not continuously in the active set during the observed period'))
     return 'Observed-period membership not met';
-  if (!v.eligible) return 'Evidence review required';
+  if (!v.eligible) return v.points?.criteria ? 'Eligibility not met' : 'Evidence review required';
   if (v.capacityRaw === '0') return 'No capacity under the limit';
   if (v.capReached) return 'Limited by voting power';
   if (v.points?.total?.numerator === '0') return 'No verified points earned';
@@ -88,7 +88,13 @@ export function selectRows(result, { query = '', filter = 'all', sort = 'change'
       if (filter === 'fixed') return BigInt(v.fixedRaw || '0') > 0n;
       if (filter === 'receiving') return BigInt(v.targetRaw) > 0n;
       if (filter === 'cap') return v.eligible && v.capReached;
-      if (filter === 'review') return !v.jailed && v.upgrade.status !== 'observed';
+      if (filter === 'review')
+        return (
+          !v.jailed &&
+          (v.points?.criteria
+            ? Object.values(v.points.criteria).some((c) => c.status === 'unverified')
+            : v.upgrade.status !== 'observed')
+        );
       if (filter === 'excluded') return !v.eligible;
       if (filter === 'inactive') return v.jailed;
       if (filter === 'standby') return !v.active && !v.jailed;

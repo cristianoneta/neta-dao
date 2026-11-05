@@ -1,6 +1,6 @@
 # Current state — Cosmoot
 
-Updated 3 November 2026. This is the authoritative current feature and release
+Updated 4 November 2026. This is the authoritative current feature and release
 inventory. Update rows in place; retain dated evidence separately. Public/private
 boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 
@@ -9,6 +9,7 @@ boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
 | Item | Confirmed state | Evidence / remaining boundary |
 | --- | --- | --- |
 | Last successful website release | Source `0949887ffdb07df86190694295cb40f85b66bc24` | [Manual release 41503784626](https://github.com/cristianoneta/neta-dao/actions/runs/41503784626) passed on 2 November, publishing direct percentage caps and discussion recalculation. |
+| Homepage and flexible rule editor | Source prepared; not published | Homepage opens the real editor; schema 11 assigns exclusive criterion roles with editable bonus curves, real impact, frozen review and approved-rule Rebalance. Existing rule hashes remain unchanged. [Contract, checks and size boundaries](DELEGATION_RULE_COMPOSER_2026-11-04.md). |
 | Code review and maintenance | Source fixes prepared on the pending proposal-size branch; not published or installed | Native-signature and pagination checks, discussion request admission, truthful collector failures, visible-view Treasury polling, shared Names signing loader and runtime linting. [Findings, validation and remaining work](CODE_REVIEW_2026-11-03.md). Website, discussion service and collector publication remain separate. |
 | Direct voting-power cap | Published; review 4 revision 2 finalized at 100% | Native #387 observed in voting on 3 November (block 43,376,015), ending 8 November 06:05:43 UTC. Rules only, no execution messages. Historical semantics preserved. [Details](DIRECT_VOTING_CAP_2026-11-02.md). |
 | Proposal size resilience | Source prepared; not published | Compact rule/action storage, early sizes and separate native byte/gas budgets. Isolated Juno executes 45 moves and verifies the undeployed 0.4.0 attachment candidate. Wallet upload/resume UX and explicit migration approval still gate attachment activation. [Scope and validation](PROPOSAL_SIZE_RESILIENCE_2026-11-03.md). |

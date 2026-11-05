@@ -14,6 +14,12 @@ import {
 import { parseReadiness, firstParticipation } from './juno-upgrade-readiness.mjs';
 import { activeSetEvidence } from './juno-active-set-history.mjs';
 import { participationEvidence, meetsParticipation } from './juno-participation-history.mjs';
+import { createComposerPolicy, criteriaPolicy, criterionConfig } from './juno-criteria-policy.mjs';
+import {
+  prepareCriteriaEvidence,
+  criteriaEvidenceSummary,
+  criterionValidator
+} from './juno-criteria-points.mjs';
 
 export const PROGRAMME = 'juno1nmezpepv3lx45mndyctz2lzqxa6d9xzd2xumkxf7a6r4nxt0y95qypm6c0';
 export const UPGRADE = Object.freeze({
@@ -101,15 +107,64 @@ export function defaultPolicy() {
   delete current.factorTenths;
   return { ...current, schema: 10, votingPowerCapBps: 600 };
 }
+export function composerPolicy() {
+  return createComposerPolicy(defaultPolicy());
+}
+// Conversion is an explicit editing action. Approval discovery and immutable
+// reviews keep using policy() with their original version and exact bytes.
+export function editableComposerPolicy(input = defaultPolicy(), activeCount) {
+  const current = policy(input);
+  if (current.schema === 11) return current;
+  let votingPowerCapBps = current.votingPowerCapBps;
+  if (current.schema < 10) {
+    if (!Number.isInteger(activeCount) || activeCount < 1 || activeCount > 200)
+      throw Error(
+        'A current consensus-set size is required to convert the historical relative cap.'
+      );
+    const cap = capFraction(current, activeCount),
+      scaled = cap.numerator * 10000n;
+    if (scaled % cap.denominator !== 0n)
+      throw Error(
+        'The historical relative cap is not an exact percentage in basis points. Choose an explicit percentage before using the criteria editor.'
+      );
+    votingPowerCapBps = Number(scaled / cap.denominator);
+  }
+  const converted = composerPolicy();
+  Object.assign(converted, {
+    votingPowerCapBps,
+    exclusions: current.exclusions,
+    fixedAllocations: current.fixedAllocations || [],
+    points: { base: current.points?.base ?? 1000 }
+  });
+  converted.criteria.uptime =
+    current.schema >= 5
+      ? { role: 'eligibility', minimumBps: current.minParticipationBps }
+      : { role: 'unused' };
+  converted.criteria.commission =
+    current.commissionMaxBps === null
+      ? { role: 'unused' }
+      : { role: 'eligibility', maximumBps: current.commissionMaxBps };
+  if (current.schema < 3) converted.criteria.activeHistory = { role: 'unused' };
+  converted.criteria.governance =
+    current.points?.weights.governance > 0
+      ? { ...criterionConfig('governance', 'bonus'), weight: current.points.weights.governance }
+      : { role: 'unused' };
+  return policy(converted);
+}
 // A historical relative cap keeps its meaning until explicitly edited.
 export function withVotingPowerCap(input, votingPowerCapBps) {
   const current = editablePolicy(input);
   delete current.factorTenths;
-  return policy({ ...current, schema: 10, votingPowerCapBps });
+  return policy({ ...current, schema: current.schema === 11 ? 11 : 10, votingPowerCapBps });
 }
 export function restoreVotingPowerCap(input, baseline) {
   const current = editablePolicy(input),
     previous = policy(baseline);
+  if (current.schema === 11) {
+    if (previous.schema < 10)
+      throw Error('Convert the historical cap explicitly before restoring it in a criteria draft.');
+    return policy({ ...current, votingPowerCapBps: previous.votingPowerCapBps });
+  }
   delete current.factorTenths;
   delete current.votingPowerCapBps;
   return policy(
@@ -124,8 +179,9 @@ export function capDescription(p) {
     : `min(30%, ${p.factorTenths / 10} × 100% / consensus set size)`;
 }
 export function editablePolicy(input = defaultPolicy()) {
-  const current = policy(input),
-    template = current.schema >= 10 ? defaultPolicy() : pointsPolicy();
+  const current = policy(input);
+  if (current.schema === 11) return current;
+  const template = current.schema >= 10 ? defaultPolicy() : pointsPolicy();
   return policy({
     ...current,
     schema: template.schema,
@@ -156,18 +212,33 @@ const policyTemplate = (schema) =>
                   ? pointsPolicy()
                   : defaultPolicy();
 export function eligibilityDescription(p) {
-  return p.schema >= 6
-    ? '90 continuous days in the active set; automatically use the entire available period until 90 days exist; not jailed'
-    : p.schema === 5
-      ? '90 continuous days in the active set; automatically use the entire available period until 90 days exist; not jailed; at least 97.5% observed commit signatures'
-      : p.schema === 4
-        ? '90 continuous days in the active set; while collecting, use the entire available period; not jailed'
-        : p.schema === 3
-          ? '90 continuous days in the active set; not jailed'
-          : 'Legacy: non-jailed with participation evidence; standby allowed';
+  return p.schema === 11
+    ? 'Not jailed; pass each selected eligibility criterion and manual exclusions. Bonus criteria never exclude regular recipients.'
+    : p.schema >= 6
+      ? '90 continuous days in the active set; automatically use the entire available period until 90 days exist; not jailed'
+      : p.schema === 5
+        ? '90 continuous days in the active set; automatically use the entire available period until 90 days exist; not jailed; at least 97.5% observed commit signatures'
+        : p.schema === 4
+          ? '90 continuous days in the active set; while collecting, use the entire available period; not jailed'
+          : p.schema === 3
+            ? '90 continuous days in the active set; not jailed'
+            : 'Legacy: non-jailed with participation evidence; standby allowed';
 }
 export function policy(input) {
   const p = structuredClone(input);
+  if (p?.schema === 11) {
+    const common = policy({
+      ...defaultPolicy(),
+      chainId: p.chainId,
+      programme: p.programme,
+      liquidReserveRaw: p.liquidReserveRaw,
+      votingPowerCapBps: p.votingPowerCapBps,
+      upgrade: p.upgrade,
+      exclusions: p.exclusions,
+      fixedAllocations: p.fixedAllocations
+    });
+    return criteriaPolicy(p, common);
+  }
   if (
     ![2, 3, 4, 5, 6, 7, 8, 9, 10].includes(p?.schema) ||
     p.chainId !== 'juno-1' ||
@@ -343,12 +414,14 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
     throw Error('Programme amount must be positive and covered by delegated plus liquid JUNO.');
   if (budget > totalCurrent + BigInt(s.liquidRaw) - LIQUID_RESERVE)
     throw Error('Keep at least 50 JUNO outside the target allocation as the liquid reserve.');
-  if (!evidence?.records || !evidence.window?.coverageComplete)
+  if (p.schema !== 11 && (!evidence?.records || !evidence.window?.coverageComplete))
     throw Error('The upgrade observation window is incomplete.');
   const continuity =
-    p.schema >= 3 ? activeSetEvidence(history, s, { allowCollecting: p.schema >= 4 }) : null;
+    p.schema >= 3 && p.schema !== 11
+      ? activeSetEvidence(history, s, { allowCollecting: p.schema >= 4 })
+      : null;
   if (continuity && !continuity.complete) throw Error(continuity.reason);
-  const participation = p.schema >= 5 ? participationEvidence(history, s) : null;
+  const participation = p.schema >= 5 && p.schema !== 11 ? participationEvidence(history, s) : null;
   if (participation && !participation.complete) throw Error(participation.reason);
   const fixedEntries = activeFixed(p, s.blockTime);
   const fixed = new Map(fixedEntries.map((a) => [a.validator, BigInt(a.amountRaw)]));
@@ -361,13 +434,39 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
     throw Error(
       'A fixed-allocation validator is missing from the snapshot. Its reservation cannot be reassigned.'
     );
+  const selectedEvidence =
+    p.schema === 11 ? prepareCriteriaEvidence(p, s, evidence, history, budget > fixedTotal) : null;
   const governance =
-    p.schema >= 9 && p.points.base < 1000 && p.points.weights.governance > 0 && budget > fixedTotal
-      ? governanceEvidence(s)
-      : null;
+    p.schema === 11
+      ? selectedEvidence.governance
+      : p.schema >= 9 &&
+          p.points.base < 1000 &&
+          p.points.weights.governance > 0 &&
+          budget > fixedTotal
+        ? governanceEvidence(s)
+        : null;
   const excluded = new Map(p.exclusions.map((e) => [e.validator, e.reason])),
     cap = capFraction(p, s.activeCount);
   const rows = s.validators.map((v) => {
+    if (p.schema === 11) {
+      const initialReasons = [];
+      if (v.jailed) initialReasons.push('Jailed');
+      if (excluded.has(v.address))
+        initialReasons.push(`Manual exclusion: ${excluded.get(v.address)}`);
+      const evaluated = criterionValidator(
+        p,
+        v,
+        selectedEvidence,
+        initialReasons,
+        budget > fixedTotal
+      );
+      return {
+        ...v,
+        ...evaluated,
+        eligible: !evaluated.reasons.length,
+        base: BigInt(v.tokensRaw) - BigInt(v.currentRaw)
+      };
+    }
     const upgrade = evidence.records.get(v.consensusAddress) ?? {
         status: 'unknown',
         timestamp: null,
@@ -503,6 +602,7 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
   });
   allocated += fixedTotal;
   return {
+    ...(selectedEvidence ? { criteriaEvidence: criteriaEvidenceSummary(selectedEvidence) } : {}),
     ...(p.schema >= 7
       ? { fixedRaw: fixedTotal.toString(), regularBudgetRaw: (budget - fixedTotal).toString() }
       : {}),
@@ -528,7 +628,10 @@ export function simulate(inputPolicy, inputSnapshot, budget, evidence, history =
     projectedBondedRaw: denominator.toString(),
     cap: { numerator: cap.numerator.toString(), denominator: cap.denominator.toString() },
     eligibleCount: result.filter((v) => v.eligible).length,
-    evidenceReviewCount: result.filter((v) => !v.jailed && v.upgrade.status !== 'observed').length,
+    evidenceReviewCount:
+      p.schema === 11 && p.criteria.upgrade.role === 'unused'
+        ? 0
+        : result.filter((v) => !v.jailed && v.upgrade.status !== 'observed').length,
     rows: result,
     executionEnabled: false
   };
