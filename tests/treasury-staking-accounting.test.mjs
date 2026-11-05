@@ -166,3 +166,71 @@ test('foreign identity, wrong arithmetic, duplicate intervals and changed prices
     assert.throws(() => validateLedger(d, dao));
   }
 });
+
+test('a finalized block payout settles existing rewards without a transaction hash', () => {
+  const d = ledger();
+  const r = d.entries[0];
+  const h = 150;
+  const stamp = '2026-10-06T14:00:00Z';
+  const hash = 'B'.repeat(64);
+  const amount = '1050000000';
+  const payment = {
+    index: 69,
+    type: 'transfer',
+    mode: 'EndBlock',
+    sender: r.counterparty,
+    recipient: dao.core,
+    amount: `${amount}ujuno`
+  };
+  const raw = {
+    validator: 'junovaloper185hgkqs8q8ysnc8cvkgd8j2knnq2m0ah6ae73gntv9ampgwpmrxqlfzywn',
+    recipient: dao.core,
+    event_index: 70,
+    transfer_index: 69,
+    amounts: { ujuno: amount }
+  };
+  const withdrawal = { ...raw, block_mode: 'EndBlock', block_hash: hash };
+  const prefix = `juno-1:block-rewards:${h}`;
+  r.evidence.end.rewards.ujuno = '50000000';
+  r.evidence.claims = [{ ...withdrawal, id: `${prefix}:reward:70`, height: h, tx_hash: null }];
+  d.reward_settlements = [
+    {
+      id: `${prefix}:0`,
+      chain_id: 'juno-1',
+      treasury_address: dao.core,
+      counterparty: r.counterparty,
+      height: h,
+      timestamp: stamp,
+      denom: 'ujuno',
+      direction: 'in',
+      raw_amount: amount,
+      usd_value: null,
+      tx_hash: null,
+      classification: 'reward_settlement',
+      withdrawals: [withdrawal],
+      evidence: {
+        kind: 'staking-finalize-block',
+        proof: {
+          anchor: { height: h, hash, timestamp: stamp },
+          transfers: [payment],
+          claims: [raw]
+        }
+      }
+    }
+  ];
+  assert.equal(
+    summarize(validateLedger(d, dao), range, accountsFor(dao), d, now).income,
+    10n ** 18n
+  );
+  for (const mutate of [
+    (x) => (x.entries[0].evidence.claims[0].id = 'different'),
+    (x) => (x.entries[0].evidence.claims[0].block_mode = 'BeginBlock'),
+    (x) => (x.reward_settlements[0].evidence.proof.transfers[0].recipient = 'foreign'),
+    (x) => (x.reward_settlements[0].evidence.proof.transfers[0].amount = '1ujuno'),
+    (x) => (x.reward_settlements[0].evidence.proof.anchor.hash = 'A'.repeat(64))
+  ]) {
+    const bad = structuredClone(d);
+    mutate(bad);
+    assert.throws(() => validateLedger(bad, dao));
+  }
+});

@@ -4,6 +4,10 @@ Updated 5 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the sin
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
 
+## Delegation treasury payout reconciliation
+
+Proposal #384 exercised the programme's treasury in EndBlock. The accounting reader and collector use matched block withdrawals alongside indexed transaction receipts. Replayed Juno block 43,312,101 and the 1 November closing reward state. See [current state](docs/CURRENT_STATE.md) for the amounts and rollout order.
+
 ## Juno voting participation — 5 November
 
 PRs #339–342 were merged. [Manual release 42077505461](https://github.com/cristianoneta/neta-dao/actions/runs/42077505461) published `c34f5baee290460d05d4ec2cd46dfe6ddd388528` on 5 November with all 20 jobs successful. The live homepage opens the Juno rule editor, the distribution view loads its real budget, and proposal #387 displayed 80 voting addresses at block 43,440,145. Collector and discussion service installation require separate host acceptance. The new vote archive retains native Juno voters and their latest weighted ballots for the two votes open at cutover (#387/#388) and subsequent voting periods. It uses Cosmoot's own accepted block events. The closing block includes its final successful transactions; reconciled historical staking power is shown only for the recorded block. See the [collector and display contract](docs/JUNO_VOTE_ARCHIVE.md).
