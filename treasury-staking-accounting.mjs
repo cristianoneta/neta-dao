@@ -13,6 +13,16 @@ const fixed = (v) => {
   const [w, f = ''] = v.split('.');
   return BigInt(w) * 10n ** 18n + BigInt(f.padEnd(18, '0'));
 };
+function rewardUsdAt18Places(raw, decimals, quote) {
+  if (typeof quote !== 'string' || !/^\d{1,80}(?:\.\d{1,80})?$/.test(quote))
+    throw Error('Invalid historical reward price');
+  const [whole, fraction = ''] = quote.split('.');
+  const coefficient = BigInt(whole + fraction);
+  if (coefficient <= 0n) throw Error('Non-positive historical reward price');
+  // The collector rounds down the final USD value, after applying the full quote.
+  return (integer(raw) * coefficient * 10n ** 18n) / 10n ** BigInt(decimals + fraction.length);
+}
+
 function validEndBlockWithdrawal(claim, hash) {
   if (
     !claim ||
@@ -198,9 +208,7 @@ export function validateStakingLedger(data, dao) {
       !Number.isSafeInteger(q.timestamp_ms) ||
       target - q.timestamp_ms < 0 ||
       target - q.timestamp_ms > 3600000 ||
-      fixed(q.usd_price) <= 0n ||
-      fixed(r.usd_value) !==
-        (integer(r.raw_amount) * fixed(q.usd_price)) / 10n ** BigInt(q.decimals)
+      fixed(r.usd_value) !== rewardUsdAt18Places(r.raw_amount, q.decimals, q.usd_price)
     )
       throw Error('Invalid historical reward valuation');
   }

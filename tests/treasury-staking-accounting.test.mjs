@@ -234,3 +234,18 @@ test('a finalized block payout settles existing rewards without a transaction ha
     assert.throws(() => validateLedger(bad, dao));
   }
 });
+
+test('historical daily quotes retain precision until the final USD value is truncated', () => {
+  const d = ledger();
+  const r = d.entries[0];
+  r.raw_amount = '7494730761';
+  r.amount = '7494.730761';
+  r.evidence.end.rewards.ujuno = (
+    BigInt(r.evidence.start.rewards.ujuno) + BigInt(r.raw_amount)
+  ).toString();
+  r.valuation.usd_price = '0.0071925390534884025';
+  r.usd_value = '53.906143693873354573';
+  assert.doesNotThrow(() => validateLedger(d, dao));
+  r.usd_value = '53.906143693873354574';
+  assert.throws(() => validateLedger(d, dao));
+});
