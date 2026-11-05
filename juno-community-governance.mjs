@@ -286,7 +286,8 @@ export async function findReviewSubmission(endpoints, content, options = {}) {
       const { get } = await reader(endpoint, 'juno-1', options);
       let key = '',
         found = [],
-        seen = new Set();
+        seen = new Set(),
+        ids = new Set();
       // Juno's reverse cursor traversal can panic on older proposal pages.
       // Forward traversal still checks the complete history, including later claims.
       for (let page = 0; page < 100; page++) {
@@ -294,14 +295,30 @@ export async function findReviewSubmission(endpoints, content, options = {}) {
           '/cosmos/gov/v1/proposals?pagination.limit=100' +
             (key ? '&pagination.key=' + encodeURIComponent(key) : '')
         );
-        if (!Array.isArray(result.proposals)) throw Error('Proposal history unavailable.');
-        found.push(
-          ...result.proposals.filter((p) => matchesReview(p, content)).map((p) => String(p.id))
-        );
-        key = result.pagination?.next_key || '';
-        if (!key) return found.sort();
-        if (seen.has(key)) break;
-        seen.add(key);
+        if (
+          !Array.isArray(result.proposals) ||
+          !result.pagination ||
+          !Object.hasOwn(result.pagination, 'next_key')
+        )
+          throw Error('Complete proposal history is required before submission.');
+        for (const proposal of result.proposals) {
+          const id = proposal?.id;
+          if (
+            typeof id !== 'string' ||
+            !/^[1-9]\d{0,19}$/.test(id) ||
+            BigInt(id) > (1n << 64n) - 1n ||
+            ids.has(id)
+          )
+            throw Error('Invalid or repeated proposal ID in submission history.');
+          ids.add(id);
+          if (matchesReview(proposal, content)) found.push(id);
+        }
+        const next = result.pagination.next_key;
+        if (next === null || next === '') return found.sort();
+        if (typeof next !== 'string' || next.length > 1024 || seen.has(next))
+          throw Error('Incomplete proposal pagination.');
+        seen.add(next);
+        key = next;
       }
       throw Error('Complete proposal history could not be checked.');
     },

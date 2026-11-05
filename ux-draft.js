@@ -70,6 +70,7 @@
       if (push) history.pushState(null, '', target);
       else history.replaceState(null, '', target);
     }
+    window.dispatchEvent(new CustomEvent('neta:workspace-view', { detail: { view } }));
     window.dispatchEvent(
       new CustomEvent('neta:relay-panel', {
         detail: { panel, dao, focus: scroll && view === 'relay' }

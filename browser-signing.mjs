@@ -39,9 +39,14 @@ export function signingLoader({
 
 export const loadGovernanceSigning = signingLoader({
   name: 'NetaJunoGovernance',
-  source: '/assets/juno-governance-signing.js?v=20261103-review-size-1'
+  source: '/assets/juno-governance-signing.js?v=20261103-audit-1'
 });
 export const loadSocialsSigning = signingLoader({
   name: 'NetaSocialsTestnet',
   source: '/assets/socials-testnet-client.js?v=6'
+});
+
+export const loadNamesSigning = signingLoader({
+  name: 'NetaNamesSigning',
+  source: '/assets/names-signing.js?v=5'
 });

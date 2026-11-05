@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { waitForTreasury } from './treasury-readiness.mjs';
 const root = new URL('../../', import.meta.url);
 // The receipt fixture is dated October. Keep its month stable across CI runs.
 const fixtureTime = '2026-10-31T12:00:00Z';
@@ -165,6 +166,7 @@ try {
     assert.equal(await page.locator('#dao-structure-panel').isVisible(), true);
   }
   await page.goto(origin + '/index.html?dao=neta#treasury');
+  await waitForTreasury(page, 'neta', true);
   await page.waitForFunction(() => document.querySelector('#treasury-units').children.length === 2);
   assert.equal(await page.locator('#dao-search').inputValue(), 'NETA');
   assert.deepEqual(await page.locator('#subdao-select option').allTextContents(), [
@@ -208,6 +210,7 @@ try {
     }
   }
   await page.locator('#subdao-select').selectOption('neta-operations');
+  await waitForTreasury(page, 'neta-operations');
   await page.waitForFunction(
     () =>
       document.querySelector('#pnl-coverage').textContent === 'Provisional · recorded transactions'
@@ -219,15 +222,18 @@ try {
   assert.equal(await page.locator('.testnet-pill').isVisible(), true);
   assert.match(await page.locator('.testnet-pill').innerText(), /UNI-7/);
   await page.getByRole('button', { name: 'Treasury', exact: true }).click();
+  await waitForTreasury(page, 'neta-operations');
   assert.equal(await page.locator('.testnet-pill').isVisible(), false);
   await page.locator('#subdao-select').selectOption('neta');
   await page.reload();
+  await waitForTreasury(page, 'neta');
   await page.waitForFunction(() => document.querySelector('#subdao-select').value === 'neta');
   assert.equal(await page.locator('#subdao-select').inputValue(), 'neta');
   assert.equal(new URL(page.url()).searchParams.get('subdao'), 'main');
   // Organization picker chooses its consolidated view, not a hidden main-only balance.
   await page.locator('#dao-search').fill('NETA');
   await page.locator('#dao-options button').filter({ hasText: 'NETA' }).click();
+  await waitForTreasury(page, 'neta', true);
   await page.waitForFunction(
     () =>
       document.querySelector('#treasury-units').children.length === 2 &&
@@ -236,6 +242,7 @@ try {
   assert.equal(new URL(page.url()).searchParams.has('subdao'), false);
   missingOps = true;
   await page.locator('#treasury-refresh').click();
+  await waitForTreasury(page, 'neta', true);
   await page.waitForFunction(() =>
     document.querySelector('#pnl-coverage').textContent.includes('incomplete accounting')
   );
@@ -250,6 +257,7 @@ try {
   delayOps = true;
   await page.locator('#treasury-refresh').click();
   await page.locator('#subdao-select').selectOption('neta');
+  await waitForTreasury(page, 'neta');
   await page.waitForFunction(
     () =>
       document.querySelector('#pnl-coverage').textContent === 'Provisional · recorded transactions'
@@ -259,6 +267,7 @@ try {
   assert.doesNotMatch(await page.locator('#pnl-coverage').innerText(), /Consolidated/);
   // Legacy Operations bookmarks retain their exact unit.
   await page.goto(origin + '/index.html?dao=neta-operations#treasury');
+  await waitForTreasury(page, 'neta-operations');
   await page.waitForFunction(
     () => document.querySelector('#subdao-select').value === 'neta-operations'
   );
@@ -267,6 +276,7 @@ try {
   await page.locator('#subdao-select').press('Enter');
   // Juno uses the same shell and consolidation with its named main unit.
   await page.goto(origin + '/index.html?dao=juno#treasury');
+  await waitForTreasury(page, 'juno', true);
   await page.waitForFunction(
     () =>
       document.querySelector('#treasury-units').children.length === 2 &&
@@ -291,7 +301,7 @@ try {
   assert.match(await page.locator('.pnl-result').innerText(), /—/);
   for (const unit of ['juno', 'juno-delegation', 'all']) {
     await page.locator('#subdao-select').selectOption(unit);
-    await page.waitForFunction(() => !document.querySelector('#treasury-refresh').disabled);
+    await waitForTreasury(page, unit === 'all' ? 'juno' : unit, unit === 'all');
     if (unit === 'juno-delegation') {
       assert.match(await page.locator('#treasury-assets').innerText(), /JUNO · Delegated/);
       assert.match(await page.locator('#treasury-assets').innerText(), /JUNO · Claimable rewards/);
@@ -326,6 +336,7 @@ try {
     })
   );
   await page.locator('#subdao-select').selectOption('juno-delegation');
+  await waitForTreasury(page, 'juno-delegation');
   await page.waitForFunction(
     () => document.querySelector('#treasury-live-status').textContent === 'LIVE DATA UNAVAILABLE'
   );

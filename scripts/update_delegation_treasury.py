@@ -174,6 +174,10 @@ def run():
     atomic(ledger_path, ledger)
     print(json.dumps({'snapshot': snapshot, 'events_status': events['status'], 'events': len(events['events']),
                       'accounting_status': ledger['refresh_status'], 'accrual_status': ledger['accrual_refresh_status']}))
+    # A completed daily checkpoint does not prove this run refreshed receipts.
+    # Retain independently verified holdings/accrual, but fail the parent job.
+    if ledger['refresh_status'] != 'completed':
+        raise RuntimeError('Delegation receipt refresh incomplete; verified checkpoints and independent holdings retained.')
     if ledger['accrual_refresh_status'] != 'completed':
         raise RuntimeError('Daily staking accrual incomplete; verified checkpoints and independent holdings retained.')
 

@@ -398,21 +398,36 @@ test('anonymous slow bodies cannot evict authenticated backup reads; deadlines r
       headers: { origin, 'content-type': 'application/json' },
       body: JSON.stringify(body)
     });
-  const pending = [];
+  const pending = [],
+    results = [];
+  let admissionTimer;
+  const admitted = new Promise((resolve) => {
+    let partialBodies = 0;
+    server.on('request', (req) => {
+      if (req.headers['x-test-slow-body'] !== '1') return;
+      req.once('data', () => {
+        if (++partialBodies === 4) resolve();
+      });
+    });
+  });
   try {
     const c = await (await post('/v1/challenge', { wallet })).json();
     const auth = await (
       await post('/v1/auth', { nonce: c.nonce, signature: await sign(c.message) })
     ).json();
-    const results = Array.from(
-      { length: 4 },
-      () =>
+    for (let i = 0; i < 4; i++)
+      results.push(
         new Promise((resolve, reject) => {
           const req = request(
             url + '/v1/challenge',
             {
               method: 'POST',
-              headers: { origin, 'content-type': 'application/json', 'content-length': '100' }
+              headers: {
+                origin,
+                'content-type': 'application/json',
+                'content-length': '100',
+                'x-test-slow-body': '1'
+              }
             },
             (res) => {
               res.resume();
@@ -423,8 +438,20 @@ test('anonymous slow bodies cannot evict authenticated backup reads; deadlines r
           req.write('{');
           pending.push(req);
         })
-    );
-    await new Promise((r) => setTimeout(r, 30));
+      );
+    const completed = Promise.all(results);
+    // Observe failures immediately, even if an earlier assertion sends us to
+    // cleanup. Awaiting the same promise below still propagates request errors.
+    completed.catch(() => {});
+    // Socket scheduling is not an admission guarantee. Wait until the server
+    // has received all four partial bodies before testing the anonymous cap.
+    await Promise.race([
+      admitted,
+      new Promise((_, reject) => {
+        admissionTimer = setTimeout(() => reject(Error('Partial bodies were not admitted')), 5000);
+      })
+    ]);
+    clearTimeout(admissionTimer);
     assert.equal((await post('/v1/challenge', { wallet })).status, 429);
     assert.equal(
       (
@@ -434,7 +461,7 @@ test('anonymous slow bodies cannot evict authenticated backup reads; deadlines r
       ).status,
       200
     );
-    assert.deepEqual(await Promise.all(results), [408, 408, 408, 408]);
+    assert.deepEqual(await completed, [408, 408, 408, 408]);
     assert.equal((await post('/v1/challenge', { wallet })).status, 200);
     const large = await fetch(url + '/v1/challenge', {
       method: 'POST',
@@ -443,7 +470,9 @@ test('anonymous slow bodies cannot evict authenticated backup reads; deadlines r
     });
     assert.equal(large.status, 413);
   } finally {
+    clearTimeout(admissionTimer);
     for (const req of pending) req.destroy();
+    await Promise.allSettled(results);
     server.closeAllConnections();
     await new Promise((r) => server.close(r));
     store.close();

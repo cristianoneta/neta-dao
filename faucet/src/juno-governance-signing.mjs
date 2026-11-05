@@ -27,6 +27,7 @@ import {
   assertProgrammeExecutionAvailable
 } from '../../juno-governance-core.mjs';
 import { journalBroadcast } from './broadcast-journal.mjs';
+import { verifyNativeSignature } from './native-signature-verification.mjs';
 export { fixedFee } from './wynd-swap-fee.mjs';
 export { inspectSavedVote, resumeVote, replaceVoteGas } from './native-vote-resume.mjs';
 export { voteFee } from './native-vote-fee.mjs';
@@ -151,6 +152,19 @@ async function connectUsing(endpoints, create) {
 export const simulate = (client, content, sender, deposit) =>
   client.simulate(sender, [message(content, sender, deposit)], '');
 const same = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+async function signingAccount(client, sender) {
+  const [chainId, account] = await Promise.all([client.getChainId(), client.getSequence(sender)]);
+  if (
+    chainId !== 'juno-1' ||
+    !account ||
+    !Number.isSafeInteger(account.accountNumber) ||
+    account.accountNumber < 0 ||
+    !Number.isSafeInteger(account.sequence) ||
+    account.sequence < 0
+  )
+    throw Error('Current Juno signing account is unavailable. Nothing was broadcast.');
+  return { chainId, accountNumber: account.accountNumber, sequence: account.sequence };
+}
 async function signReviewed(
   client,
   msg,
@@ -165,8 +179,11 @@ async function signReviewed(
     typeof beforeBroadcast !== 'function'
   )
     throw Error('Proposal review guards are required.');
-  const expected = msg,
-    bytes = encoder.encode(expected.value).finish();
+  // Neither the wallet nor a caller retaining its input objects may change the
+  // expected values while the signature request is open.
+  const typeUrl = msg.typeUrl,
+    bytes = encoder.encode(msg.value).finish(),
+    reviewedFee = structuredClone(fee);
   const proxy = {
     getChainId: async () => {
       const chain = await client.getChainId();
@@ -174,32 +191,40 @@ async function signReviewed(
       return chain;
     },
     getTx: (hash) => client.getTx(hash),
-    sign: async (...args) => {
+    sign: async (address, messages, signingFee, memo) => {
       await beforeSign();
       await assertWallet();
-      const signed = await client.sign(...args),
+      const account = await signingAccount(client, sender);
+      const signed = structuredClone(
+          await client.sign(address, messages, signingFee, memo, { ...account })
+        ),
         body = TxBody.decode(signed.bodyBytes),
         auth = AuthInfo.decode(signed.authInfoBytes);
       if (
+        !same(TxBody.encode(body).finish(), signed.bodyBytes) ||
         body.messages.length !== 1 ||
-        body.messages[0].typeUrl !== msg.typeUrl ||
+        body.messages[0].typeUrl !== typeUrl ||
         !same(body.messages[0].value, bytes) ||
         body.memo !== '' ||
         body.timeoutHeight !== 0n ||
+        body.unordered ||
+        body.timeoutTimestamp ||
         body.extensionOptions.length ||
         body.nonCriticalExtensionOptions.length
       )
         throw Error('Wallet changed the reviewed proposal. Nothing was broadcast.');
       if (
+        !same(AuthInfo.encode(auth).finish(), signed.authInfoBytes) ||
         auth.signerInfos.length !== 1 ||
         !auth.fee ||
-        auth.fee.gasLimit.toString() !== fee.gas ||
+        auth.fee.gasLimit.toString() !== reviewedFee.gas ||
         auth.fee.payer ||
         auth.fee.granter ||
         auth.tip ||
-        auth.fee.amount.length !== fee.amount.length ||
+        auth.fee.amount.length !== reviewedFee.amount.length ||
         auth.fee.amount.some(
-          (c, i) => c.denom !== fee.amount[i].denom || c.amount !== fee.amount[i].amount
+          (c, i) =>
+            c.denom !== reviewedFee.amount[i].denom || c.amount !== reviewedFee.amount[i].amount
         )
       )
         throw Error('Wallet changed the reviewed fee. Nothing was broadcast.');
@@ -207,6 +232,10 @@ async function signReviewed(
         throw Error(
           'Signed transaction exceeds the application byte budget. Nothing was broadcast.'
         );
+      await verifyNativeSignature(signed, auth, sender, account);
+      const current = await signingAccount(client, sender);
+      if (current.accountNumber !== account.accountNumber || current.sequence !== account.sequence)
+        throw Error('Juno account changed while signing. Review again. Nothing was broadcast.');
       await assertWallet();
       await beforeSign();
       return signed;
@@ -216,7 +245,14 @@ async function signReviewed(
       return client.broadcastTx(bytes);
     }
   };
-  return journalBroadcast(proxy, sender, [expected], fee, '', journalOptions);
+  return journalBroadcast(
+    proxy,
+    sender,
+    [{ typeUrl, value: encoder.decode(bytes) }],
+    structuredClone(reviewedFee),
+    '',
+    journalOptions
+  );
 }
 
 export function submit(client, content, sender, deposit, fee, options) {

@@ -338,43 +338,52 @@ export class DiscussionStore {
       .get(wallet, requestId);
     return p ? { ...p } : null;
   }
-  addPost({ thread, wallet, body, reply = null, quote = null, requestId, stake, name }) {
+  validatePost({ thread, wallet, body, reply = null, quote = null, requestId }) {
     body = text(body, 6000, 'reply (maximum 6,000 characters)');
-    if (!/^[a-f0-9-]{36}$/.test(requestId || '')) fail('Invalid reply request ID.');
+    if (typeof requestId !== 'string' || !/^[a-f0-9-]{36}$/.test(requestId))
+      fail('Invalid reply request ID.');
     const t = this.thread(thread);
     if (!t) fail('Discussion not found.', 404);
     const digest = hash(JSON.stringify([body, reply, quote]));
-    return this.transaction(() => {
-      const saved = this.request(wallet, requestId);
-      if (saved) {
-        if (saved.digest !== digest || this.thread(saved.thread)?.id !== t.id)
-          fail('This request ID belongs to another reply.', 409);
-        return { id: saved.id, thread: saved.thread, replayed: true };
-      }
-      if (t.locked) fail('This discussion is locked.', 403);
-      if (this.db.prepare('SELECT blocked FROM blocks WHERE wallet=?').get(wallet)?.blocked)
-        fail('Posting is restricted for this wallet.', 403);
-      const recent = this.db
-        .prepare(
-          'SELECT count(*) n,max(created) latest FROM posts WHERE wallet=? AND imported_key IS NULL AND created>?'
+    const saved = this.request(wallet, requestId);
+    if (saved) {
+      if (saved.digest !== digest || this.thread(saved.thread)?.id !== t.id)
+        fail('This request ID belongs to another reply.', 409);
+      return { thread: t, body, digest, saved };
+    }
+    if (t.locked) fail('This discussion is locked.', 403);
+    if (this.db.prepare('SELECT blocked FROM blocks WHERE wallet=?').get(wallet)?.blocked)
+      fail('Posting is restricted for this wallet.', 403);
+    const recent = this.db
+      .prepare(
+        'SELECT count(*) n,max(created) latest FROM posts WHERE wallet=? AND imported_key IS NULL AND created>?'
+      )
+      .get(wallet, this.now() - 3600000);
+    if (recent.n >= 20 || (recent.latest !== null && this.now() - recent.latest < 30000))
+      fail('Please wait before posting again.', 429);
+    if (this.db.prepare('SELECT count(*) n FROM posts').get().n >= this.maximumPosts)
+      fail('Discussion storage capacity reached.', 503);
+    for (const target of [reply, quote])
+      if (target !== null) {
+        if (
+          !Number.isSafeInteger(target) ||
+          !this.db
+            .prepare(
+              'SELECT id FROM posts WHERE id=? AND thread=? AND hidden=0 AND source_hidden=0'
+            )
+            .get(target, t.id)
         )
-        .get(wallet, this.now() - 3600000);
-      if (recent.n >= 20 || (recent.latest !== null && this.now() - recent.latest < 30000))
-        fail('Please wait before posting again.', 429);
-      if (this.db.prepare('SELECT count(*) n FROM posts').get().n >= this.maximumPosts)
-        fail('Discussion storage capacity reached.', 503);
-      for (const target of [reply, quote])
-        if (target !== null) {
-          if (
-            !Number.isSafeInteger(target) ||
-            !this.db
-              .prepare(
-                'SELECT id FROM posts WHERE id=? AND thread=? AND hidden=0 AND source_hidden=0'
-              )
-              .get(target, t.id)
-          )
-            fail('The quoted or replied-to post is unavailable in this discussion.');
-        }
+          fail('The quoted or replied-to post is unavailable in this discussion.');
+      }
+    return { thread: t, body, digest, saved: null };
+  }
+  addPost(input) {
+    const { wallet, reply = null, quote = null, requestId, stake, name } = input;
+    return this.transaction(() => {
+      // Admission before a chain lookup saves work; this transactional recheck
+      // also observes moderation or competing posts committed during that await.
+      const { thread: t, body, digest, saved } = this.validatePost(input);
+      if (saved) return { id: saved.id, thread: saved.thread, replayed: true };
       const result = this.db
         .prepare(
           'INSERT INTO posts(thread,wallet,body,reply,quote,created,stake,name,request_id,digest) VALUES(?,?,?,?,?,?,?,?,?,?)'

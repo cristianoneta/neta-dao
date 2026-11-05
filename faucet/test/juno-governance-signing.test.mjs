@@ -14,23 +14,53 @@ import {
 } from 'cosmjs-types/cosmos/staking/v1beta1/tx';
 import { stakingMessages } from '../../juno-programme-staking.mjs';
 import assert from 'node:assert/strict';
-import { TxRaw, TxBody, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { MsgSubmitProposal, MsgDeposit } from 'cosmjs-types/cosmos/gov/v1/tx';
+import { TxRaw, TxBody, AuthInfo, SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
+import { DirectSecp256k1Wallet, Registry } from '@cosmjs/proto-signing';
+import { SigningStargateClient } from '@cosmjs/stargate';
+import { MsgSubmitProposal, MsgDeposit, MsgVote } from 'cosmjs-types/cosmos/gov/v1/tx';
 import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
 import { MsgWithdrawDelegatorReward } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
 import { readFileSync } from 'node:fs';
 import { PROGRAMME } from '../../juno-delegation-core.mjs';
 import { claimValidators, WITHDRAW_REWARD } from '../../juno-governance-core.mjs';
 import { sha256 } from '@cosmjs/crypto';
-import { toHex } from '@cosmjs/encoding';
-import { message, submit, depositMessage, contribute } from '../src/juno-governance-signing.mjs';
+import { fromBase64, toBase64, toHex } from '@cosmjs/encoding';
+import {
+  message,
+  submit,
+  depositMessage,
+  contribute,
+  vote
+} from '../src/juno-governance-signing.mjs';
 import {
   GOVERNANCE,
   SUBMIT,
   rewardMessages,
   legacyRewardMessages
 } from '../../juno-governance-core.mjs';
-const sender = 'juno1z3xcalwan92yqxu9d406tlft9yy94jy8s5et57';
+const fixtureWallet = await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(1), 'juno');
+const [{ address: sender, pubkey }] = await fixtureWallet.getAccounts();
+const signerData = { chainId: 'juno-1', accountNumber: 7, sequence: 1 };
+const signerInfo = {
+  sequence: 1n,
+  modeInfo: { single: { mode: 1 } },
+  publicKey: {
+    typeUrl: '/cosmos.crypto.secp256k1.PubKey',
+    value: PubKey.encode({ key: pubkey }).finish()
+  }
+};
+async function signFixture(tx) {
+  const { signature } = await fixtureWallet.signDirect(
+    sender,
+    SignDoc.fromPartial({
+      ...tx,
+      chainId: signerData.chainId,
+      accountNumber: BigInt(signerData.accountNumber)
+    })
+  );
+  return TxRaw.fromPartial({ ...tx, signatures: [fromBase64(signature.signature)] });
+}
 const content = {
   title: 'Rule approval',
   summary: 'Reviewed full proposal',
@@ -126,6 +156,7 @@ function harness(mode = '') {
     guards = 0;
   const client = {
     getChainId: async () => (mode === 'chain' ? 'uni-7' : 'juno-1'),
+    getSequence: async () => ({ accountNumber: 7, sequence: 1 }),
     getTx: async () => null,
     sign: async (_sender, [msg], exactFee, memo) => {
       signs++;
@@ -134,21 +165,36 @@ function harness(mode = '') {
       assert.equal(msg.value.proposer, sender);
       assert.equal(msg.value.initialDeposit[0].amount, '100000000');
       if (mode === 'content') msg.value.title = 'Changed by wallet';
+      if (mode === 'fee-inplace') exactFee.amount[0].amount = '999999';
+      if (mode === 'type-inplace') msg.typeUrl = '/cosmos.gov.v1.MsgDeposit';
       const body = TxBody.fromPartial({
-        messages: [{ typeUrl: SUBMIT, value: MsgSubmitProposal.encode(msg.value).finish() }],
-        memo: mode === 'memo' ? 'changed' : memo
+        messages: [{ typeUrl: msg.typeUrl, value: MsgSubmitProposal.encode(msg.value).finish() }],
+        memo: mode === 'memo' ? 'changed' : memo,
+        unordered: mode === 'unordered',
+        timeoutTimestamp: mode === 'expiry' ? { seconds: 2000000000n, nanos: 0 } : undefined
       });
       const auth = AuthInfo.fromPartial({
-        signerInfos: [{ sequence: 1n }],
+        signerInfos: [signerInfo],
         fee: {
           gasLimit: BigInt(exactFee.gas),
           amount: mode === 'fee' ? [{ denom: 'ujuno', amount: '999999' }] : exactFee.amount
         }
       });
-      return TxRaw.fromPartial({
-        bodyBytes: TxBody.encode(body).finish(),
-        authInfoBytes: AuthInfo.encode(auth).finish(),
-        signatures: [new Uint8Array(64)]
+      const bodyBytes = TxBody.encode(body).finish(),
+        authBytes = AuthInfo.encode(auth).finish();
+      const alter = (bytes, target) => {
+        if (mode === 'unknown-' + target) return Uint8Array.from([...bytes, 122, 0]);
+        if (mode === 'truncated-' + target) return Uint8Array.from([...bytes, 128]);
+        if (mode === 'noncanonical-' + target) {
+          // The first field key still decodes to 10, but uses a redundant varint byte.
+          assert.equal(bytes[0], 10);
+          return Uint8Array.from([138, 0, ...bytes.slice(1)]);
+        }
+        return bytes;
+      };
+      return signFixture({
+        bodyBytes: alter(bodyBytes, 'body'),
+        authInfoBytes: alter(authBytes, 'auth')
       });
     },
     broadcastTx: async (bytes) => {
@@ -174,7 +220,8 @@ function harness(mode = '') {
     journalOptions: { storage, locks: { request: async (_key, _options, run) => run({}) } }
   };
   return {
-    run: () => submit(client, structuredClone(content), sender, '100000000', fee, options),
+    run: () =>
+      submit(client, structuredClone(content), sender, '100000000', structuredClone(fee), options),
     rows,
     signs: () => signs,
     broadcasts: () => broadcasts,
@@ -205,6 +252,159 @@ test('changed bytes, fee, memo, wallet, expired review and wrong chain never bro
     const h = harness(mode);
     await assert.rejects(h.run());
     assert.equal(h.broadcasts(), 0, mode);
+  }
+});
+test('wallet-added ordering, expiry or altered protobuf encoding never broadcast', async (t) => {
+  for (const mode of [
+    'unordered',
+    'expiry',
+    'unknown-body',
+    'unknown-auth',
+    'truncated-body',
+    'truncated-auth',
+    'noncanonical-body',
+    'noncanonical-auth'
+  ])
+    await t.test(mode, async () => {
+      const h = harness(mode);
+      await assert.rejects(
+        h.run(),
+        mode.startsWith('truncated-') ? RangeError : /Wallet changed the reviewed/
+      );
+      assert.equal(h.signs(), 1);
+      assert.equal(h.broadcasts(), 0);
+      assert.equal(
+        h.rows.size,
+        0,
+        'a rejected pre-broadcast signature leaves no pending transaction'
+      );
+    });
+});
+test('in-place fee and message-type mutation cannot change the reviewed expectation', async (t) => {
+  for (const mode of ['fee-inplace', 'type-inplace'])
+    await t.test(mode, async () => {
+      const h = harness(mode);
+      await assert.rejects(h.run(), /Wallet changed the reviewed/);
+      assert.equal(h.broadcasts(), 0);
+      assert.equal(h.rows.size, 0);
+    });
+});
+test('actual CosmJS signatures bind the wallet key, Juno account and current sequence before broadcast', async (t) => {
+  const otherWallet = await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(2), 'juno');
+  const [{ pubkey: otherKey }] = await otherWallet.getAccounts();
+  for (const mode of [
+    'submit',
+    'deposit',
+    'vote',
+    'retained-response',
+    'signer-data-inplace',
+    'signature',
+    'short-signature',
+    'signed-chain',
+    'signed-account',
+    'signed-sequence',
+    'public-key',
+    'public-key-encoding',
+    'sign-mode',
+    'current-account',
+    'current-sequence',
+    'current-chain',
+    'account-unavailable'
+  ]) {
+    await t.test(mode, async () => {
+      let signs = 0,
+        broadcasts = 0,
+        retained,
+        signedBytes;
+      const signer = {
+        getAccounts: () => fixtureWallet.getAccounts(),
+        signDirect: async (address, doc) => {
+          signs++;
+          assert.equal(address, sender);
+          assert.equal(doc.chainId, 'juno-1');
+          assert.equal(doc.accountNumber, 7n);
+          if (mode === 'signed-chain') doc.chainId = 'uni-7';
+          if (mode === 'signed-account') doc.accountNumber = 8n;
+          const auth = AuthInfo.decode(doc.authInfoBytes);
+          if (mode === 'signed-sequence') auth.signerInfos[0].sequence = 99n;
+          if (mode === 'sign-mode') auth.signerInfos[0].modeInfo.single.mode = 127;
+          if (mode === 'public-key')
+            auth.signerInfos[0].publicKey.value = PubKey.encode({ key: otherKey }).finish();
+          if (mode === 'public-key-encoding')
+            auth.signerInfos[0].publicKey.value = Uint8Array.from([
+              ...auth.signerInfos[0].publicKey.value,
+              24,
+              1
+            ]);
+          doc.authInfoBytes = AuthInfo.encode(auth).finish();
+          const result = await fixtureWallet.signDirect(address, doc);
+          if (mode === 'signature') result.signature.signature = toBase64(new Uint8Array(64));
+          if (mode === 'short-signature') result.signature.signature = toBase64(new Uint8Array(63));
+          return result;
+        }
+      };
+      const client = await SigningStargateClient.offline(signer, {
+        registry: new Registry([
+          [SUBMIT, MsgSubmitProposal],
+          ['/cosmos.gov.v1.MsgDeposit', MsgDeposit],
+          ['/cosmos.gov.v1.MsgVote', MsgVote]
+        ])
+      });
+      const sign = client.sign.bind(client);
+      client.sign = async (...args) => {
+        assert.deepEqual(args[4], signerData);
+        if (mode === 'signer-data-inplace') args[4].sequence = 99;
+        retained = await sign(...args);
+        signedBytes = TxRaw.encode(retained).finish();
+        return retained;
+      };
+      client.getChainId = async () => (signs && mode === 'current-chain' ? 'uni-7' : 'juno-1');
+      client.getSequence = async () => {
+        if (mode === 'account-unavailable') throw Error('Account unavailable');
+        if (retained && mode === 'retained-response') retained.signatures[0][0] ^= 1;
+        return {
+          accountNumber: signs && mode === 'current-account' ? 8 : 7,
+          sequence: signs && mode === 'current-sequence' ? 2 : 1
+        };
+      };
+      client.getTx = async () => null;
+      client.broadcastTx = async (bytes) => {
+        broadcasts++;
+        assert.deepEqual(bytes, signedBytes, 'broadcast must preserve the verified signed bytes');
+        return { transactionHash: toHex(sha256(bytes)).toUpperCase(), height: 123, code: 0 };
+      };
+      const rows = new Map();
+      const storage = {
+        getItem: (k) => rows.get(k) ?? null,
+        setItem: (k, v) => rows.set(k, v),
+        removeItem: (k) => rows.delete(k)
+      };
+      const options = {
+        assertWallet: async () => {},
+        beforeSign: async () => {},
+        beforeBroadcast: async () => {},
+        journalOptions: { storage, locks: { request: async (_key, _options, run) => run({}) } }
+      };
+      const run = () =>
+        mode === 'deposit'
+          ? contribute(client, '901', sender, '50000000', fee, options)
+          : mode === 'vote'
+            ? vote(client, '901', sender, 'yes', fee, options)
+            : submit(client, structuredClone(content), sender, '100000000', fee, options);
+      if (['submit', 'deposit', 'vote', 'retained-response'].includes(mode)) {
+        await run();
+        assert.equal(broadcasts, 1);
+      } else {
+        await assert.rejects(run());
+        assert.equal(broadcasts, 0);
+      }
+      assert.equal(signs, mode === 'account-unavailable' ? 0 : 1);
+      assert.equal(
+        rows.size,
+        0,
+        'pre-broadcast failures never leave an unrecoverable pending journal'
+      );
+    });
   }
 });
 test('unknown native submission stays locked and cannot be sent again', async () => {
@@ -247,6 +447,7 @@ test('contribution serialization and signing bind depositor, proposal ID, amount
     };
     const client = {
       getChainId: async () => 'juno-1',
+      getSequence: async () => ({ accountNumber: 7, sequence: 1 }),
       getTx: async () => null,
       sign: async (_sender, [m], exactFee, memo) => {
         signs++;
@@ -255,7 +456,7 @@ test('contribution serialization and signing bind depositor, proposal ID, amount
         if (mode === 'id') m.value.proposalId = 902n;
         if (mode === 'amount') m.value.amount[0].amount = '5000000000';
         if (mode === 'sender') m.value.depositor = 'different';
-        return TxRaw.fromPartial({
+        return signFixture({
           bodyBytes: TxBody.encode(
             TxBody.fromPartial({
               messages: [{ typeUrl: m.typeUrl, value: MsgDeposit.encode(m.value).finish() }],
@@ -264,11 +465,10 @@ test('contribution serialization and signing bind depositor, proposal ID, amount
           ).finish(),
           authInfoBytes: AuthInfo.encode(
             AuthInfo.fromPartial({
-              signerInfos: [{ sequence: 1n }],
+              signerInfos: [signerInfo],
               fee: { gasLimit: BigInt(exactFee.gas), amount: mode === 'fee' ? [] : exactFee.amount }
             })
-          ).finish(),
-          signatures: [new Uint8Array(64)]
+          ).finish()
         });
       },
       broadcastTx: async (bytes) => {
@@ -316,13 +516,14 @@ test('native votes preserve exact proposal, voter, option and fee; uncertain wri
     };
     const client = {
       getChainId: async () => 'juno-1',
+      getSequence: async () => ({ accountNumber: 7, sequence: 1 }),
       getTx: async () => null,
       sign: async (_sender, [msg], fee, memo) => {
         signedCount++;
         const value = { ...msg.value };
         if (mode === 'choice') value.option = 4;
         if (mode === 'proposal') value.proposalId = 382n;
-        return TxRaw.fromPartial({
+        return signFixture({
           bodyBytes: TxBody.encode(
             TxBody.fromPartial({
               messages: [{ typeUrl: msg.typeUrl, value: MsgVote.encode(value).finish() }],
@@ -331,14 +532,13 @@ test('native votes preserve exact proposal, voter, option and fee; uncertain wri
           ).finish(),
           authInfoBytes: AuthInfo.encode(
             AuthInfo.fromPartial({
-              signerInfos: [{ sequence: 1n }],
+              signerInfos: [signerInfo],
               fee: {
                 gasLimit: BigInt(fee.gas),
                 amount: mode === 'fee' ? [{ denom: 'ujuno', amount: '9999' }] : fee.amount
               }
             })
-          ).finish(),
-          signatures: [new Uint8Array(64)]
+          ).finish()
         });
       },
       broadcastTx: async (bytes) => {
