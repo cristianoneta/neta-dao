@@ -18,6 +18,9 @@ import time
 MAX_BYTES = 25 * 1024 * 1024
 
 
+BALLOT_PATH = re.compile(r'data/governance/juno-votes/[1-9][0-9]{0,19}\.json')
+
+
 def publish(repo, destination, paths):
     repo, destination = Path(repo).resolve(), Path(destination).resolve()
     destination.mkdir(parents=True, exist_ok=True)
@@ -26,8 +29,11 @@ def publish(repo, destination, paths):
     link = destination / (".next-" + stage.name)
     try:
         receipt = {"published_at": int(time.time()), "files": {}}
-        for name in paths:
-            if not re.fullmatch(r"data/(?:treasury|daos|nns)/[a-z0-9-]+\.json(?:\.gz)?", name):
+        vote_directory = repo / "data/governance/juno-votes"
+        ballots = sorted(str(f.relative_to(repo)) for f in vote_directory.glob("*.json")
+                         if BALLOT_PATH.fullmatch(str(f.relative_to(repo))))
+        for name in [*paths, *ballots]:
+            if not BALLOT_PATH.fullmatch(name) and not re.fullmatch(r"data/(?:treasury|daos|nns)/[a-z0-9-]+\.json(?:\.gz)?", name):
                 raise ValueError("Invalid public snapshot path")
             source = repo / name
             if any(part.is_symlink() for part in [source, *source.parents] if part != repo):
@@ -55,6 +61,9 @@ def publish(repo, destination, paths):
         previous_receipt = current / "receipt.json"
         if previous_receipt.exists():
             previous = json.loads(previous_receipt.read_text())
+            missing_ballots = {p for p in previous["files"] if BALLOT_PATH.fullmatch(p)} - receipt["files"].keys()
+            if missing_ballots:
+                raise ValueError("Missing retained ballot archives; preserving the previous publication")
             if previous["files"] == receipt["files"]:
                 shutil.rmtree(stage)
                 return False

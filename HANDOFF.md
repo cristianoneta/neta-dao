@@ -1,8 +1,12 @@
 # Cosmoot public development handoff
 
-Updated 4 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
+Updated 5 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single
 current feature/release inventory and [AGENTS.md](AGENTS.md) before editing.
 Private host access, backup locations and installation receipts remain outside Git.
+
+## Juno voting participation — 5 November
+
+The proposal-size changes, signing/collector fixes, homepage and rule editor were merged in PRs #339–341. The manual website release and separate host updates are tracked independently. The new vote archive retains native Juno voters and their latest weighted ballots for the two votes open at cutover (#387/#388) and subsequent voting periods. It uses Cosmoot's own accepted block events. The closing block includes its final successful transactions; reconciled historical staking power is shown only for the recorded block. See the [collector and display contract](docs/JUNO_VOTE_ARCHIVE.md).
 
 ## Homepage and flexible rule editor — source prepared, 4 November
 

@@ -1,3 +1,4 @@
+import { loadArchivedParticipation } from './native-vote-archive.mjs';
 import { loadGovernanceSigning } from './browser-signing.mjs';
 import {
   readParticipation,
@@ -31,6 +32,7 @@ export function nativeVoting({
     root = $('native-voting-workspace');
   let epoch = 0,
     snapshot = null,
+    priorPower = false,
     review = null,
     client = null,
     working = false,
@@ -144,6 +146,12 @@ export function nativeVoting({
       : own
         ? `${ballotLabel(own.ballot)} · Own delegated weight: ${formatVoteAmount(own.weight)}${own.validator ? ' · Validator account' : ''}`
         : 'Your ballot and voting weight are unavailable until participation data loads.';
+    if (address() && snapshot?.archived) {
+      const mine = snapshot.direct.find((v) => v.address === address());
+      $('native-own-vote').textContent = mine
+        ? 'Archived direct ballot: ' + ballotLabel(mine.ballot)
+        : 'No direct ballot recorded for this address in this observation.';
+    }
     $('native-inherited-vote').textContent =
       own && !own.ballot.length
         ? own.inherited
@@ -158,12 +166,21 @@ export function nativeVoting({
   function renderRows() {
     const tbody = $('native-participation-rows');
     tbody.replaceChildren();
-    if (!snapshot || snapshot.historical) return;
+    if (!snapshot) return;
+    const display = priorPower && snapshot.previousPower ? snapshot.previousPower : snapshot;
+    const weighted = Boolean(display.metrics);
+    if (!weighted) {
+      $('native-participation-kind').value = 'direct';
+      $('native-participation-sort').value = 'name';
+    }
+    $('native-participation-kind').disabled = !weighted;
+    $('native-participation-sort').disabled = !weighted;
+    $('native-weight-heading').hidden = $('native-share-heading').hidden = !weighted;
     const kind = $('native-participation-kind').value,
       filter = $('native-participation-filter').value,
       query = $('native-participation-search').value.trim().toLowerCase(),
       sort = $('native-participation-sort').value;
-    const rows = snapshot[kind].filter(
+    const rows = display[kind].filter(
       (r) =>
         (!query ||
           `${r.name || ''} ${r.address} ${r.validator || ''}`.toLowerCase().includes(query)) &&
@@ -171,7 +188,7 @@ export function nativeVoting({
           (filter === 'none' ? !r.ballot.length : r.ballot.some((o) => o.key === filter)))
     );
     rows.sort((a, b) =>
-      sort === 'name'
+      !weighted || sort === 'name'
         ? (a.name || a.address).localeCompare(b.name || b.address)
         : BigInt(a.weight) === BigInt(b.weight)
           ? a.address.localeCompare(b.address)
@@ -205,11 +222,10 @@ export function nativeVoting({
         identity.append(stake);
       }
       tr.append(identity);
-      for (const text of [
-        ballotLabel(r.ballot),
-        formatVoteAmount(r.weight),
-        percent(r.weight, snapshot.metrics.total) + '%'
-      ]) {
+      const cells = [ballotLabel(r.ballot)];
+      if (weighted)
+        cells.push(formatVoteAmount(r.weight), percent(r.weight, display.metrics.total) + '%');
+      for (const text of cells) {
         const td = document.createElement('td');
         td.textContent = text;
         tr.append(td);
@@ -222,6 +238,7 @@ export function nativeVoting({
   }
   function clearData() {
     snapshot = null;
+    priorPower = false;
     loadedAt = 0;
     $('native-participation-data').hidden = true;
     $('native-participation-metrics').textContent = '';
@@ -236,43 +253,12 @@ export function nativeVoting({
     clearData();
     render();
   }
-  async function refresh(force = false) {
-    const item = current();
-    if (
-      !item ||
-      working ||
-      document.hidden ||
-      document.body.dataset.workspaceView !== 'governance' ||
-      loading ||
-      (!force && Date.now() - loadedAt < 30000)
-    )
-      return;
-    const generation = epoch,
-      sender = address();
-    loading = true;
-    $('native-participation-status').textContent = snapshot
-      ? 'Refreshing participation…'
-      : 'Loading complete participation data…';
-    render();
-    try {
-      const result = await readParticipation(rests, item.id, sender);
-      if (generation !== epoch || current() !== item || address() !== sender) return;
-      if (
-        canonical(proposalIdentity(item.proposal.raw)) !==
-        canonical(proposalIdentity(result.proposal))
-      )
-        throw Error('Proposal content changed. Reload this proposal.');
-      loadedAt = Date.now();
-      snapshot = result;
-      if (result.historical) {
-        clearData();
-        $('native-participation-status').textContent =
-          'Historical participation breakdown unavailable. Today’s stake is not the final voting distribution.';
-        return;
-      }
-      const m = result.metrics;
-      const metrics = $('native-participation-metrics');
-      metrics.replaceChildren();
+  function showParticipation() {
+    const result = priorPower && snapshot.previousPower ? snapshot.previousPower : snapshot;
+    const m = result.metrics;
+    const metrics = $('native-participation-metrics');
+    metrics.replaceChildren();
+    if (m)
       for (const [heading, value, detail] of [
         [
           'Turnout',
@@ -300,11 +286,87 @@ export function nativeVoting({
         card.append(title, amount, note);
         metrics.append(card);
       }
-      $('native-participation-summary').textContent =
-        `${result.direct.length} voting addresses · Directly represented: ${formatVoteAmount(result.directWeight)} · Through validator votes: ${formatVoteAmount(result.inheritedWeight)}`;
-      $('native-participation-status').textContent =
-        `Reconciled with the chain tally · Block ${result.height} · ${new Date(result.checkedAt).toLocaleTimeString()} · ${new URL(result.endpoint).hostname}`;
-      $('native-participation-data').hidden = false;
+    const weights = m
+      ? ` · Directly represented: ${formatVoteAmount(result.directWeight)} · Through validator votes: ${formatVoteAmount(result.inheritedWeight)}`
+      : '';
+    $('native-participation-summary').textContent =
+      `${result.direct.length} ${result.complete === false ? 'observed ' : ''}voting addresses${weights}`;
+    const toggle = $('native-power-snapshot');
+    toggle.hidden = !snapshot.previousPower || Boolean(snapshot.metrics);
+    toggle.textContent = priorPower
+      ? 'Show latest recorded ballots'
+      : 'View earlier voting weights';
+    $('native-participation-help').textContent = m
+      ? 'Direct votes are deducted from the stake represented by validators at the displayed block. Abstain counts toward quorum.'
+      : 'Each address appears once with its latest accepted ballot. Weighted votes show each choice. Voting power for this block is unavailable.';
+    const source = result.previous
+      ? 'Earlier voting-power snapshot'
+      : result.final
+        ? result.complete
+          ? 'Archived through the closing block'
+          : 'Partial ballot archive through the closing block'
+        : result.complete
+          ? 'Last archived voting observation'
+          : 'Partial ballot archive';
+    $('native-participation-status').textContent = result.archived
+      ? `${source} · Juno block ${result.height} · ${new Date(result.blockTime).toLocaleString()}`
+      : `Reconciled with the chain tally · Block ${result.height} · ${new Date(result.checkedAt).toLocaleTimeString()} · ${new URL(result.endpoint).hostname}`;
+    $('native-participation-data').hidden = false;
+  }
+  async function refresh(force = false) {
+    const item = current();
+    if (
+      !item ||
+      working ||
+      document.hidden ||
+      document.body.dataset.workspaceView !== 'governance' ||
+      loading ||
+      (!force && Date.now() - loadedAt < 30000)
+    )
+      return;
+    const generation = epoch,
+      sender = address();
+    loading = true;
+    $('native-participation-status').textContent = snapshot
+      ? 'Refreshing participation…'
+      : 'Loading complete participation data…';
+    render();
+    try {
+      const expected = item.proposal.raw;
+      if (expected.status === 'PROPOSAL_STATUS_DEPOSIT_PERIOD') {
+        clearData();
+        loadedAt = Date.now();
+        $('native-participation-status').textContent = 'Voting has not started.';
+        return;
+      }
+      let result;
+      if (expected.status === 'PROPOSAL_STATUS_VOTING_PERIOD') {
+        try {
+          result = await readParticipation(rests, item.id, sender);
+        } catch (liveError) {
+          result = await loadArchivedParticipation(expected);
+          if (!result) throw liveError;
+        }
+        if (
+          result.proposal &&
+          canonical(proposalIdentity(expected)) !== canonical(proposalIdentity(result.proposal))
+        )
+          throw Error('Proposal content changed. Reload this proposal.');
+      }
+      if (!result || result.historical)
+        result = await loadArchivedParticipation(result?.proposal || expected);
+      if (generation !== epoch || current() !== item || address() !== sender) return;
+      if (!result) {
+        clearData();
+        loadedAt = Date.now();
+        $('native-participation-status').textContent =
+          'No archived participation record for this proposal.';
+        return;
+      }
+      loadedAt = Date.now();
+      snapshot = result;
+      if (result.metrics || !result.previousPower) priorPower = false;
+      showParticipation();
     } catch (error) {
       if (generation === epoch) {
         clearData();
@@ -591,6 +653,12 @@ export function nativeVoting({
     review = null;
     message('');
     render();
+  };
+  $('native-power-snapshot').onclick = () => {
+    priorPower = !priorPower;
+    page = 0;
+    showParticipation();
+    renderRows();
   };
   $('native-participation-refresh').onclick = () => refresh(true);
   for (const id of [

@@ -57,6 +57,23 @@ def proposal_id(value):
     return value
 
 
+def verified_events(payload, checksum):
+    if payload is None:
+        if checksum is not None and checksum != hashlib.sha256(b'[]').digest():
+            raise ValueError('Missing captured governance events')
+        return []
+    decoder = zlib.decompressobj()
+    raw = decoder.decompress(payload, 8 * 1024 * 1024 + 1)
+    if len(raw) > 8 * 1024 * 1024 or not decoder.eof or decoder.unused_data:
+        raise ValueError('Invalid governance event payload')
+    if checksum is not None and checksum != hashlib.sha256(raw).digest():
+        raise ValueError('Captured governance events changed')
+    events = json.loads(raw)
+    if not isinstance(events, list):
+        raise ValueError('Invalid governance event list')
+    return events
+
+
 def governance_history(path, snapshot, seconds=25):
     deadline = time.monotonic() + seconds
     db = sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True, timeout=1)
@@ -99,19 +116,9 @@ def governance_history(path, snapshot, seconds=25):
             previous = anchor
             if checks_start is not None and h >= checks_start and checksum is None:
                 raise ValueError('Missing governance event integrity record')
-            if payload is None:
-                if checksum is not None and checksum != hashlib.sha256(b'[]').digest():
-                    raise ValueError('Missing captured governance events')
+            events = verified_events(payload, checksum)
+            if not events:
                 continue
-            decoder = zlib.decompressobj()
-            raw = decoder.decompress(payload, 8 * 1024 * 1024 + 1)
-            if len(raw) > 8 * 1024 * 1024 or not decoder.eof or decoder.unused_data:
-                raise ValueError('Invalid governance event payload')
-            if checksum is not None and checksum != hashlib.sha256(raw).digest():
-                raise ValueError('Captured governance events changed')
-            events = json.loads(raw)
-            if not isinstance(events, list):
-                raise ValueError('Invalid governance event list')
             actions, ballots, positions = {}, {}, set()
             for event in events:
                 kind = event['type']

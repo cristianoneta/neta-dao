@@ -224,6 +224,48 @@ export function participation(validators, votes, delegations, tally, own = null)
       : null
   };
 }
+// All staking reads must share the ballot/tally block. The collector also uses
+// this calculation after SDK tallying removes direct ballots from chain state.
+export async function participationAtBlock(source, proposal, votes, tally, own = null) {
+  const [validators, parameters, pool] = await Promise.all([
+    pages(source, '/cosmos/staking/v1beta1/validators', 'validators'),
+    source.get('/cosmos/gov/v1/params/tallying'),
+    source.get('/cosmos/staking/v1beta1/pool')
+  ]);
+  const addresses = [
+    ...new Set([...votes.map((v) => validateJunoAddress(v.voter)), ...(own ? [own] : [])])
+  ];
+  const delegations = {};
+  let cursor = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(4, addresses.length) }, async () => {
+      while (cursor < addresses.length) {
+        const address = addresses[cursor++];
+        delegations[address] = await pages(
+          source,
+          `/cosmos/staking/v1beta1/delegations/${address}`,
+          'delegation_responses'
+        );
+      }
+    })
+  );
+  const detail = participation(validators, votes, delegations, tally, own);
+  return {
+    ...detail,
+    tally,
+    proposal,
+    metrics: votingMetrics(
+      tally,
+      parameters.params,
+      pool.pool?.bonded_tokens,
+      proposal.expedited,
+      detail
+    ),
+    height: source.height,
+    endpoint: source.endpoint,
+    checkedAt: Date.now()
+  };
+}
 export async function readParticipation(endpoints, id, own = null, options = {}) {
   if (!/^[1-9]\d{0,19}$/.test(String(id))) throw Error('Invalid proposal ID.');
   if (own) validateJunoAddress(own);
@@ -235,49 +277,13 @@ export async function readParticipation(endpoints, id, own = null, options = {})
       if (String(proposal?.id) !== String(id)) throw Error('Proposal identity mismatch.');
       if (proposal.status !== 'PROPOSAL_STATUS_VOTING_PERIOD')
         return { historical: true, proposal };
-      const [validators, votes, live, parameters, pool] = await Promise.all([
-        pages(source, '/cosmos/staking/v1beta1/validators', 'validators'),
+      const [votes, live] = await Promise.all([
         pages(source, `/cosmos/gov/v1/proposals/${id}/votes`, 'votes'),
-        source.get(`/cosmos/gov/v1/proposals/${id}/tally`),
-        source.get('/cosmos/gov/v1/params/tallying'),
-        source.get('/cosmos/staking/v1beta1/pool')
+        source.get(`/cosmos/gov/v1/proposals/${id}/tally`)
       ]);
       if (votes.some((v) => String(v.proposal_id) !== String(id)))
         throw Error('Vote proposal mismatch.');
-      const addresses = [
-        ...new Set([...votes.map((v) => validateJunoAddress(v.voter)), ...(own ? [own] : [])])
-      ];
-      const delegations = {};
-      let cursor = 0;
-      await Promise.all(
-        Array.from({ length: Math.min(4, addresses.length) }, async () => {
-          while (cursor < addresses.length) {
-            const address = addresses[cursor++];
-            delegations[address] = await pages(
-              source,
-              `/cosmos/staking/v1beta1/delegations/${address}`,
-              'delegation_responses'
-            );
-          }
-        })
-      );
-      const tally = nativeTally(live.tally);
-      const detail = participation(validators, votes, delegations, tally, own);
-      return {
-        ...detail,
-        tally,
-        proposal,
-        metrics: votingMetrics(
-          tally,
-          parameters.params,
-          pool.pool?.bonded_tokens,
-          proposal.expedited,
-          detail
-        ),
-        height: source.height,
-        endpoint,
-        checkedAt: Date.now()
-      };
+      return await participationAtBlock(source, proposal, votes, nativeTally(live.tally), own);
     } catch (error) {
       last = error;
     }
