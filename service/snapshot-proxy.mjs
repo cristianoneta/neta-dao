@@ -33,7 +33,9 @@ export function snapshotProxy(paths, fetcher = fetch) {
   return async function onRequest(context) {
     const { request } = context;
     const path = new URL(request.url).pathname;
-    if (!allowed.has(path) || !['GET', 'HEAD'].includes(request.method)) return context.next();
+    const ballotArchive = /^\/data\/governance\/juno-votes\/[1-9]\d{0,19}\.json$/.test(path);
+    if ((!allowed.has(path) && !ballotArchive) || !['GET', 'HEAD'].includes(request.method))
+      return context.next();
     let upstream;
     try {
       upstream = await fetcher(`https://data.cosmoot.com${path}`, {
@@ -54,6 +56,11 @@ export function snapshotProxy(paths, fetcher = fetch) {
       setUpstreamDiagnostics(headers, upstream);
       return new Response(upstream.body, { status: 200, headers });
     } catch {
+      if (ballotArchive) {
+        const headers = new Headers({ 'Cache-Control': 'no-store' });
+        setUpstreamDiagnostics(headers, upstream);
+        return new Response(null, { status: upstream?.status === 404 ? 404 : 503, headers });
+      }
       const fallback = await context.next();
       const response = new Response(fallback.body, fallback);
       response.headers.set('X-Cosmoot-Snapshot', 'static-fallback');

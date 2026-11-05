@@ -32,6 +32,22 @@ class ServerSnapshots(unittest.TestCase):
             self.assertTrue(publisher.publish(repo, out, paths))
             self.assertNotEqual(first, (out / 'current').readlink())
 
+    def test_retained_ballots_survive_generation_rotation_and_missing_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, out = Path(tmp)/'repo', Path(tmp)/'public'
+            record = repo/'data/governance/juno-votes/387.json'
+            record.parent.mkdir(parents=True)
+            record.write_text('{"votes":[]}')
+            (record.parent/'private.json').write_text('{"private":true}')
+            self.assertTrue(publisher.publish(repo,out,[]))
+            self.assertFalse((out/'current/data/governance/juno-votes/private.json').exists())
+            other = record.with_name('388.json')
+            other.write_text('{"votes":[]}')
+            record.unlink()
+            with self.assertRaisesRegex(ValueError,'Missing retained'):
+                publisher.publish(repo,out,[])
+            self.assertTrue((out/'current/data/governance/juno-votes/387.json').exists())
+
     def test_path_escape_and_symlinks_never_publish(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -1379,6 +1379,51 @@ export async function exerciseReviewFunding(page, origin, sample) {
     ),
     'Preserved draft'
   );
+  // Close the same native proposal. Its accepted ballots survive without a live
+  // staking endpoint, and historical data cannot re-enable wallet submission.
+  native.status = 'PROPOSAL_STATUS_PASSED';
+  native.final_tally_result = voteTally();
+  const archiveBlock = { height: 42500124, time: new Date().toISOString(), hash: 'aa'.repeat(32) };
+  await page.route('**/data/governance/juno-votes/900.json', (route) =>
+    route.fulfill({
+      json: {
+        schema: 1,
+        chainId: 'juno-1',
+        proposalId: '900',
+        start: { ...archiveBlock, height: 42500100 },
+        through: archiveBlock,
+        outcome: 'proposal_passed',
+        votes: voterAccounts.map((voter, i) => ({
+          voter,
+          options: [{ option: i === 0 ? 'VOTE_OPTION_NO' : 'VOTE_OPTION_YES', weight: '1' }]
+        }))
+      }
+    })
+  );
+  await page.locator('#voting-refresh').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#voting-data-status').textContent.includes('Final tally')
+  );
+  await page.locator('#native-participation-refresh').click();
+  await page.waitForFunction(() =>
+    document
+      .querySelector('#native-participation-status')
+      .textContent.includes('Archived through the closing block')
+  );
+  assert.match(
+    await page.locator('#native-participation-summary').innerText(),
+    /3 voting addresses/
+  );
+  await page.locator('#native-participation-filter').selectOption('no');
+  assert.equal(await page.locator('#native-participation-rows a').textContent(), author);
+  assert.equal(await page.locator('#native-vote-action').isDisabled(), true);
+  assert.equal(await page.locator('#native-weight-heading').isVisible(), false);
+  native.status = 'PROPOSAL_STATUS_VOTING_PERIOD';
+  await page.locator('#native-participation-filter').selectOption('all');
+  await page.locator('#voting-refresh').click();
+  await page.waitForFunction(() =>
+    document.querySelector('#voting-data-status').textContent.includes('Current tally')
+  );
   // A delayed tally response must not overwrite a newly selected draft.
   holdTally = true;
   await page.locator('#voting-refresh').click();

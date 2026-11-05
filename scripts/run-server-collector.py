@@ -54,7 +54,8 @@ def main():
                          (["scripts/update_generic_accounting.py", "--collect"], 240),
                          (["scripts/update_delegation_treasury.py"], 300)],
             "main": [(["scripts/update_main_dao.py"], 360),
-                     (["scripts/update_delegation_planner.py"], 165)],
+                     (["scripts/update_delegation_planner.py"], 165),
+                     (["scripts/juno_vote_archive.py"], 120)],
             "members": [(["scripts/update_members.py"], 570)],
         }
         record(STATE, job, "running")
@@ -64,6 +65,10 @@ def main():
             for args, seconds in jobs[job]:
                 succeeded = run([sys.executable, *args], seconds, env) and succeeded
             if job == "main":
+                # Enrichment is optional. Always publish captured ballots even when the
+                # provider no longer serves historical staking state or takes too long.
+                if not run(["node", "scripts/archive-juno-voting-power.mjs"], 145, env):
+                    print("Voting power enrichment deferred; retaining recorded ballots.", file=sys.stderr)
                 credential = Path(os.environ.get("CREDENTIALS_DIRECTORY", "/nonexistent")) / "nns-price-key"
                 if credential.is_file():
                     signer_env = dict(env, NNS_PRICE_SIGNING_KEY=credential.read_text())
