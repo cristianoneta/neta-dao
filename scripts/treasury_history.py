@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from urllib.parse import urlencode
 
 ACCOUNTING_START = '2026-10-01T00:00:00Z'
-OSMOSIS_ARCHIVE_RPC = 'https://rpc.archive.osmosis.zone'
+OSMOSIS_ARCHIVE_RPCS = ('https://rpc.archive.osmosis.zone', 'https://rpc.archive.osmosis.validatus.com')
 RECEIPT_ADAPTERS = ('cosmos-rest-receipts', 'comet-rpc-receipts')
 QUERY_KEYS = ('wasm._contract_address', 'transfer.sender', 'transfer.recipient',
               'coin_spent.spender', 'coin_received.receiver', 'wasm.sender', 'wasm.to', 'wasm.from')
@@ -24,22 +24,22 @@ def instant(value):
     return result
 
 
-def archive_call(get, method, params):
-    data = get(OSMOSIS_ARCHIVE_RPC + '/' + method + '?' + urlencode(params), timeout=15)
+def archive_call(get, base, method, params):
+    data = get(base + '/' + method + '?' + urlencode(params), timeout=15)
     if data.get('error') or not isinstance(data.get('result'), dict):
         raise ValueError('Archive RPC ' + method + ' unavailable')
     return data['result']
 
 
-def archive_page(get, query, page, start, end):
-    result = archive_call(get, 'tx_search', {'query': json.dumps(query), 'page': page,
+def archive_page(get, base, query, page, start, end):
+    result = archive_call(get, base, 'tx_search', {'query': json.dumps(query), 'page': page,
                           'per_page': 100, 'order_by': '"asc"'})
     transactions = []
     for item in result.get('txs') or []:
         height = int(item['height'])
         if not start <= height <= end:
             raise ValueError('Archive receipt outside requested heights')
-        block_data = archive_call(get, 'block', {'height': height})['block']
+        block_data = archive_call(get, base, 'block', {'height': height})['block']
         header = block_data['header']
         index = int(item['index'])
         raw = base64.b64decode(item['tx'], validate=True)
@@ -56,10 +56,10 @@ def archive_page(get, query, page, start, end):
 
 
 def block(get, base, height, chain_id):
-    if base == OSMOSIS_ARCHIVE_RPC:
+    if base in OSMOSIS_ARCHIVE_RPCS:
         if chain_id != 'osmosis-1':
             raise ValueError('Archive chain mismatch')
-        data = archive_call(get, 'block', {} if height == 'latest' else {'height': height})
+        data = archive_call(get, base, 'block', {} if height == 'latest' else {'height': height})
     else:
         data = get(f'{base}/cosmos/base/tendermint/v1beta1/blocks/{height}', timeout=15)
     header = (data.get('block') or data.get('sdk_block'))['header']
@@ -106,8 +106,8 @@ def search(get, base, key, address, start, end):
     found, expected = {}, None
     query = f"{key}='{address}' AND tx.height>={start} AND tx.height<={end}"
     for page in range(1, 101):
-        if base == OSMOSIS_ARCHIVE_RPC:
-            data = archive_page(get, query, page, start, end)
+        if base in OSMOSIS_ARCHIVE_RPCS:
+            data = archive_page(get, base, query, page, start, end)
         else:
             data = get(base + '/cosmos/tx/v1beta1/txs?' + urlencode({
                 'query': query, 'page': page, 'limit': 100, 'order_by': 'ORDER_BY_ASC'}), timeout=15)
@@ -171,7 +171,7 @@ def scan(get, base, chain, prior_rows, source=None, full_replay=False):
         raise ValueError('Index lost recorded transactions')
     if block(get, base, end, chain['id'])['hash'] != anchor:
         raise ValueError('Scan anchor changed')
-    return found, {'adapter': 'comet-rpc-receipts' if base == OSMOSIS_ARCHIVE_RPC else 'cosmos-rest-receipts', 'chain_id': chain['id'], 'address': chain['address'],
+    return found, {'adapter': 'comet-rpc-receipts' if base in OSMOSIS_ARCHIVE_RPCS else 'cosmos-rest-receipts', 'chain_id': chain['id'], 'address': chain['address'],
         'source': base, 'accounting_start': ACCOUNTING_START, 'accounting_boundary': cutoff,
         'scan_start_height': start, 'last_scanned_height': end, 'anchor_hash': anchor,
         'incremental': incremental, 'range_capable': True, 'indexed_transactions': len(found),
