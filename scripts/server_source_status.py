@@ -63,7 +63,7 @@ def age_issues(observed, now, maximum):
     return ["stale-observation"] if now - observed > maximum else []
 
 
-def check(root, *, now=None):
+def check(root, *, now=None, reader=read_object):
     now = int(time.time() if now is None else now)
     # Capture one generation once, even if the current symlink changes mid-check.
     root = Path(root).resolve()
@@ -71,7 +71,7 @@ def check(root, *, now=None):
     for name, job in SOURCES.items():
         issues, warnings = [], []
         try:
-            value = read_object(root, name)
+            value = reader(root, name)
             if name == "data/daos/juno-delegation-planner.json":
                 issues += age_issues(timestamp(value.get("blockTime")), now, CADENCES[job])
                 issues += ["collection:" + issue for issue in age_issues(timestamp(value.get("collectedAt")), now, CADENCES[job])]
@@ -100,7 +100,7 @@ def check(root, *, now=None):
     for name, job, required in summaries:
         issues = []
         try:
-            value = read_object(root, name)
+            value = reader(root, name)
             issues += age_issues(timestamp(value.get("checked_at")), now, CADENCES[job])
             tasks = value.get("daos") if job == "members" else value
             if not isinstance(tasks, dict):
@@ -119,7 +119,7 @@ def check(root, *, now=None):
 
     name, issues = "data/nns/price.json", []
     try:
-        value = read_object(root, name)
+        value = reader(root, name)
         snapshot = value.get("snapshot")
         if not isinstance(snapshot, dict):
             raise ValueError("price snapshot missing")
@@ -136,7 +136,7 @@ def check(root, *, now=None):
     rows.append({"path": name, "ok": not issues, "issues": issues, "warnings": []})
     name, issues = "data/treasury/juno-delegation-accounting.json", []
     try:
-        value = read_object(root, name)
+        value = reader(root, name)
         issues += age_issues(timestamp(value.get("checked_at")), now, CADENCES["treasury"])
         if value.get("chain_id") != "juno-1" or value.get("dao_id") != "juno-delegation" or value.get("schema_version") != 4:
             issues.append("invalid-source-identity")
@@ -157,7 +157,7 @@ def check(root, *, now=None):
     rows.append({"path": name, "ok": not issues, "issues": issues, "warnings": []})
     name, issues = "data/treasury/juno-community-accounting.json", []
     try:
-        value = read_object(root, name)
+        value = reader(root, name)
         issues += age_issues(timestamp(value.get("checked_at")), now, CADENCES["treasury"])
         if value.get("chain_id") != "juno-1" or value.get("dao_id") != "juno" or value.get("schema_version") != 3:
             issues.append("invalid-source-identity")
@@ -181,7 +181,7 @@ def check(root, *, now=None):
     for filename, statement in [('events.json', False), ('neta-operations-accounting.json', True)]:
         name, issues = 'data/treasury/' + filename, []
         try:
-            value = read_object(root, name)
+            value = reader(root, name)
             if (type(value.get('schema_version')) is not int or value['schema_version'] != 2
                     or value.get('scope') != 'neta-operations-cross-chain'
                     or value.get('accounting_start') != '2026-10-01T00:00:00Z'
@@ -199,7 +199,15 @@ def check(root, *, now=None):
                     timestamp(value.get('last_success_at')), now, CADENCES['treasury'])]
             elif value.get('status') != 'PARTIAL':
                 issues.append('operations-events-unavailable')
-        except (OSError, ValueError, TypeError, OverflowError):
+            if 'chain_refresh' in value:
+                for account in OPERATIONS_TREASURIES:
+                    chain = account['chain_id']
+                    progress = value['chain_refresh'][chain]
+                    if progress.get('status') != 'completed':
+                        issues.append(chain + ':refresh-unavailable')
+                    issues += [chain + ':' + issue for issue in age_issues(
+                        timestamp(progress.get('last_success_at')), now, CADENCES['treasury'])]
+        except (KeyError, AttributeError, OSError, ValueError, TypeError, OverflowError):
             issues.append('snapshot-unavailable')
         rows.append({'path': name, 'ok': not issues, 'issues': issues, 'warnings': []})
     return {"ok": all(row["ok"] for row in rows), "sources": rows,

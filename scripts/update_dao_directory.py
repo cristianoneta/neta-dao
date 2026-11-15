@@ -61,6 +61,8 @@ def collect(dao,base):
     latest=get(base,'/cosmos/base/tendermint/v1beta1/blocks/latest')['block']['header']
     if latest['chain_id']!='juno-1':raise ValueError('wrong chain')
     height=int(latest['height'])-20
+    from treasury_history import block
+    anchor = block(lambda url, timeout: get(base, url[len(base):]), base, height, 'juno-1')
     config=smart(base,dao['core'],{'config':{}},height)
     voting=smart(base,dao['core'],{'voting_module':{}},height)
     modules=smart(base,dao['core'],{'proposal_modules':{}},height)
@@ -78,7 +80,7 @@ def collect(dao,base):
     rules=smart(base,dao['proposalModule'],{'config':{}},height)
     if rules['dao']!=dao['core']:raise ValueError('proposal module belongs to another DAO')
     count=smart(base,dao['proposalModule'],{'proposal_count':{}},height)
-    return {'schema_version':1,'generated_at':datetime.now(timezone.utc).isoformat(),'chain_id':'juno-1','height':height,'source':base,'core':dao['core'],'name':config['name'],'voting_module':voting,'staking_contract':dao['stakingContract'],'token_contract':dao['tokenContract'],'total_power_raw':power['power'],'members_complete':True,'membership_method':'height-pinned staked_balances primary keys reconciled with voting module','members':members,'proposal_count':count,'proposal_rules':rules,'nns_registry':None}
+    return {'schema_version':1,'generated_at':datetime.now(timezone.utc).isoformat(),'chain_id':'juno-1','height':height,'block_hash':anchor['hash'],'block_time':anchor['time'],'source':base,'core':dao['core'],'name':config['name'],'voting_module':voting,'staking_contract':dao['stakingContract'],'token_contract':dao['tokenContract'],'total_power_raw':power['power'],'members_complete':True,'membership_method':'height-pinned staked_balances primary keys reconciled with voting module','members':members,'proposal_count':count,'proposal_rules':rules,'nns_registry':None}
 def collect_group(dao, base):
     latest=get(base,'/cosmos/base/tendermint/v1beta1/blocks/latest')['block']['header']
     if latest['chain_id']!=dao['network']:raise ValueError('wrong chain')

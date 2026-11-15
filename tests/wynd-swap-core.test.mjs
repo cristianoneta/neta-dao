@@ -7,6 +7,8 @@ import {
   findPool,
   selectAssets,
   verifyPool,
+  readPoolOverview,
+  OVERVIEW_MAX_AGE,
   poolValuation,
   parseSwapQuote,
   buildSwapTransaction,
@@ -144,4 +146,31 @@ test('malformed and empty simulation outputs cannot become a swap quote', () => 
   assert.throws(() =>
     parseSwapQuote({ return_amount: '0', commission_amount: '1', spread_amount: '0' })
   );
+});
+
+test('shared overview verifies identities and rejects expired or incomplete data', () => {
+  const pools = Object.fromEntries(
+    observations.map(({ address, info, pair, pool }) => [
+      address,
+      { code_id: info.contract_info.code_id, pair, reserves: pool }
+    ])
+  );
+  Object.assign(pools, { a: {}, b: {}, c: {} });
+  const now = Date.now();
+  const snapshot = {
+    chain_id: 'juno-1',
+    height: 42,
+    wynd_market: {
+      schema_version: 1,
+      chain_id: 'juno-1',
+      height: 42,
+      block_hash: 'A'.repeat(64),
+      block_time: new Date(now).toISOString(),
+      pools
+    }
+  };
+  assert.equal(readPoolOverview(snapshot, now).length, 5);
+  assert.throws(() => readPoolOverview(snapshot, now + OVERVIEW_MAX_AGE + 1));
+  Object.values(pools)[0].code_id = '1';
+  assert.throws(() => readPoolOverview(snapshot, now));
 });

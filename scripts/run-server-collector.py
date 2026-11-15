@@ -84,8 +84,10 @@ def main():
             spec = importlib.util.spec_from_file_location("publisher", ROOT / "scripts/publish-server-snapshots.py")
             publisher = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(publisher)
+            publication = {}
             publisher.publish(ROOT, "/srv/cosmoot/public-snapshots", json.loads(
-                (ROOT / "deploy/cosmoot/snapshot-paths.json").read_text()))
+                (ROOT / "deploy/cosmoot/snapshot-paths.json").read_text()), metrics=publication)
+            print(json.dumps({"snapshot_publication": publication, "job": job}), flush=True)
         except BaseException:
             succeeded = False
             raise

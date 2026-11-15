@@ -1,5 +1,13 @@
 # Current state — Cosmoot
 
+## Shared data collection candidate, 15 November 2026
+
+The Operations receipt collector keeps a separate verified height and success time for each chain. The combined statement stays unavailable during an incomplete refresh. The Osmosis archive RPC adapter checks indexed transaction bytes against their block and replays the stored receipts before a provider switch. Evidence still requires actual provider availability.
+
+The Treasury snapshot can carry all eight verified WYND pools at a single Juno block, with reserve and USD observation times. The swap overview reads these values. The selected pair, wallet balance and signing quote still use direct checks. The NETA membership snapshot now identifies its block hash and time for consumers reconciling the same height.
+
+The publisher reuses identical payloads in the previous immutable generation and records byte counts per completed publication. The public freshness workflow reads the three websites and the origin independently. Host installation, external observations and the manual frontend release have separate acceptance steps.
+
 Updated 5 November 2026. This is the authoritative current feature and release
 inventory. Update rows in place; retain dated evidence separately. Public/private
 boundaries are defined in [DOCUMENTATION_PRIVACY](DOCUMENTATION_PRIVACY.md).
