@@ -92,7 +92,7 @@ def build(dao, events, previous=None):
         raise ValueError('Native module coverage must remain explicit')
     source_accounts = {(s.get('chain_id'), s.get('address')) for s in events.get('sources', [])}
     sources_ok = source_accounts == accounts and len(events.get('sources', [])) == len(accounts) and all(
-        s.get('adapter') == 'cosmos-rest-receipts' and s.get('accounting_start') == ACCOUNTING_START
+        (s.get('adapter') == 'cosmos-rest-receipts' or (s.get('adapter') == 'comet-rpc-receipts' and s['chain_id'] == 'osmosis-1')) and s.get('accounting_start') == ACCOUNTING_START
         and s.get('last_scanned_height', 0) > 0 and s.get('anchor_hash') for s in events.get('sources', []))
     stamp = events.get('last_success_at') or events.get('generated_at')
     age = (datetime.now(timezone.utc) - instant(stamp)).total_seconds() if stamp else float('inf')
@@ -109,6 +109,7 @@ def build(dao, events, previous=None):
             'status': 'PARTIAL', 'refresh_status': 'completed' if completed else 'unavailable',
             'checked_at': now(), 'last_success_at': stamp if completed else (previous or {}).get('last_success_at'),
             'sources': events.get('sources', []), 'coverage_gaps': gaps,
+            **({'chain_refresh': events['chain_refresh']} if 'chain_refresh' in events else {}),
             'execution_candidates': events.get('execution_candidates', []),
             **({'community_tax': events['community_tax']} if dao['id'] == 'juno' and 'community_tax' in events else {}),
             'warnings': events.get('warnings', []), 'entries': entries,
@@ -126,7 +127,15 @@ def collect_sources():
         path = ROOT / 'data/treasury' / filename
         try:
             result = subprocess.run([sys.executable, str(ROOT / 'scripts' / script)],
-                                    cwd=ROOT, capture_output=True, text=True, timeout=240, check=True)
+                                    cwd=ROOT, capture_output=True, text=True, timeout=240)
+            if result.stderr:
+                print(result.stderr[-2500:], file=sys.stderr)
+            # The operations collector already atomically wrote its per-chain result.
+            if script == 'update_treasury_events.py' and result.returncode == 2 and path.exists():
+                partial = json.loads(path.read_text())
+                if partial.get('status') == 'UNAVAILABLE' and partial.get('chain_refresh'):
+                    return False
+            result.check_returncode()
             print(result.stdout[-2000:])
             return True
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:

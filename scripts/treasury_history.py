@@ -3,6 +3,7 @@
 This establishes provider-index coverage, never complete accounting or a light-client proof.
 """
 import base64
+import hashlib
 import json
 import re
 from concurrent.futures import ThreadPoolExecutor
@@ -10,6 +11,8 @@ from datetime import datetime, timezone
 from urllib.parse import urlencode
 
 ACCOUNTING_START = '2026-10-01T00:00:00Z'
+OSMOSIS_ARCHIVE_RPC = 'https://rpc.archive.osmosis.zone'
+RECEIPT_ADAPTERS = ('cosmos-rest-receipts', 'comet-rpc-receipts')
 QUERY_KEYS = ('wasm._contract_address', 'transfer.sender', 'transfer.recipient',
               'coin_spent.spender', 'coin_received.receiver', 'wasm.sender', 'wasm.to', 'wasm.from')
 
@@ -21,8 +24,44 @@ def instant(value):
     return result
 
 
+def archive_call(get, method, params):
+    data = get(OSMOSIS_ARCHIVE_RPC + '/' + method + '?' + urlencode(params), timeout=15)
+    if data.get('error') or not isinstance(data.get('result'), dict):
+        raise ValueError('Archive RPC ' + method + ' unavailable')
+    return data['result']
+
+
+def archive_page(get, query, page, start, end):
+    result = archive_call(get, 'tx_search', {'query': json.dumps(query), 'page': page,
+                          'per_page': 100, 'order_by': '"asc"'})
+    transactions = []
+    for item in result.get('txs') or []:
+        height = int(item['height'])
+        if not start <= height <= end:
+            raise ValueError('Archive receipt outside requested heights')
+        block_data = archive_call(get, 'block', {'height': height})['block']
+        header = block_data['header']
+        index = int(item['index'])
+        raw = base64.b64decode(item['tx'], validate=True)
+        if (header['chain_id'] != 'osmosis-1' or int(header['height']) != height or index < 0
+                or block_data['data']['txs'][index] != item['tx']
+                or hashlib.sha256(raw).hexdigest().upper() != item['hash'].upper()):
+            raise ValueError('Archive receipt does not match its block')
+        execution = item['tx_result']
+        if not isinstance(execution.get('events'), list):
+            raise ValueError('Archive execution events missing')
+        transactions.append({'height': str(height), 'txhash': item['hash'], 'timestamp': header['time'],
+                             'code': int(execution['code']), 'events': execution['events']})
+    return {'total': result['total_count'], 'tx_responses': transactions}
+
+
 def block(get, base, height, chain_id):
-    data = get(f'{base}/cosmos/base/tendermint/v1beta1/blocks/{height}', timeout=15)
+    if base == OSMOSIS_ARCHIVE_RPC:
+        if chain_id != 'osmosis-1':
+            raise ValueError('Archive chain mismatch')
+        data = archive_call(get, 'block', {} if height == 'latest' else {'height': height})
+    else:
+        data = get(f'{base}/cosmos/base/tendermint/v1beta1/blocks/{height}', timeout=15)
     header = (data.get('block') or data.get('sdk_block'))['header']
     if header['chain_id'] != chain_id or (height != 'latest' and int(header['height']) != int(height)):
         raise ValueError('Block identity mismatch')
@@ -67,8 +106,11 @@ def search(get, base, key, address, start, end):
     found, expected = {}, None
     query = f"{key}='{address}' AND tx.height>={start} AND tx.height<={end}"
     for page in range(1, 101):
-        data = get(base + '/cosmos/tx/v1beta1/txs?' + urlencode({
-            'query': query, 'page': page, 'limit': 100, 'order_by': 'ORDER_BY_ASC'}), timeout=15)
+        if base == OSMOSIS_ARCHIVE_RPC:
+            data = archive_page(get, query, page, start, end)
+        else:
+            data = get(base + '/cosmos/tx/v1beta1/txs?' + urlencode({
+                'query': query, 'page': page, 'limit': 100, 'order_by': 'ORDER_BY_ASC'}), timeout=15)
         total = int(data['total'])
         if total < 0 or (expected is not None and total != expected):
             raise ValueError('Index total changed')
@@ -108,10 +150,12 @@ def scan(get, base, chain, prior_rows, source=None, full_replay=False):
     # Daily full replay catches index delays beyond the ordinary 100-block overlap.
     replay_day = datetime.now(timezone.utc).date().isoformat()
     incremental = False
-    if source and source.get('adapter') == 'cosmos-rest-receipts' and old_end and not full_replay and source.get('last_full_replay_day') == replay_day:
+    if source and source.get('adapter') in RECEIPT_ADAPTERS and old_end:
         if block(get, base, old_end, chain['id'])['hash'] != source['anchor_hash']:
             raise ValueError('Stored scan anchor changed')
-        start, incremental = max(start, old_end - 100), True
+        same_provider = not source.get('source') or source['source'] == base
+        if same_provider and not full_replay and source.get('last_full_replay_day') == replay_day:
+            start, incremental = max(start, old_end - 100), True
     anchor = block(get, base, end, chain['id'])['hash']
     found = {}
     with ThreadPoolExecutor(max_workers=3) as pool:
@@ -127,7 +171,7 @@ def scan(get, base, chain, prior_rows, source=None, full_replay=False):
         raise ValueError('Index lost recorded transactions')
     if block(get, base, end, chain['id'])['hash'] != anchor:
         raise ValueError('Scan anchor changed')
-    return found, {'adapter': 'cosmos-rest-receipts', 'chain_id': chain['id'], 'address': chain['address'],
+    return found, {'adapter': 'comet-rpc-receipts' if base == OSMOSIS_ARCHIVE_RPC else 'cosmos-rest-receipts', 'chain_id': chain['id'], 'address': chain['address'],
         'source': base, 'accounting_start': ACCOUNTING_START, 'accounting_boundary': cutoff,
         'scan_start_height': start, 'last_scanned_height': end, 'anchor_hash': anchor,
         'incremental': incremental, 'range_capable': True, 'indexed_transactions': len(found),

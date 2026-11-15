@@ -234,3 +234,29 @@ export function receivedFromEvents(events, symbol, address) {
   }
   return 0n;
 }
+
+export const OVERVIEW_MAX_AGE = 35 * 60 * 1000;
+
+export function readPoolOverview(snapshot, now = Date.now()) {
+  const data = snapshot?.wynd_market;
+  const at = Date.parse(data?.block_time);
+  if (
+    snapshot?.chain_id !== 'juno-1' ||
+    data?.schema_version !== 1 ||
+    data.chain_id !== 'juno-1' ||
+    !Number.isSafeInteger(data.height) ||
+    data.height <= 0 ||
+    data.height !== snapshot.height ||
+    !/^[0-9A-F]{64}$/.test(data.block_hash || '') ||
+    !Number.isFinite(at) ||
+    at > now + 60000 ||
+    now - at > OVERVIEW_MAX_AGE ||
+    Object.keys(data.pools || {}).length !== 8
+  )
+    throw Error('Shared market snapshot unavailable');
+  return POOLS.map((target) => {
+    const record = data.pools[target.address];
+    const pool = verifyPool(target, record, record?.pair, record?.reserves);
+    return { pool, at, shared: true };
+  });
+}

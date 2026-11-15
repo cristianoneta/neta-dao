@@ -81,7 +81,8 @@ export function reviewedGenericPeriod(entries, data, from, to, now) {
     !sameAccounts(data.sources, data.treasuries) ||
     data.sources.some(
       (s) =>
-        s.adapter !== 'cosmos-rest-receipts' ||
+        (s.adapter !== 'cosmos-rest-receipts' &&
+          !(s.adapter === 'comet-rpc-receipts' && s.chain_id === 'osmosis-1')) ||
         s.accounting_start !== start ||
         !s.anchor_hash ||
         !(s.last_scanned_height > 0)

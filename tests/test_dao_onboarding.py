@@ -18,6 +18,7 @@ class Onboarding(unittest.TestCase):
  def test_collection_reconciles_and_rejects_wrong_identity_or_power(self):
   def get(base,path,height=None):
    if path.endswith('latest'):return {'block':{'header':{'chain_id':'juno-1','height':'120'}}}
+   if path.endswith('/100'):return {'block_id':{'hash':'A'*64},'block':{'header':{'chain_id':'juno-1','height':'100','time':'2026-11-15T12:00:00Z'}}}
    return {'models':[self.model()],'pagination':{'next_key':None}}
   def smart(base,address,msg,height):
    key=next(iter(msg))

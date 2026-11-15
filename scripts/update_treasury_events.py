@@ -7,6 +7,7 @@ import base64
 import json
 import os
 import re
+import sys
 import threading
 import time
 import urllib.parse
@@ -17,9 +18,9 @@ from decimal import Decimal
 from pathlib import Path
 
 try:
-    from treasury_history import ACCOUNTING_START, scan as receipt_scan
+    from treasury_history import ACCOUNTING_START, OSMOSIS_ARCHIVE_RPC, RECEIPT_ADAPTERS, scan as receipt_scan
 except ModuleNotFoundError:
-    from scripts.treasury_history import ACCOUNTING_START, scan as receipt_scan
+    from scripts.treasury_history import ACCOUNTING_START, OSMOSIS_ARCHIVE_RPC, RECEIPT_ADAPTERS, scan as receipt_scan
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "treasury" / "events.json"
@@ -38,7 +39,7 @@ CHAINS = (
     {
         # Receipt replay verifies the original accounting floor. A pruned node
         # cannot serve that block even when current balances are available.
-        "id": "osmosis-1", "name": "Osmosis", "rests": ("https://lcd.archive.osmosis.zone", "https://osmosis-api.polkachu.com", "https://rest.cosmos.directory/osmosis"), "address": OSMOSIS_TREASURY, "creation_height": 15_838_602,
+        "id": "osmosis-1", "name": "Osmosis", "rests": ("https://lcd.archive.osmosis.zone", "https://osmosis-api.polkachu.com", "https://rest.cosmos.directory/osmosis", OSMOSIS_ARCHIVE_RPC), "address": OSMOSIS_TREASURY, "creation_height": 15_838_602,
         "rpcs": ("https://osmosis-rpc.publicnode.com", "https://osmosis-rpc.polkachu.com"),
         "explorer_tx": "https://www.mintscan.io/osmosis/tx/{hash}",
         "explorer_account": "https://www.mintscan.io/osmosis/address/{address}", "require_history": False,
@@ -324,7 +325,8 @@ def collect_receipt_chain(chain, existing, registry, titles, source=None):
     prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"]
              and row.get('evidence', {}).get('kind') not in ('staking-accrual', 'staking-finalize-block')}
     errors = []
-    for base in chain["rests"]:
+    providers = sorted(chain["rests"], key=lambda url: url != (source or {}).get("source"))
+    for base in providers:
         try:
             found, coverage = receipt_scan(request_json, base, chain, list(prior.values()), source,
                 full_replay=os.environ.get("TREASURY_EVENTS_FULL_REPLAY") == "1")
@@ -359,7 +361,7 @@ def collect_receipt_chain(chain, existing, registry, titles, source=None):
                     fields = ('direction', 'raw_amount', 'denom', 'counterparty')
                     old_moves = [tuple(m.get(k) for k in fields) for m in old.get('movements', [])]
                     new_moves = [tuple(m.get(k) for k in fields) for m in row['movements']]
-                    migration_additions = (source or {}).get('adapter') != 'cosmos-rest-receipts' and not (Counter(old_moves) - Counter(new_moves))
+                    migration_additions = (source or {}).get('adapter') not in RECEIPT_ADAPTERS and not (Counter(old_moves) - Counter(new_moves))
                     if (old_moves != new_moves and not migration_additions) or (old.get('timestamp') and datetime.fromisoformat(old['timestamp'].replace('Z', '+00:00')) != datetime.fromisoformat(row['timestamp'].replace('Z', '+00:00'))):
                         raise ValueError('Previously recorded movement changed')
                 candidate[digest] = row
@@ -381,27 +383,54 @@ def collect(chains=CHAINS, output=OUT, proposal_module=PROPOSAL_MODULE, scope="n
     if any((row.get('chain_id'), row.get('address')) not in identities for row in previous.get('sources', [])):
         raise ValueError('Foreign Treasury watermark')
     source_by_chain = {row["chain_id"]: row for row in previous.get("sources", [])}
+    if len(source_by_chain) != len(previous.get("sources", [])):
+        raise ValueError('Duplicate Treasury watermark')
     registry = denom_registry()
     try:
         titles = proposal_titles(proposal_module)
     except Exception:
         titles = {}  # Optional enrichment must not block monetary receipt collection.
-    rows, sources = [], []
+    rows, sources, refresh = [], [], {}
+    independent = scope == "neta-operations-cross-chain"
+    previous_success = previous.get("last_success_at") or previous.get("generated_at")
     for chain in chains:
-        chain_rows, source = collect_receipt_chain(chain, existing, registry, titles, source_by_chain.get(chain["id"]))
-        if chain.get('staking_rewards'):
-            from staking_block_receipts import collect as collect_block_receipts
-            block_rows, first, through = collect_block_receipts(chain, registry, existing, source['last_scanned_height'])
-            chain_rows.extend(block_rows)
-            source.update(block_reward_from=first, block_reward_through=through)
+        chain_id = chain["id"]
+        prior = source_by_chain.get(chain_id)
+        try:
+            chain_rows, source = collect_receipt_chain(chain, existing, registry, titles, prior)
+            if chain.get('staking_rewards'):
+                from staking_block_receipts import collect as collect_block_receipts
+                block_rows, first, through = collect_block_receipts(chain, registry, existing, source['last_scanned_height'])
+                chain_rows.extend(block_rows)
+                source.update(block_reward_from=first, block_reward_through=through)
+        except Exception as error:
+            if not independent:
+                raise
+            rows.extend(row for row in existing if row['chain_id'] == chain_id)
+            if prior:
+                sources.append(prior)
+            earlier = previous.get("chain_refresh", {}).get(chain_id, {})
+            refresh[chain_id] = {"status": "unavailable", "checked_at": now(),
+                                 "last_success_at": earlier.get("last_success_at", previous_success if prior else None)}
+            print(f"{chain_id} receipt refresh failed: {error}", file=sys.stderr)
+            continue
         rows.extend(chain_rows)
         sources.append(source)
+        observed = now()
+        refresh[chain_id] = {"status": "completed", "checked_at": observed, "last_success_at": observed}
     rows.sort(key=lambda row: (row.get("timestamp") or "", row["chain_id"] == "juno-1", row["height"], row["tx_hash"] or row["id"]), reverse=True)
     missing = sum(not row.get("timestamp") for row in rows)
     warnings = [f"Exact block timestamp unavailable from public RPC archives for {missing} historical events."] if missing else []
-    warnings += [f"{source['chain_id']}: {source['historical_missing_transactions']} cached historical transactions are currently absent from the public index; records retained." for source in sources if source["historical_missing_transactions"]]
+    warnings += [f"{source['chain_id']}: {source['historical_missing_transactions']} cached historical transactions are currently absent from the public index; records retained." for source in sources if source.get("historical_missing_transactions")]
     warnings.append("Accounting begins 2026-10-01 UTC. Provider indexes and supported asset parsers are partial coverage; unreviewed movements are not revenue or expenses.")
-    return {"schema_version": 2, "accounting_start": ACCOUNTING_START, "status": "PARTIAL", "generated_at": now(), "treasuries": [{"chain_id": chain["id"], "address": chain["address"]} for chain in chains], "scope": scope, "sources": sources, "cursor": {"strategy": "date-bounded-receipts-with-daily-replay", "chains": sources}, "warnings": warnings, "events": rows}
+    failed = [key for key, result in refresh.items() if result["status"] == "unavailable"]
+    stamp = now()
+    last_success = previous_success if failed else stamp
+    warnings.extend(f"{key}: receipt refresh unavailable. Last verified evidence retained." for key in failed)
+    return {"schema_version": 2, "accounting_start": ACCOUNTING_START, "status": "UNAVAILABLE" if failed else "PARTIAL",
+            "generated_at": last_success, "last_success_at": last_success, "checked_at": stamp,
+            "treasuries": expected, "scope": scope, "sources": sources, "chain_refresh": refresh,
+            "cursor": {"strategy": "date-bounded-receipts-with-daily-replay", "chains": sources}, "warnings": warnings, "events": rows}
 
 
 def collect_main(dao, output):
@@ -456,7 +485,8 @@ def main():
     for event in data["events"]:
         counts[event["type"]] = counts.get(event["type"], 0) + 1
     print(json.dumps({"events": len(data["events"]), "types": counts, "chains": data["sources"]}))
+    return 2 if args.dao == "neta-operations" and data["status"] == "UNAVAILABLE" else 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

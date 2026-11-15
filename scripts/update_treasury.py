@@ -201,7 +201,7 @@ def snapshot_result(stamp, height, endpoint, price_source, assets, warnings, tre
     return {"schema_version": 1, "status": "LIVE" if not unresolved else "PARTIAL", "generated_at": stamp, "chain_id": "juno-1", "height": height, "treasury_type": treasury_type, "treasury_address": treasury_address, "balance_source": endpoint, "price_source": price_source, "valuation_policy": "LP positions remain visible and are valued exactly once from their proportional underlying reserves.", "total_usd": str(total), "assets": assets, "warnings": warnings}
 
 
-def build_operations(market, price_source, stamp, height, address=TREASURY, cross_chain=True):
+def build_operations(market, price_source, stamp, height, address=TREASURY, cross_chain=True, shared=None):
     bank, endpoint = rest(f"/cosmos/bank/v1beta1/balances/{address}?pagination.limit=1000")
     osmosis_bank, osmosis_endpoint = rest(f"/cosmos/bank/v1beta1/balances/{OSMOSIS_TREASURY}?pagination.limit=1000", OSMOSIS_RESTS) if cross_chain else ({"balances": []}, None)
     warnings = []
@@ -213,7 +213,7 @@ def build_operations(market, price_source, stamp, height, address=TREASURY, cros
         if amount:
             free.append({"type": "token", "key": "cw20:" + contract, "symbol": meta["symbol"], "amount": str(amount), "source_chain": "juno", "custody_address": address, "usd_price": None, "usd_value": None, "change_24h": None})
 
-    pool_states = {}
+    reserves = {} if shared is None else {pair: row["reserves"] for pair, row in shared["pools"].items()}
     for name, lp, pair, stake in POOLS:
         balance, _ = smart(lp, {"balance": {"address": address}})
         staked, _ = smart(stake, {"all_staked": {"address": address}})
@@ -225,8 +225,10 @@ def build_operations(market, price_source, stamp, height, address=TREASURY, cros
         if not lp_raw:
             continue
         token_info, _ = smart(lp, {"token_info": {}})
-        pool, _ = smart(pair, {"pool": {}})
-        supply = int(token_info["total_supply"])
+        if pair not in reserves:
+            reserves[pair], _ = smart(pair, {"pool": {}})
+        pool = reserves[pair]
+        supply = int(pool["total_share"] if shared else token_info["total_supply"])
         underlyings = []
         for asset in pool.get("assets", []):
             key = info_key(asset["info"])
@@ -235,7 +237,6 @@ def build_operations(market, price_source, stamp, height, address=TREASURY, cros
             amount = decimal(raw, meta["decimals"])
             price = market.get(meta.get("coingecko"), {}).get("usd")
             underlyings.append({"key": key, "symbol": meta["symbol"], "amount": str(amount), "usd_price": str(price) if price is not None else None, "usd_value": str(amount * price) if price is not None and amount is not None else None})
-        pool_states[pair] = (pool, underlyings)
         value = sum((Decimal(item["usd_value"]) for item in underlyings if item["usd_value"] is not None), Decimal(0))
         free.append({"type": "lp", "key": "cw20:" + lp, "symbol": name + " LP", "amount": str(decimal(lp_raw, int(token_info.get("decimals", 6)))), "source_chain": "juno", "custody_address": address, "usd_price": None, "usd_value": str(value), "change_24h": None, "pair": pair, "custody": {"direct_raw": str(direct_raw), "staked_raw": str(active_raw), "claims_raw": str(claims_raw)}, "underlyings": underlyings})
 
@@ -246,7 +247,9 @@ def build_operations(market, price_source, stamp, height, address=TREASURY, cros
         if not configured_pool:
             continue
         pair = configured_pool[2]
-        pool, _ = smart(pair, {"pool": {}})
+        if pair not in reserves:
+            reserves[pair], _ = smart(pair, {"pool": {}})
+        pool = reserves[pair]
         amounts = {info_key(asset["info"]): Decimal(asset["amount"]) for asset in pool.get("assets", [])}
         anchor_meta = metadata(anchor_key)
         anchor_raw, token_raw = amounts.get(anchor_key), amounts.get("cw20:" + contract)
@@ -273,6 +276,8 @@ def build_operations(market, price_source, stamp, height, address=TREASURY, cros
             warnings.append(f"{CW20[contract]['symbol']} price unavailable: {pool_name} pool or USD anchor missing")
 
     result = snapshot_result(stamp, height, endpoint, price_source, free, warnings, "dao-and-cross-chain" if cross_chain else "dao-core", address)
+    if shared is not None:
+        result["wynd_market"] = shared
     result["nns_price"] = nns_price
     result["treasury_accounts"] = [{"chain_id": "juno-1", "address": address, "control": "dao-core", "balance_source": endpoint}] + ([{"chain_id": "osmosis-1", "address": OSMOSIS_TREASURY, "control": "polytone-proxy", "balance_source": osmosis_endpoint}] if cross_chain else [])
     return result
@@ -287,7 +292,7 @@ def build_community_pool(market, price_source, stamp, height):
 
 def build(dao_id="neta-operations"):
     stamp = now()
-    height_data, _ = rest("/cosmos/base/tendermint/v1beta1/blocks/latest")
+    height_data, base = rest("/cosmos/base/tendermint/v1beta1/blocks/latest")
     height = int(height_data["block"]["header"]["height"])
     price_ids = [item["coingecko"] for item in [*BASE_ASSETS.values(), *ASSETS.values()] if item.get("coingecko")]
     market, price_source = prices(price_ids)
@@ -299,7 +304,17 @@ def build(dao_id="neta-operations"):
         if config.get("name") != dao["name"]:
             raise RuntimeError("Main DAO identity mismatch")
         return build_operations(market, price_source, stamp, height, dao["core"], False)
-    return build_operations(market, price_source, stamp, height), build_community_pool(market, price_source, stamp, height)
+    from wynd_market import collect
+    infos = {meta['symbol']: {'native': denom} for denom, meta in BUILTIN_ASSETS.items()}
+    infos.update({meta['symbol']: {'token': contract} for contract, meta in CW20.items()})
+    anchors = {denom: str(market[meta['coingecko']]['usd']) for denom, meta in BUILTIN_ASSETS.items()
+               if meta['coingecko'] in market and market[meta['coingecko']]['usd'] > 0}
+    shared = None
+    try:
+        shared = collect(base, height, POOLS, infos, anchors, price_source, stamp, request_json)
+    except (OSError, ValueError, KeyError, TypeError, RuntimeError) as error:
+        print(f'WYND market unavailable: {error}', file=sys.stderr)
+    return build_operations(market, price_source, stamp, height, shared=shared), build_community_pool(market, price_source, stamp, height)
 
 
 def write_snapshot(snapshot, name="current", history_name="history"):

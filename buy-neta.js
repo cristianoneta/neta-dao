@@ -4,12 +4,14 @@ import {
   findPool,
   selectAssets,
   verifyPool,
+  readPoolOverview,
+  OVERVIEW_MAX_AGE,
   reserve,
   poolValuation,
   parseSwapQuote,
   buildSwapTransaction,
   receivedFromEvents
-} from './wynd-swap-core.mjs?v=2';
+} from './wynd-swap-core.mjs?v=3';
 // Adapted from neta-website 7ad0bbf: direct WYND swap, current Cosmoot shell.
 (() => {
   'use strict';
@@ -136,7 +138,9 @@ import {
     const rows = POOLS.map((p) => {
       const state = poolStates.get(p.id);
       const valuation =
-        state?.pool && Date.now() - state.at < 120000 ? poolValuation(p, state.pool, prices) : null;
+        state?.pool && Date.now() - state.at < (state.shared ? OVERVIEW_MAX_AGE : 120000)
+          ? poolValuation(p, state.pool, prices)
+          : null;
       return { p, state, valuation };
     }).sort((a, b) => (b.valuation?.liquidity ?? -1) - (a.valuation?.liquidity ?? -1));
     dom.poolList.replaceChildren(
@@ -164,6 +168,7 @@ import {
             : state?.pool
               ? 'USD unavailable'
               : 'Loading…';
+        if (state?.at) value.title = new Date(state.at).toLocaleString();
         button.append(name, value);
         button.addEventListener('click', () => changePair(p.assets[0], p.assets[1]));
         return button;
@@ -347,6 +352,29 @@ import {
     return { pool: livePool, source: client.preferredEndpoint, at: Date.now() };
   }
 
+  async function loadPools(targets, target) {
+    if (targets.length === 1) return Promise.allSettled([validateContract(target)]);
+    const selectedRead = Promise.allSettled([validateContract(target)]);
+    try {
+      const response = await fetch('/data/treasury/current.json', {
+        signal: AbortSignal.timeout(5000)
+      });
+      if (!response.ok) throw Error('Market overview unavailable');
+      const overview = readPoolOverview(await response.json());
+      const [selectedResult] = await selectedRead;
+      return targets.map((p, i) =>
+        p === target ? selectedResult : { status: 'fulfilled', value: overview[i] }
+      );
+    } catch {
+      const others = await Promise.allSettled(
+        targets.filter((p) => p !== target).map(validateContract)
+      );
+      const [selectedResult] = await selectedRead;
+      let i = 0;
+      return targets.map((p) => (p === target ? selectedResult : others[i++]));
+    }
+  }
+
   async function loadVerifiedMarket(all = false) {
     const revision = ++marketRevision,
       target = selected,
@@ -364,7 +392,7 @@ import {
     try {
       const [marketResult, poolResults] = await Promise.all([
         Promise.allSettled([loadMarket()]),
-        Promise.allSettled(targets.map(validateContract))
+        loadPools(targets, target)
       ]);
       if (revision !== marketRevision || target !== selected) return false;
       poolResults.forEach((r, i) =>
