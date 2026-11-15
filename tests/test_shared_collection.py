@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+from threading import Event
 import unittest
 from unittest.mock import patch
 
@@ -37,15 +38,25 @@ class SharedCollectionTests(unittest.TestCase):
                  'treasuries': [{'chain_id': c['id'], 'address': c['address']} for c in chains],
                  'sources': sources, 'events': existing}
         positions = []
+        persisted = Event()
+        checkpoints = []
         def scan(chain, rows, registry, titles, source):
             positions.append((chain['id'], source['last_scanned_height']))
-            if len(positions) == 2:
+            if chain['id'] == 'osmosis-1' and source['last_scanned_height'] == 22 and len(positions) <= 2:
+                if not persisted.wait(3):
+                    raise AssertionError('Healthy chain was not checkpointed before the slow chain finished')
                 raise RuntimeError('archive unavailable')
             return [r for r in rows if r['chain_id'] == chain['id']], {**source,'last_scanned_height':source['last_scanned_height']+1}
         with tempfile.TemporaryDirectory() as temp, patch.object(events,'collect_receipt_chain',side_effect=scan), patch.object(events,'proposal_titles',return_value={}):
             path = Path(temp)/'events.json'
             path.write_text(json.dumps(prior))
-            first = events.collect(output=path)
+            def checkpoint(data):
+                path.write_text(json.dumps(data))
+                checkpoints.append(json.loads(path.read_text()))
+                persisted.set()
+            first = events.collect(output=path,checkpoint=checkpoint)
+            self.assertEqual(checkpoints[0]['chain_refresh']['osmosis-1']['status'],'pending')
+            self.assertEqual(checkpoints[0]['sources'][0]['last_scanned_height'],23)
             self.assertEqual(first['status'],'UNAVAILABLE')
             self.assertEqual(first['last_success_at'],old)
             self.assertEqual(first['sources'][1],sources[1])
@@ -56,7 +67,7 @@ class SharedCollectionTests(unittest.TestCase):
             second = events.collect(output=path)
             self.assertEqual(second['status'],'PARTIAL')
             self.assertNotEqual(second['last_success_at'],old)
-            self.assertEqual(positions, [('juno-1',22),('osmosis-1',22),('juno-1',23),('osmosis-1',22)])
+            self.assertCountEqual(positions, [('juno-1',22),('osmosis-1',22),('juno-1',23),('osmosis-1',22)])
             path.write_text(json.dumps({**first, 'sources': [*first['sources'], first['sources'][0]]}))
             with self.assertRaisesRegex(ValueError,'Duplicate'):
                 events.collect(output=path)
