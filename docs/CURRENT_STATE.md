@@ -1,5 +1,7 @@
 # Current state — Cosmoot
 
+The Osmosis receipt adapter also supports the Validatus archive. On full RPC replays it checks retained bank transfers preceding the October accounting floor against the address index, transaction bytes and amounts. Verified block times fill missing dates on those retained transfers, which stay outside the October statement. A provider can advance a published cursor only after the floor, prior anchor and replay agree.
+
 ## Shared data collection candidate, 15 November 2026
 
 The Operations receipt collector keeps a separate verified height and success time for each chain. The combined statement stays unavailable during an incomplete refresh. The Osmosis archive RPC adapter checks indexed transaction bytes against their block and replays the stored receipts before a provider switch. Evidence still requires actual provider availability.

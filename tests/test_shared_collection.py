@@ -79,14 +79,38 @@ class SharedCollectionTests(unittest.TestCase):
                     tx_result={'code':0,'events':[]})
         header = dict(height='10',chain_id='osmosis-1',time='2026-11-15T12:00:00Z')
         def get(url, timeout):
+            self.assertTrue(url.startswith(base + '/'))
             if '/tx_search?' in url:
                 return {'result':{'txs':[item],'total_count':'1'}}
             return {'result':{'block':{'header':header, 'data':{'txs':[b64]}}}}
-        receipt = history.search(get, history.OSMOSIS_ARCHIVE_RPC, 'transfer.sender','account',9,11)
-        self.assertEqual(receipt[item['hash'].upper()]['timestamp'],header['time'])
-        for field, value in [('hash', 'A'*64), ('index', -1), ('height','12')]:
-            with self.subTest(field=field), patch.dict(item,{field:value}), self.assertRaises(ValueError):
-                history.search(get, history.OSMOSIS_ARCHIVE_RPC, 'transfer.sender','account',9,11)
+        for base in history.OSMOSIS_ARCHIVE_RPCS:
+            receipt = history.search(get, base, 'transfer.sender', 'account',9,11)
+            self.assertEqual(receipt[item['hash'].upper()]['timestamp'],header['time'])
+            for field, value in [('hash', 'A'*64), ('index', -1), ('height','12')]:
+                with self.subTest(base=base,field=field), patch.dict(item,{field:value}), self.assertRaises(ValueError):
+                    history.search(get, base, 'transfer.sender','account',9,11)
+
+    def test_archive_positive_controls_precede_the_accounting_floor(self):
+        chain = events.CHAINS[1]
+        transfer = {'type':'transfer', 'attributes':[{'key':k,'value':v} for k,v in
+                    [('recipient',chain['address']),('sender','counterparty'),('amount','123uosmo')]]}
+        old = dict(height=5, timestamp=None, movements=events.movements([transfer],{},chain['address']))
+        receipt = dict(code=0, events=[transfer], timestamp='2026-06-28T11:35:10Z')
+        args = history.OSMOSIS_ARCHIVE_RPCS[-1], chain, {}, {'A':old}, 10
+        with patch.object(events,'receipt_search',return_value={'A':receipt}) as call:
+            self.assertEqual(events.verify_archive_controls(*args),{'A':receipt['timestamp']})
+            call.assert_called_once_with(events.request_json,args[0],'transfer.recipient',chain['address'],5,5)
+        for returned in ({},{'A':{**receipt,'events':[]}},{'A':{**receipt,'code':1}}):
+            with patch.object(events,'receipt_search',return_value=returned),self.assertRaises(ValueError):
+                events.verify_archive_controls(*args)
+        with patch.object(events,'receipt_scan',return_value=({}, {'incremental':False,'accounting_boundary':{'height':10}})), \
+             patch.object(events,'receipt_search',return_value={'A':receipt}):
+            saved = {**old, 'tx_hash':'A', 'chain_id':chain['id']}
+            enriched, coverage = events.collect_receipt_chain({**chain,'rests':(args[0],)},[saved],{}, {})
+            self.assertEqual(enriched,[{**saved, 'timestamp':receipt['timestamp'], 'timestamp_status':'confirmed',
+                                        'timestamp_source':args[0]}])
+            self.assertEqual(coverage['pre_period_controls_verified'],1)
+            self.assertIsNone(saved['timestamp'])
 
     def test_only_verified_generation_files_link_and_corruption_is_repaired(self):
         with tempfile.TemporaryDirectory() as tmp:

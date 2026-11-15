@@ -18,9 +18,9 @@ from decimal import Decimal
 from pathlib import Path
 
 try:
-    from treasury_history import ACCOUNTING_START, OSMOSIS_ARCHIVE_RPC, RECEIPT_ADAPTERS, scan as receipt_scan
+    from treasury_history import ACCOUNTING_START, OSMOSIS_ARCHIVE_RPCS, RECEIPT_ADAPTERS, scan as receipt_scan, search as receipt_search
 except ModuleNotFoundError:
-    from scripts.treasury_history import ACCOUNTING_START, OSMOSIS_ARCHIVE_RPC, RECEIPT_ADAPTERS, scan as receipt_scan
+    from scripts.treasury_history import ACCOUNTING_START, OSMOSIS_ARCHIVE_RPCS, RECEIPT_ADAPTERS, scan as receipt_scan, search as receipt_search
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "treasury" / "events.json"
@@ -39,7 +39,7 @@ CHAINS = (
     {
         # Receipt replay verifies the original accounting floor. A pruned node
         # cannot serve that block even when current balances are available.
-        "id": "osmosis-1", "name": "Osmosis", "rests": ("https://lcd.archive.osmosis.zone", "https://osmosis-api.polkachu.com", "https://rest.cosmos.directory/osmosis", OSMOSIS_ARCHIVE_RPC), "address": OSMOSIS_TREASURY, "creation_height": 15_838_602,
+        "id": "osmosis-1", "name": "Osmosis", "rests": ("https://lcd.archive.osmosis.zone", *OSMOSIS_ARCHIVE_RPCS, "https://osmosis-api.polkachu.com", "https://rest.cosmos.directory/osmosis"), "address": OSMOSIS_TREASURY, "creation_height": 15_838_602,
         "rpcs": ("https://osmosis-rpc.publicnode.com", "https://osmosis-rpc.polkachu.com"),
         "explorer_tx": "https://www.mintscan.io/osmosis/tx/{hash}",
         "explorer_account": "https://www.mintscan.io/osmosis/address/{address}", "require_history": False,
@@ -48,6 +48,7 @@ CHAINS = (
 PER_PAGE = 100
 QUERIES = ("wasm._contract_address", "transfer.sender", "transfer.recipient", "coin_spent.spender", "coin_received.receiver", "wasm.sender", "wasm.to")
 COIN = re.compile(r"^(\d+)(.+)$")
+ARCHIVE_HOSTS = {'lcd.archive.osmosis.zone', *(urllib.parse.urlsplit(base).hostname for base in OSMOSIS_ARCHIVE_RPCS)}
 _archive_lock = threading.Lock()
 _archive_next_request = 0.0
 
@@ -59,7 +60,7 @@ def now():
 def request_json(url, timeout=30):
     # The public archive documents 5 requests/second/IP. Share a conservative
     # four-per-second start rate across this collector's concurrent queries.
-    if urllib.parse.urlsplit(url).hostname == 'lcd.archive.osmosis.zone':
+    if urllib.parse.urlsplit(url).hostname in ARCHIVE_HOSTS:
         global _archive_next_request
         with _archive_lock:
             delay = _archive_next_request - time.monotonic()
@@ -321,6 +322,32 @@ def collect_chain(chain, existing, registry, titles, source=None):
     return list(prior.values()), {"chain_id": chain["id"], "address": chain["address"], "source": base, "indexed_transactions": indexed_total, "last_scanned_height": end_height, "anchor_hash": anchor_hash, "scan_start_height": start_height, "incremental": incremental, "range_capable": range_capable, "historical_missing_transactions": historical_missing, "historical_missing_tx_hashes": sorted(unresolved), "contract_creation_height": chain["creation_height"]}
 
 
+def movement_keys(rows):
+    return [tuple(row.get(key) for key in ('direction', 'raw_amount', 'denom', 'counterparty')) for row in rows]
+
+
+def verify_archive_controls(base, chain, registry, prior, floor):
+    """Confirm retained pre-period bank transfers through the same index and its containing blocks."""
+    confirmed_times = {}
+    for digest, old in prior.items():
+        height = int(old['height'])
+        native = [m for m in old.get('movements', []) if not m['denom'].startswith('cw20:')]
+        if height >= floor or not native:
+            continue
+        key = {'out': 'transfer.sender', 'in': 'transfer.recipient'}[native[0]['direction']]
+        receipt = receipt_search(request_json, base, key, chain['address'], height, height).get(digest)
+        if not receipt or int(receipt['code']) != int(old.get('code', 0)):
+            raise ValueError('Archive index lost a retained pre-period transfer')
+        actual = movements(receipt['events'], registry, chain['address'], chain.get('cw20_tokens'))
+        stamp = datetime.fromisoformat(receipt['timestamp'])
+        if (Counter(movement_keys(old['movements'])) != Counter(movement_keys(actual))
+                or stamp >= datetime.fromisoformat(ACCOUNTING_START)
+                or (old.get('timestamp') and datetime.fromisoformat(old['timestamp']) != stamp)):
+            raise ValueError('Archive changed a retained pre-period transfer')
+        confirmed_times[digest] = receipt['timestamp']
+    return confirmed_times
+
+
 def collect_receipt_chain(chain, existing, registry, titles, source=None):
     prior = {row["tx_hash"]: row for row in existing if row.get("chain_id") == chain["id"]
              and row.get('evidence', {}).get('kind') not in ('staking-accrual', 'staking-finalize-block')}
@@ -331,6 +358,16 @@ def collect_receipt_chain(chain, existing, registry, titles, source=None):
             found, coverage = receipt_scan(request_json, base, chain, list(prior.values()), source,
                 full_replay=os.environ.get("TREASURY_EVENTS_FULL_REPLAY") == "1")
             candidate = dict(prior)
+            if base in OSMOSIS_ARCHIVE_RPCS:
+                if not coverage['incremental']:
+                    confirmed = verify_archive_controls(base, chain, registry, prior, coverage['accounting_boundary']['height'])
+                    coverage['pre_period_controls_verified'] = len(confirmed)
+                    for digest, stamp in confirmed.items():
+                        if not prior[digest].get('timestamp'):
+                            candidate[digest] = {**prior[digest], 'timestamp': stamp, 'timestamp_status': 'confirmed',
+                                                 'timestamp_source': base}
+                elif source and 'pre_period_controls_verified' in source:
+                    coverage['pre_period_controls_verified'] = source['pre_period_controls_verified']
             for digest, receipt in found.items():
                 if datetime.fromisoformat(receipt['timestamp'].replace('Z', '+00:00')) < datetime.fromisoformat(ACCOUNTING_START.replace('Z', '+00:00')):
                     continue
@@ -358,9 +395,8 @@ def collect_receipt_chain(chain, existing, registry, titles, source=None):
                     if not row.get('proposal_title'):
                         row['proposal_title'] = old.get('proposal_title')
                     # Source/enrichment may improve; money and timestamp may not change silently.
-                    fields = ('direction', 'raw_amount', 'denom', 'counterparty')
-                    old_moves = [tuple(m.get(k) for k in fields) for m in old.get('movements', [])]
-                    new_moves = [tuple(m.get(k) for k in fields) for m in row['movements']]
+                    old_moves = movement_keys(old.get('movements', []))
+                    new_moves = movement_keys(row['movements'])
                     migration_additions = (source or {}).get('adapter') not in RECEIPT_ADAPTERS and not (Counter(old_moves) - Counter(new_moves))
                     if (old_moves != new_moves and not migration_additions) or (old.get('timestamp') and datetime.fromisoformat(old['timestamp'].replace('Z', '+00:00')) != datetime.fromisoformat(row['timestamp'].replace('Z', '+00:00'))):
                         raise ValueError('Previously recorded movement changed')
