@@ -1,5 +1,7 @@
 # Cosmoot public development handoff
 
+On 18 November, the collector installation completed and published staking coverage through 17 November with both payout controls verified. Operations refreshed both chains. WYND queries still received HTTP 403: the public LCD rejects urllib's default client identity. The targeted source correction uses the existing Treasury client identity and retains all height and pool checks. Host installation of this correction and an unchanged external freshness check remain pending; no website release is required for this transport fix.
+
 The November 15 collector changes and acceptance boundaries are described in [Current state](docs/CURRENT_STATE.md). The host journal records publication byte counts after installation. The external freshness check also reads the legacy site's published economic ranking, map and recovery observations.
 
 Updated 5 November 2026. Read [CURRENT_STATE](docs/CURRENT_STATE.md) for the single

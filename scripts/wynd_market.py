@@ -11,7 +11,9 @@ from treasury_history import block, instant
 
 
 def pinned(base, path, height):
-    req = Request(base + path, headers={'x-cosmos-block-height': str(height), 'Accept': 'application/json'})
+    # Match the Treasury reader: some public LCDs reject urllib's default agent.
+    req = Request(base + path, headers={'x-cosmos-block-height': str(height),
+        'Accept': 'application/json', 'User-Agent': 'NETA-DAO-Treasury/1.0'})
     with urlopen(req, timeout=5) as response:
         if response.headers.get('x-cosmos-block-height') != str(height):
             raise ValueError('Unconfirmed WYND query height')

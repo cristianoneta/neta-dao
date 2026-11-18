@@ -1,15 +1,17 @@
 import base64
 from datetime import datetime, timezone
 import hashlib
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import importlib.util
 import json
 import os
 from pathlib import Path
 import sys
 import tempfile
-from threading import Event
+from threading import Event, Thread
 import unittest
 from unittest.mock import patch
+from urllib.error import HTTPError
 
 SCRIPTS = Path(__file__).resolve().parents[1] / 'scripts'
 sys.path.insert(0, str(SCRIPTS))
@@ -25,6 +27,43 @@ spec.loader.exec_module(publisher)
 
 
 class SharedCollectionTests(unittest.TestCase):
+    def test_market_http_identification_keeps_height_and_error_checks(self):
+        observed = []
+        class Provider(BaseHTTPRequestHandler):
+            response_height = '72'
+            status = 200
+            def log_message(self, *args):
+                pass
+            def do_GET(self):
+                observed.append((self.path, self.headers.get('x-cosmos-block-height'),
+                                 self.headers.get('Accept')))
+                status = self.status if self.headers.get('User-Agent') == 'NETA-DAO-Treasury/1.0' else 403
+                self.send_response(status)
+                if self.response_height is not None:
+                    self.send_header('x-cosmos-block-height', self.response_height)
+                self.end_headers()
+                self.wfile.write(b'{"data":{"total_share":"42"}}')
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Provider)
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            base = 'http://127.0.0.1:' + str(server.server_port)
+            path = '/cosmwasm/wasm/v1/contract/pair/smart/query'
+            self.assertEqual(wynd_market.pinned(base, path, 72), {'data': {'total_share': '42'}})
+            for height in ('71', None):
+                Provider.response_height = height
+                with self.subTest(response_height=height), self.assertRaisesRegex(ValueError, 'Unconfirmed WYND query height'):
+                    wynd_market.pinned(base, path, 72)
+            Provider.response_height, Provider.status = '72', 403
+            with self.assertRaises(HTTPError) as failed:
+                wynd_market.pinned(base, path, 72)
+            self.assertEqual(failed.exception.code, 403)
+            self.assertEqual(observed, [(path, '72', 'application/json')] * 4)
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+
     def test_independent_progress_retains_failed_chain_and_retries_its_own_cursor(self):
         old = '2026-11-14T01:15:19Z'
         chains = events.CHAINS

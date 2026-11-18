@@ -1,5 +1,11 @@
 # Current state — Cosmoot
 
+## Treasury collection checkpoint, 18 November 2026
+
+The November collector package is installed. Published staking accrual is current through 17 November, with the 1 and 13 November payout controls verified. Both Operations chains refreshed successfully and retained all 57 receipts; the statement remains explicitly partial where historical evidence or classification is incomplete.
+
+The remaining shared WYND observation is blocked by HTTP 403. Matching requests to the selected public LCD return 403 with `Python-urllib/3.12` and 200 with the existing Treasury identity `NETA-DAO-Treasury/1.0`. The pinned WYND client now sends that same application identity. Its height header, eight-pool validation, block anchoring and freshness limits are unchanged. A local HTTP regression reproduces the old failure, verifies the corrected request, and rejects absent/wrong response heights and a real 403. The targeted server correction and subsequent public freshness acceptance are still pending.
+
 The Osmosis receipt adapter also supports the Validatus archive. On full RPC replays it checks retained bank transfers preceding the October accounting floor against the address index, transaction bytes and amounts. Verified block times fill missing dates on those retained transfers, which stay outside the October statement. A provider can advance a published cursor only after the floor, prior anchor and replay agree.
 
 ## Shared data collection candidate, 15 November 2026
