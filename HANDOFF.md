@@ -1,6 +1,6 @@
 # Cosmoot public development handoff
 
-On 18 November, the collector installation completed and published staking coverage through 17 November with both payout controls verified. Operations refreshed both chains. WYND queries still received HTTP 403: the public LCD rejects urllib's default client identity. The targeted source correction uses the existing Treasury client identity and retains all height and pool checks. Host installation of this correction and an unchanged external freshness check remain pending; no website release is required for this transport fix.
+On 18 November, the collector installation completed and published staking coverage through 17 November with both payout controls verified. Operations refreshed both chains. After the targeted HTTP identity correction in PR #347, the public Treasury observation contains all eight WYND pools at its matching block height. The unchanged external freshness check passed all 50 observations across the three Cosmoot endpoints and the legacy NETA site at 20:22 UTC ([successful rerun](https://github.com/cristianoneta/neta-dao/actions/runs/44377522930)). Freshness limits and alerting remain enabled; the next unattended timer cycle is separate from this acceptance run.
 
 The November 15 collector changes and acceptance boundaries are described in [Current state](docs/CURRENT_STATE.md). The host journal records publication byte counts after installation. The external freshness check also reads the legacy site's published economic ranking, map and recovery observations.
 
