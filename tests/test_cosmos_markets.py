@@ -5,8 +5,8 @@ import sys
 import tempfile
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
-from collect_cosmos_markets import sample,validate,valid_supply,publish
-from collect_neta_market import database,record
+from collect_cosmos_markets import sample,validate,valid_supply,publish,record
+from collect_neta_market import database
 NOW=1800000000
 from datetime import datetime,timezone
 def iso(t):return datetime.fromtimestamp(t,timezone.utc).isoformat()
@@ -55,4 +55,38 @@ class Tests(unittest.TestCase):
    h=json.loads((path/'public/1d.json').read_text());self.assertEqual(h['points'][0]['supply_reference_at'],iso(NOW-400000));self.assertEqual(h['token'],SPEC['denom'])
    f=next((path/'archive').glob('*.gz'));a=json.loads(gzip.decompress(f.read_bytes()));self.assertEqual(a['observations'][0]['height'],100)
    self.assertIsNone(out['change_24h_pct']);db.close()
+class ExternalTests(unittest.TestCase):
+ def setUp(self):
+  self.spec={'chain':'ethereum','denom':'LINK','pool':'coingecko:chainlink','referenceKind':'external-reference','priceId':'chainlink','supplyKind':'erc20','decimals':18}
+  self.current={'time':NOW,'observed_at':iso(NOW),'price_observed_at':iso(NOW-20),'reference_kind':'external-reference','price_quote':12,'price_usd':12,'quote_symbol':'USD','height':None,'block_hash':None,'block_time':None,'liquidity_usd':None,'reserve_token':None,'price_source':{'provider':'coingecko','asset_id':'chainlink','currency':'usd','observed_at':iso(NOW-20)}}
+  self.raw={'schema_version':1,'chain_id':'ethereum','token':'LINK','pool':'coingecko:chainlink','current':self.current}
+ def test_external_accepts_provider_evidence_without_fake_block(self):
+  c=validate(self.raw,self.spec,NOW);self.assertIsNone(c['height']);self.assertEqual(c['price_usd'],12)
+  with tempfile.TemporaryDirectory() as tmp:
+   p=Path(tmp);db=database(p/'x.sqlite3');self.assertTrue(record(db,c));self.assertFalse(record(db,c));self.assertTrue(record(db,dict(c,time=NOW+60,observed_at=iso(NOW+60))));publish(db,self.spec,p/'out',p/'archive',NOW)
+   h=json.loads((p/'out/1d.json').read_text());self.assertEqual(h['points'][0]['kind'],'external-reference');db.close()
+ def test_external_rejects_fake_blocks_wrong_token_and_stale_price(self):
+  patches=[{'height':100},{'liquidity_usd':100},{'usd_anchor':{'price':1}},{'price_quote':13},{'price_source':dict(self.current['price_source'],asset_id='uniswap')},{'price_source':dict(self.current['price_source'],observed_at=iso(NOW-1801)),'price_observed_at':iso(NOW-1801)}]
+  for patch in patches:
+   with self.assertRaises(ValueError):validate(dict(self.raw,current=dict(self.current,**patch)),self.spec,NOW)
+ def test_external_price_regression_never_overwrites_history(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   db=database(Path(tmp)/'prices.sqlite3');record(db,self.current)
+   with self.assertRaises(ValueError):record(db,dict(self.current,time=NOW+60,price_usd=13))
+   with self.assertRaises(ValueError):record(db,dict(self.current,time=NOW+60,price_source=dict(self.current['price_source'],observed_at=iso(NOW-40))))
+   self.assertEqual(db.execute('SELECT COUNT(*) FROM samples').fetchone()[0],1);db.close()
+ def test_external_supply_uses_origin_evidence_and_exact_raw_amount(self):
+  v={'denom':'LINK','chain_id':'ethereum','height':100,'block_hash':'a'*64,'block_time':iso(NOW-900),'observed_at':iso(NOW),'total_supply':1e9,'issued_supply_raw':str(10**27),'burned_supply_raw':'0','total_supply_raw':str(10**27),'burn_address':None}
+  self.assertTrue(valid_supply(v,self.spec,NOW));self.assertFalse(valid_supply(dict(v,total_supply_raw=str(10**26)),self.spec,NOW));self.assertFalse(valid_supply(dict(v,burned_supply_raw='1'),self.spec,NOW))
+ def test_uni_burn_reference_validates_exact_net_supply(self):
+  spec=dict(self.spec,denom='UNI',burnAddress='0xdead');burned=114433581213802937903387397;total=10**27-burned
+  v={'denom':'UNI','chain_id':'ethereum','height':100,'block_hash':'a'*64,'block_time':iso(NOW-900),'observed_at':iso(NOW),'total_supply':float(total/10**18),'issued_supply_raw':str(10**27),'burned_supply_raw':str(burned),'total_supply_raw':str(total),'burn_address':'0xdead'}
+  self.assertTrue(valid_supply(v,spec,NOW));self.assertFalse(valid_supply(dict(v,burn_address='another'),spec,NOW))
+ def test_sol_supply_uses_finalized_slot_and_genesis_not_cosmos_height(self):
+  spec={'chain':'solana-mainnet-beta','denom':'sol','supplyKind':'solana','genesisHash':'expected','decimals':9}
+  v={'denom':'sol','chain_id':spec['chain'],'genesis_hash':'expected','slot':123,'total_supply_raw':'637981533195550360','total_supply':637981533.1955504,'observed_at':iso(NOW),'block_time':iso(NOW-10)}
+  self.assertTrue(valid_supply(v,spec,NOW));self.assertFalse(valid_supply(dict(v,height=123),spec,NOW));self.assertFalse(valid_supply(dict(v,genesis_hash='other'),spec,NOW));self.assertFalse(valid_supply(dict(v,total_supply=1),spec,NOW))
+ def test_existing_pool_spec_cannot_use_external_path(self):
+  with self.assertRaises(ValueError):validate(dict(self.raw,chain_id=SPEC['chain'],token=SPEC['denom'],pool=SPEC['pool']),SPEC,NOW)
+
 if __name__=='__main__':unittest.main()

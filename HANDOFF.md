@@ -2,13 +2,9 @@
 
 ## Interchain Markets expansion — 21 November 2026
 
-The public Markets site now lists TIA and INJ alongside the existing ten assets; AKT was removed at the owner’s request.
-The collector configuration prepares their Osmosis references (3539, 3536)
-and native total-supply sources. The operator explicitly deferred activation of
-these two archives until returning. The existing nine-asset installation and a
-later automatic observation were confirmed; its post-archive backup acceptance
-remains open. This source update does not activate host services. See
-[Interchain Markets](docs/INTERCHAIN_MARKETS.md) for source identities and rollout boundaries.
+The Markets expansion includes TIA, INJ, AXL, LINK, SOL, BABY and UNI alongside the original ten assets; AKT is excluded at the owner’s request.
+Cosmos pool liquidity is separate from external USD price references and Injective orderbook depth. The price collector now validates explicitly identified external references without inventing chain blocks, and retains native-chain supply evidence, including finalized Solana slots and the UNI burn-address adjustment.
+The operator deferred activation of the seven additional archives. The original nine-asset archive installation and a later automatic observation were confirmed; its post-archive backup acceptance remains open. This source update does not activate services. See [Interchain Markets](docs/INTERCHAIN_MARKETS.md) for identities and rollout boundaries.
 
 
 ## NETA pool coverage and swap volume — prepared, 21 November 2026

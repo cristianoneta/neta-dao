@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Archive bounded public pool observations. No wallets or Treasury writes."""
+"""Archive bounded public pool and external-price observations. No wallets or Treasury writes."""
 from __future__ import annotations
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import fcntl
 import gzip
 import json
@@ -13,7 +13,7 @@ import re
 import sys
 import time
 from urllib.request import Request, urlopen
-from collect_neta_market import atomic, database, encoded, record, rows
+from collect_neta_market import atomic, database, encoded, record as record_pool, rows
 
 ORIGIN = 'https://markets.cosmoot.com'
 CONFIG = Path(__file__).with_name('cosmos_market_sources.json')
@@ -46,6 +46,19 @@ def validate(raw, spec, now):
     if raw.get('schema_version') != 1 or raw.get('chain_id') != spec['chain'] or raw.get('token') != spec['denom'] or str(raw.get('pool')) != spec['pool']:
         raise ValueError('Market identity mismatch')
     c = raw['current']
+    if spec.get('referenceKind') == 'external-reference':
+        source = c.get('price_source') or {}
+        if (c.get('reference_kind') != 'external-reference' or source.get('provider') != 'coingecko'
+                or source.get('asset_id') != spec['priceId'] or source.get('currency') != 'usd'
+                or c.get('price_observed_at') != source.get('observed_at')
+                or not -60 <= now - stamp(source['observed_at']) <= 1800
+                or not -60 <= now - stamp(c['observed_at']) <= 180
+                or c.get('time') != int(stamp(c['observed_at']))
+                or not positive(c.get('price_usd')) or c.get('price_quote') != c['price_usd']
+                or c.get('quote_symbol') != 'USD'
+                or any(c.get(k) is not None for k in ('height', 'block_hash', 'block_time', 'liquidity_usd', 'reserve_token', 'usd_anchor'))):
+            raise ValueError('Invalid external price evidence')
+        return dict(c)
     if not isinstance(c.get('height'), int) or c['height'] <= 0 or not re.fullmatch('[a-fA-F0-9]{64}', c.get('block_hash', '')):
         raise ValueError('Invalid block evidence')
     if not -60 <= now - stamp(c['block_time']) <= 180 or not -60 <= now - stamp(c['observed_at']) <= 180:
@@ -67,10 +80,26 @@ def valid_supply(value, spec, now):
         return False
     interval = spec.get('supplyInterval') or (300 if spec.get('alloyContract') else 604800)
     try:
-        return (value['denom'] == spec.get('supplyDenom', spec['denom']) and positive(value['total_supply'])
-                and (isinstance(value.get('height'), int) and value['height'] > 0 or spec['chain'] == 'gnoland-1' and value.get('state_query') == 'latest-state-unpinned')
-                and -60 <= now - stamp(value['observed_at']) <= interval)
-    except (KeyError, ValueError, TypeError):
+        if (value['denom'] != spec.get('supplyDenom', spec['denom']) or not positive(value['total_supply'])
+                or not -60 <= now - stamp(value['observed_at']) <= interval):
+            return False
+        if spec.get('supplyKind') == 'solana':
+            return (value.get('chain_id') == spec['chain'] and value.get('genesis_hash') == spec['genesisHash']
+                    and type(value.get('slot')) is int and value['slot'] > 0 and value.get('height') is None
+                    and re.fullmatch(r'[0-9]+', value.get('total_supply_raw', '')) is not None
+                    and abs(Decimal(str(value['total_supply'])) / (Decimal(value['total_supply_raw']) / Decimal(10)**spec['decimals']) - 1) < Decimal('0.000000001')
+                    and -60 <= stamp(value['observed_at']) - stamp(value['block_time']) <= 180)
+        if spec.get('supplyKind') == 'erc20':
+            issued, burned, total = (Decimal(value[k]) for k in ('issued_supply_raw', 'burned_supply_raw', 'total_supply_raw'))
+            return (value.get('chain_id') == 'ethereum' and type(value.get('height')) is int and value['height'] > 0
+                    and re.fullmatch('[a-fA-F0-9]{64}', value.get('block_hash', '')) is not None
+                    and issued > 0 and 0 <= burned < issued and issued - burned == total
+                    and value.get('burn_address') == spec.get('burnAddress') and (spec.get('burnAddress') or burned == 0)
+                    and abs(Decimal(str(value['total_supply'])) / (total / Decimal(10)**spec['decimals']) - 1) < Decimal('0.000000001')
+                    and -60 <= stamp(value['observed_at']) - stamp(value['block_time']) <= 1800)
+        return (type(value.get('height')) is int and value['height'] > 0
+                or spec['chain'] == 'gnoland-1' and value.get('state_query') == 'latest-state-unpinned')
+    except (KeyError, ValueError, TypeError, InvalidOperation, ZeroDivisionError):
         return False
 
 
@@ -92,6 +121,29 @@ def sample(slug, spec, previous=None, now=None, fetch=read):
     current['supply_reference_at'] = supply['observed_at'] if supply else None
     current['source_label'] = raw.get('source_label')
     return current
+
+
+def record(db, observation):
+    if observation.get('reference_kind') != 'external-reference':
+        return record_pool(db, observation)
+    # External observations have provider timestamps, never synthetic block heights.
+    previous = db.execute('SELECT payload FROM samples ORDER BY minute DESC LIMIT 1').fetchone()
+    if previous:
+        old = json.loads(previous[0])
+        source, prior = observation['price_source'], old['price_source']
+        at, before = stamp(source['observed_at']), stamp(prior['observed_at'])
+        if (observation['time'] < old['time'] or at < before
+                or any(source[k] != prior[k] for k in ('provider', 'asset_id', 'currency'))
+                or at == before and observation['price_usd'] != old['price_usd']):
+            raise ValueError('External price evidence regressed or conflicted')
+    with db:
+        result = db.execute('INSERT OR IGNORE INTO samples VALUES (?,?,?)',
+                            (observation['time'] // 60, observation['time'], encoded(observation).decode()))
+        if result.rowcount:
+            for interval in (900, 86400):
+                db.execute('INSERT INTO aggregates VALUES (?,?,?,?) ON CONFLICT(resolution,bucket) DO UPDATE SET time=excluded.time,payload=excluded.payload WHERE excluded.time>aggregates.time',
+                           (interval, observation['time'] // interval, observation['time'], encoded(observation).decode()))
+    return result.rowcount == 1
 
 
 def publish(db, spec, destination, archive, now):
@@ -170,7 +222,7 @@ def main():
             for slug in observed:
                 with database(state / (slug + '.sqlite3')) as db:
                     publish(db, specs[slug], output / slug, archive / slug, now)
-    result = {'ok': not errors, 'probe': args.probe, 'observations': {slug: {'height': o['height'], 'time': o['time'],
+    result = {'ok': not errors, 'probe': args.probe, 'observations': {slug: {'height': o.get('height'), 'reference_kind': o.get('reference_kind', 'chain-reference'), 'time': o['time'],
               'price_usd': o.get('price_usd'), 'supply_at': (o.get('supply_observation') or {}).get('observed_at')} for slug, o in observed.items()}, 'errors': errors}
     print(json.dumps(result))
     if errors:
