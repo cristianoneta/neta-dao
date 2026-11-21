@@ -135,6 +135,12 @@ def database(path):
     db.execute('PRAGMA synchronous=FULL')
     db.execute('CREATE TABLE IF NOT EXISTS samples (minute INTEGER PRIMARY KEY, time INTEGER NOT NULL, payload TEXT NOT NULL)')
     db.execute('CREATE TABLE IF NOT EXISTS legacy (time INTEGER PRIMARY KEY, payload TEXT NOT NULL)')
+    db.execute('CREATE TABLE IF NOT EXISTS aggregates (resolution INTEGER NOT NULL, bucket INTEGER NOT NULL, time INTEGER NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(resolution,bucket))')
+    if not db.execute('SELECT 1 FROM aggregates LIMIT 1').fetchone():
+        for interval in (900, 86400):
+            db.execute('INSERT OR IGNORE INTO aggregates SELECT ?, time / ?, time, payload FROM samples WHERE minute IN (SELECT MAX(minute) FROM samples GROUP BY minute / ?)',
+                       (interval, interval, interval // 60))
+        db.commit()
     db.execute('PRAGMA user_version=1')
     return db
 
@@ -150,6 +156,10 @@ def record(db, observation):
     with db:
         result = db.execute('INSERT OR IGNORE INTO samples VALUES (?,?,?)',
                             (observation['time'] // 60, observation['time'], encoded(observation).decode()))
+        if result.rowcount:
+            for interval in (900, 86400):
+                db.execute('INSERT INTO aggregates VALUES (?,?,?,?) ON CONFLICT(resolution,bucket) DO UPDATE SET time=excluded.time,payload=excluded.payload WHERE excluded.time>aggregates.time',
+                           (interval, observation['time'] // interval, observation['time'], encoded(observation).decode()))
     return result.rowcount == 1
 
 
@@ -166,7 +176,7 @@ def import_legacy(db, history):
                     continue
                 asset = next(a for a in row['assets'] if a.get('key') == 'cw20:' + NETA)
                 usd = positive(asset['usd_price'])
-                juno_asset = next((a for a in row['assets'] if a.get('symbol') == 'JUNO' and a.get('key') == 'native:ujuno'), None)
+                juno_asset = next((a for a in row['assets'] if a.get('symbol') == 'JUNO' and a.get('key') == 'juno:native:ujuno'), None)
                 juno = str(usd / positive(juno_asset['usd_price'])) if juno_asset and juno_asset.get('usd_price') else None
                 value = {'time': int(date.timestamp()), 'price_usd': str(usd), 'price_juno': juno,
                          'source': 'historical-treasury-reference', 'height': row.get('height')}
@@ -176,15 +186,18 @@ def import_legacy(db, history):
 
 
 def rows(db, start=0):
-    return [json.loads(r[0]) for r in db.execute('SELECT payload FROM samples WHERE time>=? ORDER BY minute', (start,))]
+    return [json.loads(r[0]) for r in db.execute('SELECT payload FROM samples WHERE minute>=? AND time>=? ORDER BY minute', (start // 60, start))]
 
 
 def series(db, interval, start, now):
-    observations = rows(db, start)
-    if interval >= 3600:
-        # Last observed reference in each bucket, never invented trade OHLC.
-        buckets = {o['time'] // interval: o for o in observations}
-        observations = list(buckets.values())
+    if interval >= 900:
+        # Incremental aggregates avoid loading a growing minute archive for
+        # every publication. Long views read hundreds of daily rows, not years
+        # of individual samples. These are reference prices, never trade OHLC.
+        observations = [json.loads(r[0]) for r in db.execute('SELECT payload FROM aggregates WHERE resolution=? AND bucket>=? AND time>=? ORDER BY bucket',
+                        (interval, start // interval, start))]
+    else:
+        observations = rows(db, start)
     result = [{'time': o['time'], 'usd': o['price_usd'], 'juno': o['price_juno'], 'kind': 'pool-observation'} for o in observations]
     if interval >= 86400:
         first_day = observations[0]['time'] // 86400 if observations else now // 86400 + 1
@@ -198,9 +211,9 @@ def series(db, interval, start, now):
 def publish(db, destination, archive, now=None):
     now = int(time.time()) if now is None else now
     current = json.loads(db.execute('SELECT payload FROM samples ORDER BY minute DESC LIMIT 1').fetchone()[0])
-    first = db.execute('SELECT MIN(time) FROM samples').fetchone()[0]
-    previous = db.execute('SELECT payload FROM samples WHERE time<=? AND time>=? ORDER BY minute DESC LIMIT 1',
-                          (current['time'] - 86400, current['time'] - 86700)).fetchone()
+    first = db.execute('SELECT time FROM samples ORDER BY minute LIMIT 1').fetchone()[0]
+    previous = db.execute('SELECT payload FROM samples WHERE minute>=? AND minute<=? AND time<=? ORDER BY minute DESC LIMIT 1',
+                          ((current['time'] - 86700) // 60, (current['time'] - 86400) // 60, current['time'] - 86400)).fetchone()
     change = None
     if previous:
         old = json.loads(previous[0])

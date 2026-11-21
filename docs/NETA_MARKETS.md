@@ -28,7 +28,8 @@ it does not restart, reschedule or run other collectors.
 The publisher writes six explicitly public JSON files under `/data/markets/neta/`:
 current, 1d, 7d, 1m, 3m and all. Short history uses minute observations; the weekly
 view uses the last observed reference per 15-minute interval; longer views use
-the last observed daily reference. These are not executed trades, trade volume
+the last observed daily reference. Incremental aggregates keep long views from
+reloading the complete minute archive on each publication. These are not executed trades, trade volume
 or trade OHLC candles. Daily Treasury reference prices before the first collector
 day remain separately identified and lack the newer per-price evidence.
 
@@ -56,7 +57,7 @@ total-supply valuation, not circulating market capitalization.
 ## Validation and activation
 
 Targeted tests cover exact pool normalization, supply decimals, rejected stale USD
-and block observations, block disagreement, idempotency, null prices, archive
+and block observations, block disagreement, idempotency, chain-qualified historical JUNO pricing, regressed block rejection, null prices, archive
 roundtrip and separation of historical daily records. A read-only live probe on
 21 November accepted Juno height 43,967,582 and the 31,886.6 NETA supply; it made
 eight requests including failover and received 28,955 response bytes. That probe

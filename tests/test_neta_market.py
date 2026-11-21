@@ -60,4 +60,27 @@ class MarketTests(unittest.TestCase):
    self.assertEqual(m.series(db,60,0,NOW)['points'],[])
    self.assertIsNone(m.series(db,86400,0,NOW)['points'][0]['juno'])
    db.close()
+ def test_chain_qualified_juno_reference(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   db=m.database(Path(tmp)/'neta.sqlite3')
+   history={'chain_id':'juno-1','snapshots':[{'generated_at':'2026-10-03T18:00:00Z','height':1,'assets':[{'key':'cw20:'+m.NETA,'usd_price':'2'},{'key':'juno:native:ujuno','symbol':'JUNO','usd_price':'0.005'}]}]}
+   m.import_legacy(db,history)
+   self.assertEqual(m.series(db,86400,0,NOW)['points'][0]['juno'],'4E+2')
+   db.close()
+ def test_regressed_block_does_not_enter_history(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   db=m.database(Path(tmp)/'neta.sqlite3');m.record(db,self.observation())
+   older={**self.observation(NOW+60),'height':122}
+   with self.assertRaisesRegex(ValueError,'regressed'):m.record(db,older)
+   self.assertEqual(len(m.rows(db)),1);db.close()
+ def test_long_views_read_incremental_aggregates(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   db=m.database(Path(tmp)/'neta.sqlite3')
+   for i in range(100):m.record(db,self.observation(NOW+i*60,str(2+i/100)))
+   with patch.object(m,'rows',side_effect=AssertionError('Long views must not read raw minute history')):
+    daily=m.series(db,86400,0,NOW+6000)
+    weekly=m.series(db,900,NOW-86400,NOW+6000)
+   self.assertEqual(len(daily['points']),1)
+   self.assertEqual(daily['points'][0]['usd'],'2.99')
+   self.assertLess(len(weekly['points']),10);db.close()
 if __name__=='__main__':unittest.main()
