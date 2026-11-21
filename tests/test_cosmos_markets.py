@@ -36,6 +36,11 @@ class Tests(unittest.TestCase):
  def test_native_and_alloy_supply_expiries(self):
   self.assertTrue(valid_supply(supply(NOW-500),SPEC,NOW))
   self.assertFalse(valid_supply(supply(NOW-500),dict(SPEC,alloyContract='contract'),NOW))
+ def test_gns_daily_supply_expires_without_using_maximum_supply(self):
+  spec={'chain':'gnoland-1','denom':'gno.land/r/gnoswap/gns.GNS','supplyInterval':86400}
+  value=dict(supply(NOW-86400),denom=spec['denom'],total_supply=140774677.816237,height=None,state_query='latest-state-unpinned')
+  self.assertTrue(valid_supply(value,spec,NOW));self.assertFalse(valid_supply(value,spec,NOW+1))
+  self.assertFalse(valid_supply(dict(value,denom='ugnot'),spec,NOW))
  def test_gno_supply_never_invents_height(self):
   g=dict(supply(),denom='ugnot',height=None,state_query='latest-state-unpinned')
   self.assertTrue(valid_supply(g,{'chain':'gnoland-1','denom':'ugnot'},NOW))

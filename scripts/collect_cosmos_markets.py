@@ -65,7 +65,7 @@ def validate(raw, spec, now):
 def valid_supply(value, spec, now):
     if not isinstance(value, dict):
         return False
-    interval = 300 if spec.get('alloyContract') else 604800
+    interval = spec.get('supplyInterval') or (300 if spec.get('alloyContract') else 604800)
     try:
         return (value['denom'] == spec.get('supplyDenom', spec['denom']) and positive(value['total_supply'])
                 and (isinstance(value.get('height'), int) and value['height'] > 0 or spec['chain'] == 'gnoland-1' and value.get('state_query') == 'latest-state-unpinned')
@@ -88,7 +88,7 @@ def sample(slug, spec, previous=None, now=None, fetch=read):
         supply = None
     current['total_supply'] = supply['total_supply'] if supply else None
     current['supply_observation'] = supply
-    current['supply_basis'] = ('dated-reference' if spec.get('alloyContract') else 'weekly-reference') if supply else 'unavailable'
+    current['supply_basis'] = ('dated-reference' if spec.get('alloyContract') or spec.get('supplyInterval') else 'weekly-reference') if supply else 'unavailable'
     current['supply_reference_at'] = supply['observed_at'] if supply else None
     current['source_label'] = raw.get('source_label')
     return current

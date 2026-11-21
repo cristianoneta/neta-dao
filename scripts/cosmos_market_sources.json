@@ -69,6 +69,15 @@
     "supplyDenom": "uphoton",
     "supplyBase": "https://atomone-api.allinbits.com"
   },
+  "gns": {
+    "supplyInterval": 86400,
+    "symbol": "GNS",
+    "denom": "gno.land/r/gnoswap/gns.GNS",
+    "decimals": 6,
+    "pool": "gnoswap-oracle",
+    "chain": "gnoland-1",
+    "referenceKind": "provider-reference"
+  },
   "gnot": {
     "symbol": "GNOT",
     "denom": "ugnot",
