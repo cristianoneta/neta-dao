@@ -111,19 +111,6 @@
     "supplyBase": "https://celestia-api.polkachu.com",
     "supplyChain": "celestia"
   },
-  "akt": {
-    "symbol": "AKT",
-    "denom": "ibc/1480B8FD20AD5FCAE81EA87584D269547DD4D436843C1D20F15E00EB64743EF4",
-    "decimals": 6,
-    "pool": "3509",
-    "quote": "factory/osmo147h5x9pcj7lm0cttlaefx6sqq5vdfnmwfcqxkmjd7exqm9gc7grqhr75m0/alloyed/allUSDC",
-    "quoteDecimals": 6,
-    "quoteSymbol": "allUSDC",
-    "chain": "osmosis-1",
-    "supplyDenom": "uakt",
-    "supplyBase": "https://akash-api.polkachu.com",
-    "supplyChain": "akashnet-2"
-  },
   "inj": {
     "symbol": "INJ",
     "denom": "ibc/64BA6E31FE887D66C6F8F31C7B1A80C7CA179239677B4088BB55F5EA07DBE273",

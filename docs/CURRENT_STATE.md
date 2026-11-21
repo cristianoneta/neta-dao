@@ -2,10 +2,10 @@
 
 ## Interchain Markets expansion — 21 November 2026
 
-The public Markets site now lists TIA, AKT and INJ alongside the existing ten assets.
-The collector configuration prepares their Osmosis references (3539, 3509, 3536)
+The public Markets site now lists TIA and INJ alongside the existing ten assets; AKT was removed at the owner’s request.
+The collector configuration prepares their Osmosis references (3539, 3536)
 and native total-supply sources. The operator explicitly deferred activation of
-these three archives until returning. The existing nine-asset installation and a
+these two archives until returning. The existing nine-asset installation and a
 later automatic observation were confirmed; its post-archive backup acceptance
 remains open. This source update does not activate host services. See
 [Interchain Markets](INTERCHAIN_MARKETS.md) for source identities and rollout boundaries.

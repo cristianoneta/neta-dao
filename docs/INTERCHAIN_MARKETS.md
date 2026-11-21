@@ -11,18 +11,17 @@ The native weekly snapshot is an explicit approximation for valuation, not a con
 Validation: eight collector tests cover dated supply reuse, expiry, unavailable supply, wrong identities and USD conversion, GNOT unpinned supply, and first-observation persistence. A public endpoint probe must pass before installation. Later automatic observations and the next encrypted archive backup still require operational acceptance.
 
 
-## TIA, AKT and INJ: prepared, activation deferred
+## TIA and INJ: prepared, activation deferred
 
-The source configuration also includes TIA (Celestia, utia, 6 decimals), AKT
-(Akash, uakt, 6 decimals) and INJ (Injective, inj, 18 decimals). Their canonical
+The source configuration also includes TIA (Celestia, utia, 6 decimals) and INJ (Injective, inj, 18 decimals). Their canonical
 Osmosis IBC denoms and reference pool IDs are retained in the JSON configuration.
-The selected allUSDC reference pools are 3539, 3509 and 3536 respectively.
+The selected allUSDC reference pools are 3539 and 3536 respectively.
 Native total supply is read at a pinned height on each origin chain and reused
-weekly. AKT locked for its one-way Solana migration remains part of Akash total
-supply; Solana issuance is not added again. INJ bank total is not a hardcoded cap
+weekly. AKT was removed from the website and prepared collector configuration
+at the owner’s request before its archive was activated. INJ bank total is not a hardcoded cap
 or a circulating-supply estimate.
 
-The operator requested preparation only for these three collectors. A separate
+The operator requested preparation only for these two collectors. A separate
 private expansion package updates the accepted source configuration and exact
 public route allowlist while preserving earlier histories. Activation, a later
 automatic sample and a post-archive backup are still pending. The live website
