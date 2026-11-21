@@ -2,6 +2,14 @@
 # Only the allowlisted publisher output belongs in the read-only snapshots mount.
 data.cosmoot.com {
     root * /snapshots/current
+    # Independently published NETA observations; no database or archive exposure.
+    @neta_market path /data/markets/neta/current.json /data/markets/neta/1d.json /data/markets/neta/7d.json /data/markets/neta/1m.json /data/markets/neta/3m.json /data/markets/neta/all.json
+    handle @neta_market {
+        root * /snapshots/markets
+        header Cache-Control "public, max-age=30, s-maxage=45"
+        header X-Content-Type-Options nosniff
+        file_server
+    }
     @snapshots path /data/*
     handle @snapshots {
         header Cache-Control "public, max-age=60, s-maxage=60"
