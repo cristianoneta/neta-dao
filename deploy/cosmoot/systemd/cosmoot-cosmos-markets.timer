@@ -1,0 +1,12 @@
+[Unit]
+Description=Capture Cosmoot interchain price observations every minute
+
+[Timer]
+OnCalendar=*-*-* *:*:15 UTC
+AccuracySec=1s
+RandomizedDelaySec=2s
+Persistent=false
+Unit=cosmoot-cosmos-markets.service
+
+[Install]
+WantedBy=timers.target

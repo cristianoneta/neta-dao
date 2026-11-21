@@ -1,0 +1,92 @@
+{
+  "juno": {
+    "symbol": "JUNO",
+    "denom": "ujuno",
+    "decimals": 6,
+    "pool": "juno1gqy6rzary8vwnslmdavqre6jdhakcd4n2z4r803ajjmdq08r66hq7zcwrj",
+    "chain": "juno-1",
+    "supplyDenom": "ujuno",
+    "supplyBase": "https://juno-api.polkachu.com"
+  },
+  "btc": {
+    "symbol": "BTC",
+    "denom": "factory/osmo1z6r6qdknhgsc0zeracktgpcxf43j6sekq07nw8sxduc9lg0qjjlqfu25e3/alloyed/allBTC",
+    "decimals": 8,
+    "pool": "3502",
+    "quote": "factory/osmo147h5x9pcj7lm0cttlaefx6sqq5vdfnmwfcqxkmjd7exqm9gc7grqhr75m0/alloyed/allUSDC",
+    "quoteDecimals": 6,
+    "quoteSymbol": "allUSDC",
+    "chain": "osmosis-1",
+    "alloyPool": "1868",
+    "alloyContract": "osmo1z6r6qdknhgsc0zeracktgpcxf43j6sekq07nw8sxduc9lg0qjjlqfu25e3"
+  },
+  "eth": {
+    "symbol": "ETH",
+    "denom": "factory/osmo1k6c8jln7ejuqwtqmay3yvzrg3kueaczl96pk067ldg8u835w0yhsw27twm/alloyed/allETH",
+    "decimals": 18,
+    "pool": "1948",
+    "quote": "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
+    "quoteDecimals": 6,
+    "quoteSymbol": "USDC",
+    "chain": "osmosis-1",
+    "alloyPool": "1878",
+    "alloyContract": "osmo1k6c8jln7ejuqwtqmay3yvzrg3kueaczl96pk067ldg8u835w0yhsw27twm"
+  },
+  "atom": {
+    "symbol": "ATOM",
+    "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+    "decimals": 6,
+    "pool": "3505",
+    "quote": "factory/osmo147h5x9pcj7lm0cttlaefx6sqq5vdfnmwfcqxkmjd7exqm9gc7grqhr75m0/alloyed/allUSDC",
+    "quoteDecimals": 6,
+    "quoteSymbol": "allUSDC",
+    "chain": "osmosis-1",
+    "supplyDenom": "uatom",
+    "supplyBase": "https://cosmos-api.polkachu.com"
+  },
+  "atone": {
+    "symbol": "ATONE",
+    "denom": "ibc/BC26A7A805ECD6822719472BCB7842A48EF09DF206182F8F259B2593EB5D23FB",
+    "decimals": 6,
+    "pool": "2715",
+    "quote": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+    "quoteDecimals": 6,
+    "quoteSymbol": "ATOM",
+    "quotePool": "3505",
+    "chain": "osmosis-1",
+    "supplyDenom": "uatone",
+    "supplyBase": "https://atomone-api.allinbits.com"
+  },
+  "photon": {
+    "symbol": "PHOTON",
+    "denom": "ibc/D6E02C5AE8A37FC2E3AB1FC8AC168878ADB870549383DFFEA9FD020C234520A7",
+    "decimals": 6,
+    "pool": "3220",
+    "quote": "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
+    "quoteDecimals": 6,
+    "quoteSymbol": "USDC",
+    "chain": "osmosis-1",
+    "supplyDenom": "uphoton",
+    "supplyBase": "https://atomone-api.allinbits.com"
+  },
+  "gnot": {
+    "symbol": "GNOT",
+    "denom": "ugnot",
+    "decimals": 6,
+    "pool": "gnoswap-oracle",
+    "chain": "gnoland-1",
+    "referenceKind": "provider-reference"
+  },
+  "osmo": {
+    "symbol": "OSMO",
+    "denom": "uosmo",
+    "decimals": 6,
+    "pool": "3499",
+    "quote": "factory/osmo147h5x9pcj7lm0cttlaefx6sqq5vdfnmwfcqxkmjd7exqm9gc7grqhr75m0/alloyed/allUSDC",
+    "quoteDecimals": 6,
+    "quoteSymbol": "allUSDC",
+    "chain": "osmosis-1",
+    "supplyDenom": "uosmo",
+    "supplyBase": "https://osmosis-api.polkachu.com"
+  }
+}

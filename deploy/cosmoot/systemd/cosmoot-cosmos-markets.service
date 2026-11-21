@@ -1,0 +1,32 @@
+[Unit]
+Description=Cosmoot interchain market observations and archives
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=cosmoot-collect
+Group=cosmoot-collect
+WorkingDirectory=/srv/cosmoot/collectors/repo
+ExecStart=/usr/bin/python3 -B scripts/collect_cosmos_markets.py
+StateDirectory=cosmoot-marketdata
+StateDirectoryMode=0700
+TimeoutStartSec=100
+TimeoutStopSec=5
+MemoryMax=160M
+CPUQuota=25%
+Nice=15
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+UMask=0077
+InaccessiblePaths=/srv/cosmoot/state /etc/cosmoot
+ReadWritePaths=/srv/cosmoot/public-snapshots/markets /var/lib/cosmoot-collect/archive/market-data
