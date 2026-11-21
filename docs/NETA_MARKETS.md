@@ -68,3 +68,38 @@ script and timer, validates the narrow data route, preserves existing services
 and runs a new observation before enabling the timer. Custom-domain DNS/TLS,
 the first production observation, a later automatic minute and backup acceptance
 are separate checks. No wallet, contract, swap or governance state is modified.
+
+## Additional NETA market and executed volume — 21 November
+
+The separate five-minute pool collector adds Osmosis pool 631 (NETA/OSMO).
+It verifies the IBC trace back to the Juno NETA contract and reads the actual
+weighted-pool reserves; an 80/20 pool must not use the XYK two-times-quote-reserve
+liquidity formula. Osmosis LCDs do not confirm a requested state height, so this
+latest-state observation records its bracketing block range and explicitly has
+no exact state height. Juno observations retain their confirmed-height checks.
+
+Both pools receive rolling 24-hour swap volume. Each successful matching swap
+event contributes its single JUNO or OSMO leg; unrelated multi-hop events,
+liquidity additions/removals and failed transactions are excluded. Events in the
+same transaction remain distinct by event index. The query uses confirmed block
+boundaries, a small index lag, stable bounded pagination and a known-receipt
+control. Coverage describes the provider's transaction index, not a light-client
+proof or guaranteed availability of pruned receipts. Missing or incomplete
+coverage stays unavailable, while a completed empty window is measured zero.
+
+The native quote-token volume is exact for the accepted indexed receipts. Its
+USD display uses the current separately timestamped Treasury quote; it is not a
+sum of historical USD execution prices. Stale USD does not erase native volume.
+No extra price subscription or visitor-triggered blockchain scan is introduced.
+
+Swap identities and scan evidence persist in an independent SQLite database;
+current/prior UTC-day gzip exports enter the existing encrypted backup scope.
+Earlier files are retained. The existing minute service remains independent of
+pool-index failures. The frontend reads the additional allowlisted `pools.json`.
+Server installation, an automatic later observation and backup acceptance remain
+separate deployment checks; source tests and a live probe do not prove activation.
+
+The Price / Market value chart switch uses price times the supply observed with
+each point. Series now preserve that supply. Older daily records without supply
+remain missing in valuation mode; no present supply is assigned retrospectively.
+This is total-supply valuation, not a claim about circulating market cap.

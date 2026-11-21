@@ -1,0 +1,11 @@
+[Unit]
+Description=Collect NETA pool liquidity and rolling volume every five minutes
+
+[Timer]
+OnCalendar=*-*-* *:0/5:00
+RandomizedDelaySec=10s
+Persistent=true
+Unit=cosmoot-neta-pools.service
+
+[Install]
+WantedBy=timers.target
