@@ -26,6 +26,14 @@ def tx(spec,digest='A',at=NOW-50,**kwargs):
  return {'txhash':digest*64,'height':'99','timestamp':m.iso(at),'code':0,'events':[event(spec)],**kwargs}
 
 class PoolsTests(unittest.TestCase):
+ def test_pool_timeout_can_grow_without_changing_minute_default(self):
+  import collect_neta_market as prices
+  for reader,expected in [(prices.Reader(),5),(prices.Reader(request_timeout=10),10)]:
+   with patch.object(prices,'urlopen') as opening:
+    opening.return_value.__enter__.return_value.read.return_value=b'{}'
+    self.assertEqual(reader('https://fixture.invalid'),{})
+    self.assertEqual(opening.call_args.kwargs['timeout'],expected)
+
  def test_both_directions_count_one_quote_leg(self):
   for spec in m.POOLS:
    for reverse in (False,True):

@@ -58,11 +58,12 @@ def encoded(value):
 
 
 class Reader:
-    def __init__(self):
+    def __init__(self, request_timeout=5):
+        self.request_timeout = request_timeout
         self.requests = self.bytes = 0
         self.deadline = time.monotonic() + 38
 
-    def __call__(self, url, timeout=5, height=None):
+    def __call__(self, url, timeout=None, height=None):
         remaining = self.deadline - time.monotonic()
         if remaining <= 0:
             raise TimeoutError('Market collection time budget exceeded')
@@ -70,7 +71,7 @@ class Reader:
         if height is not None:
             headers['x-cosmos-block-height'] = str(height)
         self.requests += 1
-        with urlopen(Request(url, headers=headers), timeout=min(timeout, 5, remaining)) as response:
+        with urlopen(Request(url, headers=headers), timeout=min(timeout or self.request_timeout, self.request_timeout, remaining)) as response:
             if height is not None and response.headers.get('x-cosmos-block-height') != str(height):
                 raise ValueError('Unconfirmed market query height')
             body = response.read(2_000_001)

@@ -189,7 +189,7 @@ def volume(reader, base, spec, snapshot, now):
 
 
 def collect_pool(spec, treasury, now):
-    reader = Reader()
+    reader = Reader(request_timeout=10)
     reader.deadline = time.monotonic() + 75
     errors = []
     partial = None
