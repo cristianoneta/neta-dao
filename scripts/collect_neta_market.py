@@ -198,7 +198,7 @@ def series(db, interval, start, now):
                         (interval, start // interval, start))]
     else:
         observations = rows(db, start)
-    result = [{'time': o['time'], 'usd': o['price_usd'], 'juno': o['price_juno'], 'kind': 'pool-observation'} for o in observations]
+    result = [{'time': o['time'], 'usd': o['price_usd'], 'juno': o['price_juno'], 'total_supply': o.get('total_supply'), 'kind': 'pool-observation'} for o in observations]
     if interval >= 86400:
         first_day = observations[0]['time'] // 86400 if observations else now // 86400 + 1
         old = [json.loads(r[0]) for r in db.execute('SELECT payload FROM legacy WHERE time>=? ORDER BY time', (start,))]

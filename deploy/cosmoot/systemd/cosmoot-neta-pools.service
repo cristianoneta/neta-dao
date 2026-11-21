@@ -1,0 +1,33 @@
+[Unit]
+Description=Cosmoot NETA pool liquidity and indexed swap volume (read only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=cosmoot-collect
+Group=cosmoot-collect
+WorkingDirectory=/srv/cosmoot/collectors/repo
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 -B scripts/collect_neta_pools.py
+StateDirectory=cosmoot-marketdata
+StateDirectoryMode=0700
+UMask=0022
+TimeoutStartSec=95s
+TimeoutStopSec=5s
+MemoryMax=160M
+CPUQuota=25%
+Nice=15
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+InaccessiblePaths=/srv/cosmoot/state /etc/cosmoot
+ReadWritePaths=/srv/cosmoot/public-snapshots/markets /var/lib/cosmoot-collect/archive/market-data
+

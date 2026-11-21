@@ -1,5 +1,15 @@
 # Cosmoot public development handoff
 
+## NETA pool coverage and swap volume — prepared, 21 November 2026
+
+A separate five-minute collector adds the weighted NETA/OSMO pool 631 and rolling
+24-hour indexed swap volume for both tracked pools. It retains native quote-token
+volume, timestamps and completeness, and values USD at the current quote. Minute
+series also carry their observed supply for the separate Markets valuation chart.
+The existing Markets website/domain is active; these new host services still
+require the private installation and subsequent timer/backup acceptance. See
+[NETA Markets](docs/NETA_MARKETS.md) for methodology and limits.
+
 ## NETA Markets — prepared, 21 November 2026
 
 The owner approved a separate NETA market page and minute reference-price collection.

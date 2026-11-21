@@ -3,7 +3,7 @@
 data.cosmoot.com {
     root * /snapshots/current
     # Independently published NETA observations; no database or archive exposure.
-    @neta_market path /data/markets/neta/current.json /data/markets/neta/1d.json /data/markets/neta/7d.json /data/markets/neta/1m.json /data/markets/neta/3m.json /data/markets/neta/all.json
+    @neta_market path /data/markets/neta/current.json /data/markets/neta/1d.json /data/markets/neta/7d.json /data/markets/neta/1m.json /data/markets/neta/3m.json /data/markets/neta/all.json /data/markets/neta/pools.json
     handle @neta_market {
         root * /snapshots/markets
         header Cache-Control "public, max-age=30, s-maxage=45"
