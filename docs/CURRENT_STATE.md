@@ -1,5 +1,16 @@
 # Current state — Cosmoot
 
+## NETA Markets — prepared, 21 November 2026
+
+The owner approved a separate NETA market page and minute reference-price collection.
+The new collector reads only the known WYND pair, keeps block and USD-quote times
+separate, preserves daily Treasury history as a different evidence class, and writes
+its own SQLite history and public snapshots. The existing Treasury schedule and
+wallet/governance code are unchanged. Source validation and a read-only live query
+passed; production timer installation, DNS and subsequent scheduled observations
+remain separate acceptance steps. See [NETA Markets](NETA_MARKETS.md).
+
+
 ## Treasury collection checkpoint, 18 November 2026
 
 The November collector package is installed. Published staking accrual is current through 17 November, with the 1 and 13 November payout controls verified. Both Operations chains refreshed successfully and retained all 57 receipts; the statement remains explicitly partial where historical evidence or classification is incomplete.

@@ -1,5 +1,16 @@
 # Cosmoot public development handoff
 
+## NETA Markets — prepared, 21 November 2026
+
+The owner approved a separate NETA market page and minute reference-price collection.
+The new collector reads only the known WYND pair, keeps block and USD-quote times
+separate, preserves daily Treasury history as a different evidence class, and writes
+its own SQLite history and public snapshots. The existing Treasury schedule and
+wallet/governance code are unchanged. Source validation and a read-only live query
+passed; production timer installation, DNS and subsequent scheduled observations
+remain separate acceptance steps. See [NETA Markets](docs/NETA_MARKETS.md).
+
+
 On 18 November, the collector installation completed and published staking coverage through 17 November with both payout controls verified. Operations refreshed both chains. After the targeted HTTP identity correction in PR #347, the public Treasury observation contains all eight WYND pools at its matching block height. The unchanged external freshness check passed all 50 observations across the three Cosmoot endpoints and the legacy NETA site at 20:22 UTC ([successful rerun](https://github.com/cristianoneta/neta-dao/actions/runs/44377522930)). Freshness limits and alerting remain enabled; the next unattended timer cycle is separate from this acceptance run.
 
 The November 15 collector changes and acceptance boundaries are described in [Current state](docs/CURRENT_STATE.md). The host journal records publication byte counts after installation. The external freshness check also reads the legacy site's published economic ranking, map and recovery observations.
