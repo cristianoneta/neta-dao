@@ -5,7 +5,7 @@ import sys
 import tempfile
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
-from collect_cosmos_markets import sample,validate,valid_supply,publish,record
+from collect_cosmos_markets import sample,validate,valid_supply,publish,record,native_solana_supply
 from collect_neta_market import database
 NOW=1800000000
 from datetime import datetime,timezone
@@ -86,6 +86,13 @@ class ExternalTests(unittest.TestCase):
   spec={'chain':'solana-mainnet-beta','denom':'sol','supplyKind':'solana','genesisHash':'expected','decimals':9}
   v={'denom':'sol','chain_id':spec['chain'],'genesis_hash':'expected','slot':123,'total_supply_raw':'637981533195550360','total_supply':637981533.1955504,'observed_at':iso(NOW),'block_time':iso(NOW-10)}
   self.assertTrue(valid_supply(v,spec,NOW));self.assertFalse(valid_supply(dict(v,height=123),spec,NOW));self.assertFalse(valid_supply(dict(v,genesis_hash='other'),spec,NOW));self.assertFalse(valid_supply(dict(v,total_supply=1),spec,NOW))
+ def test_native_solana_fallback_preserves_integer_and_finalized_calls(self):
+  import time
+  now=int(time.time());calls=[]
+  spec={'chain':'solana-mainnet-beta','denom':'sol','supplyKind':'solana','genesisHash':'expected','decimals':9,'supplyBase':'https://api.mainnet-beta.solana.com'}
+  def rpc(method,params):
+   calls.append((method,params));return {'getGenesisHash':'expected','getSupply':{'context':{'slot':123},'value':{'total':637981533195550360}},'getBlockTime':now-10}[method]
+  value=native_solana_supply(spec,rpc);self.assertEqual(value['total_supply'],'637981533.19555036');self.assertEqual(value['total_supply_raw'],'637981533195550360');self.assertEqual(calls[1][1][0]['commitment'],'finalized');self.assertTrue(valid_supply(value,spec,now))
  def test_existing_pool_spec_cannot_use_external_path(self):
   with self.assertRaises(ValueError):validate(dict(self.raw,chain_id=SPEC['chain'],token=SPEC['denom'],pool=SPEC['pool']),SPEC,NOW)
 

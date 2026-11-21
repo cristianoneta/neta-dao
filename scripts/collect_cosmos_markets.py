@@ -103,6 +103,39 @@ def valid_supply(value, spec, now):
         return False
 
 
+def native_solana_supply(spec, rpc=None):
+    """Weekly direct native read if the website's public RPC route is unavailable."""
+    if spec.get('supplyKind') != 'solana' or spec.get('supplyBase') != 'https://api.mainnet-beta.solana.com':
+        raise ValueError('Unverified Solana source')
+    if rpc is None:
+        def rpc(method, params):
+            data = json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': params}).encode()
+            req = Request(spec['supplyBase'], data=data, headers={'Content-Type': 'application/json', 'User-Agent': 'NETA-DAO-Treasury/1.0'})
+            with urlopen(req, timeout=18) as response:
+                body = response.read(200001)
+            if len(body) > 200000:
+                raise ValueError('Oversized supply response')
+            value = json.loads(body)
+            if value.get('jsonrpc') != '2.0' or value.get('id') != 1 or value.get('error'):
+                raise ValueError('Invalid native supply RPC')
+            return value['result']
+    genesis = rpc('getGenesisHash', [])
+    supply = rpc('getSupply', [{'commitment': 'finalized', 'excludeNonCirculatingAccountsList': True}])
+    slot, total = supply['context']['slot'], supply['value']['total']
+    if type(total) is not int or type(slot) is not int or total <= 0 or slot <= 0 or genesis != spec['genesisHash']:
+        raise ValueError('Invalid native Solana identity')
+    block_time = rpc('getBlockTime', [slot])
+    value = {'denom': spec['denom'], 'chain_id': spec['chain'], 'genesis_hash': genesis, 'slot': slot,
+             'total_supply_raw': str(total), 'total_supply': str(Decimal(total) / Decimal(10)**spec['decimals']),
+             'observed_at': datetime.now(timezone.utc).isoformat(),
+             'block_time': datetime.fromtimestamp(block_time, timezone.utc).isoformat(),
+             'source': 'Solana getSupply · finalized', 'url': spec['supplyBase'], 'interval_seconds': 604800,
+             'scope': 'Native SOL total; includes non-circulating supply'}
+    if not valid_supply(value, spec, time.time()):
+        raise ValueError('Invalid native Solana supply evidence')
+    return value
+
+
 def sample(slug, spec, previous=None, now=None, fetch=read):
     now = time.time() if now is None else now
     raw = fetch('/api/observations?asset=' + slug)
@@ -111,6 +144,11 @@ def sample(slug, spec, previous=None, now=None, fetch=read):
     if not valid_supply(supply, spec, now):
         try:
             supply = fetch('/api/supply?asset=' + slug)
+        except Exception:
+            supply = None
+    if not valid_supply(supply, spec, now) and spec.get('supplyKind') == 'solana':
+        try:
+            supply = native_solana_supply(spec)
         except Exception:
             supply = None
     if not valid_supply(supply, spec, now):

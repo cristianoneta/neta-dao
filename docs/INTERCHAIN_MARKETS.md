@@ -8,7 +8,7 @@ Per-asset databases preserve the first accepted observation per minute and use t
 
 The native weekly snapshot is an explicit approximation for valuation, not a contemporaneous supply at every price point. Historical points carry the basis and reference date. Native total supply differs from circulating supply, and alloy issued supply differs from global BTC/ETH supply.
 
-Validation: fifteen collector tests cover dated supply reuse, expiry, unavailable supply, wrong identities and USD conversion, GNOT unpinned supply, and first-observation persistence. A public endpoint probe must pass before installation. Later automatic observations and the next encrypted archive backup still require operational acceptance.
+Validation: sixteen collector tests cover dated supply reuse, expiry, unavailable supply, wrong identities and USD conversion, GNOT unpinned supply, and first-observation persistence. A public endpoint probe must pass before installation. Later automatic observations and the next encrypted archive backup still require operational acceptance.
 
 
 ## Seven additional assets: prepared, activation deferred
@@ -40,3 +40,5 @@ LINK supply is the Ethereum ERC20 totalSupply at a finalized block. UNI uses the
 The website counts only verified Cosmos trading pools. Alloy backing and sumtree orderbook code 885 are excluded from AMM totals. A successful fresh empty inventory can show zero; an unavailable source or unknown valuation cannot. Small BABY pools contribute to totals and are visible when no pool reaches the main display threshold. UNI stable pool 2531 is read directly from chain state because SQS omits it; its USD total remains unavailable until all reserves have fresh valuations. Inactive UNI pool 2213 is excluded. Stale LINK/UNI Injective books remain visibly separate and are never used as price references or pool TVL. An unverified DojoSwap SOL decimal mapping is omitted.
 
 Validation also covers external references without blocks, fabricated evidence rejection, exact ERC20 burn arithmetic, native SOL slot/genesis evidence and unchanged strict pool validation. Installing the prepared package, validating subsequent automatic samples and accepting the next encrypted backup remain operator steps.
+
+If the website cannot refresh the Solana native RPC, the collector can perform the same bounded finalized read directly, at most when its weekly supply reference is missing or expired. A dated website bootstrap observation expires after seven days and never takes a new timestamp merely because it was served again.
