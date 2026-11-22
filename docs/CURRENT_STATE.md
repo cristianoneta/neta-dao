@@ -1,6 +1,6 @@
 # Current state — Cosmoot
 
-## Market archive lock coordination — prepared, 22 November 2026
+## Market archive lock coordination and Terra archives — active, 22 November 2026
 
 Terra archive activation rolled back after immediate contention on the common
 archive lock; the existing price and pool timers resumed successfully. The two
@@ -8,8 +8,13 @@ market collectors now wait up to 60 seconds while preserving exclusive archive a
 backup protection. Their service start budgets include this wait. A persistent
 lock still fails explicitly, and a later cycle exports retained observations
 without duplicate trades or resetting the storage baseline. All 66 focused market,
-pool, history and contention tests passed. The corrected operator package awaits
-installation and a subsequent automatic cycle; website publication is separate.
+pool, history and contention tests passed, followed by successful repository CI on
+repair commit `454dcfed18cc4cb2ac62c8231bcaed78c218dd23`. The owner confirmed
+corrected installation. All five new minute-price feeds are public and contain
+observations after installer completion; a later pilot publication records 267 of
+267 pools, complete inventories and no index errors. The Astroport Terra inventory
+is also publicly readable. The next encrypted backup after activation and next-day
+storage comparison remain separate; website publication is unchanged.
 
 ## Direct market sources and five-asset pool pilot — active, 22 November 2026
 

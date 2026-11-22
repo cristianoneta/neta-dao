@@ -32,8 +32,12 @@ publication fails explicitly and the previous public output remains available;
 the next successful cycle exports retained records without duplicate swaps or a
 new storage baseline. Collection and source timestamps are not refreshed merely
 because publication waited. The initial Terra activation encountered this race
-and rolled back; subsequent existing collectors recovered. The correction is
-prepared, with host activation and automatic-cycle acceptance still pending.
+and rolled back; subsequent existing collectors recovered. The owner subsequently
+confirmed corrected activation. Public price observations and a 267-of-267 pool
+publication after installer completion confirm continued collection with complete
+inventories and no index errors. All five new LUNA/CAPA/SOLID/ASTRO/PAXG price
+archives and the current Astroport Terra inventory are publicly readable. The next
+encrypted backup after activation remains a separate acceptance item.
 
 Derived charts use the existing observations and recorded swaps: five-minute bins for 24 hours and hourly bins for seven days. Each exported file has at most 289 or 169 points; exports stream one pool at a time. Volume bins are unavailable when the index has not covered the entire interval, a decoder problem exists, or any trade lacks a USD valuation. A zero is published only for a covered interval without swaps. No polling or pilot asset scope is added. The derived public files are bounded views; the underlying retained records are not deleted.
 
