@@ -8,6 +8,15 @@ A separate five-minute pilot covers BTC, ETH, SOL, ATOM and JUNO. Shared pools a
 
 The owner confirmed successful direct-source and pilot installation. Subsequent public cycles advanced all three indexes and recorded all 261 pilot pools. The next encrypted backup after activation remains unverified. The owner confirmed the first-day-volume update succeeded. A further update is prepared for derived 24-hour/five-minute and seven-day/hourly pool charts, last-trade timestamps and frozen prior-reference USD valuations. It preserves the original baseline, data and five-minute schedule and reports derived public-history bytes separately. The corresponding Markets work adds a shared pool registry, searchable directory, provenance and read-only venue quotes; its publication is tracked separately from collector activation. See [the pool pilot](MARKET_POOL_PILOT.md) for methodology and scope; exact operator evidence and continuation remain in the private operations record.
 
+The first history-update installation rolled back during public HTTP acceptance;
+the operator log confirms that observed data was retained. A local reproduction
+found that the service's `UMask=0077` left the intermediate history directory at
+0700, blocking the edge even though each JSON file was readable. The correction
+makes only descendants of the public output root traversable, repairs retained
+directories and rejects symlink/escaping paths. Private state/archive permissions
+and collection schedules remain unchanged. The corrected operator package still
+requires installation and public acceptance.
+
 ## Interchain Markets expansion — 21 November 2026
 
 The Markets expansion includes TIA, INJ, AXL, LINK, SOL, BABY and UNI alongside the original ten assets; AKT is excluded at the owner’s request.

@@ -10,9 +10,11 @@ import fcntl
 import gzip
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import sqlite3
+import stat
 import time
 from urllib.parse import urlencode
 
@@ -462,10 +464,27 @@ def tree_bytes(path):
     return sum(p.stat().st_size for p in Path(path).rglob('*') if p.is_file() and not p.is_symlink()) if Path(path).exists() else 0
 
 
-def publish_json(path, payload):
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True, mode=0o755)
-    path.parent.chmod(0o755)
+def publish_json(path, payload, *, root):
+    """Make only the public subtree traversable, including existing parent dirs.
+
+    The service keeps UMask=0077 for private state and archives. mkdir(parents=True)
+    applies that mask to intermediate directories, so chmod on the final pool
+    directory alone does not make a nested history readable by the edge.
+    """
+    path, root = Path(path).absolute(), Path(root).absolute()
+    relative = path.relative_to(root)
+    if '..' in relative.parts or not relative.parts:
+        raise ValueError('Publication must remain inside its public output root')
+    if any(p.is_symlink() for p in (root, *root.parents)) or not root.is_dir():
+        raise ValueError('Invalid public output root')
+    folder = root
+    for component in relative.parts[:-1]:
+        folder /= component
+        folder.mkdir(mode=0o755, exist_ok=True)
+        info = folder.lstat()
+        if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.geteuid():
+            raise ValueError('Unexpected public output directory: '+str(folder))
+        folder.chmod(0o755)
     atomic(path, encoded(payload))
 
 
@@ -579,12 +598,13 @@ def main():
         with open(args.archive_lock, 'r') as archive_lock:
             fcntl.flock(archive_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             save_chunk(db, args.archive, registry, now)
-            publish_histories(db, registry, cursors, args.output, now, publish_json)
+            publish_histories(db, registry, cursors, args.output, now,
+                              lambda path, payload: publish_json(path, payload, root=args.output))
             for slug, rows in output.items():
                 partial = inventory.get(slug, {}).get('status') != 'complete' or any(r['stale'] for r in rows)
                 payload = {'schema_version': 1, 'asset': slug, 'mode': 'pilot', 'scope': 'cosmos', 'status': 'available', 'observed_at': iso(now),
                            'interval_seconds': INTERVAL, 'partial': partial, 'coverage': report['scope'], 'pools': rows}
-                publish_json(Path(args.output) / slug / 'pools.json', payload)
+                publish_json(Path(args.output) / slug / 'pools.json', payload, root=args.output)
         db.execute('PRAGMA wal_checkpoint(TRUNCATE)')
         sizes = {'state_bytes': tree_bytes(state), 'archive_bytes': tree_bytes(args.archive),
                  'public_bytes': sum((Path(args.output) / slug / 'pools.json').stat().st_size for slug in ASSETS),
@@ -596,7 +616,7 @@ def main():
                              'elapsed_seconds': now - baseline['time'], 'note': 'File sizes, not R2 billed storage. The first cycle includes initial inventory/index setup.'}
         with db:
             db.execute('INSERT OR IGNORE INTO metrics VALUES (?,?)', (now, encoded(sizes).decode()))
-        publish_json(Path(args.output) / 'pilot/status.json', report)
+        publish_json(Path(args.output) / 'pilot/status.json', report, root=args.output)
     else:
         report['probe'] = True
         report['sample_volume_states'] = sorted({v['status'] for v in volumes.values()})

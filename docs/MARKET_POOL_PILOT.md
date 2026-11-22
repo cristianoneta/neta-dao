@@ -29,3 +29,15 @@ Derived charts use the existing observations and recorded swaps: five-minute bin
 The public pilot status separates state, compressed archive, current-output and derived-public-history byte counts and preserves the original first-cycle baseline. The new history category starts from zero when absent from that old baseline. These are local file sizes, not backup-provider billed bytes. The exact source/service bundle is also retained in the existing encrypted archive scope by the private installer. The next completed backup must be verified separately after activation; no full off-server application recovery was performed.
 
 The direct sources and five-asset pilot are installed and a subsequent automatic cycle was independently observed. The owner confirmed the first-day-volume follow-up succeeded. The history and frozen-valuation follow-up is prepared for a separate update using the private operator installer with source checks, preflight reads, the existing encrypted backup, targeted service changes and rollback on failed acceptance. Website fallback compatibility is preserved until that activation. No wallet signing, paid provider enrollment or hosting migration is involved.
+
+The first history activation rolled back after HTTP 403 while preserving observed
+data. Under the production `UMask=0077`, recursive directory creation left the
+intermediate history directory at 0700; adjusting only the final directory was
+insufficient for the edge. Publication now explicitly prepares each directory
+below the public output root, including existing retained history directories.
+Symlink directories and paths escaping that root are rejected. The service mask,
+private databases and archives keep their existing permissions. Regression tests
+cover both first publication and repair, private sibling preservation and path
+rejection. The corrected installer checks local public readability before HTTP
+acceptance and includes the failed endpoint in HTTP error messages. Corrected host
+activation and a subsequent automatic cycle remain pending.
