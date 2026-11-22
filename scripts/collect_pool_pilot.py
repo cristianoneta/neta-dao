@@ -19,6 +19,7 @@ import time
 from urllib.parse import urlencode
 
 from collect_neta_market import atomic, encoded
+from market_archive_lock import acquire_archive_lock
 from pool_pilot_history import schema as history_schema, freeze_values, stored_value, publish_histories
 from market_direct_sources import HTTP, DirectSources, JUNO, OSMOSIS, block, decimal, fallback, fresh, iso, smart_path, stamp
 
@@ -596,7 +597,7 @@ def main():
               'scope': 'Verified Osmosis routing representations, registered JUNO pools and selected DojoSwap pools; no unlisted legacy contracts, native Ethereum/Solana venues or orderbooks.'}
     if not args.probe:
         with open(args.archive_lock, 'r') as archive_lock:
-            fcntl.flock(archive_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            acquire_archive_lock(archive_lock)
             save_chunk(db, args.archive, registry, now)
             publish_histories(db, registry, cursors, args.output, now,
                               lambda path, payload: publish_json(path, payload, root=args.output))

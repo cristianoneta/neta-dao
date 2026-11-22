@@ -24,6 +24,17 @@ Volume is available as soon as a fresh indexed interval exists after both pool d
 
 Prices retain the minute archive format. Pool observations run every five minutes; new swaps are collected from the retained cursor. No whole-day trade history is repeatedly downloaded. SQLite keeps observations and deduplicated receipts; immutable compressed cycle files and content-addressed registries sit under the existing archive scope. Export checkpoints allow a later cycle to catch up after a busy backup lock. No retention deletion is added.
 
+The price and pool collectors wait up to 60 seconds for the shared archive lock
+after recording observations. They keep the same exclusive lock and never remove
+or replace its file. Individual collector locks still prevent overlapping runs.
+Both service start budgets allow this additional wait. If contention persists,
+publication fails explicitly and the previous public output remains available;
+the next successful cycle exports retained records without duplicate swaps or a
+new storage baseline. Collection and source timestamps are not refreshed merely
+because publication waited. The initial Terra activation encountered this race
+and rolled back; subsequent existing collectors recovered. The correction is
+prepared, with host activation and automatic-cycle acceptance still pending.
+
 Derived charts use the existing observations and recorded swaps: five-minute bins for 24 hours and hourly bins for seven days. Each exported file has at most 289 or 169 points; exports stream one pool at a time. Volume bins are unavailable when the index has not covered the entire interval, a decoder problem exists, or any trade lacks a USD valuation. A zero is published only for a covered interval without swaps. No polling or pilot asset scope is added. The derived public files are bounded views; the underlying retained records are not deleted.
 
 The public pilot status separates state, compressed archive, current-output and derived-public-history byte counts and preserves the original first-cycle baseline. The new history category starts from zero when absent from that old baseline. These are local file sizes, not backup-provider billed bytes. The exact source/service bundle is also retained in the existing encrypted archive scope by the private installer. The next completed backup must be verified separately after activation; no full off-server application recovery was performed.

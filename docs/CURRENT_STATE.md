@@ -1,5 +1,16 @@
 # Current state — Cosmoot
 
+## Market archive lock coordination — prepared, 22 November 2026
+
+Terra archive activation rolled back after immediate contention on the common
+archive lock; the existing price and pool timers resumed successfully. The two
+market collectors now wait up to 60 seconds while preserving exclusive archive and
+backup protection. Their service start budgets include this wait. A persistent
+lock still fails explicitly, and a later cycle exports retained observations
+without duplicate trades or resetting the storage baseline. All 66 focused market,
+pool, history and contention tests passed. The corrected operator package awaits
+installation and a subsequent automatic cycle; website publication is separate.
+
 ## Direct market sources and five-asset pool pilot — active, 22 November 2026
 
 The sixteen-asset price collector now reads its original chain/provider sources directly and reuses dated supply references. The existing NETA collector remains direct. Existing price identities and archives are preserved, including numeric compatibility with earlier external observations.

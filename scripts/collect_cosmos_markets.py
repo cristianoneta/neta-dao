@@ -14,6 +14,7 @@ import sys
 import time
 from urllib.request import Request, urlopen
 from collect_neta_market import atomic, database, encoded, record as record_pool, rows
+from market_archive_lock import acquire_archive_lock
 from market_direct_sources import DirectSources
 
 CONFIG = Path(__file__).with_name('cosmos_market_sources.json')
@@ -278,7 +279,7 @@ def main():
             with database(state / (slug + '.sqlite3')) as db:
                 record(db, current)
         with open(args.archive_lock, 'r') as backup_lock:
-            fcntl.flock(backup_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            acquire_archive_lock(backup_lock)
             if venue_snapshot:
                 venue_path.parent.mkdir(parents=True, exist_ok=True)
                 venue_path.parent.chmod(0o755)
