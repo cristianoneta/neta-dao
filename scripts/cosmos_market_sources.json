@@ -223,5 +223,84 @@
     "excludeBackingPoolIds": [
       "2212"
     ]
+  },
+  "capa": {
+    "symbol": "CAPA",
+    "denom": "terra1t4p3u8khpd7f8qzurwyafxt648dya6mp6vur3vaapswt6m24gkuqrfdhar",
+    "decimals": 6,
+    "chain": "phoenix-1",
+    "pool": "terra183wqgrwa2k0uvlz99j57c496gfuwgtaccrhv4stcjzv3ydacl9zq0hmf25",
+    "referenceKind": "astroport-reference",
+    "quote": "uluna",
+    "quoteDecimals": 6,
+    "quoteSymbol": "LUNA",
+    "offerAmount": "100000000",
+    "pairCodeId": 2569,
+    "supplyDenom": "terra1t4p3u8khpd7f8qzurwyafxt648dya6mp6vur3vaapswt6m24gkuqrfdhar",
+    "supplyKind": "cw20",
+    "supplyChain": "phoenix-1",
+    "supplyBase": "https://terra-lcd.publicnode.com",
+    "supplyInterval": 86400
+  },
+  "solid": {
+    "symbol": "SOLID",
+    "denom": "terra10aa3zdkrc7jwuf8ekl3zq7e7m42vmzqehcmu74e4egc7xkm5kr2s0muyst",
+    "decimals": 6,
+    "chain": "phoenix-1",
+    "pool": "terra1mkt8nv7q2u0aj4zpndh23642cnkztg66x65dlj0vhluyk95m8lys9lp2cv",
+    "referenceKind": "astroport-reference",
+    "quote": "ibc/E8481AD838C31D4FC12A504B10F9B4E2F830F8818D2735C2FFC707579B5FA60B",
+    "quoteDecimals": 6,
+    "quoteSymbol": "USDC.inj",
+    "offerAmount": "1000000",
+    "pairCodeId": 428,
+    "supplyDenom": "terra10aa3zdkrc7jwuf8ekl3zq7e7m42vmzqehcmu74e4egc7xkm5kr2s0muyst",
+    "supplyKind": "cw20",
+    "supplyChain": "phoenix-1",
+    "supplyBase": "https://terra-lcd.publicnode.com",
+    "supplyInterval": 3600
+  },
+  "astro": {
+    "symbol": "ASTRO",
+    "denom": "ibc/8D8A7F7253615E5F76CB6252A1E1BD921D5EDB7BBAAF8913FB1C77FF125D9995",
+    "decimals": 6,
+    "chain": "phoenix-1",
+    "pool": "terra1nwepezm3mghyxm7fjfhfr2d4jwqzndtncf9tclgunqfcwhe52mpq4sxaqr",
+    "referenceKind": "astroport-reference",
+    "quote": "uluna",
+    "quoteDecimals": 6,
+    "quoteSymbol": "LUNA",
+    "offerAmount": "100000000",
+    "pairCodeId": 2569,
+    "supplyDenom": "factory/neutron1ffus553eet978k024lmssw0czsxwr97mggyv85lpcsdkft8v9ufsz3sa07/astro",
+    "supplyKind": "bank",
+    "supplyChain": "neutron-1",
+    "supplyBase": "https://neutron-api.polkachu.com",
+    "supplyInterval": 86400
+  },
+  "paxg": {
+    "symbol": "PAXG",
+    "denom": "0x45804880De22913dAFE09f4980848ECE6EcbAf78",
+    "decimals": 18,
+    "chain": "ethereum",
+    "pool": "coingecko:pax-gold",
+    "referenceKind": "external-reference",
+    "priceId": "pax-gold",
+    "supplyKind": "erc20",
+    "supplyBase": "https://ethereum-rpc.publicnode.com",
+    "supplyInterval": 86400,
+    "supplyScope": "Ethereum contract supply",
+    "poolDenom": "ibc/0EF5630576C66968EF0787868CF09FD866FAD131BC148D24A148358A85F0EB62",
+    "poolDecimals": 18,
+    "poolDenoms": [
+      "ibc/0EF5630576C66968EF0787868CF09FD866FAD131BC148D24A148358A85F0EB62",
+      "ibc/A5CCD24BA902843B1003A7EEE5F937C632808B9CF4925601241B15C5A0A51A53",
+      "ibc/6A8B28D057B9AB0FF27AA5C7CCA6E6B697567CFD466C407FA94ED1AF04616B96"
+    ],
+    "unverifiedDenoms": [
+      "ibc/A5CCD24BA902843B1003A7EEE5F937C632808B9CF4925601241B15C5A0A51A53",
+      "ibc/6A8B28D057B9AB0FF27AA5C7CCA6E6B697567CFD466C407FA94ED1AF04616B96"
+    ],
+    "excludeBackingPoolIds": []
   }
 }

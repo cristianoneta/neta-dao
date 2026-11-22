@@ -1,0 +1,102 @@
+{
+  "chain": "phoenix-1",
+  "factory": "terra14x9fr055x5hvr48hzy2t4q7kvjvfttsvxusa4xsdcy702mnzsvuqprer8r",
+  "bases": [
+    "https://terra-lcd.publicnode.com",
+    "https://phoenix-lcd.erisprotocol.com"
+  ],
+  "usdc": "ibc/E8481AD838C31D4FC12A504B10F9B4E2F830F8818D2735C2FFC707579B5FA60B",
+  "lunaPool": "terra1heml6j6ewfmjj845vmhm27a4xt9hfgs67uv8qfsjkyza0auelyksmm6cxv",
+  "legacyDenoms": [
+    "terra1nsuqsk6kh58ulczatwev87ttq2z6r3pusulg9r24mfj2fvtzd4uq3exn26",
+    "ibc/65B3EB6263482979FD7A80E3FFB9D0C85CFBF6DB63EB8DDE918B2984A40CEAB6",
+    "terra1x62mjnme4y0rdnag3r8rfgjuutsqlkkyuh4ndgex0wl3wue25uksau39q8"
+  ],
+  "specs": {
+    "capa": {
+      "symbol": "CAPA",
+      "denom": "terra1t4p3u8khpd7f8qzurwyafxt648dya6mp6vur3vaapswt6m24gkuqrfdhar",
+      "decimals": 6,
+      "chain": "phoenix-1",
+      "pool": "terra183wqgrwa2k0uvlz99j57c496gfuwgtaccrhv4stcjzv3ydacl9zq0hmf25",
+      "referenceKind": "astroport-reference",
+      "quote": "uluna",
+      "quoteDecimals": 6,
+      "quoteSymbol": "LUNA",
+      "offerAmount": "100000000",
+      "pairCodeId": 2569,
+      "supplyDenom": "terra1t4p3u8khpd7f8qzurwyafxt648dya6mp6vur3vaapswt6m24gkuqrfdhar",
+      "supplyKind": "cw20",
+      "supplyChain": "phoenix-1",
+      "supplyBase": "https://terra-lcd.publicnode.com",
+      "supplyInterval": 86400
+    },
+    "solid": {
+      "symbol": "SOLID",
+      "denom": "terra10aa3zdkrc7jwuf8ekl3zq7e7m42vmzqehcmu74e4egc7xkm5kr2s0muyst",
+      "decimals": 6,
+      "chain": "phoenix-1",
+      "pool": "terra1mkt8nv7q2u0aj4zpndh23642cnkztg66x65dlj0vhluyk95m8lys9lp2cv",
+      "referenceKind": "astroport-reference",
+      "quote": "ibc/E8481AD838C31D4FC12A504B10F9B4E2F830F8818D2735C2FFC707579B5FA60B",
+      "quoteDecimals": 6,
+      "quoteSymbol": "USDC.inj",
+      "offerAmount": "1000000",
+      "pairCodeId": 428,
+      "supplyDenom": "terra10aa3zdkrc7jwuf8ekl3zq7e7m42vmzqehcmu74e4egc7xkm5kr2s0muyst",
+      "supplyKind": "cw20",
+      "supplyChain": "phoenix-1",
+      "supplyBase": "https://terra-lcd.publicnode.com",
+      "supplyInterval": 3600
+    },
+    "astro": {
+      "symbol": "ASTRO",
+      "denom": "ibc/8D8A7F7253615E5F76CB6252A1E1BD921D5EDB7BBAAF8913FB1C77FF125D9995",
+      "decimals": 6,
+      "chain": "phoenix-1",
+      "pool": "terra1nwepezm3mghyxm7fjfhfr2d4jwqzndtncf9tclgunqfcwhe52mpq4sxaqr",
+      "referenceKind": "astroport-reference",
+      "quote": "uluna",
+      "quoteDecimals": 6,
+      "quoteSymbol": "LUNA",
+      "offerAmount": "100000000",
+      "pairCodeId": 2569,
+      "supplyDenom": "factory/neutron1ffus553eet978k024lmssw0czsxwr97mggyv85lpcsdkft8v9ufsz3sa07/astro",
+      "supplyKind": "bank",
+      "supplyChain": "neutron-1",
+      "supplyBase": "https://neutron-api.polkachu.com",
+      "supplyInterval": 86400
+    }
+  },
+  "denoms": {
+    "capa": [
+      "terra1t4p3u8khpd7f8qzurwyafxt648dya6mp6vur3vaapswt6m24gkuqrfdhar"
+    ],
+    "solid": [
+      "terra10aa3zdkrc7jwuf8ekl3zq7e7m42vmzqehcmu74e4egc7xkm5kr2s0muyst"
+    ],
+    "astro": [
+      "ibc/8D8A7F7253615E5F76CB6252A1E1BD921D5EDB7BBAAF8913FB1C77FF125D9995"
+    ],
+    "paxg": [
+      "ibc/0EF5630576C66968EF0787868CF09FD866FAD131BC148D24A148358A85F0EB62"
+    ],
+    "btc": [
+      "ibc/88386AC48152D48B34B082648DF836F975506F0B57DBBFC10A54213B1BF484CB",
+      "ibc/05D299885B07905B6886F554B39346EA6761246076A1120B1950049B92B922DD"
+    ],
+    "eth": [
+      "ibc/20850C646CDDDC2270E9BBDB08558B5FEE57B647EC6827F41096AABFD8A0471B",
+      "ibc/BC8A77AFBD872FDC32A348D3FB10CC09277C266CFE52081DE341C7EC6752E674"
+    ],
+    "sol": [
+      "terra1ctelwayk6t2zu30a8v9kdg3u2gr0slpjdfny5pjp7m3tuquk32ysugyjdg"
+    ],
+    "atom": [
+      "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
+    ],
+    "inj": [
+      "ibc/25BC59386BB65725F735EFC0C369BB717AA8B5DAD846EAF9CBF5D0F18F207211"
+    ]
+  }
+}

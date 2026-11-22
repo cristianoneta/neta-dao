@@ -156,6 +156,9 @@ class DirectSources:
 
     def observation(self, slug):
         s = self.specs[slug]
+        if s.get('referenceKind') == 'astroport-reference':
+            from terra_market_sources import observation
+            return observation(self, slug)
         if s.get('referenceKind') == 'external-reference':
             q = self.quote(s['priceId'])
             at = iso()
@@ -253,6 +256,9 @@ class DirectSources:
 
     def supply(self, slug):
         s = self.specs[slug]
+        if s.get('referenceKind') == 'astroport-reference':
+            from terra_market_sources import supply
+            return supply(self, slug)
         if s.get('supplyKind') == 'solana':
             from collect_cosmos_markets import native_solana_supply
             return native_solana_supply(s, rpc=lambda method, params: self.http.rpc(s['supplyBase'], method, params))
@@ -308,5 +314,5 @@ class DirectSources:
                 'burned_supply': str(burned / scale), 'total_supply_raw': str(issued - burned), 'issued_supply_raw': str(issued),
                 'burned_supply_raw': str(burned), 'observed_at': iso(), 'height': int(b['number'], 16), 'block_hash': b['hash'][2:],
                 'block_time': iso(int(b['timestamp'], 16)), 'chain_id': 'ethereum', 'source': 'ERC20 totalSupply minus documented burn address' if burned else 'ERC20 totalSupply',
-                'url': s['supplyBase'], 'burn_address': s.get('burnAddress'), 'interval_seconds': 604800,
-                'scope': 'Issued supply excluding burn address; not circulating supply' if s.get('burnAddress') else 'Native contract total; not circulating supply'}
+                'url': s['supplyBase'], 'burn_address': s.get('burnAddress'), 'interval_seconds': s.get('supplyInterval', 604800),
+                'scope': s.get('supplyScope') or ('Issued supply excluding burn address; not circulating supply' if s.get('burnAddress') else 'Native contract total; not circulating supply')}

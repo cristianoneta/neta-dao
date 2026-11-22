@@ -94,6 +94,13 @@ def valid_supply(value, spec, now):
                     and value.get('burn_address') == spec.get('burnAddress') and (spec.get('burnAddress') or burned == 0)
                     and abs(Decimal(str(value['total_supply'])) / (total / Decimal(10)**spec['decimals']) - 1) < Decimal('0.000000001')
                     and -60 <= stamp(value['observed_at']) - stamp(value['block_time']) <= 1800)
+        if spec.get('referenceKind') == 'astroport-reference':
+            raw = value.get('raw_total_supply', '')
+            return (value.get('chain_id') == spec['supplyChain'] and type(value.get('height')) is int and value['height'] > 0
+                    and value.get('decimals') == spec['decimals'] and re.fullmatch(r'[0-9]+', raw) is not None
+                    and re.fullmatch('[a-fA-F0-9]{64}', value.get('block_hash', '')) is not None
+                    and abs(Decimal(str(value['total_supply'])) / (Decimal(raw) / Decimal(10)**spec['decimals']) - 1) < Decimal('0.000000001')
+                    and value['observed_at'] == value['block_time'])
         return (type(value.get('height')) is int and value['height'] > 0
                 or spec['chain'] == 'gnoland-1' and value.get('state_query') == 'latest-state-unpinned')
     except (KeyError, ValueError, TypeError, InvalidOperation, ZeroDivisionError):
@@ -249,6 +256,21 @@ def main():
                 observed[slug] = future.result()
             except Exception as error:
                 errors[slug] = str(error)
+    venue_status = 'not-configured'
+    venue_snapshot = None
+    if any(s.get('referenceKind') == 'astroport-reference' for s in specs.values()):
+        venue_path = output / 'venues' / 'astroport-terra.json'
+        try:
+            prior_venue = json.loads(venue_path.read_text()) if venue_path.exists() else None
+            if args.probe or not prior_venue or now - stamp(prior_venue['observed_at']) >= 300:
+                from terra_market_sources import inventory
+                venue_snapshot = inventory(_DIRECT)
+                venue_status = 'refreshed'
+            else:
+                venue_status = 'current'
+        except Exception as error:
+            venue_status = 'unavailable'
+            errors['astroport_inventory'] = str(error)
     if not args.probe:
         now = int(time.time())
         # Commit each successful chain independently; never discard another asset's progress.
@@ -257,10 +279,14 @@ def main():
                 record(db, current)
         with open(args.archive_lock, 'r') as backup_lock:
             fcntl.flock(backup_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            if venue_snapshot:
+                venue_path.parent.mkdir(parents=True, exist_ok=True)
+                venue_path.parent.chmod(0o755)
+                atomic(venue_path, encoded(venue_snapshot))
             for slug in observed:
                 with database(state / (slug + '.sqlite3')) as db:
                     publish(db, specs[slug], output / slug, archive / slug, now)
-    result = {'ok': not errors, 'probe': args.probe, 'source_mode': 'direct', 'requests': _DIRECT.http.requests, 'response_bytes': _DIRECT.http.bytes, 'observations': {slug: {'height': o.get('height'), 'reference_kind': o.get('reference_kind', 'chain-reference'), 'time': o['time'],
+    result = {'astroport_inventory': venue_status, 'ok': not errors, 'probe': args.probe, 'source_mode': 'direct', 'requests': _DIRECT.http.requests, 'response_bytes': _DIRECT.http.bytes, 'observations': {slug: {'height': o.get('height'), 'reference_kind': o.get('reference_kind', 'chain-reference'), 'time': o['time'],
               'price_usd': o.get('price_usd'), 'supply_at': (o.get('supply_observation') or {}).get('observed_at')} for slug, o in observed.items()}, 'errors': errors}
     print(json.dumps(result))
     if errors:
