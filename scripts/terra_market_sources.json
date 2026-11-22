@@ -66,6 +66,24 @@
       "supplyChain": "neutron-1",
       "supplyBase": "https://neutron-api.polkachu.com",
       "supplyInterval": 86400
+    },
+    "luna": {
+      "symbol": "LUNA",
+      "denom": "uluna",
+      "decimals": 6,
+      "chain": "phoenix-1",
+      "pool": "terra1heml6j6ewfmjj845vmhm27a4xt9hfgs67uv8qfsjkyza0auelyksmm6cxv",
+      "referenceKind": "astroport-reference",
+      "quote": "ibc/E8481AD838C31D4FC12A504B10F9B4E2F830F8818D2735C2FFC707579B5FA60B",
+      "quoteDecimals": 6,
+      "quoteSymbol": "USDC.inj",
+      "offerAmount": "100000000",
+      "pairCodeId": 2569,
+      "supplyDenom": "uluna",
+      "supplyKind": "bank",
+      "supplyChain": "phoenix-1",
+      "supplyBase": "https://terra-lcd.publicnode.com",
+      "supplyInterval": 86400
     }
   },
   "denoms": {
@@ -97,6 +115,9 @@
     ],
     "inj": [
       "ibc/25BC59386BB65725F735EFC0C369BB717AA8B5DAD846EAF9CBF5D0F18F207211"
+    ],
+    "luna": [
+      "uluna"
     ]
   }
 }

@@ -88,7 +88,7 @@ def supply(direct, slug):
                 'total_supply': str(decimal(raw) / Decimal(10)**spec['decimals']), 'raw_total_supply': raw,
                 'observed_at': anchor['block_time'], 'url': r['source'], 'interval_seconds': spec['supplyInterval'],
                 'source': 'CW20 token_info total supply' if spec['supplyKind'] == 'cw20' else 'Native bank total supply',
-                'scope': 'Canonical ASTRO on Neutron; legacy Terra CW20 and xASTRO excluded' if slug == 'astro' else 'Terra CW20 total supply'}
+                'scope': 'Canonical ASTRO on Neutron; legacy Terra CW20 and xASTRO excluded' if slug == 'astro' else 'Native Terra bank total' if slug == 'luna' else 'Terra CW20 total supply'}
     return fallback(CONFIG['bases'] if spec['supplyChain'] == CONFIG['chain'] else [spec['supplyBase']], read)
 
 

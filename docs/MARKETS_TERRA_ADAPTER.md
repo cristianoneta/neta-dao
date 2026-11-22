@@ -1,6 +1,6 @@
 # Terra market-source extension
 
-The source adapter adds CAPA, SOLID, canonical ASTRO and Ethereum PAXG. CAPA and SOLID supply comes from exact Terra CW20 contracts; ASTRO supply is the canonical Neutron tokenfactory denomination. Astroport price references use factory-verified, pinned simulations and an independently dated USDC anchor. SOLID keeps its observed market price. PAXG uses a dated external reference and finalized Ethereum contract supply, explicitly scoped to Ethereum.
+The source adapter adds LUNA, CAPA, SOLID, canonical ASTRO and Ethereum PAXG. LUNA supply is the native Terra bank total. CAPA and SOLID supply comes from exact Terra CW20 contracts; ASTRO supply is the canonical Neutron tokenfactory denomination. Astroport price references use factory-verified, pinned simulations and an independently dated USDC anchor. SOLID keeps its observed market price. PAXG uses a dated external reference and finalized Ethereum contract supply, explicitly scoped to Ethereum.
 
 The collector publishes one current Astroport Terra inventory every five minutes. It preserves large reserves as decimal strings, does not claim underlying source timestamps, and does not create a pool-history archive or new swap index. A failed source read leaves the prior published observation and timestamp intact. The existing BTC/ETH/SOL/ATOM/JUNO pilot, deduplication, history resolution and storage baseline are unchanged.
 
