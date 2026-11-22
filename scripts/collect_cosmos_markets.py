@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Archive bounded public pool and external-price observations. No wallets or Treasury writes."""
+"""Archive direct chain and external-price observations. No website or wallet dependency."""
 from __future__ import annotations
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -14,9 +14,10 @@ import sys
 import time
 from urllib.request import Request, urlopen
 from collect_neta_market import atomic, database, encoded, record as record_pool, rows
+from market_direct_sources import DirectSources
 
-ORIGIN = 'https://markets.cosmoot.com'
 CONFIG = Path(__file__).with_name('cosmos_market_sources.json')
+_DIRECT = None
 
 
 def stamp(value):
@@ -32,14 +33,10 @@ def positive(value):
 
 
 def read(path):
-    request = Request(ORIGIN + path, headers={'User-Agent': 'Cosmoot-Market-Archive/1.0', 'Accept': 'application/json'})
-    with urlopen(request, timeout=18) as response:
-        if response.geturl().split('/')[2] != ORIGIN.split('/')[2]:
-            raise ValueError('Unexpected source redirect')
-        body = response.read(2_000_001)
-        if len(body) > 2_000_000:
-            raise ValueError('Oversized observation')
-        return json.loads(body)
+    global _DIRECT
+    if _DIRECT is None:
+        _DIRECT = DirectSources(json.loads(CONFIG.read_text()))
+    return _DIRECT.read(path)
 
 
 def validate(raw, spec, now):
@@ -104,7 +101,7 @@ def valid_supply(value, spec, now):
 
 
 def native_solana_supply(spec, rpc=None):
-    """Weekly direct native read if the website's public RPC route is unavailable."""
+    """Weekly native supply read with finalized-slot and genesis evidence."""
     if spec.get('supplyKind') != 'solana' or spec.get('supplyBase') != 'https://api.mainnet-beta.solana.com':
         raise ValueError('Unverified Solana source')
     if rpc is None:
@@ -137,8 +134,8 @@ def native_solana_supply(spec, rpc=None):
 
 
 def sample(slug, spec, previous=None, now=None, fetch=read):
-    now = time.time() if now is None else now
     raw = fetch('/api/observations?asset=' + slug)
+    now = time.time() if now is None else now
     current = validate(raw, spec, now)
     supply = previous
     if not valid_supply(supply, spec, now):
@@ -172,7 +169,7 @@ def record(db, observation):
         at, before = stamp(source['observed_at']), stamp(prior['observed_at'])
         if (observation['time'] < old['time'] or at < before
                 or any(source[k] != prior[k] for k in ('provider', 'asset_id', 'currency'))
-                or at == before and observation['price_usd'] != old['price_usd']):
+                or at == before and Decimal(str(observation['price_usd'])) != Decimal(str(old['price_usd']))):
             raise ValueError('External price evidence regressed or conflicted')
     with db:
         result = db.execute('INSERT OR IGNORE INTO samples VALUES (?,?,?)',
@@ -217,15 +214,18 @@ def publish(db, spec, destination, archive, now):
 
 
 def main():
+    global _DIRECT
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--state', default='/var/lib/cosmoot-marketdata/cosmos')
     p.add_argument('--output', default='/srv/cosmoot/public-snapshots/markets/data/markets')
     p.add_argument('--archive', default='/var/lib/cosmoot-collect/archive/market-data')
     p.add_argument('--archive-lock', default='/var/lib/cosmoot-collect/collector.lock')
     p.add_argument('--config', default=str(CONFIG))
+    p.add_argument('--treasury', default=str(Path(__file__).resolve().parents[1] / 'data/treasury/current.json'))
     p.add_argument('--probe', action='store_true')
     args = p.parse_args()
     specs = json.loads(Path(args.config).read_text())
+    _DIRECT = DirectSources(specs, treasury=args.treasury)
     now = int(time.time())
     state, output, archive = map(Path, (args.state, args.output, args.archive))
     if not args.probe:
@@ -233,17 +233,16 @@ def main():
         lock = (state / 'collector.lock').open('a')
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     previous = {}
-    if not args.probe:
-        for slug in specs:
-            path = output / slug / 'current.json'
-            if path.exists():
-                try:
-                    previous[slug] = json.loads(path.read_text())['current'].get('supply_observation')
-                except (KeyError, ValueError):
-                    pass
+    for slug in specs:
+        path = output / slug / 'current.json'
+        if path.exists():
+            try:
+                previous[slug] = json.loads(path.read_text())['current'].get('supply_observation')
+            except (KeyError, ValueError):
+                pass
     observed, errors = {}, {}
-    with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = {executor.submit(sample, slug, spec, previous.get(slug), now): slug for slug, spec in specs.items()}
+    with ThreadPoolExecutor(max_workers=6) as executor:
+        futures = {executor.submit(sample, slug, spec, previous.get(slug)): slug for slug, spec in specs.items()}
         for future in as_completed(futures):
             slug = futures[future]
             try:
@@ -251,6 +250,7 @@ def main():
             except Exception as error:
                 errors[slug] = str(error)
     if not args.probe:
+        now = int(time.time())
         # Commit each successful chain independently; never discard another asset's progress.
         for slug, current in observed.items():
             with database(state / (slug + '.sqlite3')) as db:
@@ -260,7 +260,7 @@ def main():
             for slug in observed:
                 with database(state / (slug + '.sqlite3')) as db:
                     publish(db, specs[slug], output / slug, archive / slug, now)
-    result = {'ok': not errors, 'probe': args.probe, 'observations': {slug: {'height': o.get('height'), 'reference_kind': o.get('reference_kind', 'chain-reference'), 'time': o['time'],
+    result = {'ok': not errors, 'probe': args.probe, 'source_mode': 'direct', 'requests': _DIRECT.http.requests, 'response_bytes': _DIRECT.http.bytes, 'observations': {slug: {'height': o.get('height'), 'reference_kind': o.get('reference_kind', 'chain-reference'), 'time': o['time'],
               'price_usd': o.get('price_usd'), 'supply_at': (o.get('supply_observation') or {}).get('observed_at')} for slug, o in observed.items()}, 'errors': errors}
     print(json.dumps(result))
     if errors:

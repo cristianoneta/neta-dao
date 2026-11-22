@@ -1,10 +1,18 @@
 # Current state — Cosmoot
 
+## Direct market sources and five-asset pool pilot — prepared, 22 November 2026
+
+The sixteen-asset price collector now reads its original chain/provider sources directly and reuses dated supply references. The existing NETA collector remains direct. Existing price identities and archives are preserved, including numeric compatibility with earlier external observations.
+
+A separate five-minute pilot covers BTC, ETH, SOL, ATOM and JUNO. Shared pools and repeated trade receipts are deduplicated. Indexed swap windows remain building, incomplete or delayed until a full fresh day is available. USD volume values one executed leg at a dated current reference; it is not a historical USD execution sum. The pilot excludes alloy backing, native Ethereum/Solana venues, orderbooks and unregistered legacy JUNO contracts.
+
+The prior expansion was installed successfully, and an overnight encrypted backup/download verification was reported. This new source change still requires the private host installer, a subsequent automatic cycle and backup acceptance. Public Markets version 23 reads archived prices first and supports the pilot output while preserving the previous sources during rollout. See [the pool pilot](MARKET_POOL_PILOT.md) for methodology and scope; exact operator evidence and continuation remain in the private operations record.
+
 ## Interchain Markets expansion — 21 November 2026
 
 The Markets expansion includes TIA, INJ, AXL, LINK, SOL, BABY and UNI alongside the original ten assets; AKT is excluded at the owner’s request.
 Cosmos pool liquidity is separate from external USD price references and Injective orderbook depth. The price collector now validates explicitly identified external references without inventing chain blocks, and retains native-chain supply evidence, including finalized Solana slots and the UNI burn-address adjustment.
-The operator deferred activation of the seven additional archives. The original nine-asset archive installation and a later automatic observation were confirmed; its post-archive backup acceptance remains open. This source update does not activate services. See [Interchain Markets](INTERCHAIN_MARKETS.md) for identities and rollout boundaries.
+The operator subsequently confirmed installation of all sixteen additional price archives and an overnight encrypted backup/download verification. A full off-server application recovery remains untested. See [Interchain Markets](INTERCHAIN_MARKETS.md) for identities and rollout boundaries.
 
 
 ## NETA pool coverage and swap volume — prepared, 21 November 2026
