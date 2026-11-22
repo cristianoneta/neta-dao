@@ -406,12 +406,13 @@ def volume(db, spec, cursor, references, now):
               'usd_valuation': 'One executed leg at the current dated USD reference; not historical USD execution prices'}
     if not fresh(end, 900, now):
         return {**common, 'status': 'stale'}
-    if covered_from > start:
+    observed_start = max(start, covered_from)
+    if observed_start >= end:
         return {**common, 'status': 'building'}
-    if db.execute('SELECT 1 FROM problems WHERE pool=? AND time>? AND time<=? LIMIT 1', (spec['key'], start, end)).fetchone():
+    if db.execute('SELECT 1 FROM problems WHERE pool=? AND time>? AND time<=? LIMIT 1', (spec['key'], observed_start, end)).fetchone():
         return {**common, 'status': 'incomplete', 'reason': 'Matching swap could not be decoded completely'}
     count, amount, valued = 0, Decimal(0), 0
-    for (raw,) in db.execute('SELECT payload FROM swaps WHERE pool=? AND time>? AND time<=?', (spec['key'], start, end)):
+    for (raw,) in db.execute('SELECT payload FROM swaps WHERE pool=? AND time>? AND time<=?', (spec['key'], observed_start, end)):
         t = json.loads(raw)
         value = value_of(spec['chain_id'], t['denom_in'], t['raw_in'], references)
         if value is None:
@@ -420,7 +421,7 @@ def volume(db, spec, cursor, references, now):
         if value is not None:
             amount += value
             valued += 1
-    return {**common, 'status': 'complete', 'swaps': count, 'valued_swaps': valued,
+    return {**common, 'status': 'building' if covered_from > start else 'complete', 'swaps': count, 'valued_swaps': valued,
             'usd': float(amount) if valued == count else None, 'usd_reference_times': {k: v['observed_at'] for k, v in references[0].items()}}
 
 

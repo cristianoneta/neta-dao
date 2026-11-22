@@ -1,12 +1,12 @@
 # Current state — Cosmoot
 
-## Direct market sources and five-asset pool pilot — prepared, 22 November 2026
+## Direct market sources and five-asset pool pilot — active, 22 November 2026
 
 The sixteen-asset price collector now reads its original chain/provider sources directly and reuses dated supply references. The existing NETA collector remains direct. Existing price identities and archives are preserved, including numeric compatibility with earlier external observations.
 
-A separate five-minute pilot covers BTC, ETH, SOL, ATOM and JUNO. Shared pools and repeated trade receipts are deduplicated. Indexed swap windows remain building, incomplete or delayed until a full fresh day is available. USD volume values one executed leg at a dated current reference; it is not a historical USD execution sum. The pilot excludes alloy backing, native Ethereum/Solana venues, orderbooks and unregistered legacy JUNO contracts.
+A separate five-minute pilot covers BTC, ETH, SOL, ATOM and JUNO. Shared pools and repeated trade receipts are deduplicated. The follow-up source exports recorded volume during the first day, retaining a building status and the actual coverage boundary; after a full fresh day it becomes a rolling 24-hour window. Incomplete or delayed evidence remains unavailable. USD volume values one executed leg at a dated current reference; it is not a historical USD execution sum. The pilot excludes alloy backing, native Ethereum/Solana venues, orderbooks and unregistered legacy JUNO contracts.
 
-The prior expansion was installed successfully, and an overnight encrypted backup/download verification was reported. This new source change still requires the private host installer, a subsequent automatic cycle and backup acceptance. Public Markets version 23 reads archived prices first and supports the pilot output while preserving the previous sources during rollout. See [the pool pilot](MARKET_POOL_PILOT.md) for methodology and scope; exact operator evidence and continuation remain in the private operations record.
+The owner confirmed successful direct-source and pilot installation. Subsequent public cycles advanced all three indexes and recorded all 261 pilot pools. The next encrypted backup after activation remains unverified. The first-day-volume follow-up still requires its updated private installer; recorded history and the five-minute schedule are preserved. Public Markets version 23 reads archived prices first and supports the pilot output while preserving the previous sources during rollout. See [the pool pilot](MARKET_POOL_PILOT.md) for methodology and scope; exact operator evidence and continuation remain in the private operations record.
 
 ## Interchain Markets expansion — 21 November 2026
 

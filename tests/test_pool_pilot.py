@@ -53,12 +53,46 @@ class PoolPilotTest(unittest.TestCase):
         saved = json.loads(self.db.execute('SELECT payload FROM cursors').fetchone()[0])
         self.assertEqual(saved['height'], 20)
 
-    def test_new_pool_requires_full_day(self):
+    def test_new_pool_reports_observed_volume_before_full_day(self):
         self.db.execute('UPDATE pools SET first_seen=?', (NOW-3600,))
+        p.record_scan(self.db, 'osmosis-1', cursor(), [swap()], [])
         v = p.volume(self.db, SPEC, cursor(), self.refs, NOW)
         self.assertEqual(v['status'], 'building')
-        self.assertIsNone(v['usd'])
+        self.assertEqual((v['usd'], v['swaps']), (20, 1))
         self.assertEqual(v['coverage_seconds'], 3600)
+
+    def test_building_window_counts_only_continuously_observed_period(self):
+        self.db.execute('UPDATE pools SET first_seen=?', (NOW-3600,))
+        before = {**swap(1), 'time': NOW-3601}
+        after = {**swap(2), 'time': NOW+1}
+        p.record_scan(self.db, 'osmosis-1', cursor(), [before, swap(), after], [])
+        v = p.volume(self.db, SPEC, cursor(), self.refs, NOW)
+        self.assertEqual((v['usd'], v['swaps']), (20, 1))
+        self.db.execute('DELETE FROM swaps')
+        self.assertEqual(p.volume(self.db, SPEC, cursor(), self.refs, NOW)['usd'], 0)
+        self.db.execute('UPDATE pools SET first_seen=?', (NOW+1,))
+        self.assertIsNone(p.volume(self.db, SPEC, cursor(), self.refs, NOW)['usd'])
+
+    def test_building_window_keeps_decode_and_valuation_failures_unavailable(self):
+        self.db.execute('UPDATE pools SET first_seen=?', (NOW-3600,))
+        p.record_scan(self.db, 'osmosis-1', cursor(), [swap()], [])
+        self.assertIsNone(p.volume(self.db, SPEC, cursor(), ({}, {}), NOW)['usd'])
+        self.db.execute('INSERT INTO problems VALUES (?,?,?,?,?)', (KEY, NOW-20, 'C'*64, 0, 'undecodable'))
+        v = p.volume(self.db, SPEC, cursor(), self.refs, NOW)
+        self.assertEqual(v['status'], 'incomplete')
+        self.assertIsNone(v['usd'])
+
+    def test_building_becomes_rolling_day_without_reset(self):
+        first = NOW-3600
+        self.db.execute('UPDATE pools SET first_seen=?', (first,))
+        p.record_scan(self.db, 'osmosis-1', cursor(), [swap()], [])
+        end = first+86400
+        at_day = {**cursor(), 'block_time': p.iso(end)}
+        v = p.volume(self.db, SPEC, at_day, self.refs, end)
+        self.assertEqual((v['status'], v['usd']), ('complete', 20))
+        later = NOW+86400
+        v = p.volume(self.db, SPEC, {**cursor(), 'block_time': p.iso(later)}, self.refs, later)
+        self.assertEqual((v['status'], v['usd']), ('complete', 0))
 
     def test_empty_complete_window_is_zero(self):
         v = p.volume(self.db, SPEC, cursor(), ({}, {}), NOW)

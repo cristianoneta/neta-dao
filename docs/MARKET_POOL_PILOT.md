@@ -18,7 +18,7 @@ The collector follows Cosmos transaction indexes incrementally, with retained he
 
 Only successful transactions and selected pool events count. A routed trade counts once per actual pool execution, not both legs; an overview summed across pools can still count several hops of one user route. Ambiguous legacy swap directions mark coverage incomplete. No fabricated zero is returned when decoding or USD valuation is unavailable.
 
-A full fresh 86,400-second indexed window must exist after both pool discovery and scan startup. The UI exposes building/incomplete/delayed states. Raw executed amounts remain stored. USD volume values one executed side at the current dated reference, so it is an estimate rather than historical USD execution value; wrapped-asset basis risk remains.
+Volume is available as soon as a fresh indexed interval exists after both pool discovery and scan startup. During the first day, only swaps inside that observed interval count and the status remains building; after 86,400 seconds the window rolls over the latest day. Zero means an observed interval without swaps. Incomplete and delayed indexes still return no volume. The UI keeps the 24h heading and exposes the building duration in pool details. Raw executed amounts remain stored. USD volume values one executed side at the current dated reference, so it is an estimate rather than historical USD execution value; wrapped-asset basis risk remains.
 
 ## Storage, cadence and activation
 
@@ -26,4 +26,4 @@ Prices retain the minute archive format. Pool observations run every five minute
 
 The public pilot status separates state, compressed archive and current-output byte counts and a first-cycle baseline. These are local file sizes, not backup-provider billed bytes. The exact source/service bundle is also retained in the existing encrypted archive scope by the private installer. The next completed backup must be verified separately after activation; no full off-server application recovery was performed.
 
-New source and timers are prepared. Host activation is performed using the private operator installer with source checks, preflight reads, the existing encrypted backup, targeted service changes and rollback on failed acceptance. Website fallback compatibility is preserved until that activation. No wallet signing, paid provider enrollment or hosting migration is involved.
+The direct sources and five-asset pilot are installed and a subsequent automatic cycle was independently observed. The first-day-volume follow-up is prepared for a separate update using the private operator installer with source checks, preflight reads, the existing encrypted backup, targeted service changes and rollback on failed acceptance. Website fallback compatibility is preserved until that activation. No wallet signing, paid provider enrollment or hosting migration is involved.
