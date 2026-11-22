@@ -35,7 +35,7 @@ class PoolPilotTest(unittest.TestCase):
         self.db = p.connect(':memory:')
         self.db.execute('INSERT INTO pools VALUES (?,?,?)', (KEY, NOW-90000, json.dumps(SPEC)))
         self.db.commit()
-        self.refs = ({'atom': {'price': '10', 'observed_at': p.iso(NOW)}}, {'osmosis-1:ua': ('atom', 6)})
+        self.refs = ({'atom': {'price': '10', 'observed_at': p.iso(NOW-60)}}, {'osmosis-1:ua': ('atom', 6)})
 
     def tearDown(self):
         self.db.close()
@@ -43,6 +43,7 @@ class PoolPilotTest(unittest.TestCase):
     def test_each_execution_once_and_not_both_legs(self):
         p.record_scan(self.db, 'osmosis-1', cursor(), [swap(), swap(1)], [])
         p.record_scan(self.db, 'osmosis-1', cursor(), [swap(), swap(1)], [])
+        p.freeze_values(self.db, self.refs, '/nonexistent-fixture-state', NOW)
         v = p.volume(self.db, SPEC, cursor(), self.refs, NOW)
         self.assertEqual((v['status'], v['swaps'], v['usd']), ('complete', 2, 40))
 
@@ -56,6 +57,7 @@ class PoolPilotTest(unittest.TestCase):
     def test_new_pool_reports_observed_volume_before_full_day(self):
         self.db.execute('UPDATE pools SET first_seen=?', (NOW-3600,))
         p.record_scan(self.db, 'osmosis-1', cursor(), [swap()], [])
+        p.freeze_values(self.db, self.refs, '/nonexistent-fixture-state', NOW)
         v = p.volume(self.db, SPEC, cursor(), self.refs, NOW)
         self.assertEqual(v['status'], 'building')
         self.assertEqual((v['usd'], v['swaps']), (20, 1))
@@ -66,6 +68,7 @@ class PoolPilotTest(unittest.TestCase):
         before = {**swap(1), 'time': NOW-3601}
         after = {**swap(2), 'time': NOW+1}
         p.record_scan(self.db, 'osmosis-1', cursor(), [before, swap(), after], [])
+        p.freeze_values(self.db, self.refs, '/nonexistent-fixture-state', NOW)
         v = p.volume(self.db, SPEC, cursor(), self.refs, NOW)
         self.assertEqual((v['usd'], v['swaps']), (20, 1))
         self.db.execute('DELETE FROM swaps')
@@ -78,6 +81,7 @@ class PoolPilotTest(unittest.TestCase):
         p.record_scan(self.db, 'osmosis-1', cursor(), [swap()], [])
         self.assertIsNone(p.volume(self.db, SPEC, cursor(), ({}, {}), NOW)['usd'])
         self.db.execute('INSERT INTO problems VALUES (?,?,?,?,?)', (KEY, NOW-20, 'C'*64, 0, 'undecodable'))
+        p.freeze_values(self.db, self.refs, '/nonexistent-fixture-state', NOW)
         v = p.volume(self.db, SPEC, cursor(), self.refs, NOW)
         self.assertEqual(v['status'], 'incomplete')
         self.assertIsNone(v['usd'])
@@ -88,6 +92,7 @@ class PoolPilotTest(unittest.TestCase):
         p.record_scan(self.db, 'osmosis-1', cursor(), [swap()], [])
         end = first+86400
         at_day = {**cursor(), 'block_time': p.iso(end)}
+        p.freeze_values(self.db, self.refs, '/nonexistent-fixture-state', NOW)
         v = p.volume(self.db, SPEC, at_day, self.refs, end)
         self.assertEqual((v['status'], v['usd']), ('complete', 20))
         later = NOW+86400

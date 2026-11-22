@@ -17,6 +17,7 @@ import time
 from urllib.parse import urlencode
 
 from collect_neta_market import atomic, encoded
+from pool_pilot_history import schema as history_schema, freeze_values, stored_value, publish_histories
 from market_direct_sources import HTTP, DirectSources, JUNO, OSMOSIS, block, decimal, fallback, fresh, iso, smart_path, stamp
 
 ASSETS = ('btc', 'eth', 'sol', 'atom', 'juno')
@@ -50,6 +51,7 @@ def connect(path):
       CREATE TABLE IF NOT EXISTS metrics (time INTEGER PRIMARY KEY, payload TEXT);
       CREATE TABLE IF NOT EXISTS exports (name TEXT PRIMARY KEY, last_row INTEGER);
     ''')
+    history_schema(db)
     return db
 
 
@@ -403,7 +405,8 @@ def volume(db, spec, cursor, references, now):
     covered_from = max(cursor['first_time'], first[0] if first else end)
     common = {**unavailable, 'window_start': start, 'window_end': end, 'covered_from': covered_from,
               'coverage_seconds': max(0, min(86400, end - covered_from)), 'source': cursor['source'], 'coverage': 'provider-index',
-              'usd_valuation': 'One executed leg at the current dated USD reference; not historical USD execution prices'}
+              'last_swap_at': db.execute('SELECT MAX(time) FROM swaps WHERE pool=? AND time<=?', (spec['key'], end)).fetchone()[0],
+              'usd_valuation': 'One executed leg at a prior recorded USD reference, frozen per trade; not an exact execution USD price'}
     if not fresh(end, 900, now):
         return {**common, 'status': 'stale'}
     observed_start = max(start, covered_from)
@@ -411,18 +414,18 @@ def volume(db, spec, cursor, references, now):
         return {**common, 'status': 'building'}
     if db.execute('SELECT 1 FROM problems WHERE pool=? AND time>? AND time<=? LIMIT 1', (spec['key'], observed_start, end)).fetchone():
         return {**common, 'status': 'incomplete', 'reason': 'Matching swap could not be decoded completely'}
-    count, amount, valued = 0, Decimal(0), 0
+    count, amount, valued, last_trade = 0, Decimal(0), 0, None
     for (raw,) in db.execute('SELECT payload FROM swaps WHERE pool=? AND time>? AND time<=?', (spec['key'], observed_start, end)):
         t = json.loads(raw)
-        value = value_of(spec['chain_id'], t['denom_in'], t['raw_in'], references)
-        if value is None:
-            value = value_of(spec['chain_id'], t['denom_out'], t['raw_out'], references)
+        valuation = stored_value(db, t)
+        value = Decimal(valuation['usd']) if valuation.get('usd') is not None else None
+        last_trade = max(last_trade or 0, t['time'])
         count += 1
         if value is not None:
             amount += value
             valued += 1
     return {**common, 'status': 'building' if covered_from > start else 'complete', 'swaps': count, 'valued_swaps': valued,
-            'usd': float(amount) if valued == count else None, 'usd_reference_times': {k: v['observed_at'] for k, v in references[0].items()}}
+            'usd': float(amount) if valued == count else None, 'last_swap_at': common['last_swap_at'], 'usd_basis': 'prior-recorded-reference'}
 
 
 def views(registry, observations, volumes, config, now):
@@ -448,6 +451,7 @@ def views(registry, observations, volumes, config, now):
                 'fee_pct': spec['fee_pct'], 'pool_type': spec['pool_type'], 'url': spec['url'], 'legacy': spec.get('legacy', False),
                 'registered': spec.get('registered', True), 'volume_24h': volumes.get(key, {'status': 'unavailable', 'usd': None, 'quote_amount': None}),
                 'height': o.get('height'), 'state_query': o.get('state_query'), 'source': o.get('source'), 'valuation_method': o.get('valuation'),
+                'assets': [{**a, 'raw_amount': amounts[i] if amounts else None} for i, a in enumerate(spec['assets'])],
                 'tracking': 'five-asset-pilot'})
     for rows in result.values():
         rows.sort(key=lambda p: p['liquidity_usd'] if p['liquidity_usd'] is not None else -1, reverse=True)
@@ -474,7 +478,7 @@ def save_chunk(db, archive, registry, now):
         atomic(definition, gzip.compress(raw, compresslevel=3, mtime=0))
     body = {'schema_version': 1, 'time': now, 'registry': revision}
     checkpoints = {}
-    for table in ('observations', 'swaps', 'problems', 'scans'):
+    for table in ('observations', 'swaps', 'problems', 'scans', 'trade_values', 'usd_references'):
         previous = db.execute('SELECT last_row FROM exports WHERE name=?', (table,)).fetchone()
         after = previous[0] if previous else 0
         cursor = db.execute('SELECT rowid,* FROM ' + table + ' WHERE rowid>? ORDER BY rowid', (after,))
@@ -561,6 +565,7 @@ def main():
                 errors[chain] = type(error).__name__ + ': ' + str(error)
     cursors = {chain: json.loads(raw) for chain, raw in db.execute('SELECT * FROM cursors')}
     now = int(time.time())
+    freeze_values(db, refs, state.parent, now)
     volumes = {key: volume(db, spec, cursors.get(spec['chain_id']), refs, now) for key, spec in registry.items()}
     output = views(registry, observations, volumes, config, now)
     report = {'schema_version': 1, 'generated_at': iso(now), 'assets': list(ASSETS), 'interval_seconds': INTERVAL,
@@ -574,6 +579,7 @@ def main():
         with open(args.archive_lock, 'r') as archive_lock:
             fcntl.flock(archive_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             save_chunk(db, args.archive, registry, now)
+            publish_histories(db, registry, cursors, args.output, now, publish_json)
             for slug, rows in output.items():
                 partial = inventory.get(slug, {}).get('status') != 'complete' or any(r['stale'] for r in rows)
                 payload = {'schema_version': 1, 'asset': slug, 'mode': 'pilot', 'scope': 'cosmos', 'status': 'available', 'observed_at': iso(now),
@@ -581,11 +587,12 @@ def main():
                 publish_json(Path(args.output) / slug / 'pools.json', payload)
         db.execute('PRAGMA wal_checkpoint(TRUNCATE)')
         sizes = {'state_bytes': tree_bytes(state), 'archive_bytes': tree_bytes(args.archive),
-                 'public_bytes': sum((Path(args.output) / slug / 'pools.json').stat().st_size for slug in ASSETS)}
+                 'public_bytes': sum((Path(args.output) / slug / 'pools.json').stat().st_size for slug in ASSETS),
+                 'derived_history_bytes': tree_bytes(Path(args.output)/'pilot/history')}
         first = db.execute('SELECT time,payload FROM metrics ORDER BY time LIMIT 1').fetchone()
         baseline = {'time': first[0], **json.loads(first[1])} if first else {'time': now, **sizes}
         report['storage'] = {'current': {'time': now, **sizes}, 'baseline_after_first_cycle': baseline,
-                             'growth_since_first_cycle': {k: sizes[k] - baseline[k] for k in sizes},
+                             'growth_since_first_cycle': {k: sizes[k] - baseline.get(k, 0) for k in sizes},
                              'elapsed_seconds': now - baseline['time'], 'note': 'File sizes, not R2 billed storage. The first cycle includes initial inventory/index setup.'}
         with db:
             db.execute('INSERT OR IGNORE INTO metrics VALUES (?,?)', (now, encoded(sizes).decode()))
