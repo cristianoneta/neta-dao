@@ -320,5 +320,23 @@
     "supplyChain": "phoenix-1",
     "supplyBase": "https://terra-lcd.publicnode.com",
     "supplyInterval": 86400
+  },
+  "roar": {
+    "symbol": "ROAR",
+    "denom": "terra1lxx40s29qvkrcj8fsa3yzyehy7w50umdvvnls2r830rys6lu2zns63eelv",
+    "decimals": 6,
+    "chain": "phoenix-1",
+    "pool": "terra189v2ewgfx5wdhje6geefdtxefeemujplk8qw2wx3x5hdswn95l8qf4n2r0",
+    "referenceKind": "astroport-reference",
+    "quote": "uluna",
+    "quoteDecimals": 6,
+    "quoteSymbol": "LUNA",
+    "offerAmount": "1000000000000",
+    "pairCodeId": 3279,
+    "supplyDenom": "terra1lxx40s29qvkrcj8fsa3yzyehy7w50umdvvnls2r830rys6lu2zns63eelv",
+    "supplyKind": "cw20",
+    "supplyChain": "phoenix-1",
+    "supplyBase": "https://terra-lcd.publicnode.com",
+    "supplyInterval": 86400
   }
 }

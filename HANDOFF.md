@@ -1,6 +1,21 @@
 # Cosmoot public development handoff
 
-## Osmosis volume catch-up — source repair prepared, 23 November 2026
+## ROAR price archive — configuration prepared, 23 November 2026
+
+The owner requested ROAR price-history activation after the Osmosis repair.
+The existing Terra adapter already supports its registered Astroport ROAR/LUNA
+pair and CW20 supply. Two additive configuration entries enable the minute-price
+collector; the private activation package adds the six public archive paths while
+preserving collector sources, service units and the installed Osmosis fix.
+The price reference is a simulated trade before commission, with its remaining
+price impact, converted through the existing LUNA/USDC.inj and dated USDC/USD
+references. Supply is a separately dated daily CW20 reference. Collection begins
+with real observations; no earlier price history is manufactured.
+Twenty-nine focused price/source tests and ten private installer tests passed.
+Host activation and a later automatic ROAR observation remain pending; the
+installer verifies the live registered pair, price and supply before mutation.
+
+## Osmosis volume catch-up — active, 23 November 2026
 
 The Osmosis pilot stalled after a short block range exceeded its 600-result
 pagination ceiling. Public chain blocks continued advancing while the retained
@@ -11,10 +26,14 @@ or request-budget expiry preserves earlier progress. Delayed coverage remains
 unavailable until the index actually catches up; no cursor reset or fabricated
 zero is used. Detailed, bounded provider errors identify the failed operation.
 The repair is scoped to Osmosis; the other chain scanners and collection schedule
-retain their behavior. Source validation and a private operator package precede
-host activation. All 94 focused market, pool and catch-up tests passed.
-Production installation, observed catch-up and a later scheduled
-cycle remain pending. See [the pool pilot](docs/MARKET_POOL_PILOT.md).
+retain their behavior. All 94 focused market, pool and catch-up tests passed.
+The owner confirmed installation. Osmosis caught up by 5,801 blocks, and later
+public cycles advanced beyond the installation target with no index errors.
+A 15:30 UTC snapshot contained 228 tracked Osmosis pools: 224 had USD volume;
+186 had complete 24-hour coverage and 42 were still building their own history.
+Four lacked complete USD valuation. The separate BTC inventory check still
+reported unavailable, so the aggregate service exit status can remain nonzero.
+The next scheduled encrypted backup remains a separate acceptance check. See [the pool pilot](docs/MARKET_POOL_PILOT.md).
 
 
 ## Market archive lock coordination and Terra archives — active, 22 November 2026

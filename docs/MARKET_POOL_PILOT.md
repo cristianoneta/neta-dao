@@ -20,7 +20,7 @@ Only successful transactions and selected pool events count. A routed trade coun
 
 Volume is available as soon as a fresh indexed interval exists after both pool discovery and scan startup. During the first day, only swaps inside that observed interval count and the status remains building; after 86,400 seconds the window rolls over the latest day. Zero means an observed interval without swaps. Incomplete and delayed indexes still return no volume. The UI keeps the 24h heading and exposes the building duration in pool details. Raw executed amounts remain stored. The activated update stores an immutable USD valuation for each transaction/event. It values one executed side using the latest recorded token reference at or before the trade, at most 30 minutes old. Existing minute archives can supply the reference without additional polling. Future references and stale references are rejected. Missing valuation stays unavailable and later prices do not rewrite recorded valuations. This remains an estimate rather than an exact historical USD execution price; wrapped-asset basis risk remains. The existing NETA collector retains its separate valuation method.
 
-## Osmosis bounded catch-up repair — prepared, 23 November 2026
+## Osmosis bounded catch-up repair — active, 23 November 2026
 
 The original scanner could read at most 12 pages of 50 results. A verified LCD
 query for blocks 75,911,004–75,911,450 returned 983 results; page 12 still contained
@@ -46,9 +46,32 @@ and 15 recovery regressions passed. Cases include more than 600 receipts,
 interrupted overlap, durable restarts, two-provider fallback, hash changes,
 stale heads, within-second checkpoint export and additive schema preservation.
 
-This section records prepared source behavior. Host installation, public cursor
-progress, completed catch-up and a subsequent scheduled cycle are separate
-acceptance checks; no live recovery is claimed by local tests.
+The owner confirmed installation at 15:29 UTC on 23 November. The retained
+cursor advanced from 75,911,104 to its target 75,916,905. Public automatic cycles
+then reached 75,917,084 at 15:30:54 UTC and 75,917,716 at 15:40:54 UTC, with
+`catching_up: false` and no chain index errors. The 15:30 pool snapshot contained
+228 unique Osmosis pools: 186 with complete 24-hour coverage and 42 building their
+own shorter observed windows. USD volume was available for 224 pools; four lacked
+complete trade valuation. The independent BTC inventory request remained
+unavailable and can keep the aggregate service exit status nonzero. This is
+separate from recovered swap indexing. The next scheduled backup remains unverified.
+
+## ROAR price archive — configuration prepared, 23 November 2026
+
+The owner requested ROAR price-history activation after the Osmosis repair.
+The existing Terra adapter already supports its registered Astroport ROAR/LUNA
+pair and CW20 supply. Two additive configuration entries enable the minute-price
+collector; the private activation package adds the six public archive paths while
+preserving collector sources, service units and the installed Osmosis fix.
+The price reference is a simulated trade before commission, with its remaining
+price impact, converted through the existing LUNA/USDC.inj and dated USDC/USD
+references. Supply is a separately dated daily CW20 reference. Collection begins
+with real observations; no earlier price history is manufactured.
+Twenty-nine focused price/source tests and ten private installer tests passed.
+Host activation and a later automatic ROAR observation remain pending; the
+installer verifies the live registered pair, price and supply before mutation.
+
+
 
 ## Storage, cadence and activation
 

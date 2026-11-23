@@ -8,11 +8,61 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 import terra_market_sources as terra
-from market_direct_sources import DirectSources, iso
+from market_direct_sources import DirectSources, iso, smart_path
 from collect_cosmos_markets import valid_supply
 
 
 class TerraMarketTest(unittest.TestCase):
+    def test_roar_reference_units_and_registered_pair_identity(self):
+        spec = terra.CONFIG['specs']['roar']
+        installed = json.loads((Path(__file__).resolve().parents[1] / 'scripts/cosmos_market_sources.json').read_text())
+        self.assertEqual(installed['roar'], spec)
+        self.assertEqual(terra.CONFIG['denoms']['roar'], [spec['denom']])
+        anchor = {'height': 123, 'block_hash': 'A'*64, 'block_time': iso()}
+        base = 'https://example.test'
+        pair = {'contract_addr': spec['pool'], 'asset_infos': [terra.info(spec['denom']), terra.info('uluna')]}
+        registration = {'contract_addr': spec['pool']}
+        contract = {'address': spec['pool'], 'contract_info': {'creator': terra.CONFIG['factory'], 'code_id': '3279'}}
+        responses = {
+            base + smart_path(spec['pool'], {'pair': {}}): {'data': pair},
+            base + '/cosmwasm/wasm/v1/contract/' + spec['pool']: contract,
+            base + smart_path(terra.CONFIG['factory'], {'pair': {'asset_infos': [terra.info(spec['denom']), terra.info('uluna')]}}): {'data': registration},
+            base + smart_path(spec['pool'], {'simulation': {'offer_asset': {'info': terra.info(spec['denom']), 'amount': '1000000000000'}}}):
+                {'data': {'return_amount': '1000000', 'commission_amount': '200', 'spread_amount': '300'}},
+        }
+        def http(url, height, **kwargs):
+            self.assertEqual(height, 123)
+            return {'data': responses[url]}
+        direct = DirectSources({'roar': spec}, http=http)
+        self.assertEqual(terra.reference(direct, base, anchor, spec)['price'], '0.0000010002')
+        registration['contract_addr'] = 'unregistered'
+        with self.assertRaisesRegex(ValueError, 'Unverified Astroport'):
+            terra.reference(direct, base, anchor, spec)
+        registration['contract_addr'] = spec['pool']
+        contract['contract_info']['code_id'] = '2569'
+        with self.assertRaisesRegex(ValueError, 'Unverified Astroport'):
+            terra.reference(direct, base, anchor, spec)
+
+    def test_roar_cw20_supply_rejects_wrong_symbol_and_decimals(self):
+        spec = terra.CONFIG['specs']['roar']
+        token = {'symbol': 'ROAR', 'decimals': 6, 'total_supply': '1000000000000000000'}
+        anchor = {'height': 123, 'block_hash': 'A'*64, 'block_time': iso()}
+        def http(url, height):
+            self.assertIn(smart_path(spec['denom'], {'token_info': {}}), url)
+            self.assertEqual(height, 123)
+            return {'data': {'data': token}, 'source': url}
+        direct = DirectSources({'roar': spec}, http=http)
+        with patch.object(terra, 'block', return_value=anchor):
+            value = terra.supply(direct, 'roar')
+            self.assertEqual(value['total_supply'], '1000000000000')
+            self.assertTrue(valid_supply(value, spec, time.time()))
+            token['decimals'] = 18
+            with self.assertRaises(RuntimeError):
+                terra.supply(direct, 'roar')
+            token.update(decimals=6, symbol='OTHER')
+            with self.assertRaises(RuntimeError):
+                terra.supply(direct, 'roar')
+
     def test_simulation_gross_reference_does_not_add_spread(self):
         value = terra.simulation_price({'return_amount': '1006794', 'commission_amount': '503', 'spread_amount': '9000'}, '1000000', 6, 6)
         self.assertEqual(value, Decimal('1.007297'))
