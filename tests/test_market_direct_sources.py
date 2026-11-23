@@ -3,6 +3,8 @@ from pathlib import Path
 import sys
 import time
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from urllib.error import HTTPError
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
@@ -13,6 +15,70 @@ CONFIG = json.loads((Path(__file__).resolve().parents[1] / 'scripts/cosmos_marke
 
 
 class DirectSourceTest(unittest.TestCase):
+    def test_direct_quote_preserves_real_price_time_and_source(self):
+        now = int(time.time())
+        calls = []
+        def http(url, **kwargs):
+            calls.append(url)
+            return {'source': url, 'data': {'usd-coin': {'usd': 0.999647, 'last_updated_at': now-70}}}
+        adapter = d.DirectSources(CONFIG, http=http)
+        quote = adapter.quote('usd-coin')
+        self.assertEqual(quote['price'], '0.999647')
+        self.assertEqual(d.stamp(quote['observed_at']), now-70)
+        self.assertEqual(quote['source'], 'CoinGecko')
+        self.assertTrue(quote['url'].startswith('https://api.coingecko.com/'))
+        self.assertIn('include_last_updated_at=true', calls[0])
+
+    def test_parallel_quotes_share_successful_batch_and_failed_primary(self):
+        now = int(time.time())
+        calls = []
+        def http(url, **kwargs):
+            calls.append(url)
+            if url.startswith(d.PRICE_API):
+                raise HTTPError(url, 403, 'Forbidden', {}, None)
+            return {'source': url, 'data': {'usd-coin': {'usd': 0.998, 'last_updated_at': now-50}}}
+        adapter = d.DirectSources(CONFIG, http=http)
+        with ThreadPoolExecutor(max_workers=8) as workers:
+            results = list(workers.map(adapter.quote, ['usd-coin']*16))
+        self.assertEqual(len(calls), 2)
+        self.assertTrue(all(q['price'] == '0.998' and q['source'] == 'CoinGecko via Osmosis' for q in results))
+        self.assertTrue(all(d.stamp(q['observed_at']) == now-50 for q in results))
+
+    def test_failed_provider_cache_expires_and_all_failures_keep_http_status(self):
+        calls = []
+        def http(url, **kwargs):
+            calls.append(url)
+            raise HTTPError(url, 429 if url.startswith(d.PRICE_API) else 403, 'Rejected', {}, None)
+        adapter = d.DirectSources(CONFIG, http=http)
+        with patch.object(d.time, 'monotonic', return_value=100):
+            for _ in range(3):
+                with self.assertRaisesRegex(RuntimeError, 'api.coingecko.com: HTTP 429.*prices.osmosis.zone: HTTP 403'):
+                    adapter.quote('usd-coin')
+        self.assertEqual(len(calls), 2)
+        with patch.object(d.time, 'monotonic', return_value=161), self.assertRaises(RuntimeError):
+            adapter.quote('usd-coin')
+        self.assertEqual(len(calls), 4)
+
+    def test_invalid_or_stale_primary_uses_only_valid_dated_fallback(self):
+        now = int(time.time())
+        for bad in ({'usd': 1, 'last_updated_at': now-1801}, {'usd': 1, 'last_updated_at': now+61},
+                    {'usd': 0, 'last_updated_at': now}, {'usd': 'NaN', 'last_updated_at': now}, None):
+            with self.subTest(bad=bad):
+                def http(url, **kwargs):
+                    q = bad if url.startswith(d.PRICE_API) else {'usd': 0.9991, 'last_updated_at': now-30}
+                    return {'source': url, 'data': {'usd-coin': q} if q is not None else {}}
+                result = d.DirectSources(CONFIG, http=http).quote('usd-coin')
+                self.assertEqual(result['price'], '0.9991')
+                self.assertEqual(d.stamp(result['observed_at']), now-30)
+                self.assertEqual(result['source'], 'CoinGecko via Osmosis')
+
+    def test_no_fixed_dollar_or_retrieval_time_when_all_prices_are_stale(self):
+        now = int(time.time())
+        def http(url, **kwargs):
+            return {'source': url, 'observed_at': d.iso(now), 'data': {'usd-coin': {'usd': 1, 'last_updated_at': now-1801}}}
+        with self.assertRaisesRegex(RuntimeError, 'Stale USD reference'):
+            d.DirectSources(CONFIG, http=http).quote('usd-coin')
+
     def test_external_references_keep_provider_time_without_blocks(self):
         now = int(time.time())
         adapter = d.DirectSources(CONFIG)

@@ -10,13 +10,15 @@ import re
 import threading
 import time
 from urllib.parse import quote, urlencode, urlsplit, parse_qs
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 OSMOSIS = ('https://osmosis-api.polkachu.com', 'https://lcd.osmosis.zone')
 JUNO = ('https://juno.api.m.stavr.tech', 'https://juno-api.polkachu.com', 'https://juno-rest.publicnode.com')
 GNO_API = 'https://gnoswap.io/api/v1'
 GNO_RPC = 'https://rpc.gno.land'
-PRICE_API = 'https://prices.osmosis.zone/api/v3/simple/price'
+PRICE_API = 'https://api.coingecko.com/api/v3/simple/price'
+PRICE_APIS = (PRICE_API, 'https://prices.osmosis.zone/api/v3/simple/price')
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -121,7 +123,12 @@ def fallback(bases, read):
         try:
             return read(base)
         except Exception as error:
-            errors.append(type(error).__name__)
+            # Keep HTTP status and bounded local validation context, never response
+            # bodies or request headers. Nested quote failures retain their cause.
+            detail = ('HTTP ' + str(error.code) if isinstance(error, HTTPError)
+                      else type(error).__name__ + (': ' + str(error)[:240]
+                           if isinstance(error, (ValueError, RuntimeError)) else ''))
+            errors.append(urlsplit(base).netloc + ': ' + detail)
     raise RuntimeError('Direct providers unavailable: ' + ','.join(errors))
 
 
@@ -130,6 +137,8 @@ class DirectSources:
         self.specs = specs
         self.http = http or HTTP()
         self.treasury = Path(treasury or ROOT / 'data/treasury/current.json')
+        self.price_guard = threading.Lock()
+        self.price_batches = {}
 
     def read(self, path):
         p = urlsplit(path)
@@ -143,16 +152,35 @@ class DirectSources:
             return self.supply(slug)
         raise ValueError('Unsupported direct market request')
 
-    def prices(self):
+    def prices(self, base=PRICE_API):
         ids = sorted({'usd-coin', 'tether'} | {s['priceId'] for s in self.specs.values() if s.get('referenceKind') == 'external-reference'})
-        return self.http(PRICE_API + '?' + urlencode({'ids': ','.join(ids), 'vs_currencies': 'usd', 'include_last_updated_at': 'true'}), ttl=30)
+        if base not in PRICE_APIS:
+            raise ValueError('Unapproved USD reference endpoint')
+        # All assets share one batch per provider per minute. Cache failures too:
+        # a rejected endpoint must not receive a retry from every parallel asset.
+        with self.price_guard:
+            hit = self.price_batches.get(base)
+            if hit and time.monotonic() < hit[0]:
+                if hit[2] is not None:
+                    raise hit[2]
+                return hit[1]
+            try:
+                result = self.http(base + '?' + urlencode({'ids': ','.join(ids), 'vs_currencies': 'usd', 'include_last_updated_at': 'true'}), ttl=60)
+            except Exception as error:
+                self.price_batches[base] = (time.monotonic() + 60, None, error)
+                raise
+            self.price_batches[base] = (time.monotonic() + 60, result, None)
+            return result
 
     def quote(self, asset_id):
-        r = self.prices()
-        q = r['data'][asset_id]
-        if not fresh(q['last_updated_at'], 1800):
-            raise ValueError('Stale USD reference')
-        return {'price': str(decimal(q['usd'])), 'observed_at': iso(q['last_updated_at']), 'source': 'CoinGecko via Osmosis', 'url': r['source']}
+        def read(base):
+            r = self.prices(base)
+            q = r['data'][asset_id]
+            if not fresh(q['last_updated_at'], 1800):
+                raise ValueError('Stale USD reference')
+            return {'price': str(decimal(q['usd'])), 'observed_at': iso(q['last_updated_at']),
+                    'source': 'CoinGecko' if base == PRICE_API else 'CoinGecko via Osmosis', 'url': r['source']}
+        return fallback(PRICE_APIS, read)
 
     def observation(self, slug):
         s = self.specs[slug]

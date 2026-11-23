@@ -56,22 +56,26 @@ complete trade valuation. The independent BTC inventory request remained
 unavailable and can keep the aggregate service exit status nonzero. This is
 separate from recovered swap indexing. The next scheduled backup remains unverified.
 
-## ROAR price archive — configuration prepared, 23 November 2026
+## USD reference repair and ROAR archive — prepared, 23 November 2026
 
-The owner requested ROAR price-history activation after the Osmosis repair.
-The existing Terra adapter already supports its registered Astroport ROAR/LUNA
-pair and CW20 supply. Two additive configuration entries enable the minute-price
-collector; the private activation package adds the six public archive paths while
-preserving collector sources, service units and the installed Osmosis fix.
-The price reference is a simulated trade before commission, with its remaining
-price impact, converted through the existing LUNA/USDC.inj and dated USDC/USD
-references. Supply is a separately dated daily CW20 reference. Collection begins
-with real observations; no earlier price history is manufactured.
-Twenty-nine focused price/source tests and ten private installer tests passed.
-Host activation and a later automatic ROAR observation remain pending; the
-installer verifies the live registered pair, price and supply before mutation.
+ROAR activation stopped during its read-only preflight before any host changes.
+A live diagnostic verified its Terra pool, factory registration and simulation,
+then received HTTP 403 from the shared Osmosis CoinGecko proxy. Existing LUNA,
+SOLID, CAPA, BTC and ATOM price observations had also stopped updating.
 
+The adapter now reads CoinGecko directly, with the previous proxy as fallback.
+It retains exact asset IDs, positive finite prices, dated source timestamps and
+freshness checks. Parallel assets share one batch per provider per minute;
+failures are cached too, avoiding repeated requests to a rejected endpoint.
+Errors retain bounded provider/status context without response bodies or headers.
+No fixed dollar price or fabricated observation fills the interruption.
 
+A complete read-only ROAR price and CW20 supply query passed using the repaired
+adapter. The host package stages that adapter for its live preflight, then updates
+only it, two ROAR JSON configurations and six archive routes. The installed
+Osmosis scanner, service units and histories are preserved. Forty-nine focused
+price/source/recovery tests and eleven installer tests passed. Host activation,
+a later automatic ROAR observation and the next encrypted backup remain pending.
 
 ## Storage, cadence and activation
 
