@@ -205,6 +205,47 @@ class PoolPilotTest(unittest.TestCase):
         stale = p.views({KEY: spec}, obs, {}, config, NOW+901)
         self.assertIsNone(stale['atom'][0]['liquidity_usd'])
 
+    def test_same_second_checkpoints_archive_without_rewriting_exported_rows(self):
+        p.record_scan(self.db, 'osmosis-1', cursor(), [swap()], [])
+        with tempfile.TemporaryDirectory() as root:
+            p.save_chunk(self.db, root, {KEY: SPEC}, NOW)
+            first_file = next(Path(root).glob('*/*.json.gz'))
+            first_bytes = first_file.read_bytes()
+            for height in (21, 22):
+                p.record_scan(self.db, 'osmosis-1', {**cursor(), 'height': height}, [swap(height-20)], [])
+            with self.assertRaises(ValueError):
+                p.record_scan(self.db, 'osmosis-1', {**cursor(), 'height': 23}, [swap(amount='999')], [])
+            self.assertEqual(self.db.execute('SELECT height FROM scan_checkpoints ORDER BY rowid').fetchall(),
+                             [(20,), (21,), (22,)])
+            self.assertEqual(self.db.execute('SELECT count(*) FROM scans').fetchone()[0], 1)
+            p.save_chunk(self.db, root, {KEY: SPEC}, NOW+300)
+            second = json.loads(gzip.decompress(sorted(Path(root).glob('*/*.json.gz'))[-1].read_bytes()))
+            self.assertEqual([row['height'] for row in second['scan_checkpoints']], [21, 22])
+            self.assertEqual([row['time'] for row in second['scan_checkpoints']], [NOW, NOW])
+            self.assertEqual(second['scans'], [])
+            self.assertEqual(len(second['swaps']), 2)
+            self.assertEqual(first_file.read_bytes(), first_bytes)
+
+    def test_checkpoint_table_addition_preserves_existing_store(self):
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root) / 'old.sqlite3'
+            db = p.connect(path)
+            p.record_scan(db, 'osmosis-1', cursor(), [swap()], [])
+            with db:
+                db.execute('DROP TABLE scan_checkpoints')
+                db.execute('INSERT INTO metrics VALUES (?,?)', (NOW-300, '{"state_bytes":123}'))
+                db.execute('INSERT INTO exports VALUES (?,?)', ('scans', 1))
+            before = {table: db.execute('SELECT rowid,* FROM ' + table).fetchall()
+                      for table in ('cursors', 'swaps', 'scans', 'metrics', 'exports')}
+            db.close()
+            db = p.connect(path)
+            self.assertEqual({table: db.execute('SELECT rowid,* FROM ' + table).fetchall()
+                              for table in before}, before)
+            self.assertEqual(db.execute('SELECT count(*) FROM scan_checkpoints').fetchone()[0], 0)
+            p.record_scan(db, 'osmosis-1', {**cursor(), 'height': 21}, [], [])
+            self.assertEqual(db.execute('SELECT height FROM scan_checkpoints').fetchall(), [(21,)])
+            db.close()
+
 
 if __name__ == '__main__':
     unittest.main()

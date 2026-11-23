@@ -51,6 +51,8 @@ def connect(path):
         PRIMARY KEY(pool,txhash,event_index));
       CREATE TABLE IF NOT EXISTS cursors (chain TEXT PRIMARY KEY, payload TEXT);
       CREATE TABLE IF NOT EXISTS scans (chain TEXT, time INTEGER, payload TEXT, PRIMARY KEY(chain,time));
+      CREATE TABLE IF NOT EXISTS scan_checkpoints (chain TEXT, time INTEGER, height INTEGER, payload TEXT,
+        PRIMARY KEY(chain,time,height));
       CREATE TABLE IF NOT EXISTS metrics (time INTEGER PRIMARY KEY, payload TEXT);
       CREATE TABLE IF NOT EXISTS exports (name TEXT PRIMARY KEY, last_row INTEGER);
     ''')
@@ -292,6 +294,82 @@ def parse_swaps(tx, tx_body, chain, registry):
     return trades, problems
 
 
+def _scan_index_range(http, chain, registry, base, start_height, end, first_height, first_time, expected=None):
+    """Validate one complete, anchored range before making any state durable."""
+    start = block(http, base, chain, start_height)
+    selector = CHAINS[chain]['selector']
+    query = selector + f" AND tx.height>={start_height} AND tx.height<={end['height']}"
+    seen, receipt_hashes, match_counts, trades, problems = set(), {}, {}, [], []
+    def selector_matches(tx):
+        kind, name, value = ('token_swapped', 'pool_id', None) if chain == 'osmosis-1' else ('wasm', '_contract_address', None) if chain == 'juno-1' else ('wasm', 'action', 'swap')
+        return sum(1 for e in tx.get('events', []) if e.get('type') == kind for a in e.get('attributes', [])
+                   if a.get('key') == name and (value is None or a.get('value') == value))
+    for page in range(1, 13):
+        url = base + '/cosmos/tx/v1beta1/txs?' + urlencode({'query': query, 'page': page, 'limit': 50, 'order_by': 'ORDER_BY_ASC'})
+        d = http(url)['data']
+        total, batch, bodies = int(d['total']), d.get('tx_responses'), d.get('txs')
+        if total < 0 or (expected is not None and total != expected) or not isinstance(batch, list) or not isinstance(bodies, list) or len(batch) != len(bodies):
+            raise ValueError('Inconsistent transaction index')
+        expected = total
+        for tx, tx_body in zip(batch, bodies):
+            digest, height, at = tx['txhash'].upper(), int(tx['height']), stamp(tx['timestamp'])
+            if (not re.fullmatch(r'[A-F0-9]{64}', digest) or not start_height <= height <= end['height']
+                    or not stamp(start['block_time']) - 1 <= at <= stamp(end['block_time'])):
+                raise ValueError('Invalid indexed receipt')
+            receipt_hash = hashlib.sha256(encoded([tx, tx_body])).hexdigest()
+            if digest in seen:
+                if receipt_hashes[digest] != receipt_hash:
+                    raise ValueError('Conflicting repeated transaction receipt')
+                continue
+            matched = selector_matches(tx)
+            if not matched:
+                raise ValueError('Receipt does not match its selector')
+            seen.add(digest)
+            receipt_hashes[digest], match_counts[digest] = receipt_hash, matched
+            t, p = parse_swaps(tx, tx_body, chain, registry)
+            trades.extend(t)
+            problems.extend(p)
+        if page * 50 >= total:
+            break
+        if not batch or len(seen) > total:
+            raise ValueError('Truncated transaction index')
+    else:
+        raise ValueError('Transaction page limit; cursor retained')
+    count_semantics = 'transactions'
+    if len(seen) != expected:
+        # Some chain forks paginate matching event entries and deduplicate
+        # transactions AFTER pagination. Prove this behavior on two adjacent
+        # positions before accepting an event count as the coverage total.
+        if sum(match_counts.values()) != expected:
+            raise ValueError('Truncated transaction index')
+        offset = 0
+        for digest, matched in match_counts.items():
+            if matched > 1:
+                for position in (offset + 1, offset + 2):
+                    check = http(base + '/cosmos/tx/v1beta1/txs?' + urlencode({'query': query, 'page': position, 'limit': 1, 'order_by': 'ORDER_BY_ASC'}))['data']
+                    entries = check.get('tx_responses', [])
+                    if int(check.get('total', -1)) != expected or len(entries) != 1 or entries[0].get('txhash', '').upper() != digest:
+                        raise ValueError('Unconfirmed event-index pagination semantics')
+                count_semantics = 'matching-events-verified'
+                break
+            offset += matched
+        else:
+            raise ValueError('Transaction count mismatch')
+    control_range = f" AND tx.height>={max(1, end['height']-2000)}" if chain == 'osmosis-1' else ''
+    control = http(base + '/cosmos/tx/v1beta1/txs?' + urlencode({'query': selector + control_range + f" AND tx.height<={end['height']}",
+                   'page': 1, 'limit': 1, 'order_by': 'ORDER_BY_DESC'}))['data'].get('tx_responses', [])
+    if len(control) != 1 or not any(e.get('type') == ('token_swapped' if chain == 'osmosis-1' else 'wasm') for e in control[0].get('events', [])):
+        raise ValueError('Index selector control unavailable')
+    if int(control[0]['height']) >= start_height and control[0]['txhash'].upper() not in seen:
+        raise ValueError('Index omitted control receipt')
+    if block(http, base, chain, end['height'], refresh=True)['block_hash'] != end['block_hash']:
+        raise ValueError('Index anchor changed')
+    cursor = {**end, 'first_height': first_height, 'first_time': first_time, 'source': base, 'coverage': 'provider-index',
+              'from_height': start_height, 'transactions': len(seen), 'index_total': expected, 'count_semantics': count_semantics,
+              'time': int(time.time()), 'selector': selector}
+    return cursor, trades, problems
+
+
 def scan_chain(http, chain, registry, previous):
     spec = CHAINS[chain]
     def scan(base):
@@ -307,79 +385,114 @@ def scan_chain(http, chain, registry, previous):
         else:
             start_height = end['height']
             first_height, first_time = end['height'], int(stamp(end['block_time']))
-        start = block(http, base, chain, start_height)
-        selector = spec['selector']
-        query = selector + f" AND tx.height>={start_height} AND tx.height<={end['height']}"
-        seen, receipt_hashes, match_counts, trades, problems, expected = set(), {}, {}, [], [], None
-        def selector_matches(tx):
-            kind, name, value = ('token_swapped', 'pool_id', None) if chain == 'osmosis-1' else ('wasm', '_contract_address', None) if chain == 'juno-1' else ('wasm', 'action', 'swap')
-            return sum(1 for e in tx.get('events', []) if e.get('type') == kind for a in e.get('attributes', [])
-                       if a.get('key') == name and (value is None or a.get('value') == value))
-        for page in range(1, 13):
-            url = base + '/cosmos/tx/v1beta1/txs?' + urlencode({'query': query, 'page': page, 'limit': 50, 'order_by': 'ORDER_BY_ASC'})
-            d = http(url)['data']
-            total, batch, bodies = int(d['total']), d.get('tx_responses'), d.get('txs')
-            if total < 0 or (expected is not None and total != expected) or not isinstance(batch, list) or not isinstance(bodies, list) or len(batch) != len(bodies):
-                raise ValueError('Inconsistent transaction index')
-            expected = total
-            for tx, tx_body in zip(batch, bodies):
-                digest, height, at = tx['txhash'].upper(), int(tx['height']), stamp(tx['timestamp'])
-                if (not re.fullmatch(r'[A-F0-9]{64}', digest) or not start_height <= height <= end['height']
-                        or not stamp(start['block_time']) - 1 <= at <= stamp(end['block_time'])):
-                    raise ValueError('Invalid indexed receipt')
-                receipt_hash = hashlib.sha256(encoded([tx, tx_body])).hexdigest()
-                if digest in seen:
-                    if receipt_hashes[digest] != receipt_hash:
-                        raise ValueError('Conflicting repeated transaction receipt')
-                    continue
-                matched = selector_matches(tx)
-                if not matched:
-                    raise ValueError('Receipt does not match its selector')
-                seen.add(digest)
-                receipt_hashes[digest], match_counts[digest] = receipt_hash, matched
-                t, p = parse_swaps(tx, tx_body, chain, registry)
-                trades.extend(t)
-                problems.extend(p)
-            if page * 50 >= total:
-                break
-            if not batch or len(seen) > total:
-                raise ValueError('Truncated transaction index')
-        else:
-            raise ValueError('Transaction page limit; cursor retained')
-        count_semantics = 'transactions'
-        if len(seen) != expected:
-            # Some chain forks paginate matching event entries and deduplicate
-            # transactions AFTER pagination. Prove this behavior on two adjacent
-            # positions before accepting an event count as the coverage total.
-            if sum(match_counts.values()) != expected:
-                raise ValueError('Truncated transaction index')
-            offset = 0
-            for digest, matched in match_counts.items():
-                if matched > 1:
-                    for position in (offset + 1, offset + 2):
-                        check = http(base + '/cosmos/tx/v1beta1/txs?' + urlencode({'query': query, 'page': position, 'limit': 1, 'order_by': 'ORDER_BY_ASC'}))['data']
-                        entries = check.get('tx_responses', [])
-                        if int(check.get('total', -1)) != expected or len(entries) != 1 or entries[0].get('txhash', '').upper() != digest:
-                            raise ValueError('Unconfirmed event-index pagination semantics')
-                    count_semantics = 'matching-events-verified'
-                    break
-                offset += matched
-            else:
-                raise ValueError('Transaction count mismatch')
-        control_range = f" AND tx.height>={max(1, end['height']-2000)}" if chain == 'osmosis-1' else ''
-        control = http(base + '/cosmos/tx/v1beta1/txs?' + urlencode({'query': selector + control_range + f" AND tx.height<={end['height']}",
-                       'page': 1, 'limit': 1, 'order_by': 'ORDER_BY_DESC'}))['data'].get('tx_responses', [])
-        if len(control) != 1 or not any(e.get('type') == ('token_swapped' if chain == 'osmosis-1' else 'wasm') for e in control[0].get('events', [])):
-            raise ValueError('Index selector control unavailable')
-        if int(control[0]['height']) >= start_height and control[0]['txhash'].upper() not in seen:
-            raise ValueError('Index omitted control receipt')
-        if block(http, base, chain, end['height'], refresh=True)['block_hash'] != end['block_hash']:
-            raise ValueError('Index anchor changed')
-        cursor = {**end, 'first_height': first_height, 'first_time': first_time, 'source': base, 'coverage': 'provider-index',
-                  'from_height': start_height, 'transactions': len(seen), 'index_total': expected, 'count_semantics': count_semantics,
-                  'time': int(time.time()), 'selector': selector}
-        return cursor, trades, problems
+        return _scan_index_range(http, chain, registry, base, start_height, end, first_height, first_time)
     return fallback(spec['providers'], scan)
+
+
+def _osmosis_fallback(read):
+    """Keep actionable public-source errors without publishing response bodies."""
+    safe_errors = {
+        'Stale chain block', 'Wrong chain block', 'Invalid block hash',
+        'Stale index anchor', 'Index anchor regressed or changed',
+        'Inconsistent transaction index', 'Invalid indexed receipt',
+        'Conflicting repeated transaction receipt', 'Receipt does not match its selector',
+        'Truncated transaction index', 'Transaction page limit; cursor retained',
+        'Unconfirmed event-index pagination semantics', 'Transaction count mismatch',
+        'Index selector control unavailable', 'Index omitted control receipt',
+        'Index anchor changed', 'Unexpected source redirect', 'Oversized source response',
+        'Source request budget exhausted',
+    }
+    errors = []
+    for base in dict.fromkeys(CHAINS['osmosis-1']['providers']):
+        try:
+            return read(base)
+        except Exception as error:
+            message = str(error)
+            if message not in safe_errors and not re.fullmatch(
+                    r'Osmosis block \d+ has \d+ index results; limit is 600', message):
+                code = getattr(error, 'code', None)
+                message = ('HTTP ' + str(code) if isinstance(code, int) and 100 <= code <= 599
+                           else 'Provider request or response rejected')
+            errors.append(base + ': ' + type(error).__name__ + ': ' + message[:200])
+    raise RuntimeError('Osmosis providers unavailable: ' + '; '.join(errors))
+
+
+def scan_osmosis_chunks(http, registry, previous):
+    """Yield verified contiguous checkpoints; callers must commit before next()."""
+    chain = 'osmosis-1'
+    selector = CHAINS[chain]['selector']
+
+    def anchor(base):
+        # A fresh live head is still required. Only the catch-up range endpoints
+        # may be historical; freshness of those cannot gate recovery.
+        tip = block(http, base, chain)
+        if not fresh(tip['block_time'], 120):
+            raise ValueError('Stale chain block')
+        target = block(http, base, chain, max(1, tip['height'] - 30))
+        if not fresh(target['block_time'], 600):
+            raise ValueError('Stale index anchor')
+        if previous and (target['height'] < previous['height'] or
+                         block(http, base, chain, previous['height'])['block_hash'] != previous['block_hash']):
+            raise ValueError('Index anchor regressed or changed')
+        return target
+
+    target = _osmosis_fallback(anchor)
+    first_height = previous['first_height'] if previous else target['height']
+    first_time = previous['first_time'] if previous else int(stamp(target['block_time']))
+
+    def chunk(start_height, last_height, prior):
+        def read(base):
+            if prior and block(http, base, chain, prior['height'], refresh=True)['block_hash'] != prior['block_hash']:
+                raise ValueError('Index anchor regressed or changed')
+            # Bound both the height span and result pages. A busy range is split
+            # before downloading full receipts, retaining its exact lower bound.
+            end_height = min(last_height, start_height + 1999)
+            while True:
+                query = selector + f" AND tx.height>={start_height} AND tx.height<={end_height}"
+                count = http(base + '/cosmos/tx/v1beta1/txs?' + urlencode(
+                    {'query': query, 'page': 1, 'limit': 1, 'order_by': 'ORDER_BY_ASC'}))['data']
+                total, receipts, bodies = int(count['total']), count.get('tx_responses'), count.get('txs')
+                if (total < 0 or not isinstance(receipts, list) or not isinstance(bodies, list)
+                        or len(receipts) != len(bodies) or len(receipts) != min(total, 1)):
+                    raise ValueError('Inconsistent transaction index')
+                if total <= 600:
+                    break
+                if end_height == start_height:
+                    raise ValueError(f'Osmosis block {start_height} has {total} index results; limit is 600')
+                end_height = start_height + (end_height - start_height) // 2
+            end = block(http, base, chain, end_height)
+            if end_height == target['height'] and end['block_hash'] != target['block_hash']:
+                raise ValueError('Index anchor changed')
+            cursor, trades, problems = _scan_index_range(
+                http, chain, registry, base, start_height, end, first_height, first_time, expected=total)
+            cursor.update(target_height=target['height'], target_block_time=target['block_time'],
+                          catching_up=end_height < target['height'])
+            return cursor, trades, problems
+        return _osmosis_fallback(read)
+
+    current = previous
+    if previous:
+        # Recheck the existing overlap once, before moving forward. Split overlap
+        # chunks never regress the durable cursor, and a failed overlap publishes
+        # none of its partial results. Forward chunks do not add another overlap.
+        start_height = max(previous['height'] - 100, first_height)
+        overlap_trades, overlap_problems = [], []
+        while start_height <= previous['height']:
+            checkpoint, trades, problems = chunk(start_height, previous['height'], current)
+            overlap_trades.extend(trades)
+            overlap_problems.extend(problems)
+            start_height = checkpoint['height'] + 1
+        current = checkpoint
+        yield current, overlap_trades, overlap_problems
+        start_height = current['height'] + 1
+    else:
+        # New installations keep their existing tracking-start boundary.
+        start_height = first_height
+
+    while start_height <= target['height']:
+        current, trades, problems = chunk(start_height, target['height'], current)
+        yield current, trades, problems
+        start_height = current['height'] + 1
 
 
 def record_scan(db, chain, cursor, trades, problems):
@@ -396,6 +509,9 @@ def record_scan(db, chain, cursor, trades, problems):
             db.execute('INSERT OR IGNORE INTO problems VALUES (?,?,?,?,?)', (p['pool'], p['time'], p['txhash'], p['event_index'], p['reason']))
         db.execute('INSERT INTO cursors VALUES (?,?) ON CONFLICT(chain) DO UPDATE SET payload=excluded.payload', (chain, encoded(cursor).decode()))
         db.execute('INSERT OR IGNORE INTO scans VALUES (?,?,?)', (chain, cursor['time'], encoded(cursor).decode()))
+        if chain == 'osmosis-1':
+            db.execute('INSERT OR IGNORE INTO scan_checkpoints VALUES (?,?,?,?)',
+                       (chain, cursor['time'], cursor['height'], encoded(cursor).decode()))
 
 
 def volume(db, spec, cursor, references, now):
@@ -410,7 +526,7 @@ def volume(db, spec, cursor, references, now):
               'coverage_seconds': max(0, min(86400, end - covered_from)), 'source': cursor['source'], 'coverage': 'provider-index',
               'last_swap_at': db.execute('SELECT MAX(time) FROM swaps WHERE pool=? AND time<=?', (spec['key'], end)).fetchone()[0],
               'usd_valuation': 'One executed leg at a prior recorded USD reference, frozen per trade; not an exact execution USD price'}
-    if not fresh(end, 900, now):
+    if cursor.get('catching_up') or not fresh(end, 900, now):
         return {**common, 'status': 'stale'}
     observed_start = max(start, covered_from)
     if observed_start >= end:
@@ -498,7 +614,7 @@ def save_chunk(db, archive, registry, now):
         atomic(definition, gzip.compress(raw, compresslevel=3, mtime=0))
     body = {'schema_version': 1, 'time': now, 'registry': revision}
     checkpoints = {}
-    for table in ('observations', 'swaps', 'problems', 'scans', 'trade_values', 'usd_references'):
+    for table in ('observations', 'swaps', 'problems', 'scans', 'scan_checkpoints', 'trade_values', 'usd_references'):
         previous = db.execute('SELECT last_row FROM exports WHERE name=?', (table,)).fetchone()
         after = previous[0] if previous else 0
         cursor = db.execute('SELECT rowid,* FROM ' + table + ' WHERE rowid>? ORDER BY rowid', (after,))
@@ -568,19 +684,28 @@ def main():
             db.execute('INSERT INTO pools VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET definition=excluded.definition', (key, now, encoded(spec).decode()))
             if key in observations:
                 db.execute('INSERT OR IGNORE INTO observations VALUES (?,?,?)', (key, now, encoded(observations[key]).decode()))
-    scans, trades, problems, errors = {}, [], [], {}
+    errors = {}
     previous = {chain: json.loads(raw) for chain, raw in db.execute('SELECT * FROM cursors')}
     index_http = HTTP(timeout=18, deadline=started + 230)
-    with ThreadPoolExecutor(max_workers=3) as workers:
-        futures = {workers.submit(scan_chain, index_http, chain, registry, previous.get(chain)): chain for chain in CHAINS}
+    def checkpoint(chain, result):
+        cursor, new_trades, new_problems = result
+        record_scan(db, chain, cursor, new_trades, new_problems)
+
+    with ThreadPoolExecutor(max_workers=2) as workers:
+        futures = {workers.submit(scan_chain, index_http, chain, registry, previous.get(chain)): chain
+                   for chain in CHAINS if chain != 'osmosis-1'}
+        # SQLite stays on its creating thread. Each successful Osmosis chunk is
+        # committed before another network chunk starts, so a later timeout cannot
+        # discard progress or cause the next timer run to repeat the whole backlog.
+        try:
+            for result in scan_osmosis_chunks(index_http, registry, previous.get('osmosis-1')):
+                checkpoint('osmosis-1', result)
+        except Exception as error:
+            errors['osmosis-1'] = type(error).__name__ + ': ' + str(error)
         for f in as_completed(futures):
             chain = futures[f]
             try:
-                cursor, new_trades, new_problems = f.result()
-                record_scan(db, chain, cursor, new_trades, new_problems)
-                scans[chain] = cursor
-                trades.extend(new_trades)
-                problems.extend(new_problems)
+                checkpoint(chain, f.result())
             except Exception as error:
                 errors[chain] = type(error).__name__ + ': ' + str(error)
     cursors = {chain: json.loads(raw) for chain, raw in db.execute('SELECT * FROM cursors')}

@@ -51,6 +51,7 @@ def collector_fixture(kind, root, at):
                 patch.object(collector, 'osmosis_inventory', return_value=({}, {KEY: observation}, inventory)), \
                 patch.object(collector, 'scan_chain', side_effect=lambda http, chain, *rest:
                              (anchor, [trade] if chain == 'osmosis-1' else [], [])), \
+                patch.object(collector, 'scan_osmosis_chunks', return_value=iter([(anchor, [trade], [])])), \
                 patch.object(collector, 'acquire_archive_lock', side_effect=wait):
             collector.main()
 

@@ -1,5 +1,22 @@
 # Cosmoot public development handoff
 
+## Osmosis volume catch-up — source repair prepared, 23 November 2026
+
+The Osmosis pilot stalled after a short block range exceeded its 600-result
+pagination ceiling. Public chain blocks continued advancing while the retained
+volume cursor stopped. The source repair processes bounded block ranges, divides
+oversized ranges before collecting full pages, and retains each completely
+validated checkpoint before requesting the next range. A later provider failure
+or request-budget expiry preserves earlier progress. Delayed coverage remains
+unavailable until the index actually catches up; no cursor reset or fabricated
+zero is used. Detailed, bounded provider errors identify the failed operation.
+The repair is scoped to Osmosis; the other chain scanners and collection schedule
+retain their behavior. Source validation and a private operator package precede
+host activation. All 94 focused market, pool and catch-up tests passed.
+Production installation, observed catch-up and a later scheduled
+cycle remain pending. See [the pool pilot](docs/MARKET_POOL_PILOT.md).
+
+
 ## Market archive lock coordination and Terra archives — active, 22 November 2026
 
 Terra archive activation rolled back when another archive writer held the shared

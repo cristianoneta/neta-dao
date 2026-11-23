@@ -20,6 +20,36 @@ Only successful transactions and selected pool events count. A routed trade coun
 
 Volume is available as soon as a fresh indexed interval exists after both pool discovery and scan startup. During the first day, only swaps inside that observed interval count and the status remains building; after 86,400 seconds the window rolls over the latest day. Zero means an observed interval without swaps. Incomplete and delayed indexes still return no volume. The UI keeps the 24h heading and exposes the building duration in pool details. Raw executed amounts remain stored. The activated update stores an immutable USD valuation for each transaction/event. It values one executed side using the latest recorded token reference at or before the trade, at most 30 minutes old. Existing minute archives can supply the reference without additional polling. Future references and stale references are rejected. Missing valuation stays unavailable and later prices do not rewrite recorded valuations. This remains an estimate rather than an exact historical USD execution price; wrapped-asset basis risk remains. The existing NETA collector retains its separate valuation method.
 
+## Osmosis bounded catch-up repair — prepared, 23 November 2026
+
+The original scanner could read at most 12 pages of 50 results. A verified LCD
+query for blocks 75,911,004–75,911,450 returned 983 results; page 12 still contained
+50 transactions. The old all-or-nothing scan retained its cursor at 75,911,104,
+so its growing unprocessed range could no longer fit inside the limit. This is
+a demonstrated catch-up blocker; the initial production exception was hidden by
+the old class-only provider-error summary and is not independently established.
+
+The repair bounds and adaptively divides block ranges, validates complete pages,
+counts, receipts and anchors, and commits each accepted chunk before the next
+network read. A failed later chunk never advances coverage across its unread
+range. Historical anchors are allowed only as part of catch-up from a retained
+cursor after checking a fresh chain head. The original first-coverage boundary,
+trade identities, USD valuations and storage baseline are retained. An additive `scan_checkpoints` table preserves distinct Osmosis checkpoints
+within the same second and exports them with immutable cycle archives. Existing
+tables, row identities, export positions and per-second legacy scan samples
+remain intact; rolling the code back does not delete the added evidence. Provider
+errors include bounded operation details. An overfull single block fails
+explicitly instead of skipping receipts. Other chains keep their existing scan.
+
+Validation: 43 market/source/contention tests, 36 pool/history/publication tests
+and 15 recovery regressions passed. Cases include more than 600 receipts,
+interrupted overlap, durable restarts, two-provider fallback, hash changes,
+stale heads, within-second checkpoint export and additive schema preservation.
+
+This section records prepared source behavior. Host installation, public cursor
+progress, completed catch-up and a subsequent scheduled cycle are separate
+acceptance checks; no live recovery is claimed by local tests.
+
 ## Storage, cadence and activation
 
 Prices retain the minute archive format. Pool observations run every five minutes; new swaps are collected from the retained cursor. No whole-day trade history is repeatedly downloaded. SQLite keeps observations and deduplicated receipts; immutable compressed cycle files and content-addressed registries sit under the existing archive scope. Export checkpoints allow a later cycle to catch up after a busy backup lock. No retention deletion is added.

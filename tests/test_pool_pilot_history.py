@@ -16,7 +16,7 @@ class PoolHistoryTest(unittest.TestCase):
         self.spec={'key':KEY,'chain_id':'osmosis-1','pool':'1'}
         self.db.execute('INSERT INTO pools VALUES (?,?,?)',(KEY,NOW-7200,json.dumps(self.spec)))
         self.trade={'pool':KEY,'chain':'osmosis-1','txhash':'A'*64,'event_index':0,'time':NOW-60,'height':10,'denom_in':'ua','raw_in':'2000000','denom_out':'ub','raw_out':'1'}
-        self.cursor={'time':NOW,'block_time':p.iso(NOW),'first_time':NOW-7200,'source':'fixture'}
+        self.cursor={'height':20,'time':NOW,'block_time':p.iso(NOW),'first_time':NOW-7200,'source':'fixture'}
         p.record_scan(self.db,'osmosis-1',self.cursor,[self.trade],[])
         self.refs=({'atom':{'price':'10','observed_at':p.iso(NOW-120)}},{'osmosis-1:ua':('atom',6)})
     def tearDown(self):self.db.close()
