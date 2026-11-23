@@ -56,7 +56,7 @@ complete trade valuation. The independent BTC inventory request remained
 unavailable and can keep the aggregate service exit status nonzero. This is
 separate from recovered swap indexing. The next scheduled backup remains unverified.
 
-## USD reference repair and ROAR archive — prepared, 23 November 2026
+## USD reference repair and ROAR archive — active, 23 November 2026
 
 ROAR activation stopped during its read-only preflight before any host changes.
 A live diagnostic verified its Terra pool, factory registration and simulation,
@@ -70,12 +70,18 @@ failures are cached too, avoiding repeated requests to a rejected endpoint.
 Errors retain bounded provider/status context without response bodies or headers.
 No fixed dollar price or fabricated observation fills the interruption.
 
-A complete read-only ROAR price and CW20 supply query passed using the repaired
-adapter. The host package stages that adapter for its live preflight, then updates
-only it, two ROAR JSON configurations and six archive routes. The installed
-Osmosis scanner, service units and histories are preserved. Forty-nine focused
-price/source/recovery tests and eleven installer tests passed. Host activation,
-a later automatic ROAR observation and the next encrypted backup remain pending.
+The owner confirmed successful installation and a successful price-service cycle.
+The repaired adapter, two ROAR configurations and six archive routes are active;
+the installed Osmosis scanner, service units and histories are preserved.
+Independent public checks confirm ROAR price and dated CW20 supply, all six archive
+routes, and later automatic observations at 16:24:19 and 16:25:18 UTC. Its one-day
+history contains the installation observation and both subsequent samples.
+LUNA, CAPA, SOLID, ASTRO, PAXG, BTC and ATOM also have fresh price observations.
+Eighty-one focused collector/source tests and eleven installer tests passed.
+The source repair passed [repository checks](https://github.com/cristianoneta/neta-dao/actions/runs/45213854381).
+The next scheduled encrypted backup remains unverified. Earlier price gaps and
+incomplete trade USD valuations are retained rather than filled with later prices;
+the independent BTC pool-inventory error remains a separate limitation.
 
 ## Storage, cadence and activation
 
