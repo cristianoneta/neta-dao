@@ -102,12 +102,74 @@ def definitions(config):
     return rows
 
 
+def osmosis_pool_balances(pool):
+    """Pool identity is independent of SQS's filtered bank-balance list.
+
+    GAMM models contain actual reserves; CL models identify both tokens but do
+    not provide their amounts. An omitted CL amount stays unknown, never zero.
+    Additional bank deposits are not constituent trading assets.
+    """
+    def coins(values):
+        if not isinstance(values, list):
+            raise ValueError('Invalid routing balances')
+        result = {}
+        for coin in values:
+            denom = coin['denom']
+            if not isinstance(denom, str) or not denom or denom in result:
+                raise ValueError('Duplicate or invalid routing denomination')
+            result[denom] = integer(coin['amount'])
+        return result
+
+    balances = coins(pool['balances'])
+    model, kind = pool['chain_model'], pool['type']
+    if type(kind) is not int or kind not in (0, 1, 2, 3):
+        raise ValueError('Unknown routing pool type')
+    if kind == 0:
+        values = model.get('pool_assets')
+        if not isinstance(values, list):
+            raise ValueError('Missing weighted pool assets')
+        amounts = coins([a['token'] for a in values])
+    elif kind == 1:
+        amounts = coins(model.get('pool_liquidity'))
+    elif kind == 2:
+        denoms = [model.get('token0'), model.get('token1')]
+        if any(not isinstance(d, str) or not d for d in denoms) or denoms[0] == denoms[1]:
+            raise ValueError('Invalid concentrated pool identity')
+        amounts = {d: balances.get(d) for d in denoms}
+    else:
+        # Preserve the existing scope for funded non-redemption CosmWasm pools.
+        # Their bank balance list alone cannot authorize a stored identity change.
+        amounts = balances
+    if len(amounts) < 2:
+        raise ValueError('Incomplete routing pool identity')
+    return dict(sorted(amounts.items())), kind != 3
+
+
+def validate_pool_update(old, new):
+    """Permit only a proven completion of an earlier truncated native model.
+
+    Stored observations and first_seen retain their original meaning. Never
+    accept removed/renamed assets or move a pool's history to another identity.
+    """
+    if any(old.get(k) != new.get(k) for k in ('key', 'chain_id', 'pool')):
+        raise ValueError('Stored pool identity changed')
+    before = {a['denom'] for a in old['assets']}
+    after = {a['denom'] for a in new['assets']}
+    if before == after:
+        return
+    if (new['chain_id'] != 'osmosis-1' or not before < after or
+            new.get('identity_source') != 'osmosis-chain-model' or
+            set(new.get('identity_denoms', [])) != after or
+            new.get('pool_type') not in ('Weighted', 'Stable', 'Concentrated')):
+        raise ValueError('Stored pool identity changed')
+
+
 def osmosis_inventory(http, config):
     found, snapshots, statuses = {}, {}, {}
     for slug, s in config['assets'].items():
         wanted = set(s['poolDenoms'])
         try:
-            cursor, seen = 0, set()
+            cursor, seen, rejected = 0, set(), []
             for _ in range(12):
                 url = 'https://sqs.osmosis.zone/pools?' + urlencode({'filter[denom]': ','.join(sorted(wanted)),
                        'sort': '-totalFiatValueLocked', 'page[size]': 1000, 'page[cursor]': cursor})
@@ -123,33 +185,39 @@ def osmosis_inventory(http, config):
                     seen.add(pid)
                     if pid in EXCLUDED_POOLS or pid in s.get('excludeBackingPoolIds', []) or int(c.get('code_id', 0)) in EXCLUDED_CODES:
                         continue
-                    balances = p['balances']
-                    if not isinstance(balances, list) or len({b['denom'] for b in balances}) != len(balances):
-                        raise ValueError('Invalid routing balances')
-                    selected = [b['denom'] for b in balances if b['denom'] in wanted]
+                    try:
+                        amounts, model_identity = osmosis_pool_balances(p)
+                    except (ValueError, KeyError, TypeError) as error:
+                        rejected.append({'pool': pid, 'reason': type(error).__name__})
+                        continue
+                    selected = sorted(set(amounts) & wanted)
                     if not selected:
-                        raise ValueError('Wrong pool filter result')
+                        rejected.append({'pool': pid, 'reason': 'Wrong pool filter result'})
+                        continue
                     assets = []
-                    for b in balances:
-                        m = config['metadata'].get(b['denom'], {})
-                        assets.append({'denom': b['denom'], 'symbol': m.get('symbol', b['denom'][:12] + '…'),
-                                       'decimals': m.get('decimals', s['decimals'] if b['denom'] == s['denom'] else None)})
+                    for denom in amounts:
+                        m = config['metadata'].get(denom, {})
+                        assets.append({'denom': denom, 'symbol': m.get('symbol', denom[:12] + '…'),
+                                       'decimals': m.get('decimals', s['decimals'] if denom == s['denom'] else None)})
                     key = 'osmosis-1:' + pid
                     spec = found.setdefault(key, {'key': key, 'chain_id': 'osmosis-1', 'pool': pid, 'venue': 'Osmosis',
                            'assets': assets, 'targets': {}, 'pool_type': {0: 'Weighted', 1: 'Stable', 2: 'Concentrated'}.get(p['type'], 'Contract'),
                            'fee_pct': float(decimal(p.get('spread_factor', c.get('pool_params', {}).get('swap_fee', '0')), True) * 100),
-                           'url': 'https://app.osmosis.zone/pool/' + pid})
+                           'url': 'https://app.osmosis.zone/pool/' + pid,
+                           'identity_source': 'osmosis-chain-model' if model_identity else 'routing-balances',
+                           'identity_denoms': list(amounts)})
                     if {a['denom'] for a in spec['assets']} != {a['denom'] for a in assets}:
                         raise ValueError('Conflicting pool identity')
                     spec['targets'][slug] = selected
-                    amounts = {b['denom']: integer(b['amount']) for b in balances}
                     liquidity = None if p.get('liquidity_cap_error') else str(decimal(p['liquidity_cap'], True))
                     snapshots[key] = {'time': int(stamp(r['observed_at'])), 'height': None, 'state_query': 'routing-indexer-latest',
                                       'amounts': [amounts[a['denom']] for a in spec['assets']], 'liquidity_usd': liquidity,
                                       'valuation': 'Osmosis SQS reported USD liquidity', 'source': 'https://sqs.osmosis.zone/pools', 'status': 'ok'}
                 next_cursor = int(data['meta']['next_cursor'])
                 if next_cursor == -1:
-                    statuses[slug] = {'status': 'complete', 'source_pool_count': len(seen)}
+                    statuses[slug] = {'status': 'partial' if rejected else 'complete', 'source_pool_count': len(seen)}
+                    if rejected:
+                        statuses[slug].update(rejected_pool_count=len(rejected), rejected_pools=rejected[:20])
                     break
                 if next_cursor == cursor or next_cursor < 0:
                     raise ValueError('Invalid inventory cursor')
@@ -544,7 +612,7 @@ def volume(db, spec, cursor, references, now):
             amount += value
             valued += 1
     return {**common, 'status': 'building' if covered_from > start else 'complete', 'swaps': count, 'valued_swaps': valued,
-            'usd': float(amount) if valued == count else None, 'last_swap_at': common['last_swap_at'], 'usd_basis': 'prior-recorded-reference'}
+            'usd': float(amount) if valued == count else None, 'usd_known': float(amount) if valued > 0 or count == 0 else None, 'unvalued_swaps': count - valued, 'valuation_complete': valued == count, 'last_swap_at': common['last_swap_at'], 'usd_basis': 'prior-recorded-reference'}
 
 
 def views(registry, observations, volumes, config, now):
@@ -557,11 +625,11 @@ def views(registry, observations, volumes, config, now):
             target = [i for i, a in enumerate(spec['assets']) if a['denom'] in denoms]
             other = [a for a in spec['assets'] if a['denom'] not in denoms]
             reserve = None
-            if amounts is not None and all(isinstance(spec['assets'][i].get('decimals'), int) for i in target):
+            if amounts is not None and all(amounts[i] is not None and isinstance(spec['assets'][i].get('decimals'), int) for i in target):
                 reserve = float(sum((Decimal(amounts[i]) / Decimal(10)**spec['assets'][i]['decimals'] for i in target), Decimal(0)))
             canonical = config['assets'][slug].get('poolDenom', config['assets'][slug]['denom'])
             canonical_ids = [i for i in target if spec['assets'][i]['denom'] == canonical]
-            supply_reserve = float(sum((Decimal(amounts[i]) / Decimal(10)**spec['assets'][i]['decimals'] for i in canonical_ids), Decimal(0))) if amounts is not None and all(isinstance(spec['assets'][i].get('decimals'), int) for i in canonical_ids) else None
+            supply_reserve = float(sum((Decimal(amounts[i]) / Decimal(10)**spec['assets'][i]['decimals'] for i in canonical_ids), Decimal(0))) if amounts is not None and all(amounts[i] is not None and isinstance(spec['assets'][i].get('decimals'), int) for i in canonical_ids) else None
             quote_symbol = ' + '.join(a['symbol'] for a in other)
             result[slug].append({'id': key, 'chain_id': spec['chain_id'], 'pool': spec['pool'], 'venue': spec['venue'],
                 'pair': ' + '.join(spec['assets'][i]['symbol'] for i in target) + (' / ' + quote_symbol if other else ''), 'quote': quote_symbol,
@@ -679,8 +747,8 @@ def main():
     with db:
         for key, spec in registry.items():
             old = db.execute('SELECT definition FROM pools WHERE id=?', (key,)).fetchone()
-            if old and {a['denom'] for a in json.loads(old[0])['assets']} != {a['denom'] for a in spec['assets']}:
-                raise ValueError('Stored pool identity changed')
+            if old:
+                validate_pool_update(json.loads(old[0]), spec)
             db.execute('INSERT INTO pools VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET definition=excluded.definition', (key, now, encoded(spec).decode()))
             if key in observations:
                 db.execute('INSERT OR IGNORE INTO observations VALUES (?,?,?)', (key, now, encoded(observations[key]).decode()))

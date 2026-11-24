@@ -1,5 +1,26 @@
 # Current state — Cosmoot
 
+## Osmosis inventory normalization — prepared, 24 November 2026
+
+Filtered SQS bank balances omitted tiny GAMM holdings and both assets of empty
+concentrated pools. The former target-denomination check stopped the remaining
+inventory at the first such pool. Native pool models now establish constituent
+identity; GAMM reserves come from their explicit model amounts, and absent CL
+amounts remain unknown. Wrong or malformed pool rows are reported as partial
+without hiding later valid rows. Redemption/backing exclusions remain intact.
+
+A retained native pool can gain only model-proven missing constituents; removed
+or substituted denominations still fail validation. Earlier observations,
+first-seen times, trade valuations, archive offsets and scanner cursors are
+preserved. The already activated known-USD-subtotal fields are included in source.
+
+A live read-only check completed all five inventories with 961 unique Osmosis
+trading pools after the existing exclusions. All 799 matching published token/pool
+views passed retained-identity checks, including nine verified completions.
+Nineteen inventory regressions and the existing pool/history/indexer checks pass.
+Host installation and subsequent scheduled publication remain separate pending
+steps; operator continuation is kept in the private handoff.
+
 ## USD reference repair and ROAR archive — active, 23 November 2026
 
 ROAR activation stopped during its read-only preflight before any host changes.

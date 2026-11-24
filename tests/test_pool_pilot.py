@@ -111,6 +111,15 @@ class PoolPilotTest(unittest.TestCase):
         self.assertEqual(v['swaps'], 1)
         self.assertIsNone(v['usd'])
 
+    def test_known_subtotal_is_separate_from_complete_volume(self):
+        unknown = {**swap(1), 'denom_in': 'unknown-in', 'denom_out': 'unknown-out'}
+        p.record_scan(self.db, 'osmosis-1', cursor(), [swap(), unknown], [])
+        p.freeze_values(self.db, self.refs, '/nonexistent-fixture-state', NOW)
+        v = p.volume(self.db, SPEC, cursor(), self.refs, NOW)
+        self.assertIsNone(v['usd'])
+        self.assertEqual(v['usd_known'], 20)
+        self.assertEqual((v['valued_swaps'], v['unvalued_swaps'], v['valuation_complete']), (1, 1, False))
+
     def test_stale_and_ambiguous_index_are_unavailable(self):
         self.assertEqual(p.volume(self.db, SPEC, cursor(), self.refs, NOW+901)['status'], 'stale')
         problem = {'pool': KEY, 'time': NOW-30, 'txhash': 'C'*64, 'event_index': 1, 'reason': 'ambiguous'}
