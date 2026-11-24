@@ -97,3 +97,32 @@ graphs were checked again and exclude the four affected host crypto packages.
 The input fingerprint is updated for these reviewed Rust changes; expiry and
 all advisory gates remain unchanged. The mainnet 0.3.1 artifact remains pinned;
 0.4.0 is a separate, undeployed upgrade candidate.
+
+## Static Gno demo release reassessment — 24 November 2026
+
+The scheduled assessment expired on 24 November. The Gno prototype introduces
+only browser code, static assets and publication configuration; it makes no
+network calls, signs no transactions and adds no package dependencies. Rechecked
+the complete contract input fingerprint against the previously reviewed value:
+`98e71e2e25d57fa59ef48a38138148026b2282fc5d72dec215d9ec1c00a973d6`.
+No Rust source, Cargo lockfile, target, compiler or WASM build input changed.
+
+Re-read the current RustSec advisory: the fixed range remains >=0.7.6. The locked
+elliptic-curve 0.13.8 requires crypto-bigint 0.5; replacing it with 0.7.6 is not a
+compatible lockfile-only update. Rechecked CosmWasm 1.5.11's target-gated manifest:
+cosmwasm-crypto remains outside wasm32 builds. Repository signing-key uses remain
+in test files with deterministic public fixture keys; production source continues
+to call the chain's verification API. The Pages artifact adds no native Rust
+service and does not change the separately scoped chain host.
+
+The same applicability assessment is renewed until **24 December 2026 at 00:00
+UTC**, with the exact fingerprint, inventory and four-package exclusion unchanged.
+The complete locked target graphs and current advisory audits must still pass in
+required CI before merge and again before the manual release. This reassessment
+does not establish those CI results in advance, patch crypto-bigint, alter any
+advisory scope or waive another finding. The original 24 November expiry above is
+retained as historical evidence. Remove this exception after a separately reviewed
+compatible dependency migration.
+
+Additional versioned dependency reference:
+https://github.com/RustCrypto/traits/blob/elliptic-curve-v0.13.8/elliptic-curve/Cargo.toml

@@ -24,6 +24,7 @@ export default [
     files: [
       '*.{js,mjs}',
       'src/**/*.{js,mjs}',
+      'demo/**/*.{js,mjs}',
       'community-tools/**/*.{js,mjs}',
       'faucet/src/*.{js,mjs}',
       'names/mainnet-deploy.mjs',

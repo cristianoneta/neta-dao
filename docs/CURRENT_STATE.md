@@ -1,5 +1,16 @@
 # Current state — Cosmoot
 
+## Gno demo candidate — 24 November 2026
+
+An isolated, unlinked `/demo/` concept provides Proposals, Treasury and People in
+the owner-requested grayscale Cosmoot Markets style. Wallet connections, names,
+fees, social-account confirmations, votes and payments are explicitly simulated;
+comments and profile changes persist only in the current browser. There are no
+Gno, GNS or social-provider writes. The route carries noindex directives and is
+public to anyone with its URL. Publication remains pending the required checks
+and deliberate Cloudflare release; the existing public navigation is unchanged.
+
+
 ## NETA pool coverage and swap volume — prepared, 21 November 2026
 
 A separate five-minute collector adds the weighted NETA/OSMO pool 631 and rolling
