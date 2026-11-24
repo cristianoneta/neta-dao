@@ -1854,3 +1854,15 @@ dialog::backdrop {
     margin-left: auto;
   }
 }
+@media (max-width: 680px) {
+  .nav {
+    gap: 0;
+  }
+  .nav a {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .nav a:first-child {
+    padding-left: 0;
+  }
+}
