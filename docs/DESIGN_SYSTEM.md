@@ -5,6 +5,20 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
+## Gno concept demo — owner direction, 24 November 2026
+
+The independent `/demo/` route follows the compact Cosmoot Markets layout with
+an explicitly requested grayscale palette and locally hosted Manrope. Reuse the
+shared semantic token names, accessible controls, spacing and state distinctions;
+this isolated concept overrides the usual mint accent with off-white. The working
+navigation is Proposals, Treasury and People. Show one display name per person;
+keep the underlying wallet and naming source in profile details. People holds the
+name-registration concept and Telegram/Discord profile links, with a separate My
+profile entry in the account menu. Self-entered handles and simulated account
+confirmations must remain distinguishable. Everything in the demo is illustrative,
+with local browser persistence only. Do not link it from production navigation or
+add it to a sitemap. Search-engine exclusion is not access control.
+
 ## Homepage and delegation rule composer — owner update, 4 November 2026
 
 The approved graphite/mint landing introduces the whole Cosmoot workspace, with
