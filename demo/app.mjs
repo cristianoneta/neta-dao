@@ -66,7 +66,7 @@ function toast(message) {
   toastTimer = setTimeout(() => $('#toast').classList.remove('show'), 4500);
 }
 function people() {
-  return [
+  const list = [
     ...examplePeople,
     {
       id: OWN_ID,
@@ -82,6 +82,12 @@ function people() {
       comments: state.proposals.flatMap((p) => p.comments).filter((c) => c.author === OWN_ID).length
     }
   ];
+  return list.map((p) => ({
+    ...p,
+    proposals: state.proposals.filter((item) => item.author === p.id).length,
+    comments: state.proposals.flatMap((item) => item.comments).filter((c) => c.author === p.id)
+      .length
+  }));
 }
 function person(id) {
   return people().find((p) => p.id === id) || { id, name: '', initials: 'GN' };
@@ -156,9 +162,13 @@ function proposalContent(p) {
 }
 function voteBlock(p) {
   const chosen = state.votes[p.id];
-  const tallies = { Yes: 12, No: 2, Abstain: 1 };
+  const tallies =
+    p.author === OWN_ID ? { Yes: 0, No: 0, Abstain: 0 } : { Yes: 12, No: 2, Abstain: 1 };
   if (chosen) tallies[chosen]++;
-  const total = Object.values(tallies).reduce((a, b) => a + b, 0);
+  const total = Math.max(
+    1,
+    Object.values(tallies).reduce((a, b) => a + b, 0)
+  );
   return `<h3>Community vote <span class="badge">Simulation</span></h3><p>One example member, one vote. No on-chain ballot is submitted.</p>${Object.entries(
     tallies
   )
