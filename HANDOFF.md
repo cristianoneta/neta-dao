@@ -1,6 +1,6 @@
 # Cosmoot public development handoff
 
-## Osmosis inventory normalization — prepared, 24 November 2026
+## Osmosis inventory normalization — active, 24 November 2026
 
 Filtered SQS bank balances omitted tiny GAMM holdings and both assets of empty
 concentrated pools. The former target-denomination check stopped the remaining
@@ -18,8 +18,20 @@ A live read-only check completed all five inventories with 961 unique Osmosis
 trading pools after the existing exclusions. All 799 matching published token/pool
 views passed retained-identity checks, including nine verified completions.
 Nineteen inventory regressions and the existing pool/history/indexer checks pass.
-Host installation and subsequent scheduled publication remain separate pending
-steps; operator continuation is kept in the private handoff.
+The owner confirmed successful installation with 25 deterministic checks and all
+five live inventories complete. Independent public verification of the 24 November
+11:35:53 UTC scheduled publication confirms all inventories complete, 1,041 of
+1,041 pools observed (previously 841 registered), and no index errors. The asset
+views contain BTC 271, ETH 105, SOL 47, ATOM 541 and JUNO 128 pools; each reports
+partial=false. Osmosis indexing reached its target at height 75,993,133. The
+known-USD-subtotal fields remain present; new pools build history from their real
+discovery time and incomplete older trade valuations remain visible.
+
+The source revision passed 60 focused collector tests and the private installer
+passed 13 failure and preservation tests. Its general repository checks passed;
+the separate contract dependency audit remains blocked because the existing
+RUSTSEC-2026-0387 applicability review expired on 24 November. No security
+exception was extended. Host access and backup receipts remain private.
 
 ## USD reference repair and ROAR archive — active, 23 November 2026
 
