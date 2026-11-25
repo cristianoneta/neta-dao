@@ -2,6 +2,8 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
+import hashlib
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -11,6 +13,12 @@ from server_source_status import MAX_BYTES, age_issues, check, timestamp
 
 RELEASE_SITES = ('https://cosmoot.com', 'https://dao.netareborn.com', 'https://data.cosmoot.com')
 NETA_SITE = 'https://netareborn.com'
+NETA_SERVER = 'https://data.cosmoot.com/data/neta-website'
+NETA_SERVER_FILES = {
+    'metadata.json', 'address_index.json', 'data/map/state.json', 'data/map/map-of-neta.json',
+    'data/recovery/recovery-stats.json', 'data/recovery/recovery-events.json',
+    'data/recovery/wynd-market.json', 'data/recovery/wynd-leaderboard.json',
+}
 NETA_SOURCES = {
     'metadata.json': ('generated_at', 8),
     'data/map/state.json': ('updated_at', 8),
@@ -20,7 +28,7 @@ NETA_SOURCES = {
 }
 
 
-def download(site, path):
+def download(site, path, *, expected_sha=None):
     url = site + '/' + path
     request = urllib.request.Request(url, headers={'Accept': 'application/json',
         'User-Agent': 'Public snapshot freshness monitor/1.0'})
@@ -30,10 +38,50 @@ def download(site, path):
         body = response.read(MAX_BYTES + 1)
         if len(body) > MAX_BYTES:
             raise ValueError('Oversized public response')
+        if expected_sha is not None and hashlib.sha256(body).hexdigest() != expected_sha:
+            raise ValueError('Published observation checksum mismatch')
         value = json.loads(body)
         if not isinstance(value, dict):
             raise ValueError('Snapshot object required')
         return value, response.headers.get('X-Cosmoot-Snapshot')
+
+
+class PrimarySourceError(ValueError):
+    """The activated legacy-site origin cannot establish a valid observation."""
+
+
+def neta_reader(now, fetch=download):
+    """Follow the browser's fixed public generation; only pre-activation 404 falls back.
+
+    Once a manifest exists, all HTTP, identity and hash failures remain failures.
+    The timestamp of each underlying observation still governs its existing limit.
+    """
+    try:
+        manifest, _ = fetch(NETA_SERVER, 'current/manifest.json')
+        files = manifest.get('files')
+        if (manifest.get('schema_version') != 1
+                or not re.fullmatch(r'generation-[a-f0-9]{64}', str(manifest.get('generation', '')))
+                or not re.fullmatch(r'[a-f0-9]{40}', str(manifest.get('source_revision', '')))
+                or timestamp(manifest.get('published_at')) > now + 60
+                or not isinstance(files, dict) or set(files) != NETA_SERVER_FILES
+                or any(not re.fullmatch(r'[a-f0-9]{64}', str(value)) for value in files.values())):
+            raise ValueError('Invalid primary publication manifest')
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            return fetch
+        failure = type(error).__name__
+    except (OSError, ValueError, TypeError, AttributeError, OverflowError) as error:
+        failure = type(error).__name__
+    else:
+        def primary(_, name):
+            value, _ = fetch(NETA_SERVER, manifest['generation'] + '/' + name,
+                             expected_sha=files[name])
+            return value, 'server-generation:' + manifest['generation']
+        return primary
+
+    def unavailable(_, name):
+        raise PrimarySourceError('Primary legacy-site origin unavailable: ' + failure)
+    return unavailable
 
 
 def inspect(site, now, fetch=download):
@@ -90,7 +138,9 @@ def inspect(site, now, fetch=download):
 def main():
     now = datetime.now(timezone.utc)
     with ThreadPoolExecutor(max_workers=4) as pool:
-        results = list(pool.map(lambda site: inspect(site, int(now.timestamp())), (*RELEASE_SITES, NETA_SITE)))
+        results = list(pool.map(lambda site: inspect(site, int(now.timestamp()),
+            neta_reader(int(now.timestamp())) if site == NETA_SITE else download),
+            (*RELEASE_SITES, NETA_SITE)))
     print(json.dumps({'checked_at': now.isoformat(), 'sites': results}, indent=2))
     return int(any(not result['ok'] for result in results))
 
