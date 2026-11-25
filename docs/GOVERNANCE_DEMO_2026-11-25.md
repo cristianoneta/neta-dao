@@ -59,11 +59,53 @@ response bounds and hostile proposal markup. The compiled Worker regression
 checks this route and its credential boundary alongside the existing snapshot
 routes. Desktop and narrow layouts were checked with real source responses.
 
-The previous Gno concept was observed live at `/demo/#/proposals` on 25 November.
-This directory and reader remain a release candidate until the deliberately
-triggered Cloudflare workflow publishes the checked main commit. Source merge,
-local preview and successful CI alone do not prove publication. No production
-collector installation or host data change is required for this reader.
+PR #355 merged as `cd7ea42`. The deliberate Cloudflare release
+[45705384284](https://github.com/cristianoneta/neta-dao/actions/runs/45705384284)
+succeeded on 25 November 2026 at 21:40:32 UTC. Public browser verification found
+all three sources connected and 44 proposals, including the GnoSwap executed
+proposal and its source-backed vote weights. This establishes the directory and
+reader as live; it is separate from the routing candidate below. No production
+collector installation or host data change was required.
+
+## Independent publication and reversible routing
+
+Owner direction, 25 November 2026: keep the public `/demo/` address while allowing
+the isolated governance app to publish independently, as Cosmoot Markets does.
+The public app is available at
+[the independent deployment](https://cosmoot-governance.cristiano-neta.chatgpt.site/demo/).
+Its source is ordinary HTML/CSS/JavaScript and a self-contained Worker; no
+provider-specific SDK or database is needed. The extraction retains the prototype
+model, visual assets and local-storage key from reviewed source commit
+`44d910a76fb31c0c4badf6f2f820becf9b900aa2`.
+
+The main-repository routing candidate extends Pages invocation only from
+`/data/*` to `/data/*`, `/demo` and `/demo/*`. It forwards GET/HEAD requests to one
+fixed public HTTPS origin with the same pathname and query. It forwards no
+Cookie, Authorization or other visitor headers, follows no redirects, bounds
+the complete response to 4 MiB with an 18-second timeout, and requires
+`X-Cosmoot-Governance: independent-v1`. Missing markers (including login pages),
+redirects and unavailable responses produce an explicit 503. App error responses
+retain their bounded status/body. Upstream cookies and arbitrary headers cannot
+reach the visitor. The main site retains same-origin framing protection.
+
+The independent browser reader uses `./api/governance`, resolving to
+`/demo/api/governance` under either host. Keeping `/demo/` on the original origin
+preserves existing hash links and `cosmoot.gno.demo.v1` local drafts. Visiting the
+independent hostname directly has separate browser storage. The previously
+published `/data/demo-governance` route and local `demo/` assets are retained for
+rollback; they are not a silent outage fallback for the independent app.
+
+The independent deployment has passed its 26 focused tests and exact bundled
+asset verification, followed by public browser checks with three sources and
+44 proposals. The same-origin proxy remains a candidate until one deliberate
+Cloudflare release publishes it. Subsequent independent app releases do not
+change the repository's broader checks or manual main-site release policy.
+
+To move back, restore the packaged `/demo/` route through a reviewed main-site
+release, or copy the independent app source back and restore the original
+`/data/demo-governance` API path. Preserve the local-storage key and hash routes.
+Removing the proxy invocation restores the retained static demo; no data export
+or provider-specific runtime conversion is required.
 
 References: [GovDAO](https://gno.land/r/gov/dao),
 [GnoSwap governance](https://docs.gnoswap.io/core-concepts/governance),

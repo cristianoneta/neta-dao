@@ -16,6 +16,11 @@ if (process.argv.includes('--require-worker') && !manifest.pagesFunction)
   throw Error('Deployment requires a compiled Pages function');
 if (manifest.pagesFunction) {
   if (manifest.pagesFunction.wrangler !== '4.148.0') throw Error('Unexpected Wrangler version');
+  for (const path of ['functions/demo/[[path]].js', 'deploy/cosmoot/governance-demo-proxy.mjs'])
+    if (!manifest.pagesFunction.inputs[path])
+      throw Error(`Missing governance route input: ${path}`);
+  for (const path of ['demo/index.html', 'demo/app.mjs', 'demo/model.mjs'])
+    if (!manifest.files[path]) throw Error(`Missing governance rollback asset: ${path}`);
   for (const [path, expected] of Object.entries(manifest.pagesFunction.inputs)) {
     if (
       createHash('sha256')
@@ -27,8 +32,11 @@ if (manifest.pagesFunction) {
   if (!manifest.files['_worker.js'] || !manifest.files['_routes.json'])
     throw Error('Pages function/routing missing from artifact');
   const routes = JSON.parse(await readFile(resolve(output, '_routes.json'), 'utf8'));
-  if (JSON.stringify(routes) !== JSON.stringify({ version: 1, include: ['/data/*'], exclude: [] }))
-    throw Error('Pages invocation must be scoped to /data/*');
+  if (
+    JSON.stringify(routes) !==
+    JSON.stringify({ version: 1, include: ['/data/*', '/demo', '/demo/*'], exclude: [] })
+  )
+    throw Error('Pages invocation must be scoped to /data/*, /demo and /demo/*');
 }
 async function list(dir) {
   const paths = [];

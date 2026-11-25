@@ -2,6 +2,10 @@
 // Node mocks verify routing; check-pages-runtime.mjs also runs real workerd fetch.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import {
+  GOVERNANCE_DEMO_ORIGIN,
+  GOVERNANCE_DEMO_MARKER
+} from '../deploy/cosmoot/governance-demo-proxy.mjs';
 
 const paths = JSON.parse(
   await readFile(new URL('../deploy/cosmoot/snapshot-paths.json', import.meta.url))
@@ -120,8 +124,57 @@ try {
   assert.equal(governance.status, 200);
   assert.equal(governance.headers.get('Set-Cookie'), null);
   assert.equal((await governance.json()).result.node_info.network, 'gnoland-1');
+  let demoMode = 'ready',
+    demoCalls = 0;
+  globalThis.fetch = async (url, options) => {
+    demoCalls++;
+    assert.equal(new URL(url).origin, GOVERNANCE_DEMO_ORIGIN);
+    assert.equal(options.redirect, 'manual');
+    assert.deepEqual(options.headers, { Accept: '*/*' });
+    return new Response(options.method === 'HEAD' ? null : upstreamBytes, {
+      status: demoMode === 'redirect' ? 302 : 200,
+      headers: {
+        'X-Cosmoot-Governance': demoMode === 'login' ? 'unrecognized' : GOVERNANCE_DEMO_MARKER,
+        'Content-Type': 'font/woff',
+        'Set-Cookie': 'private=1',
+        Location: 'https://login.invalid/'
+      }
+    });
+  };
+  for (const origin of ['https://cosmoot.com', 'https://dao.netareborn.com']) {
+    const before = demoCalls;
+    const canonical = await request(origin, '/demo');
+    assert.equal(canonical.status, 302);
+    assert.equal(canonical.headers.get('Location'), '/demo/');
+    assert.equal(demoCalls, before);
+    for (const path of [
+      '/demo/',
+      '/demo/fonts/manrope-400.woff',
+      '/demo/api/governance?scope=gno&op=status'
+    ]) {
+      for (const method of ['GET', 'HEAD']) {
+        const response = await request(origin, path, method);
+        assert.equal(response.status, 200);
+        assert.equal(response.headers.get('X-Cosmoot-Governance'), GOVERNANCE_DEMO_MARKER);
+        assert.equal(response.headers.get('Set-Cookie'), null);
+        assert.equal(response.headers.get('Location'), null);
+        assert.deepEqual(
+          new Uint8Array(await response.arrayBuffer()),
+          method === 'HEAD' ? new Uint8Array() : upstreamBytes
+        );
+      }
+    }
+    const callsBeforeWrite = demoCalls;
+    assert.equal((await request(origin, '/demo/api/governance', 'POST')).status, 405);
+    assert.equal(demoCalls, callsBeforeWrite);
+    for (const rejected of ['redirect', 'login']) {
+      demoMode = rejected;
+      assert.equal((await request(origin, '/demo/')).status, 503);
+    }
+    demoMode = 'ready';
+  }
   console.log(
-    `Compiled Pages Worker passed: ${paths.length} GET/HEAD paths on both origins, exact bytes, static fallback and private-path routing.`
+    `Compiled Pages Worker passed: ${paths.length} snapshot paths and isolated /demo proxy on both origins, exact bytes, credential isolation and failed-upstream handling.`
   );
 } finally {
   globalThis.fetch = originalFetch;

@@ -1,6 +1,21 @@
 # Cosmoot public development handoff
 
-## Governance directory and live proposal reader — candidate, 25 November 2026
+## Independent governance publication — routing candidate, 25 November 2026
+
+The governance app has a separate public deployment with the same directory,
+read-only chain adapters and browser-local prototype. The candidate changes only
+`/demo` and `/demo/*` routing to a fixed public origin; the original demo source
+and packaged assets remain available for an explicit rollback. The visitor keeps
+the `cosmoot.com/demo/` URL and local draft storage. The proxy checks the expected
+application marker, strips credentials, rejects redirects and reports unavailable
+responses as 503 rather than showing login content or an older app silently.
+
+The independent app is published and browser-verified with 44 proposals and all
+three sources connected. The same-origin routing is not live yet: it still needs
+review, required repository checks and one deliberate Cloudflare release. Later
+app updates can publish independently without changing the main release policy.
+
+## Governance directory and live proposal reader — live, 25 November 2026
 
 The unlinked `/demo/` landing now selects AtomOne, Gno.land and GnoSwap. GnoSwap
 has deployed protocol governance and is clickable. Read-only mainnet adapters load
@@ -9,8 +24,10 @@ preserve each source's voting and execution semantics. Source failures and parti
 coverage remain explicit; this is not a durable proposal archive. The original
 People, Treasury and discussion concept remains a labelled browser-local
 simulation at its existing links. No wallet, name or social-provider write is added.
-The previous concept was observed live on 25 November; this directory and reader
-still require the deliberate Cloudflare release after integration and checks.
+PR #355 merged as `cd7ea42`; the deliberate Cloudflare release
+[45705384284](https://github.com/cristianoneta/neta-dao/actions/runs/45705384284)
+succeeded on 25 November at 21:40:32 UTC. Public verification found all three
+sources connected and 44 retained proposals (21 AtomOne, 21 GovDAO, two GnoSwap).
 See the [source and verification record](docs/GOVERNANCE_DEMO_2026-11-25.md).
 
 ## Markets collector source reconciliation — 25 November 2026
@@ -34,7 +51,7 @@ fees, social-account confirmations, votes and payments are explicitly simulated;
 comments and profile changes persist only in the current browser. There are no
 Gno, GNS or social-provider writes. The route carries noindex directives and is
 public to anyone with its URL. The original concept was observed live on 25 November; the existing public
-navigation is unchanged. The newer directory is a separate release candidate above.
+navigation is unchanged. The newer live directory is described above.
 
 ## Osmosis inventory normalization — active, 24 November 2026
 

@@ -15,9 +15,11 @@ const run = (command, args) =>
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const inputs = [
   'functions/data/[[path]].js',
+  'functions/demo/[[path]].js',
   'service/snapshot-proxy.mjs',
   'deploy/cosmoot/governance-read-proxy.mjs',
   'deploy/cosmoot/demo-governance-proxy.mjs',
+  'deploy/cosmoot/governance-demo-proxy.mjs',
   'demo/governance-query.mjs',
   'governance-chain-read.mjs',
   'deploy/cosmoot/snapshot-paths.json',

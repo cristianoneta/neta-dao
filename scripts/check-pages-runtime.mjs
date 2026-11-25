@@ -5,6 +5,10 @@ import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { delimiter, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  GOVERNANCE_DEMO_ORIGIN,
+  GOVERNANCE_DEMO_MARKER
+} from '../deploy/cosmoot/governance-demo-proxy.mjs';
 
 let runtimeRequire;
 for (const directory of (process.env.PATH || '').split(delimiter)) {
@@ -47,6 +51,7 @@ const staticAssets = new Map(
 const upstreamBytes = new Uint8Array([0, 1, 31, 139, 127, 255]);
 const calls = [];
 let mode = 200;
+let demoMode = 'ready';
 const mf = new Miniflare(
   convertV4MiniflareOptions({
     modules: true,
@@ -61,6 +66,18 @@ const mf = new Miniflare(
         cookie: request.headers.has('Cookie'),
         authorization: request.headers.has('Authorization')
       });
+      if (new URL(request.url).origin === GOVERNANCE_DEMO_ORIGIN) {
+        if (request.headers.get('Accept') !== '*/*') throw Error('Unexpected demo request headers');
+        return new HostResponse(request.method === 'HEAD' ? null : upstreamBytes, {
+          status: demoMode === 'redirect' ? 302 : demoMode === 'offline' ? 503 : 200,
+          headers: {
+            'X-Cosmoot-Governance': demoMode === 'login' ? 'unrecognized' : GOVERNANCE_DEMO_MARKER,
+            'Content-Type': 'font/woff',
+            'Set-Cookie': 'private=1',
+            Location: 'https://login.invalid/'
+          }
+        });
+      }
       if (new URL(request.url).origin === 'https://juno-api.polkachu.com') {
         if (request.headers.get('x-cosmos-block-height') !== '123')
           throw Error('Missing pinned chain height');
@@ -192,8 +209,56 @@ try {
   assert.deepEqual(await chainResponse.json(), { params: {} });
   assert.equal(calls.at(-1).cookie, false);
   assert.equal(calls.at(-1).authorization, false);
+  for (const origin of ['https://cosmoot.com', 'https://dao.netareborn.com']) {
+    const before = calls.length;
+    const canonical = await mf.dispatchFetch(origin + '/demo', { redirect: 'manual' });
+    assert.equal(canonical.status, 302);
+    assert.equal(canonical.headers.get('Location'), '/demo/');
+    assert.equal(calls.length, before);
+    for (const path of [
+      '/demo/',
+      '/demo/fonts/manrope-400.woff',
+      '/demo/api/governance?scope=gno&op=status'
+    ]) {
+      for (const method of ['GET', 'HEAD']) {
+        const start = calls.length;
+        const response = await mf.dispatchFetch(origin + path, {
+          method,
+          headers: { Cookie: 'private=1', Authorization: 'Bearer private' }
+        });
+        assert.equal(response.status, 200);
+        assert.equal(response.headers.get('X-Cosmoot-Governance'), GOVERNANCE_DEMO_MARKER);
+        assert.equal(response.headers.get('Set-Cookie'), null);
+        assert.equal(response.headers.get('Location'), null);
+        assert.equal(response.headers.get('Cache-Control'), 'no-store');
+        assert.deepEqual(
+          new Uint8Array(await response.arrayBuffer()),
+          method === 'HEAD' ? new Uint8Array() : upstreamBytes
+        );
+        assert.deepEqual(calls.slice(start), [
+          { url: GOVERNANCE_DEMO_ORIGIN + path, method, cookie: false, authorization: false }
+        ]);
+      }
+    }
+    const start = calls.length;
+    assert.equal(
+      (await mf.dispatchFetch(origin + '/demo/api/governance', { method: 'POST' })).status,
+      405
+    );
+    assert.equal(calls.length, start);
+    for (const rejected of ['redirect', 'login', 'offline']) {
+      demoMode = rejected;
+      const count = calls.length;
+      const response = await mf.dispatchFetch(origin + '/demo/');
+      assert.equal(response.status, 503);
+      assert.match(await response.text(), /temporarily unavailable/);
+      assert.equal(calls.length, count + 1, 'Demo redirects must never be followed');
+    }
+    demoMode = 'ready';
+    assert.equal((await mf.dispatchFetch(origin + '/demo/')).status, 200);
+  }
   console.log(
-    `workerd passed: ${paths.length} GET/HEAD paths on both domains; exact packaged fallback bytes, recovery, credential stripping and redirect/error fallback.`
+    `workerd passed: ${paths.length} snapshot paths and isolated /demo proxy on both domains; exact bytes, recovery, credential isolation and redirect/login/error rejection.`
   );
 } finally {
   await mf.dispose();
