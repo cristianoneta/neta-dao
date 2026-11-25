@@ -103,6 +103,23 @@ try {
       'Static routes, private paths and writes must not contact the origin'
     );
   }
+  globalThis.fetch = async (url, options) => {
+    assert.equal(new URL(url).origin, 'https://rpc.gno.land');
+    assert.equal(options.method, 'GET');
+    assert.equal(options.redirect, 'manual');
+    assert.deepEqual(options.headers, { Accept: 'application/json' });
+    return new Response('{"result":{"node_info":{"network":"gnoland-1"}}}', {
+      headers: { 'Set-Cookie': 'private=1' }
+    });
+  };
+  const governance = await worker.fetch(
+    new Request('https://cosmoot.com/data/demo-governance?scope=gno&op=status'),
+    env,
+    { waitUntil() {} }
+  );
+  assert.equal(governance.status, 200);
+  assert.equal(governance.headers.get('Set-Cookie'), null);
+  assert.equal((await governance.json()).result.node_info.network, 'gnoland-1');
   console.log(
     `Compiled Pages Worker passed: ${paths.length} GET/HEAD paths on both origins, exact bytes, static fallback and private-path routing.`
   );

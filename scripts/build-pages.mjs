@@ -17,6 +17,8 @@ const inputs = [
   'functions/data/[[path]].js',
   'service/snapshot-proxy.mjs',
   'deploy/cosmoot/governance-read-proxy.mjs',
+  'deploy/cosmoot/demo-governance-proxy.mjs',
+  'demo/governance-query.mjs',
   'governance-chain-read.mjs',
   'deploy/cosmoot/snapshot-paths.json',
   'deploy/cosmoot/pages-routes.json',

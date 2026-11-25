@@ -10,6 +10,8 @@ import {
   payProposal,
   connectSocial
 } from './model.mjs';
+import { demoRoute } from './governance-query.mjs';
+import { createGovernanceWorkspace } from './governance-ui.mjs';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const esc = (value) =>
@@ -47,6 +49,7 @@ let toastTimer;
 let returnFocus;
 let modalContext = {};
 const app = $('#app');
+const governance = createGovernanceWorkspace(app);
 const dialog = $('#dialog');
 
 function save() {
@@ -103,9 +106,7 @@ function profileLink(id, text = displayName(id)) {
   return `<a class="inline-link" href="#/people/${esc(id)}">${esc(text)}</a>`;
 }
 function getRoute() {
-  const parts = location.hash.replace(/^#\/?/, '').split('/');
-  const page = ['proposals', 'treasury', 'people'].includes(parts[0]) ? parts[0] : 'proposals';
-  return { page, id: parts[1] || '' };
+  return demoRoute(location.hash);
 }
 function currentProposal() {
   return state.proposals.find((p) => p.id === Number(getRoute().id)) || state.proposals[0];
@@ -115,7 +116,7 @@ function navigate(route) {
   else location.hash = route;
 }
 function shell(page) {
-  return `<header class="header"><div class="wrap header-inner"><a href="#/proposals" class="brand" aria-label="Cosmoot Gno demo"><img src="./mark.svg" alt="" width="30" height="30">COSMOOT <span>GNO</span></a><nav class="nav" aria-label="Main navigation">${['Proposals', 'Treasury', 'People'].map((item) => `<a href="#/${item.toLowerCase()}" class="${page === item.toLowerCase() ? 'active' : ''}" ${page === item.toLowerCase() ? 'aria-current="page"' : ''}>${item}</a>`).join('')}<span class="nav-mode">DEMO</span></nav><div class="header-right"><span class="network"><span class="dot"></span> GNO CONCEPT</span><button class="btn account-btn" data-action="${state.connected ? 'account' : 'connect'}">${state.connected ? `${avatar(OWN_ID, 'small')}<span>${esc(displayName(OWN_ID))}</span><span class="chevron">⌄</span>` : 'Connect demo wallet'}</button></div></div></header><main id="main" class="wrap"></main><div class="wrap"><footer class="footer"><span class="demo-label"><span class="circle-dash"></span>INTERACTIVE DEMO · Sample data. No blockchain transactions.${storageFailed ? ' Browser storage unavailable.' : ' Changes stay in this browser.'}</span><div><button class="btn text" data-action="about">About this demo</button><span class="dot-divider"> &nbsp; / &nbsp; </span><button class="btn text" data-action="reset">Reset demo</button></div></footer></div>`;
+  return `<header class="header"><div class="wrap header-inner"><a href="#/" class="brand" aria-label="Cosmoot governance directory"><img src="./mark.svg" alt="" width="30" height="30">COSMOOT <span>GNO</span></a><nav class="nav" aria-label="Main navigation">${['Proposals', 'Treasury', 'People'].map((item) => `<a href="#/${item.toLowerCase()}" class="${page === item.toLowerCase() ? 'active' : ''}" ${page === item.toLowerCase() ? 'aria-current="page"' : ''}>${item}</a>`).join('')}<span class="nav-mode">DEMO</span></nav><div class="header-right"><span class="network"><span class="dot"></span> GNO CONCEPT</span><button class="btn account-btn" data-action="${state.connected ? 'account' : 'connect'}">${state.connected ? `${avatar(OWN_ID, 'small')}<span>${esc(displayName(OWN_ID))}</span><span class="chevron">⌄</span>` : 'Connect demo wallet'}</button></div></div></header><main id="main" class="wrap"></main><div class="wrap"><footer class="footer"><span class="demo-label"><span class="circle-dash"></span>INTERACTIVE DEMO · Sample data. No blockchain transactions.${storageFailed ? ' Browser storage unavailable.' : ' Changes stay in this browser.'}</span><div><a class="btn text" href="#/">Governance directory</a><button class="btn text" data-action="about">About this demo</button><span class="dot-divider"> &nbsp; / &nbsp; </span><button class="btn text" data-action="reset">Reset demo</button></div></footer></div>`;
 }
 function titleBlock(eyebrow, title, subtitle, actions = '') {
   return `<div class="title-row"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${subtitle}</p></div><div class="intro-right">${actions}</div></div>`;
@@ -265,6 +266,11 @@ function treasuryView() {
 }
 function render() {
   const route = getRoute();
+  if (route.mode !== 'prototype') {
+    governance.render(route);
+    return;
+  }
+  governance.leave();
   app.innerHTML = shell(route.page);
   $('#main').innerHTML =
     route.page === 'proposals'

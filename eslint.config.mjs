@@ -45,7 +45,7 @@ export default [
     languageOptions: { globals: globals.nodeBuiltin }
   },
   {
-    files: ['functions/**/*.js', 'deploy/cosmoot/governance-read-proxy.mjs'],
+    files: ['functions/**/*.js', 'deploy/cosmoot/*-proxy.mjs'],
     languageOptions: { globals: globals.serviceworker }
   },
   {
