@@ -1,5 +1,17 @@
 # Cosmoot public development handoff
 
+## Markets collector source reconciliation — 25 November 2026
+
+The combined market-history and pool-collector changes from PRs #351 and #352
+remain absent from the previous main branch, although their documented host
+activation already occurred. PR #352 now targets main and includes #351's source.
+The merge preserves the Gno demo and the current contract-audit applicability
+review from main. Collector scripts, configurations and systemd units are byte
+identical to the previously reviewed #352 head; this reconciliation does not
+install services, restart collectors or replace production data. Required checks
+are rerun before integration. The next encrypted archive backup remains a
+separate operational acceptance item.
+
 ## Gno demo candidate — 24 November 2026
 
 An isolated, unlinked `/demo/` concept provides Proposals, Treasury and People in
@@ -9,6 +21,128 @@ comments and profile changes persist only in the current browser. There are no
 Gno, GNS or social-provider writes. The route carries noindex directives and is
 public to anyone with its URL. Publication remains pending the required checks
 and deliberate Cloudflare release; the existing public navigation is unchanged.
+
+## Osmosis inventory normalization — active, 24 November 2026
+
+Filtered SQS bank balances omitted tiny GAMM holdings and both assets of empty
+concentrated pools. The former target-denomination check stopped the remaining
+inventory at the first such pool. Native pool models now establish constituent
+identity; GAMM reserves come from their explicit model amounts, and absent CL
+amounts remain unknown. Wrong or malformed pool rows are reported as partial
+without hiding later valid rows. Redemption/backing exclusions remain intact.
+
+A retained native pool can gain only model-proven missing constituents; removed
+or substituted denominations still fail validation. Earlier observations,
+first-seen times, trade valuations, archive offsets and scanner cursors are
+preserved. The already activated known-USD-subtotal fields are included in source.
+
+A live read-only check completed all five inventories with 961 unique Osmosis
+trading pools after the existing exclusions. All 799 matching published token/pool
+views passed retained-identity checks, including nine verified completions.
+Nineteen inventory regressions and the existing pool/history/indexer checks pass.
+The owner confirmed successful installation with 25 deterministic checks and all
+five live inventories complete. Independent public verification of the 24 November
+11:35:53 UTC scheduled publication confirms all inventories complete, 1,041 of
+1,041 pools observed (previously 841 registered), and no index errors. The asset
+views contain BTC 271, ETH 105, SOL 47, ATOM 541 and JUNO 128 pools; each reports
+partial=false. Osmosis indexing reached its target at height 75,993,133. The
+known-USD-subtotal fields remain present; new pools build history from their real
+discovery time and incomplete older trade valuations remain visible.
+
+The source revision passed 60 focused collector tests and the private installer
+passed 13 failure and preservation tests. Its general repository checks passed;
+the separate contract dependency audit remains blocked because the existing
+RUSTSEC-2026-0387 applicability review expired on 24 November. No security
+exception was extended. Host access and backup receipts remain private.
+
+## USD reference repair and ROAR archive — active, 23 November 2026
+
+ROAR activation stopped during its read-only preflight before any host changes.
+A live diagnostic verified its Terra pool, factory registration and simulation,
+then received HTTP 403 from the shared Osmosis CoinGecko proxy. Existing LUNA,
+SOLID, CAPA, BTC and ATOM price observations had also stopped updating.
+
+The adapter now reads CoinGecko directly, with the previous proxy as fallback.
+It retains exact asset IDs, positive finite prices, dated source timestamps and
+freshness checks. Parallel assets share one batch per provider per minute;
+failures are cached too, avoiding repeated requests to a rejected endpoint.
+Errors retain bounded provider/status context without response bodies or headers.
+No fixed dollar price or fabricated observation fills the interruption.
+
+The owner confirmed successful installation and a successful price-service cycle.
+The repaired adapter, two ROAR configurations and six archive routes are active;
+the installed Osmosis scanner, service units and histories are preserved.
+Independent public checks confirm ROAR price and dated CW20 supply, all six archive
+routes, and later automatic observations at 16:24:19 and 16:25:18 UTC. Its one-day
+history contains the installation observation and both subsequent samples.
+LUNA, CAPA, SOLID, ASTRO, PAXG, BTC and ATOM also have fresh price observations.
+Eighty-one focused collector/source tests and eleven installer tests passed.
+The source repair passed [repository checks](https://github.com/cristianoneta/neta-dao/actions/runs/45213854381).
+The next scheduled encrypted backup remains unverified. Earlier price gaps and
+incomplete trade USD valuations are retained rather than filled with later prices;
+the independent BTC pool-inventory error remains a separate limitation.
+
+## Osmosis volume catch-up — active, 23 November 2026
+
+The Osmosis pilot stalled after a short block range exceeded its 600-result
+pagination ceiling. Public chain blocks continued advancing while the retained
+volume cursor stopped. The source repair processes bounded block ranges, divides
+oversized ranges before collecting full pages, and retains each completely
+validated checkpoint before requesting the next range. A later provider failure
+or request-budget expiry preserves earlier progress. Delayed coverage remains
+unavailable until the index actually catches up; no cursor reset or fabricated
+zero is used. Detailed, bounded provider errors identify the failed operation.
+The repair is scoped to Osmosis; the other chain scanners and collection schedule
+retain their behavior. All 94 focused market, pool and catch-up tests passed.
+The owner confirmed installation. Osmosis caught up by 5,801 blocks, and later
+public cycles advanced beyond the installation target with no index errors.
+A 15:30 UTC snapshot contained 228 tracked Osmosis pools: 224 had USD volume;
+186 had complete 24-hour coverage and 42 were still building their own history.
+Four lacked complete USD valuation. The separate BTC inventory check still
+reported unavailable, so the aggregate service exit status can remain nonzero.
+The next scheduled encrypted backup remains a separate acceptance check. See [the pool pilot](docs/MARKET_POOL_PILOT.md).
+
+
+## Market archive lock coordination and Terra archives — active, 22 November 2026
+
+Terra archive activation rolled back when another archive writer held the shared
+lock. The existing collectors subsequently completed successfully. Both market
+collectors now wait up to 60 seconds for that same exclusive lock; their service
+start budgets include the wait. A timeout remains a failure and preserves collected
+observations for the next export. Process contention and collector recovery tests
+verify exclusion, retained observations, unchanged storage baseline and no duplicate
+trades. The owner confirmed corrected activation; public observations after installer
+completion include all five new minute-price feeds and a 267-of-267 pool cycle with
+complete inventories and no index errors. The collector now covers 21 price assets
+plus the separate NETA collector, and publishes the current Astroport Terra inventory.
+Repair commit `454dcfed18cc4cb2ac62c8231bcaed78c218dd23` passed
+[repository checks](https://github.com/cristianoneta/neta-dao/actions/runs/45041539003).
+The next encrypted backup after activation and next-day storage comparison remain
+separate acceptance items. See [the pool pilot](docs/MARKET_POOL_PILOT.md).
+
+## Direct market sources and five-asset pool pilot — active, 22 November 2026
+
+The sixteen-asset price collector now reads its original chain/provider sources directly and reuses dated supply references. The existing NETA collector remains direct. Existing price identities and archives are preserved, including numeric compatibility with earlier external observations.
+
+A separate five-minute pilot covers BTC, ETH, SOL, ATOM and JUNO. Shared pools and repeated trade receipts are deduplicated. The follow-up source exports recorded volume during the first day, retaining a building status and the actual coverage boundary; after a full fresh day it becomes a rolling 24-hour window. Incomplete or delayed evidence remains unavailable. The activated follow-up freezes each trade’s USD estimate using a prior recorded reference, at most 30 minutes old; it is not an exact historical USD execution price. The existing NETA collector retains its separate valuation method. The pilot excludes alloy backing, native Ethereum/Solana venues, orderbooks and unregistered legacy JUNO contracts.
+
+The owner confirmed successful direct-source and pilot installation. Subsequent public cycles advanced all three indexes and recorded all 261 pilot pools. The next encrypted backup after activation remains unverified. The owner confirmed the first-day-volume update succeeded. The further update is now installed for derived 24-hour/five-minute and seven-day/hourly pool charts, last-trade timestamps and frozen prior-reference USD valuations. It preserves the original baseline, data and five-minute schedule and reports derived public-history bytes separately. The corresponding Markets work adds a shared pool registry, searchable directory, provenance and read-only venue quotes; its publication is tracked separately from collector activation. See [the pool pilot](docs/MARKET_POOL_PILOT.md) for methodology and scope; exact operator evidence and continuation remain in the private operations record.
+
+The first history-update installation rolled back at public HTTP acceptance;
+observed data was retained. The corrected update is now operator-confirmed installed.
+A subsequent public cycle at 2026-11-22T13:25:54Z recorded all 262 registered pools,
+with complete inventory for all five assets and no errors in the three chain indexes.
+A sampled 24-hour history for each pilot asset was publicly readable and identified
+its frozen prior-reference USD basis. The publication fix makes only directories
+below the public output root traversable under `UMask=0077`; private state/archive
+permissions and collection schedules are unchanged. Verification of the next
+scheduled encrypted backup and the next-day storage comparison remain pending.
+
+## Interchain Markets expansion — 21 November 2026
+
+The Markets expansion includes TIA, INJ, AXL, LINK, SOL, BABY and UNI alongside the original ten assets; AKT is excluded at the owner’s request.
+Cosmos pool liquidity is separate from external USD price references and Injective orderbook depth. The price collector now validates explicitly identified external references without inventing chain blocks, and retains native-chain supply evidence, including finalized Solana slots and the UNI burn-address adjustment.
+The operator subsequently confirmed installation of all sixteen additional price archives and an overnight encrypted backup/download verification. A full off-server application recovery remains untested. See [Interchain Markets](docs/INTERCHAIN_MARKETS.md) for identities and rollout boundaries.
 
 
 ## NETA pool coverage and swap volume — prepared, 21 November 2026

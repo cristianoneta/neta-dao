@@ -1,0 +1,342 @@
+{
+  "juno": {
+    "symbol": "JUNO",
+    "denom": "ujuno",
+    "decimals": 6,
+    "pool": "juno1gqy6rzary8vwnslmdavqre6jdhakcd4n2z4r803ajjmdq08r66hq7zcwrj",
+    "chain": "juno-1",
+    "supplyDenom": "ujuno",
+    "supplyBase": "https://juno-api.polkachu.com"
+  },
+  "btc": {
+    "symbol": "BTC",
+    "denom": "factory/osmo1z6r6qdknhgsc0zeracktgpcxf43j6sekq07nw8sxduc9lg0qjjlqfu25e3/alloyed/allBTC",
+    "decimals": 8,
+    "pool": "3502",
+    "quote": "factory/osmo147h5x9pcj7lm0cttlaefx6sqq5vdfnmwfcqxkmjd7exqm9gc7grqhr75m0/alloyed/allUSDC",
+    "quoteDecimals": 6,
+    "quoteSymbol": "allUSDC",
+    "chain": "osmosis-1",
+    "alloyPool": "1868",
+    "alloyContract": "osmo1z6r6qdknhgsc0zeracktgpcxf43j6sekq07nw8sxduc9lg0qjjlqfu25e3"
+  },
+  "eth": {
+    "symbol": "ETH",
+    "denom": "factory/osmo1k6c8jln7ejuqwtqmay3yvzrg3kueaczl96pk067ldg8u835w0yhsw27twm/alloyed/allETH",
+    "decimals": 18,
+    "pool": "1948",
+    "quote": "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
+    "quoteDecimals": 6,
+    "quoteSymbol": "USDC",
+    "chain": "osmosis-1",
+    "alloyPool": "1878",
+    "alloyContract": "osmo1k6c8jln7ejuqwtqmay3yvzrg3kueaczl96pk067ldg8u835w0yhsw27twm"
+  },
+  "atom": {
+    "symbol": "ATOM",
+    "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+    "decimals": 6,
+    "pool": "3505",
+    "quote": "factory/osmo147h5x9pcj7lm0cttlaefx6sqq5vdfnmwfcqxkmjd7exqm9gc7grqhr75m0/alloyed/allUSDC",
+    "quoteDecimals": 6,
+    "quoteSymbol": "allUSDC",
+    "chain": "osmosis-1",
+    "supplyDenom": "uatom",
+    "supplyBase": "https://cosmos-api.polkachu.com"
+  },
+  "atone": {
+    "symbol": "ATONE",
+    "denom": "ibc/BC26A7A805ECD6822719472BCB7842A48EF09DF206182F8F259B2593EB5D23FB",
+    "decimals": 6,
+    "pool": "2715",
+    "quote": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+    "quoteDecimals": 6,
+    "quoteSymbol": "ATOM",
+    "quotePool": "3505",
+    "chain": "osmosis-1",
+    "supplyDenom": "uatone",
+    "supplyBase": "https://atomone-api.allinbits.com"
+  },
+  "photon": {
+    "symbol": "PHOTON",
+    "denom": "ibc/D6E02C5AE8A37FC2E3AB1FC8AC168878ADB870549383DFFEA9FD020C234520A7",
+    "decimals": 6,
+    "pool": "3220",
+    "quote": "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4",
+    "quoteDecimals": 6,
+    "quoteSymbol": "USDC",
+    "chain": "osmosis-1",
+    "supplyDenom": "uphoton",
+    "supplyBase": "https://atomone-api.allinbits.com"
+  },
+  "gns": {
+    "supplyInterval": 86400,
+    "symbol": "GNS",
+    "denom": "gno.land/r/gnoswap/gns.GNS",
+    "decimals": 6,
+    "pool": "gnoswap-oracle",
+    "chain": "gnoland-1",
+    "referenceKind": "provider-reference"
+  },
+  "gnot": {
+    "symbol": "GNOT",
+    "denom": "ugnot",
+    "decimals": 6,
+    "pool": "gnoswap-oracle",
+    "chain": "gnoland-1",
+    "referenceKind": "provider-reference"
+  },
+  "osmo": {
+    "symbol": "OSMO",
+    "denom": "uosmo",
+    "decimals": 6,
+    "pool": "3499",
+    "quote": "factory/osmo147h5x9pcj7lm0cttlaefx6sqq5vdfnmwfcqxkmjd7exqm9gc7grqhr75m0/alloyed/allUSDC",
+    "quoteDecimals": 6,
+    "quoteSymbol": "allUSDC",
+    "chain": "osmosis-1",
+    "supplyDenom": "uosmo",
+    "supplyBase": "https://osmosis-api.polkachu.com"
+  },
+  "tia": {
+    "symbol": "TIA",
+    "denom": "ibc/D79E7D83AB399BFFF93433E54FAA480C191248FC556924A2A8351AE2638B3877",
+    "decimals": 6,
+    "pool": "3539",
+    "quote": "factory/osmo147h5x9pcj7lm0cttlaefx6sqq5vdfnmwfcqxkmjd7exqm9gc7grqhr75m0/alloyed/allUSDC",
+    "quoteDecimals": 6,
+    "quoteSymbol": "allUSDC",
+    "chain": "osmosis-1",
+    "supplyDenom": "utia",
+    "supplyBase": "https://celestia-api.polkachu.com",
+    "supplyChain": "celestia"
+  },
+  "inj": {
+    "symbol": "INJ",
+    "denom": "ibc/64BA6E31FE887D66C6F8F31C7B1A80C7CA179239677B4088BB55F5EA07DBE273",
+    "decimals": 18,
+    "pool": "3536",
+    "quote": "factory/osmo147h5x9pcj7lm0cttlaefx6sqq5vdfnmwfcqxkmjd7exqm9gc7grqhr75m0/alloyed/allUSDC",
+    "quoteDecimals": 6,
+    "quoteSymbol": "allUSDC",
+    "chain": "osmosis-1",
+    "supplyDenom": "inj",
+    "supplyBase": "https://injective-api.polkachu.com",
+    "supplyChain": "injective-1"
+  },
+  "axl": {
+    "symbol": "AXL",
+    "denom": "ibc/903A61A498756EA560B85A85132D3AEE21B5DEDD41213725D22ABF276EA6945E",
+    "decimals": 6,
+    "chain": "osmosis-1",
+    "pool": "3563",
+    "quote": "factory/osmo147h5x9pcj7lm0cttlaefx6sqq5vdfnmwfcqxkmjd7exqm9gc7grqhr75m0/alloyed/allUSDC",
+    "quoteDecimals": 6,
+    "quoteSymbol": "allUSDC",
+    "supplyDenom": "uaxl",
+    "supplyBase": "https://axelar-api.polkachu.com",
+    "supplyChain": "axelar-dojo-1",
+    "poolDenom": "ibc/903A61A498756EA560B85A85132D3AEE21B5DEDD41213725D22ABF276EA6945E",
+    "poolDecimals": 6,
+    "poolDenoms": [
+      "ibc/903A61A498756EA560B85A85132D3AEE21B5DEDD41213725D22ABF276EA6945E"
+    ],
+    "excludeBackingPoolIds": []
+  },
+  "link": {
+    "symbol": "LINK",
+    "denom": "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+    "decimals": 18,
+    "chain": "ethereum",
+    "pool": "coingecko:chainlink",
+    "referenceKind": "external-reference",
+    "priceId": "chainlink",
+    "supplyKind": "erc20",
+    "supplyBase": "https://ethereum-rpc.publicnode.com",
+    "poolDenom": "factory/osmo18zdw5yvs6gfp95rp74qqwug9yduw2fyr8kplk2xgs726s9axc5usa2vpgw/alloyed/allLINK",
+    "poolDecimals": 12,
+    "poolDenoms": [
+      "ibc/D3327A763C23F01EC43D1F0DB3CEFEC390C362569B6FD191F40A5192F8960049",
+      "factory/osmo18zdw5yvs6gfp95rp74qqwug9yduw2fyr8kplk2xgs726s9axc5usa2vpgw/alloyed/allLINK"
+    ],
+    "excludeBackingPoolIds": [
+      "1971"
+    ]
+  },
+  "sol": {
+    "symbol": "SOL",
+    "denom": "sol",
+    "decimals": 9,
+    "chain": "solana-mainnet-beta",
+    "pool": "coingecko:solana",
+    "referenceKind": "external-reference",
+    "priceId": "solana",
+    "supplyKind": "solana",
+    "supplyBase": "https://api.mainnet-beta.solana.com",
+    "genesisHash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
+    "poolDenom": "factory/osmo1n3n75av8awcnw4jl62n3l48e6e4sxqmaf97w5ua6ddu4s475q5qq9udvx4/alloyed/allSOL",
+    "poolDecimals": 9,
+    "poolDenoms": [
+      "ibc/1E43D59E565D41FB4E54CA639B838FFD5BCFC20003D330A56CB1396231AA1CBA",
+      "factory/osmo1n3n75av8awcnw4jl62n3l48e6e4sxqmaf97w5ua6ddu4s475q5qq9udvx4/alloyed/allSOL",
+      "ibc/A1465DD6AF456FCD0D998869608DFEEDA4F4C11EC0A12AF92A994A3F8CBEE546"
+    ],
+    "excludeBackingPoolIds": [
+      "1925"
+    ]
+  },
+  "baby": {
+    "symbol": "BABY",
+    "denom": "ubbn",
+    "decimals": 6,
+    "chain": "bbn-1",
+    "pool": "coingecko:babylon",
+    "referenceKind": "external-reference",
+    "priceId": "babylon",
+    "supplyDenom": "ubbn",
+    "supplyBase": "https://babylon-api.polkachu.com",
+    "supplyChain": "bbn-1",
+    "poolDenom": "ibc/EC3A4ACBA1CFBEE698472D3563B70985AEA5A7144C319B61B3EBDFB57B5E1535",
+    "poolDecimals": 6,
+    "poolDenoms": [
+      "ibc/EC3A4ACBA1CFBEE698472D3563B70985AEA5A7144C319B61B3EBDFB57B5E1535"
+    ],
+    "excludeBackingPoolIds": []
+  },
+  "uni": {
+    "symbol": "UNI",
+    "denom": "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+    "decimals": 18,
+    "chain": "ethereum",
+    "pool": "coingecko:uniswap",
+    "referenceKind": "external-reference",
+    "priceId": "uniswap",
+    "supplyKind": "erc20",
+    "supplyBase": "https://ethereum-rpc.publicnode.com",
+    "burnAddress": "0x000000000000000000000000000000000000dEaD",
+    "poolDenom": "factory/osmo1eqjda4pc6e09jtxzxggf6jl3jye2yn453ja58we5gxwzmf5ah28qvlnaz8/alloyed/allUNI",
+    "poolDecimals": 12,
+    "poolDenoms": [
+      "ibc/AE2719773D6FCDD05AC17B1ED63F672F5F9D84144A61965F348C86C2A83AD161",
+      "factory/osmo1eqjda4pc6e09jtxzxggf6jl3jye2yn453ja58we5gxwzmf5ah28qvlnaz8/alloyed/allUNI"
+    ],
+    "excludeBackingPoolIds": [
+      "2212"
+    ]
+  },
+  "capa": {
+    "symbol": "CAPA",
+    "denom": "terra1t4p3u8khpd7f8qzurwyafxt648dya6mp6vur3vaapswt6m24gkuqrfdhar",
+    "decimals": 6,
+    "chain": "phoenix-1",
+    "pool": "terra183wqgrwa2k0uvlz99j57c496gfuwgtaccrhv4stcjzv3ydacl9zq0hmf25",
+    "referenceKind": "astroport-reference",
+    "quote": "uluna",
+    "quoteDecimals": 6,
+    "quoteSymbol": "LUNA",
+    "offerAmount": "100000000",
+    "pairCodeId": 2569,
+    "supplyDenom": "terra1t4p3u8khpd7f8qzurwyafxt648dya6mp6vur3vaapswt6m24gkuqrfdhar",
+    "supplyKind": "cw20",
+    "supplyChain": "phoenix-1",
+    "supplyBase": "https://terra-lcd.publicnode.com",
+    "supplyInterval": 86400
+  },
+  "solid": {
+    "symbol": "SOLID",
+    "denom": "terra10aa3zdkrc7jwuf8ekl3zq7e7m42vmzqehcmu74e4egc7xkm5kr2s0muyst",
+    "decimals": 6,
+    "chain": "phoenix-1",
+    "pool": "terra1mkt8nv7q2u0aj4zpndh23642cnkztg66x65dlj0vhluyk95m8lys9lp2cv",
+    "referenceKind": "astroport-reference",
+    "quote": "ibc/E8481AD838C31D4FC12A504B10F9B4E2F830F8818D2735C2FFC707579B5FA60B",
+    "quoteDecimals": 6,
+    "quoteSymbol": "USDC.inj",
+    "offerAmount": "1000000",
+    "pairCodeId": 428,
+    "supplyDenom": "terra10aa3zdkrc7jwuf8ekl3zq7e7m42vmzqehcmu74e4egc7xkm5kr2s0muyst",
+    "supplyKind": "cw20",
+    "supplyChain": "phoenix-1",
+    "supplyBase": "https://terra-lcd.publicnode.com",
+    "supplyInterval": 3600
+  },
+  "astro": {
+    "symbol": "ASTRO",
+    "denom": "ibc/8D8A7F7253615E5F76CB6252A1E1BD921D5EDB7BBAAF8913FB1C77FF125D9995",
+    "decimals": 6,
+    "chain": "phoenix-1",
+    "pool": "terra1nwepezm3mghyxm7fjfhfr2d4jwqzndtncf9tclgunqfcwhe52mpq4sxaqr",
+    "referenceKind": "astroport-reference",
+    "quote": "uluna",
+    "quoteDecimals": 6,
+    "quoteSymbol": "LUNA",
+    "offerAmount": "100000000",
+    "pairCodeId": 2569,
+    "supplyDenom": "factory/neutron1ffus553eet978k024lmssw0czsxwr97mggyv85lpcsdkft8v9ufsz3sa07/astro",
+    "supplyKind": "bank",
+    "supplyChain": "neutron-1",
+    "supplyBase": "https://neutron-api.polkachu.com",
+    "supplyInterval": 86400
+  },
+  "paxg": {
+    "symbol": "PAXG",
+    "denom": "0x45804880De22913dAFE09f4980848ECE6EcbAf78",
+    "decimals": 18,
+    "chain": "ethereum",
+    "pool": "coingecko:pax-gold",
+    "referenceKind": "external-reference",
+    "priceId": "pax-gold",
+    "supplyKind": "erc20",
+    "supplyBase": "https://ethereum-rpc.publicnode.com",
+    "supplyInterval": 86400,
+    "supplyScope": "Ethereum contract supply",
+    "poolDenom": "ibc/0EF5630576C66968EF0787868CF09FD866FAD131BC148D24A148358A85F0EB62",
+    "poolDecimals": 18,
+    "poolDenoms": [
+      "ibc/0EF5630576C66968EF0787868CF09FD866FAD131BC148D24A148358A85F0EB62",
+      "ibc/A5CCD24BA902843B1003A7EEE5F937C632808B9CF4925601241B15C5A0A51A53",
+      "ibc/6A8B28D057B9AB0FF27AA5C7CCA6E6B697567CFD466C407FA94ED1AF04616B96"
+    ],
+    "unverifiedDenoms": [
+      "ibc/A5CCD24BA902843B1003A7EEE5F937C632808B9CF4925601241B15C5A0A51A53",
+      "ibc/6A8B28D057B9AB0FF27AA5C7CCA6E6B697567CFD466C407FA94ED1AF04616B96"
+    ],
+    "excludeBackingPoolIds": []
+  },
+  "luna": {
+    "symbol": "LUNA",
+    "denom": "uluna",
+    "decimals": 6,
+    "chain": "phoenix-1",
+    "pool": "terra1heml6j6ewfmjj845vmhm27a4xt9hfgs67uv8qfsjkyza0auelyksmm6cxv",
+    "referenceKind": "astroport-reference",
+    "quote": "ibc/E8481AD838C31D4FC12A504B10F9B4E2F830F8818D2735C2FFC707579B5FA60B",
+    "quoteDecimals": 6,
+    "quoteSymbol": "USDC.inj",
+    "offerAmount": "100000000",
+    "pairCodeId": 2569,
+    "supplyDenom": "uluna",
+    "supplyKind": "bank",
+    "supplyChain": "phoenix-1",
+    "supplyBase": "https://terra-lcd.publicnode.com",
+    "supplyInterval": 86400
+  },
+  "roar": {
+    "symbol": "ROAR",
+    "denom": "terra1lxx40s29qvkrcj8fsa3yzyehy7w50umdvvnls2r830rys6lu2zns63eelv",
+    "decimals": 6,
+    "chain": "phoenix-1",
+    "pool": "terra189v2ewgfx5wdhje6geefdtxefeemujplk8qw2wx3x5hdswn95l8qf4n2r0",
+    "referenceKind": "astroport-reference",
+    "quote": "uluna",
+    "quoteDecimals": 6,
+    "quoteSymbol": "LUNA",
+    "offerAmount": "1000000000000",
+    "pairCodeId": 3279,
+    "supplyDenom": "terra1lxx40s29qvkrcj8fsa3yzyehy7w50umdvvnls2r830rys6lu2zns63eelv",
+    "supplyKind": "cw20",
+    "supplyChain": "phoenix-1",
+    "supplyBase": "https://terra-lcd.publicnode.com",
+    "supplyInterval": 86400
+  }
+}

@@ -1,0 +1,12 @@
+[Unit]
+Description=Capture the bounded Cosmoot pool pilot every five minutes
+
+[Timer]
+OnCalendar=*-*-* *:0/5:40 UTC
+AccuracySec=1s
+RandomizedDelaySec=2s
+Persistent=false
+Unit=cosmoot-pool-pilot.service
+
+[Install]
+WantedBy=timers.target
