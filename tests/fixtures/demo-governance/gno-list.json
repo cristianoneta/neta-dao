@@ -1,0 +1,19 @@
+{
+  "jsonrpc": "2.0",
+  "id": "",
+  "result": {
+    "response": {
+      "ResponseBase": {
+        "Error": null,
+        "Data": "IyBHb3ZEQU8KIyMgTWVtYmVycwpbPiBHbyB0byBNZW1iZXJzdG9yZSA8XSgvci9nb3YvZGFvL21lbWJlcnN0b3JlL3YwKQojIyBQcm9wb3NhbHMKIyMjIFtQcm9wICMyMCAtIEFkZCAxMCB2YWxpZGF0b3JzIHRvIHRoZSB2YWxzZXRdKC9yL2dvdi9kYW86MjApCkF1dGhvcjogW0BhZWRkaV0oL3UvYWVkZGkpCgpTdGF0dXM6IEFDQ0VQVEVECgpUaWVycyBlbGlnaWJsZSB0byB2b3RlOiBUMSwgVDIsIFQzCgotLS0KCiMjIyBbUHJvcCAjMTkgLSBTZXQgbm9kZSBoYWx0IGhlaWdodF0oL3IvZ292L2RhbzoxOSkKQXV0aG9yOiBbQGFlZGRpXSgvdS9hZWRkaSkKClN0YXR1czogQUNDRVBURUQKClRpZXJzIGVsaWdpYmxlIHRvIHZvdGU6IFQxLCBUMiwgVDMKCi0tLQoKIyMjIFtQcm9wICMxOCAtIE5ldyBUMSBNZW1iZXIgUHJvcG9zYWxdKC9yL2dvdi9kYW86MTgpCkF1dGhvcjogW0Btb3VsXSgvdS9tb3VsKQoKU3RhdHVzOiBBQ0NFUFRFRAoKVGllcnMgZWxpZ2libGUgdG8gdm90ZTogVDEKCi0tLQoKIyMjIFtQcm9wICMxNyAtIE5ldyBUMSBNZW1iZXIgUHJvcG9zYWxdKC9yL2dvdi9kYW86MTcpCkF1dGhvcjogW0Btb3VsXSgvdS9tb3VsKQoKU3RhdHVzOiBBQ0NFUFRFRAoKVGllcnMgZWxpZ2libGUgdG8gdm90ZTogVDEKCi0tLQoKIyMjIFtQcm9wICMxNiAtIE5ldyBUMSBNZW1iZXIgUHJvcG9zYWxdKC9yL2dvdi9kYW86MTYpCkF1dGhvcjogW0Btb3VsXSgvdS9tb3VsKQoKU3RhdHVzOiBBQ0NFUFRFRAoKVGllcnMgZWxpZ2libGUgdG8gdm90ZTogVDEKCi0tLQoKKioxKiogfCBbMl0oP3BhZ2U9MikgfCBbM10oP3BhZ2U9MykgfCDigKYgfCBbNV0oP3BhZ2U9NSk=",
+        "Events": null,
+        "Log": "",
+        "Info": ""
+      },
+      "Key": null,
+      "Value": null,
+      "Proof": null,
+      "Height": "0"
+    }
+  }
+}

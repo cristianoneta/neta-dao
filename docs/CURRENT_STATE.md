@@ -1,15 +1,29 @@
 # Current state — Cosmoot
 
+## Governance directory and live proposal reader — candidate, 25 November 2026
+
+The unlinked `/demo/` landing now selects AtomOne, Gno.land and GnoSwap. GnoSwap
+has deployed protocol governance and is clickable. Read-only mainnet adapters load
+retained proposal history, discover new proposals on visible-page refresh and
+preserve each source's voting and execution semantics. Source failures and partial
+coverage remain explicit; this is not a durable proposal archive. The original
+People, Treasury and discussion concept remains a labelled browser-local
+simulation at its existing links. No wallet, name or social-provider write is added.
+The previous concept was observed live on 25 November; this directory and reader
+still require the deliberate Cloudflare release after integration and checks.
+See the [source and verification record](GOVERNANCE_DEMO_2026-11-25.md).
+
 ## Markets collector source reconciliation — 25 November 2026
 
 The combined market-history and pool-collector changes from PRs #351 and #352
-remain absent from the previous main branch, although their documented host
-activation already occurred. PR #352 now targets main and includes #351's source.
+were absent from main despite their documented host activation. PR #352 has now
+merged after successful required checks and includes #351's source; GitHub also
+marked #351 merged through that ancestry.
 The merge preserves the Gno demo and the current contract-audit applicability
 review from main. Collector scripts, configurations and systemd units are byte
 identical to the previously reviewed #352 head; this reconciliation does not
 install services, restart collectors or replace production data. Required checks
-are rerun before integration. The next encrypted archive backup remains a
+passed before integration. The next encrypted archive backup remains a
 separate operational acceptance item.
 
 ## Gno demo candidate — 24 November 2026
@@ -19,8 +33,8 @@ the owner-requested grayscale Cosmoot Markets style. Wallet connections, names,
 fees, social-account confirmations, votes and payments are explicitly simulated;
 comments and profile changes persist only in the current browser. There are no
 Gno, GNS or social-provider writes. The route carries noindex directives and is
-public to anyone with its URL. Publication remains pending the required checks
-and deliberate Cloudflare release; the existing public navigation is unchanged.
+public to anyone with its URL. The original concept was observed live on 25 November; the existing public
+navigation is unchanged. The newer directory is a separate release candidate above.
 
 ## Osmosis inventory normalization — active, 24 November 2026
 

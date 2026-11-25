@@ -1,15 +1,29 @@
 # Cosmoot public development handoff
 
+## Governance directory and live proposal reader — candidate, 25 November 2026
+
+The unlinked `/demo/` landing now selects AtomOne, Gno.land and GnoSwap. GnoSwap
+has deployed protocol governance and is clickable. Read-only mainnet adapters load
+retained proposal history, discover new proposals on visible-page refresh and
+preserve each source's voting and execution semantics. Source failures and partial
+coverage remain explicit; this is not a durable proposal archive. The original
+People, Treasury and discussion concept remains a labelled browser-local
+simulation at its existing links. No wallet, name or social-provider write is added.
+The previous concept was observed live on 25 November; this directory and reader
+still require the deliberate Cloudflare release after integration and checks.
+See the [source and verification record](docs/GOVERNANCE_DEMO_2026-11-25.md).
+
 ## Markets collector source reconciliation — 25 November 2026
 
 The combined market-history and pool-collector changes from PRs #351 and #352
-remain absent from the previous main branch, although their documented host
-activation already occurred. PR #352 now targets main and includes #351's source.
+were absent from main despite their documented host activation. PR #352 has now
+merged after successful required checks and includes #351's source; GitHub also
+marked #351 merged through that ancestry.
 The merge preserves the Gno demo and the current contract-audit applicability
 review from main. Collector scripts, configurations and systemd units are byte
 identical to the previously reviewed #352 head; this reconciliation does not
 install services, restart collectors or replace production data. Required checks
-are rerun before integration. The next encrypted archive backup remains a
+passed before integration. The next encrypted archive backup remains a
 separate operational acceptance item.
 
 ## Gno demo candidate — 24 November 2026
@@ -19,8 +33,8 @@ the owner-requested grayscale Cosmoot Markets style. Wallet connections, names,
 fees, social-account confirmations, votes and payments are explicitly simulated;
 comments and profile changes persist only in the current browser. There are no
 Gno, GNS or social-provider writes. The route carries noindex directives and is
-public to anyone with its URL. Publication remains pending the required checks
-and deliberate Cloudflare release; the existing public navigation is unchanged.
+public to anyone with its URL. The original concept was observed live on 25 November; the existing public
+navigation is unchanged. The newer directory is a separate release candidate above.
 
 ## Osmosis inventory normalization — active, 24 November 2026
 
@@ -102,7 +116,6 @@ Four lacked complete USD valuation. The separate BTC inventory check still
 reported unavailable, so the aggregate service exit status can remain nonzero.
 The next scheduled encrypted backup remains a separate acceptance check. See [the pool pilot](docs/MARKET_POOL_PILOT.md).
 
-
 ## Market archive lock coordination and Terra archives — active, 22 November 2026
 
 Terra archive activation rolled back when another archive writer held the shared
@@ -144,7 +157,6 @@ The Markets expansion includes TIA, INJ, AXL, LINK, SOL, BABY and UNI alongside 
 Cosmos pool liquidity is separate from external USD price references and Injective orderbook depth. The price collector now validates explicitly identified external references without inventing chain blocks, and retains native-chain supply evidence, including finalized Solana slots and the UNI burn-address adjustment.
 The operator subsequently confirmed installation of all sixteen additional price archives and an overnight encrypted backup/download verification. A full off-server application recovery remains untested. See [Interchain Markets](docs/INTERCHAIN_MARKETS.md) for identities and rollout boundaries.
 
-
 ## NETA pool coverage and swap volume — prepared, 21 November 2026
 
 A separate five-minute collector adds the weighted NETA/OSMO pool 631 and rolling
@@ -164,7 +176,6 @@ its own SQLite history and public snapshots. The existing Treasury schedule and
 wallet/governance code are unchanged. Source validation and a read-only live query
 passed; production timer installation, DNS and subsequent scheduled observations
 remain separate acceptance steps. See [NETA Markets](docs/NETA_MARKETS.md).
-
 
 On 18 November, the collector installation completed and published staking coverage through 17 November with both payout controls verified. Operations refreshed both chains. After the targeted HTTP identity correction in PR #347, the public Treasury observation contains all eight WYND pools at its matching block height. The unchanged external freshness check passed all 50 observations across the three Cosmoot endpoints and the legacy NETA site at 20:22 UTC ([successful rerun](https://github.com/cristianoneta/neta-dao/actions/runs/44377522930)). Freshness limits and alerting remain enabled; the next unattended timer cycle is separate from this acceptance run.
 

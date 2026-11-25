@@ -5,6 +5,18 @@ use [CURRENT_STATE](CURRENT_STATE.md). A later explicit owner decision supersede
 an earlier design note. The 24 October maintenance changes module boundaries and
 loading behavior without introducing a new visual theme or activating features.
 
+## Governance directory — owner update, 25 November 2026
+
+The `/demo/` entry is a compact grayscale directory in the Cosmoot Markets style.
+AtomOne and Gno.land are chain-governance workspaces; GnoSwap is a selectable
+protocol-governance workspace. Its deployed governance is real, not an example
+card. Show source-backed proposal history, current state, observation times and
+refresh failures explicitly. Preserve each network's voting model and separate
+approval from execution. Keep the earlier People, Treasury and discussion concept
+reachable with clear simulation labels and its existing deep links. Live proposal
+rows must never be mixed with those examples. See the
+[reader scope and limits](GOVERNANCE_DEMO_2026-11-25.md).
+
 ## Gno concept demo — owner direction, 24 November 2026
 
 The independent `/demo/` route follows the compact Cosmoot Markets layout with
@@ -15,7 +27,7 @@ navigation is Proposals, Treasury and People. Show one display name per person;
 keep the underlying wallet and naming source in profile details. People holds the
 name-registration concept and Telegram/Discord profile links, with a separate My
 profile entry in the account menu. Self-entered handles and simulated account
-confirmations must remain distinguishable. Everything in the demo is illustrative,
+confirmations must remain distinguishable. Everything in this original concept is illustrative,
 with local browser persistence only. Do not link it from production navigation or
 add it to a sitemap. Search-engine exclusion is not access control.
 
