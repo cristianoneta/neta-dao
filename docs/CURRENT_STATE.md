@@ -1,5 +1,27 @@
 # Current state — Cosmoot
 
+## Markets collector source reconciliation — 25 November 2026
+
+The combined market-history and pool-collector changes from PRs #351 and #352
+remain absent from the previous main branch, although their documented host
+activation already occurred. PR #352 now targets main and includes #351's source.
+The merge preserves the Gno demo and the current contract-audit applicability
+review from main. Collector scripts, configurations and systemd units are byte
+identical to the previously reviewed #352 head; this reconciliation does not
+install services, restart collectors or replace production data. Required checks
+are rerun before integration. The next encrypted archive backup remains a
+separate operational acceptance item.
+
+## Gno demo candidate — 24 November 2026
+
+An isolated, unlinked `/demo/` concept provides Proposals, Treasury and People in
+the owner-requested grayscale Cosmoot Markets style. Wallet connections, names,
+fees, social-account confirmations, votes and payments are explicitly simulated;
+comments and profile changes persist only in the current browser. There are no
+Gno, GNS or social-provider writes. The route carries noindex directives and is
+public to anyone with its URL. Publication remains pending the required checks
+and deliberate Cloudflare release; the existing public navigation is unchanged.
+
 ## Osmosis inventory normalization — active, 24 November 2026
 
 Filtered SQS bank balances omitted tiny GAMM holdings and both assets of empty

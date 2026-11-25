@@ -29,9 +29,10 @@ discovery time and incomplete older trade valuations remain visible.
 
 The source revision passed 60 focused collector tests and the private installer
 passed 13 failure and preservation tests. Its general repository checks passed;
-the separate contract dependency audit remains blocked because the existing
-RUSTSEC-2026-0387 applicability review expired on 24 November. No security
-exception was extended. Host access and backup receipts remain private.
+the separate contract dependency audit failed at that checkpoint because the
+existing RUSTSEC-2026-0387 applicability review had expired. The 25 November
+source reconciliation retains the later reviewed policy already on main and
+reruns the required checks. Host access and backup receipts remain private.
 
 ## Source boundary
 

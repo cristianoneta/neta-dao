@@ -50,6 +50,12 @@ function isPublic(path) {
       /\/(LICENSE|SHA256SUMS)$/.test(path)
     );
   if (path.startsWith('data/')) return ['.json', '.gz'].includes(extname(path));
+  if (path.startsWith('demo/'))
+    return (
+      publicSuffixes.has(extname(path)) ||
+      ['.svg', '.woff'].includes(extname(path)) ||
+      path === 'demo/fonts/manrope-OFL.txt'
+    );
   if (path.startsWith('community-tools/')) return publicSuffixes.has(extname(path));
   return path.startsWith('src/') && ['.js', '.mjs'].includes(extname(path));
 }

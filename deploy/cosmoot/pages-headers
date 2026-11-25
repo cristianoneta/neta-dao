@@ -13,3 +13,9 @@
 
 /community-tools/neta/dex
   X-Robots-Tag: noindex, nofollow, noarchive
+
+/demo
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/demo/*
+  X-Robots-Tag: noindex, nofollow, noarchive
